@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Layout used for ProgressCategory in bluetooth settings. -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="27dip"
+    android:background="@*android:drawable/settings_header">
+
+    <TextView 
+        android:id="@+android:id/title"
+        style="?android:attr/listSeparatorTextViewStyle"
+    />
+
+    <ProgressBar
+        android:id="@+id/scanning_progress"
+        android:text="@string/progress_scanning"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="?android:attr/scrollbarSize"
+        style="?android:attr/progressBarStyleSmallTitle"
+        />
+
+    <TextView 
+        android:id="@+id/scanning_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@id/scanning_progress"
+        android:textSize="18sp"
+        android:textColor="@android:color/primary_text_light"
+        android:layout_marginRight="5sp"
+        android:text="@string/progress_scanning"
+        />
+
+</RelativeLayout>
