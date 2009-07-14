@@ -42,8 +42,8 @@ import android.net.Uri;
 import android.provider.OpenableColumns;
 
 /**
- * This class stores information about a single sending file
- *         It will only be used for outbound share.
+ * This class stores information about a single sending file It will only be
+ * used for outbound share.
  */
 public class BluetoothOppSendFileInfo {
     /** readable media file name */

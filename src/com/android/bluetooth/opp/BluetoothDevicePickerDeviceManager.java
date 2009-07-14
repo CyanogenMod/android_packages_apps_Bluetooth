@@ -32,6 +32,8 @@
 
 package com.android.bluetooth.opp;
 
+import com.android.bluetooth.R;
+
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothClass;
 import com.android.bluetooth.opp.BluetoothDevicePickerManager.Callback;

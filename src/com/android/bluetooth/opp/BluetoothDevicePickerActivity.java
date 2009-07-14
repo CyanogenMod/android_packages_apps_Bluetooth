@@ -32,6 +32,8 @@
 
 package com.android.bluetooth.opp;
 
+import com.android.bluetooth.R;
+
 import java.util.List;
 import java.util.WeakHashMap;
 
@@ -39,8 +41,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.util.Config;
 import android.content.Intent;
-
-/* for device picker */
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceScreen;
@@ -131,7 +131,7 @@ public class BluetoothDevicePickerActivity extends PreferenceActivity implements
                 log("the device chosed is paired, send intent to OPP with the BT address and finish this activity.");
                 String BtAddress = btPreference.getDevice().getAddress();
                 Intent intent = new Intent(BluetoothShare.BLUETOOTH_DEVICE_SELECTED_ACTION);
-                intent.setClassName("com.android.bluetooth.opp", BluetoothOppReceiver.class
+                intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class
                         .getName());
                 intent.putExtra("BT_ADDRESS", BtAddress);
                 this.sendBroadcast(intent);
@@ -174,9 +174,7 @@ public class BluetoothDevicePickerActivity extends PreferenceActivity implements
         log("onBondingStateChanged");
         if (created == true) {
             Intent intent = new Intent(BluetoothShare.BLUETOOTH_DEVICE_SELECTED_ACTION);
-            intent
-                    .setClassName("com.android.bluetooth.opp", BluetoothOppReceiver.class
-                            .getName());
+            intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
             intent.putExtra("BT_ADDRESS", address);
             this.sendBroadcast(intent);
             log("the device bond succeeded, send intent to OPP");

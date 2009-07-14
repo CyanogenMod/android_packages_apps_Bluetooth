@@ -32,6 +32,8 @@
 
 package com.android.bluetooth.opp;
 
+import com.android.bluetooth.R;
+
 import android.content.Context;
 import android.preference.Preference;
 import android.util.TypedValue;

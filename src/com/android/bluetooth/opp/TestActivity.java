@@ -32,6 +32,8 @@
 
 package com.android.bluetooth.opp;
 
+import com.android.bluetooth.R;
+
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;

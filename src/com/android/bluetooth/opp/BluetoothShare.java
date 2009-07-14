@@ -36,8 +36,8 @@ import android.provider.BaseColumns;
 import android.net.Uri;
 
 /**
- * Exposes constants used to interact with the Bluetooth
- *         Share manager's content provider.
+ * Exposes constants used to interact with the Bluetooth Share manager's content
+ * provider.
  * @hide
  */
 

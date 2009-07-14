@@ -44,8 +44,7 @@ import android.os.Message;
 import android.util.Log;
 
 /**
- * This class listens on OPUSH channel for incoming
- *         connection
+ * This class listens on OPUSH channel for incoming connection
  */
 public class BluetoothOppRfcommListener {
     private static final String TAG = "BtOpp RfcommListener";

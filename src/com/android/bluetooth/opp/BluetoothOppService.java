@@ -64,8 +64,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
- * Performs the background Bluetooth OPP transfer. It also
- *         starts thread to accept incoming OPP connection.
+ * Performs the background Bluetooth OPP transfer. It also starts thread to
+ * accept incoming OPP connection.
  */
 
 public class BluetoothOppService extends Service {
@@ -163,7 +163,7 @@ public class BluetoothOppService extends Service {
         filter.addAction(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION);
         registerReceiver(mBluetoothIntentReceiver, filter);
 
-        synchronized (this) {
+        synchronized (BluetoothOppService.this) {
             if (mBluetooth == null) {
                 Log.w(TAG, "Local BT device is not enabled");
             } else {
@@ -345,7 +345,7 @@ public class BluetoothOppService extends Service {
                         }
                         mSocketListener.stop();
                         mListenStarted = false;
-                        synchronized (this) {
+                        synchronized (BluetoothOppService.this) {
                             if (mUpdateThread == null) {
                                 stopSelf();
                             }
@@ -357,7 +357,7 @@ public class BluetoothOppService extends Service {
     };
 
     private void updateFromProvider() {
-        synchronized (this) {
+        synchronized (BluetoothOppService.this) {
             mPendingUpdate = true;
             if (mUpdateThread == null) {
                 mUpdateThread = new UpdateThread();
@@ -377,7 +377,7 @@ public class BluetoothOppService extends Service {
 
             boolean keepUpdateThread = false;
             for (;;) {
-                synchronized (this) {
+                synchronized (BluetoothOppService.this) {
                     if (mUpdateThread != this) {
                         throw new IllegalStateException(
                                 "multiple UpdateThreads in BluetoothOppService");
@@ -432,7 +432,7 @@ public class BluetoothOppService extends Service {
                         // some
                         // stuff in the local array, which can only be junk
                         if (Constants.LOGVV) {
-                            int arrayId = ((BluetoothOppShareInfo)mShares.get(arrayPos)).mId;
+                            int arrayId = mShares.get(arrayPos).mId;
                             Log.v(TAG, "Array update: trimming " + arrayId + " @ " + arrayPos);
                         }
 
@@ -651,7 +651,7 @@ public class BluetoothOppService extends Service {
     }
 
     private void updateShare(Cursor cursor, int arrayPos, boolean userAccepted) {
-        BluetoothOppShareInfo info = (BluetoothOppShareInfo)mShares.get(arrayPos);
+        BluetoothOppShareInfo info = mShares.get(arrayPos);
         int statusColumn = cursor.getColumnIndexOrThrow(BluetoothShare.STATUS);
 
         info.mId = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID));
@@ -756,7 +756,7 @@ public class BluetoothOppService extends Service {
      * Removes the local copy of the info about a share.
      */
     private void deleteShare(int arrayPos) {
-        BluetoothOppShareInfo info = (BluetoothOppShareInfo)mShares.get(arrayPos);
+        BluetoothOppShareInfo info = mShares.get(arrayPos);
 
         /*
          * Delete arrayPos from a batch. The logic is
@@ -861,7 +861,7 @@ public class BluetoothOppService extends Service {
     }
 
     private boolean needAction(int arrayPos) {
-        BluetoothOppShareInfo info = (BluetoothOppShareInfo)mShares.get(arrayPos);
+        BluetoothOppShareInfo info = mShares.get(arrayPos);
         if (BluetoothShare.isStatusCompleted(info.mStatus)) {
             return false;
         }
@@ -869,13 +869,13 @@ public class BluetoothOppService extends Service {
     }
 
     private boolean visibleNotification(int arrayPos) {
-        BluetoothOppShareInfo info = (BluetoothOppShareInfo)mShares.get(arrayPos);
+        BluetoothOppShareInfo info = mShares.get(arrayPos);
         return info.hasCompletionNotification();
     }
 
     private boolean scanFile(Cursor cursor, int arrayPos) {
-        BluetoothOppShareInfo info = (BluetoothOppShareInfo)mShares.get(arrayPos);
-        synchronized (this) {
+        BluetoothOppShareInfo info = mShares.get(arrayPos);
+        synchronized (BluetoothOppService.this) {
             if (Constants.LOGV) {
                 Log.v(TAG, "Scanning file " + info.mFilename);
             }
@@ -885,7 +885,7 @@ public class BluetoothOppService extends Service {
     }
 
     private boolean shouldScanFile(int arrayPos) {
-        BluetoothOppShareInfo info = (BluetoothOppShareInfo)mShares.get(arrayPos);
+        BluetoothOppShareInfo info = mShares.get(arrayPos);
         return !info.mMediaScanned && info.mDirection == BluetoothShare.DIRECTION_INBOUND
                 && BluetoothShare.isStatusSuccess(info.mStatus);
 

@@ -32,6 +32,8 @@
 
 package com.android.bluetooth.opp;
 
+import com.android.bluetooth.R;
+
 import java.util.ArrayList;
 import android.app.Activity;
 import android.content.Intent;
@@ -42,8 +44,8 @@ import android.provider.Settings;
 
 /**
  * This class is designed to act as the entry point of handling the share intent
- * via BT from other APPs. and also make "Bluetooth" available in sharing
- * method selection dialog.
+ * via BT from other APPs. and also make "Bluetooth" available in sharing method
+ * selection dialog.
  */
 public class BluetoothOppLauncherActivity extends Activity {
     private static final String TAG = "BluetoothLauncherActivity";

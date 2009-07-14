@@ -34,7 +34,11 @@ package com.android.bluetooth.opp;
 
 import java.io.*;
 
-import javax.obex.*;
+import javax.obex.HeaderSet;
+import javax.obex.Operation;
+import javax.obex.ResponseCodes;
+import javax.obex.ServerRequestHandler;
+import javax.obex.ServerSession;
 
 import android.util.Log;
 
@@ -94,9 +98,9 @@ public class TestTcpServer extends ServerRequestHandler implements Runnable {
             java.io.InputStream is = op.openInputStream();
 
             updateStatus("Got data bytes " + is.available() + " name "
-                    + op.getReceivedHeaders().getHeader(HeaderSet.NAME) + " type " + op.getType());
+                    + op.getReceivedHeader().getHeader(HeaderSet.NAME) + " type " + op.getType());
 
-            File f = new File((String)op.getReceivedHeaders().getHeader(HeaderSet.NAME));
+            File f = new File((String)op.getReceivedHeader().getHeader(HeaderSet.NAME));
             fos = new FileOutputStream(f);
             byte b[] = new byte[1000];
             int len;

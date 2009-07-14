@@ -81,14 +81,12 @@ public class BluetoothOppBatch {
     public interface BluetoothOppBatchListener {
         /**
          * Called to notify when a share is added into the batch
-         * 
          * @param id , BluetoothOppShareInfo.id
          */
         public void onShareAdded(int id);
 
         /**
          * Called to notify when a share is deleted from the batch
-         * 
          * @param id , BluetoothOppShareInfo.id
          */
         public void onShareDeleted(int id);
@@ -101,7 +99,6 @@ public class BluetoothOppBatch {
 
     /**
      * A batch is always created with at least one ShareInfo
-     * 
      * @param context, Context
      * @param info, BluetoothOppShareInfo
      */
@@ -196,7 +193,6 @@ public class BluetoothOppBatch {
 
     /**
      * Get the running status of the batch
-     * 
      * @return
      */
     public boolean isRunning() {
@@ -210,8 +206,8 @@ public class BluetoothOppBatch {
 
     /**
      * Get the first pending ShareInfo of the batch
-     * 
-     * @return BluetoothOppShareInfo, for the first pending share, or null if none exists
+     * @return BluetoothOppShareInfo, for the first pending share, or null if
+     *         none exists
      */
     public BluetoothOppShareInfo getPendingShare() {
         for (int i = 0; i < mShares.size(); i++) {

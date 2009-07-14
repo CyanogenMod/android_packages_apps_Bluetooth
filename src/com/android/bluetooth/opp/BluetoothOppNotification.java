@@ -32,6 +32,8 @@
 
 package com.android.bluetooth.opp;
 
+import com.android.bluetooth.R;
+
 import android.content.Context;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -92,9 +94,7 @@ class BluetoothOppNotification {
 
     /**
      * Constructor
-     * 
-     * @param ctx The context to use to obtain access to the Notification
-     *            Service
+     * @param ctx The context to use to obtain access to the Notification Service
      */
     BluetoothOppNotification(Context ctx) {
         mContext = ctx;

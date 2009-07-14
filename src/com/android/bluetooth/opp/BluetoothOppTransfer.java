@@ -56,7 +56,8 @@ import java.net.UnknownHostException;
 import java.util.UUID;
 
 /**
- * This class run an actual Opp transfer session (from connect target device to disconnect)
+ * This class run an actual Opp transfer session (from connect target device to
+ * disconnect)
  */
 public class BluetoothOppTransfer implements BluetoothOppBatchListener {
     private static final String TAG = "BtOpp Transfer";
@@ -473,8 +474,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatchListener {
                                 + mTransport.toString());
             }
 
-            mSession = (BluetoothOppObexSession)new BluetoothOppObexClientSession(mContext,
-                    mTransport);
+            mSession = new BluetoothOppObexClientSession(mContext, mTransport);
         } else if (mBatch.mDirection == BluetoothShare.DIRECTION_INBOUND) {
             /*
              * For inbounds transfer, a server session should already exists

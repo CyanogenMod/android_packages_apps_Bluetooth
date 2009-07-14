@@ -32,6 +32,8 @@
 
 package com.android.bluetooth.opp;
 
+import com.android.bluetooth.R;
+
 import android.content.Context;
 import android.preference.PreferenceCategory;
 import android.util.AttributeSet;
@@ -72,7 +74,6 @@ public class ProgressCategory extends PreferenceCategory {
 
     /**
      * Turn on/off the progress indicator and text on the right.
-     * 
      * @param progressOn whether or not the progress should be displayed
      */
     public void setProgress(boolean progressOn) {

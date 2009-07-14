@@ -32,9 +32,10 @@
 
 package com.android.bluetooth.opp;
 
+import com.android.bluetooth.R;
+import com.google.android.collect.Lists;
+
 import android.util.Log;
-import java.util.ArrayList;
-import java.util.List;
 import android.net.Uri;
 import android.content.ContentValues;
 import android.content.Context;
@@ -43,9 +44,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
-import java.io.File;
 
-import com.google.android.collect.Lists;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class has some utilities for Opp application;

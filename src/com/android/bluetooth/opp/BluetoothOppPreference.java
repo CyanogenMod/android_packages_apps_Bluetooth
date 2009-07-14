@@ -40,9 +40,8 @@ import android.content.SharedPreferences.Editor;
 import android.util.Log;
 
 /**
- * This class cache Bluetooth device name and channel locally
- * Its a temp solution which should be replaced by bluetooth_devices in
- * SettingsProvider
+ * This class cache Bluetooth device name and channel locally Its a temp
+ * solution which should be replaced by bluetooth_devices in SettingsProvider
  */
 public class BluetoothOppPreference {
     private static final String TAG = "BluetoothOppPreference";

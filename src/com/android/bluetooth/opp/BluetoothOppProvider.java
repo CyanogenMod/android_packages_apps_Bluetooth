@@ -49,8 +49,7 @@ import android.util.Log;
 import java.util.HashMap;
 
 /**
- * This provider allows application to interact with
- * Bluetooth OPP manager
+ * This provider allows application to interact with Bluetooth OPP manager
  */
 
 public final class BluetoothOppProvider extends ContentProvider {

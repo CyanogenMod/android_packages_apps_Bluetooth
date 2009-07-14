@@ -32,6 +32,8 @@
 
 package com.android.bluetooth.opp;
 
+import com.android.bluetooth.R;
+
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothIntent;
 import android.content.DialogInterface;
@@ -47,7 +49,6 @@ import android.widget.TextView;
 
 import com.android.internal.app.AlertActivity;
 import com.android.internal.app.AlertController;
-import com.android.bluetooth.opp.R;
 
 /**
  * BluetoothPinDialog asks the user to enter a PIN for pairing with a remote

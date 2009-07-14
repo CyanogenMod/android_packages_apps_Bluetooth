@@ -32,6 +32,8 @@
 
 package com.android.bluetooth.opp;
 
+import com.android.bluetooth.R;
+
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;

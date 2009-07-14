@@ -32,12 +32,14 @@
 
 package com.android.bluetooth.opp;
 
+import com.android.bluetooth.R;
+
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothClass;
 import android.content.Context;
 import android.text.TextUtils;
-
 import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.List;
 

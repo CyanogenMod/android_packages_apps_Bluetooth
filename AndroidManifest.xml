@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.android.bluetooth.opp" >
+    package="com.android.bluetooth" >
     <!-- Allows access to the Bluetooth Share Manager -->
     <permission android:name="android.permission.ACCESS_BLUETOOTH_SHARE"
         android:label="@string/permlab_bluetoothShareManager"
@@ -16,18 +16,18 @@
     <application android:icon="@drawable/stat_sys_data_bt"
         android:label="@string/app_name">
         <uses-library android:name="javax.obex" />
-        <provider android:name=".BluetoothOppProvider"
+        <provider android:name=".opp.BluetoothOppProvider"
             android:authorities="com.android.bluetooth.opp"
             android:permission="android.permission.ACCESS_BLUETOOTH_SHARE" />
-        <service android:name=".BluetoothOppService"
+        <service android:name=".opp.BluetoothOppService"
             android:permission="android.permission.ACCESS_BLUETOOTH_SHARE" />
-        <receiver android:name=".BluetoothOppReceiver">
+        <receiver android:name=".opp.BluetoothOppReceiver">
             <intent-filter>
                 <action android:name="android.bluetooth.intent.action.BLUETOOTH_STATE_CHANGED" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-        <activity android:name="BluetoothOppLauncherActivity"
+        <activity android:name=".opp.BluetoothOppLauncherActivity"
             android:theme="@android:style/Theme.Dialog" android:label="@string/bt_share_picker_label">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
@@ -49,26 +49,26 @@
                 <data android:mimeType="vnd.android.cursor.item/vnd.android.btopp" />
             </intent-filter>
         </activity>
-        <activity android:name="BluetoothOppBtEnableActivity">
+        <activity android:name=".opp.BluetoothOppBtEnableActivity">
         </activity>
-        <activity android:name="BluetoothOppBtErrorActivity">
+        <activity android:name=".opp.BluetoothOppBtErrorActivity">
         </activity>
-        <activity android:name="BluetoothOppBtEnablingActivity">
+        <activity android:name=".opp.BluetoothOppBtEnablingActivity">
             android:theme="@android:style/Theme.Dialog"> </activity>
-        <activity android:name="BluetoothOppIncomingFileConfirmActivity">
+        <activity android:name=".opp.BluetoothOppIncomingFileConfirmActivity">
         </activity>
-        <activity android:name="BluetoothOppTransferActivity">
+        <activity android:name=".opp.BluetoothOppTransferActivity">
         </activity>
-        <activity android:name="BluetoothDevicePickerActivity">
+        <activity android:name=".opp.BluetoothDevicePickerActivity">
         </activity>
-        <activity android:name="BluetoothPinDialog" android:label="@string/bluetooth_pin_entry"
+        <activity android:name=".opp.BluetoothPinDialog" android:label="@string/bluetooth_pin_entry"
             android:theme="@*android:style/Theme.Dialog.Alert">
             <intent-filter>
                 <action android:name="android.bluetooth.intent.action.PAIRING_REQUEST" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name="BluetoothOppLiveFolder"
+        <activity android:name=".opp.BluetoothOppLiveFolder"
             android:label="@string/btopp_live_folder">
             <intent-filter>
                 <action android:name="android.intent.action.CREATE_LIVE_FOLDER" />

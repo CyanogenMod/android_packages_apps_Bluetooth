@@ -5,7 +5,7 @@ LOCAL_MODULE_TAGS := eng development
 
 LOCAL_SRC_FILES := $(call all-subdir-java-files)
 
-LOCAL_PACKAGE_NAME := BluetoothOpp
+LOCAL_PACKAGE_NAME := Bluetooth
 
 LOCAL_JAVA_LIBRARIES := javax.obex
 

@@ -71,7 +71,7 @@ public class Constants {
      */
     public static final String ACTION_INCOMING_FILE_CONFIRM = "android.btopp.intent.action.CONFIRM";
 
-    public static final String THIS_PACKAGE_NAME = "com.android.bluetooth.opp";
+    public static final String THIS_PACKAGE_NAME = "com.android.bluetooth";
 
     /**
      * The column that is used to remember whether the media scanner was invoked

@@ -32,6 +32,8 @@
 
 package com.android.bluetooth.opp;
 
+import com.android.bluetooth.R;
+
 /**
  * BluetoothDevicePickerBtStatus is a helper class that contains constants for
  * various status codes.

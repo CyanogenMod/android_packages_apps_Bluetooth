@@ -33,8 +33,8 @@
 package com.android.bluetooth.opp;
 
 /**
- * This class stores information about a single OBEX share,
- *         e.g. one object send/receive to a destination address.
+ * This class stores information about a single OBEX share, e.g. one object
+ * send/receive to a destination address.
  */
 public class BluetoothOppShareInfo {
 
@@ -83,7 +83,6 @@ public class BluetoothOppShareInfo {
         mCurrentBytes = currentBytes;
         mTimestamp = timestamp;
         mMediaScanned = mediaScanned;
-
     }
 
     public boolean isReadyToStart() {

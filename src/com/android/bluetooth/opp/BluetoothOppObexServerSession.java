@@ -124,8 +124,8 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
     }
 
     /**
-     * Called from BluetoothOppTransfer to cancel the "Transfer"
-     * Otherwise, server should end by itself.
+     * Called from BluetoothOppTransfer to cancel the "Transfer" Otherwise,
+     * server should end by itself.
      */
     public void stop() {
         /*
@@ -175,7 +175,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
         try {
             boolean pre_reject = false;
-            request = op.getReceivedHeaders();
+            request = op.getReceivedHeader();
             if (Constants.LOGVV) {
                 logHeader(request);
             }
@@ -319,7 +319,9 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         if (Constants.LOGV) {
             Log.v(TAG, "Server unblocked ");
         }
-        mCallback.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
+        if (mCallback != null) {
+            mCallback.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
+        }
 
         /* we should have mInfo now */
 
@@ -571,7 +573,6 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             msg.obj = mInfo;
             msg.sendToTarget();
         }
-
     }
 
     @Override

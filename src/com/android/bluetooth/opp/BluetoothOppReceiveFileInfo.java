@@ -49,9 +49,9 @@ import android.os.SystemClock;
 import android.util.Log;
 
 /**
- * This class stores information about a single receiving
- *         file. It will only be used for inbounds share, e.g. receive a file to
- *         determine a correct save file name
+ * This class stores information about a single receiving file. It will only be
+ * used for inbounds share, e.g. receive a file to determine a correct save file
+ * name
  */
 public class BluetoothOppReceiveFileInfo {
 
@@ -145,11 +145,10 @@ public class BluetoothOppReceiveFileInfo {
             // should not happen. It must be pre-rejected
             return new BluetoothOppReceiveFileInfo(BluetoothShare.STATUS_FILE_ERROR);
         } else {
+            extension = filename.substring(dotIndex);
             filename = filename.substring(0, dotIndex);
         }
-        extension = filename.substring(dotIndex);
         filename = base.getPath() + File.separator + filename;
-
         // Generate a unique filename, create the file, return it.
         String fullfilename = chooseUniquefilename(filename, extension);
         if (Constants.LOGVV) {

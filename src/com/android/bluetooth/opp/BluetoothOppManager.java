@@ -32,6 +32,8 @@
 
 package com.android.bluetooth.opp;
 
+import com.android.bluetooth.R;
+
 import android.util.Log;
 import java.util.ArrayList;
 import android.net.Uri;
@@ -207,7 +209,6 @@ public class BluetoothOppManager {
 
     /**
      * Get the current status of Bluetooth hardware.
-     * 
      * @return true if Bluetooth enabled, false otherwise.
      */
     public boolean isEnabled() {

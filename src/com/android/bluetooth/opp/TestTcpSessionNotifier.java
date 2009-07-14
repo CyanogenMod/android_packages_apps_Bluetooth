@@ -35,8 +35,12 @@ package com.android.bluetooth.opp;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import javax.obex.Authenticator;
+import javax.obex.ObexTransport;
+import javax.obex.ServerRequestHandler;
+import javax.obex.ServerSession;
+
 import android.util.Log;
-import javax.obex.*;
 
 public class TestTcpSessionNotifier {
     /* implements SessionNotifier */
@@ -62,7 +66,7 @@ public class TestTcpSessionNotifier {
 
         TestTcpTransport tt = new TestTcpTransport(conn);
 
-        return new ServerSession(tt, handler, auth);
+        return new ServerSession((ObexTransport)tt, handler, auth);
 
     }
 

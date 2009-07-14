@@ -32,6 +32,8 @@
 
 package com.android.bluetooth.opp;
 
+import com.android.bluetooth.R;
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
