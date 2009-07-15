@@ -2,140 +2,107 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    >
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    >
-    <LinearLayout
-        android:orientation="horizontal"
+    android:layout_height="wrap_content">
+    <LinearLayout android:orientation="horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="left" >
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="3dip"
-        android:text="@string/Insert_record" />
-    <EditText
-        android:id="@+id/Insert_text"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        />
-    </LinearLayout>    
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="left" >    
-    <EditText
-        android:id="@+id/Media_text"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        />
-    <EditText
-        android:id="@+id/Address_text"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        />
-    <Button
-        android:id="@+id/Insert_record"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="3dip"
-        android:text="@string/OK_button" />
-    </LinearLayout>
-    </LinearLayout>
-    
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="left" >
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="3dip"
-        android:text="@string/Delete_record" />
-    <EditText
-        android:id="@+id/Delete_text"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        />
-        
-    <Button
-        android:id="@+id/Delete_record"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="3dip"
-        android:text="@string/OK_button" />
-    </LinearLayout>
-    
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="left" >
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="3dip"
-        android:text="@string/Update_record" />
-    <EditText
-        android:id="@+id/Update_text"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        />
-        
-    <Button
-        android:id="@+id/Update_record"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="3dip"
-        android:text="@string/OK_button" />
-    </LinearLayout>
-      
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="left" >
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="3dip"
-        android:text="@string/Ack_record" />
-    <EditText
-        android:id="@+id/Ack_text"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        />
-        
-    <Button
-        android:id="@+id/Ack_record"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="3dip"
-        android:text="@string/OK_button" />
+        android:layout_gravity="left">
+        <TextView android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="3dip"
+            android:text="@string/insert_record" />
+        <EditText android:id="@+id/insert_text"
+            android:layout_width="0dip"
+            android:layout_weight="1"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
-<Button 
-    android:id="@+id/DeleteAll_record"
-    android:layout_height="wrap_content"
-    android:layout_width="wrap_content"
-    android:text="@string/DeleteAll_record"></Button>
+    <LinearLayout android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left">
+        <EditText android:id="@+id/media_text"
+            android:layout_width="0dip"
+            android:layout_weight="1"
+            android:layout_height="wrap_content" />
+        <EditText android:id="@+id/address_text"
+            android:layout_width="0dip"
+            android:layout_weight="1"
+            android:layout_height="wrap_content" />
+        <Button android:id="@+id/insert_record"
+            android:layout_width="0dip"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="3dip"
+            android:text="@string/ok_button" />
+    </LinearLayout>
 
-<Button 
-    android:id="@+id/Start_server"
-    android:layout_height="wrap_content"
-    android:layout_width="wrap_content"
-    android:text="@string/Start_server"></Button>
-    
-    <Button 
-    android:id="@+id/Notify_server"
-    android:layout_height="wrap_content"
-    android:layout_width="wrap_content"
-    android:text="@string/Notify_server"></Button>
+    <LinearLayout android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <TextView android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="3dip"
+            android:text="@string/delete_record" />
+        <EditText android:id="@+id/delete_text"
+            android:layout_width="0dip"
+            android:layout_weight="1"
+            android:layout_height="wrap_content" />
+        <Button android:id="@+id/delete_record"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="3dip"
+            android:text="@string/ok_button" />
+    </LinearLayout>
+
+    <LinearLayout android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <TextView android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="3dip"
+            android:text="@string/update_record" />
+        <EditText android:id="@+id/update_text"
+            android:layout_width="0dip"
+            android:layout_weight="1"
+            android:layout_height="wrap_content" />
+        <Button android:id="@+id/update_record"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="3dip"
+            android:text="@string/ok_button" />
+    </LinearLayout>
+
+    <LinearLayout android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <TextView android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="3dip"
+            android:text="@string/ack_record" />
+        <EditText android:id="@+id/ack_text"
+            android:layout_width="0dip"
+            android:layout_weight="1"
+            android:layout_height="wrap_content" />
+        <Button android:id="@+id/ack_record"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="3dip"
+            android:text="@string/ok_button" />
+    </LinearLayout>
+
+    <Button android:id="@+id/deleteAll_record"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/deleteAll_record"></Button>
+
+    <Button android:id="@+id/start_server"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/start_server"></Button>
+
+    <Button android:id="@+id/notify_server"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/notify_server"></Button>
 </LinearLayout>

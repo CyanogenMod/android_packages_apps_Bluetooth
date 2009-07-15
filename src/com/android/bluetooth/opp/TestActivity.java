@@ -120,20 +120,20 @@ public class TestActivity extends Activity {
 
         setContentView(R.layout.testactivity_main);
 
-        Button mInsertRecord = (Button)findViewById(R.id.Insert_record);
-        Button mDeleteRecord = (Button)findViewById(R.id.Delete_record);
-        Button mUpdateRecord = (Button)findViewById(R.id.Update_record);
+        Button mInsertRecord = (Button)findViewById(R.id.insert_record);
+        Button mDeleteRecord = (Button)findViewById(R.id.delete_record);
+        Button mUpdateRecord = (Button)findViewById(R.id.update_record);
 
-        Button mAckRecord = (Button)findViewById(R.id.Ack_record);
+        Button mAckRecord = (Button)findViewById(R.id.ack_record);
 
-        Button mDeleteAllRecord = (Button)findViewById(R.id.DeleteAll_record);
-        mUpdateView = (EditText)findViewById(R.id.Update_text);
-        mAckView = (EditText)findViewById(R.id.Ack_text);
-        mDeleteView = (EditText)findViewById(R.id.Delete_text);
-        mInsertView = (EditText)findViewById(R.id.Insert_text);
+        Button mDeleteAllRecord = (Button)findViewById(R.id.deleteAll_record);
+        mUpdateView = (EditText)findViewById(R.id.update_text);
+        mAckView = (EditText)findViewById(R.id.ack_text);
+        mDeleteView = (EditText)findViewById(R.id.delete_text);
+        mInsertView = (EditText)findViewById(R.id.insert_text);
 
-        mAddressView = (EditText)findViewById(R.id.Address_text);
-        mMediaView = (EditText)findViewById(R.id.Media_text);
+        mAddressView = (EditText)findViewById(R.id.address_text);
+        mMediaView = (EditText)findViewById(R.id.media_text);
 
         mInsertRecord.setOnClickListener(insertRecordListener);
         mDeleteRecord.setOnClickListener(deleteRecordListener);
@@ -141,10 +141,10 @@ public class TestActivity extends Activity {
         mAckRecord.setOnClickListener(ackRecordListener);
         mDeleteAllRecord.setOnClickListener(deleteAllRecordListener);
 
-        Button mStartTcpServer = (Button)findViewById(R.id.Start_server);
+        Button mStartTcpServer = (Button)findViewById(R.id.start_server);
         mStartTcpServer.setOnClickListener(startTcpServerListener);
 
-        Button mNotifyTcpServer = (Button)findViewById(R.id.Notify_server);
+        Button mNotifyTcpServer = (Button)findViewById(R.id.notify_server);
         mNotifyTcpServer.setOnClickListener(notifyTcpServerListener);
         /* parse insert result Uri */
         /*
