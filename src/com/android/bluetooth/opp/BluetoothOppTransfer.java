@@ -304,7 +304,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatchListener {
 
         synchronized (this) {
             try {
-                wait(500);
+                wait(1000);
             } catch (InterruptedException e) {
                 if (Constants.LOGVV) {
                     Log.v(TAG, "Interrupted waiting for markBatchFailed");

@@ -700,24 +700,11 @@ public class BluetoothOppService extends Service {
                 Log.v(TAG, "Service handle info " + info.mId + " confirmed");
             }
             /* Inbounds transfer get user confirmation, so we start it */
-            if (info.isReadyToStart()) {
-                BluetoothOppBatch newBatch = new BluetoothOppBatch(this, info);
-                newBatch.mId = mBatchId;
-                mBatchId++;
-                mBatchs.add(newBatch);
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Service add new Batch " + newBatch.mId + " for info " + info.mId);
-                }
-                if (mServerSession == null) {
-                    Log.e(TAG, "Error! mServerSession disappeared  ");
-                    Constants
-                            .updateShareStatus(this, info.mId, BluetoothShare.STATUS_UNKNOWN_ERROR);
-                } else {
-                    mServerTransfer = new BluetoothOppTransfer(this, mPowerManager, newBatch,
-                            mServerSession);
-                    mServerTransfer.setConfirmed();
-                }
-            }
+            int i = findBatchWithTimeStamp(info.mTimestamp);
+            BluetoothOppBatch batch = mBatchs.get(i);
+            if (batch.mId == mServerTransfer.getBatchId()) {
+                mServerTransfer.setConfirmed();
+            } //TODO need to think about else
         }
         int i = findBatchWithTimeStamp(info.mTimestamp);
         if (i != -1) {

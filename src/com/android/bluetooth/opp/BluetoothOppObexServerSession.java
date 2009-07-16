@@ -294,10 +294,10 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
         // TODO add server wait timeout
         mServerBlocking = true;
-
+        boolean msgSent = false;
         synchronized (this) {
             try {
-                boolean msgSent = false;
+
                 while (mServerBlocking) {
                     wait(1000);
                     if (mCallback != null && !msgSent) {
@@ -319,7 +319,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         if (Constants.LOGV) {
             Log.v(TAG, "Server unblocked ");
         }
-        if (mCallback != null) {
+        if (mCallback != null && msgSent) {
             mCallback.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
         }
 
@@ -340,7 +340,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         int status = BluetoothShare.STATUS_SUCCESS;
 
         if (mAccepted == BluetoothShare.USER_CONFIRMATION_CONFIRMED
-                || mAccepted == BluetoothShare.USER_CONFIRMATION_CONFIRMED) {
+                || mAccepted == BluetoothShare.USER_CONFIRMATION_AUTO_CONFIRMED) {
             /* Confirm or auto-confirm */
 
             if (mFileInfo.mFileName == null) {

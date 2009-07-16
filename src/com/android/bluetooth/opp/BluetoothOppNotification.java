@@ -227,11 +227,7 @@ class BluetoothOppNotification {
             int id = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID));
             int status = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare.STATUS));
 
-            String fileName = cursor.getString(cursor.getColumnIndexOrThrow(BluetoothShare._DATA));
-            if (fileName == null) {
-                fileName = cursor.getString(cursor
-                        .getColumnIndexOrThrow(BluetoothShare.FILENAME_HINT));
-            }
+            String fileName = cursor.getString(cursor.getColumnIndexOrThrow(BluetoothShare.FILENAME_HINT));
             if (fileName == null) {
                 fileName = mContext.getString(R.string.unknown_file);
             }
