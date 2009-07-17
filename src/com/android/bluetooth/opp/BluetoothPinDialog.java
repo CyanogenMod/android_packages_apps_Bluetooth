@@ -121,7 +121,7 @@ public class BluetoothPinDialog extends AlertActivity implements DialogInterface
     }
 
     private void onCancel() {
-        mLocalManager.getBluetoothManager().cancelPin(mAddress);
+        mLocalManager.getBluetoothManager().cancelPairingUserInput(mAddress);
     }
 
     public void onClick(DialogInterface dialog, int which) {
