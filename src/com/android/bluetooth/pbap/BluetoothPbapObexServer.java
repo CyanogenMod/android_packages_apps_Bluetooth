@@ -1,3 +1,34 @@
+/*
+ * Copyright (c) 2008-2009, Motorola, Inc.
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * - Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * - Neither the name of the Motorola, Inc. nor the names of its contributors
+ * may be used to endorse or promote products derived from this software
+ * without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 
 package com.android.bluetooth.pbap;
 
@@ -633,7 +664,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         }
 
         else if ((appParamValue.needTag & NEED_PB_SIZE) == 0
-                && ((appParamValue.needTag & NEED_INCOMING_CALL_NUMBER) == NEED_INCOMING_CALL_NUMBER)) {
+                && ((appParamValue.needTag & NEED_INCOMING_CALL_NUMBER)
+                        == NEED_INCOMING_CALL_NUMBER)) {
             if (createVcardListingXml(NEED_INCOMING_CALL_NUMBER, op, appParamValue.maxListCount,
                     appParamValue.listStartOffset, null, null) <= 0) {
                 return ResponseCodes.OBEX_HTTP_NOT_FOUND;
@@ -642,7 +674,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         }
 
         else if ((appParamValue.needTag & NEED_PB_SIZE) == 0
-                && ((appParamValue.needTag & NEED_OUTGOING_CALL_NUMBER) == NEED_OUTGOING_CALL_NUMBER)) {
+                && ((appParamValue.needTag & NEED_OUTGOING_CALL_NUMBER)
+                        == NEED_OUTGOING_CALL_NUMBER)) {
             if (createVcardListingXml(NEED_OUTGOING_CALL_NUMBER, op, appParamValue.maxListCount,
                     appParamValue.listStartOffset, null, null) <= 0) {
                 return ResponseCodes.OBEX_HTTP_NOT_FOUND;
@@ -651,7 +684,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         }
 
         else if ((appParamValue.needTag & NEED_PB_SIZE) == 0
-                && ((appParamValue.needTag & NEED_COMBINED_CALL_NUMBER) == NEED_COMBINED_CALL_NUMBER)) {
+                && ((appParamValue.needTag & NEED_COMBINED_CALL_NUMBER)
+                        == NEED_COMBINED_CALL_NUMBER)) {
             if (createVcardListingXml(NEED_COMBINED_CALL_NUMBER, op, appParamValue.maxListCount,
                     appParamValue.listStartOffset, null, null) <= 0) {
                 return ResponseCodes.OBEX_HTTP_NOT_FOUND;
@@ -660,7 +694,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         }
 
         else if ((appParamValue.needTag & NEED_PB_SIZE) == 0
-                && ((appParamValue.needTag & NEED_MISSED_CALL_NUMBER) == NEED_MISSED_CALL_NUMBER)) {
+                && ((appParamValue.needTag & NEED_MISSED_CALL_NUMBER)
+                        == NEED_MISSED_CALL_NUMBER)) {
             if (createVcardListingXml(NEED_MISSED_CALL_NUMBER, op, appParamValue.maxListCount,
                     appParamValue.listStartOffset, null, null) <= 0) {
                 return ResponseCodes.OBEX_HTTP_NOT_FOUND;
@@ -761,13 +796,17 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             byte[] pbsize = new byte[2];
             if ((appParamValue.needTag & NEED_PHONEBOOK) == NEED_PHONEBOOK) {
                 size = BluetoothPbapService.getPhonebookSize(NEED_PHONEBOOK);
-            } else if ((appParamValue.needTag & NEED_INCOMING_CALL_NUMBER) == NEED_INCOMING_CALL_NUMBER) {
+            } else if ((appParamValue.needTag & NEED_INCOMING_CALL_NUMBER)
+                    == NEED_INCOMING_CALL_NUMBER) {
                 size = BluetoothPbapService.getPhonebookSize(NEED_INCOMING_CALL_NUMBER);
-            } else if ((appParamValue.needTag & NEED_OUTGOING_CALL_NUMBER) == NEED_OUTGOING_CALL_NUMBER) {
+            } else if ((appParamValue.needTag & NEED_OUTGOING_CALL_NUMBER)
+                    == NEED_OUTGOING_CALL_NUMBER) {
                 size = BluetoothPbapService.getPhonebookSize(NEED_OUTGOING_CALL_NUMBER);
-            } else if ((appParamValue.needTag & NEED_COMBINED_CALL_NUMBER) == NEED_COMBINED_CALL_NUMBER) {
+            } else if ((appParamValue.needTag & NEED_COMBINED_CALL_NUMBER)
+                    == NEED_COMBINED_CALL_NUMBER) {
                 size = BluetoothPbapService.getPhonebookSize(NEED_COMBINED_CALL_NUMBER);
-            } else if ((appParamValue.needTag & NEED_MISSED_CALL_NUMBER) == NEED_MISSED_CALL_NUMBER) {
+            } else if ((appParamValue.needTag & NEED_MISSED_CALL_NUMBER)
+                    == NEED_MISSED_CALL_NUMBER) {
                 size = BluetoothPbapService.getPhonebookSize(NEED_MISSED_CALL_NUMBER);
                 mMissedCallSize = size;
             }
