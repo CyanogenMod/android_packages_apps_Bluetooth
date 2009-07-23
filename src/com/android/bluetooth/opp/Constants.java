@@ -125,15 +125,15 @@ public class Constants {
      * Enable verbose logging - use with
      * "setprop log.tag.BluetoothShareManager VERBOSE"
      */
-    private static final boolean LOCAL_LOGV = true;
+    private static final boolean LOCAL_LOGV = false;
 
     // public static final boolean LOGV = Config.LOGV
     // || (Config.LOGD && LOCAL_LOGV && Log.isLoggable(TAG, Log.VERBOSE));
 
-    public static final boolean LOGV = true;
+    public static final boolean LOGV = false;
 
     /** Enable super-verbose logging */
-    private static final boolean LOCAL_LOGVV = true;
+    private static final boolean LOCAL_LOGVV = false;
 
     public static final boolean LOGVV = LOCAL_LOGVV && LOGV;
 

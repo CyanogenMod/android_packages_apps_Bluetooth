@@ -64,7 +64,7 @@ public class BluetoothPbapService extends Service {
 
     private static final String TAG = "BluetoothPbapService";
 
-    public static final boolean DBG = true;
+    public static final boolean DBG = false;
 
     /**
      * Intent indicating incoming connection request which is sent to
@@ -245,7 +245,9 @@ public class BluetoothPbapService extends Service {
                     obexServerSessionClose();
                 }
             } catch (IOException ex) {
-                Log.e(TAG, "Caught the error: " + ex.toString());
+                if (DBG) {
+                    Log.e(TAG, "Caught the error: " + ex.toString());
+                }
             }
         }
 
@@ -418,7 +420,9 @@ public class BluetoothPbapService extends Service {
         try {
             closeSocket(true, true);
         } catch (IOException ex) {
-            Log.e(TAG, "Caught the error: " + ex);
+            if (DBG) {
+                Log.e(TAG, "Caught the error: " + ex);
+            }
         }
         mHasStarted = false;
         BluetoothPbapReceiver.finishStartingService(BluetoothPbapService.this, mStartId);
@@ -435,7 +439,9 @@ public class BluetoothPbapService extends Service {
         try {
             closeSocket(false, true);
         } catch (IOException e) {
-            Log.e(TAG, "Caught the error: " + e.toString());
+            if (DBG) {
+                Log.e(TAG, "Caught the error: " + e.toString());
+            }
         }
         // Last obex transaction is finished,we start to listen for incoming
         // connection again

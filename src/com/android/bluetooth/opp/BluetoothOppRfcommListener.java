@@ -122,9 +122,13 @@ public class BluetoothOppRfcommListener {
                                     msg.sendToTarget();
                                 }
                             } catch (SocketException e) {
-                                Log.e(TAG, "Error accept connection " + e);
+                                if (Constants.LOGVV) {
+                                    Log.v(TAG, "Error accept connection " + e);
+                                }
                             } catch (IOException e) {
-                                Log.e(TAG, "Error accept connection " + e);
+                                if (Constants.LOGVV) {
+                                    Log.v(TAG, "Error accept connection " + e);
+                                }
                             }
                         }
                         if (Constants.LOGV) {
