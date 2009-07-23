@@ -41,12 +41,10 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothError;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothIntent;
-// TODO: have dependency on framework/base
-//import android.bluetooth.BluetoothPbap;
+import android.bluetooth.BluetoothPbap;
 import android.bluetooth.BluetoothSocket;
 import android.bluetooth.BluetoothServerSocket;
-// TODO: have dependency on framework/base
-//import android.bluetooth.IBluetoothPbap;
+import android.bluetooth.IBluetoothPbap;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -185,8 +183,7 @@ public class BluetoothPbapService extends Service {
     private BluetoothPbapAuthenticator mAuth = null;
 
     public BluetoothPbapService() {
-        // TODO: have dependency on framework/base
-        // mState = BluetoothPbap.STATE_DISCONNECTED;
+        mState = BluetoothPbap.STATE_DISCONNECTED;
     }
 
     @Override
@@ -271,16 +268,12 @@ public class BluetoothPbapService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        // TODO: have dependency on framework/base
-        // setState(BluetoothPbap.STATE_DISCONNECTED,
-        // BluetoothPbap.RESULT_CANCELED);
+        setState(BluetoothPbap.STATE_DISCONNECTED, BluetoothPbap.RESULT_CANCELED);
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO: have dependency on framework/base
-        // return mBinder;
-        return null;
+        return mBinder;
     }
 
     public static int getPhonebookSize(final int type) {
@@ -383,8 +376,7 @@ public class BluetoothPbapService extends Service {
         }
         BluetoothPbapRfcommTransport transport = new BluetoothPbapRfcommTransport(mConnSocket);
         mServerSession = new ServerSession(transport, mPbapServer, mAuth);
-        // TODO: have dependency on framework/base
-        // setState(BluetoothPbap.STATE_CONNECTED);
+        setState(BluetoothPbap.STATE_CONNECTED);
     }
 
     private final void closeSocket(boolean server, boolean accept) throws IOException {
@@ -448,8 +440,7 @@ public class BluetoothPbapService extends Service {
         if (mBluetooth.isEnabled()) {
             startRfcommSocketListener();
         }
-        // TODO: have dependency on framework/base
-        // setState(BluetoothPbap.STATE_DISCONNECTED);
+        setState(BluetoothPbap.STATE_DISCONNECTED);
     }
 
     /**
@@ -529,27 +520,25 @@ public class BluetoothPbapService extends Service {
     }
 
     private void setState(int state) {
-        // TODO: have dependency on framework/base
-        // setState(state, BluetoothHeadset.RESULT_SUCCESS);
+        setState(state, BluetoothHeadset.RESULT_SUCCESS);
     }
 
-    // TODO: have dependency on framework/base
-    /*
-     * private synchronized void setState(int state, int result) { if (state !=
-     * mState) { if (DBG) Log.d(TAG, "Pbap state " + mState + " -> " + state +
-     * ", result = " + result); Intent intent = new
-     * Intent(BluetoothPbap.PBAP_STATE_CHANGED_ACTION);
-     * intent.putExtra(BluetoothPbap.PBAP_PREVIOUS_STATE, mState); mState =
-     * state; intent.putExtra(BluetoothPbap.PBAP_STATE, mState);
-     * intent.putExtra(BluetoothIntent.ADDRESS, mRemoteAddr);
-     * sendBroadcast(intent, BLUETOOTH_PERM); } }
-     */
+    private synchronized void setState(int state, int result) {
+        if (state != mState) {
+            if (DBG)
+                Log.d(TAG, "Pbap state " + mState + " -> " + state + ", result = " + result);
+            Intent intent = new Intent(BluetoothPbap.PBAP_STATE_CHANGED_ACTION);
+            intent.putExtra(BluetoothPbap.PBAP_PREVIOUS_STATE, mState);
+            mState = state;
+            intent.putExtra(BluetoothPbap.PBAP_STATE, mState);
+            intent.putExtra(BluetoothIntent.ADDRESS, mRemoteAddr);
+            sendBroadcast(intent, BLUETOOTH_PERM);
+        }
+    }
 
     /**
      * Handlers for incoming service calls
      */
- // TODO: have dependency on framework/base
-    /*
     private final IBluetoothPbap.Stub mBinder = new IBluetoothPbap.Stub() {
         private static final String TAG1 = "IBluetoothPbap.Stub";
 
@@ -604,23 +593,8 @@ public class BluetoothPbapService extends Service {
                 }
             }
         }
-
-        // Not used
-        public boolean setPriority(String address, int priority) {
-            if (DBG) {
-                Log.d(TAG1, "setPriority");
-            }
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-            return true;
-        }
-
-        // Not used
-        public int getPriority(String address) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            return 0;
-        }
     };
-*/
+
     private final Handler mSessionStatusHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
