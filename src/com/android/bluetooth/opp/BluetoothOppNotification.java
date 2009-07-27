@@ -94,7 +94,9 @@ class BluetoothOppNotification {
 
     /**
      * Constructor
-     * @param ctx The context to use to obtain access to the Notification Service
+     *
+     * @param ctx The context to use to obtain access to the Notification
+     *            Service
      */
     BluetoothOppNotification(Context ctx) {
         mContext = ctx;
@@ -149,11 +151,10 @@ class BluetoothOppNotification {
                 item.id = id;
                 item.direction = dir;
                 if (item.direction == BluetoothShare.DIRECTION_OUTBOUND) {
-                    item.description = mContext.getString(R.string.notification_sending).replace(
-                            "%s", fileName);
+                    item.description = mContext.getString(R.string.notification_sending, fileName);
                 } else if (item.direction == BluetoothShare.DIRECTION_INBOUND) {
-                    item.description = mContext.getString(R.string.notification_receiving).replace(
-                            "%s", fileName);
+                    item.description = mContext
+                            .getString(R.string.notification_receiving, fileName);
                 } else {
                     if (Constants.LOGVV) {
                         Log.v(TAG, "mDirection ERROR!");
@@ -227,7 +228,8 @@ class BluetoothOppNotification {
             int id = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID));
             int status = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare.STATUS));
 
-            String fileName = cursor.getString(cursor.getColumnIndexOrThrow(BluetoothShare.FILENAME_HINT));
+            String fileName = cursor.getString(cursor
+                    .getColumnIndexOrThrow(BluetoothShare.FILENAME_HINT));
             if (fileName == null) {
                 fileName = mContext.getString(R.string.unknown_file);
             }
@@ -239,22 +241,19 @@ class BluetoothOppNotification {
             Notification n = new Notification();
             if (BluetoothShare.isStatusError(status)) {
                 if (dir == BluetoothShare.DIRECTION_OUTBOUND) {
-                    title = mContext.getString(R.string.notification_sent_fail).replace("%s",
-                            fileName);
+                    title = mContext.getString(R.string.notification_sent_fail, fileName);
                 } else {
-                    title = mContext.getString(R.string.notification_received_fail).replace("%s",
-                            fileName);
+                    title = mContext.getString(R.string.notification_received_fail, fileName);
                 }
-                caption = mContext.getString(R.string.download_fail_line3).replace("%s",
-                        BluetoothOppUtility.getStatusDescription(mContext, status));
+                caption = mContext.getString(R.string.download_fail_line3, BluetoothOppUtility
+                        .getStatusDescription(mContext, status));
                 n.icon = android.R.drawable.stat_notify_error;
             } else {
                 if (dir == BluetoothShare.DIRECTION_OUTBOUND) {
-                    title = mContext.getString(R.string.notification_sent).replace("%s", fileName);
+                    title = mContext.getString(R.string.notification_sent, fileName);
                     n.icon = android.R.drawable.stat_sys_upload_done;
                 } else {
-                    title = mContext.getString(R.string.notification_received).replace("%s",
-                            fileName);
+                    title = mContext.getString(R.string.notification_received, fileName);
                     n.icon = android.R.drawable.stat_sys_download_done;
                 }
                 caption = mContext.getString(R.string.notification_sent_complete);

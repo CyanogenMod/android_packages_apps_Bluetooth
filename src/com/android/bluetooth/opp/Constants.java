@@ -116,6 +116,7 @@ public class Constants {
      */
     public static final String[] UNACCEPTABLE_SHARE_INBOUND_TYPES = new String[] {
         "text/x-vcalendar",
+        "text/x-vcard",
     };
 
     /** Where we store Bluetooth received files on the external storage */

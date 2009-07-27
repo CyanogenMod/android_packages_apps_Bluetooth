@@ -100,9 +100,8 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity imple
 
         TextView contentView = (TextView)view.findViewById(R.id.content);
 
-        String text = getString(R.string.incoming_file_confirm_content).replace("%s1",
-                mTransInfo.mDeviceName).replace("%s2", mTransInfo.mFileName).replace("%s3",
-                Formatter.formatFileSize(this, mTransInfo.mTotalBytes));
+        String text = getString(R.string.incoming_file_confirm_content, mTransInfo.mDeviceName,
+                mTransInfo.mFileName, Formatter.formatFileSize(this, mTransInfo.mTotalBytes));
 
         contentView.setText(text);
 

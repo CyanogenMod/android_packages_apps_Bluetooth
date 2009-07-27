@@ -324,7 +324,7 @@ public final class BluetoothOppProvider extends ContentProvider {
                 qb.setProjectionMap(LIVE_FOLDER_PROJECTION_MAP);
                 qb.appendWhere(BluetoothShare.DIRECTION + "=" + BluetoothShare.DIRECTION_INBOUND
                         + " AND " + BluetoothShare.STATUS + "=" + BluetoothShare.STATUS_SUCCESS);
-                sortOrder = sortOrder + ", _id DESC";
+                sortOrder = "_id DESC, " + sortOrder;
                 break;
             }
             default: {

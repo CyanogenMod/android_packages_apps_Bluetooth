@@ -99,10 +99,10 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             String deviceName = mOppManager.getDeviceName(btAddr);
             String toastMsg;
             if (mOppManager.mMultipleFlag) {
-                toastMsg = context.getString(R.string.bt_toast_5).replace("%s1",
-                        Integer.toString(mOppManager.mfileNumInBatch)).replace("%s2", deviceName);
+                toastMsg = context.getString(R.string.bt_toast_5, Integer
+                        .toString(mOppManager.mfileNumInBatch), deviceName);
             } else {
-                toastMsg = context.getString(R.string.bt_toast_4).replace("%s", deviceName);
+                toastMsg = context.getString(R.string.bt_toast_4, deviceName);
             }
             Toast.makeText(context, toastMsg, Toast.LENGTH_SHORT).show();
         } else if (action.equals(Constants.ACTION_INCOMING_FILE_CONFIRM)) {
@@ -212,16 +212,15 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
 
             if (BluetoothShare.isStatusSuccess(transInfo.mStatus)) {
                 if (transInfo.mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
-                    toastMsg = context.getString(R.string.notification_sent).replace("%s",
-                            transInfo.mFileName);
+                    toastMsg = context.getString(R.string.notification_sent, transInfo.mFileName);
                 } else if (transInfo.mDirection == BluetoothShare.DIRECTION_INBOUND) {
-                    toastMsg = context.getString(R.string.notification_received).replace("%s",
+                    toastMsg = context.getString(R.string.notification_received,
                             transInfo.mFileName);
                 }
 
             } else if (BluetoothShare.isStatusError(transInfo.mStatus)) {
                 if (transInfo.mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
-                    toastMsg = context.getString(R.string.notification_sent_fail).replace("%s",
+                    toastMsg = context.getString(R.string.notification_sent_fail,
                             transInfo.mFileName);
                 } else if (transInfo.mDirection == BluetoothShare.DIRECTION_INBOUND) {
                     toastMsg = context.getString(R.string.download_fail_line1);

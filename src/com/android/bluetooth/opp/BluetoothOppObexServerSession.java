@@ -215,7 +215,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                     type = map.getMimeTypeFromExtension(extension);
                     if (Constants.LOGVV) {
                         Log.v(TAG, "Mimetype guessed from extension " + extension + " is "
-                                + mimeType);
+                                + type);
                     }
                     if (type != null) {
                         mimeType = type;
@@ -226,7 +226,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                                 Log.w(TAG, "Can't get mimetype, reject the transfer");
                             }
                             pre_reject = true;
-                            obexResponse = ResponseCodes.OBEX_HTTP_BAD_REQUEST;
+                            obexResponse = ResponseCodes.OBEX_HTTP_UNSUPPORTED_TYPE;
                         }
                     }
                     if (mimeType != null) {
