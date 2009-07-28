@@ -61,7 +61,7 @@ public class BluetoothPbapAuthenticator implements Authenticator {
         mSessionKey = null;
     }
 
-    public final void setChallenged(final boolean bool) {
+    public final synchronized void setChallenged(final boolean bool) {
         mChallenged = bool;
     }
 
@@ -69,7 +69,7 @@ public class BluetoothPbapAuthenticator implements Authenticator {
         mAuthCancelled = bool;
     }
 
-    public final void setSessionKey(final String string) {
+    public final synchronized void setSessionKey(final String string) {
         mSessionKey = string;
     }
 

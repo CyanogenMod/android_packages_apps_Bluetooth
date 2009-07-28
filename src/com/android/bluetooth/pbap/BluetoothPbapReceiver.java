@@ -59,21 +59,20 @@ public class BluetoothPbapReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Intent i = new Intent();
-        i.putExtras(intent);
-        i.setClass(context, BluetoothPbapService.class);
+        Intent in = new Intent();
+        in.putExtras(intent);
+        in.setClass(context, BluetoothPbapService.class);
         String action = intent.getAction();
-        i.putExtra("action", action);
-        if (action.equals(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION)
-                || action.equals(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION)) {
+        in.putExtra("action", action);
+        if (action.equals(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION)) {
             int state = intent.getIntExtra(BluetoothIntent.BLUETOOTH_STATE, BluetoothError.ERROR);
-            i.putExtra(BluetoothIntent.BLUETOOTH_STATE, state);
+            in.putExtra(BluetoothIntent.BLUETOOTH_STATE, state);
             if ((state != BluetoothDevice.BLUETOOTH_STATE_TURNING_ON)
                     && (state != BluetoothDevice.BLUETOOTH_STATE_TURNING_OFF)) {
-                beginStartingService(context, i);
+                beginStartingService(context, in);
             }
         } else {
-            beginStartingService(context, i);
+            beginStartingService(context, in);
         }
     }
 
@@ -95,8 +94,8 @@ public class BluetoothPbapReceiver extends BroadcastReceiver {
         Intent deleteIntent = new Intent();
         deleteIntent.setClass(mContext, BluetoothPbapReceiver.class);
 
-        if (action.equals(BluetoothPbapService.ACCESS_REQUEST)) {
-            deleteIntent.setAction(BluetoothPbapService.ACCESS_DISALLOWED);
+        if (action.equals(BluetoothPbapService.ACCESS_REQUEST_ACTION)) {
+            deleteIntent.setAction(BluetoothPbapService.ACCESS_DISALLOWED_ACTION);
             notification = new Notification(android.R.drawable.stat_sys_data_bluetooth, res
                     .getString(R.string.pbap_notif_ticker), System.currentTimeMillis());
             notification.setLatestEventInfo(mContext, res.getString(R.string.pbap_notif_title), res
@@ -106,8 +105,8 @@ public class BluetoothPbapReceiver extends BroadcastReceiver {
             notification.flags |= Notification.FLAG_AUTO_CANCEL;
             notification.deleteIntent = PendingIntent.getBroadcast(mContext, 0, deleteIntent, 0);
             nm.notify(NOTIFICATION_ID_ACCESS, notification);
-        } else if (action.equals(BluetoothPbapService.AUTH_CHALL)) {
-            deleteIntent.setAction(BluetoothPbapService.AUTH_CANCELLED);
+        } else if (action.equals(BluetoothPbapService.AUTH_CHALL_ACTION)) {
+            deleteIntent.setAction(BluetoothPbapService.AUTH_CANCELLED_ACTION);
             notification = new Notification(android.R.drawable.stat_sys_data_bluetooth, res
                     .getString(R.string.auth_notif_ticker), System.currentTimeMillis());
             notification.setLatestEventInfo(mContext, res.getString(R.string.auth_notif_title), res

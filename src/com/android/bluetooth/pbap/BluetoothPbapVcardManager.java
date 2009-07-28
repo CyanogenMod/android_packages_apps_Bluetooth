@@ -189,7 +189,7 @@ public class BluetoothPbapVcardManager {
     }
 
     private String getThisPhoneName() {
-        String name = "";
+        String name;
         name = BluetoothPbapService.getLocalPhoneName();
         if (name == null || name.trim().length() == 0) {
             name = mDefaultName;
@@ -198,7 +198,7 @@ public class BluetoothPbapVcardManager {
     }
 
     private String getThisPhoneNumber() {
-        String number = "";
+        String number;
         number = BluetoothPbapService.getLocalPhoneNum();
         if (number == null || number.trim().length() == 0) {
             number = mDefaultNumber;
@@ -208,8 +208,9 @@ public class BluetoothPbapVcardManager {
 
     public final int getPhonebookSize() {
         Uri myUri = Contacts.People.CONTENT_URI;
-        int mPhonebookSize = 0;
         Cursor contactC = mResolver.query(myUri, null, null, null, null);
+
+        int mPhonebookSize = 0;
         if (contactC != null) {
             mPhonebookSize = contactC.getCount() + 1; // always has the 0.vcf
         }
@@ -217,13 +218,12 @@ public class BluetoothPbapVcardManager {
     }
 
     public final String getPhonebook(final int pos, final boolean vCard21) {
-        int size = getPhonebookSize();
-        long id = 0;
         try {
-            if (pos >= 0 && pos < size) {
+            if (pos >= 0 && pos < getPhonebookSize()) {
+                long id = 0;
                 Uri myUri = Contacts.People.CONTENT_URI;
-                // Individual Contact may be deleted,but Uri in database is also
-                // removed.So we need to calculate the actual Uri
+                // Individual Contact may be deleted, which lead to incontinuous
+                // ID for Uri; So we need to calculate the actual Uri.
                 if (pos > 0) {
                     Cursor personCursor = mResolver.query(myUri, CONTACT_PROJECTION, null, null,
                             null);
@@ -250,13 +250,13 @@ public class BluetoothPbapVcardManager {
         Uri myUri = CallLog.Calls.CONTENT_URI;
         String selection = null;
         switch (type) {
-            case BluetoothPbapObexServer.NEED_INCOMING_CALL_NUMBER:
+            case BluetoothPbapObexServer.ContentType.INCOMING_CALL_HISTORY:
                 selection = Calls.TYPE + "=" + CallLog.Calls.INCOMING_TYPE;
                 break;
-            case BluetoothPbapObexServer.NEED_OUTGOING_CALL_NUMBER:
+            case BluetoothPbapObexServer.ContentType.OUTGOING_CALL_HISTORY:
                 selection = Calls.TYPE + "=" + CallLog.Calls.OUTGOING_TYPE;
                 break;
-            case BluetoothPbapObexServer.NEED_MISSED_CALL_NUMBER:
+            case BluetoothPbapObexServer.ContentType.MISSED_CALL_HISTORY:
                 selection = Calls.TYPE + "=" + CallLog.Calls.MISSED_TYPE;
                 break;
             default:
@@ -275,13 +275,13 @@ public class BluetoothPbapVcardManager {
         int size = 0;
         String selection = null;
         switch (type) {
-            case BluetoothPbapObexServer.NEED_INCOMING_CALL_NUMBER:
+            case BluetoothPbapObexServer.ContentType.INCOMING_CALL_HISTORY:
                 selection = Calls.TYPE + "=" + CallLog.Calls.INCOMING_TYPE;
                 break;
-            case BluetoothPbapObexServer.NEED_OUTGOING_CALL_NUMBER:
+            case BluetoothPbapObexServer.ContentType.OUTGOING_CALL_HISTORY:
                 selection = Calls.TYPE + "=" + CallLog.Calls.OUTGOING_TYPE;
                 break;
-            case BluetoothPbapObexServer.NEED_MISSED_CALL_NUMBER:
+            case BluetoothPbapObexServer.ContentType.MISSED_CALL_HISTORY:
                 selection = Calls.TYPE + "=" + CallLog.Calls.MISSED_TYPE;
                 break;
             default:
@@ -298,7 +298,6 @@ public class BluetoothPbapVcardManager {
         } catch (Exception e) {
             Log.e(TAG, "catch exception e" + e.toString());
         }
-
         return null;
     }
 
@@ -358,13 +357,13 @@ public class BluetoothPbapVcardManager {
         Uri myUri = CallLog.Calls.CONTENT_URI;
         ArrayList<String> list = new ArrayList<String>();
         switch (type) {
-            case BluetoothPbapObexServer.NEED_INCOMING_CALL_NUMBER:
+            case BluetoothPbapObexServer.ContentType.INCOMING_CALL_HISTORY:
                 selection = Calls.TYPE + "=" + CallLog.Calls.INCOMING_TYPE;
                 break;
-            case BluetoothPbapObexServer.NEED_OUTGOING_CALL_NUMBER:
+            case BluetoothPbapObexServer.ContentType.OUTGOING_CALL_HISTORY:
                 selection = Calls.TYPE + "=" + CallLog.Calls.OUTGOING_TYPE;
                 break;
-            case BluetoothPbapObexServer.NEED_MISSED_CALL_NUMBER:
+            case BluetoothPbapObexServer.ContentType.MISSED_CALL_HISTORY:
                 selection = Calls.TYPE + "=" + CallLog.Calls.MISSED_TYPE;
                 break;
             default:
@@ -444,7 +443,8 @@ public class BluetoothPbapVcardManager {
             final Cursor phonesCursor = mResolver.query(phonesUri, PHONES_PROJECTION, null, null,
                     Phones.ISPRIMARY + " DESC");
             if (phonesCursor != null) {
-                while (phonesCursor.moveToNext()) {
+                for (phonesCursor.moveToFirst(); !phonesCursor.isAfterLast();
+                            phonesCursor.moveToNext()) {
                     int type = phonesCursor.getInt(PHONES_TYPE_COLUMN);
                     String number = phonesCursor.getString(PHONES_NUMBER_COLUMN);
                     String label = phonesCursor.getString(PHONES_LABEL_COLUMN);
@@ -458,7 +458,8 @@ public class BluetoothPbapVcardManager {
             Cursor methodsCursor = mResolver
                     .query(methodsUri, METHODS_PROJECTION, null, null, null);
             if (methodsCursor != null) {
-                while (methodsCursor.moveToNext()) {
+                for (methodsCursor.moveToFirst(); !methodsCursor.isAfterLast();
+                           methodsCursor.moveToNext()) {
                     int kind = methodsCursor.getInt(METHODS_KIND_COLUMN);
                     String label = methodsCursor.getString(METHODS_LABEL_COLUMN);
                     String data = methodsCursor.getString(METHODS_DATA_COLUMN);
@@ -494,12 +495,14 @@ public class BluetoothPbapVcardManager {
                     ORGANIZATIONS_PROJECTION, "isprimary", null, null);
 
             if (organizationsCursor != null) {
-                while (organizationsCursor.moveToNext()) {
+                for (organizationsCursor.moveToFirst(); !organizationsCursor.isAfterLast();
+                           organizationsCursor.moveToNext()) {
                     int type = organizationsCursor.getInt(ORGANIZATIONS_TYPE_COLUMN);
                     String company = organizationsCursor.getString(ORGANIZATIONS_COMPANY_COLUMN);
                     String title = checkStrEnd(organizationsCursor
                             .getString(ORGANIZATIONS_TITLE_COLUMN), vCard21);
-                    boolean isPrimary = organizationsCursor.getInt(ORGANIZATIONS_ISPRIMARY_COLUMN) == 1 ? true
+                    boolean isPrimary = organizationsCursor.
+                                   getInt(ORGANIZATIONS_ISPRIMARY_COLUMN) == 1 ? true
                             : false;
                     contactStruct.addOrganization(type, company, title, isPrimary);
                 }

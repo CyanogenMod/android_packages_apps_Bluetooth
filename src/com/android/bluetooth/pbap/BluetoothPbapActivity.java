@@ -71,6 +71,8 @@ public class BluetoothPbapActivity extends AlertActivity implements
 
     private static final int DIALOG_YES_NO_AUTH = 2;
 
+    private static final String KEY_USER_TIMEOUT = "user_timeout";
+
     private View mView;
 
     private EditText mKeyView;
@@ -79,25 +81,23 @@ public class BluetoothPbapActivity extends AlertActivity implements
 
     private String mSessionKey = "";
 
-    private int mCurrentDialog = 0;
+    private int mCurrentDialog;
 
     private Button mOkButton;
 
     private CheckBox mAlwaysAllowed;
 
-    private static final String USER_TIMEOUT = "user_timeout";
-
-    private boolean mUserConfirmTimeout = false;
+    private boolean mTimeout = false;
 
     private boolean mAlwaysAllowedValue = false;
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (!BluetoothPbapService.USER_CONFIRM_TIMEOUT.equals(intent.getAction())) {
+            if (!BluetoothPbapService.USER_CONFIRM_TIMEOUT_ACTION.equals(intent.getAction())) {
                 return;
             }
-            onUserConfirmTimeout();
+            onTimeout();
         }
     };
 
@@ -106,10 +106,10 @@ public class BluetoothPbapActivity extends AlertActivity implements
         super.onCreate(savedInstanceState);
         Intent i = getIntent();
         String action = i.getAction();
-        if (action.equals(BluetoothPbapService.ACCESS_REQUEST)) {
+        if (action.equals(BluetoothPbapService.ACCESS_REQUEST_ACTION)) {
             showPbapDialog(DIALOG_YES_NO_CONNECT);
             mCurrentDialog = DIALOG_YES_NO_CONNECT;
-        } else if (action.equals(BluetoothPbapService.AUTH_CHALL)) {
+        } else if (action.equals(BluetoothPbapService.AUTH_CHALL_ACTION)) {
             showPbapDialog(DIALOG_YES_NO_AUTH);
             mCurrentDialog = DIALOG_YES_NO_AUTH;
         } else {
@@ -117,7 +117,8 @@ public class BluetoothPbapActivity extends AlertActivity implements
                     + "PBAP_ACCESS_REQUEST or PBAP_AUTH_CHALL ");
             finish();
         }
-        registerReceiver(mReceiver, new IntentFilter(BluetoothPbapService.USER_CONFIRM_TIMEOUT));
+        registerReceiver(mReceiver,
+			new IntentFilter(BluetoothPbapService.USER_CONFIRM_TIMEOUT_ACTION));
     }
 
     private void showPbapDialog(int id) {
@@ -197,25 +198,25 @@ public class BluetoothPbapActivity extends AlertActivity implements
     }
 
     private void onPositive() {
-        if (!mUserConfirmTimeout) {
+        if (!mTimeout) {
             if (mCurrentDialog == DIALOG_YES_NO_CONNECT) {
-                sendIntentToReceiver(BluetoothPbapService.ACCESS_ALLOWED,
-                        BluetoothPbapService.ALWAYS_ALLOWED, mAlwaysAllowedValue);
+                sendIntentToReceiver(BluetoothPbapService.ACCESS_ALLOWED_ACTION,
+                        BluetoothPbapService.EXTRA_ALWAYS_ALLOWED, mAlwaysAllowedValue);
             } else if (mCurrentDialog == DIALOG_YES_NO_AUTH) {
-                sendIntentToReceiver(BluetoothPbapService.AUTH_RESPONSE,
-                        BluetoothPbapService.SESSION_KEY, mSessionKey);
+                sendIntentToReceiver(BluetoothPbapService.AUTH_RESPONSE_ACTION,
+                        BluetoothPbapService.EXTRA_SESSION_KEY, mSessionKey);
                 mKeyView.removeTextChangedListener(this);
             }
         }
-        mUserConfirmTimeout = false;
+        mTimeout = false;
         finish();
     }
 
     private void onNegative() {
         if (mCurrentDialog == DIALOG_YES_NO_CONNECT) {
-            sendIntentToReceiver(BluetoothPbapService.ACCESS_DISALLOWED, null, null);
+            sendIntentToReceiver(BluetoothPbapService.ACCESS_DISALLOWED_ACTION, null, null);
         } else if (mCurrentDialog == DIALOG_YES_NO_AUTH) {
-            sendIntentToReceiver(BluetoothPbapService.AUTH_CANCELLED, null, null);
+            sendIntentToReceiver(BluetoothPbapService.AUTH_CANCELLED_ACTION, null, null);
             mKeyView.removeTextChangedListener(this);
         }
         finish();
@@ -258,8 +259,8 @@ public class BluetoothPbapActivity extends AlertActivity implements
         }
     }
 
-    private void onUserConfirmTimeout() {
-        mUserConfirmTimeout = true;
+    private void onTimeout() {
+        mTimeout = true;
         if (mCurrentDialog == DIALOG_YES_NO_CONNECT) {
             messageView.setText(getString(R.string.pbap_acceptance_timeout_message,
                     BluetoothPbapService.getRemoteDeviceName()));
@@ -280,13 +281,13 @@ public class BluetoothPbapActivity extends AlertActivity implements
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        mUserConfirmTimeout = savedInstanceState.getBoolean(USER_TIMEOUT);
+        mTimeout = savedInstanceState.getBoolean(KEY_USER_TIMEOUT);
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean(USER_TIMEOUT, mUserConfirmTimeout);
+        outState.putBoolean(KEY_USER_TIMEOUT, mTimeout);
     }
 
     @Override

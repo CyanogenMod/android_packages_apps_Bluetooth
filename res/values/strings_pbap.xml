@@ -10,7 +10,7 @@
     <string name="bluetooth_transfer_header">Bluetooth transfer</string>
     <string name="bluetooth_transfer_text">Could not successfully establish phone book sharing with</string>
     <string name="toast_connected">%1$s can now access your contacts and call history</string>
-    <string name="toast_disconnected">%1$s will not be given access</string>
+    <string name="toast_disconnected">%1$s lost the access to your contacts and call history</string>
     <string name="pbap_notif_ticker">Phonebook access request</string>
     <!-- Notification title when a Bluetooth device wants to pair with us -->
     <string name="pbap_notif_title">PBAP request</string>

@@ -82,7 +82,7 @@
             android:label=" "
             android:theme="@*android:style/Theme.Dialog.Alert">
             <intent-filter>
-        <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <service android:name=".pbap.BluetoothPbapService" >
