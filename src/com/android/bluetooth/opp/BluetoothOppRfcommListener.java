@@ -196,8 +196,9 @@ public class BluetoothOppRfcommListener {
                                 msg.obj = transport;
                                 msg.sendToTarget();
                             } catch (IOException e) {
+                                //TODO later accept should not throw exception
                                 if (Constants.LOGVV) {
-                                    Log.v(TAG, "Error accept connection " + e);
+                                    //Log.v(TAG, "Error accept connection " + e);
                                 }
                             }
                         }

@@ -44,6 +44,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.os.Process;
 import android.util.Log;
 
@@ -122,6 +123,9 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             mTransport1 = transport;
             waitingForShare = true;
             mWaitingForRemote = false;
+
+            PowerManager pm = (PowerManager)mContext1.getSystemService(Context.POWER_SERVICE);
+            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
         }
 
         private Context mContext1;
@@ -136,7 +140,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
         private ClientSession mCs;
 
-        PowerManager.WakeLock wakeLock;
+        private WakeLock wakeLock;
 
         private BluetoothOppSendFileInfo mFileInfo = null;
 
@@ -150,9 +154,11 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
         public void run() {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
-            PowerManager pm = (PowerManager)mContext1.getSystemService(Context.POWER_SERVICE);
-            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, Constants.TAG);
+            if (Constants.LOGVV) {
+                Log.v(TAG, "acquire partial WakeLock");
+            }
             wakeLock.acquire();
+
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e1) {
@@ -181,10 +187,11 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             }
             disconnect();
 
-            if (wakeLock != null) {
-                wakeLock.release();
-                wakeLock = null;
+            if (Constants.LOGVV) {
+                Log.v(TAG, "release partial WakeLock");
             }
+            wakeLock.release();
+
             Message msg = Message.obtain(mCallback);
             msg.what = BluetoothOppObexSession.MSG_SESSION_COMPLETE;
             msg.obj = mInfo;
@@ -412,7 +419,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     int position = 0;
                     int readLength = 0;
                     boolean okToProceed = false;
-                    long timestamp;
+                    long timestamp = 0;
                     int outputBufferSize = putOperation.getMaxPacketSize();
                     byte[] buffer = new byte[outputBufferSize];
                     BufferedInputStream a = new BufferedInputStream(fileInfo.mInputStream, 0x4000);
@@ -433,6 +440,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                         outputStream.write(buffer, 0, readLength);
 
                         mCallback.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
+                        position += readLength;
 
                         if (!okToProceed) {
                             /* check remote accept or reject */
@@ -465,7 +473,6 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                                 break;
                             }
                         }
-                        position += readLength;
 
                         if (Constants.LOGVV) {
                             Log.v(TAG, "Sending file position = " + position + " readLength "
@@ -497,32 +504,24 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     }
 
                     if (responseCode == ResponseCodes.OBEX_HTTP_FORBIDDEN) {
-                        if (Constants.LOGVV) {
-                            Log.v(TAG, "Remote reject file " + fileInfo.mFileName + " length "
-                                    + fileInfo.mLength);
-                        }
+                        Log.i(TAG, "Remote reject file " + fileInfo.mFileName + " length "
+                                + fileInfo.mLength);
                         status = BluetoothShare.STATUS_FORBIDDEN;
                     } else if (responseCode == ResponseCodes.OBEX_HTTP_UNSUPPORTED_TYPE) {
-                        if (Constants.LOGVV) {
-                            Log.v(TAG, "Remove reject file type " + fileInfo.mMimetype);
-                        }
+                        Log.i(TAG, "Remote reject file type " + fileInfo.mMimetype);
                         status = BluetoothShare.STATUS_NOT_ACCEPTABLE;
                     } else if (!mInterrupted && position == fileInfo.mLength) {
-                        if (Constants.LOGVV) {
-                            Log.v(TAG, "SendFile finished send out file " + fileInfo.mFileName
-                                    + " length " + fileInfo.mLength);
-                        }
+                        Log.i(TAG, "SendFile finished send out file " + fileInfo.mFileName
+                                + " length " + fileInfo.mLength);
                         outputStream.close();
                     } else {
                         error = true;
                         status = BluetoothShare.STATUS_CANCELED;
                         putOperation.abort();
                         /* interrupted */
-                        if (Constants.LOGVV) {
-                            Log.v(TAG, "SendFile interrupted when send out file "
+                        Log.e(TAG, "SendFile interrupted when send out file "
                                     + fileInfo.mFileName + " at " + position + " of "
                                     + fileInfo.mLength);
-                        }
                     }
                 }
             } catch (IOException e) {
@@ -536,12 +535,11 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     if (!error) {
                         responseCode = putOperation.getResponseCode();
                         if (responseCode != -1) {
-                            Log.v(TAG, "Get response code " + responseCode);
-
-                            if (responseCode == ResponseCodes.OBEX_HTTP_OK) {
-                                Log.v(TAG, "response code is OBEX_HTTP_OK");
-                            } else {
-                                Log.v(TAG, "Response code is not OBEX_HTTP_OK");
+                            if (Constants.LOGVV) {
+                                Log.v(TAG, "Get response code " + responseCode);
+                            }
+                            if (responseCode != ResponseCodes.OBEX_HTTP_OK) {
+                                Log.i(TAG, "Response error code is "+ responseCode);
                                 status = BluetoothShare.STATUS_UNHANDLED_OBEX_CODE;
                                 if (responseCode == ResponseCodes.OBEX_HTTP_UNSUPPORTED_TYPE) {
                                     status = BluetoothShare.STATUS_NOT_ACCEPTABLE;
@@ -549,13 +547,9 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                                 if (responseCode == ResponseCodes.OBEX_HTTP_FORBIDDEN) {
                                     status = BluetoothShare.STATUS_FORBIDDEN;
                                 }
-
                             }
                         } else {
-                            /*
-                             * responseCode is -1, which means connection
-                             * failure
-                             */
+                            // responseCode is -1, which means connection error
                             status = BluetoothShare.STATUS_CONNECTION_ERROR;
                         }
                     }

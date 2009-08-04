@@ -128,10 +128,7 @@ public class Constants {
      */
     private static final boolean LOCAL_LOGV = false;
 
-    // public static final boolean LOGV = Config.LOGV
-    // || (Config.LOGD && LOCAL_LOGV && Log.isLoggable(TAG, Log.VERBOSE));
-
-    public static final boolean LOGV = false;
+    public static final boolean LOGV = LOCAL_LOGV && Log.isLoggable(TAG, Log.VERBOSE);
 
     /** Enable super-verbose logging */
     private static final boolean LOCAL_LOGVV = false;

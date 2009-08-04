@@ -166,7 +166,9 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                     .getSystemService(Context.NOTIFICATION_SERVICE);
             if (notMgr != null) {
                 notMgr.cancel((int)ContentUris.parseId(intent.getData()));
-                Log.v(TAG, "notMgr.cancel called");
+                if (Constants.LOGVV) {
+                    Log.v(TAG, "notMgr.cancel called");
+                }
             }
         } else if (action.equals(Constants.ACTION_HIDE)) {
             if (Constants.LOGVV) {

@@ -578,9 +578,11 @@ public class BluetoothOppTransfer implements BluetoothOppBatchListener {
         String savedUuid = null;
         boolean isOpush = false;
         if (uuids != null) {
-            for (String uuid : uuids) {
+            for (String uuid :uuids) {
                 UUID remoteUuid = UUID.fromString(uuid);
-                Log.v(TAG, "SDP UUID: remoteUuid = " + remoteUuid);
+                if (Constants.LOGVV) {
+                    Log.v(TAG, "SDP UUID: remoteUuid = " + remoteUuid);
+                }
                 if (remoteUuid.equals(OPUSH_UUID128)) {
                     savedUuid = uuid;
                     isOpush = true;
@@ -602,7 +604,6 @@ public class BluetoothOppTransfer implements BluetoothOppBatchListener {
 
         }
 
-        Log.v(TAG, "SDP UUID: TYPE_UNKNOWN");
         Log.e(TAG, "SDP query failed!");
         markBatchFailed(BluetoothShare.STATUS_CONNECTION_ERROR);
         mBatch.mStatus = Constants.BATCH_STATUS_FAILED;
@@ -761,12 +762,11 @@ public class BluetoothOppTransfer implements BluetoothOppBatchListener {
         }
 
         private void markConnectionFailed(BluetoothSocket s) {
-            // TODO add destroy
             try {
                 s.close();
             } catch (IOException e) {
                 if (Constants.LOGVV) {
-                    Log.v(TAG, "Error when close socket");
+                    Log.e(TAG, "Error when close socket");
                 }
             }
             mSessionHandler.obtainMessage(RFCOMM_ERROR).sendToTarget();

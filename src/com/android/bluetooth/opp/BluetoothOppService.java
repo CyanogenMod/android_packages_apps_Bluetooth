@@ -170,8 +170,9 @@ public class BluetoothOppService extends Service {
                 startListenerDelayed();
             }
         }
-
-        BluetoothOppPreference.getInstance(this).dump();
+        if (Constants.LOGVV) {
+            BluetoothOppPreference.getInstance(this).dump();
+        }
         updateFromProvider();
     }
 
@@ -219,8 +220,10 @@ public class BluetoothOppService extends Service {
                     }
                     break;
                 case MEDIA_SCANNED:
-                    Log.v(TAG, "Update mInfo.id " + msg.arg1 + " for data uri= "
-                            + msg.obj.toString());
+                    if (Constants.LOGVV) {
+                        Log.v(TAG, "Update mInfo.id " + msg.arg1 + " for data uri= "
+                                + msg.obj.toString());
+                    }
                     ContentValues updateValues = new ContentValues();
                     Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + msg.arg1);
                     updateValues.put(Constants.MEDIA_SCANNED, Constants.MEDIA_SCANNED_SCANNED_OK);

@@ -45,6 +45,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
@@ -88,9 +90,17 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     private BluetoothOppReceiveFileInfo mFileInfo;
 
+    private WakeLock mWakeLock;
+
+    private WakeLock mPartialWakeLock;
+
     public BluetoothOppObexServerSession(Context context, ObexTransport transport) {
         mContext = context;
         mTransport = transport;
+        PowerManager pm = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
+        mWakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP
+                | PowerManager.ON_AFTER_RELEASE, TAG);
+        mPartialWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
     }
 
     public void unblock() {
@@ -102,6 +112,10 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
      * Header then wait for user confirmation
      */
     public void preStart() {
+        if (Constants.LOGV) {
+            Log.v(TAG, "acquire full WakeLock");
+        }
+        mWakeLock.acquire();
         try {
             if (Constants.LOGV) {
                 Log.v(TAG, "Create ServerSession with transport " + mTransport.toString());
@@ -143,6 +157,15 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             } catch (IOException e) {
                 Log.e(TAG, "close mTransport error" + e);
             }
+        }
+        if (Constants.LOGVV) {
+            Log.v(TAG, "release WakeLock");
+        }
+        if (mWakeLock.isHeld()) {
+            mWakeLock.release();
+        }
+        if (mPartialWakeLock.isHeld()) {
+            mPartialWakeLock.release();
         }
     }
 
@@ -292,6 +315,13 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             Log.v(TAG, "mLocalShareInfoId = " + mLocalShareInfoId);
         }
 
+        if (Constants.LOGVV) {
+            Log.v(TAG, "acquire partial WakeLock");
+        }
+        if( mWakeLock.isHeld()) {
+            mPartialWakeLock.acquire();
+            mWakeLock.release();
+        }
         // TODO add server wait timeout
         mServerBlocking = true;
         boolean msgSent = false;
@@ -388,9 +418,8 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
              * Option 2 :reject next objects and finish the session
              * Now we take option 2:
              */
-            if (Constants.LOGVV) {
-                Log.v(TAG, "request forbidden, indicate interrupted");
-            }
+
+            Log.i(TAG, "Rejected incoming request");
             status = BluetoothShare.STATUS_FORBIDDEN;
             Constants.updateShareStatus(mContext, mInfo.mId, status);
             obexResponse = ResponseCodes.OBEX_HTTP_FORBIDDEN;
@@ -444,7 +473,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             int outputBufferSize = op.getMaxPacketSize();
             byte[] b = new byte[outputBufferSize];
             int readLength = 0;
-            long timestamp;
+            long timestamp = 0;
             try {
                 while ((!mInterrupted) && (position != fileInfo.mLength)) {
 
@@ -519,7 +548,6 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             }
         }
 
-        Constants.updateShareStatus(mContext, mInfo.mId, status);
         if (bos != null) {
             try {
                 bos.close();
@@ -566,6 +594,16 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             Log.v(TAG, "onDisconnect");
         }
         resp.responseCode = ResponseCodes.OBEX_HTTP_OK;
+
+        if (Constants.LOGV) {
+            Log.v(TAG, "release WakeLock");
+        }
+        if (mWakeLock.isHeld()) {
+            mWakeLock.release();
+        }
+        if (mPartialWakeLock.isHeld()) {
+            mPartialWakeLock.release();
+        }
         /* onDisconnect could happen even before start() where mCallback is set */
         if (mCallback != null) {
             Message msg = Message.obtain(mCallback);
