@@ -39,7 +39,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothError;
-import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothIntent;
 import android.bluetooth.BluetoothPbap;
 import android.bluetooth.BluetoothSocket;
@@ -68,55 +67,57 @@ public class BluetoothPbapService extends Service {
      * Intent indicating incoming connection request which is sent to
      * BluetoothPbapActivity
      */
-    public static final String ACCESS_REQUEST = "com.android.bluetooth.pbap.accessrequest";
+    public static final String ACCESS_REQUEST_ACTION = "com.android.bluetooth.pbap.accessrequest";
 
     /**
      * Intent indicating incoming connection request accepted by user which is
      * sent from BluetoothPbapActivity
      */
-    public static final String ACCESS_ALLOWED = "com.android.bluetooth.pbap.accessallowed";
+    public static final String ACCESS_ALLOWED_ACTION = "com.android.bluetooth.pbap.accessallowed";
 
     /**
      * Intent indicating incoming connection request denied by user which is
      * sent from BluetoothPbapActivity
      */
-    public static final String ACCESS_DISALLOWED = "com.android.bluetooth.pbap.accessdisallowed";
+    public static final String ACCESS_DISALLOWED_ACTION =
+        "com.android.bluetooth.pbap.accessdisallowed";
 
     /**
      * Intent indicating incoming obex authentication request which is from
      * PCE(Carkit)
      */
-    public static final String AUTH_CHALL = "com.android.bluetooth.pbap.authchall";
+    public static final String AUTH_CHALL_ACTION = "com.android.bluetooth.pbap.authchall";
 
     /**
      * Intent indicating obex session key input complete by user which is sent
      * from BluetoothPbapActivity
      */
-    public static final String AUTH_RESPONSE = "com.android.bluetooth.pbap.authresponse";
+    public static final String AUTH_RESPONSE_ACTION = "com.android.bluetooth.pbap.authresponse";
 
     /**
      * Intent indicating user canceled obex authentication session key input
      * which is sent from BluetoothPbapActivity
      */
-    public static final String AUTH_CANCELLED = "com.android.bluetooth.pbap.authcancelled";
+    public static final String AUTH_CANCELLED_ACTION = "com.android.bluetooth.pbap.authcancelled";
 
     /**
-     * Intent indicating user confirmation timeout which is sent to
+     * Intent indicating timeout for user confirmation, which is sent to
      * BluetoothPbapActivity
      */
-    public static final String USER_CONFIRM_TIMEOUT = "com.android.bluetooth.pbap.userconfirmtimeout";
+    public static final String USER_CONFIRM_TIMEOUT_ACTION =
+        "com.android.bluetooth.pbap.userconfirmtimeout";
 
     /**
      * Intent Extra name indicating always allowed which is sent from
      * BluetoothPbapActivity
      */
-    public static final String ALWAYS_ALLOWED = "com.android.bluetooth.pbap.alwaysallowed";
+    public static final String EXTRA_ALWAYS_ALLOWED = "com.android.bluetooth.pbap.alwaysallowed";
 
     /**
      * Intent Extra name indicating session key which is sent from
      * BluetoothPbapActivity
      */
-    public static final String SESSION_KEY = "com.android.bluetooth.pbap.sessionkey";
+    public static final String EXTRA_SESSION_KEY = "com.android.bluetooth.pbap.sessionkey";
 
     public static final String THIS_PACKAGE_NAME = "com.android.bluetooth";
 
@@ -209,7 +210,7 @@ public class BluetoothPbapService extends Service {
     public void onStart(Intent intent, int startId) {
         mStartId = startId;
         if (mBluetooth == null || mDeviceAddr == null) {
-            Log.w(TAG, "Stopping BluetoothHeadsetService: "
+            Log.w(TAG, "Stopping BluetoothPbapService: "
                     + "device does not have BT or device is not ready");
             closeService(); // release all resources
         } else {
@@ -225,17 +226,13 @@ public class BluetoothPbapService extends Service {
             if (state == BluetoothDevice.BLUETOOTH_STATE_OFF) {
                 closeService(); // release all resources
             }
-        }
-
-        if (action.equals(ACCESS_ALLOWED)) {
+        } else if (action.equals(ACCESS_ALLOWED_ACTION)) {
             mSessionStatusHandler.removeMessages(USER_TIMEOUT);
-            if (intent.getBooleanExtra(ALWAYS_ALLOWED, false)) {
+            if (intent.getBooleanExtra(EXTRA_ALWAYS_ALLOWED, false)) {
                 // TODO: have dependency on device trust feature implementation
                 // mBluetooth.setTrust(mRemoteAddr, true);
             }
             try {
-                // In case carkit time out and try to use HFP for phonebook
-                // access ,while UI still there for user to comfirm
                 if (mConnSocket != null) {
                     startObexServerSession();
                 } else {
@@ -246,20 +243,14 @@ public class BluetoothPbapService extends Service {
                     Log.e(TAG, "Caught the error: " + ex.toString());
                 }
             }
-        }
-
-        if (action.equals(ACCESS_DISALLOWED)) {
+        } else if (action.equals(ACCESS_DISALLOWED_ACTION)) {
             mSessionStatusHandler.removeMessages(USER_TIMEOUT);
             obexServerSessionClose();
-        }
-
-        if (action.equals(AUTH_RESPONSE)) {
+        } else if (action.equals(AUTH_RESPONSE_ACTION)) {
             mSessionStatusHandler.removeMessages(USER_TIMEOUT);
-            String sessionkey = intent.getStringExtra(SESSION_KEY);
+            String sessionkey = intent.getStringExtra(EXTRA_SESSION_KEY);
             notifyAuthKeyInput(sessionkey);
-        }
-
-        if (action.equals(AUTH_CANCELLED)) {
+        } else if (action.equals(AUTH_CANCELLED_ACTION)) {
             mSessionStatusHandler.removeMessages(USER_TIMEOUT);
             notifyAuthCancelled();
         }
@@ -281,7 +272,7 @@ public class BluetoothPbapService extends Service {
             Log.d(TAG, "getPhonebookSzie type=" + type);
         }
         switch (type) {
-            case BluetoothPbapObexServer.NEED_PHONEBOOK:
+            case BluetoothPbapObexServer.ContentType.PHONEBOOK:
                 return sVcardManager.getPhonebookSize();
             default:
                 return sVcardManager.getCallHistorySize(type);
@@ -293,7 +284,7 @@ public class BluetoothPbapService extends Service {
             Log.d(TAG, "getPhonebook type=" + type + " pos=" + pos + " vcardType=" + vcardType);
         }
         switch (type) {
-            case BluetoothPbapObexServer.NEED_PHONEBOOK:
+            case BluetoothPbapObexServer.ContentType.PHONEBOOK:
                 return sVcardManager.getPhonebook(pos, vcardType);
             default:
                 return sVcardManager.getCallHistory(pos, type, vcardType);
@@ -489,8 +480,10 @@ public class BluetoothPbapService extends Service {
                         }
                     } else {
                         BluetoothPbapReceiver.makeNewPbapNotification(getApplicationContext(),
-                                ACCESS_REQUEST);
+                                ACCESS_REQUEST_ACTION);
                         Log.i(TAG, "incomming connection accepted from" + sRemoteDeviceName);
+                        // In case carkit time out and try to use HFP for phonebook
+                        // access, while UI still there waiting for user to confirm
                         mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
                                 .obtainMessage(USER_TIMEOUT), USER_CONFIRM_TIMEOUT_VALUE);
                     }
@@ -520,7 +513,7 @@ public class BluetoothPbapService extends Service {
     }
 
     private void setState(int state) {
-        setState(state, BluetoothHeadset.RESULT_SUCCESS);
+        setState(state, BluetoothPbap.RESULT_SUCCESS);
     }
 
     private synchronized void setState(int state, int result) {
@@ -567,7 +560,8 @@ public class BluetoothPbapService extends Service {
         }
 
         public boolean connectPce(String address) {
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                    "Need BLUETOOTH_ADMIN permission");
             return false;
         }
 
@@ -575,7 +569,8 @@ public class BluetoothPbapService extends Service {
             if (DBG) {
                 Log.d(TAG1, "disconnectPce");
             }
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                    "Need BLUETOOTH_ADMIN permission");
             synchronized (BluetoothPbapService.this) {
                 switch (mState) {
                     case BluetoothPbap.STATE_CONNECTED:
@@ -607,14 +602,14 @@ public class BluetoothPbapService extends Service {
                     }
                     break;
                 case USER_TIMEOUT:
-                    Intent intent = new Intent(USER_CONFIRM_TIMEOUT);
+                    Intent intent = new Intent(USER_CONFIRM_TIMEOUT_ACTION);
                     sendBroadcast(intent);
                     BluetoothPbapReceiver.removePbapNotification(getApplicationContext(),
                             BluetoothPbapReceiver.NOTIFICATION_ID_ACCESS);
                     obexServerSessionClose();
                     break;
                 case AUTH_TIMEOUT:
-                    Intent i = new Intent(USER_CONFIRM_TIMEOUT);
+                    Intent i = new Intent(USER_CONFIRM_TIMEOUT_ACTION);
                     sendBroadcast(i);
                     BluetoothPbapReceiver.removePbapNotification(getApplicationContext(),
                             BluetoothPbapReceiver.NOTIFICATION_ID_AUTH);
@@ -634,12 +629,11 @@ public class BluetoothPbapService extends Service {
                     break;
                 case MSG_OBEX_AUTH_CHALL:
                     BluetoothPbapReceiver.makeNewPbapNotification(getApplicationContext(),
-                            AUTH_CHALL);
+                            AUTH_CHALL_ACTION);
                     mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
                             .obtainMessage(AUTH_TIMEOUT), USER_CONFIRM_TIMEOUT_VALUE);
                     break;
             }
         }
     };
-
 }
