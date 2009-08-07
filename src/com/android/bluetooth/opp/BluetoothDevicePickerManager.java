@@ -36,6 +36,7 @@ import com.android.bluetooth.R;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
@@ -52,11 +53,12 @@ public class BluetoothDevicePickerManager {
 
     private static final boolean LOG_ENABLED = DEBUG ? Config.LOGD : Config.LOGV;
 
-    private static final String TAG = "-------------BluetoothDevicePickerManager";
+    private static final String TAG = "BluetoothDevicePickerManager";
 
     static final boolean V = true;
 
-    public static final String EXTENDED_BLUETOOTH_STATE_CHANGED_ACTION = "com.android.settings.bluetooth.intent.action.EXTENDED_BLUETOOTH_STATE_CHANGED";
+    public static final String EXTENDED_BLUETOOTH_STATE_CHANGED_ACTION =
+            "com.android.settings.bluetooth.intent.action.EXTENDED_BLUETOOTH_STATE_CHANGED";
 
     private static final String SHARED_PREFERENCES_NAME = "bluetooth_settings";
 
@@ -74,7 +76,7 @@ public class BluetoothDevicePickerManager {
     /** If a BT-related activity is in the foreground, this will be it. */
     private Activity mForegroundActivity;
 
-    private BluetoothDevice mManager;
+    private BluetoothAdapter mAdapter;
 
     private BluetoothDevicePickerDeviceManager mLocalDeviceManager;
 
@@ -115,8 +117,8 @@ public class BluetoothDevicePickerManager {
         // This will be around as long as this process is
         mContext = context.getApplicationContext();
 
-        mManager = (BluetoothDevice)context.getSystemService(Context.BLUETOOTH_SERVICE);
-        if (mManager == null) {
+        mAdapter = (BluetoothAdapter) context.getSystemService(Context.BLUETOOTH_SERVICE);
+        if (mAdapter == null) {
             log("has no bluetooth service, exit");
             return false;
         }
@@ -130,8 +132,8 @@ public class BluetoothDevicePickerManager {
         return true;
     }
 
-    public BluetoothDevice getBluetoothManager() {
-        return mManager;
+    public BluetoothAdapter getBluetoothAdapter() {
+        return mAdapter;
     }
 
     public int stopBluetoothEventListener() {
@@ -200,7 +202,7 @@ public class BluetoothDevicePickerManager {
 
     public void startScanning(boolean force) {
         log("startScanning1");
-        if (mManager.isDiscovering()) {
+        if (mAdapter.isDiscovering()) {
             log("startScanning2");
             dispatchScanningStateChanged(true);
             log("startScanning3");
@@ -210,7 +212,7 @@ public class BluetoothDevicePickerManager {
                 return;
 
             log("startScanning5");
-            if (mManager.startDiscovery()) {
+            if (mAdapter.startDiscovery()) {
                 mLastScan = System.currentTimeMillis();
             }
         }
@@ -237,12 +239,12 @@ public class BluetoothDevicePickerManager {
     }
 
     private void syncBluetoothState() {
-        setBluetoothStateInt(mManager.isEnabled() ? ExtendedBluetoothState.ENABLED
+        setBluetoothStateInt(mAdapter.isEnabled() ? ExtendedBluetoothState.ENABLED
                 : ExtendedBluetoothState.DISABLED);
     }
 
     public void setBluetoothEnabled(boolean enabled) {
-        boolean wasSetStateSuccessful = enabled ? mManager.enable() : mManager.disable();
+        boolean wasSetStateSuccessful = enabled ? mAdapter.enable() : mAdapter.disable();
 
         if (wasSetStateSuccessful) {
             setBluetoothStateInt(enabled ? ExtendedBluetoothState.ENABLING
@@ -263,12 +265,12 @@ public class BluetoothDevicePickerManager {
         dispatchScanningStateChanged(started);
     }
 
-    void onBondingStateChanged(String address, boolean created) {
+    void onBondingStateChanged(BluetoothDevice remoteDevice, boolean created) {
         log("onBondStateChanged1");
         synchronized (mCallbacks) {
             for (Callback callback : mCallbacks) {
                 log("onBondStateChanged2");
-                callback.onBondingStateChanged(address, created);
+                callback.onBondingStateChanged(remoteDevice, created);
             }
         }
     }
@@ -283,12 +285,8 @@ public class BluetoothDevicePickerManager {
         }
     }
 
-    public boolean createBonding(String address) {
-        return mManager.createBond(address);
-    }
-
-    public void showError(String address, int titleResId, int messageResId) {
-        BluetoothDevicePickerDevice device = mLocalDeviceManager.findDevice(address);
+    public void showError(BluetoothDevice remoteDevice, int titleResId, int messageResId) {
+        BluetoothDevicePickerDevice device = mLocalDeviceManager.findDevice(remoteDevice);
         if (device == null)
             return;
 
@@ -313,7 +311,7 @@ public class BluetoothDevicePickerManager {
 
         void onDeviceDeleted(BluetoothDevicePickerDevice device);
 
-        void onBondingStateChanged(String address, boolean created);
+        void onBondingStateChanged(BluetoothDevice device, boolean created);
     }
 
     static void log(String message) {

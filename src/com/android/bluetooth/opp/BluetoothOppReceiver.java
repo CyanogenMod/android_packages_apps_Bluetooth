@@ -35,6 +35,7 @@ package com.android.bluetooth.opp;
 import com.android.bluetooth.R;
 
 import android.app.NotificationManager;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothError;
 import android.bluetooth.BluetoothIntent;
@@ -63,7 +64,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
 
             context.startService(new Intent(context, BluetoothOppService.class));
         } else if (action.equals(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION)) {
-            if (BluetoothDevice.BLUETOOTH_STATE_ON == intent.getIntExtra(
+            if (BluetoothAdapter.BLUETOOTH_STATE_ON == intent.getIntExtra(
                     BluetoothIntent.BLUETOOTH_STATE, BluetoothError.ERROR)) {
                 if (Constants.LOGVV) {
                     Log.v(TAG, "Received BLUETOOTH_STATE_CHANGED_ACTION, BLUETOOTH_STATE_ON");
@@ -86,17 +87,17 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
         } else if (action.equals(BluetoothShare.BLUETOOTH_DEVICE_SELECTED_ACTION)) {
             BluetoothOppManager mOppManager = BluetoothOppManager.getInstance(context);
 
-            String btAddr = (String)intent.getStringExtra("BT_ADDRESS");
+            BluetoothDevice remoteDevice = intent.getParcelableExtra("BT_DEVICE");
 
             if (Constants.LOGVV) {
-                Log.v(TAG, "Received BT device selected intent, bt addr: " + btAddr);
+                Log.v(TAG, "Received BT device selected intent, bt device: " + remoteDevice);
             }
 
             // Insert transfer session record to database
-            mOppManager.startTransfer(btAddr);
+            mOppManager.startTransfer(remoteDevice);
 
             // Display toast message
-            String deviceName = mOppManager.getDeviceName(btAddr);
+            String deviceName = mOppManager.getDeviceName(remoteDevice);
             String toastMsg;
             if (mOppManager.mMultipleFlag) {
                 toastMsg = context.getString(R.string.bt_toast_5, Integer

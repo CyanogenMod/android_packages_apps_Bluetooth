@@ -37,6 +37,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
@@ -63,14 +64,17 @@ public class BluetoothOppRfcommListener {
 
     public static final int MSG_INCOMING_BTOPP_CONNECTION = 100;
 
-    private int mBtOppRfcommChannel = -1;
+    private final int mBtOppRfcommChannel;
 
-    public BluetoothOppRfcommListener() {
-        this(DEFAULT_OPP_CHANNEL);
+    private final BluetoothAdapter mAdapter;
+
+    public BluetoothOppRfcommListener(BluetoothAdapter adapter) {
+        this(adapter, DEFAULT_OPP_CHANNEL);
     }
 
-    public BluetoothOppRfcommListener(int channel) {
+    public BluetoothOppRfcommListener(BluetoothAdapter adapter, int channel) {
         mBtOppRfcommChannel = channel;
+        mAdapter = adapter;
     }
 
     public synchronized boolean start(Handler callback) {
@@ -153,8 +157,8 @@ public class BluetoothOppRfcommListener {
                         }
                         for (int i = 0; i < CREATE_RETRY_TIME && !mInterrupted; i++) {
                             try {
-                                mServerSocket = BluetoothServerSocket
-                                        .listenUsingInsecureRfcommOn(mBtOppRfcommChannel);
+                                mServerSocket =
+                                        mAdapter.listenUsingInsecureRfcommOn(mBtOppRfcommChannel);
                             } catch (IOException e1) {
                                 Log.d(TAG, "Error create RfcommServerSocket " + e1);
                                 serverOK = false;
@@ -186,7 +190,7 @@ public class BluetoothOppRfcommListener {
                                 clientSocket = mServerSocket.accept(ACCEPT_WAIT_TIMEOUT);
                                 if (Constants.LOGVV) {
                                     Log.v(TAG, "BluetoothSocket connected!");
-                                    Log.v(TAG, "remote addr is " + clientSocket.getAddress());
+                                    Log.v(TAG, "remote device is " + clientSocket.getRemoteDevice());
                                 }
                                 BluetoothOppRfcommTransport transport = new BluetoothOppRfcommTransport(
                                         clientSocket);

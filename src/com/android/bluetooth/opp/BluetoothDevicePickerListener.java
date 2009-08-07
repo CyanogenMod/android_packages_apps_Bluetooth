@@ -34,6 +34,7 @@ package com.android.bluetooth.opp;
 
 import com.android.bluetooth.opp.BluetoothDevicePickerManager.ExtendedBluetoothState;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothError;
 import android.bluetooth.BluetoothIntent;
@@ -70,14 +71,14 @@ public class BluetoothDevicePickerListener {
             }
 
             String action = intent.getAction();
-            String address = intent.getStringExtra(BluetoothIntent.ADDRESS);
+            BluetoothDevice remoteDevice = intent.getParcelableExtra(BluetoothIntent.DEVICE);
 
             if (action.equals(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION)) {
                 int state = intent.getIntExtra(BluetoothIntent.BLUETOOTH_STATE,
                         BluetoothError.ERROR);
-                if (state == BluetoothDevice.BLUETOOTH_STATE_ON) {
+                if (state == BluetoothAdapter.BLUETOOTH_STATE_ON) {
                     mManager.setBluetoothStateInt(ExtendedBluetoothState.ENABLED);
-                } else if (state == BluetoothDevice.BLUETOOTH_STATE_OFF) {
+                } else if (state == BluetoothAdapter.BLUETOOTH_STATE_OFF) {
                     mManager.setBluetoothStateInt(ExtendedBluetoothState.DISABLED);
                 }
             } else if (action.equals(BluetoothIntent.DISCOVERY_STARTED_ACTION)) {
@@ -88,7 +89,7 @@ public class BluetoothDevicePickerListener {
             } else if (action.equals(BluetoothIntent.PAIRING_REQUEST_ACTION)) {
                 Intent pinIntent = new Intent();
                 pinIntent.setClass(context, BluetoothPinDialog.class);
-                pinIntent.putExtra(BluetoothIntent.ADDRESS, address);
+                pinIntent.putExtra(BluetoothIntent.DEVICE, remoteDevice);
                 pinIntent.setAction(BluetoothIntent.PAIRING_REQUEST_ACTION);
                 pinIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 // if this activity is in the foreground, open the pin dialog,
@@ -106,20 +107,20 @@ public class BluetoothDevicePickerListener {
             } else if (action.equals(BluetoothIntent.REMOTE_DEVICE_FOUND_ACTION)) {
                 short rssi = intent.getShortExtra(BluetoothIntent.RSSI, Short.MIN_VALUE);
                 Log.v(TAG, "onReceive: REMOTE_DEVICE_FOUND_ACTION");
-                mManager.getLocalDeviceManager().onDeviceAppeared(address, rssi);
+                mManager.getLocalDeviceManager().onDeviceAppeared(remoteDevice, rssi);
             } else if (action.equals(BluetoothIntent.REMOTE_DEVICE_DISAPPEARED_ACTION)) {
-                mManager.getLocalDeviceManager().onDeviceDisappeared(address);
+                mManager.getLocalDeviceManager().onDeviceDisappeared(remoteDevice);
             } else if (action.equals(BluetoothIntent.REMOTE_NAME_UPDATED_ACTION)) {
-                mManager.getLocalDeviceManager().onDeviceNameUpdated(address);
+                mManager.getLocalDeviceManager().onDeviceNameUpdated(remoteDevice);
             } else if (action.equals(BluetoothIntent.BOND_STATE_CHANGED_ACTION)) {
                 Log.v(TAG, "onReceive: BOND_STATE_CHANGED_ACTION");
                 int bondResult = intent.getIntExtra(BluetoothIntent.BOND_STATE, 99);
                 if (bondResult == BluetoothDevice.BOND_BONDED) {
                     Log.v(TAG, "onReceive: BOND_STATE_CHANGED_ACTION, BONDED");
-                    mManager.getLocalDeviceManager().onBondingStateChanged(address, true);
+                    mManager.getLocalDeviceManager().onBondingStateChanged(remoteDevice, true);
                 } else if (bondResult == BluetoothDevice.BOND_NOT_BONDED) {
                     Log.v(TAG, "onReceive: BOND_STATE_CHANGED_ACTION, NOT_BONDED");
-                    mManager.getLocalDeviceManager().onBondingStateChanged(address, false);
+                    mManager.getLocalDeviceManager().onBondingStateChanged(remoteDevice, false);
                 }
             }
         }

@@ -44,16 +44,15 @@ import javax.obex.ObexTransport;
 
 public class BluetoothOppRfcommTransport implements ObexTransport {
 
-    private BluetoothSocket s = null;
+    private final BluetoothSocket mSocket;
 
-    public BluetoothOppRfcommTransport(BluetoothSocket rfs) {
+    public BluetoothOppRfcommTransport(BluetoothSocket socket) {
         super();
-        this.s = rfs;
+        this.mSocket = socket;
     }
 
     public void close() throws IOException {
-        // TODO add destroy()
-        s.close();
+        mSocket.close();
     }
 
     public DataInputStream openDataInputStream() throws IOException {
@@ -65,11 +64,11 @@ public class BluetoothOppRfcommTransport implements ObexTransport {
     }
 
     public InputStream openInputStream() throws IOException {
-        return s.getInputStream();
+        return mSocket.getInputStream();
     }
 
     public OutputStream openOutputStream() throws IOException {
-        return s.getOutputStream();
+        return mSocket.getOutputStream();
     }
 
     public void connect() throws IOException {
@@ -85,15 +84,15 @@ public class BluetoothOppRfcommTransport implements ObexTransport {
     }
 
     public boolean isConnected() throws IOException {
-        //return s.isConnected();
+        //return mSocket.isConnected();
         // TODO: add implementation
         return true;
     }
 
     public String getRemoteAddress() {
-        if (s == null)
+        if (mSocket == null)
             return null;
-        return s.getAddress();
+        return mSocket.getRemoteDevice().getAddress();
     }
 
 }

@@ -34,13 +34,14 @@ package com.android.bluetooth.opp;
 
 import com.android.bluetooth.R;
 
-import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
-import com.android.bluetooth.opp.BluetoothDevicePickerManager.Callback;
-
+import android.bluetooth.BluetoothDevice;
 import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * BluetoothDevicePickerDeviceManager manages the set of remote Bluetooth
@@ -51,7 +52,7 @@ public class BluetoothDevicePickerDeviceManager {
 
     final BluetoothDevicePickerManager mLocalManager;
 
-    final List<Callback> mCallbacks;
+    final List<BluetoothDevicePickerManager.Callback> mCallbacks;
 
     final List<BluetoothDevicePickerDevice> mDevices = new ArrayList<BluetoothDevicePickerDevice>();
 
@@ -64,23 +65,23 @@ public class BluetoothDevicePickerDeviceManager {
 
     private synchronized void readPairedDevices() {
         Log.e(TAG, "readPairedDevices");
-        BluetoothDevice manager = mLocalManager.getBluetoothManager();
-        String[] bondedAddresses = manager.listBonds();
+        BluetoothAdapter adapter = mLocalManager.getBluetoothAdapter();
+        Set<BluetoothDevice> bondedDevices = adapter.getBondedDevices();
 
-        if (bondedAddresses == null) {
+        if (bondedDevices == null) {
             Log.e(TAG, "there is no bonded device");
             return;
         }
 
-        for (String address : bondedAddresses) {
+        for (BluetoothDevice remoteDevice : bondedDevices) {
             /* only show OPP capable devices: phone and computer */
-            if (isOppCapableDevice(address) == false) {
+            if (isOppCapableDevice(remoteDevice) == false) {
                 continue;
             }
 
-            BluetoothDevicePickerDevice device = findDevice(address);
+            BluetoothDevicePickerDevice device = findDevice(remoteDevice);
             if (device == null) {
-                device = new BluetoothDevicePickerDevice(mLocalManager.getContext(), address);
+                device = new BluetoothDevicePickerDevice(mLocalManager.getContext(), remoteDevice);
                 mDevices.add(device);
                 dispatchDeviceAdded(device);
             }
@@ -97,19 +98,19 @@ public class BluetoothDevicePickerDeviceManager {
         }
     }
 
-    public synchronized void onDeviceAppeared(String address, short rssi) {
+    public synchronized void onDeviceAppeared(BluetoothDevice remoteDevice, short rssi) {
         Log.e(TAG, "onDeviceAppeared");
 
         /* only show OPP capable devices: phone and computer */
-        if (isOppCapableDevice(address) == false) {
+        if (isOppCapableDevice(remoteDevice) == false) {
             return;
         }
 
         boolean deviceAdded = false;
-        BluetoothDevicePickerDevice device = findDevice(address);
+        BluetoothDevicePickerDevice device = findDevice(remoteDevice);
         if (device == null) {
             Log.e(TAG, "device is not found, add a new device");
-            device = new BluetoothDevicePickerDevice(mLocalManager.getContext(), address);
+            device = new BluetoothDevicePickerDevice(mLocalManager.getContext(), remoteDevice);
             mDevices.add(device);
             deviceAdded = true;
         }
@@ -123,11 +124,10 @@ public class BluetoothDevicePickerDeviceManager {
         }
     }
 
-    private boolean isOppCapableDevice(String address) {
+    private boolean isOppCapableDevice(BluetoothDevice remoteDevice) {
         Log.e(TAG, "isOppCapableDevice");
 
-        BluetoothDevice manager = mLocalManager.getBluetoothManager();
-        int btClass = manager.getRemoteClass(address);
+        int btClass = remoteDevice.getBluetoothClass();
         int major = BluetoothClass.Device.Major.getDeviceMajor(btClass);
         if ((major != BluetoothClass.Device.Major.COMPUTER)
                 && (major != BluetoothClass.Device.Major.PHONE)) {
@@ -139,9 +139,9 @@ public class BluetoothDevicePickerDeviceManager {
         }
     }
 
-    public synchronized void onDeviceDisappeared(String address) {
+    public synchronized void onDeviceDisappeared(BluetoothDevice remoteDevice) {
         Log.e(TAG, "onDeviceDisappeared");
-        BluetoothDevicePickerDevice device = findDevice(address);
+        BluetoothDevicePickerDevice device = findDevice(remoteDevice);
         if (device == null)
             return;
 
@@ -159,20 +159,20 @@ public class BluetoothDevicePickerDeviceManager {
         }
     }
 
-    public synchronized void onDeviceNameUpdated(String address) {
+    public synchronized void onDeviceNameUpdated(BluetoothDevice remoteDevice) {
         Log.e(TAG, "onDeviceNameUpdated");
-        BluetoothDevicePickerDevice device = findDevice(address);
+        BluetoothDevicePickerDevice device = findDevice(remoteDevice);
         if (device != null) {
             device.refreshName();
         }
     }
 
-    public synchronized BluetoothDevicePickerDevice findDevice(String address) {
+    public synchronized BluetoothDevicePickerDevice findDevice(BluetoothDevice remoteDevice) {
 
         for (int i = mDevices.size() - 1; i >= 0; i--) {
             BluetoothDevicePickerDevice device = mDevices.get(i);
 
-            if (device.getAddress().equals(address)) {
+            if (device.getRemoteDevice().equals(remoteDevice)) {
                 return device;
             }
         }
@@ -180,14 +180,14 @@ public class BluetoothDevicePickerDeviceManager {
         return null;
     }
 
-    public String getName(String address) {
-        BluetoothDevicePickerDevice device = findDevice(address);
-        return device != null ? device.getName() : address;
+    public String getName(BluetoothDevice remoteDevice) {
+        BluetoothDevicePickerDevice device = findDevice(remoteDevice);
+        return device != null ? device.getName() : remoteDevice.getAddress();
     }
 
     private void dispatchDeviceAdded(BluetoothDevicePickerDevice device) {
         synchronized (mCallbacks) {
-            for (Callback callback : mCallbacks) {
+            for (BluetoothDevicePickerManager.Callback callback : mCallbacks) {
                 callback.onDeviceAdded(device);
             }
         }
@@ -195,16 +195,16 @@ public class BluetoothDevicePickerDeviceManager {
 
     private void dispatchDeviceDeleted(BluetoothDevicePickerDevice device) {
         synchronized (mCallbacks) {
-            for (Callback callback : mCallbacks) {
+            for (BluetoothDevicePickerManager.Callback callback : mCallbacks) {
                 callback.onDeviceDeleted(device);
             }
         }
     }
 
-    public synchronized void onBondingStateChanged(String address, boolean created) {
-        BluetoothDevicePickerDevice device = findDevice(address);
+    public synchronized void onBondingStateChanged(BluetoothDevice remoteDevice, boolean created) {
+        BluetoothDevicePickerDevice device = findDevice(remoteDevice);
         if (device == null) {
-            Log.e(TAG, "Got bonding state changed for " + address
+            Log.e(TAG, "Got bonding state changed for " + remoteDevice
                     + ", but we have no record of that device.");
             return;
         }
@@ -215,21 +215,21 @@ public class BluetoothDevicePickerDeviceManager {
 
         if (created) {
             synchronized (mCallbacks) {
-                for (Callback callback : mCallbacks) {
-                    callback.onBondingStateChanged(address, created);
+                for (BluetoothDevicePickerManager.Callback callback : mCallbacks) {
+                    callback.onBondingStateChanged(remoteDevice, created);
                 }
             }
 
         }
     }
 
-    public synchronized void onBondingError(String address) {
-        mLocalManager.showError(address, R.string.bluetooth_error_title,
+    public synchronized void onBondingError(BluetoothDevice remoteDevice) {
+        mLocalManager.showError(remoteDevice, R.string.bluetooth_error_title,
                 R.string.bluetooth_pairing_error_message);
     }
 
-    public synchronized void onProfileStateChanged(String address) {
-        BluetoothDevicePickerDevice device = findDevice(address);
+    public synchronized void onProfileStateChanged(BluetoothDevice remoteDevice) {
+        BluetoothDevicePickerDevice device = findDevice(remoteDevice);
         if (device == null)
             return;
 

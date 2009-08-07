@@ -34,6 +34,9 @@ package com.android.bluetooth.opp;
 
 import com.android.bluetooth.R;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -82,6 +85,10 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
 
     private TextView mLine1View, mLine2View, mLine3View, mLine5View;
 
+    private int mWhichDialog;
+
+    private BluetoothAdapter mAdapter;
+
     // Dialogs definition:
     // Receive progress dialog
     public static final int DIALOG_RECEIVE_ONGOING = 0;
@@ -100,8 +107,6 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
 
     // Send complete and fail dialog: will let user retry
     public static final int DIALOG_SEND_COMPLETE_FAIL = 5;
-
-    private int mWhichDialog;
 
     /** Observer to get notified when the content observer's data changes */
     private BluetoothTransferContentObserver mObserver;
@@ -151,6 +156,8 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
             // set this record to INVISIBLE
             BluetoothOppUtility.updateVisibilityToHidden(this, mUri);
         }
+
+        mAdapter = (BluetoothAdapter) getSystemService(Context.BLUETOOTH_SERVICE); 
 
         // Set up the "dialog"
         setUpDialog();
@@ -367,11 +374,13 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
                     // retry the failed transfer
                     BluetoothOppUtility.retryTransfer(this, mTransInfo);
 
+                    BluetoothDevice remoteDevice = mAdapter.getRemoteDevice(mTransInfo.mDestAddr);
+
                     // Display toast message
                     Toast.makeText(
                             this,
                             this.getString(R.string.bt_toast_4, BluetoothOppManager.getInstance(
-                                    this).getDeviceName(mTransInfo.mDestAddr)), Toast.LENGTH_SHORT)
+                                    this).getDeviceName(remoteDevice)), Toast.LENGTH_SHORT)
                             .show();
 
                 } else if (mWhichDialog == DIALOG_SEND_COMPLETE_SUCCESS) {

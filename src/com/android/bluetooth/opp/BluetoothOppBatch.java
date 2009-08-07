@@ -35,6 +35,8 @@ package com.android.bluetooth.opp;
 import java.io.File;
 import java.util.ArrayList;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.util.Log;
 
@@ -56,24 +58,21 @@ import com.google.android.collect.Lists;
  * 8. Cancel receiving a single file
  * 9. Cancel receiving a file (implies cancel the transfer, no additional files will be received)
  */
+
 public class BluetoothOppBatch {
     private static final String TAG = "BtOpp Batch";
 
-    private ArrayList<BluetoothOppShareInfo> mShares;
-
-    public long mTimestamp;
-
-    public int mDirection;
-
-    public String mDestination;
-
     public int mId;
-
     public int mStatus;
+
+    public final long mTimestamp;
+    public final int mDirection;
+    public final BluetoothDevice mDestination;
 
     private BluetoothOppBatchListener mListener;
 
-    private Context mContext;
+    private final ArrayList<BluetoothOppShareInfo> mShares;
+    private final Context mContext;
 
     /**
      * An interface for notifying when BluetoothOppTransferBatch is changed
@@ -103,11 +102,13 @@ public class BluetoothOppBatch {
      * @param info, BluetoothOppShareInfo
      */
     public BluetoothOppBatch(Context context, BluetoothOppShareInfo info) {
+        BluetoothAdapter adapter =
+                (BluetoothAdapter) context.getSystemService(Context.BLUETOOTH_SERVICE);
         mContext = context;
         mShares = Lists.newArrayList();
         mTimestamp = info.mTimestamp;
         mDirection = info.mDirection;
-        mDestination = info.mDestination;
+        mDestination = adapter.getRemoteDevice(info.mDestination);
         mStatus = Constants.BATCH_STATUS_PENDING;
         mShares.add(info);
         if (Constants.LOGVV) {

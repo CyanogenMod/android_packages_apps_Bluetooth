@@ -37,6 +37,7 @@ import com.android.bluetooth.R;
 import java.util.List;
 import java.util.WeakHashMap;
 
+import android.bluetooth.BluetoothDevice;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Config;
@@ -114,7 +115,8 @@ public class BluetoothDevicePickerActivity extends PreferenceActivity implements
     }
 
     @Override
-    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
+    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
+            Preference preference) {
         log("onPreferenceTreeClick");
 
         if (KEY_BT_SCAN.equals(preference.getKey())) {
@@ -123,22 +125,25 @@ public class BluetoothDevicePickerActivity extends PreferenceActivity implements
             return super.onPreferenceTreeClick(preferenceScreen, preference);
         } else if (preference instanceof BluetoothDevicePickerDevicePreference) {
             log("user choosed a device");
-            BluetoothDevicePickerDevicePreference btPreference = (BluetoothDevicePickerDevicePreference)preference;
+            BluetoothDevicePickerDevicePreference btPreference =
+                    (BluetoothDevicePickerDevicePreference) preference;
             BluetoothDevicePickerDevice device = btPreference.getDevice();
             // device.onClicked();
 
             if (device.getPairingStatus() == BluetoothDevicePickerBtStatus.PAIRING_STATUS_PAIRED) {
-                log("the device chosed is paired, send intent to OPP with the BT address and finish this activity.");
-                String BtAddress = btPreference.getDevice().getAddress();
+                log("the device chosed is paired, send intent to" +
+                        " OPP with the BT device and finish this activity.");
+                BluetoothDevice remoteDevice = btPreference.getDevice().getRemoteDevice();
                 Intent intent = new Intent(BluetoothShare.BLUETOOTH_DEVICE_SELECTED_ACTION);
                 intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class
                         .getName());
-                intent.putExtra("BT_ADDRESS", BtAddress);
+                intent.putExtra("BT_DEVICE", remoteDevice);
                 this.sendBroadcast(intent);
                 super.onPreferenceTreeClick(preferenceScreen, preference);
                 finish();
             } else {
-                log("the device chosed is NOT paired, try to pair with it and wait for bond request from bluez");
+                log("the device chosed is NOT paired, try to pair" +
+                        " with it and wait for bond request from bluez");
                 device.pair();
             }
 
@@ -170,12 +175,12 @@ public class BluetoothDevicePickerActivity extends PreferenceActivity implements
         }
     }
 
-    public void onBondingStateChanged(String address, boolean created) {
+    public void onBondingStateChanged(BluetoothDevice remoteDevice, boolean created) {
         log("onBondingStateChanged");
         if (created == true) {
             Intent intent = new Intent(BluetoothShare.BLUETOOTH_DEVICE_SELECTED_ACTION);
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
-            intent.putExtra("BT_ADDRESS", address);
+            intent.putExtra("BT_DEVICE", remoteDevice);
             this.sendBroadcast(intent);
             log("the device bond succeeded, send intent to OPP");
         }

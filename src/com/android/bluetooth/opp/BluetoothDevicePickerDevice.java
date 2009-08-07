@@ -34,8 +34,9 @@ package com.android.bluetooth.opp;
 
 import com.android.bluetooth.R;
 
-import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
@@ -53,7 +54,7 @@ public class BluetoothDevicePickerDevice implements Comparable<BluetoothDevicePi
 
     private static final boolean V = BluetoothDevicePickerDevice.V;
 
-    private final String mAddress;
+    private final BluetoothDevice mDevice;
 
     private String mName;
 
@@ -69,14 +70,14 @@ public class BluetoothDevicePickerDevice implements Comparable<BluetoothDevicePi
 
     private List<Callback> mCallbacks = new ArrayList<Callback>();
 
-    BluetoothDevicePickerDevice(Context context, String address) {
+    BluetoothDevicePickerDevice(Context context, BluetoothDevice device) {
         mLocalManager = BluetoothDevicePickerManager.getInstance(context);
         if (mLocalManager == null) {
             throw new IllegalStateException(
                     "Cannot use BluetoothDevicePickerManager without Bluetooth hardware");
         }
 
-        mAddress = address;
+        mDevice = device;
 
         fillData();
     }
@@ -110,16 +111,16 @@ public class BluetoothDevicePickerDevice implements Comparable<BluetoothDevicePi
     }
 
     public void pair() {
-        BluetoothDevice manager = mLocalManager.getBluetoothManager();
+        BluetoothAdapter adapter = mLocalManager.getBluetoothAdapter();
         Log.v(TAG, "pair enter");
 
         // Pairing doesn't work if scanning, so cancel
-        if (manager.isDiscovering()) {
+        if (adapter.isDiscovering()) {
             Log.v(TAG, "is discovering");
-            manager.cancelDiscovery();
+            adapter.cancelDiscovery();
         }
 
-        if (mLocalManager.createBonding(mAddress)) {
+        if (mDevice.createBond()) {
             Log.v(TAG, "set status: PAIRING_STATUS_PAIRING");
             setPairingStatus(BluetoothDevicePickerBtStatus.PAIRING_STATUS_PAIRING);
         }
@@ -127,30 +128,27 @@ public class BluetoothDevicePickerDevice implements Comparable<BluetoothDevicePi
     }
 
     public void unpair() {
-        BluetoothDevice manager = mLocalManager.getBluetoothManager();
-
         switch (getPairingStatus()) {
             case BluetoothDevicePickerBtStatus.PAIRING_STATUS_PAIRED:
-                manager.removeBond(mAddress);
+                mDevice.removeBond();
                 break;
 
             case BluetoothDevicePickerBtStatus.PAIRING_STATUS_PAIRING:
-                manager.cancelBondProcess(mAddress);
+                mDevice.cancelBondProcess();
                 break;
         }
     }
 
     private void fillData() {
-        BluetoothDevice manager = mLocalManager.getBluetoothManager();
         fetchName();
-        mBtClass = manager.getRemoteClass(mAddress);
-        mPairingStatus = manager.getBondState(mAddress);
+        mBtClass = mDevice.getBluetoothClass();
+        mPairingStatus = mDevice.getBondState();
         mVisible = false;
         dispatchAttributesChanged();
     }
 
-    public String getAddress() {
-        return mAddress;
+    public BluetoothDevice getRemoteDevice() {
+        return mDevice;
     }
 
     public String getName() {
@@ -163,10 +161,10 @@ public class BluetoothDevicePickerDevice implements Comparable<BluetoothDevicePi
     }
 
     private void fetchName() {
-        mName = mLocalManager.getBluetoothManager().getRemoteName(mAddress);
+        mName = mDevice.getName();
 
         if (TextUtils.isEmpty(mName)) {
-            mName = mAddress;
+            mName = mDevice.getAddress();
         }
     }
 
@@ -243,7 +241,7 @@ public class BluetoothDevicePickerDevice implements Comparable<BluetoothDevicePi
 
     @Override
     public String toString() {
-        return mAddress;
+        return mDevice.toString();
     }
 
     @Override
@@ -252,12 +250,12 @@ public class BluetoothDevicePickerDevice implements Comparable<BluetoothDevicePi
             throw new ClassCastException();
         }
 
-        return mAddress.equals(((BluetoothDevicePickerDevice)o).mAddress);
+        return mDevice.equals(((BluetoothDevicePickerDevice)o).mDevice);
     }
 
     @Override
     public int hashCode() {
-        return mAddress.hashCode();
+        return mDevice.hashCode();
     }
 
     public int compareTo(BluetoothDevicePickerDevice another) {

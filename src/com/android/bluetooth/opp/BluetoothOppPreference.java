@@ -34,6 +34,7 @@ package com.android.bluetooth.opp;
 
 import java.util.HashMap;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -88,22 +89,22 @@ public class BluetoothOppPreference {
         mChannelPreference = mContext.getSharedPreferences(
                 Constants.BLUETOOTHOPP_CHANNEL_PREFERENCE, Context.MODE_PRIVATE);
 
-        mNames = (HashMap<String, String>)mNamePreference.getAll();
-        mChannels = (HashMap<String, Integer>)mChannelPreference.getAll();
+        mNames = (HashMap<String, String>) mNamePreference.getAll();
+        mChannels = (HashMap<String, Integer>) mChannelPreference.getAll();
 
         return true;
     }
 
-    private String getChannelKey(String address, int uuid) {
-        return address + "_" + Integer.toHexString(uuid);
+    private String getChannelKey(BluetoothDevice remoteDevice, int uuid) {
+        return remoteDevice.getAddress() + "_" + Integer.toHexString(uuid);
     }
 
-    public String getName(String address) {
-        if (address.equals("FF:FF:FF:00:00:00")) {
+    public String getName(BluetoothDevice remoteDevice) {
+        if (remoteDevice.getAddress().equals("FF:FF:FF:00:00:00")) {
             return "localhost";
         }
         if (!mNames.isEmpty()) {
-            String name = mNames.get(address);
+            String name = mNames.get(remoteDevice.getAddress());
             if (name != null) {
                 return name;
             }
@@ -111,8 +112,8 @@ public class BluetoothOppPreference {
         return null;
     }
 
-    public int getChannel(String address, int uuid) {
-        String key = getChannelKey(address, uuid);
+    public int getChannel(BluetoothDevice remoteDevice, int uuid) {
+        String key = getChannelKey(remoteDevice, uuid);
         if (Constants.LOGVV) {
             Log.v(TAG, "getChannel " + key);
         }
@@ -120,32 +121,32 @@ public class BluetoothOppPreference {
         if (!mChannels.isEmpty()) {
             channel = mChannels.get(key);
             if (Constants.LOGVV) {
-                Log.v(TAG, "getChannel for " + address + "_" + Integer.toHexString(uuid) + " as "
-                        + channel);
+                Log.v(TAG, "getChannel for " + remoteDevice + "_" + Integer.toHexString(uuid) +
+                        " as " + channel);
             }
         }
         return channel;
     }
 
-    public void setName(String address, String name) {
+    public void setName(BluetoothDevice remoteDevice, String name) {
         if (Constants.LOGVV) {
-            Log.v(TAG, "Setname for " + address + " to " + name);
+            Log.v(TAG, "Setname for " + remoteDevice + " to " + name);
         }
-        if (!name.equals(getName(address))) {
+        if (!name.equals(getName(remoteDevice))) {
             Editor ed = mNamePreference.edit();
-            ed.putString(address, name);
+            ed.putString(remoteDevice.getAddress(), name);
             ed.commit();
-            mNames.put(address, name);
+            mNames.put(remoteDevice.getAddress(), name);
         }
     }
 
-    public void setChannel(String address, int uuid, int channel) {
+    public void setChannel(BluetoothDevice remoteDevice, int uuid, int channel) {
         if (Constants.LOGVV) {
-            Log.v(TAG, "Setchannel for " + address + "_" + Integer.toHexString(uuid) + " to "
+            Log.v(TAG, "Setchannel for " + remoteDevice + "_" + Integer.toHexString(uuid) + " to "
                     + channel);
         }
-        if (channel == getChannel(address, uuid)) {
-            String key = getChannelKey(address, uuid);
+        if (channel == getChannel(remoteDevice, uuid)) {
+            String key = getChannelKey(remoteDevice, uuid);
             Editor ed = mChannelPreference.edit();
             ed.putInt(key, channel);
             ed.commit();
@@ -153,15 +154,15 @@ public class BluetoothOppPreference {
         }
     }
 
-    public void removeName(String address) {
+    public void removeName(BluetoothDevice remoteDevice) {
         Editor ed = mNamePreference.edit();
-        ed.remove(address);
+        ed.remove(remoteDevice.getAddress());
         ed.commit();
-        mNames.remove(address);
+        mNames.remove(remoteDevice.getAddress());
     }
 
-    public void removeChannel(String address, int uuid) {
-        String key = getChannelKey(address, uuid);
+    public void removeChannel(BluetoothDevice remoteDevice, int uuid) {
+        String key = getChannelKey(remoteDevice, uuid);
         Editor ed = mChannelPreference.edit();
         ed.remove(key);
         ed.commit();

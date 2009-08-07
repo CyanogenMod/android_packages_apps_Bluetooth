@@ -36,6 +36,7 @@ import com.google.android.collect.Lists;
 import javax.obex.ObexTransport;
 
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothError;
 import android.bluetooth.BluetoothIntent;
@@ -119,7 +120,7 @@ public class BluetoothOppService extends Service {
      */
     private CharArrayBuffer mNewChars;
 
-    private BluetoothDevice mBluetooth;
+    private BluetoothAdapter mAdapter;
 
     private PowerManager mPowerManager;
 
@@ -145,9 +146,9 @@ public class BluetoothOppService extends Service {
         if (Constants.LOGVV) {
             Log.v(TAG, "Service onCreate");
         }
-        mBluetooth = (BluetoothDevice)getSystemService(Context.BLUETOOTH_SERVICE);
-        mPowerManager = (PowerManager)getSystemService(Context.POWER_SERVICE);
-        mSocketListener = new BluetoothOppRfcommListener();
+        mAdapter = (BluetoothAdapter) getSystemService(Context.BLUETOOTH_SERVICE);
+        mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        mSocketListener = new BluetoothOppRfcommListener(mAdapter);
         mShares = Lists.newArrayList();
         mBatchs = Lists.newArrayList();
         mObserver = new BluetoothShareContentObserver();
@@ -164,7 +165,7 @@ public class BluetoothOppService extends Service {
         registerReceiver(mBluetoothIntentReceiver, filter);
 
         synchronized (BluetoothOppService.this) {
-            if (mBluetooth == null) {
+            if (mAdapter == null) {
                 Log.w(TAG, "Local BT device is not enabled");
             } else {
                 startListenerDelayed();
@@ -183,7 +184,7 @@ public class BluetoothOppService extends Service {
             Log.v(TAG, "Service onStart");
         }
 
-        if (mBluetooth == null) {
+        if (mAdapter == null) {
             Log.w(TAG, "Local BT device is not enabled");
         } else {
             startListenerDelayed();
@@ -194,7 +195,7 @@ public class BluetoothOppService extends Service {
 
     private void startListenerDelayed() {
         if (!mListenStarted) {
-            if (mBluetooth.isEnabled()) {
+            if (mAdapter.isEnabled()) {
                 if (Constants.LOGVV) {
                     Log.v(TAG, "Starting RfcommListener in 9 seconds");
                 }
@@ -215,7 +216,7 @@ public class BluetoothOppService extends Service {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case START_LISTENER:
-                    if (mBluetooth.isEnabled()) {
+                    if (mAdapter.isEnabled()) {
                         startSocketListener();
                     }
                     break;
@@ -291,9 +292,9 @@ public class BluetoothOppService extends Service {
         }
     }
 
-    private void handleRemoteDisconnected(String address) {
+    private void handleRemoteDisconnected(BluetoothDevice remoteDevice) {
         if (Constants.LOGVV) {
-            Log.v(TAG, "Handle remote device disconnected " + address);
+            Log.v(TAG, "Handle remote device disconnected " + remoteDevice);
         }
         int batchId = -1;
         int i;
@@ -301,9 +302,9 @@ public class BluetoothOppService extends Service {
             batchId = mTransfer.getBatchId();
             i = findBatchWithId(batchId);
             if (i != -1 && mBatchs.get(i).mStatus == Constants.BATCH_STATUS_RUNNING
-                    && mBatchs.get(i).mDestination.equals(address)) {
+                    && mBatchs.get(i).mDestination.equals(remoteDevice)) {
                 if (Constants.LOGVV) {
-                    Log.v(TAG, "Find mTransfer is running for remote device " + address);
+                    Log.v(TAG, "Find mTransfer is running for remote device " + remoteDevice);
                 }
                 mTransfer.stop();
 
@@ -312,9 +313,9 @@ public class BluetoothOppService extends Service {
             batchId = mServerTransfer.getBatchId();
             i = findBatchWithId(batchId);
             if (i != -1 && mBatchs.get(i).mStatus == Constants.BATCH_STATUS_RUNNING
-                    && mBatchs.get(i).mDestination.equals(address)) {
+                    && mBatchs.get(i).mDestination.equals(remoteDevice)) {
                 if (Constants.LOGVV) {
-                    Log.v(TAG, "Find mServerTransfer is running for remote device " + address);
+                    Log.v(TAG, "Find mServerTransfer is running for remote device " + remoteDevice);
                 }
             }
         }
@@ -324,25 +325,25 @@ public class BluetoothOppService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            String address = intent.getStringExtra(BluetoothIntent.ADDRESS);
+            BluetoothDevice remoteDevice = intent.getParcelableExtra(BluetoothIntent.DEVICE);
 
             if (action.equals(BluetoothIntent.REMOTE_DEVICE_DISCONNECTED_ACTION)) {
                 if (Constants.LOGVV) {
-                    Log.v(TAG, "Receiver REMOTE_DEVICE_DISCONNECTED_ACTION from " + address);
+                    Log.v(TAG, "Receiver REMOTE_DEVICE_DISCONNECTED_ACTION from " + remoteDevice);
                 }
-                handleRemoteDisconnected(address);
+                handleRemoteDisconnected(remoteDevice);
 
             } else if (action.equals(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION)) {
 
                 switch (intent.getIntExtra(BluetoothIntent.BLUETOOTH_STATE, BluetoothError.ERROR)) {
-                    case BluetoothDevice.BLUETOOTH_STATE_ON:
+                    case BluetoothAdapter.BLUETOOTH_STATE_ON:
                         if (Constants.LOGVV) {
                             Log.v(TAG,
                                     "Receiver BLUETOOTH_STATE_CHANGED_ACTION, BLUETOOTH_STATE_ON");
                         }
                         startSocketListener();
                         break;
-                    case BluetoothDevice.BLUETOOTH_STATE_TURNING_OFF:
+                    case BluetoothAdapter.BLUETOOTH_STATE_TURNING_OFF:
                         if (Constants.LOGVV) {
                             Log.v(TAG, "Receiver DISABLED_ACTION ");
                         }

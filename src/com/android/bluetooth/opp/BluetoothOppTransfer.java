@@ -32,9 +32,9 @@
 
 package com.android.bluetooth.opp;
 
-import com.android.bluetooth.opp.BluetoothOppBatch.BluetoothOppBatchListener;
 import javax.obex.ObexTransport;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.ContentValues;
@@ -59,7 +59,7 @@ import java.util.UUID;
  * This class run an actual Opp transfer session (from connect target device to
  * disconnect)
  */
-public class BluetoothOppTransfer implements BluetoothOppBatchListener {
+public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatchListener {
     private static final String TAG = "BtOpp Transfer";
 
     public static final int RFCOMM_ERROR = 10;
@@ -79,7 +79,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatchListener {
 
     private Context mContext;
 
-    private BluetoothDevice mBluetooth;
+    private BluetoothAdapter mAdapter;
 
     private BluetoothOppBatch mBatch;
 
@@ -109,7 +109,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatchListener {
         mSession = session;
 
         mBatch.registerListern(this);
-        mBluetooth = (BluetoothDevice)mContext.getSystemService(Context.BLUETOOTH_SERVICE);
+        mAdapter = (BluetoothAdapter) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
 
     }
 
@@ -387,7 +387,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatchListener {
          * normally it's impossible to reach here if BT is disabled. Just check
          * for safety
          */
-        if (!mBluetooth.isEnabled()) {
+        if (!mAdapter.isEnabled()) {
             Log.e(TAG, "Can't start transfer when Bluetooth is disabled for " + mBatch.mId);
             markBatchFailed();
             mBatch.mStatus = Constants.BATCH_STATUS_FAILED;
@@ -550,7 +550,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatchListener {
 
     //TODO this commented code is necessary after bluez4 has good SDP API
     /*
-        IBluetoothDeviceCallback.Stub mDeviceCallback = new IBluetoothDeviceCallback.Stub() {
+        IBluetoothCallback.Stub mDeviceCallback = new IBluetoothCallback.Stub() {
             public void onGetRemoteServiceChannelResult(String address, int channel) {
                 mSessionHandler.obtainMessage(SDP_RESULT, channel, -1, address).sendToTarget();
             }
@@ -564,14 +564,14 @@ public class BluetoothOppTransfer implements BluetoothOppBatchListener {
         mTimestamp = System.currentTimeMillis();
         //TODO this commented code is necessary after bluez4 has good SDP API
         /*
-                if (!mBluetooth.getRemoteServiceChannel(mBatch.mDestination, OPUSH_UUID16, mDeviceCallback)) {
+                if (!mAdapter.getRemoteServiceChannel(mBatch.mDestination, OPUSH_UUID16, mDeviceCallback)) {
                     Log.e(TAG, "Could not start OPUSH SDP query");
 
                     markBatchFailed();
                     mBatch.mStatus = Constants.BATCH_STATUS_FAILED;
                 }
                 */
-        String[] uuids = mBluetooth.getRemoteUuids(mBatch.mDestination);
+        String[] uuids = mBatch.mDestination.getUuids();
         if (Constants.LOGVV) {
             Log.v(TAG, "After call getRemoteUuids for address " + mBatch.mDestination);
         }
@@ -590,7 +590,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatchListener {
 
             }
             if (isOpush) {
-                int channel = mBluetooth.getRemoteServiceChannel(mBatch.mDestination, savedUuid);
+                int channel = mBatch.mDestination.getServiceChannel(savedUuid);
                 if (Constants.LOGV) {
                     Log.v(TAG, "Get OPUSH channel " + channel + " from SDP for "
                             + mBatch.mDestination);
@@ -612,28 +612,28 @@ public class BluetoothOppTransfer implements BluetoothOppBatchListener {
     private SocketConnectThread mConnectThread;
 
     private class SocketConnectThread extends Thread {
-        private String address;
-
-        private int channel;
+        private final String host;
+        private final BluetoothDevice device;
+        private final int channel;
 
         private boolean isConnected;
-
         private long timestamp;
-
-        BluetoothSocket btSocket = null;
+        private BluetoothSocket btSocket = null;
 
         /* create a TCP socket */
         public SocketConnectThread(String host, int port, int dummy) {
             super("Socket Connect Thread");
-            this.address = host;
+            this.host = host;
             this.channel = port;
+            this.device = null;
             isConnected = false;
         }
 
         /* create a Rfcomm Socket */
-        public SocketConnectThread(String address, int channel) {
+        public SocketConnectThread(BluetoothDevice device, int channel) {
             super("Socket Connect Thread");
-            this.address = address;
+            this.device = device;
+            this.host = null;
             this.channel = channel;
             isConnected = false;
         }
@@ -663,7 +663,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatchListener {
                 int result = 0;
                 for (int i = 0; i < CONNECT_RETRY_TIME && result == 0; i++) {
                     try {
-                        s.connect(new InetSocketAddress(address, channel), CONNECT_WAIT_TIMEOUT);
+                        s.connect(new InetSocketAddress(host, channel), CONNECT_WAIT_TIMEOUT);
                     } catch (UnknownHostException e) {
                         Log.e(TAG, "TCP socket connect unknown host ");
                     } catch (IOException e) {
@@ -718,7 +718,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatchListener {
                 /* Use BluetoothSocket to connect */
 
                 try {
-                    btSocket = BluetoothSocket.createInsecureRfcommSocket(address, channel);
+                    btSocket = device.createInsecureRfcommSocket(channel);
                 } catch (IOException e1) {
                     Log.e(TAG, "Rfcomm socket create error");
                     markConnectionFailed(btSocket);
@@ -739,10 +739,9 @@ public class BluetoothOppTransfer implements BluetoothOppBatchListener {
                 BluetoothOppRfcommTransport transport;
                 transport = new BluetoothOppRfcommTransport(btSocket);
 
-                BluetoothOppPreference.getInstance(mContext).setChannel(address, OPUSH_UUID16,
+                BluetoothOppPreference.getInstance(mContext).setChannel(device, OPUSH_UUID16,
                         channel);
-                BluetoothOppPreference.getInstance(mContext).setName(address,
-                        mBluetooth.getRemoteName(address));
+                BluetoothOppPreference.getInstance(mContext).setName(device, device.getName());
 
                 if (Constants.LOGVV) {
                     Log.v(TAG, "Send transport message " + transport.toString());

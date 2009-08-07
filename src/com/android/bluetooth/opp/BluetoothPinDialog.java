@@ -34,6 +34,7 @@ package com.android.bluetooth.opp;
 
 import com.android.bluetooth.R;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothIntent;
 import android.content.DialogInterface;
@@ -65,7 +66,7 @@ public class BluetoothPinDialog extends AlertActivity implements DialogInterface
 
     private BluetoothDevicePickerManager mLocalManager;
 
-    private String mAddress;
+    private BluetoothDevice mRemoteDevice;
 
     private EditText mPinView;
 
@@ -84,7 +85,7 @@ public class BluetoothPinDialog extends AlertActivity implements DialogInterface
         }
 
         mLocalManager = BluetoothDevicePickerManager.getInstance(this);
-        mAddress = intent.getStringExtra(BluetoothIntent.ADDRESS);
+        mRemoteDevice = intent.getParcelableExtra(BluetoothIntent.DEVICE);
 
         // Set up the "dialog"
         final AlertController.AlertParams p = mAlertParams;
@@ -101,7 +102,7 @@ public class BluetoothPinDialog extends AlertActivity implements DialogInterface
     private View createView() {
         View view = getLayoutInflater().inflate(R.layout.bluetooth_pin_entry, null);
 
-        String name = mLocalManager.getLocalDeviceManager().getName(mAddress);
+        String name = mLocalManager.getLocalDeviceManager().getName(mRemoteDevice);
         TextView messageView = (TextView)view.findViewById(R.id.message);
         messageView.setText(getString(R.string.bluetooth_enter_pin_msg, name));
 
@@ -117,11 +118,11 @@ public class BluetoothPinDialog extends AlertActivity implements DialogInterface
             return;
         }
 
-        mLocalManager.getBluetoothManager().setPin(mAddress, pinBytes);
+        mRemoteDevice.setPin(pinBytes);
     }
 
     private void onCancel() {
-        mLocalManager.getBluetoothManager().cancelPairingUserInput(mAddress);
+        mRemoteDevice.cancelPairingUserInput();
     }
 
     public void onClick(DialogInterface dialog, int which) {

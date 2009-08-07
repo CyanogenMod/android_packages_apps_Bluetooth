@@ -35,7 +35,9 @@ package com.android.bluetooth.opp;
 import com.android.bluetooth.R;
 import com.google.android.collect.Lists;
 
-import android.util.Log;
+
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.net.Uri;
 import android.content.ContentValues;
 import android.content.Context;
@@ -44,6 +46,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
+import android.util.Log;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -56,6 +59,8 @@ public class BluetoothOppUtility {
     private static final String TAG = "BluetoothOppUtility";
 
     public static BluetoothOppTransferInfo queryRecord(Context context, Uri uri) {
+        BluetoothAdapter adapter =
+                (BluetoothAdapter) context.getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothOppTransferInfo info = new BluetoothOppTransferInfo();
         Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
         if (cursor != null) {
@@ -97,8 +102,9 @@ public class BluetoothOppUtility {
                             .getColumnIndexOrThrow(BluetoothShare.MIMETYPE));
                 }
 
-                info.mDeviceName = BluetoothOppManager.getInstance(context).getDeviceName(
-                        info.mDestAddr);
+                BluetoothDevice remoteDevice = adapter.getRemoteDevice(info.mDestAddr);
+                info.mDeviceName =
+                        BluetoothOppManager.getInstance(context).getDeviceName(remoteDevice);
 
                 if (Constants.LOGVV) {
                     Log.v(TAG, "Get data from db:" + info.mFileName + info.mFileType

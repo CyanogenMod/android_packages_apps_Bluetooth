@@ -34,15 +34,16 @@ package com.android.bluetooth.opp;
 
 import com.android.bluetooth.R;
 
-import android.util.Log;
-import java.util.ArrayList;
-import android.net.Uri;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
+import android.util.Log;
 
-import android.bluetooth.BluetoothDevice;
+import java.util.ArrayList;
 
 /**
  * This class provides a simplified interface on top of other Bluetooth service
@@ -61,7 +62,7 @@ public class BluetoothOppManager {
 
     private Context mContext;
 
-    private BluetoothDevice mManager;
+    private BluetoothAdapter mAdapter;
 
     private String mMimeTypeOfSendigFile;
 
@@ -122,8 +123,8 @@ public class BluetoothOppManager {
         // This will be around as long as this process is
         mContext = context.getApplicationContext();
 
-        mManager = (BluetoothDevice)context.getSystemService(Context.BLUETOOTH_SERVICE);
-        if (mManager == null) {
+        mAdapter = (BluetoothAdapter) context.getSystemService(Context.BLUETOOTH_SERVICE);
+        if (mAdapter == null) {
             if (Constants.LOGVV) {
                 Log.v(TAG, "BLUETOOTH_SERVICE is not started! ");
             }
@@ -212,8 +213,8 @@ public class BluetoothOppManager {
      * @return true if Bluetooth enabled, false otherwise.
      */
     public boolean isEnabled() {
-        if (mManager != null) {
-            return mManager.isEnabled();
+        if (mAdapter != null) {
+            return mAdapter.isEnabled();
         } else {
             if (Constants.LOGVV) {
                 Log.v(TAG, "BLUETOOTH_SERVICE is not available! ");
@@ -226,8 +227,8 @@ public class BluetoothOppManager {
      * Enable Bluetooth hardware.
      */
     public void enableBluetooth() {
-        if (mManager != null) {
-            mManager.enable();
+        if (mAdapter != null) {
+            mAdapter.enable();
         }
     }
 
@@ -235,21 +236,21 @@ public class BluetoothOppManager {
      * Disable Bluetooth hardware.
      */
     public void disableBluetooth() {
-        if (mManager != null) {
-            mManager.disable();
+        if (mAdapter != null) {
+            mAdapter.disable();
         }
     }
 
     /**
      * Get device name per bluetooth address.
      */
-    public String getDeviceName(String btAddr) {
+    public String getDeviceName(BluetoothDevice device) {
         String deviceName;
 
-        deviceName = BluetoothOppPreference.getInstance(mContext).getName(btAddr);
+        deviceName = BluetoothOppPreference.getInstance(mContext).getName(device);
 
-        if (deviceName == null && mManager != null) {
-            deviceName = mManager.getRemoteName(btAddr);
+        if (deviceName == null && mAdapter != null) {
+            deviceName = device.getName();
         }
 
         if (deviceName == null) {
@@ -262,9 +263,9 @@ public class BluetoothOppManager {
     /**
      * insert sending sessions to db, only used by Opp application.
      */
-    public void startTransfer(String btAddr) {
-        if (btAddr == null) {
-            Log.e(TAG, "Target bt address is null!");
+    public void startTransfer(BluetoothDevice device) {
+        if (device == null) {
+            Log.e(TAG, "Target bt device is null!");
             return;
         }
 
@@ -306,27 +307,27 @@ public class BluetoothOppManager {
                 ContentValues values = new ContentValues();
                 values.put(BluetoothShare.URI, fileUri);
                 values.put(BluetoothShare.MIMETYPE, contentType);
-                values.put(BluetoothShare.DESTINATION, btAddr);
+                values.put(BluetoothShare.DESTINATION, device.getAddress());
                 values.put(BluetoothShare.TIMESTAMP, ts);
 
                 final Uri contentUri = mContext.getContentResolver().insert(
                         BluetoothShare.CONTENT_URI, values);
                 if (Constants.LOGVV) {
                     Log.v(TAG, "Insert contentUri: " + contentUri + "  to device: "
-                            + getDeviceName(btAddr));
+                            + getDeviceName(device));
                 }
             }
         } else {
             ContentValues values = new ContentValues();
             values.put(BluetoothShare.URI, mUriOfSendingFile);
             values.put(BluetoothShare.MIMETYPE, mMimeTypeOfSendigFile);
-            values.put(BluetoothShare.DESTINATION, btAddr);
+            values.put(BluetoothShare.DESTINATION, device.getAddress());
 
             final Uri contentUri = mContext.getContentResolver().insert(BluetoothShare.CONTENT_URI,
                     values);
             if (Constants.LOGVV) {
                 Log.v(TAG, "Insert contentUri: " + contentUri + "  to device: "
-                        + getDeviceName(btAddr));
+                        + getDeviceName(device));
             }
         }
 
