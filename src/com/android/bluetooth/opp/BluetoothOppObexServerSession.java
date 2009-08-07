@@ -63,7 +63,7 @@ import javax.obex.ServerSession;
 public class BluetoothOppObexServerSession extends ServerRequestHandler implements
         BluetoothOppObexSession {
 
-    private static final String TAG = "BtOpp Server";
+    private static final String TAG = "BtOpp ObexServer";
 
     private ObexTransport mTransport;
 
@@ -94,6 +94,8 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     private WakeLock mPartialWakeLock;
 
+    boolean mTimeoutMsgSent = false;
+
     public BluetoothOppObexServerSession(Context context, ObexTransport transport) {
         mContext = context;
         mTransport = transport;
@@ -105,6 +107,15 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     public void unblock() {
         mServerBlocking = false;
+    }
+
+    public void onDestroy() {
+        if (mWakeLock.isHeld()) {
+            mWakeLock.release();
+        }
+        if (mPartialWakeLock.isHeld()) {
+            mPartialWakeLock.release();
+        }
     }
 
     /**
@@ -158,6 +169,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                 Log.e(TAG, "close mTransport error" + e);
             }
         }
+        mCallback = null;
         if (Constants.LOGVV) {
             Log.v(TAG, "release WakeLock");
         }
@@ -167,6 +179,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         if (mPartialWakeLock.isHeld()) {
             mPartialWakeLock.release();
         }
+        mSession = null;
     }
 
     public void addShare(BluetoothOppShareInfo info) {
@@ -200,7 +213,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             boolean pre_reject = false;
             request = op.getReceivedHeader();
             if (Constants.LOGVV) {
-                logHeader(request);
+                Constants.logHeader(request);
             }
             name = (String)request.getHeader(HeaderSet.NAME);
             length = (Long)request.getHeader(HeaderSet.LENGTH);
@@ -233,12 +246,11 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                     pre_reject = true;
                     obexResponse = ResponseCodes.OBEX_HTTP_BAD_REQUEST;
                 } else {
-                    extension = name.substring(dotIndex + 1);
+                    extension = name.substring(dotIndex + 1).toLowerCase();
                     MimeTypeMap map = MimeTypeMap.getSingleton();
                     type = map.getMimeTypeFromExtension(extension);
                     if (Constants.LOGVV) {
-                        Log.v(TAG, "Mimetype guessed from extension " + extension + " is "
-                                + type);
+                        Log.v(TAG, "Mimetype guessed from extension " + extension + " is " + type);
                     }
                     if (type != null) {
                         mimeType = type;
@@ -269,11 +281,24 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             }
 
             if (pre_reject && obexResponse != ResponseCodes.OBEX_HTTP_OK) {
+                // some bad implemented client won't send disconnect
+                if (mWakeLock.isHeld()) {
+                    mWakeLock.release();
+                }
+                if (mPartialWakeLock.isHeld()) {
+                    mPartialWakeLock.release();
+                }
                 return obexResponse;
             }
 
         } catch (IOException e) {
             Log.e(TAG, "get getReceivedHeaders error " + e);
+            if (mWakeLock.isHeld()) {
+                mWakeLock.release();
+            }
+            if (mPartialWakeLock.isHeld()) {
+                mPartialWakeLock.release();
+            }
             return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
         }
 
@@ -318,23 +343,23 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         if (Constants.LOGVV) {
             Log.v(TAG, "acquire partial WakeLock");
         }
-        if( mWakeLock.isHeld()) {
+        if (mWakeLock.isHeld()) {
             mPartialWakeLock.acquire();
             mWakeLock.release();
         }
-        // TODO add server wait timeout
+
         mServerBlocking = true;
-        boolean msgSent = false;
+
         synchronized (this) {
             try {
 
                 while (mServerBlocking) {
                     wait(1000);
-                    if (mCallback != null && !msgSent) {
+                    if (mCallback != null && !mTimeoutMsgSent) {
                         mCallback.sendMessageDelayed(mCallback
                                 .obtainMessage(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT),
                                 BluetoothOppObexSession.SESSION_TIMEOUT);
-                        msgSent = true;
+                        mTimeoutMsgSent = true;
                         if (Constants.LOGVV) {
                             Log.v(TAG, "MSG_CONNECT_TIMEOUT sent");
                         }
@@ -349,7 +374,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         if (Constants.LOGV) {
             Log.v(TAG, "Server unblocked ");
         }
-        if (mCallback != null && msgSent) {
+        if (mCallback != null && mTimeoutMsgSent) {
             mCallback.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
         }
 
@@ -405,9 +430,13 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                 msg.obj = mInfo;
                 msg.sendToTarget();
             } else {
-                Message msg = Message.obtain(mCallback, BluetoothOppObexSession.MSG_SESSION_ERROR);
-                msg.obj = mInfo;
-                msg.sendToTarget();
+                if (mCallback != null) {
+                    Message msg = Message.obtain(mCallback,
+                            BluetoothOppObexSession.MSG_SESSION_ERROR);
+                    mInfo.mStatus = status;
+                    msg.obj = mInfo;
+                    msg.sendToTarget();
+                }
             }
         } else if (mAccepted == BluetoothShare.USER_CONFIRMATION_DENIED
                 || mAccepted == BluetoothShare.USER_CONFIRMATION_TIMEOUT) {
@@ -420,12 +449,22 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
              */
 
             Log.i(TAG, "Rejected incoming request");
-            status = BluetoothShare.STATUS_FORBIDDEN;
+            if (mFileInfo.mFileName != null) {
+                try {
+                    mFileInfo.mOutputStream.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "error close file stream");
+                }
+                new File(mFileInfo.mFileName).delete();
+            }
+            // set status as local cancel
+            status = BluetoothShare.STATUS_CANCELED;
             Constants.updateShareStatus(mContext, mInfo.mId, status);
             obexResponse = ResponseCodes.OBEX_HTTP_FORBIDDEN;
+
             Message msg = Message.obtain(mCallback);
-            /* TODO check which message should be sent */
             msg.what = BluetoothOppObexSession.MSG_SHARE_INTERRUPTED;
+            mInfo.mStatus = status;
             msg.obj = mInfo;
             msg.sendToTarget();
         }
@@ -459,14 +498,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
         int position = 0;
         if (!error) {
-            File f = new File(fileInfo.mFileName);
-            try {
-                bos = new BufferedOutputStream(new FileOutputStream(f), 0x10000);
-            } catch (FileNotFoundException e1) {
-                Log.e(TAG, "Error when open file " + f.toString());
-                status = BluetoothShare.STATUS_FILE_ERROR;
-                error = true;
-            }
+            bos = new BufferedOutputStream(fileInfo.mOutputStream, 0x10000);
         }
 
         if (!error) {
@@ -492,23 +524,6 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
                     bos.write(b, 0, readLength);
                     position += readLength;
-
-                    if (Constants.USE_EMULATOR_DEBUG) {
-                        synchronized (this) {
-                            try {
-                                wait(300);
-                            } catch (InterruptedException e) {
-                                status = BluetoothShare.STATUS_CANCELED;
-                                mInterrupted = true;
-                                if (Constants.LOGVV) {
-                                    Log.v(TAG, "ReceiveFile interrupted when receive file "
-                                            + fileInfo.mFileName + " at " + position + " of "
-                                            + position);
-                                }
-                                Constants.updateShareStatus(mContext, mInfo.mId, status);
-                            }
-                        }
-                    }
 
                     if (Constants.LOGVV) {
                         Log.v(TAG, "Receive file position = " + position + " readLength "
@@ -580,7 +595,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             Log.v(TAG, "onConnect");
         }
         if (Constants.LOGVV) {
-            logHeader(request);
+            Constants.logHeader(request);
         }
 
         mTimestamp = System.currentTimeMillis();
@@ -615,27 +630,5 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     @Override
     public void onClose() {
-    }
-
-    private void logHeader(HeaderSet hs) {
-        Log.v(TAG, "Dumping HeaderSet " + hs.toString());
-        try {
-
-            Log.v(TAG, "COUNT : " + hs.getHeader(HeaderSet.COUNT));
-            Log.v(TAG, "NAME : " + hs.getHeader(HeaderSet.NAME));
-            Log.v(TAG, "TYPE : " + hs.getHeader(HeaderSet.TYPE));
-            Log.v(TAG, "LENGTH : " + hs.getHeader(HeaderSet.LENGTH));
-            Log.v(TAG, "TIME_ISO_8601 : " + hs.getHeader(HeaderSet.TIME_ISO_8601));
-            Log.v(TAG, "TIME_4_BYTE : " + hs.getHeader(HeaderSet.TIME_4_BYTE));
-            Log.v(TAG, "DESCRIPTION : " + hs.getHeader(HeaderSet.DESCRIPTION));
-            Log.v(TAG, "TARGET : " + hs.getHeader(HeaderSet.TARGET));
-            Log.v(TAG, "HTTP : " + hs.getHeader(HeaderSet.HTTP));
-            Log.v(TAG, "WHO : " + hs.getHeader(HeaderSet.WHO));
-            Log.v(TAG, "OBJECT_CLASS : " + hs.getHeader(HeaderSet.OBJECT_CLASS));
-            Log.v(TAG, "APPLICATION_PARAMETER : " + hs.getHeader(HeaderSet.APPLICATION_PARAMETER));
-        } catch (IOException e) {
-            Log.e(TAG, "dump HeaderSet error " + e);
-        }
-
     }
 }

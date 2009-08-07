@@ -70,7 +70,7 @@ public class BluetoothOppManager {
 
     private String mMimeTypeOfSendigFiles;
 
-    private ArrayList<String> mUrisOfSendingFiles;
+    private ArrayList<Uri> mUrisOfSendingFiles;
 
     private boolean mCanStartTransfer = false;
 
@@ -171,7 +171,7 @@ public class BluetoothOppManager {
         String strUris;
         StringBuilder sb = new StringBuilder();
         for (int i = 0, count = mUrisOfSendingFiles.size(); i < count; i++) {
-            String uriContent = mUrisOfSendingFiles.get(i);
+            Uri uriContent = mUrisOfSendingFiles.get(i);
             sb.append(uriContent);
             sb.append(ARRAYLIST_ITEM_SEPERATOR);
         }
@@ -201,13 +201,12 @@ public class BluetoothOppManager {
         mCanStartTransfer = true;
     }
 
-    public void saveSendingFileInfo(String mimeType, ArrayList<String> uris) {
+    public void saveSendingFileInfo(String mimeType, ArrayList<Uri> uris) {
         mMultipleFlag = true;
         mMimeTypeOfSendigFiles = mimeType;
         mUrisOfSendingFiles = uris;
         mCanStartTransfer = true;
     }
-
     /**
      * Get the current status of Bluetooth hardware.
      * @return true if Bluetooth enabled, false otherwise.
@@ -282,30 +281,15 @@ public class BluetoothOppManager {
 
             Long ts = System.currentTimeMillis();
             for (int i = 0; i < count; i++) {
-                String uriContent = mUrisOfSendingFiles.get(i);
-                int index = uriContent.indexOf(";");
-                if (index == -1) {
-                    if (Constants.LOGVV) {
-                        Log.v(TAG, "Not found ';' in uriContent!");
-                    }
-                    return;
-                }
-                String fileType = uriContent.substring(0, index);
-                String fileUri = uriContent.substring(index + 1);
-
+                Uri fileUri = mUrisOfSendingFiles.get(i);
                 ContentResolver contentResolver = mContext.getContentResolver();
-                Uri u = Uri.parse(fileUri);
-                String contentType = contentResolver.getType(u);
-                if (contentType == null) {
-                    contentType = fileType;
-                }
-
+                String contentType = contentResolver.getType(fileUri);
                 if (Constants.LOGVV) {
                     Log.v(TAG, "Got mimetype: " + contentType + "  Got uri: " + fileUri);
                 }
 
                 ContentValues values = new ContentValues();
-                values.put(BluetoothShare.URI, fileUri);
+                values.put(BluetoothShare.URI, fileUri.toString());
                 values.put(BluetoothShare.MIMETYPE, contentType);
                 values.put(BluetoothShare.DESTINATION, device.getAddress());
                 values.put(BluetoothShare.TIMESTAMP, ts);

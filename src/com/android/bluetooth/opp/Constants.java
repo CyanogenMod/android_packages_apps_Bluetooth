@@ -32,7 +32,11 @@
 
 package com.android.bluetooth.opp;
 
+import java.io.IOException;
 import java.util.regex.Pattern;
+
+import javax.obex.HeaderSet;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -126,16 +130,14 @@ public class Constants {
      * Enable verbose logging - use with
      * "setprop log.tag.BluetoothShareManager VERBOSE"
      */
-    private static final boolean LOCAL_LOGV = false;
+    private static final boolean LOCAL_LOGV = true;
 
     public static final boolean LOGV = LOCAL_LOGV && Log.isLoggable(TAG, Log.VERBOSE);
 
     /** Enable super-verbose logging */
-    private static final boolean LOCAL_LOGVV = false;
+    private static final boolean LOCAL_LOGVV = true;
 
     public static final boolean LOGVV = LOCAL_LOGVV && LOGV;
-
-    // public static final boolean LOGVV = true;
 
     /** use TCP socket instead of Rfcomm Socket to develop */
     public static final boolean USE_TCP_DEBUG = false;
@@ -196,5 +198,26 @@ public class Constants {
         Pattern p = Pattern.compile(matchAgainst.replaceAll("\\*", "\\.\\*"),
                 Pattern.CASE_INSENSITIVE);
         return p.matcher(mimeType).matches();
+    }
+
+    public static void logHeader(HeaderSet hs) {
+        Log.v(TAG, "Dumping HeaderSet " + hs.toString());
+        try {
+
+            Log.v(TAG, "COUNT : " + hs.getHeader(HeaderSet.COUNT));
+            Log.v(TAG, "NAME : " + hs.getHeader(HeaderSet.NAME));
+            Log.v(TAG, "TYPE : " + hs.getHeader(HeaderSet.TYPE));
+            Log.v(TAG, "LENGTH : " + hs.getHeader(HeaderSet.LENGTH));
+            Log.v(TAG, "TIME_ISO_8601 : " + hs.getHeader(HeaderSet.TIME_ISO_8601));
+            Log.v(TAG, "TIME_4_BYTE : " + hs.getHeader(HeaderSet.TIME_4_BYTE));
+            Log.v(TAG, "DESCRIPTION : " + hs.getHeader(HeaderSet.DESCRIPTION));
+            Log.v(TAG, "TARGET : " + hs.getHeader(HeaderSet.TARGET));
+            Log.v(TAG, "HTTP : " + hs.getHeader(HeaderSet.HTTP));
+            Log.v(TAG, "WHO : " + hs.getHeader(HeaderSet.WHO));
+            Log.v(TAG, "OBJECT_CLASS : " + hs.getHeader(HeaderSet.OBJECT_CLASS));
+            Log.v(TAG, "APPLICATION_PARAMETER : " + hs.getHeader(HeaderSet.APPLICATION_PARAMETER));
+        } catch (IOException e) {
+            Log.e(TAG, "dump HeaderSet error " + e);
+        }
     }
 }

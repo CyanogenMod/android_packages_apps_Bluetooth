@@ -20,8 +20,11 @@
         android:label="@string/app_name">
         <uses-library android:name="javax.obex" />
         <provider android:name=".opp.BluetoothOppProvider"
-            android:authorities="com.android.bluetooth.opp"
-            android:permission="android.permission.ACCESS_BLUETOOTH_SHARE" />
+            android:authorities="com.android.bluetooth.opp">
+            <path-permission
+                    android:path="/btopp"
+                    android:permission="android.permission.ACCESS_BLUETOOTH_SHARE" />
+        </provider>
         <service android:name=".opp.BluetoothOppService"
             android:permission="android.permission.ACCESS_BLUETOOTH_SHARE" />
         <receiver android:name=".opp.BluetoothOppReceiver">
@@ -40,7 +43,7 @@
                 <data android:mimeType="audio/*" />
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.ACTION_SHARE_MULTIPLE" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="image/*" />
                 <data android:mimeType="video/*" />

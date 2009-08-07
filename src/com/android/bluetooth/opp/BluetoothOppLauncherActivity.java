@@ -57,8 +57,7 @@ public class BluetoothOppLauncherActivity extends Activity {
         Intent intent = getIntent();
         String action = intent.getAction();
 
-        if (action.equals(Intent.ACTION_SEND)
-                || action.equals("android.intent.action.ACTION_SHARE_MULTIPLE")) {
+        if (action.equals(Intent.ACTION_SEND) || action.equals(Intent.ACTION_SEND_MULTIPLE)) {
             /*
              * Other application is trying to share a file via Bluetooth,
              * probably Pictures, videos, or vCards. The Intent should contain
@@ -66,7 +65,6 @@ public class BluetoothOppLauncherActivity extends Activity {
              */
             if (action.equals(Intent.ACTION_SEND)) {
                 // TODO(Moto): handle type == null case
-                // TODO(Moto): handle extra data is filename case
                 String type = intent.getType();
                 Uri stream = (Uri)intent.getParcelableExtra(Intent.EXTRA_STREAM);
                 if (stream != null && type != null) {
@@ -79,19 +77,14 @@ public class BluetoothOppLauncherActivity extends Activity {
                     BluetoothOppManager.getInstance(this).saveSendingFileInfo(type,
                             stream.toString());
                 } else {
-                    Log
-                            .e(TAG,
-                                    "type is null; or sending file URI - getParcelableExtra(Intent.EXTRA_STREAM) == null");
+                    Log.e(TAG, "type is null; or sending file URI is null");
                     finish();
                     return;
                 }
-            } else if (action.equals("android.intent.action.ACTION_SHARE_MULTIPLE")) {
-                // TODO(Moto): how about send Uri list, not string list?
-                // TODO(Moto): Later will use Intent.ACTION_SEND_MULTIPLE
-                // Convince media team change
-                ArrayList<String> uris = new ArrayList<String>();
+            } else if (action.equals(Intent.ACTION_SEND_MULTIPLE)) {
+                ArrayList<Uri> uris = new ArrayList<Uri>();
                 String mimeType = intent.getType();
-                uris = intent.getStringArrayListExtra(Intent.EXTRA_STREAM);
+                uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
                 if (mimeType != null && uris != null) {
                     if (Constants.LOGVV) {
                         Log.v(TAG, "Get ACTION_SHARE_MULTIPLE intent: uris " + uris + "\n Type= "
@@ -99,9 +92,7 @@ public class BluetoothOppLauncherActivity extends Activity {
                     }
                     BluetoothOppManager.getInstance(this).saveSendingFileInfo(mimeType, uris);
                 } else {
-                    Log
-                            .e(TAG,
-                                    "type is null; or sending files URIs - getStringArrayListExtra(Intent.EXTRA_STREAM) == null");
+                    Log.e(TAG, "type is null; or sending files URIs are null");
                     finish();
                     return;
                 }
@@ -149,7 +140,6 @@ public class BluetoothOppLauncherActivity extends Activity {
             this.sendBroadcast(intent1);
         }
         finish();
-        // setContentView(R.layout.main);
     }
 
     /* Returns true if airplane mode is currently on */

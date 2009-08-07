@@ -82,7 +82,7 @@ public class BluetoothOppService extends Service {
         @Override
         public void onChange(boolean selfChange) {
             if (Constants.LOGVV) {
-                Log.v(Constants.TAG, "Service ContentObserver received notification");
+                Log.v(TAG, "ContentObserver received notification");
             }
             updateFromProvider();
         }
@@ -128,6 +128,12 @@ public class BluetoothOppService extends Service {
 
     private boolean mListenStarted = false;
 
+    private boolean mMediaScanInProgress;
+
+    private int mIncomingRetries = 0;
+
+    private ObexTransport mPendingConnection = null;
+
     /*
      * TODO No support for queue incoming from multiple devices.
      * Make an array list of server session to support receiving queue from
@@ -147,7 +153,6 @@ public class BluetoothOppService extends Service {
             Log.v(TAG, "Service onCreate");
         }
         mAdapter = (BluetoothAdapter) getSystemService(Context.BLUETOOTH_SERVICE);
-        mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mSocketListener = new BluetoothOppRfcommListener(mAdapter);
         mShares = Lists.newArrayList();
         mBatchs = Lists.newArrayList();
@@ -157,11 +162,11 @@ public class BluetoothOppService extends Service {
         mNotifier = new BluetoothOppNotification(this);
         mNotifier.mNotificationMgr.cancelAll();
         mNotifier.updateNotification();
+        mNotifier.finishNotification();
 
         trimDatabase();
 
-        IntentFilter filter = new IntentFilter(BluetoothIntent.REMOTE_DEVICE_DISCONNECTED_ACTION);
-        filter.addAction(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION);
+        IntentFilter filter = new IntentFilter(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION);
         registerReceiver(mBluetoothIntentReceiver, filter);
 
         synchronized (BluetoothOppService.this) {
@@ -211,6 +216,8 @@ public class BluetoothOppService extends Service {
 
     private static final int MEDIA_SCANNED_FAILED = 3;
 
+    private static final int MSG_INCOMING_CONNECTION_RETRY = 4;
+
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -232,7 +239,9 @@ public class BluetoothOppService extends Service {
                     updateValues.put(BluetoothShare.MIMETYPE, getContentResolver().getType(
                             Uri.parse(msg.obj.toString())));
                     getContentResolver().update(contentUri, updateValues, null, null);
-
+                    synchronized (BluetoothOppService.this) {
+                        mMediaScanInProgress = false;
+                    }
                     break;
                 case MEDIA_SCANNED_FAILED:
                     Log.v(TAG, "Update mInfo.id " + msg.arg1 + " for MEDIA_SCANNED_FAILED");
@@ -241,9 +250,69 @@ public class BluetoothOppService extends Service {
                     updateValues1.put(Constants.MEDIA_SCANNED,
                             Constants.MEDIA_SCANNED_SCANNED_FAILED);
                     getContentResolver().update(contentUri1, updateValues1, null, null);
+                    synchronized (BluetoothOppService.this) {
+                        mMediaScanInProgress = false;
+                    }
+                    break;
+                case BluetoothOppRfcommListener.MSG_INCOMING_BTOPP_CONNECTION:
+                    if (Constants.LOGV) {
+                        Log.v(TAG, "Get incoming connection");
+                    }
+                    ObexTransport transport = (ObexTransport)msg.obj;
+                    /*
+                     * Strategy for incoming connections:
+                     * 1. If there is no ongoing transfer, no on-hold connection, start it
+                     * 2. If there is ongoing transfer, hold it for 20 seconds(1 seconds * 20 times)
+                     * 3. If there is on-hold connection, reject directly
+                     */
+                    if (mBatchs.size() == 0 && mPendingConnection == null) {
+                        Log.i(TAG, "Start Obex Server");
+                        createServerSession(transport);
+                    } else {
+                        if (mPendingConnection != null) {
+                            Log.w(TAG, "OPP busy! Reject connection");
+                            try {
+                                transport.close();
+                            } catch (IOException e) {
+                                Log.e(TAG, "close tranport error");
+                            }
+                        } else {
+                            Log.i(TAG, "OPP busy! Retry after 1 second");
+                            mIncomingRetries = mIncomingRetries + 1;
+                            mPendingConnection = transport;
+                            Message msg1 = Message.obtain(mHandler);
+                            msg1.what = MSG_INCOMING_CONNECTION_RETRY;
+                            mHandler.sendMessageDelayed(msg1, 1000);
+                        }
+                    }
+                    break;
+                case MSG_INCOMING_CONNECTION_RETRY:
+                    if (mBatchs.size() == 0) {
+                        Log.i(TAG, "Start Obex Server");
+                        createServerSession(mPendingConnection);
+                        mIncomingRetries = 0;
+                        mPendingConnection = null;
+                    } else {
+                        if (mIncomingRetries == 20) {
+                            Log.w(TAG, "Retried 20 seconds, reject connection");
+                            try {
+                                mPendingConnection.close();
+                            } catch (IOException e) {
+                                Log.e(TAG, "close tranport error");
+                            }
+                            mIncomingRetries = 0;
+                            mPendingConnection = null;
+                        } else {
+                            Log.i(TAG, "OPP busy! Retry after 1 second");
+                            mIncomingRetries = mIncomingRetries + 1;
+                            Message msg2 = Message.obtain(mHandler);
+                            msg2.what = MSG_INCOMING_CONNECTION_RETRY;
+                            mHandler.sendMessageDelayed(msg2, 1000);
+                        }
+                    }
+                    break;
             }
         }
-
     };
 
     private void startSocketListener() {
@@ -251,7 +320,7 @@ public class BluetoothOppService extends Service {
         if (Constants.LOGVV) {
             Log.v(TAG, "start RfcommListener");
         }
-        mSocketListener.start(mIncomingConnectionHandler);
+        mSocketListener.start(mHandler);
         if (Constants.LOGVV) {
             Log.v(TAG, "RfcommListener started");
         }
@@ -263,24 +332,11 @@ public class BluetoothOppService extends Service {
             Log.v(TAG, "Service onDestroy");
         }
         super.onDestroy();
+        mNotifier.finishNotification();
         getContentResolver().unregisterContentObserver(mObserver);
         unregisterReceiver(mBluetoothIntentReceiver);
         mSocketListener.stop();
     }
-
-    private final Handler mIncomingConnectionHandler = new Handler() {
-        public void handleMessage(Message msg) {
-            if (Constants.LOGV) {
-                Log.v(TAG, "Get incoming connection");
-            }
-            ObexTransport transport = (ObexTransport)msg.obj;
-            /*
-             * TODO need to identify in which case we can create a
-             * serverSession, and when we will reject connection
-             */
-            createServerSession(transport);
-        }
-    };
 
     /* suppose we auto accept an incoming OPUSH connection */
     private void createServerSession(ObexTransport transport) {
@@ -292,49 +348,12 @@ public class BluetoothOppService extends Service {
         }
     }
 
-    private void handleRemoteDisconnected(BluetoothDevice remoteDevice) {
-        if (Constants.LOGVV) {
-            Log.v(TAG, "Handle remote device disconnected " + remoteDevice);
-        }
-        int batchId = -1;
-        int i;
-        if (mTransfer != null) {
-            batchId = mTransfer.getBatchId();
-            i = findBatchWithId(batchId);
-            if (i != -1 && mBatchs.get(i).mStatus == Constants.BATCH_STATUS_RUNNING
-                    && mBatchs.get(i).mDestination.equals(remoteDevice)) {
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Find mTransfer is running for remote device " + remoteDevice);
-                }
-                mTransfer.stop();
-
-            }
-        } else if (mServerTransfer != null) {
-            batchId = mServerTransfer.getBatchId();
-            i = findBatchWithId(batchId);
-            if (i != -1 && mBatchs.get(i).mStatus == Constants.BATCH_STATUS_RUNNING
-                    && mBatchs.get(i).mDestination.equals(remoteDevice)) {
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Find mServerTransfer is running for remote device " + remoteDevice);
-                }
-            }
-        }
-    }
-
     private final BroadcastReceiver mBluetoothIntentReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            BluetoothDevice remoteDevice = intent.getParcelableExtra(BluetoothIntent.DEVICE);
 
-            if (action.equals(BluetoothIntent.REMOTE_DEVICE_DISCONNECTED_ACTION)) {
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Receiver REMOTE_DEVICE_DISCONNECTED_ACTION from " + remoteDevice);
-                }
-                handleRemoteDisconnected(remoteDevice);
-
-            } else if (action.equals(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION)) {
-
+            if (action.equals(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION)) {
                 switch (intent.getIntExtra(BluetoothIntent.BLUETOOTH_STATE, BluetoothError.ERROR)) {
                     case BluetoothAdapter.BLUETOOTH_STATE_ON:
                         if (Constants.LOGVV) {
@@ -379,7 +398,7 @@ public class BluetoothOppService extends Service {
         public void run() {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
-            boolean keepUpdateThread = false;
+            boolean keepService = false;
             for (;;) {
                 synchronized (BluetoothOppService.this) {
                     if (mUpdateThread != this) {
@@ -388,14 +407,16 @@ public class BluetoothOppService extends Service {
                     }
                     if (Constants.LOGVV) {
                         Log.v(TAG, "pendingUpdate is " + mPendingUpdate + " keepUpdateThread is "
-                                + keepUpdateThread + " sListenStarted is " + mListenStarted);
+                                + keepService + " sListenStarted is " + mListenStarted);
                     }
                     if (!mPendingUpdate) {
                         mUpdateThread = null;
-                        if (!keepUpdateThread && !mListenStarted) {
+                        if (!keepService && !mListenStarted) {
                             stopSelf();
                             break;
                         }
+                        mNotifier.updateNotification();
+                        mNotifier.finishNotification();
                         return;
                     }
                     mPendingUpdate = false;
@@ -411,7 +432,7 @@ public class BluetoothOppService extends Service {
 
                 int arrayPos = 0;
 
-                keepUpdateThread = false;
+                keepService = false;
                 boolean isAfterLast = cursor.isAfterLast();
 
                 int idColumn = cursor.getColumnIndexOrThrow(BluetoothShare._ID);
@@ -453,13 +474,13 @@ public class BluetoothOppService extends Service {
                                 Log.v(TAG, "Array update: inserting " + id + " @ " + arrayPos);
                             }
                             if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
-                                keepUpdateThread = true;
+                                keepService = true;
                             }
                             if (visibleNotification(arrayPos)) {
-                                keepUpdateThread = true;
+                                keepService = true;
                             }
                             if (needAction(arrayPos)) {
-                                keepUpdateThread = true;
+                                keepService = true;
                             }
 
                             ++arrayPos;
@@ -482,13 +503,13 @@ public class BluetoothOppService extends Service {
                                 // array
                                 updateShare(cursor, arrayPos, userAccepted);
                                 if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
-                                    keepUpdateThread = true;
+                                    keepService = true;
                                 }
                                 if (visibleNotification(arrayPos)) {
-                                    keepUpdateThread = true;
+                                    keepService = true;
                                 }
                                 if (needAction(arrayPos)) {
-                                    keepUpdateThread = true;
+                                    keepService = true;
                                 }
 
                                 ++arrayPos;
@@ -503,13 +524,13 @@ public class BluetoothOppService extends Service {
                                 insertShare(cursor, arrayPos);
 
                                 if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
-                                    keepUpdateThread = true;
+                                    keepService = true;
                                 }
                                 if (visibleNotification(arrayPos)) {
-                                    keepUpdateThread = true;
+                                    keepService = true;
                                 }
                                 if (needAction(arrayPos)) {
-                                    keepUpdateThread = true;
+                                    keepService = true;
                                 }
                                 ++arrayPos;
                                 cursor.moveToNext();
@@ -833,18 +854,18 @@ public class BluetoothOppService extends Service {
                 if (mBatchs.get(i).mStatus == Constants.BATCH_STATUS_RUNNING) {
                     return;
                 } else {
-                    /*
-                     * TODO Pending batch for inbound transfer is not considered
-                     * here
-                     */
-                    // we have a pending batch
-                    if (batch.mDirection == mBatchs.get(i).mDirection) {
+                    // Pending batch for inbound transfer is not supported
+                    // just finish a transfer, start pending outbound transfer
+                    if (mBatchs.get(i).mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
                         if (Constants.LOGVV) {
-                            Log.v(TAG, "Start pending batch " + mBatchs.get(i).mId);
+                            Log.v(TAG, "Start pending outbound batch " + mBatchs.get(i).mId);
                         }
                         mTransfer = new BluetoothOppTransfer(this, mPowerManager, mBatchs.get(i));
                         mTransfer.start();
                         return;
+                    } else {
+                        // have pending inbound transfer, should not happen
+                        Log.e(TAG, "Should not happen");
                     }
                 }
             }
@@ -870,16 +891,20 @@ public class BluetoothOppService extends Service {
             if (Constants.LOGV) {
                 Log.v(TAG, "Scanning file " + info.mFilename);
             }
-            new MediaScannerNotifier(this, info, mHandler);
-            return true;
+            if (!mMediaScanInProgress) {
+                mMediaScanInProgress = true;
+                new MediaScannerNotifier(this, info, mHandler);
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
     private boolean shouldScanFile(int arrayPos) {
         BluetoothOppShareInfo info = mShares.get(arrayPos);
-        return !info.mMediaScanned && info.mDirection == BluetoothShare.DIRECTION_INBOUND
-                && BluetoothShare.isStatusSuccess(info.mStatus);
-
+        return BluetoothShare.isStatusSuccess(info.mStatus)
+                && info.mDirection == BluetoothShare.DIRECTION_INBOUND && !info.mMediaScanned;
     }
 
     private void trimDatabase() {

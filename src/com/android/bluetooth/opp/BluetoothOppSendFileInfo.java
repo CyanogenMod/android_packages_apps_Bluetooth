@@ -32,6 +32,7 @@
 
 package com.android.bluetooth.opp;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
@@ -79,26 +80,40 @@ public class BluetoothOppSendFileInfo {
         mStatus = status;
     }
 
-    public static BluetoothOppSendFileInfo generateFileInfo(Context context, String uri) {
+    public static BluetoothOppSendFileInfo generateFileInfo(Context context, String uri, String type) {
         //TODO consider uri is a file:// uri
         ContentResolver contentResolver = context.getContentResolver();
         Uri u = Uri.parse(uri);
-        String contentType = contentResolver.getType(u);
+        String scheme = u.getScheme();
+        String authority = u.getAuthority();
         String fileName = null;
+        String contentType = null;
         long length = 0;
-        Cursor metadataCursor = contentResolver.query(u, new String[] {
-                OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE
-        }, null, null, null);
-        if (metadataCursor != null) {
-            try {
-                if (metadataCursor.moveToFirst()) {
-                    fileName = metadataCursor.getString(0);
+        if (scheme.equals("content") && authority.equals("media")) {
 
-                    length = metadataCursor.getInt(1);
+            contentType = contentResolver.getType(u);
+            Cursor metadataCursor = contentResolver.query(u, new String[] {
+                    OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE
+            }, null, null, null);
+            if (metadataCursor != null) {
+                try {
+                    if (metadataCursor.moveToFirst()) {
+                        fileName = metadataCursor.getString(0);
+                        length = metadataCursor.getInt(1);
+                    }
+                } finally {
+                    metadataCursor.close();
                 }
-            } finally {
-                metadataCursor.close();
             }
+        } else if (scheme.equals("file")) {
+            fileName = u.getLastPathSegment();
+            contentType = type;
+            File f = new File(u.getPath());
+            length = f.length();
+        } else {
+            // currently don't accept other scheme
+            return new BluetoothOppSendFileInfo(null, null, 0, null,
+                    BluetoothShare.STATUS_FILE_ERROR);
         }
         FileInputStream is;
         try {

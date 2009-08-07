@@ -54,6 +54,8 @@ import java.util.HashMap;
 
 public final class BluetoothOppProvider extends ContentProvider {
 
+    public static final String TAG = "BluetoothOppProvider";
+
     /** Database filename */
     private static final String DB_NAME = "btopp.db";
 
@@ -123,7 +125,7 @@ public final class BluetoothOppProvider extends ContentProvider {
         @Override
         public void onCreate(final SQLiteDatabase db) {
             if (Constants.LOGVV) {
-                Log.v(Constants.TAG, "populating new database");
+                Log.v(TAG, "populating new database");
             }
             createTable(db);
         }
@@ -158,7 +160,7 @@ public final class BluetoothOppProvider extends ContentProvider {
                 // from NOP_FROM is the same as upgrading from NOP_TO.
                 oldV = DB_VERSION_NOP_UPGRADE_TO;
             }
-            Log.i(Constants.TAG, "Upgrading downloads database from version " + oldV + " to "
+            Log.i(TAG, "Upgrading downloads database from version " + oldV + " to "
                     + newV + ", which will destroy all old data");
             dropTable(db);
             createTable(db);
@@ -179,7 +181,7 @@ public final class BluetoothOppProvider extends ContentProvider {
                     + BluetoothShare.TIMESTAMP + " INTEGER," + Constants.MEDIA_SCANNED
                     + " INTEGER); ");
         } catch (SQLException ex) {
-            Log.e(Constants.TAG, "couldn't create table in downloads database");
+            Log.e(TAG, "couldn't create table in downloads database");
             throw ex;
         }
     }
@@ -188,7 +190,7 @@ public final class BluetoothOppProvider extends ContentProvider {
         try {
             db.execSQL("DROP TABLE IF EXISTS " + DB_TABLE);
         } catch (SQLException ex) {
-            Log.e(Constants.TAG, "couldn't drop table in downloads database");
+            Log.e(TAG, "couldn't drop table in downloads database");
             throw ex;
         }
     }
@@ -205,7 +207,7 @@ public final class BluetoothOppProvider extends ContentProvider {
             }
             default: {
                 if (Constants.LOGV) {
-                    Log.v(Constants.TAG, "calling getType on an unknown URI: " + uri);
+                    Log.v(TAG, "calling getType on an unknown URI: " + uri);
                 }
                 throw new IllegalArgumentException("Unknown URI: " + uri);
             }
@@ -232,7 +234,7 @@ public final class BluetoothOppProvider extends ContentProvider {
 
         if (sURIMatcher.match(uri) != SHARES) {
             if (Constants.LOGV) {
-                Log.d(Constants.TAG, "calling insert on an unknown/invalid URI: " + uri);
+                Log.d(TAG, "calling insert on an unknown/invalid URI: " + uri);
             }
             throw new IllegalArgumentException("Unknown/Invalid URI " + uri);
         }
@@ -287,7 +289,7 @@ public final class BluetoothOppProvider extends ContentProvider {
             context.getContentResolver().notifyChange(uri, null);
         } else {
             if (Constants.LOGV) {
-                Log.d(Constants.TAG, "couldn't insert into btopp database");
+                Log.d(TAG, "couldn't insert into btopp database");
             }
         }
 
@@ -329,7 +331,7 @@ public final class BluetoothOppProvider extends ContentProvider {
             }
             default: {
                 if (Constants.LOGV) {
-                    Log.v(Constants.TAG, "querying unknown URI: " + uri);
+                    Log.v(TAG, "querying unknown URI: " + uri);
                 }
                 throw new IllegalArgumentException("Unknown URI: " + uri);
             }
@@ -374,7 +376,7 @@ public final class BluetoothOppProvider extends ContentProvider {
             sb.append("sort is ");
             sb.append(sortOrder);
             sb.append(".");
-            Log.v(Constants.TAG, sb.toString());
+            Log.v(TAG, sb.toString());
         }
 
         Cursor ret = qb.query(db, projection, selection, selectionArgs, null, null, sortOrder);
@@ -382,11 +384,11 @@ public final class BluetoothOppProvider extends ContentProvider {
         if (ret != null) {
             ret.setNotificationUri(getContext().getContentResolver(), uri);
             if (Constants.LOGVV) {
-                Log.v(Constants.TAG, "created cursor " + ret + " on behalf of ");// +
+                Log.v(TAG, "created cursor " + ret + " on behalf of ");// +
             }
         } else {
             if (Constants.LOGV) {
-                Log.v(Constants.TAG, "query failed in downloads database");
+                Log.v(TAG, "query failed in downloads database");
             }
         }
 
@@ -429,7 +431,7 @@ public final class BluetoothOppProvider extends ContentProvider {
             }
             default: {
                 if (Constants.LOGV) {
-                    Log.d(Constants.TAG, "updating unknown/invalid URI: " + uri);
+                    Log.d(TAG, "updating unknown/invalid URI: " + uri);
                 }
                 throw new UnsupportedOperationException("Cannot update URI: " + uri);
             }
@@ -468,7 +470,7 @@ public final class BluetoothOppProvider extends ContentProvider {
             }
             default: {
                 if (Constants.LOGV) {
-                    Log.d(Constants.TAG, "deleting unknown/invalid URI: " + uri);
+                    Log.d(TAG, "deleting unknown/invalid URI: " + uri);
                 }
                 throw new UnsupportedOperationException("Cannot delete URI: " + uri);
             }

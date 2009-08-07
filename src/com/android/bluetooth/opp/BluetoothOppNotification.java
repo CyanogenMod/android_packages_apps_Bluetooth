@@ -43,7 +43,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 import android.widget.RemoteViews;
-import android.widget.Toast;
+import android.os.Process;
 import java.util.HashMap;
 
 /**
@@ -53,12 +53,6 @@ import java.util.HashMap;
  */
 class BluetoothOppNotification {
     private static final String TAG = "BluetoothOppNotification";
-
-    Context mContext;
-
-    public NotificationManager mNotificationMgr;
-
-    HashMap<String, NotificationItem> mNotifications;
 
     static final String status = "(" + BluetoothShare.STATUS + " == '192'" + ")";
 
@@ -76,6 +70,18 @@ class BluetoothOppNotification {
 
     static final String WHERE_CONFIRM_PENDING = BluetoothShare.USER_CONFIRMATION + " == '"
             + BluetoothShare.USER_CONFIRMATION_PENDING + "'" + " AND " + visible;
+
+    public NotificationManager mNotificationMgr;
+
+    private Context mContext;
+
+    private HashMap<String, NotificationItem> mNotifications;
+
+    private NotificationUpdateThread mUpdateNotificationThread;
+
+    private boolean mPendingUpdate = false;
+
+    private boolean mFinised = false;
 
     /**
      * This inner class is used to describe some properties for one transfer.
@@ -105,13 +111,52 @@ class BluetoothOppNotification {
         mNotifications = new HashMap<String, NotificationItem>();
     }
 
+    public void finishNotification() {
+        synchronized (this) {
+            mFinised = true;
+        }
+    }
+
     /**
      * Update the notification ui.
      */
     public void updateNotification() {
-        updateActiveNotification();
-        updateCompletedNotification();
-        updateIncomingFileConfirmNotification();
+        synchronized (this) {
+            mPendingUpdate = true;
+            if (mUpdateNotificationThread == null) {
+                mUpdateNotificationThread = new NotificationUpdateThread();
+                mUpdateNotificationThread.start();
+                mFinised = false;
+            }
+        }
+    }
+
+    private class NotificationUpdateThread extends Thread {
+
+        public NotificationUpdateThread() {
+            super("Notification Update Thread");
+        }
+
+        @Override
+        public void run() {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+            for (;;) {
+                synchronized (this) {
+                    if (mUpdateNotificationThread != this) {
+                        throw new IllegalStateException(
+                                "multiple UpdateThreads in BluetoothOppNotification");
+                    }
+                    if (!mPendingUpdate && mFinised) {
+                        mUpdateNotificationThread = null;
+                        return;
+                    }
+                    mPendingUpdate = false;
+                }
+                updateActiveNotification();
+                updateCompletedNotification();
+                updateIncomingFileConfirmNotification();
+            }
+        }
     }
 
     private void updateActiveNotification() {
