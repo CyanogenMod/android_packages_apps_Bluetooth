@@ -294,7 +294,7 @@ class BluetoothOppNotification {
             Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + id);
 
             Notification n = new Notification();
-            n.icon = R.drawable.stat_sys_data_bt;
+            n.icon = R.drawable.bt_incomming_file_notification;
             n.flags |= Notification.FLAG_ONLY_ALERT_ONCE;
             n.defaults = Notification.DEFAULT_SOUND;
             n.tickerText = title;

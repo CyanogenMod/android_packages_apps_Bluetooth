@@ -81,7 +81,7 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity imple
 
         // Set up the "dialog"
         final AlertController.AlertParams p = mAlertParams;
-        p.mIconId = android.R.drawable.ic_dialog_alert;
+        p.mIconId = android.R.drawable.ic_dialog_info;
         p.mTitle = getString(R.string.incoming_file_confirm_title);
         p.mView = createView();
         p.mPositiveButtonText = getString(R.string.incoming_file_confirm_ok);
