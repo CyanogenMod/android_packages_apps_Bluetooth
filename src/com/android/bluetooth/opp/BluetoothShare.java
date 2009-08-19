@@ -69,15 +69,6 @@ public final class BluetoothShare implements BaseColumns {
     public static final String INCOMING_FILE_CONFIRMATION_REQUEST_ACTION = "android.btopp.intent.action.INCOMING_FILE_NOTIFICATION";
 
     /**
-     * Broadcast Action: this is sent by the Device Picker component to indicate
-     * an BT device already selected.
-     */
-
-    public static final String BLUETOOTH_DEVICE_SELECTED_ACTION = "android.btopp.intent.action.DEVICE_SELECTED";
-
-    public static final String BLUETOOTH_DEVICE_PICKER_ACTION = "android.btopp.intent.action.DEVICE_SELECTING";
-
-    /**
      * The name of the column containing the URI of the file being
      * sent/received.
      * <P>

@@ -78,16 +78,24 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                         // reset the flags
                         BluetoothOppManager.getInstance(context).mSendingFlag = false;
 
-                        Intent in1 = new Intent(context, BluetoothDevicePickerActivity.class);
+                        Intent in1 = new Intent(BluetoothIntent.DEVICE_PICKER_DEVICE_PICKER);
+                        in1.putExtra(BluetoothIntent.DEVICE_PICKER_NEED_AUTH, false);
+                        in1.putExtra(BluetoothIntent.DEVICE_PICKER_FILTER_TYPE,
+                                BluetoothDevice.DEVICE_PICKER_FILTER_TYPE_TRANSFER);
+                        in1.putExtra(BluetoothIntent.DEVICE_PICKER_LAUNCH_PACKAGE,
+                                Constants.THIS_PACKAGE_NAME);
+                        in1.putExtra(BluetoothIntent.DEVICE_PICKER_LAUNCH_CLASS,
+                                BluetoothOppReceiver.class.getName());
+
                         in1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         context.startActivity(in1);
                     }
                 }
             }
-        } else if (action.equals(BluetoothShare.BLUETOOTH_DEVICE_SELECTED_ACTION)) {
+        } else if (action.equals(BluetoothIntent.DEVICE_PICKER_DEVICE_SELECTED)) {
             BluetoothOppManager mOppManager = BluetoothOppManager.getInstance(context);
 
-            BluetoothDevice remoteDevice = intent.getParcelableExtra("BT_DEVICE");
+            BluetoothDevice remoteDevice = intent.getParcelableExtra(BluetoothIntent.DEVICE);
 
             if (Constants.LOGVV) {
                 Log.v(TAG, "Received BT device selected intent, bt device: " + remoteDevice);
