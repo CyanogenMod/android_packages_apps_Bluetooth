@@ -230,8 +230,10 @@ public class BluetoothPbapService extends Service {
         } else if (action.equals(ACCESS_ALLOWED_ACTION)) {
             mSessionStatusHandler.removeMessages(USER_TIMEOUT);
             if (intent.getBooleanExtra(EXTRA_ALWAYS_ALLOWED, false)) {
-                // TODO: have dependency on device trust feature implementation
-                // mAdapter.setTrust(mRemoteDevice, true);
+                boolean result = mRemoteDevice.setTrust(true);
+                if (DBG) {
+                    Log.v(TAG, "setTrust() result=" + result);
+                }
             }
             try {
                 if (mConnSocket != null) {
@@ -369,6 +371,9 @@ public class BluetoothPbapService extends Service {
         BluetoothPbapRfcommTransport transport = new BluetoothPbapRfcommTransport(mConnSocket);
         mServerSession = new ServerSession(transport, mPbapServer, mAuth);
         setState(BluetoothPbap.STATE_CONNECTED);
+        if (DBG) {
+            Log.v(TAG, "startObexServerSession() success!");
+        }
     }
 
     private final void closeSocket(boolean server, boolean accept) throws IOException {
@@ -445,8 +450,6 @@ public class BluetoothPbapService extends Service {
 
         private boolean stopped = false;
 
-        private boolean trust;
-
         @Override
         public void run() {
             while (!stopped) {
@@ -469,11 +472,15 @@ public class BluetoothPbapService extends Service {
                             sRemoteDeviceName = getString(R.string.defaultname);
                         }
                     }
-                    // TODO: have dependency on device trust feature
-                    // implementation
-                    // trust = mAdapter.getTrustState(mRemoteDevice);
+                    boolean trust = mRemoteDevice.getTrustState();
+                    if (DBG) {
+                        Log.v(TAG, "GetTrustState() = " + trust);
+                    }
                     if (trust) {
                         try {
+                            if (DBG) {
+                                Log.v(TAG, "Trusted device, incomming connection accepted auto.");
+                            }
                             startObexServerSession();
                         } catch (IOException ex) {
                             Log.e(TAG, "catch exception starting obex server session"
@@ -482,8 +489,10 @@ public class BluetoothPbapService extends Service {
                     } else {
                         BluetoothPbapReceiver.makeNewPbapNotification(getApplicationContext(),
                                 ACCESS_REQUEST_ACTION);
-                        Log.i(TAG, "incomming connection accepted from" + sRemoteDeviceName);
-                        // In case carkit time out and try to use HFP for phonebook
+                        if (DBG) {
+                            Log.v(TAG, "Incomming connection accepted from:" + sRemoteDeviceName);
+                        }
+                        // In case car kit time out and try to use HFP for phonebook
                         // access, while UI still there waiting for user to confirm
                         mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
                                 .obtainMessage(USER_TIMEOUT), USER_CONFIRM_TIMEOUT_VALUE);

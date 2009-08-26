@@ -89,7 +89,7 @@ public class BluetoothPbapActivity extends AlertActivity implements
 
     private boolean mTimeout = false;
 
-    private boolean mAlwaysAllowedValue = false;
+    private boolean mAlwaysAllowedValue = true;
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -174,10 +174,13 @@ public class BluetoothPbapActivity extends AlertActivity implements
                 messageView = (TextView)mView.findViewById(R.id.message);
                 messageView.setText(createDisplayText(id));
                 mAlwaysAllowed = (CheckBox)mView.findViewById(R.id.alwaysallowed);
+                mAlwaysAllowed.setChecked(true);
                 mAlwaysAllowed.setOnCheckedChangeListener(new OnCheckedChangeListener() {
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                         if (isChecked) {
                             mAlwaysAllowedValue = true;
+                        } else {
+                            mAlwaysAllowedValue = false;
                         }
                     }
                 });
