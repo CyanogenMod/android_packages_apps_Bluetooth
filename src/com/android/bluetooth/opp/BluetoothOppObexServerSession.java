@@ -34,8 +34,6 @@ package com.android.bluetooth.opp;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -111,15 +109,6 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         mServerBlocking = false;
     }
 
-    public void onDestroy() {
-        if (mWakeLock.isHeld()) {
-            mWakeLock.release();
-        }
-        if (mPartialWakeLock.isHeld()) {
-            mPartialWakeLock.release();
-        }
-    }
-
     /**
      * Called when connection is accepted from remote, to retrieve the first
      * Header then wait for user confirmation
@@ -164,13 +153,6 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             }
         }
         mCallback = null;
-        if (V) Log.v(TAG, "release WakeLock");
-        if (mWakeLock.isHeld()) {
-            mWakeLock.release();
-        }
-        if (mPartialWakeLock.isHeld()) {
-            mPartialWakeLock.release();
-        }
         mSession = null;
     }
 
@@ -256,23 +238,11 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
             if (pre_reject && obexResponse != ResponseCodes.OBEX_HTTP_OK) {
                 // some bad implemented client won't send disconnect
-                if (mWakeLock.isHeld()) {
-                    mWakeLock.release();
-                }
-                if (mPartialWakeLock.isHeld()) {
-                    mPartialWakeLock.release();
-                }
                 return obexResponse;
             }
 
         } catch (IOException e) {
             Log.e(TAG, "get getReceivedHeaders error " + e);
-            if (mWakeLock.isHeld()) {
-                mWakeLock.release();
-            }
-            if (mPartialWakeLock.isHeld()) {
-                mPartialWakeLock.release();
-            }
             return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
         }
 
@@ -554,13 +524,6 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         if (D) Log.d(TAG, "onDisconnect");
         resp.responseCode = ResponseCodes.OBEX_HTTP_OK;
 
-        if (D) Log.d(TAG, "release WakeLock");
-        if (mWakeLock.isHeld()) {
-            mWakeLock.release();
-        }
-        if (mPartialWakeLock.isHeld()) {
-            mPartialWakeLock.release();
-        }
         /* onDisconnect could happen even before start() where mCallback is set */
         if (mCallback != null) {
             Message msg = Message.obtain(mCallback);
@@ -572,5 +535,12 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     @Override
     public void onClose() {
+        if (V) Log.v(TAG, "release WakeLock");
+        if (mWakeLock.isHeld()) {
+            mWakeLock.release();
+        }
+        if (mPartialWakeLock.isHeld()) {
+            mPartialWakeLock.release();
+        }
     }
 }
