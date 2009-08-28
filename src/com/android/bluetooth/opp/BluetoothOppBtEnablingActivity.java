@@ -47,6 +47,9 @@ import com.android.internal.app.AlertController;
  */
 public class BluetoothOppBtEnablingActivity extends AlertActivity {
     private static final String TAG = "BluetoothOppEnablingActivity";
+    private static final boolean D = Constants.DEBUG;
+    private static final boolean V = Constants.VERBOSE;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,16 +85,12 @@ public class BluetoothOppBtEnablingActivity extends AlertActivity {
         if (mOppManager.mSendingFlag) {
             mOppManager.mSendingFlag = false;
             mOppManager.disableBluetooth(); // can work? May not!
-            if (Constants.LOGVV) {
-                Log.v(TAG, "Disabling Bluetooth:! ");
-            }
+            if (V) Log.v(TAG, "Disabling Bluetooth:! ");
         }
 
         // In this dialog, when press "back" key, will call
         // AlertActivity.cancel() function - finish()
         finish();
-        if (Constants.LOGVV) {
-            Log.v(TAG, "onPause(): finish() called");
-        }
+        if (V) Log.v(TAG, "onPause(): finish() called");
     }
 }

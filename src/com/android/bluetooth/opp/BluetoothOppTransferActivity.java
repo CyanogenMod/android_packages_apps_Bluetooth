@@ -67,6 +67,8 @@ import android.text.format.Formatter;
 public class BluetoothOppTransferActivity extends AlertActivity implements
         DialogInterface.OnClickListener {
     private static final String TAG = "BluetoothOppTransferActivity";
+    private static final boolean D = Constants.DEBUG;
+    private static final boolean V = Constants.VERBOSE;
 
     private Uri mUri;
 
@@ -118,9 +120,7 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
 
         @Override
         public void onChange(boolean selfChange) {
-            if (Constants.LOGVV) {
-                Log.v(TAG, "received db changes.");
-            }
+            if (V) Log.v(TAG, "received db changes.");
             updateProgressbar();
         }
     }
@@ -134,9 +134,7 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
         mTransInfo = new BluetoothOppTransferInfo();
         mTransInfo = BluetoothOppUtility.queryRecord(this, mUri);
         if (mTransInfo == null) {
-            if (Constants.LOGVV) {
-                Log.e(TAG, "Error: Can not get data from db");
-            }
+            if (V) Log.e(TAG, "Error: Can not get data from db");
             finish();
             return;
         }
@@ -165,9 +163,7 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
 
     @Override
     protected void onDestroy() {
-        if (Constants.LOGV) {
-            Log.v(TAG, "onDestroy()");
-        }
+        if (D) Log.d(TAG, "onDestroy()");
 
         if (mObserver != null) {
             getContentResolver().unregisterContentObserver(mObserver);
@@ -204,10 +200,8 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
             }
         }
 
-        if (Constants.LOGVV) {
-            Log.v(TAG, " WhichDialog/dir/isComplete/failOrSuccess" + mWhichDialog + direction
+        if (V) Log.v(TAG, " WhichDialog/dir/isComplete/failOrSuccess" + mWhichDialog + direction
                     + isComplete + isSuccess);
-        }
     }
 
     private void setUpDialog() {
@@ -420,9 +414,7 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
     private void updateProgressbar() {
         mTransInfo = BluetoothOppUtility.queryRecord(this, mUri);
         if (mTransInfo == null) {
-            if (Constants.LOGVV) {
-                Log.e(TAG, "Error: Can not get data from db");
-            }
+            if (V) Log.e(TAG, "Error: Can not get data from db");
             return;
         }
 

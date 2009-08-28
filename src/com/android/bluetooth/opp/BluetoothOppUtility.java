@@ -57,6 +57,8 @@ import java.util.List;
  */
 public class BluetoothOppUtility {
     private static final String TAG = "BluetoothOppUtility";
+    private static final boolean D = Constants.DEBUG;
+    private static final boolean V = Constants.VERBOSE;
 
     public static BluetoothOppTransferInfo queryRecord(Context context, Uri uri) {
         BluetoothAdapter adapter =
@@ -106,17 +108,13 @@ public class BluetoothOppUtility {
                 info.mDeviceName =
                         BluetoothOppManager.getInstance(context).getDeviceName(remoteDevice);
 
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Get data from db:" + info.mFileName + info.mFileType
+                if (V) Log.v(TAG, "Get data from db:" + info.mFileName + info.mFileType
                             + info.mDestAddr);
-                }
             }
             cursor.close();
         } else {
             info = null;
-            if (Constants.LOGVV) {
-                Log.v(TAG, "BluetoothOppManager Error: not got data from db for uri:" + uri);
-            }
+            if (V) Log.v(TAG, "BluetoothOppManager Error: not got data from db for uri:" + uri);
         }
         return info;
     }
@@ -146,9 +144,7 @@ public class BluetoothOppUtility {
                 path = Uri.fromFile(new File(fileName));
             }
             uris.add(path.toString());
-            if (Constants.LOGVV) {
-                Log.d(TAG, "Uri in this batch: " + path.toString());
-            }
+            if (V) Log.d(TAG, "Uri in this batch: " + path.toString());
         }
         metadataCursor.close();
         return uris;
@@ -187,14 +183,10 @@ public class BluetoothOppUtility {
 
             activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             try {
-                if (Constants.LOGVV) {
-                    Log.d(TAG, "ACTION_VIEW intent sent out: " + path + " / " + mimetype);
-                }
+                if (V) Log.d(TAG, "ACTION_VIEW intent sent out: " + path + " / " + mimetype);
                 context.startActivity(activityIntent);
             } catch (ActivityNotFoundException ex) {
-                if (Constants.LOGVV) {
-                    Log.d(TAG, "no activity for handling ACTION_VIEW intent:  " + mimetype, ex);
-                }
+                if (V) Log.d(TAG, "no activity for handling ACTION_VIEW intent:  " + mimetype, ex);
             }
         } else {
             Intent in = new Intent(context, BluetoothOppBtErrorActivity.class);
@@ -212,9 +204,7 @@ public class BluetoothOppUtility {
     public static boolean isRecognizedFileType(Context context, Uri fileUri, String mimetype) {
         boolean ret = true;
 
-        if (Constants.LOGV) {
-            Log.v(TAG, "RecognizedFileType() fileUri: " + fileUri + " mimetype: " + mimetype);
-        }
+        if (D) Log.d(TAG, "RecognizedFileType() fileUri: " + fileUri + " mimetype: " + mimetype);
 
         Intent mimetypeIntent = new Intent(Intent.ACTION_VIEW);
         mimetypeIntent.setDataAndType(fileUri, mimetype);
@@ -222,9 +212,7 @@ public class BluetoothOppUtility {
                 PackageManager.MATCH_DEFAULT_ONLY);
 
         if (list.size() == 0) {
-            if (Constants.LOGV) {
-                Log.v(TAG, "NO application to handle MIME type " + mimetype);
-            }
+            if (D) Log.d(TAG, "NO application to handle MIME type " + mimetype);
             ret = false;
         }
         return ret;
@@ -301,11 +289,8 @@ public class BluetoothOppUtility {
 
         final Uri contentUri = context.getContentResolver().insert(BluetoothShare.CONTENT_URI,
                 values);
-        if (Constants.LOGVV) {
-            Log
-                    .v(TAG, "Insert contentUri: " + contentUri + "  to device: "
-                            + transInfo.mDeviceName);
-        }
+        if (V) Log.v(TAG, "Insert contentUri: " + contentUri + "  to device: " +
+                transInfo.mDeviceName);
     }
 
 }

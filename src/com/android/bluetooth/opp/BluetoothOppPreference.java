@@ -46,6 +46,8 @@ import android.util.Log;
  */
 public class BluetoothOppPreference {
     private static final String TAG = "BluetoothOppPreference";
+    private static final boolean D = Constants.DEBUG;
+    private static final boolean V = Constants.VERBOSE;
 
     private static BluetoothOppPreference INSTANCE;
 
@@ -114,24 +116,18 @@ public class BluetoothOppPreference {
 
     public int getChannel(BluetoothDevice remoteDevice, int uuid) {
         String key = getChannelKey(remoteDevice, uuid);
-        if (Constants.LOGVV) {
-            Log.v(TAG, "getChannel " + key);
-        }
+        if (V) Log.v(TAG, "getChannel " + key);
         int channel = -1;
         if (!mChannels.isEmpty()) {
             channel = mChannels.get(key);
-            if (Constants.LOGVV) {
-                Log.v(TAG, "getChannel for " + remoteDevice + "_" + Integer.toHexString(uuid) +
+            if (V) Log.v(TAG, "getChannel for " + remoteDevice + "_" + Integer.toHexString(uuid) +
                         " as " + channel);
-            }
         }
         return channel;
     }
 
     public void setName(BluetoothDevice remoteDevice, String name) {
-        if (Constants.LOGVV) {
-            Log.v(TAG, "Setname for " + remoteDevice + " to " + name);
-        }
+        if (V) Log.v(TAG, "Setname for " + remoteDevice + " to " + name);
         if (!name.equals(getName(remoteDevice))) {
             Editor ed = mNamePreference.edit();
             ed.putString(remoteDevice.getAddress(), name);
@@ -141,10 +137,8 @@ public class BluetoothOppPreference {
     }
 
     public void setChannel(BluetoothDevice remoteDevice, int uuid, int channel) {
-        if (Constants.LOGVV) {
-            Log.v(TAG, "Setchannel for " + remoteDevice + "_" + Integer.toHexString(uuid) + " to "
+        if (V) Log.v(TAG, "Setchannel for " + remoteDevice + "_" + Integer.toHexString(uuid) + " to "
                     + channel);
-        }
         if (channel == getChannel(remoteDevice, uuid)) {
             String key = getChannelKey(remoteDevice, uuid);
             Editor ed = mChannelPreference.edit();

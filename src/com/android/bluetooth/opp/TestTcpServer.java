@@ -43,12 +43,13 @@ import javax.obex.ServerSession;
 import android.util.Log;
 
 public class TestTcpServer extends ServerRequestHandler implements Runnable {
+    private static final String TAG = "ServerRequestHandler";
+    private static final boolean D = Constants.DEBUG;
+    private static final boolean V = Constants.VERBOSE;
 
     private long connectionID;
 
     static final int port = 6500;
-
-    private static final String TAG = "ServerRequestHandler";
 
     public boolean a = false;
 
@@ -83,9 +84,7 @@ public class TestTcpServer extends ServerRequestHandler implements Runnable {
                     wait(500);
                 }
             } catch (InterruptedException e) {
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Interrupted waiting for markBatchFailed");
-                }
+                if (V) Log.v(TAG, "Interrupted waiting for markBatchFailed");
             }
         }
         updateStatus("[server:] we accpet the seesion");

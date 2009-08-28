@@ -49,7 +49,7 @@ import android.util.Log;
  */
 public class Constants {
     /** Tag used for debugging/logging */
-    public static final String TAG = "BluetoothShareManager";
+    public static final String TAG = "BluetoothOpp";
 
     /**
      * The intent that gets sent when the service must wake up for a retry Note:
@@ -127,17 +127,19 @@ public class Constants {
     public static final String DEFAULT_STORE_SUBDIR = "/bluetooth";
 
     /**
-     * Enable verbose logging - use with
-     * "setprop log.tag.BluetoothShareManager VERBOSE"
+     * Debug level logging
+     * Enable by setting system property log.tag.BluetoothOpp=DEBUG
+     * STOPSHIP: set to false
      */
-    private static final boolean LOCAL_LOGV = true;
+    public static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
 
-    public static final boolean LOGV = LOCAL_LOGV && Log.isLoggable(TAG, Log.VERBOSE);
-
-    /** Enable super-verbose logging */
-    private static final boolean LOCAL_LOGVV = true;
-
-    public static final boolean LOGVV = LOCAL_LOGVV && LOGV;
+    /**
+     * Verbose level logging
+     * Enable by setting system property log.tag.BluetoothOpp=VERBOSE
+     * This also enables debug level logging
+     * STOPSHIP: set to false
+     */
+    public static final boolean VERBOSE = Log.isLoggable(TAG, Log.VERBOSE);
 
     /** use TCP socket instead of Rfcomm Socket to develop */
     public static final boolean USE_TCP_DEBUG = false;

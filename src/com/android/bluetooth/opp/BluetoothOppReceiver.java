@@ -55,6 +55,8 @@ import android.widget.Toast;
  */
 public class BluetoothOppReceiver extends BroadcastReceiver {
     private static final String TAG = "BluetoothOppReceiver";
+    private static final boolean D = Constants.DEBUG;
+    private static final boolean V = Constants.VERBOSE;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -66,9 +68,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
         } else if (action.equals(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION)) {
             if (BluetoothAdapter.BLUETOOTH_STATE_ON == intent.getIntExtra(
                     BluetoothIntent.BLUETOOTH_STATE, BluetoothError.ERROR)) {
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Received BLUETOOTH_STATE_CHANGED_ACTION, BLUETOOTH_STATE_ON");
-                }
+                if (V) Log.v(TAG, "Received BLUETOOTH_STATE_CHANGED_ACTION, BLUETOOTH_STATE_ON");
                 context.startService(new Intent(context, BluetoothOppService.class));
 
                 // If this is within a sending process, continue the handle
@@ -97,9 +97,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
 
             BluetoothDevice remoteDevice = intent.getParcelableExtra(BluetoothIntent.DEVICE);
 
-            if (Constants.LOGVV) {
-                Log.v(TAG, "Received BT device selected intent, bt device: " + remoteDevice);
-            }
+            if (V) Log.v(TAG, "Received BT device selected intent, bt device: " + remoteDevice);
 
             // Insert transfer session record to database
             mOppManager.startTransfer(remoteDevice);
@@ -115,9 +113,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             }
             Toast.makeText(context, toastMsg, Toast.LENGTH_SHORT).show();
         } else if (action.equals(Constants.ACTION_INCOMING_FILE_CONFIRM)) {
-            if (Constants.LOGVV) {
-                Log.v(TAG, "Receiver ACTION_INCOMING_FILE_CONFIRM");
-            }
+            if (V) Log.v(TAG, "Receiver ACTION_INCOMING_FILE_CONFIRM");
 
             Uri uri = intent.getData();
             Intent in = new Intent(context, BluetoothOppIncomingFileConfirmActivity.class);
@@ -132,15 +128,13 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                 Log.v(TAG, "notMgr.cancel called");
             }
         } else if (action.equals(BluetoothShare.INCOMING_FILE_CONFIRMATION_REQUEST_ACTION)) {
-            if (Constants.LOGVV) {
-                Log.v(TAG, "Receiver INCOMING_FILE_NOTIFICATION");
-            }
+            if (V) Log.v(TAG, "Receiver INCOMING_FILE_NOTIFICATION");
 
             Toast.makeText(context, context.getString(R.string.incoming_file_toast_msg),
                     Toast.LENGTH_SHORT).show();
 
         } else if (action.equals(Constants.ACTION_OPEN) || action.equals(Constants.ACTION_LIST)) {
-            if (Constants.LOGVV) {
+            if (V) {
                 if (action.equals(Constants.ACTION_OPEN)) {
                     Log.v(TAG, "Receiver open for " + intent.getData());
                 } else {
@@ -152,9 +146,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             Uri uri = intent.getData();
             transInfo = BluetoothOppUtility.queryRecord(context, uri);
             if (transInfo == null) {
-                if (Constants.LOGVV) {
-                    Log.e(TAG, "Error: Can not get data from db");
-                }
+                if (V) Log.e(TAG, "Error: Can not get data from db");
                 return;
             }
 
@@ -175,14 +167,10 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                     .getSystemService(Context.NOTIFICATION_SERVICE);
             if (notMgr != null) {
                 notMgr.cancel((int)ContentUris.parseId(intent.getData()));
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "notMgr.cancel called");
+                if (V) Log.v(TAG, "notMgr.cancel called");
                 }
-            }
         } else if (action.equals(Constants.ACTION_HIDE)) {
-            if (Constants.LOGVV) {
-                Log.v(TAG, "Receiver hide for " + intent.getData());
-            }
+            if (V) Log.v(TAG, "Receiver hide for " + intent.getData());
             Cursor cursor = context.getContentResolver().query(intent.getData(), null, null, null,
                     null);
             if (cursor != null) {
@@ -199,25 +187,19 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                         ContentValues values = new ContentValues();
                         values.put(BluetoothShare.VISIBILITY, BluetoothShare.VISIBILITY_HIDDEN);
                         context.getContentResolver().update(intent.getData(), values, null, null);
-                        if (Constants.LOGVV) {
-                            Log.v(TAG, "Action_hide received and db updated");
+                        if (V) Log.v(TAG, "Action_hide received and db updated");
                         }
-                    }
                 }
                 cursor.close();
             }
         } else if (action.equals(BluetoothShare.TRANSFER_COMPLETED_ACTION)) {
-            if (Constants.LOGVV) {
-                Log.v(TAG, "Receiver Transfer Complete Intent for " + intent.getData());
-            }
+            if (V) Log.v(TAG, "Receiver Transfer Complete Intent for " + intent.getData());
 
             String toastMsg = null;
             BluetoothOppTransferInfo transInfo = new BluetoothOppTransferInfo();
             transInfo = BluetoothOppUtility.queryRecord(context, intent.getData());
             if (transInfo == null) {
-                if (Constants.LOGVV) {
-                    Log.e(TAG, "Error: Can not get data from db");
-                }
+                if (V) Log.e(TAG, "Error: Can not get data from db");
                 return;
             }
 
@@ -237,9 +219,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                     toastMsg = context.getString(R.string.download_fail_line1);
                 }
             }
-            if (Constants.LOGVV) {
-                Log.v(TAG, "Toast msg == " + toastMsg);
-            }
+            if (V) Log.v(TAG, "Toast msg == " + toastMsg);
             if (toastMsg != null) {
                 Toast.makeText(context, toastMsg, Toast.LENGTH_SHORT).show();
             }

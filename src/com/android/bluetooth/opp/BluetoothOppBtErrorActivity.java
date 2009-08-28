@@ -48,7 +48,6 @@ import com.android.internal.app.AlertController;
  */
 public class BluetoothOppBtErrorActivity extends AlertActivity implements
         DialogInterface.OnClickListener {
-    private static final String TAG = "BluetoothOppBtErrorActivity";
 
     private String mErrorContent;
 

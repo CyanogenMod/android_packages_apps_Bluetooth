@@ -46,7 +46,9 @@ import android.util.Log;
  */
 public class TestTcpListener {
 
-    private static final String TAG = "BtOpp RfcommListener";
+    private static final String TAG = "BtOppRfcommListener";
+    private static final boolean D = Constants.DEBUG;
+    private static final boolean V = Constants.VERBOSE;
 
     private volatile boolean mInterrupted;
 
@@ -77,14 +79,10 @@ public class TestTcpListener {
                 ServerSocket mServerSocket;
 
                 public void run() {
-                    if (Constants.LOGV) {
-                        Log.v(TAG, "RfcommSocket listen thread starting");
-                    }
+                    if (D) Log.d(TAG, "RfcommSocket listen thread starting");
                     try {
-                        if (Constants.LOGVV) {
-                            Log.v(TAG, "Create server RfcommSocket on channel"
+                        if (V) Log.v(TAG, "Create server RfcommSocket on channel"
                                     + mBtOppRfcommChannel);
-                        }
                         mServerSocket = new ServerSocket(6500, 1);
                     } catch (IOException e) {
                         Log.e(TAG, "Error listing on channel" + mBtOppRfcommChannel);
@@ -95,13 +93,9 @@ public class TestTcpListener {
                             mServerSocket.setSoTimeout(ACCEPT_WAIT_TIMEOUT);
                             Socket clientSocket = mServerSocket.accept();
                             if (clientSocket == null) {
-                                if (Constants.LOGVV) {
-                                    Log.v(TAG, "incomming connection time out");
-                                }
+                                if (V) Log.v(TAG, "incomming connection time out");
                             } else {
-                                if (Constants.LOGV) {
-                                    Log.v(TAG, "RfcommSocket connected!");
-                                }
+                                if (D) Log.d(TAG, "RfcommSocket connected!");
                                 Log.d(TAG, "remote addr is "
                                         + clientSocket.getRemoteSocketAddress());
                                 TestTcpTransport transport = new TestTcpTransport(clientSocket);
@@ -121,10 +115,8 @@ public class TestTcpListener {
                             Log.e(TAG, "socketAcceptThread thread was interrupted (2), exiting");
                         }
                     }
-                    if (Constants.LOGV) {
-                        Log.v(TAG, "RfcommSocket listen thread finished");
+                    if (D) Log.d(TAG, "RfcommSocket listen thread finished");
                     }
-                }
             };
             mInterrupted = false;
             mSocketAcceptThread.start();
@@ -136,22 +128,16 @@ public class TestTcpListener {
 
     public synchronized void stop() {
         if (mSocketAcceptThread != null) {
-            if (Constants.LOGV) {
-                Log.v(TAG, "stopping Connect Thread");
-            }
+            if (D) Log.d(TAG, "stopping Connect Thread");
             mInterrupted = true;
             try {
                 mSocketAcceptThread.interrupt();
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "waiting for thread to terminate");
-                }
+                if (V) Log.v(TAG, "waiting for thread to terminate");
                 mSocketAcceptThread.join();
                 mSocketAcceptThread = null;
                 mCallback = null;
             } catch (InterruptedException e) {
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Interrupted waiting for Accept Thread to join");
-                }
+                if (V) Log.v(TAG, "Interrupted waiting for Accept Thread to join");
             }
         }
     }

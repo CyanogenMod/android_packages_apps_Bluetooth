@@ -48,7 +48,9 @@ import android.util.Log;
  * This class listens on OPUSH channel for incoming connection
  */
 public class BluetoothOppRfcommListener {
-    private static final String TAG = "BtOpp RfcommListener";
+    private static final String TAG = "BtOppRfcommListener";
+    private static final boolean D = Constants.DEBUG;
+    private static final boolean V = Constants.VERBOSE;
 
     public static final int MSG_INCOMING_BTOPP_CONNECTION = 100;
 
@@ -87,10 +89,8 @@ public class BluetoothOppRfcommListener {
                     if (Constants.USE_TCP_DEBUG) {
                         ServerSocket mServerSocket = null;
                         try {
-                            if (Constants.LOGVV) {
-                                Log.v(TAG, "Create ServerSocket on port "
+                            if (V) Log.v(TAG, "Create ServerSocket on port "
                                         + Constants.TCP_DEBUG_PORT);
-                            }
 
                             mServerSocket = new ServerSocket(Constants.TCP_DEBUG_PORT, 1);
 
@@ -104,13 +104,9 @@ public class BluetoothOppRfcommListener {
                                 Socket clientSocket = mServerSocket.accept();
 
                                 if (clientSocket == null) {
-                                    if (Constants.LOGVV) {
-                                        Log.v(TAG, "incomming connection time out");
-                                    }
+                                    if (V) Log.v(TAG, "incomming connection time out");
                                 } else {
-                                    if (Constants.LOGV) {
-                                        Log.v(TAG, "TCP Socket connected!");
-                                    }
+                                    if (D) Log.d(TAG, "TCP Socket connected!");
                                     Log.d(TAG, "remote addr is "
                                             + clientSocket.getRemoteSocketAddress());
                                     TestTcpTransport transport = new TestTcpTransport(clientSocket);
@@ -121,18 +117,12 @@ public class BluetoothOppRfcommListener {
                                     msg.sendToTarget();
                                 }
                             } catch (SocketException e) {
-                                if (Constants.LOGVV) {
-                                    Log.v(TAG, "Error accept connection " + e);
-                                }
+                                if (V) Log.v(TAG, "Error accept connection " + e);
                             } catch (IOException e) {
-                                if (Constants.LOGVV) {
-                                    Log.v(TAG, "Error accept connection " + e);
-                                }
+                                if (V) Log.v(TAG, "Error accept connection " + e);
                             }
                         }
-                        if (Constants.LOGV) {
-                            Log.v(TAG, "TCP listen thread finished");
-                        }
+                        if (D) Log.d(TAG, "TCP listen thread finished");
                         try {
                             mServerSocket.close();
                         } catch (IOException e) {
@@ -157,9 +147,7 @@ public class BluetoothOppRfcommListener {
                             if (!serverOK) {
                                 synchronized (this) {
                                     try {
-                                        if (Constants.LOGVV) {
-                                            Log.v(TAG, "wait 3 seconds");
-                                        }
+                                        if (V) Log.v(TAG, "wait 3 seconds");
                                         Thread.sleep(3000);
                                     } catch (InterruptedException e) {
                                         Log.e(TAG, "socketAcceptThread thread was interrupted (3)");
@@ -191,16 +179,12 @@ public class BluetoothOppRfcommListener {
                                 msg.sendToTarget();
                             } catch (IOException e) {
                                 //TODO later accept should not throw exception
-                                if (Constants.LOGVV) {
-                                    //Log.v(TAG, "Error accept connection " + e);
-                                }
+                                // if (V) Log.v(TAG, "Error accept connection " + e);
                             }
                         }
                         try {
                             if (mServerSocket != null) {
-                                if (Constants.LOGVV) {
-                                    Log.v(TAG, "close mServerSocket");
-                                }
+                                if (V) Log.v(TAG, "close mServerSocket");
                                 mServerSocket.close();
                             }
                         } catch (IOException e) {
@@ -223,16 +207,12 @@ public class BluetoothOppRfcommListener {
             mInterrupted = true;
             try {
                 mSocketAcceptThread.interrupt();
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "waiting for thread to terminate");
-                }
+                if (V) Log.v(TAG, "waiting for thread to terminate");
                 mSocketAcceptThread.join();
                 mSocketAcceptThread = null;
                 mCallback = null;
             } catch (InterruptedException e) {
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Interrupted waiting for Accept Thread to join");
-                }
+                if (V) Log.v(TAG, "Interrupted waiting for Accept Thread to join");
             }
         }
     }

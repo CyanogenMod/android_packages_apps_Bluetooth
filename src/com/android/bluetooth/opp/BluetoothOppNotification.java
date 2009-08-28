@@ -53,6 +53,8 @@ import java.util.HashMap;
  */
 class BluetoothOppNotification {
     private static final String TAG = "BluetoothOppNotification";
+    private static final boolean D = Constants.DEBUG;
+    private static final boolean V = Constants.VERBOSE;
 
     static final String status = "(" + BluetoothShare.STATUS + " == '192'" + ")";
 
@@ -201,19 +203,15 @@ class BluetoothOppNotification {
                     item.description = mContext
                             .getString(R.string.notification_receiving, fileName);
                 } else {
-                    if (Constants.LOGVV) {
-                        Log.v(TAG, "mDirection ERROR!");
-                    }
+                    if (V) Log.v(TAG, "mDirection ERROR!");
                 }
                 item.totalCurrent = current;
                 item.totalTotal = total;
 
                 mNotifications.put(batchID, item);
 
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "ID=" + item.id + "; batchID=" + batchID + "; totoalCurrent"
+                if (V) Log.v(TAG, "ID=" + item.id + "; batchID=" + batchID + "; totoalCurrent"
                             + item.totalCurrent + "; totalTotal=" + item.totalTotal);
-                }
             }
         }
         cursor.close();
@@ -242,9 +240,7 @@ class BluetoothOppNotification {
                 expandedView.setImageViewResource(R.id.appIcon,
                         android.R.drawable.stat_sys_download);
             } else {
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "mDirection ERROR!");
-                }
+                if (V) Log.v(TAG, "mDirection ERROR!");
             }
 
             n.flags |= Notification.FLAG_ONGOING_EVENT;

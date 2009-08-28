@@ -49,7 +49,6 @@ import com.android.internal.app.AlertController;
  */
 public class BluetoothOppBtEnableActivity extends AlertActivity implements
         DialogInterface.OnClickListener {
-    private static final String TAG = "BluetoothOppBtEnableActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

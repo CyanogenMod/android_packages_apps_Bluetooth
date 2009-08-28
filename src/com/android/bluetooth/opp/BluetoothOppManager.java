@@ -52,6 +52,8 @@ import java.util.ArrayList;
  */
 public class BluetoothOppManager {
     private static final String TAG = "BluetoothOppManager";
+    private static final boolean D = Constants.DEBUG;
+    private static final boolean V = Constants.VERBOSE;
 
     private static BluetoothOppManager INSTANCE;
 
@@ -125,9 +127,7 @@ public class BluetoothOppManager {
 
         mAdapter = (BluetoothAdapter) context.getSystemService(Context.BLUETOOTH_SERVICE);
         if (mAdapter == null) {
-            if (Constants.LOGVV) {
-                Log.v(TAG, "BLUETOOTH_SERVICE is not started! ");
-            }
+            if (V) Log.v(TAG, "BLUETOOTH_SERVICE is not started! ");
         }
 
         // Restore data from preference
@@ -148,10 +148,8 @@ public class BluetoothOppManager {
         mMimeTypeOfSendigFiles = settings.getString(MIME_TYPE_MULTIPLE, null);
         mMultipleFlag = settings.getBoolean(MULTIPLE_FLAG, false);
 
-        if (Constants.LOGVV) {
-            Log.v(TAG, "restoreApplicationData! " + mSendingFlag + mMultipleFlag
+        if (V) Log.v(TAG, "restoreApplicationData! " + mSendingFlag + mMultipleFlag
                     + mMimeTypeOfSendigFile + mUriOfSendingFile);
-        }
 
         String strUris = settings.getString(FILE_URIS, null);
         // TODO(Moto): restore mUrisOfSendingFiles from strUris.
@@ -177,9 +175,7 @@ public class BluetoothOppManager {
         }
         strUris = sb.toString();
         editor.putString(FILE_URIS, strUris).commit();
-        if (Constants.LOGVV) {
-            Log.v(TAG, "finalize is called and application data saved by SharedPreference! ");
-        }
+        if (V) Log.v(TAG, "finalize is called and application data saved by SharedPreference! ");
     }
 
     /**
@@ -215,9 +211,7 @@ public class BluetoothOppManager {
         if (mAdapter != null) {
             return mAdapter.isEnabled();
         } else {
-            if (Constants.LOGVV) {
-                Log.v(TAG, "BLUETOOTH_SERVICE is not available! ");
-            }
+            if (V) Log.v(TAG, "BLUETOOTH_SERVICE is not available! ");
             return false;
         }
     }
@@ -269,9 +263,7 @@ public class BluetoothOppManager {
         }
 
         if (!mCanStartTransfer) {
-            if (Constants.LOGVV) {
-                Log.v(TAG, "No transfer info restored: fileType&fileName");
-            }
+            if (V) Log.v(TAG, "No transfer info restored: fileType&fileName");
             return;
         }
 
@@ -284,9 +276,7 @@ public class BluetoothOppManager {
                 Uri fileUri = mUrisOfSendingFiles.get(i);
                 ContentResolver contentResolver = mContext.getContentResolver();
                 String contentType = contentResolver.getType(fileUri);
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Got mimetype: " + contentType + "  Got uri: " + fileUri);
-                }
+                if (V) Log.v(TAG, "Got mimetype: " + contentType + "  Got uri: " + fileUri);
 
                 ContentValues values = new ContentValues();
                 values.put(BluetoothShare.URI, fileUri.toString());
@@ -296,10 +286,8 @@ public class BluetoothOppManager {
 
                 final Uri contentUri = mContext.getContentResolver().insert(
                         BluetoothShare.CONTENT_URI, values);
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Insert contentUri: " + contentUri + "  to device: "
+                if (V) Log.v(TAG, "Insert contentUri: " + contentUri + "  to device: "
                             + getDeviceName(device));
-                }
             }
         } else {
             ContentValues values = new ContentValues();
@@ -309,10 +297,8 @@ public class BluetoothOppManager {
 
             final Uri contentUri = mContext.getContentResolver().insert(BluetoothShare.CONTENT_URI,
                     values);
-            if (Constants.LOGVV) {
-                Log.v(TAG, "Insert contentUri: " + contentUri + "  to device: "
+            if (V) Log.v(TAG, "Insert contentUri: " + contentUri + "  to device: "
                         + getDeviceName(device));
-            }
         }
 
         // reset vars

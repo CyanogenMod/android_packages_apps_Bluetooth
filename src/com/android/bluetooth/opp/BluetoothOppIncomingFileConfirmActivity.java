@@ -54,6 +54,8 @@ import com.android.internal.app.AlertController;
 public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity implements
         DialogInterface.OnClickListener {
     private static final String TAG = "BluetoothIncomingFileConfirmActivity";
+    private static final boolean D = Constants.DEBUG;
+    private static final boolean V = Constants.VERBOSE;
 
     private BluetoothOppTransferInfo mTransInfo;
 
@@ -72,9 +74,7 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity imple
         mTransInfo = new BluetoothOppTransferInfo();
         mTransInfo = BluetoothOppUtility.queryRecord(this, mUri);
         if (mTransInfo == null) {
-            if (Constants.LOGVV) {
-                Log.e(TAG, "Error: Can not get data from db");
-            }
+            if (V) Log.e(TAG, "Error: Can not get data from db");
             finish();
             return;
         }
@@ -90,9 +90,7 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity imple
         p.mNegativeButtonListener = this;
         setupAlert();
 
-        if (Constants.LOGVV) {
-            Log.v(TAG, "BluetoothIncomingFileConfirmActivity: Got uri:" + mUri);
-        }
+        if (V) Log.v(TAG, "BluetoothIncomingFileConfirmActivity: Got uri:" + mUri);
     }
 
     private View createView() {
@@ -143,9 +141,7 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity imple
         mUpdateValues = new ContentValues();
         mUpdateValues.put(BluetoothShare.VISIBILITY, BluetoothShare.VISIBILITY_HIDDEN);
         this.getContentResolver().update(mUri, mUpdateValues, null, null);
-        if (Constants.LOGVV) {
-            Log.v(TAG, "db updated: change to VISIBILITY_HIDDEN");
-        }
+        if (V) Log.v(TAG, "db updated: change to VISIBILITY_HIDDEN");
         Toast.makeText(this, getString(R.string.bt_toast_2), Toast.LENGTH_SHORT).show();
     }
 }

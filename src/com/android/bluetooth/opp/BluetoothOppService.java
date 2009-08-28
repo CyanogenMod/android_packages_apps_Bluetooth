@@ -70,6 +70,8 @@ import java.util.ArrayList;
  */
 
 public class BluetoothOppService extends Service {
+    private static final boolean D = Constants.DEBUG;
+    private static final boolean V = Constants.VERBOSE;
 
     private boolean userAccepted = false;
 
@@ -81,9 +83,7 @@ public class BluetoothOppService extends Service {
 
         @Override
         public void onChange(boolean selfChange) {
-            if (Constants.LOGVV) {
-                Log.v(TAG, "ContentObserver received notification");
-            }
+            if (V) Log.v(TAG, "ContentObserver received notification");
             updateFromProvider();
         }
     }
@@ -149,9 +149,7 @@ public class BluetoothOppService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        if (Constants.LOGVV) {
-            Log.v(TAG, "Service onCreate");
-        }
+        if (V) Log.v(TAG, "Service onCreate");
         mAdapter = (BluetoothAdapter) getSystemService(Context.BLUETOOTH_SERVICE);
         mSocketListener = new BluetoothOppRfcommListener(mAdapter);
         mShares = Lists.newArrayList();
@@ -176,18 +174,14 @@ public class BluetoothOppService extends Service {
                 startListenerDelayed();
             }
         }
-        if (Constants.LOGVV) {
-            BluetoothOppPreference.getInstance(this).dump();
-        }
+        if (V) BluetoothOppPreference.getInstance(this).dump();
         updateFromProvider();
     }
 
     @Override
     public void onStart(Intent intent, int startId) {
         super.onStart(intent, startId);
-        if (Constants.LOGVV) {
-            Log.v(TAG, "Service onStart");
-        }
+        if (V) Log.v(TAG, "Service onStart");
 
         if (mAdapter == null) {
             Log.w(TAG, "Local BT device is not enabled");
@@ -201,9 +195,7 @@ public class BluetoothOppService extends Service {
     private void startListenerDelayed() {
         if (!mListenStarted) {
             if (mAdapter.isEnabled()) {
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Starting RfcommListener in 9 seconds");
-                }
+                if (V) Log.v(TAG, "Starting RfcommListener in 9 seconds");
                 mHandler.sendMessageDelayed(mHandler.obtainMessage(START_LISTENER), 9000);
                 mListenStarted = true;
             }
@@ -228,10 +220,8 @@ public class BluetoothOppService extends Service {
                     }
                     break;
                 case MEDIA_SCANNED:
-                    if (Constants.LOGVV) {
-                        Log.v(TAG, "Update mInfo.id " + msg.arg1 + " for data uri= "
+                    if (V) Log.v(TAG, "Update mInfo.id " + msg.arg1 + " for data uri= "
                                 + msg.obj.toString());
-                    }
                     ContentValues updateValues = new ContentValues();
                     Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + msg.arg1);
                     updateValues.put(Constants.MEDIA_SCANNED, Constants.MEDIA_SCANNED_SCANNED_OK);
@@ -255,9 +245,7 @@ public class BluetoothOppService extends Service {
                     }
                     break;
                 case BluetoothOppRfcommListener.MSG_INCOMING_BTOPP_CONNECTION:
-                    if (Constants.LOGV) {
-                        Log.v(TAG, "Get incoming connection");
-                    }
+                    if (D) Log.d(TAG, "Get incoming connection");
                     ObexTransport transport = (ObexTransport)msg.obj;
                     /*
                      * Strategy for incoming connections:
@@ -317,20 +305,14 @@ public class BluetoothOppService extends Service {
 
     private void startSocketListener() {
 
-        if (Constants.LOGVV) {
-            Log.v(TAG, "start RfcommListener");
-        }
+        if (V) Log.v(TAG, "start RfcommListener");
         mSocketListener.start(mHandler);
-        if (Constants.LOGVV) {
-            Log.v(TAG, "RfcommListener started");
-        }
+        if (V) Log.v(TAG, "RfcommListener started");
     }
 
     @Override
     public void onDestroy() {
-        if (Constants.LOGVV) {
-            Log.v(TAG, "Service onDestroy");
-        }
+        if (V) Log.v(TAG, "Service onDestroy");
         super.onDestroy();
         mNotifier.finishNotification();
         getContentResolver().unregisterContentObserver(mObserver);
@@ -342,10 +324,8 @@ public class BluetoothOppService extends Service {
     private void createServerSession(ObexTransport transport) {
         mServerSession = new BluetoothOppObexServerSession(this, transport);
         mServerSession.preStart();
-        if (Constants.LOGV) {
-            Log.v(TAG, "Get ServerSession " + mServerSession.toString()
+        if (D) Log.d(TAG, "Get ServerSession " + mServerSession.toString()
                     + " for incoming connection" + transport.toString());
-        }
     }
 
     private final BroadcastReceiver mBluetoothIntentReceiver = new BroadcastReceiver() {
@@ -356,16 +336,12 @@ public class BluetoothOppService extends Service {
             if (action.equals(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION)) {
                 switch (intent.getIntExtra(BluetoothIntent.BLUETOOTH_STATE, BluetoothError.ERROR)) {
                     case BluetoothAdapter.BLUETOOTH_STATE_ON:
-                        if (Constants.LOGVV) {
-                            Log.v(TAG,
+                        if (V) Log.v(TAG,
                                     "Receiver BLUETOOTH_STATE_CHANGED_ACTION, BLUETOOTH_STATE_ON");
-                        }
                         startSocketListener();
                         break;
                     case BluetoothAdapter.BLUETOOTH_STATE_TURNING_OFF:
-                        if (Constants.LOGVV) {
-                            Log.v(TAG, "Receiver DISABLED_ACTION ");
-                        }
+                        if (V) Log.v(TAG, "Receiver DISABLED_ACTION ");
                         mSocketListener.stop();
                         mListenStarted = false;
                         synchronized (BluetoothOppService.this) {
@@ -405,10 +381,8 @@ public class BluetoothOppService extends Service {
                         throw new IllegalStateException(
                                 "multiple UpdateThreads in BluetoothOppService");
                     }
-                    if (Constants.LOGVV) {
-                        Log.v(TAG, "pendingUpdate is " + mPendingUpdate + " keepUpdateThread is "
+                    if (V) Log.v(TAG, "pendingUpdate is " + mPendingUpdate + " keepUpdateThread is "
                                 + keepService + " sListenStarted is " + mListenStarted);
-                    }
                     if (!mPendingUpdate) {
                         mUpdateThread = null;
                         if (!keepService && !mListenStarted) {
@@ -456,10 +430,8 @@ public class BluetoothOppService extends Service {
                         // We're beyond the end of the cursor but there's still
                         // some
                         // stuff in the local array, which can only be junk
-                        if (Constants.LOGVV) {
-                            int arrayId = mShares.get(arrayPos).mId;
-                            Log.v(TAG, "Array update: trimming " + arrayId + " @ " + arrayPos);
-                        }
+                        if (V) Log.v(TAG, "Array update: trimming " + 
+                                mShares.get(arrayPos).mId + " @ " + arrayPos);
 
                         if (shouldScanFile(arrayPos)) {
                             scanFile(null, arrayPos);
@@ -470,9 +442,7 @@ public class BluetoothOppService extends Service {
 
                         if (arrayPos == mShares.size()) {
                             insertShare(cursor, arrayPos);
-                            if (Constants.LOGVV) {
-                                Log.v(TAG, "Array update: inserting " + id + " @ " + arrayPos);
-                            }
+                            if (V) Log.v(TAG, "Array update: inserting " + id + " @ " + arrayPos);
                             if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
                                 keepService = true;
                             }
@@ -490,10 +460,8 @@ public class BluetoothOppService extends Service {
                             int arrayId = mShares.get(arrayPos).mId;
 
                             if (arrayId < id) {
-                                if (Constants.LOGVV) {
-                                    Log.v(TAG, "Array update: removing " + arrayId + " @ "
+                                if (V) Log.v(TAG, "Array update: removing " + arrayId + " @ "
                                             + arrayPos);
-                                }
                                 if (shouldScanFile(arrayPos)) {
                                     scanFile(null, arrayPos);
                                 }
@@ -518,9 +486,7 @@ public class BluetoothOppService extends Service {
                             } else {
                                 // This cursor entry didn't exist in the stored
                                 // array
-                                if (Constants.LOGVV) {
-                                    Log.v(TAG, "Array update: appending " + id + " @ " + arrayPos);
-                                }
+                                if (V) Log.v(TAG, "Array update: appending " + id + " @ " + arrayPos);
                                 insertShare(cursor, arrayPos);
 
                                 if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
@@ -565,7 +531,7 @@ public class BluetoothOppService extends Service {
                 cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP)),
                 cursor.getInt(cursor.getColumnIndexOrThrow(Constants.MEDIA_SCANNED)) != Constants.MEDIA_SCANNED_NOT_SCANNED);
 
-        if (Constants.LOGVV) {
+        if (V) {
             Log.v(TAG, "Service adding new entry");
             Log.v(TAG, "ID      : " + info.mId);
             // Log.v(TAG, "URI     : " + ((info.mUri != null) ? "yes" : "no"));
@@ -621,55 +587,43 @@ public class BluetoothOppService extends Service {
                 mBatchId++;
                 mBatchs.add(newBatch);
                 if (info.mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
-                    if (Constants.LOGVV) {
-                        Log.v(TAG, "Service create new Batch " + newBatch.mId
+                    if (V) Log.v(TAG, "Service create new Batch " + newBatch.mId
                                 + " for OUTBOUND info " + info.mId);
-                    }
                     mTransfer = new BluetoothOppTransfer(this, mPowerManager, newBatch);
                 } else if (info.mDirection == BluetoothShare.DIRECTION_INBOUND) {
-                    if (Constants.LOGVV) {
-                        Log.v(TAG, "Service create new Batch " + newBatch.mId
+                    if (V) Log.v(TAG, "Service create new Batch " + newBatch.mId
                                 + " for INBOUND info " + info.mId);
-                    }
                     mServerTransfer = new BluetoothOppTransfer(this, mPowerManager, newBatch,
                             mServerSession);
                 }
 
                 if (info.mDirection == BluetoothShare.DIRECTION_OUTBOUND && mTransfer != null) {
-                    if (Constants.LOGVV) {
-                        Log.v(TAG, "Service start transfer new Batch " + newBatch.mId
+                    if (V) Log.v(TAG, "Service start transfer new Batch " + newBatch.mId
                                 + " for info " + info.mId);
-                    }
                     mTransfer.start();
                 } else if (info.mDirection == BluetoothShare.DIRECTION_INBOUND
                         && mServerTransfer != null) {
                     /*
                      * TODO investigate here later?
                      */
-                    if (Constants.LOGVV) {
-                        Log.v(TAG, "Service start server transfer new Batch " + newBatch.mId
+                    if (V) Log.v(TAG, "Service start server transfer new Batch " + newBatch.mId
                                 + " for info " + info.mId);
-                    }
                     mServerTransfer.start();
                 }
 
             } else {
                 int i = findBatchWithTimeStamp(info.mTimestamp);
                 if (i != -1) {
-                    if (Constants.LOGVV) {
-                        Log.v(TAG, "Service add info " + info.mId + " to existing batch "
+                    if (V) Log.v(TAG, "Service add info " + info.mId + " to existing batch "
                                 + mBatchs.get(i).mId);
-                    }
                     mBatchs.get(i).addShare(info);
                 } else {
                     BluetoothOppBatch newBatch = new BluetoothOppBatch(this, info);
                     newBatch.mId = mBatchId;
                     mBatchId++;
                     mBatchs.add(newBatch);
-                    if (Constants.LOGVV) {
-                        Log.v(TAG, "Service add new Batch " + newBatch.mId + " for info "
+                    if (V) Log.v(TAG, "Service add new Batch " + newBatch.mId + " for info "
                                 + info.mId);
-                    }
                 }
             }
         }
@@ -721,9 +675,7 @@ public class BluetoothOppService extends Service {
         info.mMediaScanned = (cursor.getInt(cursor.getColumnIndexOrThrow(Constants.MEDIA_SCANNED)) != Constants.MEDIA_SCANNED_NOT_SCANNED);
 
         if (confirmed) {
-            if (Constants.LOGVV) {
-                Log.v(TAG, "Service handle info " + info.mId + " confirmed");
-            }
+            if (V) Log.v(TAG, "Service handle info " + info.mId + " confirmed");
             /* Inbounds transfer get user confirmation, so we start it */
             int i = findBatchWithTimeStamp(info.mTimestamp);
             BluetoothOppBatch batch = mBatchs.get(i);
@@ -736,9 +688,7 @@ public class BluetoothOppService extends Service {
             BluetoothOppBatch batch = mBatchs.get(i);
             if (batch.mStatus == Constants.BATCH_STATUS_FINISHED
                     || batch.mStatus == Constants.BATCH_STATUS_FAILED) {
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Batch " + batch.mId + " is finished");
-                }
+                if (V) Log.v(TAG, "Batch " + batch.mId + " is finished");
                 if (batch.mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
                     if (mTransfer == null) {
                         Log.e(TAG, "Unexpected error! mTransfer is null");
@@ -780,15 +730,11 @@ public class BluetoothOppService extends Service {
         if (i != -1) {
             BluetoothOppBatch batch = mBatchs.get(i);
             if (batch.hasShare(info)) {
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Service cancel batch for share " + info.mId);
-                }
+                if (V) Log.v(TAG, "Service cancel batch for share " + info.mId);
                 batch.cancelBatch();
             }
             if (batch.isEmpty()) {
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Service remove batch  " + batch.mId);
-                }
+                if (V) Log.v(TAG, "Service remove batch  " + batch.mId);
                 removeBatch(batch);
             }
         }
@@ -832,9 +778,7 @@ public class BluetoothOppService extends Service {
     }
 
     private int findBatchWithId(int id) {
-        if (Constants.LOGVV) {
-            Log.v(TAG, "Service search batch for id " + id + " from " + mBatchs.size());
-        }
+        if (V) Log.v(TAG, "Service search batch for id " + id + " from " + mBatchs.size());
         for (int i = mBatchs.size() - 1; i >= 0; i--) {
             if (mBatchs.get(i).mId == id) {
                 return i;
@@ -844,9 +788,7 @@ public class BluetoothOppService extends Service {
     }
 
     private void removeBatch(BluetoothOppBatch batch) {
-        if (Constants.LOGVV) {
-            Log.v(TAG, "Remove batch " + batch.mId);
-        }
+        if (V) Log.v(TAG, "Remove batch " + batch.mId);
         mBatchs.remove(batch);
         if (mBatchs.size() > 0) {
             for (int i = 0; i < mBatchs.size(); i++) {
@@ -857,9 +799,7 @@ public class BluetoothOppService extends Service {
                     // Pending batch for inbound transfer is not supported
                     // just finish a transfer, start pending outbound transfer
                     if (mBatchs.get(i).mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
-                        if (Constants.LOGVV) {
-                            Log.v(TAG, "Start pending outbound batch " + mBatchs.get(i).mId);
-                        }
+                        if (V) Log.v(TAG, "Start pending outbound batch " + mBatchs.get(i).mId);
                         mTransfer = new BluetoothOppTransfer(this, mPowerManager, mBatchs.get(i));
                         mTransfer.start();
                         return;
@@ -888,9 +828,7 @@ public class BluetoothOppService extends Service {
     private boolean scanFile(Cursor cursor, int arrayPos) {
         BluetoothOppShareInfo info = mShares.get(arrayPos);
         synchronized (BluetoothOppService.this) {
-            if (Constants.LOGV) {
-                Log.v(TAG, "Scanning file " + info.mFilename);
-            }
+            if (D) Log.d(TAG, "Scanning file " + info.mFilename);
             if (!mMediaScanInProgress) {
                 mMediaScanInProgress = true;
                 new MediaScannerNotifier(this, info, mHandler);
@@ -948,22 +886,18 @@ public class BluetoothOppService extends Service {
             mInfo = info;
             mCallback = handler;
             mConnection = new MediaScannerConnection(mContext, this);
-            if (Constants.LOGVV) {
-                Log.v(TAG, "Connecting to MediaScannerConnection ");
-            }
+            if (V) Log.v(TAG, "Connecting to MediaScannerConnection ");
             mConnection.connect();
         }
 
         public void onMediaScannerConnected() {
-            if (Constants.LOGVV) {
-                Log.v(TAG, "MediaScannerConnection onMediaScannerConnected");
-            }
+            if (V) Log.v(TAG, "MediaScannerConnection onMediaScannerConnected");
             mConnection.scanFile(mInfo.mFilename, mInfo.mMimetype);
         }
 
         public void onScanCompleted(String path, Uri uri) {
             try {
-                if (Constants.LOGVV) {
+                if (V) {
                     Log.v(TAG, "MediaScannerConnection onScanCompleted");
                     Log.v(TAG, "MediaScannerConnection path is " + path);
                     Log.v(TAG, "MediaScannerConnection Uri is " + uri);
@@ -985,9 +919,7 @@ public class BluetoothOppService extends Service {
             } catch (Exception ex) {
                 Log.v(TAG, "!!!MediaScannerConnection exception: " + ex);
             } finally {
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "MediaScannerConnection disconnect");
-                }
+                if (V) Log.v(TAG, "MediaScannerConnection disconnect");
                 mConnection.disconnect();
             }
         }

@@ -51,6 +51,8 @@ import android.provider.Settings;
  */
 public class BluetoothOppLauncherActivity extends Activity {
     private static final String TAG = "BluetoothLauncherActivity";
+    private static final boolean D = Constants.DEBUG;
+    private static final boolean V = Constants.VERBOSE;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -70,10 +72,8 @@ public class BluetoothOppLauncherActivity extends Activity {
                 String type = intent.getType();
                 Uri stream = (Uri)intent.getParcelableExtra(Intent.EXTRA_STREAM);
                 if (stream != null && type != null) {
-                    if (Constants.LOGVV) {
-                        Log.v(TAG, "Get ACTION_SEND intent: Uri = " + stream + "; mimetype = "
+                    if (V) Log.v(TAG, "Get ACTION_SEND intent: Uri = " + stream + "; mimetype = "
                                 + type);
-                    }
                     // Save type/stream, will be used when adding transfer
                     // session to DB.
                     BluetoothOppManager.getInstance(this).saveSendingFileInfo(type,
@@ -88,10 +88,8 @@ public class BluetoothOppLauncherActivity extends Activity {
                 String mimeType = intent.getType();
                 uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
                 if (mimeType != null && uris != null) {
-                    if (Constants.LOGVV) {
-                        Log.v(TAG, "Get ACTION_SHARE_MULTIPLE intent: uris " + uris + "\n Type= "
+                    if (V) Log.v(TAG, "Get ACTION_SHARE_MULTIPLE intent: uris " + uris + "\n Type= "
                                 + mimeType);
-                    }
                     BluetoothOppManager.getInstance(this).saveSendingFileInfo(mimeType, uris);
                 } else {
                     Log.e(TAG, "type is null; or sending files URIs are null");
@@ -115,16 +113,12 @@ public class BluetoothOppLauncherActivity extends Activity {
             // directly,
             // and let DevicePickerActivity to handle Bluetooth Enable.
             if (!BluetoothOppManager.getInstance(this).isEnabled()) {
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Prepare Enable BT!! ");
-                }
+                if (V) Log.v(TAG, "Prepare Enable BT!! ");
                 Intent in = new Intent(this, BluetoothOppBtEnableActivity.class);
                 in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 this.startActivity(in);
             } else {
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "BT already enabled!! ");
-                }
+                if (V) Log.v(TAG, "BT already enabled!! ");
                 Intent in1 = new Intent(BluetoothIntent.DEVICE_PICKER_DEVICE_PICKER);
                 in1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 //TODO modify to false after SDP query is ok
@@ -140,9 +134,7 @@ public class BluetoothOppLauncherActivity extends Activity {
             }
         } else if (action.equals(Constants.ACTION_OPEN)) {
             Uri uri = getIntent().getData();
-            if (Constants.LOGVV) {
-                Log.v(TAG, "Get ACTION_OPEN intent: Uri = " + uri);
-            }
+            if (V) Log.v(TAG, "Get ACTION_OPEN intent: Uri = " + uri);
 
             Intent intent1 = new Intent();
             intent1.setAction(action);

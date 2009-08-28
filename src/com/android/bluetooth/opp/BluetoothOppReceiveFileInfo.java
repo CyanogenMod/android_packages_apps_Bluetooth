@@ -54,6 +54,8 @@ import android.util.Log;
  * name
  */
 public class BluetoothOppReceiveFileInfo {
+    private static final boolean D = Constants.DEBUG;
+    private static final boolean V = Constants.VERBOSE;
 
     /** absolute store file name */
     public String mFileName;
@@ -112,17 +114,13 @@ public class BluetoothOppReceiveFileInfo {
             String root = Environment.getExternalStorageDirectory().getPath();
             base = new File(root + Constants.DEFAULT_STORE_SUBDIR);
             if (!base.isDirectory() && !base.mkdir()) {
-                if (Constants.LOGV) {
-                    Log.v(Constants.TAG, "Receive File aborted - can't create base directory "
+                if (D) Log.d(Constants.TAG, "Receive File aborted - can't create base directory "
                             + base.getPath());
-                }
                 return new BluetoothOppReceiveFileInfo(BluetoothShare.STATUS_FILE_ERROR);
             }
             stat = new StatFs(base.getPath());
         } else {
-            if (Constants.LOGV) {
-                Log.v(Constants.TAG, "Receive File aborted - no external storage");
-            }
+            if (D) Log.d(Constants.TAG, "Receive File aborted - no external storage");
             return new BluetoothOppReceiveFileInfo(BluetoothShare.STATUS_ERROR_NO_SDCARD);
         }
 
@@ -132,9 +130,7 @@ public class BluetoothOppReceiveFileInfo {
          * system by a few blocks).
          */
         if (stat.getBlockSize() * ((long)stat.getAvailableBlocks() - 4) < length) {
-            if (Constants.LOGV) {
-                Log.v(Constants.TAG, "Receive File aborted - not enough free space");
-            }
+            if (D) Log.d(Constants.TAG, "Receive File aborted - not enough free space");
             return new BluetoothOppReceiveFileInfo(BluetoothShare.STATUS_ERROR_SDCARD_FULL);
         }
 
@@ -151,9 +147,7 @@ public class BluetoothOppReceiveFileInfo {
         filename = base.getPath() + File.separator + filename;
         // Generate a unique filename, create the file, return it.
         String fullfilename = chooseUniquefilename(filename, extension);
-        if (Constants.LOGVV) {
-            Log.v(Constants.TAG, "Generated received filename " + fullfilename);
-        }
+        if (V) Log.v(Constants.TAG, "Generated received filename " + fullfilename);
 
         if (fullfilename != null) {
             try {
@@ -162,9 +156,7 @@ public class BluetoothOppReceiveFileInfo {
                 // update display name
                 if (index > 0) {
                     String displayName = fullfilename.substring(index);
-                    if (Constants.LOGVV) {
-                        Log.v(Constants.TAG, "New display name " + displayName);
-                    }
+                    if (V) Log.v(Constants.TAG, "New display name " + displayName);
                     ContentValues updateValues = new ContentValues();
                     updateValues.put(BluetoothShare.FILENAME_HINT, displayName);
                     context.getContentResolver().update(contentUri, updateValues, null, null);
@@ -173,9 +165,7 @@ public class BluetoothOppReceiveFileInfo {
                 return new BluetoothOppReceiveFileInfo(fullfilename, length, new FileOutputStream(
                         fullfilename), 0);
             } catch (IOException e) {
-                if (Constants.LOGV) {
-                    Log.e(Constants.TAG, "Error when creating file " + fullfilename);
-                }
+                if (D) Log.e(Constants.TAG, "Error when creating file " + fullfilename);
                 return new BluetoothOppReceiveFileInfo(BluetoothShare.STATUS_FILE_ERROR);
             }
         } else {
@@ -209,9 +199,7 @@ public class BluetoothOppReceiveFileInfo {
                 if (!new File(fullfilename).exists()) {
                     return fullfilename;
                 }
-                if (Constants.LOGVV) {
-                    Log.v(Constants.TAG, "file with sequence number " + sequence + " exists");
-                }
+                if (V) Log.v(Constants.TAG, "file with sequence number " + sequence + " exists");
                 sequence += rnd.nextInt(magnitude) + 1;
             }
         }
@@ -223,9 +211,7 @@ public class BluetoothOppReceiveFileInfo {
 
         // First, try to use the hint from the application, if there's one
         if (filename == null && hint != null && !hint.endsWith("/")) {
-            if (Constants.LOGVV) {
-                Log.v(Constants.TAG, "getting filename from hint");
-            }
+            if (V) Log.v(Constants.TAG, "getting filename from hint");
             int index = hint.lastIndexOf('/') + 1;
             if (index > 0) {
                 filename = hint.substring(index);

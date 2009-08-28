@@ -60,7 +60,9 @@ import com.google.android.collect.Lists;
  */
 
 public class BluetoothOppBatch {
-    private static final String TAG = "BtOpp Batch";
+    private static final String TAG = "BtOppBatch";
+    private static final boolean D = Constants.DEBUG;
+    private static final boolean V = Constants.VERBOSE;
 
     public int mId;
     public int mStatus;
@@ -111,9 +113,8 @@ public class BluetoothOppBatch {
         mDestination = adapter.getRemoteDevice(info.mDestination);
         mStatus = Constants.BATCH_STATUS_PENDING;
         mShares.add(info);
-        if (Constants.LOGVV) {
-            Log.v(TAG, "New Batch created for info " + info.mId);
-        }
+
+        if (V) Log.v(TAG, "New Batch created for info " + info.mId);
     }
 
     /**
@@ -158,9 +159,8 @@ public class BluetoothOppBatch {
      * 3) update ContentProvider for these canceled transfer
      */
     public void cancelBatch() {
-        if (Constants.LOGVV) {
-            Log.v(TAG, "batch " + this.mId + " is canceled");
-        }
+        if (V) Log.v(TAG, "batch " + this.mId + " is canceled");
+
         if (mListener != null) {
             mListener.onBatchCanceled();
         }
@@ -172,9 +172,7 @@ public class BluetoothOppBatch {
                 if (info.mDirection == BluetoothShare.DIRECTION_INBOUND && info.mFilename != null) {
                     new File(info.mFilename).delete();
                 }
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Cancel batch for info " + info.mId);
-                }
+                if (V) Log.v(TAG, "Cancel batch for info " + info.mId);
 
                 Constants.updateShareStatus(mContext, info.mId, BluetoothShare.STATUS_CANCELED);
             }

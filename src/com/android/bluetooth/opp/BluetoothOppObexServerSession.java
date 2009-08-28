@@ -63,7 +63,9 @@ import javax.obex.ServerSession;
 public class BluetoothOppObexServerSession extends ServerRequestHandler implements
         BluetoothOppObexSession {
 
-    private static final String TAG = "BtOpp ObexServer";
+    private static final String TAG = "BtOppObexServer";
+    private static final boolean D = Constants.DEBUG;
+    private static final boolean V = Constants.VERBOSE;
 
     private ObexTransport mTransport;
 
@@ -123,14 +125,10 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
      * Header then wait for user confirmation
      */
     public void preStart() {
-        if (Constants.LOGV) {
-            Log.v(TAG, "acquire full WakeLock");
-        }
+        if (D) Log.d(TAG, "acquire full WakeLock");
         mWakeLock.acquire();
         try {
-            if (Constants.LOGV) {
-                Log.v(TAG, "Create ServerSession with transport " + mTransport.toString());
-            }
+            if (D) Log.d(TAG, "Create ServerSession with transport " + mTransport.toString());
             mSession = new ServerSession(mTransport, this, null);
         } catch (IOException e) {
             Log.e(TAG, "Create server session error" + e);
@@ -141,9 +139,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
      * Called from BluetoothOppTransfer to start the "Transfer"
      */
     public void start(Handler handler) {
-        if (Constants.LOGV) {
-            Log.v(TAG, "Start!");
-        }
+        if (D) Log.d(TAG, "Start!");
         mCallback = handler;
 
     }
@@ -157,9 +153,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
          * TODO now we implement in a tough way, just close the socket.
          * maybe need nice way
          */
-        if (Constants.LOGV) {
-            Log.v(TAG, "Stop!");
-        }
+        if (D) Log.d(TAG, "Stop!");
         mInterrupted = true;
         if (mSession != null) {
             try {
@@ -170,9 +164,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             }
         }
         mCallback = null;
-        if (Constants.LOGVV) {
-            Log.v(TAG, "release WakeLock");
-        }
+        if (V) Log.v(TAG, "release WakeLock");
         if (mWakeLock.isHeld()) {
             mWakeLock.release();
         }
@@ -183,18 +175,14 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
     }
 
     public void addShare(BluetoothOppShareInfo info) {
-        if (Constants.LOGV) {
-            Log.v(TAG, "addShare for id " + info.mId);
-        }
+        if (D) Log.d(TAG, "addShare for id " + info.mId);
         mInfo = info;
         mFileInfo = processShareInfo();
     }
 
     @Override
     public int onPut(Operation op) {
-        if (Constants.LOGV) {
-            Log.v(TAG, "onPut " + op.toString());
-        }
+        if (D) Log.d(TAG, "onPut " + op.toString());
         HeaderSet request;
         String name, mimeType;
         Long length;
@@ -212,25 +200,19 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         try {
             boolean pre_reject = false;
             request = op.getReceivedHeader();
-            if (Constants.LOGVV) {
-                Constants.logHeader(request);
-            }
+            if (V) Constants.logHeader(request);
             name = (String)request.getHeader(HeaderSet.NAME);
             length = (Long)request.getHeader(HeaderSet.LENGTH);
             mimeType = (String)request.getHeader(HeaderSet.TYPE);
 
             if (length == 0) {
-                if (Constants.LOGV) {
-                    Log.w(TAG, "length is 0, reject the transfer");
-                }
+                if (D) Log.w(TAG, "length is 0, reject the transfer");
                 pre_reject = true;
                 obexResponse = ResponseCodes.OBEX_HTTP_LENGTH_REQUIRED;
             }
 
             if (name == null || name.equals("")) {
-                if (Constants.LOGV) {
-                    Log.w(TAG, "name is null or empty, reject the transfer");
-                }
+                if (D) Log.w(TAG, "name is null or empty, reject the transfer");
                 pre_reject = true;
                 obexResponse = ResponseCodes.OBEX_HTTP_BAD_REQUEST;
             }
@@ -240,26 +222,20 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                 String extension, type;
                 int dotIndex = name.indexOf('.');
                 if (dotIndex < 0) {
-                    if (Constants.LOGV) {
-                        Log.w(TAG, "There is no file extension, reject the transfer");
-                    }
+                    if (D) Log.w(TAG, "There is no file extension, reject the transfer");
                     pre_reject = true;
                     obexResponse = ResponseCodes.OBEX_HTTP_BAD_REQUEST;
                 } else {
                     extension = name.substring(dotIndex + 1).toLowerCase();
                     MimeTypeMap map = MimeTypeMap.getSingleton();
                     type = map.getMimeTypeFromExtension(extension);
-                    if (Constants.LOGVV) {
-                        Log.v(TAG, "Mimetype guessed from extension " + extension + " is " + type);
-                    }
+                    if (V) Log.v(TAG, "Mimetype guessed from extension " + extension + " is " + type);
                     if (type != null) {
                         mimeType = type;
 
                     } else {
                         if (mimeType == null) {
-                            if (Constants.LOGV) {
-                                Log.w(TAG, "Can't get mimetype, reject the transfer");
-                            }
+                            if (D) Log.w(TAG, "Can't get mimetype, reject the transfer");
                             pre_reject = true;
                             obexResponse = ResponseCodes.OBEX_HTTP_UNSUPPORTED_TYPE;
                         }
@@ -273,9 +249,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             if (!pre_reject
                     && (mimeType == null || Constants.mimeTypeMatches(mimeType,
                             Constants.UNACCEPTABLE_SHARE_INBOUND_TYPES))) {
-                if (Constants.LOGV) {
-                    Log.w(TAG, "mimeType is null or in unacceptable list, reject the transfer");
-                }
+                if (D) Log.w(TAG, "mimeType is null or in unacceptable list, reject the transfer");
                 pre_reject = true;
                 obexResponse = ResponseCodes.OBEX_HTTP_UNSUPPORTED_TYPE;
             }
@@ -335,14 +309,10 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             mContext.sendBroadcast(in);
         }
 
-        if (Constants.LOGVV) {
-            Log.v(TAG, "insert contentUri: " + contentUri);
+        if (V) Log.v(TAG, "insert contentUri: " + contentUri);
             Log.v(TAG, "mLocalShareInfoId = " + mLocalShareInfoId);
-        }
 
-        if (Constants.LOGVV) {
-            Log.v(TAG, "acquire partial WakeLock");
-        }
+        if (V) Log.v(TAG, "acquire partial WakeLock");
         if (mWakeLock.isHeld()) {
             mPartialWakeLock.acquire();
             mWakeLock.release();
@@ -360,20 +330,14 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                                 .obtainMessage(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT),
                                 BluetoothOppObexSession.SESSION_TIMEOUT);
                         mTimeoutMsgSent = true;
-                        if (Constants.LOGVV) {
-                            Log.v(TAG, "MSG_CONNECT_TIMEOUT sent");
-                        }
+                        if (V) Log.v(TAG, "MSG_CONNECT_TIMEOUT sent");
                     }
                 }
             } catch (InterruptedException e) {
-                if (Constants.LOGVV) {
-                    Log.v(TAG, "Interrupted in onPut blocking");
-                }
+                if (V) Log.v(TAG, "Interrupted in onPut blocking");
             }
         }
-        if (Constants.LOGV) {
-            Log.v(TAG, "Server unblocked ");
-        }
+        if (D) Log.d(TAG, "Server unblocked ");
         if (mCallback != null && mTimeoutMsgSent) {
             mCallback.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
         }
@@ -389,9 +353,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         }
         mAccepted = mInfo.mConfirm;
 
-        if (Constants.LOGVV) {
-            Log.v(TAG, "after confirm: userAccepted=" + mAccepted);
-        }
+        if (V) Log.v(TAG, "after confirm: userAccepted=" + mAccepted);
         int status = BluetoothShare.STATUS_SUCCESS;
 
         if (mAccepted == BluetoothShare.USER_CONFIRMATION_CONFIRMED
@@ -509,23 +471,19 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             try {
                 while ((!mInterrupted) && (position != fileInfo.mLength)) {
 
-                    if (Constants.LOGVV) {
-                        timestamp = System.currentTimeMillis();
-                    }
+                    if (V) timestamp = System.currentTimeMillis();
 
                     readLength = is.read(b);
 
                     if (readLength == -1) {
-                        if (Constants.LOGV) {
-                            Log.v(TAG, "Receive file reached stream end at position" + position);
-                        }
+                        if (D) Log.d(TAG, "Receive file reached stream end at position" + position);
                         break;
                     }
 
                     bos.write(b, 0, readLength);
                     position += readLength;
 
-                    if (Constants.LOGVV) {
+                    if (V) {
                         Log.v(TAG, "Receive file position = " + position + " readLength "
                                 + readLength + " bytes took "
                                 + (System.currentTimeMillis() - timestamp) + " ms");
@@ -543,20 +501,14 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         }
 
         if (mInterrupted) {
-            if (Constants.LOGV) {
-                Log.v(TAG, "receiving file interrupted by user.");
-            }
+            if (D) Log.d(TAG, "receiving file interrupted by user.");
             status = BluetoothShare.STATUS_CANCELED;
         } else {
             if (position == fileInfo.mLength) {
-                if (Constants.LOGV) {
-                    Log.v(TAG, "Receiving file completed for " + fileInfo.mFileName);
-                }
+                if (D) Log.d(TAG, "Receiving file completed for " + fileInfo.mFileName);
                 status = BluetoothShare.STATUS_SUCCESS;
             } else {
-                if (Constants.LOGV) {
-                    Log.v(TAG, "Reading file failed at " + position + " of " + fileInfo.mLength);
-                }
+                if (D) Log.d(TAG, "Reading file failed at " + position + " of " + fileInfo.mLength);
                 if (status == -1) {
                     status = BluetoothShare.STATUS_UNKNOWN_ERROR;
                 }
@@ -574,12 +526,10 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
     }
 
     private BluetoothOppReceiveFileInfo processShareInfo() {
-        if (Constants.LOGV) {
-            Log.v(TAG, "processShareInfo() " + mInfo.mId);
-        }
+        if (D) Log.d(TAG, "processShareInfo() " + mInfo.mId);
         BluetoothOppReceiveFileInfo fileInfo = BluetoothOppReceiveFileInfo.generateFileInfo(
                 mContext, mInfo.mId);
-        if (Constants.LOGVV) {
+        if (V) {
             Log.v(TAG, "Generate BluetoothOppReceiveFileInfo:");
             Log.v(TAG, "filename  :" + fileInfo.mFileName);
             Log.v(TAG, "length    :" + fileInfo.mLength);
@@ -591,12 +541,8 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
     @Override
     public int onConnect(HeaderSet request, HeaderSet reply) {
 
-        if (Constants.LOGV) {
-            Log.v(TAG, "onConnect");
-        }
-        if (Constants.LOGVV) {
-            Constants.logHeader(request);
-        }
+        if (D) Log.d(TAG, "onConnect");
+        if (V) Constants.logHeader(request);
 
         mTimestamp = System.currentTimeMillis();
         return ResponseCodes.OBEX_HTTP_OK;
@@ -605,14 +551,10 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
     @Override
     public void onDisconnect(HeaderSet req, HeaderSet resp) {
 
-        if (Constants.LOGV) {
-            Log.v(TAG, "onDisconnect");
-        }
+        if (D) Log.d(TAG, "onDisconnect");
         resp.responseCode = ResponseCodes.OBEX_HTTP_OK;
 
-        if (Constants.LOGV) {
-            Log.v(TAG, "release WakeLock");
-        }
+        if (D) Log.d(TAG, "release WakeLock");
         if (mWakeLock.isHeld()) {
             mWakeLock.release();
         }
