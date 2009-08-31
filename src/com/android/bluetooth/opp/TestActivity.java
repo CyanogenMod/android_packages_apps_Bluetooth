@@ -41,11 +41,32 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.view.View;
 import android.view.View.OnClickListener;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
+
+import javax.obex.Authenticator;
+import javax.obex.HeaderSet;
+import javax.obex.ObexTransport;
+import javax.obex.Operation;
+import javax.obex.ResponseCodes;
+import javax.obex.ServerRequestHandler;
+import javax.obex.ServerSession;
 
 public class TestActivity extends Activity {
 
@@ -323,4 +344,306 @@ public class TestActivity extends Activity {
         }
 
     };
+}
+
+/**
+ * This class listens on OPUSH channel for incoming connection
+ */
+class TestTcpListener {
+
+    private static final String TAG = "BtOppRfcommListener";
+
+    private static final boolean D = Constants.DEBUG;
+
+    private static final boolean V = Constants.VERBOSE;
+
+    private volatile boolean mInterrupted;
+
+    private Thread mSocketAcceptThread;
+
+    private Handler mCallback;
+
+    private static final int ACCEPT_WAIT_TIMEOUT = 5000;
+
+    public static final int DEFAULT_OPP_CHANNEL = 12;
+
+    public static final int MSG_INCOMING_BTOPP_CONNECTION = 100;
+
+    private int mBtOppRfcommChannel = -1;
+
+    public TestTcpListener() {
+        this(DEFAULT_OPP_CHANNEL);
+    }
+
+    public TestTcpListener(int channel) {
+        mBtOppRfcommChannel = channel;
+    }
+
+    public synchronized boolean start(Handler callback) {
+        if (mSocketAcceptThread == null) {
+            mCallback = callback;
+            mSocketAcceptThread = new Thread(TAG) {
+                ServerSocket mServerSocket;
+
+                public void run() {
+                    if (D) Log.d(TAG, "RfcommSocket listen thread starting");
+                    try {
+                        if (V)
+                            Log.v(TAG, "Create server RfcommSocket on channel"
+                                    + mBtOppRfcommChannel);
+                        mServerSocket = new ServerSocket(6500, 1);
+                    } catch (IOException e) {
+                        Log.e(TAG, "Error listing on channel" + mBtOppRfcommChannel);
+                        mInterrupted = true;
+                    }
+                    while (!mInterrupted) {
+                        try {
+                            mServerSocket.setSoTimeout(ACCEPT_WAIT_TIMEOUT);
+                            Socket clientSocket = mServerSocket.accept();
+                            if (clientSocket == null) {
+                                if (V) Log.v(TAG, "incomming connection time out");
+                            } else {
+                                if (D) Log.d(TAG, "RfcommSocket connected!");
+                                Log.d(TAG, "remote addr is "
+                                        + clientSocket.getRemoteSocketAddress());
+                                TestTcpTransport transport = new TestTcpTransport(clientSocket);
+                                Message msg = Message.obtain();
+                                msg.setTarget(mCallback);
+                                msg.what = MSG_INCOMING_BTOPP_CONNECTION;
+                                msg.obj = transport;
+                                msg.sendToTarget();
+                            }
+                        } catch (SocketException e) {
+                            Log.e(TAG, "Error accept connection " + e);
+                        } catch (IOException e) {
+                            Log.e(TAG, "Error accept connection " + e);
+                        }
+
+                        if (mInterrupted) {
+                            Log.e(TAG, "socketAcceptThread thread was interrupted (2), exiting");
+                        }
+                    }
+                    if (D) Log.d(TAG, "RfcommSocket listen thread finished");
+                }
+            };
+            mInterrupted = false;
+            mSocketAcceptThread.start();
+
+        }
+        return true;
+
+    }
+
+    public synchronized void stop() {
+        if (mSocketAcceptThread != null) {
+            if (D) Log.d(TAG, "stopping Connect Thread");
+            mInterrupted = true;
+            try {
+                mSocketAcceptThread.interrupt();
+                if (V) Log.v(TAG, "waiting for thread to terminate");
+                mSocketAcceptThread.join();
+                mSocketAcceptThread = null;
+                mCallback = null;
+            } catch (InterruptedException e) {
+                if (V) Log.v(TAG, "Interrupted waiting for Accept Thread to join");
+            }
+        }
+    }
+
+}
+
+class TestTcpServer extends ServerRequestHandler implements Runnable {
+    private static final String TAG = "ServerRequestHandler";
+
+    private static final boolean D = Constants.DEBUG;
+
+    private static final boolean V = Constants.VERBOSE;
+
+    static final int port = 6500;
+
+    public boolean a = false;
+
+    // TextView serverStatus = null;
+    public void run() {
+        try {
+            updateStatus("[server:] listen on port " + port);
+            TestTcpSessionNotifier rsn = new TestTcpSessionNotifier(port);
+
+            updateStatus("[server:] Now waiting for a client to connect");
+            rsn.acceptAndOpen(this);
+            updateStatus("[server:] A client is now connected");
+        } catch (Exception ex) {
+            updateStatus("[server:] Caught the error: " + ex);
+        }
+    }
+
+    public TestTcpServer() {
+        updateStatus("enter construtor of TcpServer");
+    }
+
+    public int onConnect(HeaderSet request, HeaderSet reply) {
+
+        updateStatus("[server:] The client has created an OBEX session");
+        /* sleep for 2000 ms to wait for the batch contains all ShareInfos */
+        synchronized (this) {
+            try {
+                while (!a) {
+                    wait(500);
+                }
+            } catch (InterruptedException e) {
+                if (V) Log.v(TAG, "Interrupted waiting for markBatchFailed");
+            }
+        }
+        updateStatus("[server:] we accpet the seesion");
+        return ResponseCodes.OBEX_HTTP_OK;
+    }
+
+    public int onPut(Operation op) {
+        FileOutputStream fos = null;
+        try {
+            java.io.InputStream is = op.openInputStream();
+
+            updateStatus("Got data bytes " + is.available() + " name "
+                    + op.getReceivedHeader().getHeader(HeaderSet.NAME) + " type " + op.getType());
+
+            File f = new File((String)op.getReceivedHeader().getHeader(HeaderSet.NAME));
+            fos = new FileOutputStream(f);
+            byte b[] = new byte[1000];
+            int len;
+
+            while (is.available() > 0 && (len = is.read(b)) > 0) {
+                fos.write(b, 0, len);
+            }
+
+            fos.close();
+            is.close();
+            updateStatus("[server:] Wrote data to " + f.getAbsolutePath());
+        } catch (Exception e) {
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+            e.printStackTrace();
+        }
+        return ResponseCodes.OBEX_HTTP_OK;
+    }
+
+    public void onDisconnect(HeaderSet req, HeaderSet resp) {
+        updateStatus("[server:] The client has disconnected the OBEX session");
+    }
+
+    public void updateStatus(String message) {
+        Log.v(TAG, "\n" + message);
+    }
+
+    public void onAuthenticationFailure(byte[] userName) {
+    }
+
+    public int onSetPath(HeaderSet request, HeaderSet reply, boolean backup, boolean create) {
+
+        return ResponseCodes.OBEX_HTTP_NOT_IMPLEMENTED;
+    }
+
+    public int onDelete(HeaderSet request, HeaderSet reply) {
+        return ResponseCodes.OBEX_HTTP_NOT_IMPLEMENTED;
+    }
+
+    public int onGet(Operation op) {
+        return ResponseCodes.OBEX_HTTP_NOT_IMPLEMENTED;
+    }
+
+}
+
+class TestTcpSessionNotifier {
+    /* implements SessionNotifier */
+
+    ServerSocket server = null;
+
+    Socket conn = null;
+
+    private static final String TAG = "TestTcpSessionNotifier";
+
+    public TestTcpSessionNotifier(int port) throws IOException {
+        server = new ServerSocket(port);
+    }
+
+    public ServerSession acceptAndOpen(ServerRequestHandler handler, Authenticator auth)
+            throws IOException {
+        try {
+            conn = server.accept();
+
+        } catch (Exception ex) {
+            Log.v(TAG, "ex");
+        }
+
+        TestTcpTransport tt = new TestTcpTransport(conn);
+
+        return new ServerSession((ObexTransport)tt, handler, auth);
+
+    }
+
+    public ServerSession acceptAndOpen(ServerRequestHandler handler) throws IOException {
+
+        return acceptAndOpen(handler, null);
+
+    }
+
+}
+
+class TestTcpTransport implements ObexTransport {
+
+    Socket s = null;
+
+    public TestTcpTransport(Socket s) {
+        super();
+        this.s = s;
+    }
+
+    public void close() throws IOException {
+        s.close();
+    }
+
+    public DataInputStream openDataInputStream() throws IOException {
+        return new DataInputStream(openInputStream());
+    }
+
+    public DataOutputStream openDataOutputStream() throws IOException {
+        return new DataOutputStream(openOutputStream());
+    }
+
+    public InputStream openInputStream() throws IOException {
+        return s.getInputStream();
+    }
+
+    public OutputStream openOutputStream() throws IOException {
+        return s.getOutputStream();
+    }
+
+    public void connect() throws IOException {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void create() throws IOException {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void disconnect() throws IOException {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void listen() throws IOException {
+        // TODO Auto-generated method stub
+
+    }
+
+    public boolean isConnected() throws IOException {
+        return s.isConnected();
+    }
+
 }

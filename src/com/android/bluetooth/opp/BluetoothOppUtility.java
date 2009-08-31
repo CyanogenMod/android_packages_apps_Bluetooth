@@ -122,6 +122,7 @@ public class BluetoothOppUtility {
     /**
      * Organize Array list for transfers in one batch
      */
+    // This function is used when UI show batch transfer. Currently only show single transfer.
     public static ArrayList<String> queryTransfersInBatch(Context context, Long timeStamp) {
         ArrayList<String> uris = Lists.newArrayList();
         final String WHERE = BluetoothShare.TIMESTAMP + " == " + timeStamp;

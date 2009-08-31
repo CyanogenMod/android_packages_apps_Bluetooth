@@ -132,12 +132,11 @@ public class BluetoothOppBatch {
     }
 
     /**
-     * Delete one share from the batch.
+     * Delete one share from the batch. Not used now.
      */
     /*It should only be called under requirement that cancel one single share, but not to
      * cancel the whole batch. Currently we assume "cancel" is to cancel whole batch.
      */
-    //TODO: consider if the batch is running or not
     public void deleteShare(BluetoothOppShareInfo info) {
         if (info.mStatus == BluetoothShare.STATUS_RUNNING) {
             info.mStatus = BluetoothShare.STATUS_CANCELED;
@@ -194,9 +193,6 @@ public class BluetoothOppBatch {
      * Get the running status of the batch
      * @return
      */
-    public boolean isRunning() {
-        return (mStatus == Constants.BATCH_STATUS_RUNNING);
-    }
 
     /** register a listener for the batch change */
     public void registerListern(BluetoothOppBatchListener listener) {

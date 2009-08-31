@@ -41,7 +41,7 @@ import android.content.SharedPreferences.Editor;
 import android.util.Log;
 
 /**
- * This class cache Bluetooth device name and channel locally Its a temp
+ * This class cache Bluetooth device name and channel locally. Its a temp
  * solution which should be replaced by bluetooth_devices in SettingsProvider
  */
 public class BluetoothOppPreference {
@@ -117,13 +117,13 @@ public class BluetoothOppPreference {
     public int getChannel(BluetoothDevice remoteDevice, int uuid) {
         String key = getChannelKey(remoteDevice, uuid);
         if (V) Log.v(TAG, "getChannel " + key);
-        int channel = -1;
-        if (!mChannels.isEmpty()) {
+        Integer channel = null;
+        if (mChannels != null) {
             channel = mChannels.get(key);
             if (V) Log.v(TAG, "getChannel for " + remoteDevice + "_" + Integer.toHexString(uuid) +
                         " as " + channel);
         }
-        return channel;
+        return (channel != null) ? channel : -1;
     }
 
     public void setName(BluetoothDevice remoteDevice, String name) {
@@ -139,20 +139,13 @@ public class BluetoothOppPreference {
     public void setChannel(BluetoothDevice remoteDevice, int uuid, int channel) {
         if (V) Log.v(TAG, "Setchannel for " + remoteDevice + "_" + Integer.toHexString(uuid) + " to "
                     + channel);
-        if (channel == getChannel(remoteDevice, uuid)) {
+        if (channel != getChannel(remoteDevice, uuid)) {
             String key = getChannelKey(remoteDevice, uuid);
             Editor ed = mChannelPreference.edit();
             ed.putInt(key, channel);
             ed.commit();
             mChannels.put(key, channel);
         }
-    }
-
-    public void removeName(BluetoothDevice remoteDevice) {
-        Editor ed = mNamePreference.edit();
-        ed.remove(remoteDevice.getAddress());
-        ed.commit();
-        mNames.remove(remoteDevice.getAddress());
     }
 
     public void removeChannel(BluetoothDevice remoteDevice, int uuid) {

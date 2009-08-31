@@ -144,6 +144,9 @@ public class Constants {
     /** use TCP socket instead of Rfcomm Socket to develop */
     public static final boolean USE_TCP_DEBUG = false;
 
+    /** use simple TCP server started from TestActivity */
+    public static final boolean USE_TCP_SIMPLE_SERVER = false;
+
     /** Test TCP socket port */
     public static final int TCP_DEBUG_PORT = 6500;
 

@@ -264,6 +264,9 @@ public class BluetoothOppService extends Service {
                             } catch (IOException e) {
                                 Log.e(TAG, "close tranport error");
                             }
+                        } else if (Constants.USE_TCP_DEBUG && !Constants.USE_TCP_SIMPLE_SERVER){
+                            Log.i(TAG, "Start Obex Server in TCP DEBUG mode");
+                            createServerSession(transport);
                         } else {
                             Log.i(TAG, "OPP busy! Retry after 1 second");
                             mIncomingRetries = mIncomingRetries + 1;
@@ -603,9 +606,6 @@ public class BluetoothOppService extends Service {
                     mTransfer.start();
                 } else if (info.mDirection == BluetoothShare.DIRECTION_INBOUND
                         && mServerTransfer != null) {
-                    /*
-                     * TODO investigate here later?
-                     */
                     if (V) Log.v(TAG, "Service start server transfer new Batch " + newBatch.mId
                                 + " for info " + info.mId);
                     mServerTransfer.start();
@@ -618,12 +618,23 @@ public class BluetoothOppService extends Service {
                                 + mBatchs.get(i).mId);
                     mBatchs.get(i).addShare(info);
                 } else {
+                    // There is ongoing batch
                     BluetoothOppBatch newBatch = new BluetoothOppBatch(this, info);
                     newBatch.mId = mBatchId;
                     mBatchId++;
                     mBatchs.add(newBatch);
-                    if (V) Log.v(TAG, "Service add new Batch " + newBatch.mId + " for info "
-                                + info.mId);
+                    if (V) Log.v(TAG, "Service add new Batch " + newBatch.mId + " for info " +
+                            info.mId);
+                    if (Constants.USE_TCP_DEBUG && !Constants.USE_TCP_SIMPLE_SERVER) {
+                        // only allow  concurrent serverTransfer in debug mode
+                        if (info.mDirection == BluetoothShare.DIRECTION_INBOUND) {
+                            if (V) Log.v(TAG, "TCP_DEBUG start server transfer new Batch " +
+                                    newBatch.mId + " for info " + info.mId);
+                            mServerTransfer = new BluetoothOppTransfer(this, mPowerManager,
+                                    newBatch, mServerSession);
+                            mServerTransfer.start();
+                        }
+                    }
                 }
             }
         }
@@ -771,16 +782,6 @@ public class BluetoothOppService extends Service {
     private int findBatchWithTimeStamp(long timestamp) {
         for (int i = mBatchs.size() - 1; i >= 0; i--) {
             if (mBatchs.get(i).mTimestamp == timestamp) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private int findBatchWithId(int id) {
-        if (V) Log.v(TAG, "Service search batch for id " + id + " from " + mBatchs.size());
-        for (int i = mBatchs.size() - 1; i >= 0; i--) {
-            if (mBatchs.get(i).mId == id) {
                 return i;
             }
         }

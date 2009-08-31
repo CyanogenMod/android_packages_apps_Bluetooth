@@ -61,7 +61,9 @@ import java.util.UUID;
  */
 public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatchListener {
     private static final String TAG = "BtOppTransfer";
+
     private static final boolean D = Constants.DEBUG;
+
     private static final boolean V = Constants.VERBOSE;
 
     public static final int RFCOMM_ERROR = 10;
@@ -111,7 +113,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         mSession = session;
 
         mBatch.registerListern(this);
-        mAdapter = (BluetoothAdapter) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
+        mAdapter = (BluetoothAdapter)mContext.getSystemService(Context.BLUETOOTH_SERVICE);
 
     }
 
@@ -191,7 +193,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                         if (mCurrentShare != null) {
                             /* we have additional share to process */
                             if (V) Log.v(TAG, "continue session for info " + mCurrentShare.mId +
-                                        " from batch " + mBatch.mId);
+                                    " from batch " + mBatch.mId);
                             processCurrentShare();
                         } else {
                             /* for outbound transfer, all shares are processed */
@@ -538,7 +540,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             if (isOpush) {
                 channel = mBatch.mDestination.getServiceChannel(savedUuid);
                 if (D) Log.d(TAG, "Get OPUSH channel " + channel + " from SDP for " +
-                            mBatch.mDestination);
+                        mBatch.mDestination);
                 if (channel != -1) {
                     mConnectThread = new SocketConnectThread(mBatch.mDestination, channel);
                     mConnectThread.start();
@@ -556,11 +558,15 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
     private class SocketConnectThread extends Thread {
         private final String host;
+
         private final BluetoothDevice device;
+
         private final int channel;
 
         private boolean isConnected;
+
         private long timestamp;
+
         private BluetoothSocket btSocket = null;
 
         /* create a TCP socket */
@@ -663,25 +669,27 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 }
                 try {
                     btSocket.connect();
+
+                    if (V) Log.v(TAG, "Rfcomm socket connection attempt took " +
+                            (System.currentTimeMillis() - timestamp) + " ms");
+                    BluetoothOppRfcommTransport transport;
+                    transport = new BluetoothOppRfcommTransport(btSocket);
+
+                    BluetoothOppPreference.getInstance(mContext).setChannel(device, OPUSH_UUID16,
+                            channel);
+                    BluetoothOppPreference.getInstance(mContext).setName(device, device.getName());
+
+                    if (V) Log.v(TAG, "Send transport message " + transport.toString());
+
+                    mSessionHandler.obtainMessage(RFCOMM_CONNECTED, transport).sendToTarget();
                 } catch (IOException e) {
                     Log.e(TAG, "Rfcomm socket connect exception ");
+                    BluetoothOppPreference.getInstance(mContext)
+                            .removeChannel(device, OPUSH_UUID16);
                     markConnectionFailed(btSocket);
                     return;
                 }
-
-                if (V) Log.v(TAG, "Rfcomm socket connection attempt took " +
-                            (System.currentTimeMillis() - timestamp) + " ms");
-                BluetoothOppRfcommTransport transport;
-                transport = new BluetoothOppRfcommTransport(btSocket);
-
-                BluetoothOppPreference.getInstance(mContext).setChannel(device, OPUSH_UUID16,
-                        channel);
-                BluetoothOppPreference.getInstance(mContext).setName(device, device.getName());
-
-                if (V) Log.v(TAG, "Send transport message " + transport.toString());
-                mSessionHandler.obtainMessage(RFCOMM_CONNECTED, transport).sendToTarget();
             }
-
         }
 
         private void markConnectionFailed(Socket s) {
@@ -733,7 +741,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                     && mCurrentShare.mConfirm == BluetoothShare.USER_CONFIRMATION_AUTO_CONFIRMED) {
                 /* have additional auto confirmed share to process */
                 if (V) Log.v(TAG, "Transfer continue session for info " + mCurrentShare.mId +
-                            " from batch " + mBatch.mId);
+                        " from batch " + mBatch.mId);
                 processCurrentShare();
                 setConfirmed();
             }
