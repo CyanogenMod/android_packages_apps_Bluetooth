@@ -2,15 +2,15 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="pbap_app_name">Bluetooth Pbap</string>
     <string name="pbap_acceptance_dialog_title">%1$s would like to access your contacts and call history. Give access to %2$s?</string>
-    <string name="pbap_acceptance_dialog_header">File transfer</string>
+    <string name="pbap_acceptance_dialog_header">Phonebook Access</string>
     <string name="pbap_session_key_dialog_title">Type session key for %1$s</string>
     <string name="pbap_session_key_dialog_header">Bluetooth session key required</string>
     <string name="pbap_acceptance_timeout_message">There was time out to accept connection with %1$s</string>
     <string name="pbap_authentication_timeout_message">There was time out to input session key with %1$s</string>
     <string name="bluetooth_transfer_header">Bluetooth transfer</string>
     <string name="bluetooth_transfer_text">Could not successfully establish phone book sharing with</string>
-    <string name="toast_connected">%1$s can now access your contacts and call history</string>
-    <string name="toast_disconnected">%1$s lost the access to your contacts and call history</string>
+    <string name="toast_connected">%1$s connected to your phone. </string>
+    <string name="toast_disconnected">%1$s disconneced from your phone. </string>
     <string name="pbap_notif_ticker">Phonebook access request</string>
     <!-- Notification title when a Bluetooth device wants to pair with us -->
     <string name="pbap_notif_title">PBAP request</string>

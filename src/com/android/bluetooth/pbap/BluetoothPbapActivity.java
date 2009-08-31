@@ -117,8 +117,8 @@ public class BluetoothPbapActivity extends AlertActivity implements
                     + "PBAP_ACCESS_REQUEST or PBAP_AUTH_CHALL ");
             finish();
         }
-        registerReceiver(mReceiver,
-			new IntentFilter(BluetoothPbapService.USER_CONFIRM_TIMEOUT_ACTION));
+        registerReceiver(mReceiver, new IntentFilter(
+                BluetoothPbapService.USER_CONFIRM_TIMEOUT_ACTION));
     }
 
     private void showPbapDialog(int id) {
@@ -259,6 +259,8 @@ public class BluetoothPbapActivity extends AlertActivity implements
             case DialogInterface.BUTTON_NEGATIVE:
                 onNegative();
                 break;
+            default:
+                break;
         }
     }
 
@@ -303,11 +305,9 @@ public class BluetoothPbapActivity extends AlertActivity implements
         return true;
     }
 
-    // Not used
     public void beforeTextChanged(CharSequence s, int start, int before, int after) {
     }
 
-    // Not used
     public void onTextChanged(CharSequence s, int start, int before, int count) {
     }
 
