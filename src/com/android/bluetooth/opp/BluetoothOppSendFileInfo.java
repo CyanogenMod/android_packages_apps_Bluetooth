@@ -48,39 +48,48 @@ import android.provider.OpenableColumns;
  */
 public class BluetoothOppSendFileInfo {
     /** readable media file name */
-    public String mFileName;
+    public final String mFileName;
 
     /** media file input stream */
-    public FileInputStream mInputStream;
+    public final FileInputStream mInputStream;
 
     /** vCard string data */
-    public String mData;
+    public final String mData;
 
-    public int mStatus;
+    public final int mStatus;
 
-    public String mMimetype;
+    public final String mMimetype;
 
-    public long mLength;
+    public final long mLength;
+
+    public final String mDestAddr;
 
     /** for media file */
     public BluetoothOppSendFileInfo(String fileName, String type, long length,
-            FileInputStream inputStream, int status) {
+            FileInputStream inputStream, int status, String dest) {
         mFileName = fileName;
         mMimetype = type;
         mLength = length;
         mInputStream = inputStream;
         mStatus = status;
+        mDestAddr = dest;
+        mData = null;
     }
 
     /** for vCard, or later for vCal, vNote. Not used currently */
-    public BluetoothOppSendFileInfo(String data, String type, long length, int status) {
+    public BluetoothOppSendFileInfo(String data, String type, long length, int status,
+            String dest) {
+        mFileName = null;
+        mInputStream = null;
         mData = data;
         mMimetype = type;
         mLength = length;
         mStatus = status;
+        mDestAddr = dest;
     }
 
-    public static BluetoothOppSendFileInfo generateFileInfo(Context context, String uri, String type) {
+    public static BluetoothOppSendFileInfo generateFileInfo(Context context, String uri,
+            String type, String dest) {
         //TODO consider uri is a file:// uri
         ContentResolver contentResolver = context.getContentResolver();
         Uri u = Uri.parse(uri);
@@ -113,15 +122,15 @@ public class BluetoothOppSendFileInfo {
         } else {
             // currently don't accept other scheme
             return new BluetoothOppSendFileInfo(null, null, 0, null,
-                    BluetoothShare.STATUS_FILE_ERROR);
+                    BluetoothShare.STATUS_FILE_ERROR, dest);
         }
         FileInputStream is;
         try {
             is = (FileInputStream)contentResolver.openInputStream(u);
         } catch (FileNotFoundException e) {
             return new BluetoothOppSendFileInfo(null, null, 0, null,
-                    BluetoothShare.STATUS_FILE_ERROR);
+                    BluetoothShare.STATUS_FILE_ERROR, dest);
         }
-        return new BluetoothOppSendFileInfo(fileName, contentType, length, is, 0);
+        return new BluetoothOppSendFileInfo(fileName, contentType, length, is, 0, dest);
     }
 }
