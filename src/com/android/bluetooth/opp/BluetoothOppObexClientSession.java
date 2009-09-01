@@ -296,7 +296,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             if (V) Log.v(TAG, "Client thread processShareInfo() " + mInfo.mId);
 
             BluetoothOppSendFileInfo fileInfo = BluetoothOppSendFileInfo.generateFileInfo(
-                    mContext1, mInfo.mUri, mInfo.mMimetype);
+                    mContext1, mInfo.mUri, mInfo.mMimetype, mInfo.mDestination);
             if (fileInfo.mFileName == null || fileInfo.mLength == 0) {
                 if (V) Log.v(TAG, "BluetoothOppSendFileInfo get invalid file");
                     Constants.updateShareStatus(mContext1, mInfo.mId, fileInfo.mStatus);
@@ -332,6 +332,8 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             request = new HeaderSet();
             request.setHeader(HeaderSet.NAME, fileInfo.mFileName);
             request.setHeader(HeaderSet.TYPE, fileInfo.mMimetype);
+
+            applyRemoteDeviceQuirks(request, fileInfo);
 
             Constants.updateShareStatus(mContext1, mInfo.mId, BluetoothShare.STATUS_RUNNING);
 
@@ -542,6 +544,40 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     }
                     msg.sendToTarget();
                 }
+            }
+        }
+    }
+
+    public static void applyRemoteDeviceQuirks(HeaderSet request, BluetoothOppSendFileInfo info) {
+        String address = info.mDestAddr;
+        if (address == null) {
+            return;
+        }
+        if (address.startsWith("00:04:48")) {
+            // Poloroid Pogo
+            // Rejects filenames with more than one '.'. Rename to '_'.
+            // for example: 'a.b.jpg' -> 'a_b.jpg'
+            //              'abc.jpg' NOT CHANGED
+            String filename = info.mFileName;
+
+            char[] c = filename.toCharArray();
+            boolean firstDot = true;
+            boolean modified = false;
+            for (int i = c.length - 1; i >= 0; i--) {
+                if (c[i] == '.') {
+                    if (!firstDot) {
+                        modified = true;
+                        c[i] = '_';
+                    }
+                    firstDot = false;
+                }
+            }
+
+            if (modified) {
+                String newFilename = new String(c);
+                request.setHeader(HeaderSet.NAME, newFilename);
+                Log.i(TAG, "Sending file \"" + filename + "\" as \"" + newFilename +
+                        "\" to workaround Poloroid filename quirk");
             }
         }
     }

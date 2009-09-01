@@ -317,7 +317,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 if (info.mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
                     BluetoothOppSendFileInfo fileInfo = null;
                     fileInfo = BluetoothOppSendFileInfo.generateFileInfo(mContext, info.mUri,
-                            info.mMimetype);
+                            info.mMimetype, info.mDestination);
                     if (fileInfo.mFileName != null) {
                         updateValues.put(BluetoothShare.FILENAME_HINT, fileInfo.mFileName);
                         updateValues.put(BluetoothShare.TOTAL_BYTES, fileInfo.mLength);
