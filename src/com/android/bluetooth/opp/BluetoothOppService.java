@@ -164,8 +164,8 @@ public class BluetoothOppService extends Service {
 
         trimDatabase();
 
-        IntentFilter filter = new IntentFilter(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION);
-        registerReceiver(mBluetoothIntentReceiver, filter);
+        IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(mBluetoothReceiver, filter);
 
         synchronized (BluetoothOppService.this) {
             if (mAdapter == null) {
@@ -319,7 +319,7 @@ public class BluetoothOppService extends Service {
         super.onDestroy();
         mNotifier.finishNotification();
         getContentResolver().unregisterContentObserver(mObserver);
-        unregisterReceiver(mBluetoothIntentReceiver);
+        unregisterReceiver(mBluetoothReceiver);
         mSocketListener.stop();
     }
 
@@ -331,19 +331,19 @@ public class BluetoothOppService extends Service {
                     + " for incoming connection" + transport.toString());
     }
 
-    private final BroadcastReceiver mBluetoothIntentReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mBluetoothReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
 
-            if (action.equals(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION)) {
-                switch (intent.getIntExtra(BluetoothIntent.BLUETOOTH_STATE, BluetoothError.ERROR)) {
-                    case BluetoothAdapter.BLUETOOTH_STATE_ON:
+            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+                switch (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothError.ERROR)) {
+                    case BluetoothAdapter.STATE_ON:
                         if (V) Log.v(TAG,
                                     "Receiver BLUETOOTH_STATE_CHANGED_ACTION, BLUETOOTH_STATE_ON");
                         startSocketListener();
                         break;
-                    case BluetoothAdapter.BLUETOOTH_STATE_TURNING_OFF:
+                    case BluetoothAdapter.STATE_TURNING_OFF:
                         if (V) Log.v(TAG, "Receiver DISABLED_ACTION ");
                         mSocketListener.stop();
                         mListenStarted = false;

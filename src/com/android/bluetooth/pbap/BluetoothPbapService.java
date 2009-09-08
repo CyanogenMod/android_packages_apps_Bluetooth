@@ -215,8 +215,8 @@ public class BluetoothPbapService extends Service {
             mHasStarted = true;
             if (VERBOSE) Log.v(TAG, "Starting PBAP service");
 
-            int state = mAdapter.getBluetoothState();
-            if (state == BluetoothAdapter.BLUETOOTH_STATE_ON) {
+            int state = mAdapter.getState();
+            if (state == BluetoothAdapter.STATE_ON) {
                 mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
                         .obtainMessage(START_LISTENER), TIME_TO_WAIT_VALUE);
             }
@@ -241,11 +241,11 @@ public class BluetoothPbapService extends Service {
     // process the intent from receiver
     private void parseIntent(final Intent intent) {
         String action = intent.getExtras().getString("action");
-        int state = intent.getIntExtra(BluetoothIntent.BLUETOOTH_STATE, BluetoothError.ERROR);
+        int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothError.ERROR);
         boolean removeTimeoutMsg = true;
-        if (action.equals(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION)) {
+        if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
             removeTimeoutMsg = false;
-            if (state == BluetoothAdapter.BLUETOOTH_STATE_OFF) {
+            if (state == BluetoothAdapter.STATE_OFF) {
                 // Release all resources
                 closeService();
             }

@@ -65,9 +65,9 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
         if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
 
             context.startService(new Intent(context, BluetoothOppService.class));
-        } else if (action.equals(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION)) {
-            if (BluetoothAdapter.BLUETOOTH_STATE_ON == intent.getIntExtra(
-                    BluetoothIntent.BLUETOOTH_STATE, BluetoothError.ERROR)) {
+        } else if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+            if (BluetoothAdapter.STATE_ON == intent.getIntExtra(
+                    BluetoothAdapter.EXTRA_STATE, BluetoothError.ERROR)) {
                 if (V) Log.v(TAG, "Received BLUETOOTH_STATE_CHANGED_ACTION, BLUETOOTH_STATE_ON");
                 context.startService(new Intent(context, BluetoothOppService.class));
 

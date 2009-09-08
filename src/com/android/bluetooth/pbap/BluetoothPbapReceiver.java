@@ -56,11 +56,11 @@ public class BluetoothPbapReceiver extends BroadcastReceiver {
         String action = intent.getAction();
         in.putExtra("action", action);
         boolean startService = true;
-        if (action.equals(BluetoothIntent.BLUETOOTH_STATE_CHANGED_ACTION)) {
-            int state = intent.getIntExtra(BluetoothIntent.BLUETOOTH_STATE, BluetoothError.ERROR);
-            in.putExtra(BluetoothIntent.BLUETOOTH_STATE, state);
-            if ((state == BluetoothAdapter.BLUETOOTH_STATE_TURNING_ON)
-                    || (state == BluetoothAdapter.BLUETOOTH_STATE_TURNING_OFF)) {
+        if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+            int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothError.ERROR);
+            in.putExtra(BluetoothAdapter.EXTRA_STATE, state);
+            if ((state == BluetoothAdapter.STATE_TURNING_ON)
+                    || (state == BluetoothAdapter.STATE_TURNING_OFF)) {
                 startService = false;
             }
         }
