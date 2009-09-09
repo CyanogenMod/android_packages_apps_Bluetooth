@@ -252,9 +252,7 @@ public class BluetoothPbapService extends Service {
         } else if (action.equals(ACCESS_ALLOWED_ACTION)) {
             if (intent.getBooleanExtra(EXTRA_ALWAYS_ALLOWED, false)) {
                 boolean result = mRemoteDevice.setTrust(true);
-                if (VERBOSE) {
-                    Log.v(TAG, "setTrust() result=" + result);
-                }
+                if (VERBOSE) Log.v(TAG, "setTrust() result=" + result);
             }
             try {
                 if (mConnSocket != null) {
@@ -502,14 +500,12 @@ public class BluetoothPbapService extends Service {
                         }
                     }
                     boolean trust = mRemoteDevice.getTrustState();
-                    if (VERBOSE) {
-                        Log.v(TAG, "GetTrustState() = " + trust);
-                    }
+                    if (VERBOSE) Log.v(TAG, "GetTrustState() = " + trust);
+
                     if (trust) {
                         try {
-                            if (VERBOSE) {
-                                Log.v(TAG, "Trusted device, incomming connection accepted auto.");
-                            }
+                            if (VERBOSE) Log.v(TAG, "incomming connection accepted from: "
+                                + sRemoteDeviceName + " automatically as trusted device");
                             startObexServerSession();
                         } catch (IOException ex) {
                             Log.e(TAG, "catch exception starting obex server session"
@@ -637,6 +633,8 @@ public class BluetoothPbapService extends Service {
                             .getActivity(context, 0, clickIntent, 0));
 
             notification.flags |= Notification.FLAG_AUTO_CANCEL;
+            notification.flags |= Notification.FLAG_ONLY_ALERT_ONCE;
+            notification.defaults = Notification.DEFAULT_SOUND;
             notification.deleteIntent = PendingIntent.getBroadcast(context, 0, deleteIntent, 0);
             nm.notify(NOTIFICATION_ID_ACCESS, notification);
         } else if (action.equals(AUTH_CHALL_ACTION)) {
@@ -648,6 +646,8 @@ public class BluetoothPbapService extends Service {
                             .getActivity(context, 0, clickIntent, 0));
 
             notification.flags |= Notification.FLAG_AUTO_CANCEL;
+            notification.flags |= Notification.FLAG_ONLY_ALERT_ONCE;
+            notification.defaults = Notification.DEFAULT_SOUND;
             notification.deleteIntent = PendingIntent.getBroadcast(context, 0, deleteIntent, 0);
             nm.notify(NOTIFICATION_ID_AUTH, notification);
         }

@@ -159,27 +159,43 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     @Override
-    public int onConnect(final HeaderSet request, final HeaderSet reply) {
+    public int onConnect(final HeaderSet request, HeaderSet reply) {
+        if (V) logHeader(request);
         try {
-            byte[] uuid_tmp = (byte[])request.getHeader(HeaderSet.TARGET);
-            if (D) Log.d(TAG, "onConnect(): uuid_tmp=" + Arrays.toString(uuid_tmp));
+            byte[] uuid = (byte[])request.getHeader(HeaderSet.TARGET);
+            if (uuid == null) {
+                return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
+            }
+            if (D) Log.d(TAG, "onConnect(): uuid=" + Arrays.toString(uuid));
 
-            if (uuid_tmp.length != UUID_LENGTH) {
+            if (uuid.length != UUID_LENGTH) {
                 Log.w(TAG, "Wrong UUID length");
                 return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
             }
             for (int i = 0; i < UUID_LENGTH; i++) {
-                if (uuid_tmp[i] != PBAP_TARGET[i]) {
+                if (uuid[i] != PBAP_TARGET[i]) {
                     Log.w(TAG, "Wrong UUID");
                     return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
                 }
+            }
+            reply.setHeader(HeaderSet.WHO, uuid);
+        } catch (IOException e) {
+            Log.e(TAG, e.toString());
+            return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+        }
+
+        try {
+            byte[] remote = (byte[])request.getHeader(HeaderSet.WHO);
+            if (remote != null) {
+                if (D) Log.d(TAG, "onConnect(): remote=" + Arrays.toString(remote));
+                reply.setHeader(HeaderSet.TARGET, remote);
             }
         } catch (IOException e) {
             Log.e(TAG, e.toString());
             return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
         }
 
-        if (V) Log.v(TAG, "onConnect(): uuid_tmp is ok, will send out " +
+        if (V) Log.v(TAG, "onConnect(): uuid is ok, will send out " +
                 "MSG_SESSION_ESTABLISHED msg.");
 
         Message msg = Message.obtain(mCallback);
@@ -192,6 +208,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     @Override
     public void onDisconnect(final HeaderSet req, final HeaderSet resp) {
         if (D) Log.d(TAG, "onDisconnect(): enter");
+        if (V) logHeader(req);
 
         resp.responseCode = ResponseCodes.OBEX_HTTP_OK;
         if (mCallback != null) {
@@ -211,6 +228,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     @Override
     public int onSetPath(final HeaderSet request, final HeaderSet reply, final boolean backup,
             final boolean create) {
+        if (V) logHeader(request);
         if (D) Log.d(TAG, "before setPath, mCurrentPath ==  " + mCurrentPath);
 
         String current_path_tmp = mCurrentPath;
@@ -279,6 +297,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
         }
 
+        if (V) logHeader(request);
         if (D) Log.d(TAG, "OnGet type is " + type + "; name is " + name);
 
         // Accroding to specification,the name header could be omitted such as
@@ -864,5 +883,26 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     // Reserved for future use. In case PSE challenge PCE and PCE input wrong
     // session key.
     public final void onAuthenticationFailure(final byte[] userName) {
+    }
+
+    public static void logHeader(HeaderSet hs) {
+        Log.v(TAG, "Dumping HeaderSet " + hs.toString());
+        try {
+
+            Log.v(TAG, "COUNT : " + hs.getHeader(HeaderSet.COUNT));
+            Log.v(TAG, "NAME : " + hs.getHeader(HeaderSet.NAME));
+            Log.v(TAG, "TYPE : " + hs.getHeader(HeaderSet.TYPE));
+            Log.v(TAG, "LENGTH : " + hs.getHeader(HeaderSet.LENGTH));
+            Log.v(TAG, "TIME_ISO_8601 : " + hs.getHeader(HeaderSet.TIME_ISO_8601));
+            Log.v(TAG, "TIME_4_BYTE : " + hs.getHeader(HeaderSet.TIME_4_BYTE));
+            Log.v(TAG, "DESCRIPTION : " + hs.getHeader(HeaderSet.DESCRIPTION));
+            Log.v(TAG, "TARGET : " + hs.getHeader(HeaderSet.TARGET));
+            Log.v(TAG, "HTTP : " + hs.getHeader(HeaderSet.HTTP));
+            Log.v(TAG, "WHO : " + hs.getHeader(HeaderSet.WHO));
+            Log.v(TAG, "OBJECT_CLASS : " + hs.getHeader(HeaderSet.OBJECT_CLASS));
+            Log.v(TAG, "APPLICATION_PARAMETER : " + hs.getHeader(HeaderSet.APPLICATION_PARAMETER));
+        } catch (IOException e) {
+            Log.e(TAG, "dump HeaderSet error " + e);
+        }
     }
 }

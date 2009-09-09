@@ -462,7 +462,7 @@ public class BluetoothPbapVcardManager {
                     cursorPos = Integer.parseInt(curPosStr);
                     if (cursorPos < 0 || cursorPos > phonesCursor.getCount()) {
                         Log.w(TAG, "Get incorrect cursor position from HashMap.");
-                        return null;
+                        continue;
                     }
                     if (phonesCursor.moveToPosition(cursorPos)) {
                         int type = phonesCursor.getInt(PHONES_TYPE_COLUMN);
@@ -487,7 +487,7 @@ public class BluetoothPbapVcardManager {
                     cursorPos = Integer.parseInt(curPosStr);
                     if (cursorPos < 0 || cursorPos > contactMethodsCursor.getCount()) {
                         Log.w(TAG, "Get incorrect method cursor position from HashMap.");
-                        return null;
+                        continue;
                     }
                     if (contactMethodsCursor.moveToPosition(cursorPos)) {
                         int kind = contactMethodsCursor.getInt(METHODS_KIND_COLUMN);
@@ -529,7 +529,7 @@ public class BluetoothPbapVcardManager {
                     cursorPos = Integer.parseInt(curPosStr);
                     if (cursorPos < 0 || cursorPos > orgCursor.getCount()) {
                         Log.w(TAG, "Get incorrect cursor position from HashMap.");
-                        return null;
+                        continue;
                     }
                     if (orgCursor.moveToPosition(cursorPos)) {
                         int type = orgCursor.getInt(ORGANIZATIONS_TYPE_COLUMN);
