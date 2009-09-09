@@ -38,7 +38,6 @@ import javax.obex.ObexTransport;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothError;
 import android.bluetooth.BluetoothIntent;
 import android.content.BroadcastReceiver;
 import android.content.ContentUris;
@@ -337,7 +336,7 @@ public class BluetoothOppService extends Service {
             String action = intent.getAction();
 
             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-                switch (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothError.ERROR)) {
+                switch (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)) {
                     case BluetoothAdapter.STATE_ON:
                         if (V) Log.v(TAG,
                                     "Receiver BLUETOOTH_STATE_CHANGED_ACTION, BLUETOOTH_STATE_ON");

@@ -37,7 +37,6 @@ import com.android.bluetooth.R;
 import android.app.NotificationManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothError;
 import android.bluetooth.BluetoothIntent;
 import android.content.BroadcastReceiver;
 import android.content.ContentUris;
@@ -67,7 +66,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             context.startService(new Intent(context, BluetoothOppService.class));
         } else if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
             if (BluetoothAdapter.STATE_ON == intent.getIntExtra(
-                    BluetoothAdapter.EXTRA_STATE, BluetoothError.ERROR)) {
+                    BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)) {
                 if (V) Log.v(TAG, "Received BLUETOOTH_STATE_CHANGED_ACTION, BLUETOOTH_STATE_ON");
                 context.startService(new Intent(context, BluetoothOppService.class));
 

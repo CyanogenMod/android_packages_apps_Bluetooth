@@ -33,7 +33,6 @@
 package com.android.bluetooth.pbap;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothError;
 import android.bluetooth.BluetoothIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -57,7 +56,7 @@ public class BluetoothPbapReceiver extends BroadcastReceiver {
         in.putExtra("action", action);
         boolean startService = true;
         if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-            int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothError.ERROR);
+            int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
             in.putExtra(BluetoothAdapter.EXTRA_STATE, state);
             if ((state == BluetoothAdapter.STATE_TURNING_ON)
                     || (state == BluetoothAdapter.STATE_TURNING_OFF)) {

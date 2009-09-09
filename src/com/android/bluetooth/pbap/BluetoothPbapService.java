@@ -43,7 +43,6 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothError;
 import android.bluetooth.BluetoothIntent;
 import android.bluetooth.BluetoothPbap;
 import android.bluetooth.BluetoothSocket;
@@ -241,7 +240,7 @@ public class BluetoothPbapService extends Service {
     // process the intent from receiver
     private void parseIntent(final Intent intent) {
         String action = intent.getExtras().getString("action");
-        int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothError.ERROR);
+        int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
         boolean removeTimeoutMsg = true;
         if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
             removeTimeoutMsg = false;
