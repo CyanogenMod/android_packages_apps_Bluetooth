@@ -43,7 +43,6 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothIntent;
 import android.bluetooth.BluetoothPbap;
 import android.bluetooth.BluetoothSocket;
 import android.bluetooth.BluetoothServerSocket;
@@ -599,7 +598,7 @@ public class BluetoothPbapService extends Service {
             intent.putExtra(BluetoothPbap.PBAP_PREVIOUS_STATE, mState);
             mState = state;
             intent.putExtra(BluetoothPbap.PBAP_STATE, mState);
-            intent.putExtra(BluetoothIntent.DEVICE, mRemoteDevice);
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
             sendBroadcast(intent, BLUETOOTH_PERM);
         }
     }

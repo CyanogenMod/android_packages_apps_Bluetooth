@@ -37,7 +37,7 @@ import com.android.bluetooth.R;
 import java.util.ArrayList;
 import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothIntent;
+import android.bluetooth.BluetoothDevicePicker;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -119,15 +119,15 @@ public class BluetoothOppLauncherActivity extends Activity {
                 this.startActivity(in);
             } else {
                 if (V) Log.v(TAG, "BT already enabled!! ");
-                Intent in1 = new Intent(BluetoothIntent.DEVICE_PICKER_DEVICE_PICKER);
+                Intent in1 = new Intent(BluetoothDevicePicker.ACTION_LAUNCH);
                 in1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 //TODO modify to false after SDP query is ok
-                in1.putExtra(BluetoothIntent.DEVICE_PICKER_NEED_AUTH, true);
-                in1.putExtra(BluetoothIntent.DEVICE_PICKER_FILTER_TYPE,
-                        BluetoothDevice.DEVICE_PICKER_FILTER_TYPE_TRANSFER);
-                in1.putExtra(BluetoothIntent.DEVICE_PICKER_LAUNCH_PACKAGE,
+                in1.putExtra(BluetoothDevicePicker.EXTRA_NEED_AUTH, true);
+                in1.putExtra(BluetoothDevicePicker.EXTRA_FILTER_TYPE,
+                        BluetoothDevicePicker.FILTER_TYPE_TRANSFER);
+                in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_PACKAGE,
                         Constants.THIS_PACKAGE_NAME);
-                in1.putExtra(BluetoothIntent.DEVICE_PICKER_LAUNCH_CLASS,
+                in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_CLASS,
                         BluetoothOppReceiver.class.getName());
 
                 this.startActivity(in1);

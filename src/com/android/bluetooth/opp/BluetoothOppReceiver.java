@@ -37,7 +37,7 @@ import com.android.bluetooth.R;
 import android.app.NotificationManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothIntent;
+import android.bluetooth.BluetoothDevicePicker;
 import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -77,13 +77,13 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                         // reset the flags
                         BluetoothOppManager.getInstance(context).mSendingFlag = false;
 
-                        Intent in1 = new Intent(BluetoothIntent.DEVICE_PICKER_DEVICE_PICKER);
-                        in1.putExtra(BluetoothIntent.DEVICE_PICKER_NEED_AUTH, false);
-                        in1.putExtra(BluetoothIntent.DEVICE_PICKER_FILTER_TYPE,
-                                BluetoothDevice.DEVICE_PICKER_FILTER_TYPE_TRANSFER);
-                        in1.putExtra(BluetoothIntent.DEVICE_PICKER_LAUNCH_PACKAGE,
+                        Intent in1 = new Intent(BluetoothDevicePicker.ACTION_LAUNCH);
+                        in1.putExtra(BluetoothDevicePicker.EXTRA_NEED_AUTH, false);
+                        in1.putExtra(BluetoothDevicePicker.EXTRA_FILTER_TYPE,
+                                BluetoothDevicePicker.FILTER_TYPE_TRANSFER);
+                        in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_PACKAGE,
                                 Constants.THIS_PACKAGE_NAME);
-                        in1.putExtra(BluetoothIntent.DEVICE_PICKER_LAUNCH_CLASS,
+                        in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_CLASS,
                                 BluetoothOppReceiver.class.getName());
 
                         in1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -91,10 +91,10 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                     }
                 }
             }
-        } else if (action.equals(BluetoothIntent.DEVICE_PICKER_DEVICE_SELECTED)) {
+        } else if (action.equals(BluetoothDevicePicker.ACTION_DEVICE_SELECTED)) {
             BluetoothOppManager mOppManager = BluetoothOppManager.getInstance(context);
 
-            BluetoothDevice remoteDevice = intent.getParcelableExtra(BluetoothIntent.DEVICE);
+            BluetoothDevice remoteDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
             if (V) Log.v(TAG, "Received BT device selected intent, bt device: " + remoteDevice);
 
