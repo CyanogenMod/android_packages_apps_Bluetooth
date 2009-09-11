@@ -61,7 +61,9 @@
         </activity>
         <activity android:name=".opp.BluetoothOppBtEnablingActivity">
             android:theme="@android:style/Theme.Dialog"> </activity>
-        <activity android:name=".opp.BluetoothOppIncomingFileConfirmActivity">
+        <activity android:name=".opp.BluetoothOppIncomingFileConfirmActivity"
+                  android:excludeFromRecents="true"
+                  android:theme="@*android:style/Theme.Dialog.Alert">
         </activity>
         <activity android:name=".opp.BluetoothOppTransferActivity">
         </activity>
