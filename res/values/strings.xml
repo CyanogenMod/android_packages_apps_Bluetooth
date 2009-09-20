@@ -27,7 +27,7 @@
     <!-- string for "the title of airplane mode error" -->
     <string name="airplane_error_title">Airplane mode</string>
     <!-- string for "error message in airplane mode" -->
-    <string name="airplane_error_msg">You can't use Bluetooth when the phone is in airplane mode.</string>
+    <string name="airplane_error_msg">You can\'t use Bluetooth when the phone is in airplane mode.</string>
 
     <!-- Activate Bluetooth Confirmation Dialog -->
     <!--Title -->
@@ -174,7 +174,7 @@
     <string name="status_pending">File transfer not started yet</string>
     <string name="status_running">File transfer is ongoing</string>
     <string name="status_success">The file transfer has completed successfully</string>
-    <string name="status_not_accept">The phone can't handle this type of content</string>
+    <string name="status_not_accept">The phone can\'t handle this type of content</string>
     <string name="status_forbidden">This transfer is forbidden by the target device</string>
     <string name="status_canceled">This transfer was canceled by the user</string>
     <string name="status_file_error">Storage issue</string>
