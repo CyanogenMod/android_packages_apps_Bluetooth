@@ -210,7 +210,10 @@ public class BluetoothOppReceiveFileInfo {
         String filename = null;
 
         // First, try to use the hint from the application, if there's one
-        if (filename == null && hint != null && !hint.endsWith("/")) {
+        if (filename == null && !(hint == null) && !hint.endsWith("/") && !hint.endsWith("\\")) {
+            // Prevent abuse of path backslashes by converting all backlashes '\\' chars
+            // to UNIX-style forward-slashes '/'
+            hint = hint.replace('\\', '/');
             if (V) Log.v(Constants.TAG, "getting filename from hint");
             int index = hint.lastIndexOf('/') + 1;
             if (index > 0) {
