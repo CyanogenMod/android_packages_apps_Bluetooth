@@ -319,7 +319,7 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
                 mLine3View.setText(tmp);
             }
             mLine5View = (TextView)mView.findViewById(R.id.line5_view);
-            mLine5View.setVisibility(View.INVISIBLE);
+            mLine5View.setVisibility(View.GONE);
         } else if (mWhichDialog == DIALOG_SEND_COMPLETE_FAIL) {
             mLine1View = (TextView)mView.findViewById(R.id.line1_view);
             tmp = getString(R.string.upload_fail_line1, mTransInfo.mDeviceName);
@@ -332,7 +332,7 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
                     this, mTransInfo.mStatus));
             mLine3View.setText(tmp);
             mLine5View = (TextView)mView.findViewById(R.id.line5_view);
-            mLine5View.setVisibility(View.INVISIBLE);
+            mLine5View.setVisibility(View.GONE);
         }
 
         if (BluetoothShare.isStatusError(mTransInfo.mStatus)) {

@@ -70,7 +70,7 @@ public class BluetoothOppBtEnableActivity extends AlertActivity implements
         View view = getLayoutInflater().inflate(R.layout.confirm_dialog, null);
         TextView contentView = (TextView)view.findViewById(R.id.content);
         contentView.setText(getString(R.string.bt_enable_line1) + "\n\n"
-                + getString(R.string.bt_enable_line2) + "\n\n");
+                + getString(R.string.bt_enable_line2) + "\n");
 
         return view;
     }

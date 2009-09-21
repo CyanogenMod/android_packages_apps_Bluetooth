@@ -264,7 +264,7 @@ class BluetoothOppNotification {
 
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
             // Add the notifications
-            int timeStamp = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP));
+            long timeStamp = cursor.getLong(cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP));
             int dir = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare.DIRECTION));
             int id = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID));
             int status = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare.STATUS));
@@ -331,7 +331,7 @@ class BluetoothOppNotification {
             String caption = mContext
                     .getString(R.string.incoming_file_confirm_Notification_caption);
             int id = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID));
-            int timeStamp = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP));
+            long timeStamp = cursor.getLong(cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP));
             Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + id);
 
             Notification n = new Notification();

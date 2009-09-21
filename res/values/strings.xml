@@ -45,52 +45,52 @@
     <!--Title -->
     <string name="incoming_file_confirm_title">File transfer</string>
     <!--content -->
-    <string name="incoming_file_confirm_content">%1$s wants to send you %2$s (%3$s). \n\n Accept this file? </string>
+    <string name="incoming_file_confirm_content">\u0022%1$s\u0022 wants to send you %2$s (%3$s). \n\n Accept the file? </string>
     <!-- Label for a cancel button. -->
     <string name="incoming_file_confirm_cancel">Decline</string>
     <!-- Label for a confirm button.-->
     <string name="incoming_file_confirm_ok">Accept</string>
 
     <!-- Bluetooth File Transfer Acceptance Notification item -->
-    <string name="incoming_file_confirm_Notification_title">Incoming file</string>
+    <string name="incoming_file_confirm_Notification_title">Bluetooth share: Incoming file</string>
     <string name="incoming_file_confirm_Notification_caption">Please confirm you want to receive this file</string>
     <string name="incoming_file_toast_msg">There is an inoming file from another device,
         please confirm that you want to receive this file</string>
 
     <!-- Inbound File Transfer Progress Notification item -->
     <!-- label for the notification item of receiving file -->
-    <string name="notification_receiving">Receiving %1$s </string>
+    <string name="notification_receiving">Bluetooth share: Receiving %1$s</string>
     <!-- label for the notification item of received file -->
-    <string name="notification_received">Received %1$s</string>
+    <string name="notification_received">Bluetooth share: Received %1$s</string>
     <!-- label for the notification item of received file -status -->
     <string name="notification_received_complete">100% complete</string>
     <!-- label for the notification item of failed receiving file -->
-    <string name="notification_received_fail">File not received: %1$s</string>
+    <string name="notification_received_fail">Bluetooth share: File %1$s not received</string>
 
     <!-- Outbound File Transfer Progress Notification item -->
     <!-- label for the notification item of sending file -->
-    <string name="notification_sending">Sending %1$s</string>
+    <string name="notification_sending">Bluetooth share: Sending %1$s</string>
     <!-- label for the notification item of sending files -->
-    <string name="notification_sending_multi">Sending file</string>
+    <string name="notification_sending_multi">Bluetooth share: Sending file</string>
     <!-- label for the notification item of sent file -->
-    <string name="notification_sent">Sent %1$s</string>
+    <string name="notification_sent">Bluetooth share: Sent %1$s</string>
     <!-- label for the notification item of sent file -status -->
     <string name="notification_sent_complete">100% complete</string>
     <!-- label for the notification item of failed sending file -->
-    <string name="notification_sent_fail">File not sent: %1$s</string>
+    <string name="notification_sent_fail">Bluetooth share: File %1$s not sent</string>
 
     <!-- Bluetooth Download Progress Dialog -->
     <!--Title -->
     <string name="download_title">File transfer</string>
     <!--Line 1 -->
-    <string name="download_line1">From: %1$s</string>
+    <string name="download_line1">From: \u0022%1$s\u0022</string>
     <!--Line 2 -->
     <string name="download_line2">File: %1$s</string>
     <!--Line 3 -->
     <string name="download_line3">File size: %1$s</string>
     <!--Line 4 -->
     <string name="download_line4"></string>
-    <string name="download_line5">Receiving file...</string>
+    <string name="download_line5">Receiving file\u2026</string>
     <!-- Label for a cancel button. -->
     <string name="download_cancel">Stop</string>
     <!-- Label for a hide button.-->
@@ -113,9 +113,9 @@
     <string name="download_succ_ok">Open</string>
 
     <!-- Bluetooth Upload Progress Dialog -->
-    <string name="upload_line1">To: %1$s</string>
+    <string name="upload_line1">To: \u0022%1$s\u0022</string>
     <string name="upload_line3">File Type: %1$s (%2$s)</string>
-    <string name="upload_line5">Sending file...</string>
+    <string name="upload_line5">Sending file\u2026</string>
 
     <!-- Bluetooth Successful Upload Progress Dialog -->
     <!--Line 4 -->
@@ -124,7 +124,7 @@
     <string name="upload_succ_ok">OK</string>
 
     <!-- Bluetooth Failed Upload File Transfer Dialog -->
-    <string name="upload_fail_line1">The file was not sent to %1$s.</string>
+    <string name="upload_fail_line1">The file was not sent to \u0022%1$s\u0022.</string>
     <string name="upload_fail_line1_2">File: %1$s</string>
     <!-- Label for a try again button.-->
     <string name="upload_fail_ok">Try again</string>
@@ -139,35 +139,35 @@
     <string name="not_exist_file_desc">The file does not exist! \n</string>
 
     <!-- Bluetooth  Enabling progress dialog -->
-    <string name="enabling_progress_title">Information</string>
-    <string name="enabling_progress_content">Turning on Bluetooth..</string>
+    <string name="enabling_progress_title">Please wait\u2026</string>
+    <string name="enabling_progress_content">Turning on bluetooth\u2026</string>
 
     <!-- Bluetooth Toast Message -->
     <string name="bt_toast_1">The file will be received. Check progress in the Notifications panel.</string>
     <string name="bt_toast_2">The file will not be received.</string>
-    <string name="bt_toast_3">Stopped receiving file from %1$s</string>
-    <string name="bt_toast_4">Sending file to %1$s</string>
-    <string name="bt_toast_5">Sending %1$s files to %2$s</string>
-    <string name="bt_toast_6">Stopped sending file to %1$s</string>
-    <string name="bt_toast_7">Stopped sending %1$s files to %2$s</string>
+    <string name="bt_toast_3">Stopped receiving file from \u0022%1$s\u0022</string>
+    <string name="bt_toast_4">Sending file to \u0022%1$s\u0022</string>
+    <string name="bt_toast_5">Sending %1$s files to \u0022%2$s\u0022</string>
+    <string name="bt_toast_6">Stopped sending file to \u0022%1$s\u0022</string>
+    <string name="bt_toast_7">Stopped sending %1$s files to \u0022%2$s\u0022</string>
 
     <!-- Bluetooth System Messages -->
-    <string name="bt_sm_2_1">There is not enough space on the SD card to save the file from %1$s</string>
+    <string name="bt_sm_2_1">There is not enough space on the SD card to save the file from \u0022%1$s\u0022</string>
     <string name="bt_sm_2_2">Space needed: %1$s</string>
-    <string name="bt_sm_3_1">%1$s attempted to send you %2$s files. </string>
+    <string name="bt_sm_3_1">\u0022%1$s\u0022 attempted to send you %2$s files. </string>
     <string name="bt_sm_3_2">However, this device can only receive one file at a time. Ask the other party to send the remaining %1$s files individually.</string>
 
     <!-- Bluetooth Transfer Failure Messages -->
-    <string name="bt_tf_1">%1$s is unavailable.</string>
-    <string name="bt_tf_2">Cannot pair with %1$s.</string>
+    <string name="bt_tf_1">\u0022%1$s\u0022 is unavailable.</string>
+    <string name="bt_tf_2">Cannot pair with \u0022%1$s\u0022.</string>
     <string name="bt_tf_3">The connection was interrupted.</string>
-    <string name="bt_tf_4">%1$s does not support file transfers.</string>
-    <string name="bt_tf_5">%1$s cannot accept %2$s</string>
-    <string name="bt_tf_6">%1$s declined to accept the file.</string>
+    <string name="bt_tf_4">\u0022%1$s\u0022 does not support file transfers.</string>
+    <string name="bt_tf_5">\u0022%1$s\u0022 cannot accept %2$s</string>
+    <string name="bt_tf_6">\u0022%1$s\u0022 declined to accept the file.</string>
     <string name="bt_tf_7">The file could not be sent.</string>
     <string name="bt_tf_8">The file could not be received.</string>
     <string name="bt_tf_10">Locked memory card. You must unlock the memory card to save files.</string>
-    <string name="bt_tf_12">There is a file being transferred to a different device. Please wait...</string>
+    <string name="bt_tf_12">There is a file being transferred to a different device. Please wait\u2026</string>
     <string name="bt_tf_13">Bluetooth is currently busy. Consider turning off another Bluetooth feature and trying again.</string>
 
     <!-- Bluetooth Transfer Failure Reason -->

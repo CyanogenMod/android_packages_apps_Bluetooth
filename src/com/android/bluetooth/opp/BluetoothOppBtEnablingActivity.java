@@ -33,27 +33,42 @@
 package com.android.bluetooth.opp;
 
 import com.android.bluetooth.R;
-
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
 import com.android.internal.app.AlertActivity;
 import com.android.internal.app.AlertController;
 
+import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.widget.TextView;
+
 /**
- * This class is designed to show BT enabling progress; It will be killed when
- * received BT_ENABLED intent.
+ * This class is designed to show BT enabling progress.
  */
 public class BluetoothOppBtEnablingActivity extends AlertActivity {
     private static final String TAG = "BluetoothOppEnablingActivity";
+
     private static final boolean D = Constants.DEBUG;
+
     private static final boolean V = Constants.VERBOSE;
 
+    private static final int BT_ENABLING_TIMEOUT = 0;
+
+    private static final int BT_ENABLING_TIMEOUT_VALUE = 20000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(mBluetoothReceiver, filter);
 
         // Set up the "dialog"
         final AlertController.AlertParams p = mAlertParams;
@@ -61,6 +76,10 @@ public class BluetoothOppBtEnablingActivity extends AlertActivity {
         p.mTitle = getString(R.string.enabling_progress_title);
         p.mView = createView();
         setupAlert();
+
+        // Add timeout for enabling progress
+        mTimeoutHandler.sendMessageDelayed(mTimeoutHandler.obtainMessage(BT_ENABLING_TIMEOUT),
+                BT_ENABLING_TIMEOUT_VALUE);
     }
 
     private View createView() {
@@ -71,26 +90,59 @@ public class BluetoothOppBtEnablingActivity extends AlertActivity {
         return view;
     }
 
-    // TODO(Moto): add timer mech to handle the case
-    // "can not enable BT and can not recv the bt enabled intent".
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (D) Log.d(TAG, "onKeyDown() called; Key: back key");
+            mTimeoutHandler.removeMessages(BT_ENABLING_TIMEOUT);
+            cancelSendingProgress();
+        }
+        return true;
+    }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mBluetoothReceiver);
+    }
 
+    private final Handler mTimeoutHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case BT_ENABLING_TIMEOUT:
+                    if (V) Log.v(TAG, "Received BT_ENABLING_TIMEOUT msg.");
+                    cancelSendingProgress();
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
+    private final BroadcastReceiver mBluetoothReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (V) Log.v(TAG, "Received intent: " + action) ;
+            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+                switch (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)) {
+                    case BluetoothAdapter.STATE_ON:
+                        mTimeoutHandler.removeMessages(BT_ENABLING_TIMEOUT);
+                        finish();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    };
+
+    private void cancelSendingProgress() {
         BluetoothOppManager mOppManager = BluetoothOppManager.getInstance(this);
-
-        // if user press "back" key during BT enabling, cancel the sending
-        // operation
         if (mOppManager.mSendingFlag) {
             mOppManager.mSendingFlag = false;
-            mOppManager.disableBluetooth(); // can work? May not!
-            if (V) Log.v(TAG, "Disabling Bluetooth:! ");
         }
-
-        // In this dialog, when press "back" key, will call
-        // AlertActivity.cancel() function - finish()
         finish();
-        if (V) Log.v(TAG, "onPause(): finish() called");
     }
 }

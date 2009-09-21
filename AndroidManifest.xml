@@ -55,17 +55,25 @@
                 <data android:mimeType="vnd.android.cursor.item/vnd.android.btopp" />
             </intent-filter>
         </activity>
-        <activity android:name=".opp.BluetoothOppBtEnableActivity">
+        <activity android:name=".opp.BluetoothOppBtEnableActivity"
+                  android:excludeFromRecents="true"
+                  android:theme="@*android:style/Theme.Dialog.Alert">
         </activity>
-        <activity android:name=".opp.BluetoothOppBtErrorActivity">
+        <activity android:name=".opp.BluetoothOppBtErrorActivity"
+                  android:excludeFromRecents="true"
+                  android:theme="@*android:style/Theme.Dialog.Alert">
         </activity>
-        <activity android:name=".opp.BluetoothOppBtEnablingActivity">
-            android:theme="@android:style/Theme.Dialog"> </activity>
+        <activity android:name=".opp.BluetoothOppBtEnablingActivity"
+                  android:excludeFromRecents="true"
+                  android:theme="@*android:style/Theme.Dialog.Alert">
+        </activity>
         <activity android:name=".opp.BluetoothOppIncomingFileConfirmActivity"
                   android:excludeFromRecents="true"
                   android:theme="@*android:style/Theme.Dialog.Alert">
         </activity>
-        <activity android:name=".opp.BluetoothOppTransferActivity">
+        <activity android:name=".opp.BluetoothOppTransferActivity"
+                  android:excludeFromRecents="true"
+                  android:theme="@*android:style/Theme.Dialog.Alert">
         </activity>
         <activity android:name=".opp.BluetoothOppLiveFolder"
             android:label="@string/btopp_live_folder">
@@ -75,7 +83,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".pbap.BluetoothPbapActivity"
-            android:label=" "
+            android:excludeFromRecents="true"
             android:theme="@*android:style/Theme.Dialog.Alert">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
