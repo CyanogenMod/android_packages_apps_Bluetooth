@@ -32,8 +32,6 @@
 
 package com.android.bluetooth.opp;
 
-import android.bluetooth.BluetoothDevice;
-
 /**
  * This class stores information about a single OBEX share, e.g. one object
  * send/receive to a destination address.

@@ -39,13 +39,17 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.ParcelUuid;
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Parcelable;
 import android.os.PowerManager;
 import android.os.Process;
 import android.util.Log;
@@ -140,7 +144,11 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                     if (!((BluetoothDevice)msg.obj).equals(mBatch.mDestination)) {
                         return;
                     }
-
+                    try {
+                        mContext.unregisterReceiver(mReceiver);
+                    } catch (IllegalArgumentException e) {
+                        // ignore
+                    }
                     if (msg.arg1 > 0) {
                         mConnectThread = new SocketConnectThread(mBatch.mDestination, msg.arg1);
                         mConnectThread.start();
@@ -238,14 +246,14 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                             Log.e(TAG, "failed to close mTransport");
                         }
                         if (V) Log.v(TAG, "mTransport closed ");
+                        mBatch.mStatus = Constants.BATCH_STATUS_FAILED;
+                        if (info3 != null) {
+                            markBatchFailed(info3.mStatus);
+                        } else {
+                            markBatchFailed();
+                        }
+                        tickShareStatus(mCurrentShare);
                     }
-                    mBatch.mStatus = Constants.BATCH_STATUS_FAILED;
-                    if (info3 != null) {
-                        markBatchFailed(info3.mStatus);
-                    } else {
-                        markBatchFailed();
-                    }
-                    tickShareStatus(mCurrentShare);
                     break;
 
                 case BluetoothOppObexSession.MSG_CONNECT_TIMEOUT:
@@ -499,48 +507,64 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         }
     }
 
-    //TODO this commented code is necessary after bluez4 has good SDP API
-    /*
-        IBluetoothCallback.Stub mDeviceCallback = new IBluetoothCallback.Stub() {
-            public void onGetRemoteServiceChannelResult(String address, int channel) {
-                mSessionHandler.obtainMessage(SDP_RESULT, channel, -1, address).sendToTarget();
-            }
-        };
-    */
     private void doOpushSdp() {
         if (V) Log.v(TAG, "Do Opush SDP request for address " + mBatch.mDestination);
 
         mTimestamp = System.currentTimeMillis();
-        //TODO this commented code is necessary after bluez4 has good SDP API
-        /*
-                if (!mAdapter.getRemoteServiceChannel(mBatch.mDestination, OPUSH_UUID16, mDeviceCallback)) {
-                    Log.e(TAG, "Could not start OPUSH SDP query");
 
-                    markBatchFailed();
-                    mBatch.mStatus = Constants.BATCH_STATUS_FAILED;
-                }
-                */
-        ParcelUuid[] uuids = mBatch.mDestination.getUuids();
-        if (V) Log.v(TAG, "After call getRemoteUuids for address " + mBatch.mDestination);
-        int channel = -1;
-        if (uuids != null) {
-            if (BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.ObexObjectPush)) {
-                channel = mBatch.mDestination.getServiceChannel(BluetoothUuid.ObexObjectPush);
-                if (D) Log.d(TAG, "Get OPUSH channel " + channel + " from SDP for " +
-                        mBatch.mDestination);
-                if (channel != -1) {
-                    mConnectThread = new SocketConnectThread(mBatch.mDestination, channel);
-                    mConnectThread.start();
-                    return;
-                }
+        int channel;
+        channel = mBatch.mDestination.getServiceChannel(BluetoothUuid.ObexObjectPush);
+        if (channel != -1) {
+            if (D) Log.d(TAG, "Get OPUSH channel " + channel + " from SDP for "
+                    + mBatch.mDestination);
+
+            mSessionHandler.obtainMessage(SDP_RESULT, channel, -1, mBatch.mDestination)
+                    .sendToTarget();
+            return;
+
+        } else {
+            if (V) Log.v(TAG, "Remote Service channel not in cache");
+
+            if (!mBatch.mDestination.fetchUuidsWithSdp()) {
+                Log.e(TAG, "Start SDP query failed");
             } else {
-                if (D) Log.d(TAG, "Remote device doesn't support OPP");
+                // we expect framework send us Intent ACTION_UUID. otherwise we will fail
+                if (V) Log.v(TAG, "Start new SDP, wait for result");
+                IntentFilter intentFilter = new IntentFilter(BluetoothDevice.ACTION_UUID);
+                mContext.registerReceiver(mReceiver, intentFilter);
+                return;
             }
         }
-
         Message msg = mSessionHandler.obtainMessage(SDP_RESULT, channel, -1, mBatch.mDestination);
         mSessionHandler.sendMessageDelayed(msg, 2000);
     }
+
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(BluetoothDevice.ACTION_UUID)) {
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (V) Log.v(TAG, "ACTION_UUID for device " + device);
+                if (device.equals(mBatch.mDestination)) {
+                    int channel = -1;
+                    Parcelable[] uuid = intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID);
+                    if (uuid != null) {
+                        ParcelUuid[] uuids = new ParcelUuid[uuid.length];
+                        for (int i = 0; i < uuid.length; i++) {
+                            uuids[i] = (ParcelUuid)uuid[i];
+                        }
+                        if (BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.ObexObjectPush)) {
+                            if (V) Log.v(TAG, "SDP get OPP result for device " + device);
+                            channel = mBatch.mDestination
+                                    .getServiceChannel(BluetoothUuid.ObexObjectPush);
+                        }
+                    }
+                    mSessionHandler.obtainMessage(SDP_RESULT, channel, -1, mBatch.mDestination)
+                            .sendToTarget();
+                }
+            }
+        }
+    };
 
     private SocketConnectThread mConnectThread;
 

@@ -36,6 +36,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -280,7 +281,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         }
 
         if (V) Log.v(TAG, "insert contentUri: " + contentUri);
-            Log.v(TAG, "mLocalShareInfoId = " + mLocalShareInfoId);
+        if (V) Log.v(TAG, "mLocalShareInfoId = " + mLocalShareInfoId);
 
         if (V) Log.v(TAG, "acquire partial WakeLock");
         if (mWakeLock.isHeld()) {
@@ -308,8 +309,10 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             }
         }
         if (D) Log.d(TAG, "Server unblocked ");
-        if (mCallback != null && mTimeoutMsgSent) {
-            mCallback.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
+        synchronized (this) {
+            if (mCallback != null && mTimeoutMsgSent) {
+                mCallback.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
+            }
         }
 
         /* we should have mInfo now */
@@ -513,24 +516,24 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
         if (D) Log.d(TAG, "onConnect");
         if (V) Constants.logHeader(request);
-
+        try {
+            byte[] uuid = (byte[])request.getHeader(HeaderSet.TARGET);
+            if (V) Log.v(TAG, "onConnect(): uuid =" + Arrays.toString(uuid));
+            if(uuid != null) {
+                reply.setHeader(HeaderSet.WHO, uuid);
+            }
+        } catch (IOException e) {
+            Log.e(TAG, e.toString());
+            return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+        }
         mTimestamp = System.currentTimeMillis();
         return ResponseCodes.OBEX_HTTP_OK;
     }
 
     @Override
     public void onDisconnect(HeaderSet req, HeaderSet resp) {
-
         if (D) Log.d(TAG, "onDisconnect");
         resp.responseCode = ResponseCodes.OBEX_HTTP_OK;
-
-        /* onDisconnect could happen even before start() where mCallback is set */
-        if (mCallback != null) {
-            Message msg = Message.obtain(mCallback);
-            msg.what = BluetoothOppObexSession.MSG_SESSION_COMPLETE;
-            msg.obj = mInfo;
-            msg.sendToTarget();
-        }
     }
 
     @Override
@@ -541,6 +544,13 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         }
         if (mPartialWakeLock.isHeld()) {
             mPartialWakeLock.release();
+        }
+        /* onClose could happen even before start() where mCallback is set */
+        if (mCallback != null) {
+            Message msg = Message.obtain(mCallback);
+            msg.what = BluetoothOppObexSession.MSG_SESSION_COMPLETE;
+            msg.obj = mInfo;
+            msg.sendToTarget();
         }
     }
 }

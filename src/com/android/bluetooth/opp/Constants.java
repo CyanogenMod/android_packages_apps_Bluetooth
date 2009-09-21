@@ -41,7 +41,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.util.Config;
 import android.util.Log;
 
 /**

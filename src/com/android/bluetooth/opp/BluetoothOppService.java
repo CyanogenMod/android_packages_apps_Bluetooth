@@ -687,10 +687,12 @@ public class BluetoothOppService extends Service {
             if (V) Log.v(TAG, "Service handle info " + info.mId + " confirmed");
             /* Inbounds transfer get user confirmation, so we start it */
             int i = findBatchWithTimeStamp(info.mTimestamp);
-            BluetoothOppBatch batch = mBatchs.get(i);
-            if (batch.mId == mServerTransfer.getBatchId()) {
-                mServerTransfer.setConfirmed();
-            } //TODO need to think about else
+            if (i != -1) {
+                BluetoothOppBatch batch = mBatchs.get(i);
+                if (mServerTransfer != null && batch.mId == mServerTransfer.getBatchId()) {
+                    mServerTransfer.setConfirmed();
+                } //TODO need to think about else
+            }
         }
         int i = findBatchWithTimeStamp(info.mTimestamp);
         if (i != -1) {
@@ -707,6 +709,7 @@ public class BluetoothOppService extends Service {
                         Log.e(TAG, "Unexpected error! batch id " + batch.mId
                                 + " doesn't match mTransfer id " + mTransfer.getBatchId());
                     }
+                    mTransfer = null;
                 } else {
                     if (mServerTransfer == null) {
                         Log.e(TAG, "Unexpected error! mServerTransfer is null");
@@ -717,6 +720,7 @@ public class BluetoothOppService extends Service {
                                 + " doesn't match mServerTransfer id "
                                 + mServerTransfer.getBatchId());
                     }
+                    mServerTransfer = null;
                 }
                 removeBatch(batch);
             }
@@ -789,22 +793,33 @@ public class BluetoothOppService extends Service {
     private void removeBatch(BluetoothOppBatch batch) {
         if (V) Log.v(TAG, "Remove batch " + batch.mId);
         mBatchs.remove(batch);
+        BluetoothOppBatch nextBatch;
         if (mBatchs.size() > 0) {
             for (int i = 0; i < mBatchs.size(); i++) {
                 // we have a running batch
-                if (mBatchs.get(i).mStatus == Constants.BATCH_STATUS_RUNNING) {
+                nextBatch = mBatchs.get(i);
+                if (nextBatch.mStatus == Constants.BATCH_STATUS_RUNNING) {
                     return;
                 } else {
-                    // Pending batch for inbound transfer is not supported
                     // just finish a transfer, start pending outbound transfer
-                    if (mBatchs.get(i).mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
-                        if (V) Log.v(TAG, "Start pending outbound batch " + mBatchs.get(i).mId);
-                        mTransfer = new BluetoothOppTransfer(this, mPowerManager, mBatchs.get(i));
+                    if (nextBatch.mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
+                        if (V) Log.v(TAG, "Start pending outbound batch " + nextBatch.mId);
+                        mTransfer = new BluetoothOppTransfer(this, mPowerManager, nextBatch);
                         mTransfer.start();
                         return;
-                    } else {
-                        // have pending inbound transfer, should not happen
-                        Log.e(TAG, "Should not happen");
+                    } else if (nextBatch.mDirection == BluetoothShare.DIRECTION_INBOUND
+                            && mServerSession != null) {
+                        // have to support pending inbound transfer
+                        // if an outbound transfer and incoming socket happens together
+                        if (V) Log.v(TAG, "Start pending inbound batch " + nextBatch.mId);
+                        mServerTransfer = new BluetoothOppTransfer(this, mPowerManager, nextBatch,
+                                                                   mServerSession);
+                        mServerTransfer.start();
+                        if (nextBatch.getPendingShare().mConfirm ==
+                                BluetoothShare.USER_CONFIRMATION_CONFIRMED) {
+                            mServerTransfer.setConfirmed();
+                        }
+                        return;
                     }
                 }
             }

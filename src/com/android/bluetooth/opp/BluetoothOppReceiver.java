@@ -124,7 +124,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                     .getSystemService(Context.NOTIFICATION_SERVICE);
             if (notMgr != null) {
                 notMgr.cancel((int)ContentUris.parseId(intent.getData()));
-                Log.v(TAG, "notMgr.cancel called");
+                if (V) Log.v(TAG, "notMgr.cancel called");
             }
         } else if (action.equals(BluetoothShare.INCOMING_FILE_CONFIRMATION_REQUEST_ACTION)) {
             if (V) Log.v(TAG, "Receiver INCOMING_FILE_NOTIFICATION");
@@ -145,7 +145,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             Uri uri = intent.getData();
             transInfo = BluetoothOppUtility.queryRecord(context, uri);
             if (transInfo == null) {
-                if (V) Log.e(TAG, "Error: Can not get data from db");
+                Log.e(TAG, "Error: Can not get data from db");
                 return;
             }
 
@@ -198,7 +198,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             BluetoothOppTransferInfo transInfo = new BluetoothOppTransferInfo();
             transInfo = BluetoothOppUtility.queryRecord(context, intent.getData());
             if (transInfo == null) {
-                if (V) Log.e(TAG, "Error: Can not get data from db");
+                Log.e(TAG, "Error: Can not get data from db");
                 return;
             }
 

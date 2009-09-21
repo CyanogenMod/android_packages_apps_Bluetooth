@@ -121,8 +121,7 @@ public class BluetoothOppLauncherActivity extends Activity {
                 if (V) Log.v(TAG, "BT already enabled!! ");
                 Intent in1 = new Intent(BluetoothDevicePicker.ACTION_LAUNCH);
                 in1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                //TODO modify to false after SDP query is ok
-                in1.putExtra(BluetoothDevicePicker.EXTRA_NEED_AUTH, true);
+                in1.putExtra(BluetoothDevicePicker.EXTRA_NEED_AUTH, false);
                 in1.putExtra(BluetoothDevicePicker.EXTRA_FILTER_TYPE,
                         BluetoothDevicePicker.FILTER_TYPE_TRANSFER);
                 in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_PACKAGE,
