@@ -135,6 +135,10 @@ public class BluetoothOppReceiveFileInfo {
         }
 
         filename = choosefilename(hint);
+        if (filename == null) {
+            // should not happen. It must be pre-rejected
+            return new BluetoothOppReceiveFileInfo(BluetoothShare.STATUS_FILE_ERROR);
+        }
         String extension = null;
         int dotIndex = filename.indexOf('.');
         if (dotIndex < 0) {
