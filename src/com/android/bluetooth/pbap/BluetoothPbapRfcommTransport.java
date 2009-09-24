@@ -84,7 +84,6 @@ public class BluetoothPbapRfcommTransport implements ObexTransport {
 
     public boolean isConnected() throws IOException {
         return true;
-        // TODO implement
     }
 
 }

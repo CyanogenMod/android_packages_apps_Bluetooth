@@ -32,9 +32,12 @@
 
 package com.android.bluetooth.pbap;
 
+import android.content.Context;
 import android.os.Message;
 import android.os.Handler;
 import android.util.Log;
+import android.provider.CallLog.Calls;
+import android.provider.CallLog;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -136,6 +139,10 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     private Handler mCallback = null;
 
+    private Context mContext;
+
+    private BluetoothPbapVcardManager mVcardManager;
+
     public static class ContentType {
         public static final int PHONEBOOK = 1;
 
@@ -148,13 +155,15 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         public static final int COMBINED_CALL_HISTORY = 5;
     }
 
-    public BluetoothPbapObexServer(Handler callback) {
+    public BluetoothPbapObexServer(Handler callback, Context context) {
         super();
         mConnectionId = -1;
         mCallback = callback;
+        mContext = context;
+        mVcardManager = new BluetoothPbapVcardManager(mContext);
 
         // set initial value when ObexServer created
-        mMissedCallSize = BluetoothPbapService.getPhonebookSize(ContentType.MISSED_CALL_HISTORY);
+        mMissedCallSize = mVcardManager.getPhonebookSize(ContentType.MISSED_CALL_HISTORY);
         if (D) Log.d(TAG, "Initialize mMissedCallSize=" + mMissedCallSize);
     }
 
@@ -440,6 +449,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                     i += ApplicationParameter.TRIPLET_LENGTH.FILTER_LENGTH;
                     break;
                 case ApplicationParameter.TRIPLET_TAGID.ORDER_TAGID:
+                    // TODO capture this field to use
                     i += 2; // length and tag field in triplet
                     i += ApplicationParameter.TRIPLET_LENGTH.ORDER_LENGTH;
                     break;
@@ -508,7 +518,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         if (type == ContentType.PHONEBOOK) {
             // begin of search by name
             if (searchAttr.compareTo("0") == 0) {
-                ArrayList<String> nameList = BluetoothPbapService.getPhonebookNameList();
+                ArrayList<String> nameList = mVcardManager.getPhonebookNameList();
                 int requestSize = nameList.size() >= maxListCount ? maxListCount : nameList.size();
                 int startPoint = listStartOffset;
                 int endPoint = startPoint + requestSize;
@@ -542,7 +552,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             }// end of search by name
             // begin of search by number
             else if (searchAttr.compareTo("1") == 0) {
-                ArrayList<String> numberList = BluetoothPbapService.getPhonebookNumberList();
+                ArrayList<String> numberList = mVcardManager.getPhonebookNumberList();
                 int requestSize = numberList.size() >= maxListCount ? maxListCount : numberList
                         .size();
                 int startPoint = listStartOffset;
@@ -579,7 +589,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         }
         // Call history listing request
         else {
-            ArrayList<String> nameList = BluetoothPbapService.getCallLogList(type);
+            ArrayList<String> nameList = mVcardManager.loadCallHistoryList(type);
             int requestSize = nameList.size() >= maxListCount ? maxListCount : nameList.size();
             int startPoint = listStartOffset;
             int endPoint = startPoint + requestSize;
@@ -629,28 +639,56 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     /** Function to send vcard data to client */
-    private final int pushBytes(final Operation op, final String string) {
-        if (string == null) {
+    private final int pushBytes(final Operation op, final String vcardString) {
+        if (vcardString == null) {
+            Log.w(TAG, "vcardString is null!");
             return ResponseCodes.OBEX_HTTP_OK;
         }
-        byte[] filebytes;
-        int pushResult = ResponseCodes.OBEX_HTTP_OK;
-        OutputStream outputStream = null;
-        if (D) Log.d(TAG, "Send Data: len=" + string.length());
-        if (D) Log.d(TAG, string);
 
+        int vcardStringLen = vcardString.length();
+        if (D) Log.d(TAG, "Send Data: len=" + vcardStringLen);
+
+        OutputStream outputStream = null;
+        int pushResult = ResponseCodes.OBEX_HTTP_OK;
         try {
             outputStream = op.openOutputStream();
-            filebytes = string.getBytes();
-            outputStream.write(filebytes);
         } catch (IOException e) {
             Log.e(TAG, "open outputstrem failed" + e.toString());
-            pushResult = ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
-        } finally {
-            if (!closeStream(outputStream, op)) {
-                pushResult = ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
-            }
+            return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
         }
+
+        int position = 0;
+        long timestamp = 0;
+        int outputBufferSize = op.getMaxPacketSize();
+        if (V) Log.v(TAG, "outputBufferSize = " + outputBufferSize);
+        while (position != vcardStringLen) {
+            if (V) timestamp = System.currentTimeMillis();
+            int readLength = outputBufferSize;
+            if (vcardStringLen - position < outputBufferSize) {
+                readLength = vcardStringLen - position;
+            }
+            String subStr = vcardString.substring(position, position + readLength);
+            try {
+                outputStream.write(subStr.getBytes(), 0, readLength);
+            } catch (IOException e) {
+                Log.e(TAG, "write outputstrem failed" + e.toString());
+                pushResult = ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+                break;
+            }
+            if (V) {
+                Log.v(TAG, "Sending vcard String position = " + position + " readLength "
+                        + readLength + " bytes took " + (System.currentTimeMillis() - timestamp)
+                        + " ms");
+            }
+            position += readLength;
+        }
+
+        if (V) Log.v(TAG, "Send Data complete!");
+
+        if (!closeStream(outputStream, op)) {
+            pushResult = ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+        }
+
         return pushResult;
     }
 
@@ -662,6 +700,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         // In such case, PCE only want the number of index.
         // So response not contain any Body header.
         if (mNeedPhonebookSize) {
+            if (V) Log.v(TAG, "Need Phonebook size in response header.");
             mNeedPhonebookSize = false;
 
             byte[] pbsize = new byte[2];
@@ -693,6 +732,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         // NewMissedCalls is used only in the response, together with Body
         // header.
         if (mNeedNewMissedCallsNum) {
+            if (V) Log.v(TAG, "Need new missed call num in response header.");
             mNeedNewMissedCallsNum = false;
 
             int nmnum = size - mMissedCallSize;
@@ -738,10 +778,15 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             Log.i(TAG, "searchAttr is valid: " + searchAttr);
         }
 
-        int size = BluetoothPbapService.getPhonebookSize(appParamValue.needTag);
+        int size = mVcardManager.getPhonebookSize(appParamValue.needTag);
         int needSendBody = handleAppParaForResponse(appParamValue, size, reply, op);
         if (needSendBody != NEED_SEND_BODY) {
             return needSendBody;
+        }
+
+        if (size == 0) {
+            if (V) Log.v(TAG, "PhonebookSize is 0, return.");
+            return ResponseCodes.OBEX_HTTP_OK;
         }
 
         int sendResult = sendVcardListingXml(appParamValue.needTag, op, appParamValue.maxListCount,
@@ -752,14 +797,12 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     private final int pullVcardEntry(byte[] appParam, AppParamValue appParamValue,
             final Operation op, final String name, final String current_path) {
-        boolean vcard21 = true;
-        int intIndex = 0;
-
         if (name == null || name.length() < VCARD_NAME_SUFFIX_LENGTH) {
             if (D) Log.d(TAG, "Name is Null, or the length of name < 5 !");
             return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
         }
         String strIndex = name.substring(0, name.length() - VCARD_NAME_SUFFIX_LENGTH + 1);
+        int intIndex = 0;
         if (strIndex.trim().length() != 0) {
             try {
                 intIndex = Integer.parseInt(strIndex);
@@ -769,26 +812,27 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             }
         }
 
-        int queryDbResult = BluetoothPbapService.queryDataFromContactsDB(appParamValue.needTag);
-        if (queryDbResult == -1) {
-            return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+        int size = mVcardManager.getPhonebookSize(appParamValue.needTag);
+        if (size == 0) {
+            if (V) Log.v(TAG, "PhonebookSize is 0, return.");
+            return ResponseCodes.OBEX_HTTP_OK;
         }
 
-        int pushPbResult = ResponseCodes.OBEX_HTTP_OK;
-        int size = BluetoothPbapService.getPhonebookSize(appParamValue.needTag);
+        boolean vcard21 = appParamValue.vcard21;
         if (appParamValue.needTag == 0) {
             Log.w(TAG, "wrong path!");
-            pushPbResult = ResponseCodes.OBEX_HTTP_BAD_REQUEST;
+            return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
         } else if (appParamValue.needTag == ContentType.PHONEBOOK) {
             if (intIndex < 0 || intIndex >= size) {
                 Log.w(TAG, "The requested vcard is not acceptable! name= " + name);
                 return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
-            }
-            if (intIndex >= 0) {
+            } else if (intIndex == 0) {
                 // For PB_PATH, 0.vcf is the phone number of this phone.
-                String str = BluetoothPbapService.getPhonebook(appParamValue.needTag, intIndex,
-                        vcard21);
-                pushPbResult = pushBytes(op, str);
+                String ownerVcard = mVcardManager.getOwnerPhoneNumberVcard(vcard21);
+                return pushBytes(op, ownerVcard);
+            } else {
+                return mVcardManager.composeAndSendPhonebookVcards(op, intIndex, intIndex, vcard21,
+                        null);
             }
         } else {
             if (intIndex <= 0 || intIndex > size) {
@@ -798,21 +842,15 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             // For others (ich/och/cch/mch), 0.vcf is meaningless, and must
             // begin from 1.vcf
             if (intIndex >= 1) {
-                String str = BluetoothPbapService.getPhonebook(appParamValue.needTag, intIndex - 1,
-                        vcard21);
-                pushPbResult = pushBytes(op, str);
+                return mVcardManager.composeAndSendCallLogVcards(appParamValue.needTag, op,
+                        intIndex - 1, intIndex - 1, vcard21);
             }
         }
-
-        BluetoothPbapService.closeContactsCursor(appParamValue.needTag);
-
-        return pushPbResult;
+        return ResponseCodes.OBEX_HTTP_OK;
     }
 
     private final int pullPhonebook(byte[] appParam, AppParamValue appParamValue, HeaderSet reply,
             final Operation op, final String name) {
-        boolean vcard21 = true;
-
         // code start for passing PTS3.2 TC_PSE_PBD_BI_01_C
         if (name != null) {
             int dotIndex = name.indexOf(".");
@@ -825,10 +863,15 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             }
         } // code end for passing PTS3.2 TC_PSE_PBD_BI_01_C
 
-        int pbSize = BluetoothPbapService.getPhonebookSize(appParamValue.needTag);
+        int pbSize = mVcardManager.getPhonebookSize(appParamValue.needTag);
         int needSendBody = handleAppParaForResponse(appParamValue, pbSize, reply, op);
         if (needSendBody != NEED_SEND_BODY) {
             return needSendBody;
+        }
+
+        if (pbSize == 0) {
+            if (V) Log.v(TAG, "PhonebookSize is 0, return.");
+            return ResponseCodes.OBEX_HTTP_OK;
         }
 
         int requestSize = pbSize >= appParamValue.maxListCount ? appParamValue.maxListCount
@@ -841,25 +884,25 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         if (D) Log.d(TAG, "pullPhonebook(): requestSize=" + requestSize + " startPoint=" +
                 startPoint + " endPoint=" + endPoint);
 
-        StringBuilder res = new StringBuilder();
-        int queryDbResult = BluetoothPbapService.queryDataFromContactsDB(appParamValue.needTag);
-        if (queryDbResult == -1) {
-            return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+        String result = null;
+        boolean vcard21 = appParamValue.vcard21;
+        if (appParamValue.needTag == BluetoothPbapObexServer.ContentType.PHONEBOOK) {
+            if (startPoint < 0) {
+                Log.w(TAG, "listStartOffset < 0, incoming para not correct!");
+                return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
+            } else if (startPoint == 0) {
+                String ownerVcard = mVcardManager.getOwnerPhoneNumberVcard(vcard21);
+                return mVcardManager.composeAndSendPhonebookVcards(op, 1, endPoint, vcard21, ownerVcard);
+            } else {
+               return mVcardManager.composeAndSendPhonebookVcards(op, startPoint, endPoint, vcard21, null);
+            }
+        } else {
+            return mVcardManager.composeAndSendCallLogVcards(appParamValue.needTag, op, startPoint,
+                    endPoint, vcard21);
         }
-
-        for (int pos = startPoint; pos < endPoint; pos++) {
-            String str = BluetoothPbapService.getPhonebook(appParamValue.needTag, pos, vcard21);
-
-            res.append(str);
-            continue;
-        }
-
-        BluetoothPbapService.closeContactsCursor(appParamValue.needTag);
-
-        return pushBytes(op, res.toString());
     }
 
-    private boolean closeStream(final OutputStream out, final Operation op) {
+    public static boolean closeStream(final OutputStream out, final Operation op) {
         boolean returnvalue = true;
         try {
             if (out != null) {
@@ -885,7 +928,26 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     public final void onAuthenticationFailure(final byte[] userName) {
     }
 
-    public static void logHeader(HeaderSet hs) {
+    public static final String createSelectionPara(final int type) {
+        String selection = null;
+        switch (type) {
+            case ContentType.INCOMING_CALL_HISTORY:
+                selection = Calls.TYPE + "=" + CallLog.Calls.INCOMING_TYPE;
+                break;
+            case ContentType.OUTGOING_CALL_HISTORY:
+                selection = Calls.TYPE + "=" + CallLog.Calls.OUTGOING_TYPE;
+                break;
+            case ContentType.MISSED_CALL_HISTORY:
+                selection = Calls.TYPE + "=" + CallLog.Calls.MISSED_TYPE;
+                break;
+            default:
+                break;
+        }
+        if (V) Log.v(TAG, "Call log selection: " + selection);
+        return selection;
+    }
+
+    public static final void logHeader(HeaderSet hs) {
         Log.v(TAG, "Dumping HeaderSet " + hs.toString());
         try {
 

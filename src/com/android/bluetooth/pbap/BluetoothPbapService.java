@@ -51,7 +51,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
+import android.provider.ContactsContract.RawContacts;
 import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -61,20 +63,18 @@ import java.util.ArrayList;
 import javax.obex.ServerSession;
 
 public class BluetoothPbapService extends Service {
-
     private static final String TAG = "BluetoothPbapService";
 
     /**
-     * To enable PBAP debug logging - run below cmd in adb shell, and restart
-     * com.android.bluetooth process. only enable VERBOSE log:
-     * "setprop log.tag.BluetoothPbapService VERBOSE"; enable both VERBOSE and DEBUG log:
-     * "setprop log.tag.BluetoothPbapService DEBUG"
+     * To enable PBAP DEBUG/VERBOSE logging - run below cmd in adb shell, and
+     * restart com.android.bluetooth process. only enable DEBUG log:
+     * "setprop log.tag.BluetoothPbapService DEBUG"; enable both VERBOSE and
+     * DEBUG log: "setprop log.tag.BluetoothPbapService VERBOSE"
      */
 
     public static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
 
-    public static final boolean VERBOSE = Log.isLoggable(TAG, Log.VERBOSE)
-            || Log.isLoggable(TAG, Log.DEBUG);
+    public static final boolean VERBOSE = Log.isLoggable(TAG, Log.VERBOSE);
 
     /**
      * Intent indicating incoming connection request which is sent to
@@ -173,8 +173,6 @@ public class BluetoothPbapService extends Service {
 
     private BluetoothPbapObexServer mPbapServer;
 
-    private static BluetoothPbapVcardManager sVcardManager;
-
     private ServerSession mServerSession = null;
 
     private BluetoothServerSocket mServerSocket = null;
@@ -208,7 +206,7 @@ public class BluetoothPbapService extends Service {
 
         mInterrupted = false;
         mAdapter = (BluetoothAdapter)getSystemService(Context.BLUETOOTH_SERVICE);
-        sVcardManager = new BluetoothPbapVcardManager(BluetoothPbapService.this);
+
         if (!mHasStarted) {
             mHasStarted = true;
             if (VERBOSE) Log.v(TAG, "Starting PBAP service");
@@ -238,7 +236,12 @@ public class BluetoothPbapService extends Service {
 
     // process the intent from receiver
     private void parseIntent(final Intent intent) {
-        String action = intent.getExtras().getString("action");
+        if (intent == null) {
+            return;
+        }
+        String action = intent.getStringExtra("action");
+        if (VERBOSE) Log.v(TAG, "action: " + action);
+
         int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
         boolean removeTimeoutMsg = true;
         if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
@@ -413,9 +416,17 @@ public class BluetoothPbapService extends Service {
         TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
         if (tm != null) {
             sLocalPhoneNum = tm.getLine1Number();
+            if (TextUtils.isEmpty(sLocalPhoneNum)) {
+                // Default number (000000) should be ok
+                sLocalPhoneNum = this.getString(R.string.defaultnumber);
+            }
             sLocalPhoneName = tm.getLine1AlphaTag();
+            if (TextUtils.isEmpty(sLocalPhoneName)) {
+                sLocalPhoneName = this.getString(R.string.unknownName);
+            }
         }
-        mPbapServer = new BluetoothPbapObexServer(mSessionStatusHandler);
+
+        mPbapServer = new BluetoothPbapObexServer(mSessionStatusHandler, this);
         synchronized (this) {
             mAuth = new BluetoothPbapAuthenticator(mSessionStatusHandler);
             mAuth.setChallenged(false);
@@ -459,15 +470,17 @@ public class BluetoothPbapService extends Service {
     }
 
     private void notifyAuthKeyInput(final String key) {
-        synchronized (this) {
-            mAuth.setSessionKey(key);
+        synchronized (mAuth) {
+            if (key != null) {
+                mAuth.setSessionKey(key);
+            }
             mAuth.setChallenged(true);
             mAuth.notify();
         }
     }
 
     private void notifyAuthCancelled() {
-        synchronized (this) {
+        synchronized (mAuth) {
             mAuth.setCancelled(true);
             mAuth.notify();
         }
@@ -658,64 +671,6 @@ public class BluetoothPbapService extends Service {
         nm.cancel(id);
     }
 
-    public static int getPhonebookSize(final int type) {
-        int size;
-        switch (type) {
-            case BluetoothPbapObexServer.ContentType.PHONEBOOK:
-                size = sVcardManager.getPhonebookSize();
-                break;
-            default:
-                size = sVcardManager.getCallHistorySize(type);
-                break;
-        }
-        if (VERBOSE) Log.v(TAG, "getPhonebookSzie size = " + size + " type = " + type);
-        return size;
-    }
-
-    public static void closeContactsCursor(final int type) {
-        if (VERBOSE) Log.v(TAG, "closeContactsCursor: type=" + type);
-
-        switch (type) {
-            case BluetoothPbapObexServer.ContentType.PHONEBOOK:
-                sVcardManager.closeContactsCursor();
-                break;
-            default:
-                sVcardManager.closeCallLogCursor();
-                break;
-        }
-    }
-
-    public static int queryDataFromContactsDB(final int type) {
-        if (VERBOSE) Log.v(TAG, "queryDataFromContactsDB: type=" + type);
-
-        int queryResult = 0;
-        switch (type) {
-            case BluetoothPbapObexServer.ContentType.PHONEBOOK:
-                queryResult = sVcardManager.queryDataFromContactsDB();
-                break;
-            default:
-                queryResult = sVcardManager.queryDataFromCallLogDB(type);
-                break;
-        }
-        return queryResult;
-    }
-
-    public static String getPhonebook(final int type, final int pos, final boolean vcardType) {
-        if (VERBOSE) Log.v(TAG, "getPhonebook type=" + type + " pos=" + pos + " vcardType="
-                + vcardType);
-
-        String vCardStr;
-        switch (type) {
-            case BluetoothPbapObexServer.ContentType.PHONEBOOK:
-                vCardStr = sVcardManager.getPhonebook(pos, vcardType);
-                break;
-            default:
-                vCardStr = sVcardManager.getCallHistory(pos, vcardType);
-                break;
-        }
-        return vCardStr;
-    }
-
     public static String getLocalPhoneNum() {
         return sLocalPhoneNum;
     }
@@ -726,21 +681,6 @@ public class BluetoothPbapService extends Service {
 
     public static String getRemoteDeviceName() {
         return sRemoteDeviceName;
-    }
-
-    // Used for phone book listing by name
-    public static ArrayList<String> getPhonebookNameList() {
-        return sVcardManager.loadNameList();
-    }
-
-    // Used for phone book listing by number
-    public static ArrayList<String> getPhonebookNumberList() {
-        return sVcardManager.loadNumberList();
-    }
-
-    // Used for call history listing
-    public static ArrayList<String> getCallLogList(final int type) {
-        return sVcardManager.loadCallHistoryList(type);
     }
 
     /**
