@@ -251,7 +251,7 @@ public class BluetoothPbapVcardManager {
         String typeSelection = BluetoothPbapObexServer.createSelectionPara(type);
         String recordSelection;
         if (startPoint == endPoint) {
-            recordSelection = Calls._ID + "==" + startPoint; // TODO == or =?
+            recordSelection = Calls._ID + "=" + startPoint;
         } else {
             recordSelection = Calls._ID + ">=" + startPoint + " AND "
                     + Calls._ID + "<=" + endPoint;
@@ -273,7 +273,7 @@ public class BluetoothPbapVcardManager {
             final int endPoint, final boolean vcardType21, String ownerVCard) {
         String selection;
         if (startPoint == endPoint) {
-            selection = RawContacts._ID + "==" + startPoint;
+            selection = RawContacts._ID + "=" + startPoint;
         } else {
             selection = RawContacts._ID + ">=" + startPoint + " AND " + RawContacts._ID + "<="
                     + endPoint;
