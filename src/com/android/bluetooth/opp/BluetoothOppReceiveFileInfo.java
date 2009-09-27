@@ -55,6 +55,7 @@ import android.util.Log;
 public class BluetoothOppReceiveFileInfo {
     private static final boolean D = Constants.DEBUG;
     private static final boolean V = Constants.VERBOSE;
+    private static String sDesiredStoragePath = null;
 
     /** absolute store file name */
     public String mFileName;
@@ -150,6 +151,11 @@ public class BluetoothOppReceiveFileInfo {
         filename = base.getPath() + File.separator + filename;
         // Generate a unique filename, create the file, return it.
         String fullfilename = chooseUniquefilename(filename, extension);
+
+        if (!safeCanonicalPath(fullfilename)) {
+            // If this second check fails, then we better reject the transfer
+            return new BluetoothOppReceiveFileInfo(BluetoothShare.STATUS_FILE_ERROR);
+        }
         if (V) Log.v(Constants.TAG, "Generated received filename " + fullfilename);
 
         if (fullfilename != null) {
@@ -175,6 +181,27 @@ public class BluetoothOppReceiveFileInfo {
             return new BluetoothOppReceiveFileInfo(BluetoothShare.STATUS_FILE_ERROR);
         }
 
+    }
+
+    private static boolean safeCanonicalPath(String uniqueFileName) {
+        try {
+            File receiveFile = new File(uniqueFileName);
+            if (sDesiredStoragePath == null) {
+                sDesiredStoragePath = Environment.getExternalStorageDirectory().getPath() +
+                    Constants.DEFAULT_STORE_SUBDIR;
+            }
+            String canonicalPath = receiveFile.getCanonicalPath();
+
+            // Check if canonical path is complete - case sensitive-wise
+            if (!canonicalPath.startsWith(sDesiredStoragePath)) {
+                return false;
+            }
+
+	    	return true;
+        } catch (IOException ioe) {
+            // If an exception is thrown, there might be something wrong with the file.
+            return false;
+        }
     }
 
     private static String chooseUniquefilename(String filename, String extension) {
