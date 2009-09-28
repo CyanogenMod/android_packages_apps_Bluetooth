@@ -38,7 +38,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.bluetooth.BluetoothUuid;
-import android.bluetooth.ParcelUuid;
+import android.os.ParcelUuid;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
