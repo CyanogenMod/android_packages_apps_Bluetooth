@@ -106,11 +106,16 @@ public class Constants {
     };
 
     /**
-     * The MIME type(s) of we could accept from other device. TODO: define
-     * correct type list
+     * The MIME type(s) of we could accept from other device.
+     * This is in essence a "white list" of acceptable types.
+     * Today, restricted to images, audio, video and certain text types.
      */
     public static final String[] ACCEPTABLE_SHARE_INBOUND_TYPES = new String[] {
         "image/*",
+        "video/*",
+        "audio/*",
+        "text/plain",
+        "text/html",
     };
 
     /**
