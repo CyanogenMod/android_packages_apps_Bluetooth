@@ -34,6 +34,7 @@ package com.android.bluetooth.opp;
 
 import javax.obex.ObexTransport;
 
+import android.app.NotificationManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -273,9 +274,19 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                         }
                         if (V) Log.v(TAG, "mTransport closed ");
                     } else {
-                        /* For inbound transfer, the block point is waiting for user confirmation
-                         * we can interrupt it nicely
+                        /*
+                         * For inbound transfer, the block point is waiting for
+                         * user confirmation we can interrupt it nicely
                          */
+
+                        // Remove incoming file confirm notification
+                        NotificationManager nm = (NotificationManager)mContext
+                                .getSystemService(Context.NOTIFICATION_SERVICE);
+                        nm.cancel(mCurrentShare.mId);
+                        // Send intent to UI for timeout handling
+                        Intent in = new Intent(BluetoothShare.USER_CONFIRMATION_TIMEOUT_ACTION);
+                        mContext.sendBroadcast(in);
+
                         markShareTimeout(mCurrentShare);
                     }
                     break;

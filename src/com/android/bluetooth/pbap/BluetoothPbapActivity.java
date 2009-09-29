@@ -40,6 +40,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.Preference;
 import android.util.Log;
 import android.view.View;
@@ -64,6 +66,8 @@ import com.android.internal.app.AlertController;
 public class BluetoothPbapActivity extends AlertActivity implements
         DialogInterface.OnClickListener, Preference.OnPreferenceChangeListener, TextWatcher {
     private static final String TAG = "BluetoothPbapActivity";
+
+    private static final boolean V = BluetoothPbapService.VERBOSE;
 
     private static final int BLUETOOTH_OBEX_AUTHKEY_MAX_LENGTH = 16;
 
@@ -90,6 +94,10 @@ public class BluetoothPbapActivity extends AlertActivity implements
     private boolean mTimeout = false;
 
     private boolean mAlwaysAllowedValue = true;
+
+    private static final int DISMISS_TIMEOUT_DIALOG = 0;
+
+    private static final int DISMISS_TIMEOUT_DIALOG_VALUE = 2000;
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -281,12 +289,19 @@ public class BluetoothPbapActivity extends AlertActivity implements
             mOkButton.setEnabled(true);
             mAlert.getButton(DialogInterface.BUTTON_NEGATIVE).setVisibility(View.GONE);
         }
+
+        mTimeoutHandler.sendMessageDelayed(mTimeoutHandler.obtainMessage(DISMISS_TIMEOUT_DIALOG),
+                DISMISS_TIMEOUT_DIALOG_VALUE);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         mTimeout = savedInstanceState.getBoolean(KEY_USER_TIMEOUT);
+        if (V) Log.v(TAG, "onRestoreInstanceState() mTimeout: " + mTimeout);
+        if (mTimeout) {
+            onTimeout();
+        }
     }
 
     @Override
@@ -316,4 +331,18 @@ public class BluetoothPbapActivity extends AlertActivity implements
             mOkButton.setEnabled(true);
         }
     }
+
+    private final Handler mTimeoutHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case DISMISS_TIMEOUT_DIALOG:
+                    if (V) Log.v(TAG, "Received DISMISS_TIMEOUT_DIALOG msg.");
+                    finish();
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
 }

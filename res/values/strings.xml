@@ -50,11 +50,15 @@
     <string name="incoming_file_confirm_cancel">Decline</string>
     <!-- Label for a confirm button.-->
     <string name="incoming_file_confirm_ok">Accept</string>
+    <!-- Label for timeout OK button.-->
+    <string name="incoming_file_confirm_timeout_ok">Ok</string>
+    <!-- content for timeout-->
+    <string name="incoming_file_confirm_timeout_content">There was time out to accept incoming file from \u0022%1$s\u0022</string>
 
     <!-- Bluetooth File Transfer Acceptance Notification item -->
     <string name="incoming_file_confirm_Notification_title">Bluetooth share: Incoming file</string>
     <string name="incoming_file_confirm_Notification_caption">Please confirm you want to receive this file</string>
-    <string name="incoming_file_toast_msg">There is an inoming file from another device,
+    <string name="incoming_file_toast_msg">There is an incoming file from another device,
         please confirm that you want to receive this file</string>
 
     <!-- Inbound File Transfer Progress Notification item -->
