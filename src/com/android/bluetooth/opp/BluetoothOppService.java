@@ -177,17 +177,18 @@ public class BluetoothOppService extends Service {
     }
 
     @Override
-    public void onStart(Intent intent, int startId) {
-        super.onStart(intent, startId);
-        if (V) Log.v(TAG, "Service onStart");
-
-        if (mAdapter == null) {
-            Log.w(TAG, "Local BT device is not enabled");
-        } else {
-            startListenerDelayed();
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (V) Log.v(TAG, "Service onStartCommand");
+        int retCode = super.onStartCommand(intent, flags, startId);
+        if (retCode == START_STICKY) {
+            if (mAdapter == null) {
+                Log.w(TAG, "Local BT device is not enabled");
+            } else {
+                startListenerDelayed();
+            }
+            updateFromProvider();
         }
-        updateFromProvider();
-
+        return retCode;
     }
 
     private void startListenerDelayed() {
