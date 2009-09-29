@@ -35,6 +35,7 @@ package com.android.bluetooth.pbap;
 import android.content.Context;
 import android.os.Message;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Log;
 import android.provider.CallLog.Calls;
 import android.provider.CallLog;
@@ -309,6 +310,9 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         if (V) logHeader(request);
         if (D) Log.d(TAG, "OnGet type is " + type + "; name is " + name);
 
+        if (type == null) {
+            return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
+        }
         // Accroding to specification,the name header could be omitted such as
         // sony erriccsonHBH-DS980
 
@@ -318,7 +322,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         // We decide which kind of content client would like per current path
 
         boolean validName = true;
-        if (name == null || name.length() == 0) {
+        if (TextUtils.isEmpty(name)) {
             validName = false;
         }
 
@@ -825,7 +829,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         } else if (appParamValue.needTag == ContentType.PHONEBOOK) {
             if (intIndex < 0 || intIndex >= size) {
                 Log.w(TAG, "The requested vcard is not acceptable! name= " + name);
-                return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
+                return ResponseCodes.OBEX_HTTP_OK;
             } else if (intIndex == 0) {
                 // For PB_PATH, 0.vcf is the phone number of this phone.
                 String ownerVcard = mVcardManager.getOwnerPhoneNumberVcard(vcard21);
@@ -837,13 +841,13 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         } else {
             if (intIndex <= 0 || intIndex > size) {
                 Log.w(TAG, "The requested vcard is not acceptable! name= " + name);
-                return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
+                return ResponseCodes.OBEX_HTTP_OK;
             }
             // For others (ich/och/cch/mch), 0.vcf is meaningless, and must
             // begin from 1.vcf
             if (intIndex >= 1) {
                 return mVcardManager.composeAndSendCallLogVcards(appParamValue.needTag, op,
-                        intIndex - 1, intIndex - 1, vcard21);
+                        intIndex, intIndex, vcard21);
             }
         }
         return ResponseCodes.OBEX_HTTP_OK;
@@ -877,9 +881,14 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         int requestSize = pbSize >= appParamValue.maxListCount ? appParamValue.maxListCount
                 : pbSize;
         int startPoint = appParamValue.listStartOffset;
-        int endPoint = startPoint + requestSize;
-        if (endPoint > pbSize) {
-            endPoint = pbSize;
+        if (startPoint < 0 || startPoint >= pbSize) {
+            Log.w(TAG, "listStartOffset is not correct! " + startPoint);
+            return ResponseCodes.OBEX_HTTP_OK;
+        }
+
+        int endPoint = startPoint + requestSize - 1;
+        if (endPoint > pbSize - 1) {
+            endPoint = pbSize - 1;
         }
         if (D) Log.d(TAG, "pullPhonebook(): requestSize=" + requestSize + " startPoint=" +
                 startPoint + " endPoint=" + endPoint);
@@ -887,18 +896,21 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         String result = null;
         boolean vcard21 = appParamValue.vcard21;
         if (appParamValue.needTag == BluetoothPbapObexServer.ContentType.PHONEBOOK) {
-            if (startPoint < 0) {
-                Log.w(TAG, "listStartOffset < 0, incoming para not correct!");
-                return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
-            } else if (startPoint == 0) {
+            if (startPoint == 0) {
                 String ownerVcard = mVcardManager.getOwnerPhoneNumberVcard(vcard21);
-                return mVcardManager.composeAndSendPhonebookVcards(op, 1, endPoint, vcard21, ownerVcard);
+                if (endPoint == 0) {
+                    return pushBytes(op, ownerVcard);
+                } else {
+                    return mVcardManager.composeAndSendPhonebookVcards(op, 1, endPoint, vcard21,
+                            ownerVcard);
+                }
             } else {
-               return mVcardManager.composeAndSendPhonebookVcards(op, startPoint, endPoint, vcard21, null);
+                return mVcardManager.composeAndSendPhonebookVcards(op, startPoint, endPoint,
+                        vcard21, null);
             }
         } else {
-            return mVcardManager.composeAndSendCallLogVcards(appParamValue.needTag, op, startPoint,
-                    endPoint, vcard21);
+            return mVcardManager.composeAndSendCallLogVcards(appParamValue.needTag, op,
+                    startPoint + 1, endPoint + 1, vcard21);
         }
     }
 
