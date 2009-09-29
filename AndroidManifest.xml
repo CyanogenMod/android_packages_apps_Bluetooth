@@ -76,6 +76,7 @@
                   android:theme="@*android:style/Theme.Dialog.Alert">
         </activity>
         <activity android:name=".opp.BluetoothOppLiveFolder"
+            android:icon="@drawable/ic_launcher_folder_bluetooth"
             android:label="@string/btopp_live_folder">
             <intent-filter>
                 <action android:name="android.intent.action.CREATE_LIVE_FOLDER" />
