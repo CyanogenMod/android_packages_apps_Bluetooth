@@ -220,25 +220,29 @@ public class BluetoothPbapService extends Service {
     }
 
     @Override
-    public void onStart(Intent intent, int startId) {
-        if (VERBOSE) Log.v(TAG, "Pbap Service onStart");
-
-        mStartId = startId;
-        if (mAdapter == null) {
-            Log.w(TAG, "Stopping BluetoothPbapService: "
-                    + "device does not have BT or device is not ready");
-            // Release all resources
-            closeService();
-        } else {
-            parseIntent(intent);
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (VERBOSE) Log.v(TAG, "Pbap Service onStartCommand");
+        int retCode = super.onStartCommand(intent, flags, startId);
+        if (retCode == START_STICKY) {
+            mStartId = startId;
+            if (mAdapter == null) {
+                Log.w(TAG, "Stopping BluetoothPbapService: "
+                        + "device does not have BT or device is not ready");
+                // Release all resources
+                closeService();
+            } else {
+                // No need to handle the null intent case, because we have
+                // all restart work done in onCreate()
+                if (intent != null) {
+                    parseIntent(intent);
+                }
+            }
         }
+        return retCode;
     }
 
     // process the intent from receiver
     private void parseIntent(final Intent intent) {
-        if (intent == null) {
-            return;
-        }
         String action = intent.getStringExtra("action");
         if (VERBOSE) Log.v(TAG, "action: " + action);
 
@@ -290,6 +294,7 @@ public class BluetoothPbapService extends Service {
             mWakeLock.release();
             mWakeLock = null;
         }
+        closeService();
     }
 
     @Override
@@ -376,12 +381,6 @@ public class BluetoothPbapService extends Service {
     private final void closeService() {
         if (VERBOSE) Log.v(TAG, "Pbap Service closeService");
 
-        try {
-            closeSocket(true, true);
-        } catch (IOException ex) {
-            Log.e(TAG, "CloseSocket error: " + ex);
-        }
-
         if (mAcceptThread != null) {
             try {
                 mAcceptThread.shutdown();
@@ -391,6 +390,13 @@ public class BluetoothPbapService extends Service {
                 Log.w(TAG, "mAcceptThread close error" + ex);
             }
         }
+
+        try {
+            closeSocket(true, true);
+        } catch (IOException ex) {
+            Log.e(TAG, "CloseSocket error: " + ex);
+        }
+
         if (mServerSession != null) {
             mServerSession.close();
             mServerSession = null;
@@ -503,12 +509,14 @@ public class BluetoothPbapService extends Service {
                     mConnSocket = mServerSocket.accept();
 
                     mRemoteDevice = mConnSocket.getRemoteDevice();
-                    if (mRemoteDevice != null) {
-                        sRemoteDeviceName = mRemoteDevice.getName();
-                        // In case getRemoteName failed and return null
-                        if (sRemoteDeviceName == null) {
-                            sRemoteDeviceName = getString(R.string.defaultname);
-                        }
+                    if (mRemoteDevice == null) {
+                        Log.i(TAG, "getRemoteDevice() = null");
+                        break;
+                    }
+                    sRemoteDeviceName = mRemoteDevice.getName();
+                    // In case getRemoteName failed and return null
+                    if (TextUtils.isEmpty(sRemoteDeviceName)) {
+                        sRemoteDeviceName = getString(R.string.defaultname);
                     }
                     boolean trust = mRemoteDevice.getTrustState();
                     if (VERBOSE) Log.v(TAG, "GetTrustState() = " + trust);
