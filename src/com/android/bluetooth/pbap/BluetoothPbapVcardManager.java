@@ -36,8 +36,6 @@ import com.android.bluetooth.R;
 
 import android.net.Uri;
 import android.os.Handler;
-import android.syncml.pim.vcard.ContactStruct;
-import android.syncml.pim.vcard.VCardException;
 import android.text.TextUtils;
 import android.util.Log;
 import android.database.Cursor;
