@@ -367,19 +367,23 @@ public class BluetoothPbapService extends Service {
             if (mServerSocket != null) {
                 mServerSocket.close();
             }
-            mServerSocket = null;
         }
 
         if (accept == true) {
             if (mConnSocket != null) {
                 mConnSocket.close();
             }
-            mConnSocket = null;
         }
     }
 
     private final void closeService() {
         if (VERBOSE) Log.v(TAG, "Pbap Service closeService");
+
+        try {
+            closeSocket(true, true);
+        } catch (IOException ex) {
+            Log.e(TAG, "CloseSocket error: " + ex);
+        }
 
         if (mAcceptThread != null) {
             try {
@@ -390,12 +394,8 @@ public class BluetoothPbapService extends Service {
                 Log.w(TAG, "mAcceptThread close error" + ex);
             }
         }
-
-        try {
-            closeSocket(true, true);
-        } catch (IOException ex) {
-            Log.e(TAG, "CloseSocket error: " + ex);
-        }
+        mServerSocket = null;
+        mConnSocket = null;
 
         if (mServerSession != null) {
             mServerSession.close();
@@ -464,6 +464,7 @@ public class BluetoothPbapService extends Service {
 
         try {
             closeSocket(false, true);
+            mConnSocket = null;
         } catch (IOException e) {
             Log.e(TAG, "closeSocket error: " + e.toString());
         }
@@ -737,6 +738,7 @@ public class BluetoothPbapService extends Service {
                         }
                         try {
                             closeSocket(false, true);
+                            mConnSocket = null;
                         } catch (IOException ex) {
                             Log.e(TAG, "Caught the error: " + ex);
                         }
