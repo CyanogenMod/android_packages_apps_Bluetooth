@@ -91,7 +91,6 @@
             </intent-filter>
         </activity>
         <service android:name=".pbap.BluetoothPbapService" >
-            <action android:name="android.bluetooth.IBluetoothPbap"/>
         </service>
         <receiver android:name=".pbap.BluetoothPbapReceiver">
             <intent-filter>
