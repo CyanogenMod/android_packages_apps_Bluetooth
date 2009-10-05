@@ -55,7 +55,6 @@ import android.provider.ContactsContract.RawContacts;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -587,12 +586,8 @@ public class BluetoothPbapService extends Service {
                     break;
                 case MSG_SERVERSESSION_CLOSE:
                     stopObexServerSession();
-                    tmpTxt = getString(R.string.toast_disconnected, sRemoteDeviceName);
-                    Toast.makeText(BluetoothPbapService.this, tmpTxt, Toast.LENGTH_SHORT).show();
                     break;
                 case MSG_SESSION_ESTABLISHED:
-                    tmpTxt = getString(R.string.toast_connected, sRemoteDeviceName);
-                    Toast.makeText(BluetoothPbapService.this, tmpTxt, Toast.LENGTH_SHORT).show();
                     break;
                 case MSG_SESSION_DISCONNECTED:
                     // case MSG_SERVERSESSION_CLOSE will handle ,so just skip
