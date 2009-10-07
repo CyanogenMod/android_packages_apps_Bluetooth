@@ -155,7 +155,7 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
             BluetoothOppUtility.updateVisibilityToHidden(this, mUri);
         }
 
-        mAdapter = (BluetoothAdapter) getSystemService(Context.BLUETOOTH_SERVICE); 
+        mAdapter = BluetoothAdapter.getDefaultAdapter();
 
         // Set up the "dialog"
         setUpDialog();

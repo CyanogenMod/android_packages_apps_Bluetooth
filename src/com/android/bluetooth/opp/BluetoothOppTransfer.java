@@ -116,7 +116,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         mSession = session;
 
         mBatch.registerListern(this);
-        mAdapter = (BluetoothAdapter)mContext.getSystemService(Context.BLUETOOTH_SERVICE);
+        mAdapter = BluetoothAdapter.getDefaultAdapter();
 
     }
 

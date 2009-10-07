@@ -204,7 +204,7 @@ public class BluetoothPbapService extends Service {
         if (VERBOSE) Log.v(TAG, "Pbap Service onCreate");
 
         mInterrupted = false;
-        mAdapter = (BluetoothAdapter)getSystemService(Context.BLUETOOTH_SERVICE);
+        mAdapter = BluetoothAdapter.getDefaultAdapter();
 
         if (!mHasStarted) {
             mHasStarted = true;

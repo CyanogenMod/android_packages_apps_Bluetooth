@@ -61,8 +61,7 @@ public class BluetoothOppUtility {
     private static final boolean V = Constants.VERBOSE;
 
     public static BluetoothOppTransferInfo queryRecord(Context context, Uri uri) {
-        BluetoothAdapter adapter =
-                (BluetoothAdapter) context.getSystemService(Context.BLUETOOTH_SERVICE);
+        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         BluetoothOppTransferInfo info = new BluetoothOppTransferInfo();
         Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
         if (cursor != null) {

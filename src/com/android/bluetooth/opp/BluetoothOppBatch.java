@@ -104,8 +104,7 @@ public class BluetoothOppBatch {
      * @param info, BluetoothOppShareInfo
      */
     public BluetoothOppBatch(Context context, BluetoothOppShareInfo info) {
-        BluetoothAdapter adapter =
-                (BluetoothAdapter) context.getSystemService(Context.BLUETOOTH_SERVICE);
+        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         mContext = context;
         mShares = Lists.newArrayList();
         mTimestamp = info.mTimestamp;

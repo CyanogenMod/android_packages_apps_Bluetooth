@@ -148,7 +148,7 @@ public class BluetoothOppService extends Service {
     public void onCreate() {
         super.onCreate();
         if (V) Log.v(TAG, "Service onCreate");
-        mAdapter = (BluetoothAdapter) getSystemService(Context.BLUETOOTH_SERVICE);
+        mAdapter = BluetoothAdapter.getDefaultAdapter();
         mSocketListener = new BluetoothOppRfcommListener(mAdapter);
         mShares = Lists.newArrayList();
         mBatchs = Lists.newArrayList();
