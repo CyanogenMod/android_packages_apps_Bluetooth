@@ -132,18 +132,13 @@ public class Constants {
 
     /**
      * Debug level logging
-     * Enable by setting system property log.tag.BluetoothOpp=DEBUG
-     * STOPSHIP: set to false
      */
-    public static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
+    public static final boolean DEBUG = false;
 
     /**
      * Verbose level logging
-     * Enable by setting system property log.tag.BluetoothOpp=VERBOSE
-     * This also enables debug level logging
-     * STOPSHIP: set to false
      */
-    public static final boolean VERBOSE = Log.isLoggable(TAG, Log.VERBOSE);
+    public static final boolean VERBOSE = false;
 
     /** use TCP socket instead of Rfcomm Socket to develop */
     public static final boolean USE_TCP_DEBUG = false;
