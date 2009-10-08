@@ -71,9 +71,9 @@ public class BluetoothPbapService extends Service {
      * DEBUG log: "setprop log.tag.BluetoothPbapService VERBOSE"
      */
 
-    public static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
+    public static final boolean DEBUG = false;
 
-    public static final boolean VERBOSE = Log.isLoggable(TAG, Log.VERBOSE);
+    public static final boolean VERBOSE = false;
 
     /**
      * Intent indicating incoming connection request which is sent to
