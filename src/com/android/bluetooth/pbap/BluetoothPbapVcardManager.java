@@ -246,13 +246,49 @@ public class BluetoothPbapVcardManager {
 
     public final int composeAndSendCallLogVcards(final int type, final Operation op,
             final int startPoint, final int endPoint, final boolean vcardType21) {
+        if (startPoint < 1 || startPoint > endPoint) {
+            Log.e(TAG, "internal error: startPoint or endPoint is not correct.");
+            return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+        }
         String typeSelection = BluetoothPbapObexServer.createSelectionPara(type);
+
+        Uri myUri = CallLog.Calls.CONTENT_URI;
+        final String[] CALLLOG_PROJECTION = new String[] {
+            CallLog.Calls._ID, // 0
+        };
+        final int ID_COLUMN_INDEX = 0;
+
+        Cursor callsCursor = null;
+        long startPointId = 0;
+        long endPointId = 0;
+        try {
+            // Need test to see if order by _ID is ok here, or by date?
+            callsCursor = mResolver.query(myUri, CALLLOG_PROJECTION, typeSelection, null,
+                    CallLog.Calls._ID);
+            if (callsCursor != null) {
+                callsCursor.moveToPosition(startPoint - 1);
+                startPointId = callsCursor.getLong(ID_COLUMN_INDEX);
+                if (V) Log.v(TAG, "Call Log query startPointId = " + startPointId);
+                if (startPoint == endPoint) {
+                    endPointId = startPointId;
+                } else {
+                    callsCursor.moveToPosition(endPoint - 1);
+                    endPointId = callsCursor.getLong(ID_COLUMN_INDEX);
+                }
+                if (V) Log.v(TAG, "Call log query endPointId = " + endPointId);
+            }
+        } finally {
+            if (callsCursor != null) {
+                callsCursor.close();
+            }
+        }
+
         String recordSelection;
         if (startPoint == endPoint) {
-            recordSelection = Calls._ID + "=" + startPoint;
+            recordSelection = Calls._ID + "=" + startPointId;
         } else {
-            recordSelection = Calls._ID + ">=" + startPoint + " AND "
-                    + Calls._ID + "<=" + endPoint;
+            recordSelection = Calls._ID + ">=" + startPointId + " AND " + Calls._ID + "<="
+                    + endPointId;
         }
 
         String selection;
@@ -262,19 +298,53 @@ public class BluetoothPbapVcardManager {
             selection = "(" + typeSelection + ") AND (" + recordSelection + ")";
         }
 
-        if (V) Log.v(TAG, "Query selection is: " + selection);
+        if (V) Log.v(TAG, "Call log query selection is: " + selection);
 
         return composeAndSendVCards(op, selection, vcardType21, null, false);
     }
 
     public final int composeAndSendPhonebookVcards(final Operation op, final int startPoint,
             final int endPoint, final boolean vcardType21, String ownerVCard) {
+        if (startPoint < 1 || startPoint > endPoint) {
+            Log.e(TAG, "internal error: startPoint or endPoint is not correct.");
+            return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+        }
+        Uri myUri = RawContacts.CONTENT_URI;
+        final String[] RAW_CONTACTS_PROJECTION = new String[] {
+            RawContacts._ID, // 0
+        };
+        final int ID_COLUMN_INDEX = 0;
+
+        Cursor contactCursor = null;
+        long startPointId = 0;
+        long endPointId = 0;
+        try {
+            contactCursor = mResolver.query(myUri, RAW_CONTACTS_PROJECTION, null, null,
+                    RawContacts._ID);
+            if (contactCursor != null) {
+                contactCursor.moveToPosition(startPoint - 1);
+                startPointId = contactCursor.getLong(ID_COLUMN_INDEX);
+                if (V) Log.v(TAG, "Query startPointId = " + startPointId);
+                if (startPoint == endPoint) {
+                    endPointId = startPointId;
+                } else {
+                    contactCursor.moveToPosition(endPoint - 1);
+                    endPointId = contactCursor.getLong(ID_COLUMN_INDEX);
+                }
+                if (V) Log.v(TAG, "Query endPointId = " + endPointId);
+            }
+        } finally {
+            if (contactCursor != null) {
+                contactCursor.close();
+            }
+        }
+
         String selection;
         if (startPoint == endPoint) {
-            selection = RawContacts._ID + "=" + startPoint;
+            selection = RawContacts._ID + "=" + startPointId;
         } else {
-            selection = RawContacts._ID + ">=" + startPoint + " AND " + RawContacts._ID + "<="
-                    + endPoint;
+            selection = RawContacts._ID + ">=" + startPointId + " AND " + RawContacts._ID + "<="
+                    + endPointId;
         }
 
         if (V) Log.v(TAG, "Query selection is: " + selection);

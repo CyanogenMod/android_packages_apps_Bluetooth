@@ -140,7 +140,7 @@ public class BluetoothOppReceiveFileInfo {
             return new BluetoothOppReceiveFileInfo(BluetoothShare.STATUS_FILE_ERROR);
         }
         String extension = null;
-        int dotIndex = filename.indexOf('.');
+        int dotIndex = filename.lastIndexOf(".");
         if (dotIndex < 0) {
             // should not happen. It must be pre-rejected
             return new BluetoothOppReceiveFileInfo(BluetoothShare.STATUS_FILE_ERROR);

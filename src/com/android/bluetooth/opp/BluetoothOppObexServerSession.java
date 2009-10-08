@@ -203,7 +203,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             if (!pre_reject) {
                 /* first we look for Mimetype in Android map */
                 String extension, type;
-                int dotIndex = name.indexOf('.');
+                int dotIndex = name.lastIndexOf(".");
                 if (dotIndex < 0) {
                     if (D) Log.w(TAG, "There is no file extension, reject the transfer");
                     pre_reject = true;
