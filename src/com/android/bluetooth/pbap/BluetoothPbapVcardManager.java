@@ -367,17 +367,10 @@ public class BluetoothPbapVcardManager {
                 vcardType = VCardConfig.VCARD_TYPE_V30_GENERIC;
             }
 
-            if (isContacts) {
-                // create VCardComposer for contacts
-                composer = new VCardComposer(mContext, vcardType, true);
-            } else {
-                // create VCardComposer for call logs
-                composer = new VCardComposer(mContext, vcardType, true, true);
-            }
-
+            composer = new VCardComposer(mContext, vcardType, true);
             composer.addHandler(new HandlerForStringBuffer(op, ownerVCard));
-
-            if (!composer.init(selection, null)) {
+            final Uri contentUri = (isContacts ? Contacts.CONTENT_URI : CallLog.Calls.CONTENT_URI); 
+            if (!composer.init(contentUri, selection, null, null)) {
                 return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
             }
 
