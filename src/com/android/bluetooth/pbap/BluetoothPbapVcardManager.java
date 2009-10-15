@@ -362,9 +362,9 @@ public class BluetoothPbapVcardManager {
             // Currently only support Generic Vcard 2.1 and 3.0
             int vcardType;
             if (vcardType21) {
-                vcardType = VCardConfig.VCARD_TYPE_V21_GENERIC;
+                vcardType = VCardConfig.VCARD_TYPE_V21_GENERIC_UTF8;
             } else {
-                vcardType = VCardConfig.VCARD_TYPE_V30_GENERIC;
+                vcardType = VCardConfig.VCARD_TYPE_V30_GENERIC_UTF8;
             }
 
             composer = new VCardComposer(mContext, vcardType, true);
