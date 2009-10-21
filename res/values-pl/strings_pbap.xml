@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C) 2009 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="pbap_app_name" msgid="6916507166414341324">"Profil PBAP Bluetooth"</string>
+    <string name="pbap_acceptance_dialog_title" msgid="4606773169019619760">"Urządzenie %1$s chce uzyskać dostęp do Twoich kontaktów i historii połączeń. Czy zezwolić %2$s na dostęp?"</string>
+    <string name="pbap_acceptance_dialog_header" msgid="5456473921987026974">"Dostęp do książki telefonicznej"</string>
+    <string name="pbap_session_key_dialog_title" msgid="3580996574333882561">"Wpisz klucz sesji dla %1$s"</string>
+    <string name="pbap_session_key_dialog_header" msgid="2772472422782758981">"Wymagany klucz sesji Bluetooth"</string>
+    <string name="pbap_acceptance_timeout_message" msgid="1107401415099814293">"Nastąpiło przekroczenie limitu czasu na akceptację połączenia z %1$s"</string>
+    <string name="pbap_authentication_timeout_message" msgid="4166979525521902687">"Nastąpiło przekroczenie limitu czasu na wprowadzenie klucza sesji z %1$s"</string>
+    <string name="bluetooth_transfer_header" msgid="5088290435827887179">"Przesyłanie Bluetooth"</string>
+    <string name="bluetooth_transfer_text" msgid="2283895365101625419">"Nie można pomyślnie nawiązać połączenia do udostępniania książki telefonicznej z"</string>
+    <string name="toast_connected" msgid="5683199843935518834">"Urządzenie %1$s nawiązało połączenie z Twoim telefonem."</string>
+    <string name="toast_disconnected" msgid="78819084478319889">"Urządzenie %1$s rozłączyło się z Twoim telefonem."</string>
+    <string name="pbap_notif_ticker" msgid="1653350586489072739">"Żądanie dostępu do książki telefonicznej"</string>
+    <string name="pbap_notif_title" msgid="2967094612841799440">"Żądanie PBAP"</string>
+    <string name="pbap_notif_message" msgid="6046731677513301195">"Zezwól na dostęp do książki telefonicznej przez %1$s"</string>
+    <string name="auth_notif_ticker" msgid="1575825798053163744">"Żądanie uwierzytelniania Obex"</string>
+    <string name="auth_notif_title" msgid="7599854855681573258">"Klucz sesji"</string>
+    <string name="auth_notif_message" msgid="6667218116427605038">"Wpisz klucz sesji dla %1$s"</string>
+    <string name="alwaysallowed" msgid="1912976993660130849">"Zawsze zezwalać?"</string>
+    <string name="defaultname" msgid="4821590500649090078">"Zestaw samochodowy"</string>
+    <string name="unknownName" msgid="2841414754740600042">"Nieznana nazwa"</string>
+    <string name="defaultnumber" msgid="8520116145890867338">"000000"</string>
+</resources>
