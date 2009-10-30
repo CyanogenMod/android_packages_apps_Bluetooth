@@ -90,9 +90,22 @@ public class BluetoothPbapVcardManager {
 
     private static final int CONTACTS_DISPLAY_NAME_COLUMN_INDEX = 4;
 
-    static final String SORT_ORDER_NAME = Contacts.DISPLAY_NAME + " ASC";
-
     static final String SORT_ORDER_PHONE_NUMBER = CommonDataKinds.Phone.NUMBER + " ASC";
+
+    static final String[] CONTACTS_PROJECTION = new String[] {
+            Contacts._ID, // 0
+            Contacts.DISPLAY_NAME, // 1
+    };
+
+    static final int CONTACTS_ID_COLUMN_INDEX = 0;
+
+    static final int CONTACTS_NAME_COLUMN_INDEX = 1;
+
+    // call histories use dynamic handles, and handles should order by date; the
+    // most recently one should be the first handle. In table "calls", _id and
+    // date are consistent in ordering, to implement simply, we sort by _id
+    // here.
+    static final String CALLLOG_SORT_ORDER = Calls._ID + " DESC";
 
     public BluetoothPbapVcardManager(final Context context) {
         mContext = context;
@@ -123,7 +136,7 @@ public class BluetoothPbapVcardManager {
     }
 
     public final int getContactsSize() {
-        Uri myUri = RawContacts.CONTENT_URI;
+        final Uri myUri = Contacts.CONTENT_URI;
         int size = 0;
         Cursor contactCursor = null;
         try {
@@ -140,7 +153,7 @@ public class BluetoothPbapVcardManager {
     }
 
     public final int getCallHistorySize(final int type) {
-        Uri myUri = CallLog.Calls.CONTENT_URI;
+        final Uri myUri = CallLog.Calls.CONTENT_URI;
         String selection = BluetoothPbapObexServer.createSelectionPara(type);
         int size = 0;
         Cursor callCursor = null;
@@ -159,7 +172,7 @@ public class BluetoothPbapVcardManager {
     }
 
     public final ArrayList<String> loadCallHistoryList(final int type) {
-        Uri myUri = CallLog.Calls.CONTENT_URI;
+        final Uri myUri = CallLog.Calls.CONTENT_URI;
         String selection = BluetoothPbapObexServer.createSelectionPara(type);
         String[] projection = new String[] {
                 Calls.NUMBER, Calls.CACHED_NAME
@@ -171,7 +184,7 @@ public class BluetoothPbapVcardManager {
         ArrayList<String> list = new ArrayList<String>();
         try {
             callCursor = mResolver.query(myUri, projection, selection, null,
-                    CallLog.Calls.DEFAULT_SORT_ORDER);
+                    CALLLOG_SORT_ORDER);
             if (callCursor != null) {
                 for (callCursor.moveToFirst(); !callCursor.isAfterLast();
                         callCursor.moveToNext()) {
@@ -191,18 +204,24 @@ public class BluetoothPbapVcardManager {
         return list;
     }
 
-    public final ArrayList<String> getPhonebookNameList() {
+    public final ArrayList<String> getPhonebookNameList(final int orderByWhat) {
         ArrayList<String> nameList = new ArrayList<String>();
         nameList.add(BluetoothPbapService.getLocalPhoneName());
 
-        Uri myUri = Phone.CONTENT_URI;
-        Cursor phoneCursor = null;
+        final Uri myUri = Contacts.CONTENT_URI;
+        Cursor contactCursor = null;
         try {
-            phoneCursor = mResolver.query(myUri, PHONES_PROJECTION, null, null, SORT_ORDER_NAME);
-            if (phoneCursor != null) {
-                for (phoneCursor.moveToFirst(); !phoneCursor.isAfterLast(); phoneCursor
+            if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_INDEXED) {
+                contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, null, null,
+                        Contacts._ID);
+            } else if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL) {
+                contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, null, null,
+                        Contacts.DISPLAY_NAME);
+            }
+            if (contactCursor != null) {
+                for (contactCursor.moveToFirst(); !contactCursor.isAfterLast(); contactCursor
                         .moveToNext()) {
-                    String name = phoneCursor.getString(CONTACTS_DISPLAY_NAME_COLUMN_INDEX);
+                    String name = contactCursor.getString(CONTACTS_NAME_COLUMN_INDEX);
                     if (TextUtils.isEmpty(name)) {
                         name = mContext.getString(android.R.string.unknownName);
                     }
@@ -210,8 +229,8 @@ public class BluetoothPbapVcardManager {
                 }
             }
         } finally {
-            if (phoneCursor != null) {
-                phoneCursor.close();
+            if (contactCursor != null) {
+                contactCursor.close();
             }
         }
         return nameList;
@@ -221,7 +240,7 @@ public class BluetoothPbapVcardManager {
         ArrayList<String> numberList = new ArrayList<String>();
         numberList.add(BluetoothPbapService.getLocalPhoneNum());
 
-        Uri myUri = Phone.CONTENT_URI;
+        final Uri myUri = Phone.CONTENT_URI;
         Cursor phoneCursor = null;
         try {
             phoneCursor = mResolver.query(myUri, PHONES_PROJECTION, null, null,
@@ -252,7 +271,7 @@ public class BluetoothPbapVcardManager {
         }
         String typeSelection = BluetoothPbapObexServer.createSelectionPara(type);
 
-        Uri myUri = CallLog.Calls.CONTENT_URI;
+        final Uri myUri = CallLog.Calls.CONTENT_URI;
         final String[] CALLLOG_PROJECTION = new String[] {
             CallLog.Calls._ID, // 0
         };
@@ -264,7 +283,7 @@ public class BluetoothPbapVcardManager {
         try {
             // Need test to see if order by _ID is ok here, or by date?
             callsCursor = mResolver.query(myUri, CALLLOG_PROJECTION, typeSelection, null,
-                    CallLog.Calls._ID);
+                    CALLLOG_SORT_ORDER);
             if (callsCursor != null) {
                 callsCursor.moveToPosition(startPoint - 1);
                 startPointId = callsCursor.getLong(ID_COLUMN_INDEX);
@@ -287,8 +306,10 @@ public class BluetoothPbapVcardManager {
         if (startPoint == endPoint) {
             recordSelection = Calls._ID + "=" + startPointId;
         } else {
-            recordSelection = Calls._ID + ">=" + startPointId + " AND " + Calls._ID + "<="
-                    + endPointId;
+            // The query to call table is by "_id DESC" order, so change
+            // correspondingly.
+            recordSelection = Calls._ID + ">=" + endPointId + " AND " + Calls._ID + "<="
+                    + startPointId;
         }
 
         String selection;
@@ -309,27 +330,23 @@ public class BluetoothPbapVcardManager {
             Log.e(TAG, "internal error: startPoint or endPoint is not correct.");
             return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
         }
-        Uri myUri = RawContacts.CONTENT_URI;
-        final String[] RAW_CONTACTS_PROJECTION = new String[] {
-            RawContacts._ID, // 0
-        };
-        final int ID_COLUMN_INDEX = 0;
+        final Uri myUri = Contacts.CONTENT_URI;
 
         Cursor contactCursor = null;
         long startPointId = 0;
         long endPointId = 0;
         try {
-            contactCursor = mResolver.query(myUri, RAW_CONTACTS_PROJECTION, null, null,
-                    RawContacts._ID);
+            contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, null, null,
+                    Contacts._ID);
             if (contactCursor != null) {
                 contactCursor.moveToPosition(startPoint - 1);
-                startPointId = contactCursor.getLong(ID_COLUMN_INDEX);
+                startPointId = contactCursor.getLong(CONTACTS_ID_COLUMN_INDEX);
                 if (V) Log.v(TAG, "Query startPointId = " + startPointId);
                 if (startPoint == endPoint) {
                     endPointId = startPointId;
                 } else {
                     contactCursor.moveToPosition(endPoint - 1);
-                    endPointId = contactCursor.getLong(ID_COLUMN_INDEX);
+                    endPointId = contactCursor.getLong(CONTACTS_ID_COLUMN_INDEX);
                 }
                 if (V) Log.v(TAG, "Query endPointId = " + endPointId);
             }
@@ -339,13 +356,62 @@ public class BluetoothPbapVcardManager {
             }
         }
 
-        String selection;
+        final String selection;
         if (startPoint == endPoint) {
-            selection = RawContacts._ID + "=" + startPointId;
+            selection = Contacts._ID + "=" + startPointId;
         } else {
-            selection = RawContacts._ID + ">=" + startPointId + " AND " + RawContacts._ID + "<="
+            selection = Contacts._ID + ">=" + startPointId + " AND " + Contacts._ID + "<="
                     + endPointId;
         }
+
+        if (V) Log.v(TAG, "Query selection is: " + selection);
+
+        return composeAndSendVCards(op, selection, vcardType21, ownerVCard, true);
+    }
+
+    public final int composeAndSendPhonebookOneVcard(final Operation op, final int offset,
+            final boolean vcardType21, String ownerVCard, int orderByWhat) {
+        if (offset < 1) {
+            Log.e(TAG, "Internal error: offset is not correct.");
+            return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+        }
+        final Uri myUri = Contacts.CONTENT_URI;
+        Cursor contactCursor = null;
+        String selection = null;
+        long contactId = 0;
+        if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_INDEXED) {
+            try {
+                contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, null, null,
+                        Contacts._ID);
+                if (contactCursor != null) {
+                    contactCursor.moveToPosition(offset - 1);
+                    contactId = contactCursor.getLong(CONTACTS_ID_COLUMN_INDEX);
+                    if (V) Log.v(TAG, "Query startPointId = " + contactId);
+                }
+            } finally {
+                if (contactCursor != null) {
+                    contactCursor.close();
+                }
+            }
+        } else if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL) {
+            try {
+                contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, null, null,
+                        Contacts.DISPLAY_NAME);
+                if (contactCursor != null) {
+                    contactCursor.moveToPosition(offset - 1);
+                    contactId = contactCursor.getLong(CONTACTS_ID_COLUMN_INDEX);
+                    if (V) Log.v(TAG, "Query startPointId = " + contactId);
+                }
+            } finally {
+                if (contactCursor != null) {
+                    contactCursor.close();
+                }
+            }
+        } else {
+            Log.e(TAG, "Parameter orderByWhat is not supported!");
+            return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+        }
+        selection = Contacts._ID + "=" + contactId;
 
         if (V) Log.v(TAG, "Query selection is: " + selection);
 
