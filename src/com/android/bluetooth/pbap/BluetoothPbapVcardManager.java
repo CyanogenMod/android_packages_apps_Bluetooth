@@ -360,20 +360,19 @@ public class BluetoothPbapVcardManager {
         VCardComposer composer = null;
         try {
             // Currently only support Generic Vcard 2.1 and 3.0
-            int vcardType;
+            final int vcardType;
             if (vcardType21) {
                 vcardType = VCardConfig.VCARD_TYPE_V21_GENERIC;
             } else {
                 vcardType = VCardConfig.VCARD_TYPE_V30_GENERIC;
             }
 
-            if (isContacts) {
-                // create VCardComposer for contacts
-                composer = new VCardComposer(mContext, vcardType, true);
-            } else {
-                // create VCardComposer for call logs
-                composer = new VCardComposer(mContext, vcardType, true, true);
-            }
+            final boolean careHandlerErrors = true;
+            final boolean needPhoto = false; //We disable photo for the time being
+            final boolean isCallLogComposer = !isContacts;
+
+            composer = new VCardComposer(mContext, vcardType, careHandlerErrors, isCallLogComposer,
+                                         needPhoto);
 
             composer.addHandler(new HandlerForStringBuffer(op, ownerVCard));
 
