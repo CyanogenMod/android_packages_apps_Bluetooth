@@ -303,6 +303,7 @@ class BluetoothOppNotification {
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
             intent.setData(contentUri);
 
+            n.when = timeStamp;
             n.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(mContext, 0,
                     intent, 0));
 
@@ -310,8 +311,6 @@ class BluetoothOppNotification {
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
             intent.setData(contentUri);
             n.deleteIntent = PendingIntent.getBroadcast(mContext, 0, intent, 0);
-
-            n.when = timeStamp;
 
             mNotificationMgr.notify(id, n);
         }
@@ -342,6 +341,8 @@ class BluetoothOppNotification {
             Intent intent = new Intent(Constants.ACTION_INCOMING_FILE_CONFIRM);
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
             intent.setData(contentUri);
+
+            n.when = timeStamp;
             n.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(mContext, 0,
                     intent, 0));
 
@@ -350,7 +351,6 @@ class BluetoothOppNotification {
             intent.setData(contentUri);
             n.deleteIntent = PendingIntent.getBroadcast(mContext, 0, intent, 0);
 
-            n.when = timeStamp;
             mNotificationMgr.notify(id, n);
         }
         cursor.close();
