@@ -86,7 +86,7 @@ public class BluetoothPbapVcardManager {
 
     private static final int PHONE_LABEL_COLUMN_INDEX = 2;
 
-    private static final int PHOEN_NUMBER_COLUMN_INDEX = 3;
+    private static final int PHONE_NUMBER_COLUMN_INDEX = 3;
 
     private static final int CONTACTS_DISPLAY_NAME_COLUMN_INDEX = 4;
 
@@ -229,7 +229,7 @@ public class BluetoothPbapVcardManager {
             if (phoneCursor != null) {
                 for (phoneCursor.moveToFirst(); !phoneCursor.isAfterLast(); phoneCursor
                         .moveToNext()) {
-                    String number = phoneCursor.getString(PHOEN_NUMBER_COLUMN_INDEX);
+                    String number = phoneCursor.getString(PHONE_NUMBER_COLUMN_INDEX);
                     if (TextUtils.isEmpty(number)) {
                         number = mContext.getString(R.string.defaultnumber);
                     }
