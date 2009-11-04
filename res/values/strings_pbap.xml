@@ -24,5 +24,6 @@
     <string name="alwaysallowed">Always allowed?</string>
     <string name="defaultname">Carkit</string>
     <string name="unknownName">Unknown name</string>
+    <string name="ownNumber">My phone number</string>
     <string name="defaultnumber">000000</string>
 </resources>
