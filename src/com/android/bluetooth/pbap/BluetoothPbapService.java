@@ -427,7 +427,7 @@ public class BluetoothPbapService extends Service {
             }
             sLocalPhoneName = tm.getLine1AlphaTag();
             if (TextUtils.isEmpty(sLocalPhoneName)) {
-                sLocalPhoneName = this.getString(R.string.ownNumber);
+                sLocalPhoneName = this.getString(R.string.localPhoneName);
             }
         }
 
