@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C) 2009 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="pbap_app_name" msgid="6916507166414341324">"Bluetooth Pbap"</string>
+    <string name="pbap_acceptance_dialog_title" msgid="4606773169019619760">"Устройство %1$s пытается получить доступ к вашим контактам и истории вызовов. Предоставить доступ для %2$s?"</string>
+    <string name="pbap_acceptance_dialog_header" msgid="5456473921987026974">"Доступ к телефонной книге"</string>
+    <string name="pbap_session_key_dialog_title" msgid="3580996574333882561">"Введите ключ сеанса для %1$s"</string>
+    <string name="pbap_session_key_dialog_header" msgid="2772472422782758981">"Необходим ключ сеанса Bluetooth."</string>
+    <string name="pbap_acceptance_timeout_message" msgid="1107401415099814293">"Истекло время ожидания при установке подключения к %1$s."</string>
+    <string name="pbap_authentication_timeout_message" msgid="4166979525521902687">"Истекло время ожидания ввода ключа сеанса для связи с %1$s."</string>
+    <string name="bluetooth_transfer_header" msgid="5088290435827887179">"Передача по Bluetooth"</string>
+    <string name="bluetooth_transfer_text" msgid="2283895365101625419">"Невозможно обменяться телефонной книгой с устройством"</string>
+    <string name="toast_connected" msgid="5683199843935518834">"Устройство %1$s подключено к вашему телефону."</string>
+    <string name="toast_disconnected" msgid="78819084478319889">"Устройство %1$s отключено от вашего телефона."</string>
+    <string name="pbap_notif_ticker" msgid="1653350586489072739">"Запрос на доступ к телефонной книге"</string>
+    <string name="pbap_notif_title" msgid="2967094612841799440">"Запрос PBAP"</string>
+    <string name="pbap_notif_message" msgid="6046731677513301195">"Разрешить устройству %1$s доступ к телефонной книге"</string>
+    <string name="auth_notif_ticker" msgid="1575825798053163744">"Запрос на аутентификацию Obex"</string>
+    <string name="auth_notif_title" msgid="7599854855681573258">"Ключ сеанса"</string>
+    <string name="auth_notif_message" msgid="6667218116427605038">"Введите ключ сеанса для %1$s"</string>
+    <string name="alwaysallowed" msgid="1912976993660130849">"Всегда разрешать?"</string>
+    <string name="defaultname" msgid="4821590500649090078">"Автомобильный комплект"</string>
+    <string name="unknownName" msgid="2841414754740600042">"Неизвестное имя"</string>
+    <!-- no translation found for localPhoneName (2349001318925409159) -->
+    <skip />
+    <string name="defaultnumber" msgid="8520116145890867338">"000000"</string>
+</resources>
