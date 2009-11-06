@@ -107,6 +107,8 @@ public class BluetoothPbapVcardManager {
     // here.
     static final String CALLLOG_SORT_ORDER = Calls._ID + " DESC";
 
+    private static final String CLAUSE_ONLY_VISIBLE = Contacts.IN_VISIBLE_GROUP + "=1";
+
     public BluetoothPbapVcardManager(final Context context) {
         mContext = context;
         mResolver = mContext.getContentResolver();
@@ -140,7 +142,7 @@ public class BluetoothPbapVcardManager {
         int size = 0;
         Cursor contactCursor = null;
         try {
-            contactCursor = mResolver.query(myUri, null, null, null, null);
+            contactCursor = mResolver.query(myUri, null, CLAUSE_ONLY_VISIBLE, null, null);
             if (contactCursor != null) {
                 size = contactCursor.getCount() + 1; // always has the 0.vcf
             }
@@ -212,11 +214,11 @@ public class BluetoothPbapVcardManager {
         Cursor contactCursor = null;
         try {
             if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_INDEXED) {
-                contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, null, null,
-                        Contacts._ID);
+                contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
+                        null, Contacts._ID);
             } else if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL) {
-                contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, null, null,
-                        Contacts.DISPLAY_NAME);
+                contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
+                        null, Contacts.DISPLAY_NAME);
             }
             if (contactCursor != null) {
                 for (contactCursor.moveToFirst(); !contactCursor.isAfterLast(); contactCursor
@@ -243,7 +245,7 @@ public class BluetoothPbapVcardManager {
         final Uri myUri = Phone.CONTENT_URI;
         Cursor phoneCursor = null;
         try {
-            phoneCursor = mResolver.query(myUri, PHONES_PROJECTION, null, null,
+            phoneCursor = mResolver.query(myUri, PHONES_PROJECTION, CLAUSE_ONLY_VISIBLE, null,
                     SORT_ORDER_PHONE_NUMBER);
             if (phoneCursor != null) {
                 for (phoneCursor.moveToFirst(); !phoneCursor.isAfterLast(); phoneCursor
@@ -336,7 +338,7 @@ public class BluetoothPbapVcardManager {
         long startPointId = 0;
         long endPointId = 0;
         try {
-            contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, null, null,
+            contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE, null,
                     Contacts._ID);
             if (contactCursor != null) {
                 contactCursor.moveToPosition(startPoint - 1);
@@ -358,10 +360,10 @@ public class BluetoothPbapVcardManager {
 
         final String selection;
         if (startPoint == endPoint) {
-            selection = Contacts._ID + "=" + startPointId;
+            selection = Contacts._ID + "=" + startPointId + " AND " + CLAUSE_ONLY_VISIBLE;
         } else {
             selection = Contacts._ID + ">=" + startPointId + " AND " + Contacts._ID + "<="
-                    + endPointId;
+                    + endPointId + " AND " + CLAUSE_ONLY_VISIBLE;
         }
 
         if (V) Log.v(TAG, "Query selection is: " + selection);
@@ -381,8 +383,8 @@ public class BluetoothPbapVcardManager {
         long contactId = 0;
         if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_INDEXED) {
             try {
-                contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, null, null,
-                        Contacts._ID);
+                contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
+                        null, Contacts._ID);
                 if (contactCursor != null) {
                     contactCursor.moveToPosition(offset - 1);
                     contactId = contactCursor.getLong(CONTACTS_ID_COLUMN_INDEX);
@@ -395,8 +397,8 @@ public class BluetoothPbapVcardManager {
             }
         } else if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL) {
             try {
-                contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, null, null,
-                        Contacts.DISPLAY_NAME);
+                contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
+                        null, Contacts.DISPLAY_NAME);
                 if (contactCursor != null) {
                     contactCursor.moveToPosition(offset - 1);
                     contactId = contactCursor.getLong(CONTACTS_ID_COLUMN_INDEX);
