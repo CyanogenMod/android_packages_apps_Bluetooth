@@ -421,10 +421,6 @@ public class BluetoothPbapService extends Service {
         TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
         if (tm != null) {
             sLocalPhoneNum = tm.getLine1Number();
-            if (TextUtils.isEmpty(sLocalPhoneNum)) {
-                // Default number (000000) should be ok
-                sLocalPhoneNum = this.getString(R.string.defaultnumber);
-            }
             sLocalPhoneName = tm.getLine1AlphaTag();
             if (TextUtils.isEmpty(sLocalPhoneName)) {
                 sLocalPhoneName = this.getString(R.string.localPhoneName);
