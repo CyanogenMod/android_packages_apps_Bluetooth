@@ -108,5 +108,5 @@
     <string name="status_connection_error" msgid="7695388111375688873">"Errore di connessione"</string>
     <string name="status_protocol_error" msgid="8898902951085043597">"La richiesta non può essere gestita correttamente"</string>
     <string name="status_unknown_error" msgid="7441602228720350817">"Errore sconosciuto"</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Ricezione·Bluetooth·avvenuta"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"Ricezione Bluetooth avvenuta"</string>
 </resources>

@@ -16,7 +16,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="pbap_app_name" msgid="6916507166414341324">"Bluetooth Pbap"</string>
-    <string name="pbap_acceptance_dialog_title" msgid="4606773169019619760">"%1$s kişilerinize ve arama geçmişinize erişmek istiyor. Şuna erişim izni verilsin mi?: %2$s"</string>
+    <string name="pbap_acceptance_dialog_title" msgid="4606773169019619760">"%1$s kişilerinize ve çağrı geçmişinize erişmek istiyor. Şuna erişim izni verilsin mi?: %2$s"</string>
     <string name="pbap_acceptance_dialog_header" msgid="5456473921987026974">"Telefon Rehberine Erişim"</string>
     <string name="pbap_session_key_dialog_title" msgid="3580996574333882561">"%1$s için oturum anahtarını yazın"</string>
     <string name="pbap_session_key_dialog_header" msgid="2772472422782758981">"Bluetooth oturum anahtarı gerekiyor"</string>

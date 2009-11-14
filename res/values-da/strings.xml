@@ -38,7 +38,7 @@
     <string name="notification_receiving" msgid="3938472603351415139">"Deling med Bluetooth: Modtager %1$s"</string>
     <string name="notification_received" msgid="7594846429703561009">"Deling med Bluetooth: Modtog %1$s"</string>
     <string name="notification_received_complete" msgid="8126908549148704724">"100 % fuldført"</string>
-    <string name="notification_received_fail" msgid="2017422835194149214">"Deling med Bluetooth: Fil %1$s blev ikke modtaget"</string>
+    <string name="notification_received_fail" msgid="2017422835194149214">"Deling med Bluetooth: Filen %1$s blev ikke modtaget"</string>
     <string name="notification_sending" msgid="3118149961355869912">"Deling med Bluetooth: Sender %1$s"</string>
     <string name="notification_sending_multi" msgid="8217177886303103438">"Deling med Bluetooth: Sender fil"</string>
     <string name="notification_sent" msgid="6345048674000520702">"Deling med Bluetooth: Sendt %1$s"</string>
@@ -87,7 +87,7 @@
     <string name="bt_sm_3_1" msgid="1658443268226611198">"\"%1$s\" forsøgte at sende %2$s filer til dig."</string>
     <string name="bt_sm_3_2" msgid="1234428166130208088">"Dog kan denne enhed kun modtage én fil ad gangen. Bed afsenderen om at sende de resterende %1$s filer enkeltvis."</string>
     <string name="bt_tf_1" msgid="3566606437748689505">"\"%1$s\" er ikke tilgængelig."</string>
-    <string name="bt_tf_2" msgid="7165797096754450809">"Kan ikke forbinde med \"%1$s\"."</string>
+    <string name="bt_tf_2" msgid="7165797096754450809">"Kan ikke parre med \"%1$s\"."</string>
     <string name="bt_tf_3" msgid="6899456362281219699">"Forbindelsen blev afbrudt."</string>
     <string name="bt_tf_4" msgid="9083752106925339573">"\"%1$s\" understøtter ikke filoverførsler."</string>
     <string name="bt_tf_5" msgid="2971780974433771152">"\"%1$s\" kan ikke acceptere %2$s"</string>
@@ -95,9 +95,9 @@
     <string name="bt_tf_7" msgid="2160754176051707109">"Filen kunne ikke sendes."</string>
     <string name="bt_tf_8" msgid="8284960065910226862">"Filen kunne ikke modtages."</string>
     <string name="bt_tf_10" msgid="8612767267070143708">"Låst hukommelseskort. Du skal låse hukommelseskortet op for at gemme filerne."</string>
-    <string name="bt_tf_12" msgid="1976542340333268388">"En fil overføres til en anden enhed. Vent et øjeblik……"</string>
+    <string name="bt_tf_12" msgid="1976542340333268388">"Der overføres en fil til en anden enhed. Vent et øjeblik……"</string>
     <string name="bt_tf_13" msgid="8604795873559730409">"Bluetooth er optaget lige nu. Deaktiver en anden Bluetooth- funktion, og prøv igen."</string>
-    <string name="status_pending" msgid="7446884326084324082">"Filoverførsel er ikke påbegyndt"</string>
+    <string name="status_pending" msgid="7446884326084324082">"Filoverførslen er ikke påbegyndt"</string>
     <string name="status_running" msgid="2695810336448055064">"Filoverførslen er i gang"</string>
     <string name="status_success" msgid="2268261336330060663">"Filoverførslen blev gennemført"</string>
     <string name="status_not_accept" msgid="149046562468006301">"Telefonen kan ikke håndtere denne type indhold"</string>

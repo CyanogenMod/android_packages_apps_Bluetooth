@@ -42,7 +42,7 @@
     <string name="notification_sending" msgid="3118149961355869912">"Sdílení Bluetooth: Odesílání souboru %1$s"</string>
     <string name="notification_sending_multi" msgid="8217177886303103438">"Sdílení Bluetooth: Odesílání souboru"</string>
     <string name="notification_sent" msgid="6345048674000520702">"Sdílení Bluetooth: Soubor %1$s byl odeslán"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"Dokončeno 100%"</string>
+    <string name="notification_sent_complete" msgid="302943281067557969">"Dokončeno 100 %"</string>
     <string name="notification_sent_fail" msgid="6632995333466325127">"Sdílení Bluetooth: Soubor %1$s nebyl odeslán"</string>
     <string name="download_title" msgid="3353228219772092586">"Přenos souborů"</string>
     <string name="download_line1" msgid="3470164761579278582">"Z: „%1$s“"</string>
