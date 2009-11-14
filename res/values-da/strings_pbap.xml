@@ -16,7 +16,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="pbap_app_name" msgid="6916507166414341324">"Bluetooth Pbap"</string>
-    <string name="pbap_acceptance_dialog_title" msgid="4606773169019619760">"%1$s vil gerne have adgang til dine kontaktpersoner og opkaldsoversigt. Vil du give %2$s adgang?"</string>
+    <string name="pbap_acceptance_dialog_title" msgid="4606773169019619760">"%1$s vil gerne have adgang til dine kontakter og opkaldsoversigt. Vil du give %2$s adgang?"</string>
     <string name="pbap_acceptance_dialog_header" msgid="5456473921987026974">"Adgang til telefonbog"</string>
     <string name="pbap_session_key_dialog_title" msgid="3580996574333882561">"Indtast sessionsnøgle til %1$s"</string>
     <string name="pbap_session_key_dialog_header" msgid="2772472422782758981">"Bluetooth-sessionsnøgle kræves"</string>
