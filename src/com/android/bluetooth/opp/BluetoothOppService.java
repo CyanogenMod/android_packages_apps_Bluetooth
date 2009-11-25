@@ -432,7 +432,7 @@ public class BluetoothOppService extends Service {
                         // We're beyond the end of the cursor but there's still
                         // some
                         // stuff in the local array, which can only be junk
-                        if (V) Log.v(TAG, "Array update: trimming " + 
+                        if (V) Log.v(TAG, "Array update: trimming " +
                                 mShares.get(arrayPos).mId + " @ " + arrayPos);
 
                         if (shouldScanFile(arrayPos)) {
@@ -571,13 +571,21 @@ public class BluetoothOppService extends Service {
         if (info.isReadyToStart()) {
             if (info.mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
                 /* check if the file exists */
+                InputStream i;
                 try {
-                    InputStream i = getContentResolver().openInputStream(Uri.parse(info.mUri));
-                    i.close();
+                    i = getContentResolver().openInputStream(Uri.parse(info.mUri));
                 } catch (FileNotFoundException e) {
                     Log.e(TAG, "Can't open file for OUTBOUND info " + info.mId);
                     Constants.updateShareStatus(this, info.mId, BluetoothShare.STATUS_BAD_REQUEST);
                     return;
+                } catch (SecurityException e) {
+                    Log.e(TAG, "Exception:" + e.toString() + " for OUTBOUND info " + info.mId);
+                    Constants.updateShareStatus(this, info.mId, BluetoothShare.STATUS_BAD_REQUEST);
+                    return;
+                }
+
+                try {
+                    i.close();
                 } catch (IOException ex) {
                     Log.e(TAG, "IO error when close file for OUTBOUND info " + info.mId);
                     return;
