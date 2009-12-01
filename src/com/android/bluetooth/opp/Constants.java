@@ -116,6 +116,11 @@ public class Constants {
         "audio/*",
         "text/plain",
         "text/html",
+        "application/zip",
+        "application/vnd.ms-excel",
+        "application/msword",
+        "application/vnd.ms-powerpoint",
+        "application/pdf",
     };
 
     /**
