@@ -277,7 +277,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 return ResponseCodes.OBEX_HTTP_FORBIDDEN;
             } else {
                 Log.w(TAG, "path is not legal");
-                return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
+                return ResponseCodes.OBEX_HTTP_NOT_FOUND;
             }
         }
         mCurrentPath = current_path_tmp;
@@ -318,7 +318,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         if (D) Log.d(TAG, "OnGet type is " + type + "; name is " + name);
 
         if (type == null) {
-            return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
+            return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
         }
         // Accroding to specification,the name header could be omitted such as
         // sony erriccsonHBH-DS980
@@ -350,7 +350,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 appParamValue.needTag = ContentType.COMBINED_CALL_HISTORY;
             } else {
                 Log.w(TAG, "mCurrentpath is not valid path!!!");
-                return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
+                return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
             }
             if (D) Log.v(TAG, "onGet(): appParamValue.needTag=" + appParamValue.needTag);
         } else {
@@ -381,7 +381,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 if (D) Log.v(TAG, "download combined calls request");
             } else {
                 Log.w(TAG, "Input name doesn't contain valid info!!!");
-                return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
+                return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
             }
         }
 
@@ -402,7 +402,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             return pullPhonebook(appParam, appParamValue, reply, op, name);
         } else {
             Log.w(TAG, "unknown type request!!!");
-            return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
+            return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
         }
     }
 
@@ -843,7 +843,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             final Operation op, final String name, final String current_path) {
         if (name == null || name.length() < VCARD_NAME_SUFFIX_LENGTH) {
             if (D) Log.d(TAG, "Name is Null, or the length of name < 5 !");
-            return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
+            return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
         }
         String strIndex = name.substring(0, name.length() - VCARD_NAME_SUFFIX_LENGTH + 1);
         int intIndex = 0;
@@ -852,7 +852,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 intIndex = Integer.parseInt(strIndex);
             } catch (NumberFormatException e) {
                 Log.e(TAG, "catch number format exception " + e.toString());
-                return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
+                return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
             }
         }
 
@@ -865,7 +865,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         boolean vcard21 = appParamValue.vcard21;
         if (appParamValue.needTag == 0) {
             Log.w(TAG, "wrong path!");
-            return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
+            return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
         } else if (appParamValue.needTag == ContentType.PHONEBOOK) {
             if (intIndex < 0 || intIndex >= size) {
                 Log.w(TAG, "The requested vcard is not acceptable! name= " + name);

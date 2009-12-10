@@ -483,10 +483,11 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     }
                 }
             } catch (IOException e) {
-                status = BluetoothShare.STATUS_OBEX_DATA_ERROR;
-                Log.e(TAG, "Error when sending file");
-                Constants.updateShareStatus(mContext1, mInfo.mId, status);
-                mCallback.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
+                handleSendException(e.toString());
+            } catch (NullPointerException e) {
+                handleSendException(e.toString());
+            } catch (IndexOutOfBoundsException e) {
+                handleSendException(e.toString());
             } finally {
                 try {
                     fileInfo.mInputStream.close();
@@ -524,6 +525,13 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                 }
             }
             return status;
+        }
+
+        private void handleSendException(String exception) {
+            Log.e(TAG, "Error when sending file: " + exception);
+            int status = BluetoothShare.STATUS_OBEX_DATA_ERROR;
+            Constants.updateShareStatus(mContext1, mInfo.mId, status);
+            mCallback.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
         }
 
         @Override
