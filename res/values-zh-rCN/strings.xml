@@ -82,7 +82,7 @@
     <string name="bt_toast_5" msgid="3481598201604043629">"正在向“%2$s”发送 %1$s 个文件"</string>
     <string name="bt_toast_6" msgid="4157809141200418519">"已停止向“%1$s”发送文件"</string>
     <string name="bt_toast_7" msgid="5720877534395506413">"已停止向“%2$s”发送 %1$s 个文件"</string>
-    <string name="bt_sm_2_1" msgid="6625813581585502551">"SD 卡空间不足，无法保存来自“%1$s”的文件"</string>
+    <string name="bt_sm_2_1" msgid="6625813581585502551">"SD 卡存储空间不足，无法保存来自“%1$s”的文件"</string>
     <string name="bt_sm_2_2" msgid="2697023602119073395">"所需空间：%1$s"</string>
     <string name="bt_sm_3_1" msgid="1658443268226611198">"“%1$s”曾尝试向您发送 %2$s 个文件。"</string>
     <string name="bt_sm_3_2" msgid="1234428166130208088">"但是，该设备一次只能接收一个文件。请让对方逐个发送其余的 %1$s 个文件。"</string>
