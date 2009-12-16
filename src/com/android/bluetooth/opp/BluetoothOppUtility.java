@@ -155,7 +155,7 @@ public class BluetoothOppUtility {
      * application to handle, display error dialog.
      */
     public static void openReceivedFile(Context context, String fileName, String mimetype,
-            Long timeStamp) {
+            Long timeStamp, Uri uri) {
         if (fileName == null || mimetype == null) {
             Log.e(TAG, "ERROR: Para fileName ==null, or mimetype == null");
             return;
@@ -168,6 +168,11 @@ public class BluetoothOppUtility {
             in.putExtra("title", context.getString(R.string.not_exist_file));
             in.putExtra("content", context.getString(R.string.not_exist_file_desc));
             context.startActivity(in);
+
+            // Due to the file is not existing, delete related info in btopp db
+            // to prevent this file from appearing in live folder
+            if (V) Log.d(TAG, "This uri will be deleted: " + uri);
+            context.getContentResolver().delete(uri, null, null);
             return;
         }
 

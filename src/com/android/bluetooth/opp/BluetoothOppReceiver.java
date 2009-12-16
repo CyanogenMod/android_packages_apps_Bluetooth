@@ -153,7 +153,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                     && BluetoothShare.isStatusSuccess(transInfo.mStatus)) {
                 // if received file successfully, open this file
                 BluetoothOppUtility.openReceivedFile(context, transInfo.mFileName,
-                        transInfo.mFileType, transInfo.mTimeStamp);
+                        transInfo.mFileType, transInfo.mTimeStamp, uri);
                 BluetoothOppUtility.updateVisibilityToHidden(context, uri);
             } else {
                 Intent in = new Intent(context, BluetoothOppTransferActivity.class);

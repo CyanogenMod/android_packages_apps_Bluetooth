@@ -347,7 +347,7 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
                 if (mWhichDialog == DIALOG_RECEIVE_COMPLETE_SUCCESS) {
                     // "Open" - open receive file
                     BluetoothOppUtility.openReceivedFile(this, mTransInfo.mFileName,
-                            mTransInfo.mFileType, mTransInfo.mTimeStamp);
+                            mTransInfo.mFileType, mTransInfo.mTimeStamp, mUri);
 
                     // make current transfer "hidden"
                     BluetoothOppUtility.updateVisibilityToHidden(this, mUri);
