@@ -94,7 +94,7 @@ public class Constants {
      * TODO: define correct type list
      */
     public static final String[] ACCEPTABLE_SHARE_OUTBOUND_TYPES = new String[] {
-        "image/*",
+        "image/*", "text/x-vcard",
     };
 
     /**
@@ -114,6 +114,7 @@ public class Constants {
         "image/*",
         "video/*",
         "audio/*",
+        "text/x-vcard",
         "text/plain",
         "text/html",
         "application/zip",
@@ -129,7 +130,6 @@ public class Constants {
      */
     public static final String[] UNACCEPTABLE_SHARE_INBOUND_TYPES = new String[] {
         "text/x-vcalendar",
-        "text/x-vcard",
     };
 
     /** Where we store Bluetooth received files on the external storage */

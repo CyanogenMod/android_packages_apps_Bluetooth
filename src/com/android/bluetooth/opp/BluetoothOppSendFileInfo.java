@@ -33,20 +33,29 @@
 package com.android.bluetooth.opp;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
+import android.util.Log;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.OpenableColumns;
+import android.provider.ContactsContract.Contacts;
 
 /**
  * This class stores information about a single sending file It will only be
  * used for outbound share.
  */
 public class BluetoothOppSendFileInfo {
+    private static final String TAG = "BluetoothOppSendFileInfo";
+
+    private static final boolean D = Constants.DEBUG;
+
+    private static final boolean V = Constants.VERBOSE;
+
     /** readable media file name */
     public final String mFileName;
 
@@ -98,7 +107,8 @@ public class BluetoothOppSendFileInfo {
         String fileName = null;
         String contentType = null;
         long length = 0;
-        if (scheme.equals("content") && authority.equals("media")) {
+        if (scheme.equals("content") && authority.equals("media")
+                || type.equals(Contacts.CONTENT_VCARD_TYPE)) {
 
             contentType = contentResolver.getType(u);
             Cursor metadataCursor = contentResolver.query(u, new String[] {
@@ -131,6 +141,20 @@ public class BluetoothOppSendFileInfo {
             return new BluetoothOppSendFileInfo(null, null, 0, null,
                     BluetoothShare.STATUS_FILE_ERROR, dest);
         }
+
+        // VCard stream length got from content provider is 0, we can only get
+        // the real value after the real encoding process complete
+        if (type.equals(Contacts.CONTENT_VCARD_TYPE)) {
+            try {
+                length = is.available();
+                if (V) Log.v(TAG, "Contacts file length is " + length);
+            } catch (IOException e) {
+                Log.e(TAG, "Read contacts vcard stream exception: ", e);
+                return new BluetoothOppSendFileInfo(null, null, 0, null,
+                        BluetoothShare.STATUS_FILE_ERROR, dest);
+            }
+        }
+
         return new BluetoothOppSendFileInfo(fileName, contentType, length, is, 0, dest);
     }
 }

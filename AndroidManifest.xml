@@ -41,6 +41,7 @@
                 <data android:mimeType="image/*" />
                 <data android:mimeType="video/*" />
                 <data android:mimeType="audio/*" />
+                <data android:mimeType="text/x-vcard" />
                 <data android:mimeType="text/plain" />
                 <data android:mimeType="text/html" />
                 <data android:mimeType="application/zip" />
@@ -55,6 +56,7 @@
                 <data android:mimeType="image/*" />
                 <data android:mimeType="video/*" />
                 <data android:mimeType="x-mixmedia/*" />
+                <data android:mimeType="text/x-vcard" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.btopp.intent.action.OPEN" />
