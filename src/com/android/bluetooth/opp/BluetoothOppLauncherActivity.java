@@ -68,7 +68,7 @@ public class BluetoothOppLauncherActivity extends Activity {
              * an EXTRA_STREAM with the data to attach.
              */
             if (action.equals(Intent.ACTION_SEND)) {
-                // TODO(Moto): handle type == null case
+                // TODO: handle type == null case
                 String type = intent.getType();
                 Uri stream = (Uri)intent.getParcelableExtra(Intent.EXTRA_STREAM);
                 if (stream != null && type != null) {
@@ -109,7 +109,7 @@ public class BluetoothOppLauncherActivity extends Activity {
                 return;
             }
 
-            // TODO(Moto): In the future, we may send intent to DevicePickerActivity
+            // TODO: In the future, we may send intent to DevicePickerActivity
             // directly,
             // and let DevicePickerActivity to handle Bluetooth Enable.
             if (!BluetoothOppManager.getInstance(this).isEnabled()) {
@@ -120,7 +120,7 @@ public class BluetoothOppLauncherActivity extends Activity {
             } else {
                 if (V) Log.v(TAG, "BT already enabled!! ");
                 Intent in1 = new Intent(BluetoothDevicePicker.ACTION_LAUNCH);
-                in1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                in1.setFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
                 in1.putExtra(BluetoothDevicePicker.EXTRA_NEED_AUTH, false);
                 in1.putExtra(BluetoothDevicePicker.EXTRA_FILTER_TYPE,
                         BluetoothDevicePicker.FILTER_TYPE_TRANSFER);

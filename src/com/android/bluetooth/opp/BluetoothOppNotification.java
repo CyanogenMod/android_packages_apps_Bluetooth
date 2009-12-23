@@ -114,7 +114,7 @@ class BluetoothOppNotification {
     }
 
     public void finishNotification() {
-        synchronized (this) {
+        synchronized (BluetoothOppNotification.this) {
             mFinised = true;
         }
     }
@@ -123,7 +123,7 @@ class BluetoothOppNotification {
      * Update the notification ui.
      */
     public void updateNotification() {
-        synchronized (this) {
+        synchronized (BluetoothOppNotification.this) {
             mPendingUpdate = true;
             if (mUpdateNotificationThread == null) {
                 mUpdateNotificationThread = new NotificationUpdateThread();
@@ -143,7 +143,7 @@ class BluetoothOppNotification {
         public void run() {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             for (;;) {
-                synchronized (this) {
+                synchronized (BluetoothOppNotification.this) {
                     if (mUpdateNotificationThread != this) {
                         throw new IllegalStateException(
                                 "multiple UpdateThreads in BluetoothOppNotification");

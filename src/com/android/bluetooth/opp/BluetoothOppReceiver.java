@@ -104,9 +104,10 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             // Display toast message
             String deviceName = mOppManager.getDeviceName(remoteDevice);
             String toastMsg;
+            int batchSize = mOppManager.getBatchSize();
             if (mOppManager.mMultipleFlag) {
-                toastMsg = context.getString(R.string.bt_toast_5, Integer
-                        .toString(mOppManager.mfileNumInBatch), deviceName);
+                toastMsg = context.getString(R.string.bt_toast_5, Integer.toString(batchSize),
+                        deviceName);
             } else {
                 toastMsg = context.getString(R.string.bt_toast_4, deviceName);
             }

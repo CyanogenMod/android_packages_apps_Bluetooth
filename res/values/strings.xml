@@ -173,6 +173,7 @@
     <string name="bt_tf_10">Locked memory card. You must unlock the memory card to save files.</string>
     <string name="bt_tf_12">There is a file being transferred to a different device. Please wait\u2026</string>
     <string name="bt_tf_13">Bluetooth is currently busy. Consider turning off another Bluetooth feature and trying again.</string>
+    <string name="ErrorTooManyRequests">Too many requests are being processed. Try again later.</string>
 
     <!-- Bluetooth Transfer Failure Reason -->
     <string name="status_pending">File transfer not started yet</string>

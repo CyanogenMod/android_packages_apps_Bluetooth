@@ -39,8 +39,11 @@ import android.bluetooth.BluetoothDevice;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Process;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -74,8 +77,6 @@ public class BluetoothOppManager {
 
     private ArrayList<Uri> mUrisOfSendingFiles;
 
-    private boolean mCanStartTransfer = false;
-
     private static final String OPP_PREFERENCE_FILE = "OPPMGR";
 
     private static final String SENDING_FLAG = "SENDINGFLAG";
@@ -90,7 +91,9 @@ public class BluetoothOppManager {
 
     private static final String MULTIPLE_FLAG = "MULTIPLE_FLAG";
 
-    private static final String ARRAYLIST_ITEM_SEPERATOR = "!";
+    private static final String ARRAYLIST_ITEM_SEPERATOR = ";";
+
+    private static final int ALLOWED_INSERT_SHARE_THREAD_NUMBER = 3;
 
     // used to judge if need continue sending process after received a
     // ENABLED_ACTION
@@ -98,7 +101,9 @@ public class BluetoothOppManager {
 
     public boolean mMultipleFlag;
 
-    public int mfileNumInBatch;
+    private int mfileNumInBatch;
+
+    private int mInsertShareThreadNum = 0;
 
     /**
      * Get singleton instance.
@@ -142,6 +147,7 @@ public class BluetoothOppManager {
     private void restoreApplicationData() {
         SharedPreferences settings = mContext.getSharedPreferences(OPP_PREFERENCE_FILE, 0);
 
+        // All member vars are not initialized till now
         mSendingFlag = settings.getBoolean(SENDING_FLAG, false);
         mMimeTypeOfSendigFile = settings.getString(MIME_TYPE, null);
         mUriOfSendingFile = settings.getString(FILE_URI, null);
@@ -152,57 +158,67 @@ public class BluetoothOppManager {
                     + mMimeTypeOfSendigFile + mUriOfSendingFile);
 
         String strUris = settings.getString(FILE_URIS, null);
-        // TODO(Moto): restore mUrisOfSendingFiles from strUris.
+        mUrisOfSendingFiles = new ArrayList<Uri>();
+        if (strUris != null) {
+            String[] splitUri = strUris.split(ARRAYLIST_ITEM_SEPERATOR);
+            for (int i = 0; i < splitUri.length; i++) {
+                mUrisOfSendingFiles.add(Uri.parse(splitUri[i]));
+                if (V) Log.v(TAG, "Uri in batch:  " + Uri.parse(splitUri[i]));
+            }
+        }
+
+        mContext.getSharedPreferences(OPP_PREFERENCE_FILE, 0).edit().clear().commit();
     }
 
     /**
-     * Save application data to preference, need restore these data later
+     * Save application data to preference, need restore these data when service restart
      */
-    private void onDestroy() {
+    private void storeApplicationData() {
         SharedPreferences.Editor editor = mContext.getSharedPreferences(OPP_PREFERENCE_FILE, 0)
                 .edit();
         editor.putBoolean(SENDING_FLAG, mSendingFlag).commit();
-        editor.putString(MIME_TYPE, mMimeTypeOfSendigFile).commit();
-        editor.putString(FILE_URI, mUriOfSendingFile).commit();
-        editor.putString(MIME_TYPE_MULTIPLE, mMimeTypeOfSendigFiles).commit();
         editor.putBoolean(MULTIPLE_FLAG, mMultipleFlag).commit();
-        String strUris;
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0, count = mUrisOfSendingFiles.size(); i < count; i++) {
-            Uri uriContent = mUrisOfSendingFiles.get(i);
-            sb.append(uriContent);
-            sb.append(ARRAYLIST_ITEM_SEPERATOR);
-        }
-        strUris = sb.toString();
-        editor.putString(FILE_URIS, strUris).commit();
-        if (V) Log.v(TAG, "finalize is called and application data saved by SharedPreference! ");
-    }
+        if (mMultipleFlag) {
+            editor.putString(MIME_TYPE_MULTIPLE, mMimeTypeOfSendigFiles).commit();
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0, count = mUrisOfSendingFiles.size(); i < count; i++) {
+                Uri uriContent = mUrisOfSendingFiles.get(i);
+                sb.append(uriContent);
+                sb.append(ARRAYLIST_ITEM_SEPERATOR);
+            }
+            String strUris = sb.toString();
+            editor.putString(FILE_URIS, strUris).commit();
 
-    /**
-     * Save data to preference when this class is destroyed by system due to
-     * memory lack
-     */
-    protected void finalize() throws Throwable {
-        try {
-            onDestroy();
-        } finally {
-            super.finalize();
+            editor.remove(MIME_TYPE).commit();
+            editor.remove(FILE_URI).commit();
+        } else {
+            editor.putString(MIME_TYPE, mMimeTypeOfSendigFile).commit();
+            editor.putString(FILE_URI, mUriOfSendingFile).commit();
+
+            editor.remove(MIME_TYPE_MULTIPLE).commit();
+            editor.remove(FILE_URIS).commit();
         }
+        if (V) Log.v(TAG, "Application data stored to SharedPreference! ");
     }
 
     public void saveSendingFileInfo(String mimeType, String uri) {
-        mMultipleFlag = false;
-        mMimeTypeOfSendigFile = mimeType;
-        mUriOfSendingFile = uri;
-        mCanStartTransfer = true;
+        synchronized (BluetoothOppManager.this) {
+            mMultipleFlag = false;
+            mMimeTypeOfSendigFile = mimeType;
+            mUriOfSendingFile = uri;
+            storeApplicationData();
+        }
     }
 
     public void saveSendingFileInfo(String mimeType, ArrayList<Uri> uris) {
-        mMultipleFlag = true;
-        mMimeTypeOfSendigFiles = mimeType;
-        mUrisOfSendingFiles = uris;
-        mCanStartTransfer = true;
+        synchronized (BluetoothOppManager.this) {
+            mMultipleFlag = true;
+            mMimeTypeOfSendigFiles = mimeType;
+            mUrisOfSendingFiles = uris;
+            storeApplicationData();
+        }
     }
+
     /**
      * Get the current status of Bluetooth hardware.
      * @return true if Bluetooth enabled, false otherwise.
@@ -253,59 +269,138 @@ public class BluetoothOppManager {
         return deviceName;
     }
 
+    public int getBatchSize() {
+        synchronized (BluetoothOppManager.this) {
+            return mfileNumInBatch;
+        }
+    }
+
     /**
-     * insert sending sessions to db, only used by Opp application.
+     * Fork a thread to insert share info to db.
      */
     public void startTransfer(BluetoothDevice device) {
-        if (device == null) {
-            Log.e(TAG, "Target bt device is null!");
-            return;
+        if (V) Log.v(TAG, "Active InsertShareThread number is : " + mInsertShareThreadNum);
+        InsertShareInfoThread insertThread;
+        synchronized (BluetoothOppManager.this) {
+            if (mInsertShareThreadNum > ALLOWED_INSERT_SHARE_THREAD_NUMBER) {
+                Log.e(TAG, "Too many shares user triggered concurrently!");
+
+                // Notice user
+                Intent in = new Intent(mContext, BluetoothOppBtErrorActivity.class);
+                in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                in.putExtra("title", mContext.getString(R.string.enabling_progress_title));
+                in.putExtra("content", mContext.getString(R.string.ErrorTooManyRequests));
+                mContext.startActivity(in);
+
+                return;
+            }
+            insertThread = new InsertShareInfoThread(device, mMultipleFlag, mMimeTypeOfSendigFile,
+                    mUriOfSendingFile, mMimeTypeOfSendigFiles, mUrisOfSendingFiles);
+            if (mMultipleFlag) {
+                mfileNumInBatch = mUrisOfSendingFiles.size();
+            }
         }
 
-        if (!mCanStartTransfer) {
-            if (V) Log.v(TAG, "No transfer info restored: fileType&fileName");
-            return;
+        insertThread.start();
+    }
+
+    /**
+     * Thread to insert share info to db. In multiple files (say 100 files)
+     * share case, the inserting share info to db operation would be a time
+     * consuming operation, so need a thread to handle it. This thread allows
+     * multiple instances to support below case: User select multiple files to
+     * share to one device (say device 1), and then right away share to second
+     * device (device 2), we need insert all these share info to db.
+     */
+    private class InsertShareInfoThread extends Thread {
+        private final BluetoothDevice mRemoteDevice;
+
+        private final String mTypeOfSingleFile;
+
+        private final String mUri;
+
+        private final String mTypeOfMultipleFiles;
+
+        private final ArrayList<Uri> mUris;
+
+        private final boolean mIsMultiple;
+
+        public InsertShareInfoThread(BluetoothDevice device, boolean multiple,
+                String typeOfSingleFile, String uri, String typeOfMultipleFiles, ArrayList<Uri> uris) {
+            super("Insert ShareInfo Thread");
+            this.mRemoteDevice = device;
+            this.mIsMultiple = multiple;
+            this.mTypeOfSingleFile = typeOfSingleFile;
+            this.mUri = uri;
+            this.mTypeOfMultipleFiles = typeOfMultipleFiles;
+            this.mUris = uris;
+
+            synchronized (BluetoothOppManager.this) {
+                mInsertShareThreadNum++;
+            }
+
+            if (V) Log.v(TAG, "Thread id is: " + this.getId());
         }
 
-        if (mMultipleFlag == true) {
-            int count = mUrisOfSendingFiles.size();
-            mfileNumInBatch = count;
+        @Override
+        public void run() {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+            if (mRemoteDevice == null) {
+                Log.e(TAG, "Target bt device is null!");
+                return;
+            }
+            if (mIsMultiple) {
+                insertMultipleShare();
+            } else {
+                insertSingleShare();
+            }
+            synchronized (BluetoothOppManager.this) {
+                mInsertShareThreadNum--;
+            }
+        }
 
+        /**
+         * Insert multiple sending sessions to db, only used by Opp application.
+         */
+        private void insertMultipleShare() {
+            int count = mUris.size();
             Long ts = System.currentTimeMillis();
             for (int i = 0; i < count; i++) {
-                Uri fileUri = mUrisOfSendingFiles.get(i);
+                Uri fileUri = mUris.get(i);
                 ContentResolver contentResolver = mContext.getContentResolver();
                 String contentType = contentResolver.getType(fileUri);
                 if (V) Log.v(TAG, "Got mimetype: " + contentType + "  Got uri: " + fileUri);
+                if (TextUtils.isEmpty(contentType)) {
+                    contentType = mTypeOfMultipleFiles;
+                }
 
                 ContentValues values = new ContentValues();
                 values.put(BluetoothShare.URI, fileUri.toString());
                 values.put(BluetoothShare.MIMETYPE, contentType);
-                values.put(BluetoothShare.DESTINATION, device.getAddress());
+                values.put(BluetoothShare.DESTINATION, mRemoteDevice.getAddress());
                 values.put(BluetoothShare.TIMESTAMP, ts);
 
                 final Uri contentUri = mContext.getContentResolver().insert(
                         BluetoothShare.CONTENT_URI, values);
                 if (V) Log.v(TAG, "Insert contentUri: " + contentUri + "  to device: "
-                            + getDeviceName(device));
+                            + getDeviceName(mRemoteDevice));
             }
-        } else {
+        }
+
+         /**
+         * Insert single sending session to db, only used by Opp application.
+         */
+        private void insertSingleShare() {
             ContentValues values = new ContentValues();
-            values.put(BluetoothShare.URI, mUriOfSendingFile);
-            values.put(BluetoothShare.MIMETYPE, mMimeTypeOfSendigFile);
-            values.put(BluetoothShare.DESTINATION, device.getAddress());
+            values.put(BluetoothShare.URI, mUri);
+            values.put(BluetoothShare.MIMETYPE, mTypeOfSingleFile);
+            values.put(BluetoothShare.DESTINATION, mRemoteDevice.getAddress());
 
             final Uri contentUri = mContext.getContentResolver().insert(BluetoothShare.CONTENT_URI,
                     values);
             if (V) Log.v(TAG, "Insert contentUri: " + contentUri + "  to device: "
-                        + getDeviceName(device));
+                                + getDeviceName(mRemoteDevice));
         }
-
-        // reset vars
-        mMimeTypeOfSendigFile = null;
-        mUriOfSendingFile = null;
-        mUrisOfSendingFiles = null;
-        mMultipleFlag = false;
-        mCanStartTransfer = false;
     }
+
 }
