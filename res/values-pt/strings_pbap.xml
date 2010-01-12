@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (C) 2009 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="pbap_app_name" msgid="6916507166414341324">"Pbap Bluetooth"</string>
+    <string name="pbap_acceptance_dialog_title" msgid="4606773169019619760">"%1$s gostaria de acessar os seus contatos e histórico de chamadas. Conceder acesso a %2$s?"</string>
+    <string name="pbap_acceptance_dialog_header" msgid="5456473921987026974">"Acesso à Agenda"</string>
+    <string name="pbap_session_key_dialog_title" msgid="3580996574333882561">"Digite a chave de sessão para %1$s"</string>
+    <string name="pbap_session_key_dialog_header" msgid="2772472422782758981">"É necessário fornecer a chave de sessão Bluetooth"</string>
+    <string name="pbap_acceptance_timeout_message" msgid="1107401415099814293">"Tempo limite esgotado para aceitar a conexão com %1$s"</string>
+    <string name="pbap_authentication_timeout_message" msgid="4166979525521902687">"Tempo limite esgotado para inserir a chave de sessão com %1$s"</string>
+    <string name="bluetooth_transfer_header" msgid="5088290435827887179">"Transferência por Bluetooth"</string>
+    <string name="bluetooth_transfer_text" msgid="2283895365101625419">"Não foi possível estabelecer compartilhamento de agenda com"</string>
+    <string name="toast_connected" msgid="5683199843935518834">"%1$s se conectou ao seu telefone."</string>
+    <string name="toast_disconnected" msgid="78819084478319889">"%1$s se desconectou do seu telefone."</string>
+    <string name="pbap_notif_ticker" msgid="1653350586489072739">"Solicitação de acesso à Agenda"</string>
+    <string name="pbap_notif_title" msgid="2967094612841799440">"Solicitação de PBAP"</string>
+    <string name="pbap_notif_message" msgid="6046731677513301195">"Permitir acesso à Agenda por %1$s"</string>
+    <string name="auth_notif_ticker" msgid="1575825798053163744">"Solicitação de autenticação Obex"</string>
+    <string name="auth_notif_title" msgid="7599854855681573258">"Chave de sessão"</string>
+    <string name="auth_notif_message" msgid="6667218116427605038">"Digite a chave de sessão para %1$s"</string>
+    <string name="alwaysallowed" msgid="1912976993660130849">"Sempre permitir?"</string>
+    <string name="defaultname" msgid="4821590500649090078">"Kit para carro"</string>
+    <string name="unknownName" msgid="2841414754740600042">"Nome desconhecido"</string>
+    <string name="localPhoneName" msgid="2349001318925409159">"Meu nome"</string>
+    <string name="defaultnumber" msgid="8520116145890867338">"000000"</string>
+</resources>
