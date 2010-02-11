@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.android.bluetooth" >
+
+    <original-package android:name="com.android.bluetooth" />
+
     <!-- Allows access to the Bluetooth Share Manager -->
     <permission android:name="android.permission.ACCESS_BLUETOOTH_SHARE"
         android:label="@string/permlab_bluetoothShareManager"
