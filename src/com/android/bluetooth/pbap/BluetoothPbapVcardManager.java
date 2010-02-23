@@ -32,34 +32,30 @@
 
 package com.android.bluetooth.pbap;
 
-import com.android.bluetooth.R;
-
-import android.net.Uri;
-import android.os.Handler;
-import android.text.TextUtils;
-import android.util.Log;
-import android.database.Cursor;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.provider.CallLog;
-import android.provider.CallLog.Calls;
-import android.provider.ContactsContract.RawContacts;
-import android.provider.ContactsContract.PhoneLookup;
+import android.database.Cursor;
+import android.net.Uri;
 import android.pim.vcard.VCardComposer;
 import android.pim.vcard.VCardConfig;
 import android.pim.vcard.VCardComposer.OneEntryHandler;
-import android.provider.ContactsContract;
+import android.provider.CallLog;
+import android.provider.CallLog.Calls;
 import android.provider.ContactsContract.CommonDataKinds;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.text.TextUtils;
+import android.util.Log;
 
-import javax.obex.ResponseCodes;
-import javax.obex.Operation;
+import com.android.bluetooth.R;
+
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Writer;
 import java.util.ArrayList;
+
+import javax.obex.Operation;
+import javax.obex.ResponseCodes;
 
 public class BluetoothPbapVcardManager {
     private static final String TAG = "BluetoothPbapVcardManager";
@@ -115,7 +111,7 @@ public class BluetoothPbapVcardManager {
     }
 
     public final String getOwnerPhoneNumberVcard(final boolean vcardType21) {
-        VCardComposer composer = new VCardComposer(mContext);
+        BluetoothPbapCallLogComposer composer = new BluetoothPbapCallLogComposer(mContext, false);
         String name = BluetoothPbapService.getLocalPhoneName();
         String number = BluetoothPbapService.getLocalPhoneNum();
         String vcard = composer.composeVCardForPhoneOwnNumber(Phone.TYPE_MOBILE, name, number,
@@ -425,33 +421,54 @@ public class BluetoothPbapVcardManager {
         long timestamp = 0;
         if (V) timestamp = System.currentTimeMillis();
 
-        VCardComposer composer = null;
-        try {
-            // Currently only support Generic Vcard 2.1 and 3.0
-            int vcardType;
-            if (vcardType21) {
-                vcardType = VCardConfig.VCARD_TYPE_V21_GENERIC_UTF8;
-            } else {
-                vcardType = VCardConfig.VCARD_TYPE_V30_GENERIC_UTF8;
-            }
+        if (isContacts) {
+            VCardComposer composer = null;
+            try {
+                // Currently only support Generic Vcard 2.1 and 3.0
+                int vcardType;
+                if (vcardType21) {
+                    vcardType = VCardConfig.VCARD_TYPE_V21_GENERIC_UTF8;
+                } else {
+                    vcardType = VCardConfig.VCARD_TYPE_V30_GENERIC_UTF8;
+                }
 
-            composer = new VCardComposer(mContext, vcardType, true);
-            composer.addHandler(new HandlerForStringBuffer(op, ownerVCard));
-            final Uri contentUri = (isContacts ? Contacts.CONTENT_URI : CallLog.Calls.CONTENT_URI); 
-            if (!composer.init(contentUri, selection, null, null)) {
-                return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
-            }
-
-            while (!composer.isAfterLast()) {
-                if (!composer.createOneEntry()) {
-                    Log.e(TAG, "Failed to read a contact. Error reason: "
-                            + composer.getErrorReason());
+                composer = new VCardComposer(mContext, vcardType, true);
+                if (!composer.init(Contacts.CONTENT_URI, selection, null, null)) {
                     return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
                 }
+
+                while (!composer.isAfterLast()) {
+                    if (!composer.createOneEntry()) {
+                        Log.e(TAG, "Failed to read a contact. Error reason: "
+                                + composer.getErrorReason());
+                        return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+                    }
+                }
+            } finally {
+                if (composer != null) {
+                    composer.terminate();
+                }
             }
-        } finally {
-            if (composer != null) {
-                composer.terminate();
+        } else { // CallLog
+            BluetoothPbapCallLogComposer composer = null;
+            try {
+                composer = new BluetoothPbapCallLogComposer(mContext, true);
+                composer.addHandler(new HandlerForStringBuffer(op, ownerVCard));
+                if (!composer.init(CallLog.Calls.CONTENT_URI, selection, null, null)) {
+                    return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+                }
+
+                while (!composer.isAfterLast()) {
+                    if (!composer.createOneEntry()) {
+                        Log.e(TAG, "Failed to read a contact. Error reason: "
+                                + composer.getErrorReason());
+                        return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+                    }
+                }
+            } finally {
+                if (composer != null) {
+                    composer.terminate();
+                }
             }
         }
 
