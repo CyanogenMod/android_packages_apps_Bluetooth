@@ -70,6 +70,12 @@ class BluetoothOppNotification {
 
     static final String WHERE_COMPLETED = BluetoothShare.STATUS + " >= '200' AND " + visible;
 
+    private static final String WHERE_COMPLETED_OUTBOUND = WHERE_COMPLETED + " AND " + "("
+            + BluetoothShare.DIRECTION + " == " + BluetoothShare.DIRECTION_OUTBOUND + ")";
+
+    private static final String WHERE_COMPLETED_INBOUND = WHERE_COMPLETED + " AND " + "("
+            + BluetoothShare.DIRECTION + " == " + BluetoothShare.DIRECTION_INBOUND + ")";
+
     static final String WHERE_CONFIRM_PENDING = BluetoothShare.USER_CONFIRMATION + " == '"
             + BluetoothShare.USER_CONFIRMATION_PENDING + "'" + " AND " + visible;
 
@@ -84,6 +90,18 @@ class BluetoothOppNotification {
     private boolean mPendingUpdate = false;
 
     private boolean mFinised = false;
+
+    private static final int NOTIFICATION_ID_OUTBOUND = -1000005;
+
+    private static final int NOTIFICATION_ID_INBOUND = -1000006;
+
+    private boolean mUpdateCompleteNotification = true;
+
+    private int mActiveNotificationId = 0;
+
+    private Notification mOutNoti = null;
+
+    private Notification mInNoti = null;
 
     /**
      * This inner class is used to describe some properties for one transfer.
@@ -169,19 +187,35 @@ class BluetoothOppNotification {
             return;
         }
 
+        // If there is active transfers, then no need to update completed transfer
+        // notifications
+        if (cursor.getCount() > 0) {
+            mUpdateCompleteNotification = false;
+        } else {
+            mUpdateCompleteNotification = true;
+        }
+        if (V) Log.v(TAG, "mUpdateCompleteNotification = " + mUpdateCompleteNotification);
+
         // Collate the notifications
+        final int timestampIndex = cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP);
+        final int directionIndex = cursor.getColumnIndexOrThrow(BluetoothShare.DIRECTION);
+        final int idIndex = cursor.getColumnIndexOrThrow(BluetoothShare._ID);
+        final int totalBytesIndex = cursor.getColumnIndexOrThrow(BluetoothShare.TOTAL_BYTES);
+        final int currentBytesIndex = cursor.getColumnIndexOrThrow(BluetoothShare.CURRENT_BYTES);
+        final int dataIndex = cursor.getColumnIndexOrThrow(BluetoothShare._DATA);
+        final int filenameHintIndex = cursor.getColumnIndexOrThrow(BluetoothShare.FILENAME_HINT);
+
         mNotifications.clear();
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-            int timeStamp = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP));
-            int dir = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare.DIRECTION));
-            int id = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID));
-            int total = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare.TOTAL_BYTES));
-            int current = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare.CURRENT_BYTES));
+            int timeStamp = cursor.getInt(timestampIndex);
+            int dir = cursor.getInt(directionIndex);
+            int id = cursor.getInt(idIndex);
+            int total = cursor.getInt(totalBytesIndex);
+            int current = cursor.getInt(currentBytesIndex);
 
-            String fileName = cursor.getString(cursor.getColumnIndexOrThrow(BluetoothShare._DATA));
+            String fileName = cursor.getString(dataIndex);
             if (fileName == null) {
-                fileName = cursor.getString(cursor
-                        .getColumnIndexOrThrow(BluetoothShare.FILENAME_HINT));
+                fileName = cursor.getString(filenameHintIndex);
             }
             if (fileName == null) {
                 fileName = mContext.getString(R.string.unknown_file);
@@ -252,69 +286,161 @@ class BluetoothOppNotification {
 
             n.contentIntent = PendingIntent.getBroadcast(mContext, 0, intent, 0);
             mNotificationMgr.notify(item.id, n);
+
+            mActiveNotificationId = item.id;
         }
     }
 
     private void updateCompletedNotification() {
+        String title;
+        String caption;
+        long timeStamp = 0;
+        int outboundSuccNumber = 0;
+        int outboundFailNumber = 0;
+        int outboundNum;
+        int inboundNum;
+        int inboundSuccNumber = 0;
+        int inboundFailNumber = 0;
+        Intent intent;
+
+        // If there is active transfer, no need to update complete transfer
+        // notification
+        if (!mUpdateCompleteNotification) {
+            if (V) Log.v(TAG, "No need to update complete notification");
+            return;
+        }
+
+        // After merge complete notifications to 2 notifications, there is no
+        // chance to update the active notifications to complete notifications
+        // as before. So need cancel the active notification after the active
+        // transfer becomes complete.
+        if (mNotificationMgr != null && mActiveNotificationId != 0) {
+            mNotificationMgr.cancel(mActiveNotificationId);
+            if (V) Log.v(TAG, "ongoing transfer notification was removed");
+        }
+
+        // Creating outbound notification
         Cursor cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
-                WHERE_COMPLETED, null, BluetoothShare._ID);
+                WHERE_COMPLETED_OUTBOUND, null, BluetoothShare.TIMESTAMP + " DESC");
+        if (cursor == null) {
+            return;
+        }
+
+        final int timestampIndex = cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP);
+        final int statusIndex = cursor.getColumnIndexOrThrow(BluetoothShare.STATUS);
+
+        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+            if (cursor.isFirst()) {
+                // Display the time for the latest transfer
+                timeStamp = cursor.getLong(timestampIndex);
+            }
+            int status = cursor.getInt(statusIndex);
+
+            if (BluetoothShare.isStatusError(status)) {
+                outboundFailNumber++;
+            } else {
+                outboundSuccNumber++;
+            }
+        }
+        if (V) Log.v(TAG, "outbound: succ-" + outboundSuccNumber + "  fail-" + outboundFailNumber);
+        cursor.close();
+
+        outboundNum = outboundSuccNumber + outboundFailNumber;
+        title = mContext.getString(R.string.outbound_noti_title);
+        intent = new Intent(Constants.ACTION_OPEN_OUTBOUND_TRANSFER);
+        intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
+
+        // create the outbound notification
+        if (mOutNoti == null && outboundNum > 0) {
+            mOutNoti = new Notification();
+            mOutNoti.icon = android.R.drawable.stat_sys_upload_done;
+            caption = mContext.getString(R.string.noti_caption, outboundSuccNumber,
+                    outboundFailNumber);
+            mOutNoti.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(
+                    mContext, 0, intent, 0));
+            mOutNoti.when = timeStamp;
+            // To make number take effect, must set to 1 when creating the
+            // notification
+            mOutNoti.number = 1;
+            mNotificationMgr.notify(NOTIFICATION_ID_OUTBOUND, mOutNoti);
+        }
+
+        // update the outbound notification
+        if (outboundNum > 0) {
+            caption = mContext.getString(R.string.noti_caption, outboundSuccNumber,
+                    outboundFailNumber);
+            mOutNoti.when = timeStamp;
+            mOutNoti.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(
+                    mContext, 0, intent, 0));
+            mOutNoti.number = outboundNum;
+            mNotificationMgr.notify(NOTIFICATION_ID_OUTBOUND, mOutNoti);
+        } else {
+            if (mNotificationMgr != null && mOutNoti != null) {
+                mNotificationMgr.cancel(NOTIFICATION_ID_OUTBOUND);
+                mOutNoti = null;
+                if (V) Log.v(TAG, "outbound notification was removed.");
+            }
+        }
+
+        // Creating inbound notification
+        cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
+                WHERE_COMPLETED_INBOUND, null, BluetoothShare.TIMESTAMP + " DESC");
         if (cursor == null) {
             return;
         }
 
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-            // Add the notifications
-            long timeStamp = cursor.getLong(cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP));
-            int dir = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare.DIRECTION));
-            int id = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID));
-            int status = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare.STATUS));
-
-            String fileName = cursor.getString(cursor
-                    .getColumnIndexOrThrow(BluetoothShare.FILENAME_HINT));
-            if (fileName == null) {
-                fileName = mContext.getString(R.string.unknown_file);
+            if (cursor.isFirst()) {
+                // Display the time for the latest transfer
+                timeStamp = cursor.getLong(timestampIndex);
             }
+            int status = cursor.getInt(statusIndex);
 
-            String title;
-            String caption;
-            Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + id);
-
-            Notification n = new Notification();
             if (BluetoothShare.isStatusError(status)) {
-                if (dir == BluetoothShare.DIRECTION_OUTBOUND) {
-                    title = mContext.getString(R.string.notification_sent_fail, fileName);
-                } else {
-                    title = mContext.getString(R.string.notification_received_fail, fileName);
-                }
-                caption = mContext.getString(R.string.download_fail_line3, BluetoothOppUtility
-                        .getStatusDescription(mContext, status));
-                n.icon = android.R.drawable.stat_notify_error;
+                inboundFailNumber++;
             } else {
-                if (dir == BluetoothShare.DIRECTION_OUTBOUND) {
-                    title = mContext.getString(R.string.notification_sent, fileName);
-                    n.icon = android.R.drawable.stat_sys_upload_done;
-                } else {
-                    title = mContext.getString(R.string.notification_received, fileName);
-                    n.icon = android.R.drawable.stat_sys_download_done;
-                }
-                caption = mContext.getString(R.string.notification_sent_complete);
+                inboundSuccNumber++;
             }
-            Intent intent = new Intent(Constants.ACTION_OPEN);
-            intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
-            intent.setData(contentUri);
-
-            n.when = timeStamp;
-            n.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(mContext, 0,
-                    intent, 0));
-
-            intent = new Intent(Constants.ACTION_HIDE);
-            intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
-            intent.setData(contentUri);
-            n.deleteIntent = PendingIntent.getBroadcast(mContext, 0, intent, 0);
-
-            mNotificationMgr.notify(id, n);
         }
+        if (V) Log.v(TAG, "inbound: succ-" + inboundSuccNumber + "  fail-" + inboundFailNumber);
         cursor.close();
+
+        inboundNum = inboundSuccNumber + inboundFailNumber;
+        title = mContext.getString(R.string.inbound_noti_title);
+        intent = new Intent(Constants.ACTION_OPEN_INBOUND_TRANSFER);
+        intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
+
+        // create the inbound notification
+        if (mInNoti == null && inboundNum > 0) {
+            mInNoti = new Notification();
+            mInNoti.icon = android.R.drawable.stat_sys_download_done;
+            caption = mContext.getString(R.string.noti_caption, inboundSuccNumber,
+                    inboundFailNumber);
+            mInNoti.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(
+                    mContext, 0, intent, 0));
+            mInNoti.when = timeStamp;
+            // To make number take effect, must set to 1 when creating the
+            // notification
+            mInNoti.number = 1;
+            mNotificationMgr.notify(NOTIFICATION_ID_INBOUND, mInNoti);
+        }
+
+        // update the inbound notification
+        if (inboundNum > 0) {
+            caption = mContext.getString(R.string.noti_caption, inboundSuccNumber,
+                    inboundFailNumber);
+            mInNoti.when = timeStamp;
+            mInNoti.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(
+                    mContext, 0, intent, 0));
+            mInNoti.number = inboundNum;
+            mNotificationMgr.notify(NOTIFICATION_ID_INBOUND, mInNoti);
+        } else {
+            if (mNotificationMgr != null && mInNoti != null) {
+                mNotificationMgr.cancel(NOTIFICATION_ID_INBOUND);
+                mInNoti = null;
+                if (V) Log.v(TAG, "inbound notification was removed.");
+            }
+        }
     }
 
     private void updateIncomingFileConfirmNotification() {

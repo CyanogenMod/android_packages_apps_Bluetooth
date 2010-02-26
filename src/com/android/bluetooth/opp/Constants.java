@@ -59,6 +59,12 @@ public class Constants {
     /** the intent that gets sent when clicking a successful transfer */
     public static final String ACTION_OPEN = "android.btopp.intent.action.OPEN";
 
+    /** the intent that gets sent when clicking outbound transfer notification */
+    public static final String ACTION_OPEN_OUTBOUND_TRANSFER = "android.btopp.intent.action.OPEN_OUTBOUND";
+
+    /** the intent that gets sent when clicking a inbound transfer notification */
+    public static final String ACTION_OPEN_INBOUND_TRANSFER = "android.btopp.intent.action.OPEN_INBOUND";
+
     /** the intent that gets sent when clicking an incomplete/failed transfer */
     public static final String ACTION_LIST = "android.btopp.intent.action.LIST";
 
