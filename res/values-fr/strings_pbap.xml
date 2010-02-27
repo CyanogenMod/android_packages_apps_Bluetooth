@@ -15,17 +15,12 @@
 -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="pbap_app_name" msgid="6916507166414341324">"Profil d\'accès au répertoire téléphonique Bluetooth"</string>
     <string name="pbap_acceptance_dialog_title" msgid="4606773169019619760">"%1$s souhaite accéder à vos contacts et à l\'historique de vos appels. Autoriser l\'accès à %2$s ?"</string>
     <string name="pbap_acceptance_dialog_header" msgid="5456473921987026974">"Accès au répertoire téléphonique"</string>
     <string name="pbap_session_key_dialog_title" msgid="3580996574333882561">"Entrer la clé de session de %1$s"</string>
     <string name="pbap_session_key_dialog_header" msgid="2772472422782758981">"Clé de session Bluetooth requise"</string>
     <string name="pbap_acceptance_timeout_message" msgid="1107401415099814293">"Délai d\'attente dépassé pour l\'acceptation de connexion à \"%1$s\""</string>
     <string name="pbap_authentication_timeout_message" msgid="4166979525521902687">"Délai d\'attente dépassé pour la saisie de la clé de session avec \"%1$s\""</string>
-    <string name="bluetooth_transfer_header" msgid="5088290435827887179">"Transfert par Bluetooth"</string>
-    <string name="bluetooth_transfer_text" msgid="2283895365101625419">"Impossible de partager le répertoire téléphonique avec"</string>
-    <string name="toast_connected" msgid="5683199843935518834">"%1$s est connecté à votre téléphone."</string>
-    <string name="toast_disconnected" msgid="78819084478319889">"%1$s est déconnecté de votre téléphone."</string>
     <string name="pbap_notif_ticker" msgid="1653350586489072739">"Demande d\'accès au répertoire téléphonique"</string>
     <string name="pbap_notif_title" msgid="2967094612841799440">"Demande de profil d\'accès au répertoire téléphonique"</string>
     <string name="pbap_notif_message" msgid="6046731677513301195">"Autoriser %1$s à accéder au répertoire téléphonique"</string>

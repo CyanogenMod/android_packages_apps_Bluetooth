@@ -37,10 +37,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Hay un archivo entrante de otro dispositivo. Confirma que quieres recibirlo."</string>
     <string name="notification_receiving" msgid="3938472603351415139">"Compartir con Bluetooth: recibiendo %1$s"</string>
     <string name="notification_received" msgid="7594846429703561009">"Compartir con Bluetooth: %1$s recibido"</string>
-    <string name="notification_received_complete" msgid="8126908549148704724">"100% completado"</string>
     <string name="notification_received_fail" msgid="2017422835194149214">"Compartir con Bluetooth: el archivo %1$s no se ha recibido."</string>
     <string name="notification_sending" msgid="3118149961355869912">"Compartir con Bluetooth: enviando %1$s"</string>
-    <string name="notification_sending_multi" msgid="8217177886303103438">"Compartir con Bluetooth: enviando archivo"</string>
     <string name="notification_sent" msgid="6345048674000520702">"Compartir con Bluetooth: %1$s enviado"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"100% completado"</string>
     <string name="notification_sent_fail" msgid="6632995333466325127">"Compartir con Bluetooth: el archivo %1$s no se ha enviado."</string>
@@ -81,24 +79,9 @@
     <string name="bt_toast_4" msgid="6320052202214451994">"Enviando archivo a \"%1$s\""</string>
     <string name="bt_toast_5" msgid="3481598201604043629">"Enviando %1$s archivos a \"%2$s\""</string>
     <string name="bt_toast_6" msgid="4157809141200418519">"Se ha detenido el envío del archivo a \"%1$s\"."</string>
-    <string name="bt_toast_7" msgid="5720877534395506413">"Se ha detenido el envío de %1$s archivos a \"%2$s\"."</string>
     <string name="bt_sm_2_1" msgid="6625813581585502551">"No hay suficiente espacio en la tarjeta SD para guardar el archivo de \"%1$s\"."</string>
     <string name="bt_sm_2_2" msgid="2697023602119073395">"Espacio necesario: %1$s"</string>
-    <string name="bt_sm_3_1" msgid="1658443268226611198">"\"%1$s\" ha intentado enviarte %2$s archivos."</string>
-    <string name="bt_sm_3_2" msgid="1234428166130208088">"Sin embargo, este dispositivo solo puede recibir los archivos de uno en uno. Pide a la otra parte que envíe los %1$s archivos restantes de forma individual."</string>
-    <string name="bt_tf_1" msgid="3566606437748689505">"\"%1$s\" no está disponible."</string>
-    <string name="bt_tf_2" msgid="7165797096754450809">"No se puede realizar la sincronización con \"%1$s\"."</string>
-    <string name="bt_tf_3" msgid="6899456362281219699">"Se ha interrumpido la conexión."</string>
-    <string name="bt_tf_4" msgid="9083752106925339573">"\"%1$s\" no admite transferencias de archivos."</string>
-    <string name="bt_tf_5" msgid="2971780974433771152">"\"%1$s\" no puede aceptar %2$s."</string>
-    <string name="bt_tf_6" msgid="6882241272515770488">"\"%1$s\" ha rechazado aceptar el archivo."</string>
-    <string name="bt_tf_7" msgid="2160754176051707109">"No se ha podido enviar el archivo."</string>
-    <string name="bt_tf_8" msgid="8284960065910226862">"No se ha podido recibir el archivo."</string>
-    <string name="bt_tf_10" msgid="8612767267070143708">"La tarjeta de memoria está bloqueada. Debes desbloquearla para guardar los archivos."</string>
-    <string name="bt_tf_12" msgid="1976542340333268388">"Se está transfiriendo un archivo a un dispositivo diferente. Por favor, espera…"</string>
-    <string name="bt_tf_13" msgid="8604795873559730409">"Bluetooth está ocupado en este momento. Desactiva otra función de Bluetooth y vuelve a intentarlo."</string>
-    <!-- no translation found for ErrorTooManyRequests (8578277541472944529) -->
-    <skip />
+    <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Se están procesando demasiadas solicitudes. Vuelve a intentarlo más tarde."</string>
     <string name="status_pending" msgid="7446884326084324082">"No se ha iniciado aún la transferencia de archivos."</string>
     <string name="status_running" msgid="2695810336448055064">"La transferencia de archivos está en curso."</string>
     <string name="status_success" msgid="2268261336330060663">"La transferencia de archivos se ha completado correctamente."</string>

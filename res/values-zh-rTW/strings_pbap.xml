@@ -15,17 +15,12 @@
 -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="pbap_app_name" msgid="6916507166414341324">"藍牙 Pbap"</string>
     <string name="pbap_acceptance_dialog_title" msgid="4606773169019619760">"%1$s 想存取您的通訊錄和通話記錄。要授與 %2$s 存取權嗎？"</string>
     <string name="pbap_acceptance_dialog_header" msgid="5456473921987026974">"電話簿存取"</string>
     <string name="pbap_session_key_dialog_title" msgid="3580996574333882561">"輸入 %1$s 的對稱金鑰"</string>
     <string name="pbap_session_key_dialog_header" msgid="2772472422782758981">"必須有藍牙對稱金鑰"</string>
     <string name="pbap_acceptance_timeout_message" msgid="1107401415099814293">"接受與 %1$s 的連線時發生作業逾時"</string>
     <string name="pbap_authentication_timeout_message" msgid="4166979525521902687">"%1$s 輸入對稱金鑰時發生作業逾時"</string>
-    <string name="bluetooth_transfer_header" msgid="5088290435827887179">"藍牙傳輸"</string>
-    <string name="bluetooth_transfer_text" msgid="2283895365101625419">"無法建立與以下使用者分享的電話簿"</string>
-    <string name="toast_connected" msgid="5683199843935518834">"%1$s 已連線至您的手機。"</string>
-    <string name="toast_disconnected" msgid="78819084478319889">"%1$s 已中斷手機連線。"</string>
     <string name="pbap_notif_ticker" msgid="1653350586489072739">"電話簿存取要求"</string>
     <string name="pbap_notif_title" msgid="2967094612841799440">"PBAP 要求"</string>
     <string name="pbap_notif_message" msgid="6046731677513301195">"允許 %1$s 存取電話簿"</string>

@@ -37,10 +37,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"別の携帯端末からファイルが着信しました。このファイルを受信してもよろしいですか"</string>
     <string name="notification_receiving" msgid="3938472603351415139">"Bluetooth共有: %1$sを受信中"</string>
     <string name="notification_received" msgid="7594846429703561009">"Bluetooth共有: %1$sを受信済み"</string>
-    <string name="notification_received_complete" msgid="8126908549148704724">"100%完了"</string>
     <string name="notification_received_fail" msgid="2017422835194149214">"Bluetooth共有: ファイル%1$sの受信に失敗"</string>
     <string name="notification_sending" msgid="3118149961355869912">"Bluetooth共有: %1$sを送信中"</string>
-    <string name="notification_sending_multi" msgid="8217177886303103438">"Bluetooth共有: ファイルを送信中"</string>
     <string name="notification_sent" msgid="6345048674000520702">"Bluetooth共有: %1$sを送信済み"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"100%完了"</string>
     <string name="notification_sent_fail" msgid="6632995333466325127">"Bluetooth共有: ファイル%1$sの送信に失敗"</string>
@@ -81,24 +79,9 @@
     <string name="bt_toast_4" msgid="6320052202214451994">"「%1$s」にファイルを送信中"</string>
     <string name="bt_toast_5" msgid="3481598201604043629">"%1$s個のファイルを「%2$s」に送信中"</string>
     <string name="bt_toast_6" msgid="4157809141200418519">"「%1$s」へのファイルの送信を停止しました"</string>
-    <string name="bt_toast_7" msgid="5720877534395506413">"%1$s個のファイルの「%2$s」への送信を停止しました"</string>
     <string name="bt_sm_2_1" msgid="6625813581585502551">"「%1$s」からのファイルを保存する十分な空き領域がSDカードにありません"</string>
     <string name="bt_sm_2_2" msgid="2697023602119073395">"空き領域が必要: %1$s"</string>
-    <string name="bt_sm_3_1" msgid="1658443268226611198">"「%1$s」が%2$s個のファイルを送信しようとしました。"</string>
-    <string name="bt_sm_3_2" msgid="1234428166130208088">"ただしこの携帯端末で一度に受信できるファイルは1つだけです。送信元に、残りの%1$s個のファイルを個々に送信するように依頼してください。"</string>
-    <string name="bt_tf_1" msgid="3566606437748689505">"「%1$s」は利用できません。"</string>
-    <string name="bt_tf_2" msgid="7165797096754450809">"「%1$s」をペアとして設定できません。"</string>
-    <string name="bt_tf_3" msgid="6899456362281219699">"接続が中断されました。"</string>
-    <string name="bt_tf_4" msgid="9083752106925339573">"「%1$s」はファイル転送に対応していません。"</string>
-    <string name="bt_tf_5" msgid="2971780974433771152">"「%1$s」は%2$sを承諾できません"</string>
-    <string name="bt_tf_6" msgid="6882241272515770488">"「%1$s」がファイルの受信を拒否しました。"</string>
-    <string name="bt_tf_7" msgid="2160754176051707109">"ファイルを送信できませんでした。"</string>
-    <string name="bt_tf_8" msgid="8284960065910226862">"ファイルを受信できませんでした。"</string>
-    <string name="bt_tf_10" msgid="8612767267070143708">"メモリーカードがロックされています。ファイルを保存するには、メモリカードのロックの解除が必要です。"</string>
-    <string name="bt_tf_12" msgid="1976542340333268388">"別の携帯端末にファイルを転送中です。お待ちください..."</string>
-    <string name="bt_tf_13" msgid="8604795873559730409">"Bluetoothは現在使用中です。他のBluetooth機能をOFFにしてもう一度やり直すことをおすすめします。"</string>
-    <!-- no translation found for ErrorTooManyRequests (8578277541472944529) -->
-    <skip />
+    <string name="ErrorTooManyRequests" msgid="8578277541472944529">"処理中のリクエストが多すぎるため、しばらくしてからもう一度お試しください。"</string>
     <string name="status_pending" msgid="7446884326084324082">"ファイル転送はまだ開始されていません"</string>
     <string name="status_running" msgid="2695810336448055064">"ファイルを転送中です"</string>
     <string name="status_success" msgid="2268261336330060663">"ファイル転送が正常に完了しました"</string>

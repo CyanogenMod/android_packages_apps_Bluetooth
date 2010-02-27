@@ -37,10 +37,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"다른 장치에서 수신 중인 파일이 있습니다. 이 파일을 수신할 것인지 확인하세요."</string>
     <string name="notification_receiving" msgid="3938472603351415139">"Bluetooth 공유: %1$s을(를) 수신하는 중"</string>
     <string name="notification_received" msgid="7594846429703561009">"Bluetooth 공유: %1$s을(를) 수신함"</string>
-    <string name="notification_received_complete" msgid="8126908549148704724">"100% 완료"</string>
     <string name="notification_received_fail" msgid="2017422835194149214">"Bluetooth 공유: %1$s 파일이 수신되지 않음"</string>
     <string name="notification_sending" msgid="3118149961355869912">"Bluetooth 공유: %1$s을(를) 보내는 중"</string>
-    <string name="notification_sending_multi" msgid="8217177886303103438">"Bluetooth 공유: 파일을 보내는 중"</string>
     <string name="notification_sent" msgid="6345048674000520702">"Bluetooth 공유: %1$s을(를) 보냄"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"100% 완료"</string>
     <string name="notification_sent_fail" msgid="6632995333466325127">"Bluetooth 공유: %1$s 파일을 보내지 못함"</string>
@@ -81,24 +79,9 @@
     <string name="bt_toast_4" msgid="6320052202214451994">"\'%1$s\'에 파일을 보내는 중"</string>
     <string name="bt_toast_5" msgid="3481598201604043629">"\'%2$s\'에 %1$s 파일을 보내는 중"</string>
     <string name="bt_toast_6" msgid="4157809141200418519">"\'%1$s\'에 파일 보내기가 중지되었습니다."</string>
-    <string name="bt_toast_7" msgid="5720877534395506413">"\'%2$s\'에 %1$s 파일 보내기를 중지했습니다."</string>
     <string name="bt_sm_2_1" msgid="6625813581585502551">"\'%1$s\'에서 수신한 파일을 저장할 SD 카드의 공간이 부족합니다."</string>
     <string name="bt_sm_2_2" msgid="2697023602119073395">"필요한 공간: %1$s"</string>
-    <string name="bt_sm_3_1" msgid="1658443268226611198">"\'%1$s\'이(가) %2$s개의 파일을 보내려고 했습니다."</string>
-    <string name="bt_sm_3_2" msgid="1234428166130208088">"이 장치는 한 번에 파일 하나만 수신할 수 있습니다. 남은 %1$s개의 파일을 개별적으로 보내도록 상대방에게 요청하세요."</string>
-    <string name="bt_tf_1" msgid="3566606437748689505">"\'%1$s\'을(를) 사용할 수 없습니다."</string>
-    <string name="bt_tf_2" msgid="7165797096754450809">"\'%1$s\'와(과) 페어링할 수 없습니다."</string>
-    <string name="bt_tf_3" msgid="6899456362281219699">"연결이 중단되었습니다."</string>
-    <string name="bt_tf_4" msgid="9083752106925339573">"\'%1$s\'은(는) 파일 전송을 지원하지 않습니다."</string>
-    <string name="bt_tf_5" msgid="2971780974433771152">"\'%1$s\'이(가) %2$s을(를) 수락할 수 없습니다."</string>
-    <string name="bt_tf_6" msgid="6882241272515770488">"\'%1$s\'이(가) 파일 수락을 거부했습니다."</string>
-    <string name="bt_tf_7" msgid="2160754176051707109">"파일을 보내지 못했습니다."</string>
-    <string name="bt_tf_8" msgid="8284960065910226862">"파일을 수신할 수 없습니다."</string>
-    <string name="bt_tf_10" msgid="8612767267070143708">"메모리 카드가 잠겨 있습니다. 파일을 저장하려면 메모리 카드의 잠금을 해제해야 합니다."</string>
-    <string name="bt_tf_12" msgid="1976542340333268388">"다른 장치로 전송 중인 파일이 있습니다. 잠시 기다려 주세요."</string>
-    <string name="bt_tf_13" msgid="8604795873559730409">"Bluetooth가 사용 중입니다. 다른 Bluetooth 기능을 끄고 다시 시도해 보세요."</string>
-    <!-- no translation found for ErrorTooManyRequests (8578277541472944529) -->
-    <skip />
+    <string name="ErrorTooManyRequests" msgid="8578277541472944529">"처리 중인 요청이 너무 많습니다. 잠시 후에 다시 시도해 주세요."</string>
     <string name="status_pending" msgid="7446884326084324082">"파일 전송을 시작하지 않았습니다."</string>
     <string name="status_running" msgid="2695810336448055064">"파일 전송 진행 중"</string>
     <string name="status_success" msgid="2268261336330060663">"파일 전송이 완료되었습니다."</string>

@@ -15,17 +15,12 @@
 -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="pbap_app_name" msgid="6916507166414341324">"Bluetooth-PBAP"</string>
     <string name="pbap_acceptance_dialog_title" msgid="4606773169019619760">"%1$s möchte auf Ihre Kontakte und Ihr Anrufprotokoll zugreifen. Möchten Sie %2$s den Zugriff gestatten?"</string>
     <string name="pbap_acceptance_dialog_header" msgid="5456473921987026974">"Zugriff auf Telefonbuch"</string>
     <string name="pbap_session_key_dialog_title" msgid="3580996574333882561">"Sitzungsschlüssel für %1$s eingeben"</string>
     <string name="pbap_session_key_dialog_header" msgid="2772472422782758981">"Bluetooth-Sitzungsschlüssel erforderlich"</string>
     <string name="pbap_acceptance_timeout_message" msgid="1107401415099814293">"Die Zeit zum Verbindungsaufbau mit %1$s ist abgelaufen."</string>
     <string name="pbap_authentication_timeout_message" msgid="4166979525521902687">"Die Zeit zur Eingabe des Sitzungsschlüssels bei %1$s ist abgelaufen."</string>
-    <string name="bluetooth_transfer_header" msgid="5088290435827887179">"Bluetooth-Übertragung"</string>
-    <string name="bluetooth_transfer_text" msgid="2283895365101625419">"Keine Telefonbuch-Weitergabe möglich an"</string>
-    <string name="toast_connected" msgid="5683199843935518834">"%1$s ist mit Ihrem Telefon verbunden."</string>
-    <string name="toast_disconnected" msgid="78819084478319889">"%1$s hat die Verbindung mit Ihrem Telefon getrennt."</string>
     <string name="pbap_notif_ticker" msgid="1653350586489072739">"Telefonbuch-Zugriffsanfrage"</string>
     <string name="pbap_notif_title" msgid="2967094612841799440">"PBAP-Anfrage"</string>
     <string name="pbap_notif_message" msgid="6046731677513301195">"Telefonbuch-Zugriff durch %1$s erlauben"</string>

@@ -15,17 +15,12 @@
 -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="pbap_app_name" msgid="6916507166414341324">"PBAP de Bluetooth"</string>
     <string name="pbap_acceptance_dialog_title" msgid="4606773169019619760">"A %1$s le gustaría acceder a tus contactos e historial de llamadas. ¿Otorgas acceso a %2$s?"</string>
     <string name="pbap_acceptance_dialog_header" msgid="5456473921987026974">"Acceso a la agenda telefónica"</string>
     <string name="pbap_session_key_dialog_title" msgid="3580996574333882561">"Escribe la clave de la sesión para %1$s."</string>
     <string name="pbap_session_key_dialog_header" msgid="2772472422782758981">"Se requiere la clave de la sesión de Bluetooth."</string>
     <string name="pbap_acceptance_timeout_message" msgid="1107401415099814293">"Hubo tiempo muerto al aceptar la conexión con %1$s."</string>
     <string name="pbap_authentication_timeout_message" msgid="4166979525521902687">"Hubo tiempo muerto al ingresar la clave de la sesión con %1$s"</string>
-    <string name="bluetooth_transfer_header" msgid="5088290435827887179">"Transferencia por Bluetooth"</string>
-    <string name="bluetooth_transfer_text" msgid="2283895365101625419">"No se ha podido compartir con éxito la agenda telefónica con"</string>
-    <string name="toast_connected" msgid="5683199843935518834">"%1$s se conectó a tu teléfono."</string>
-    <string name="toast_disconnected" msgid="78819084478319889">"%1$s se desconectó de tu teléfono."</string>
     <string name="pbap_notif_ticker" msgid="1653350586489072739">"Solicitud de acceso a la agenda telefónica"</string>
     <string name="pbap_notif_title" msgid="2967094612841799440">"Solicitud de PBAP (Perfil de Acceso a la Agenda Telefónica)"</string>
     <string name="pbap_notif_message" msgid="6046731677513301195">"Permitir acceso a la agenda telefónica a través de %1$s"</string>

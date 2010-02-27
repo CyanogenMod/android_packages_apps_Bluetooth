@@ -15,17 +15,12 @@
 -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="pbap_app_name" msgid="6916507166414341324">"Bluetooth-PBAP"</string>
     <string name="pbap_acceptance_dialog_title" msgid="4606773169019619760">"%1$s vill ha åtkomst till dina kontakter och din samtalshistorik. Vill du ge %2$s åtkomst?"</string>
     <string name="pbap_acceptance_dialog_header" msgid="5456473921987026974">"Telefonboksåtkomst"</string>
     <string name="pbap_session_key_dialog_title" msgid="3580996574333882561">"Ange sessionsnyckeln för %1$s"</string>
     <string name="pbap_session_key_dialog_header" msgid="2772472422782758981">"En Bluetooth-sessionsnyckel krävs"</string>
     <string name="pbap_acceptance_timeout_message" msgid="1107401415099814293">"Tidsgränsen för godkännande av anslutning till %1$s har överskridits"</string>
     <string name="pbap_authentication_timeout_message" msgid="4166979525521902687">"Tiden för inmatning av sessionsnyckel med %1$s har gått ut"</string>
-    <string name="bluetooth_transfer_header" msgid="5088290435827887179">"Bluetooth-överföring"</string>
-    <string name="bluetooth_transfer_text" msgid="2283895365101625419">"Det gick inte att upprätta telefonboksdelning med"</string>
-    <string name="toast_connected" msgid="5683199843935518834">"%1$s är ansluten till telefonen."</string>
-    <string name="toast_disconnected" msgid="78819084478319889">"%1$s har kopplats från telefonen."</string>
     <string name="pbap_notif_ticker" msgid="1653350586489072739">"Begäran om åtkomst till telefonboken"</string>
     <string name="pbap_notif_title" msgid="2967094612841799440">"PBAB-begäran"</string>
     <string name="pbap_notif_message" msgid="6046731677513301195">"Tillåt telefonboksåtkomst av %1$s"</string>
