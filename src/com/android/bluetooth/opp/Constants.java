@@ -163,7 +163,7 @@ public class Constants {
     /** use emulator to debug */
     public static final boolean USE_EMULATOR_DEBUG = false;
 
-    public static final int MAX_RECORDS_IN_DATABASE = 20;
+    public static final int MAX_RECORDS_IN_DATABASE = 1000;
 
     public static final int BATCH_STATUS_PENDING = 0;
 

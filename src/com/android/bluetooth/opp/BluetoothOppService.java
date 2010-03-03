@@ -869,26 +869,53 @@ public class BluetoothOppService extends Service {
     }
 
     private void trimDatabase() {
+        final String INVISIBLE = BluetoothShare.VISIBILITY + "=" +
+                BluetoothShare.VISIBILITY_HIDDEN;
+
+        // remove the invisible/complete/outbound shares
+        final String WHERE_INVISIBLE_COMPLETE_OUTBOUND = BluetoothShare.DIRECTION + "="
+                + BluetoothShare.DIRECTION_OUTBOUND + " AND " + BluetoothShare.STATUS + ">="
+                + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
+        int delNum = getContentResolver().delete(BluetoothShare.CONTENT_URI,
+                WHERE_INVISIBLE_COMPLETE_OUTBOUND, null);
+        if (V) Log.v(TAG, "Deleted complete outbound shares, number =  " + delNum);
+
+        // remove the invisible/finished/inbound/failed shares
+        final String WHERE_INVISIBLE_COMPLETE_INBOUND_FAILED = BluetoothShare.DIRECTION + "="
+                + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + ">"
+                + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
+        delNum = getContentResolver().delete(BluetoothShare.CONTENT_URI,
+                WHERE_INVISIBLE_COMPLETE_INBOUND_FAILED, null);
+        if (V) Log.v(TAG, "Deleted complete inbound failed shares, number = " + delNum);
+
+        // Only keep the inbound and successful shares for LiverFolder use
+        // Keep the latest 1000 to easy db query
+        final String WHERE_INBOUND_SUCCESS = BluetoothShare.DIRECTION + "="
+                + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + "="
+                + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
         Cursor cursor = getContentResolver().query(BluetoothShare.CONTENT_URI, new String[] {
             BluetoothShare._ID
-        }, BluetoothShare.STATUS + " >= '200'", null, BluetoothShare._ID);
+        }, WHERE_INBOUND_SUCCESS, null, BluetoothShare._ID); // sort by id
+
         if (cursor == null) {
-            // This isn't good - if we can't do basic queries in our database,
-            // nothing's gonna work
-            Log.e(TAG, "null cursor in trimDatabase");
             return;
         }
-        if (cursor.moveToFirst()) {
-            int numDelete = cursor.getCount() - Constants.MAX_RECORDS_IN_DATABASE;
-            int columnId = cursor.getColumnIndexOrThrow(BluetoothShare._ID);
-            while (numDelete > 0) {
-                getContentResolver().delete(
-                        ContentUris.withAppendedId(BluetoothShare.CONTENT_URI, cursor
-                                .getLong(columnId)), null, null);
-                if (!cursor.moveToNext()) {
-                    break;
+
+        int recordNum = cursor.getCount();
+        if (recordNum > Constants.MAX_RECORDS_IN_DATABASE) {
+            int numToDelete = recordNum - Constants.MAX_RECORDS_IN_DATABASE;
+            if (cursor.moveToFirst()) {
+                int columnId = cursor.getColumnIndexOrThrow(BluetoothShare._ID);
+                while (numToDelete > 0) {
+                    getContentResolver().delete(
+                            ContentUris.withAppendedId(BluetoothShare.CONTENT_URI, cursor
+                                    .getLong(columnId)), null, null);
+                    if (V) Log.v(TAG, "Deleted old inbound success share.");
+                    if (!cursor.moveToNext()) {
+                        break;
+                    }
+                    numToDelete--;
                 }
-                numDelete--;
             }
         }
         cursor.close();
