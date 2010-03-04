@@ -433,6 +433,7 @@ public class BluetoothPbapVcardManager {
                 }
 
                 composer = new VCardComposer(mContext, vcardType, true);
+                composer.addHandler(new HandlerForStringBuffer(op, ownerVCard));
                 if (!composer.init(Contacts.CONTENT_URI, selection, null, null)) {
                     return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
                 }
