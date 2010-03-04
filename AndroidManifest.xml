@@ -95,6 +95,11 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <activity android:name=".opp.BluetoothOppTransferHistory"
+                  android:label=""
+                  android:excludeFromRecents="true"
+                  android:configChanges="orientation|keyboardHidden">
+        </activity>
         <activity android:name=".pbap.BluetoothPbapActivity"
             android:excludeFromRecents="true"
             android:theme="@*android:style/Theme.Dialog.Alert">
