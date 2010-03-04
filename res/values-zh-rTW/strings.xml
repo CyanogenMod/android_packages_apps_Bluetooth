@@ -81,8 +81,7 @@
     <string name="bt_toast_6" msgid="4157809141200418519">"已停止傳送檔案至「%1$s」"</string>
     <string name="bt_sm_2_1" msgid="6625813581585502551">"SD 卡上沒有足夠的空間可儲存來自「%1$s」的檔案"</string>
     <string name="bt_sm_2_2" msgid="2697023602119073395">"所需儲存空間：%1$s"</string>
-    <!-- no translation found for ErrorTooManyRequests (8578277541472944529) -->
-    <skip />
+    <string name="ErrorTooManyRequests" msgid="8578277541472944529">"系統正在處理多個要求，請稍後再試。"</string>
     <string name="status_pending" msgid="7446884326084324082">"尚未開始傳輸檔案"</string>
     <string name="status_running" msgid="2695810336448055064">"正在進行檔案傳輸"</string>
     <string name="status_success" msgid="2268261336330060663">"已完成檔案傳輸"</string>
@@ -95,4 +94,32 @@
     <string name="status_protocol_error" msgid="8898902951085043597">"無法正確處理要求"</string>
     <string name="status_unknown_error" msgid="7441602228720350817">"未知的錯誤"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"已透過藍牙接收"</string>
+    <!-- no translation found for download_success (8038161914083925191) -->
+    <skip />
+    <!-- no translation found for upload_success (8160573453144095129) -->
+    <skip />
+    <!-- no translation found for inbound_history_title (6940914942271327563) -->
+    <skip />
+    <!-- no translation found for outbound_history_title (4279418703178140526) -->
+    <skip />
+    <!-- no translation found for no_transfers (3482965619151865672) -->
+    <skip />
+    <!-- no translation found for transfer_clear_dlg_msg (1712376797268438075) -->
+    <skip />
+    <!-- no translation found for outbound_noti_title (8051906709452260849) -->
+    <skip />
+    <!-- no translation found for inbound_noti_title (4143352641953027595) -->
+    <skip />
+    <!-- no translation found for noti_title (754968847219764692) -->
+    <skip />
+    <!-- no translation found for noti_caption (5553338716725484736) -->
+    <skip />
+    <!-- no translation found for transfer_menu_clear_all (790017462957873132) -->
+    <skip />
+    <!-- no translation found for transfer_menu_open (3368984869083107200) -->
+    <skip />
+    <!-- no translation found for transfer_menu_clear (5854038118831427492) -->
+    <skip />
+    <!-- no translation found for transfer_clear_dlg_title (2953444575556460386) -->
+    <skip />
 </resources>
