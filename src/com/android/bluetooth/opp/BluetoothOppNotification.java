@@ -346,33 +346,18 @@ class BluetoothOppNotification {
         cursor.close();
 
         outboundNum = outboundSuccNumber + outboundFailNumber;
-        title = mContext.getString(R.string.outbound_noti_title);
-        intent = new Intent(Constants.ACTION_OPEN_OUTBOUND_TRANSFER);
-        intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
-
         // create the outbound notification
-        if (mOutNoti == null && outboundNum > 0) {
+        if (outboundNum > 0) {
             mOutNoti = new Notification();
             mOutNoti.icon = android.R.drawable.stat_sys_upload_done;
+            title = mContext.getString(R.string.outbound_noti_title);
             caption = mContext.getString(R.string.noti_caption, outboundSuccNumber,
                     outboundFailNumber);
+            intent = new Intent(Constants.ACTION_OPEN_OUTBOUND_TRANSFER);
+            intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
             mOutNoti.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(
                     mContext, 0, intent, 0));
             mOutNoti.when = timeStamp;
-            // To make number take effect, must set to 1 when creating the
-            // notification
-            mOutNoti.number = 1;
-            mNotificationMgr.notify(NOTIFICATION_ID_OUTBOUND, mOutNoti);
-        }
-
-        // update the outbound notification
-        if (outboundNum > 0) {
-            caption = mContext.getString(R.string.noti_caption, outboundSuccNumber,
-                    outboundFailNumber);
-            mOutNoti.when = timeStamp;
-            mOutNoti.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(
-                    mContext, 0, intent, 0));
-            mOutNoti.number = outboundNum;
             mNotificationMgr.notify(NOTIFICATION_ID_OUTBOUND, mOutNoti);
         } else {
             if (mNotificationMgr != null && mOutNoti != null) {
@@ -406,33 +391,18 @@ class BluetoothOppNotification {
         cursor.close();
 
         inboundNum = inboundSuccNumber + inboundFailNumber;
-        title = mContext.getString(R.string.inbound_noti_title);
-        intent = new Intent(Constants.ACTION_OPEN_INBOUND_TRANSFER);
-        intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
-
         // create the inbound notification
-        if (mInNoti == null && inboundNum > 0) {
+        if (inboundNum > 0) {
             mInNoti = new Notification();
             mInNoti.icon = android.R.drawable.stat_sys_download_done;
+            title = mContext.getString(R.string.inbound_noti_title);
             caption = mContext.getString(R.string.noti_caption, inboundSuccNumber,
                     inboundFailNumber);
+            intent = new Intent(Constants.ACTION_OPEN_INBOUND_TRANSFER);
+            intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
             mInNoti.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(
                     mContext, 0, intent, 0));
             mInNoti.when = timeStamp;
-            // To make number take effect, must set to 1 when creating the
-            // notification
-            mInNoti.number = 1;
-            mNotificationMgr.notify(NOTIFICATION_ID_INBOUND, mInNoti);
-        }
-
-        // update the inbound notification
-        if (inboundNum > 0) {
-            caption = mContext.getString(R.string.noti_caption, inboundSuccNumber,
-                    inboundFailNumber);
-            mInNoti.when = timeStamp;
-            mInNoti.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(
-                    mContext, 0, intent, 0));
-            mInNoti.number = inboundNum;
             mNotificationMgr.notify(NOTIFICATION_ID_INBOUND, mInNoti);
         } else {
             if (mNotificationMgr != null && mInNoti != null) {
