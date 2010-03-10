@@ -113,6 +113,10 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
     /** Observer to get notified when the content observer's data changes */
     private BluetoothTransferContentObserver mObserver;
 
+    // do not update button during activity creating, only update when db
+    // changes after activity created
+    private boolean mNeedUpdateButton = false;
+
     private class BluetoothTransferContentObserver extends ContentObserver {
         public BluetoothTransferContentObserver() {
             super(new Handler());
@@ -121,6 +125,7 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
         @Override
         public void onChange(boolean selfChange) {
             if (V) Log.v(TAG, "received db changes.");
+            mNeedUpdateButton = true;
             updateProgressbar();
         }
     }
@@ -245,6 +250,8 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
 
         customizeViewContent();
 
+        // no need update button when activity creating
+        mNeedUpdateButton = false;
         updateProgressbar();
 
         return mView;
@@ -435,12 +442,10 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
         // DIALOG_RECEIVE_COMPLETE_SUCCESS/DIALOG_RECEIVE_COMPLETE_FAIL
         // Handle the case when DIALOG_SEND_ONGOING evolve to
         // DIALOG_SEND_COMPLETE_SUCCESS/DIALOG_SEND_COMPLETE_FAIL
-        if (!mIsComplete && BluetoothShare.isStatusCompleted(mTransInfo.mStatus)) {
-
+        if (!mIsComplete && BluetoothShare.isStatusCompleted(mTransInfo.mStatus)
+                && mNeedUpdateButton) {
             displayWhichDialog();
-
             updateButton();
-
             customizeViewContent();
         }
     }
