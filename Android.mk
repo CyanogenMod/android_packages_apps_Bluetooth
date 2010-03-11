@@ -9,6 +9,6 @@ LOCAL_PACKAGE_NAME := Bluetooth
 
 LOCAL_JAVA_LIBRARIES := javax.obex
 
-LOCAL_CERTIFICATE := shared
+LOCAL_CERTIFICATE := platform
 
 include $(BUILD_PACKAGE)

@@ -191,4 +191,10 @@
      <!-- Do not translate. file name used for sharing. -->
     <string name="bluetooth_share_file_name" translate="false">bluetooth_content_share</string>
 
+    <!-- Used to run Bluetooth.apk in another process if needed -->
+    <!-- Do not translate. android:sharedUserId string of this application. -->
+    <string name="sharedUserId" translate="false"><xliff:g id="x"></xliff:g></string>
+    <!-- Do not translate. android:process of this application. -->
+    <string name="process" translate="false"><xliff:g id="x"></xliff:g></string>
+
 </resources>
