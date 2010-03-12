@@ -34,11 +34,16 @@ package com.android.bluetooth.opp;
 
 import com.android.bluetooth.R;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+
 import android.app.Activity;
-import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothDevicePicker;
 import android.content.Intent;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -71,6 +76,12 @@ public class BluetoothOppLauncherActivity extends Activity {
                 // TODO: handle type == null case
                 String type = intent.getType();
                 Uri stream = (Uri)intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                CharSequence extra_text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT);
+                // If we get ACTION_SEND intent with EXTRA_STREAM, we'll use the
+                // uri data;
+                // If we get ACTION_SEND intent without EXTRA_STREAM, but with
+                // EXTRA_TEXT, we will try send this TEXT out; Currently in
+                // Browser, share one link goes to this case;
                 if (stream != null && type != null) {
                     if (V) Log.v(TAG, "Get ACTION_SEND intent: Uri = " + stream + "; mimetype = "
                                 + type);
@@ -78,6 +89,15 @@ public class BluetoothOppLauncherActivity extends Activity {
                     // session to DB.
                     BluetoothOppManager.getInstance(this).saveSendingFileInfo(type,
                             stream.toString());
+                } else if (extra_text != null && type != null) {
+                    if (V) Log.v(TAG, "Get ACTION_SEND intent with Extra_text = "
+                                + extra_text.toString() + "; mimetype = " + type);
+                    Uri fileUri = creatFileForSharedContent(this, extra_text);
+
+                    if (fileUri != null) {
+                        BluetoothOppManager.getInstance(this).saveSendingFileInfo(type,
+                                fileUri.toString());
+                    }
                 } else {
                     Log.e(TAG, "type is null; or sending file URI is null");
                     finish();
@@ -148,5 +168,49 @@ public class BluetoothOppLauncherActivity extends Activity {
     private final boolean isAirplaneModeOn() {
         return Settings.System.getInt(this.getContentResolver(), Settings.System.AIRPLANE_MODE_ON,
                 0) == 1;
+    }
+    private Uri creatFileForSharedContent(Context context, CharSequence shareContent) {
+        if (shareContent == null) {
+            return null;
+        }
+
+        Uri fileUri = null;
+        FileOutputStream outStream = null;
+        try {
+            String fileName = getString(R.string.bluetooth_share_file_name) + ".html";
+            context.deleteFile(fileName);
+
+            String uri = shareContent.toString();
+            String content = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;"
+                + " charset=UTF-8\"/></head><body>" + "<a href=\"" + uri + "\">" + uri + "</a></p>"
+                + "</body></html>";
+            byte[] byteBuff = content.getBytes();
+
+            outStream = context.openFileOutput(fileName, Context.MODE_PRIVATE);
+            if (outStream != null) {
+                outStream.write(byteBuff, 0, byteBuff.length);
+                fileUri = Uri.fromFile(new File(context.getFilesDir(), fileName));
+                if (fileUri != null) {
+                    if (D) Log.d(TAG, "Created one file for shared content: "
+                            + fileUri.toString());
+                }
+            }
+        } catch (FileNotFoundException e) {
+            Log.e(TAG, "FileNotFoundException: " + e.toString());
+            e.printStackTrace();
+        } catch (IOException e) {
+            Log.e(TAG, "IOException: " + e.toString());
+        } catch (Exception e) {
+            Log.e(TAG, "Exception: " + e.toString());
+        } finally {
+            try {
+                if (outStream != null) {
+                    outStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return fileUri;
     }
 }
