@@ -904,18 +904,13 @@ public class BluetoothOppService extends Service {
         int recordNum = cursor.getCount();
         if (recordNum > Constants.MAX_RECORDS_IN_DATABASE) {
             int numToDelete = recordNum - Constants.MAX_RECORDS_IN_DATABASE;
-            if (cursor.moveToFirst()) {
+
+            if (cursor.moveToPosition(numToDelete)) {
                 int columnId = cursor.getColumnIndexOrThrow(BluetoothShare._ID);
-                while (numToDelete > 0) {
-                    getContentResolver().delete(
-                            ContentUris.withAppendedId(BluetoothShare.CONTENT_URI, cursor
-                                    .getLong(columnId)), null, null);
-                    if (V) Log.v(TAG, "Deleted old inbound success share.");
-                    if (!cursor.moveToNext()) {
-                        break;
-                    }
-                    numToDelete--;
-                }
+                long id = cursor.getLong(columnId);
+                delNum = getContentResolver().delete(BluetoothShare.CONTENT_URI,
+                        BluetoothShare._ID + " < " + id, null);
+                if (V) Log.v(TAG, "Deleted old inbound success share: " + delNum);
             }
         }
         cursor.close();
