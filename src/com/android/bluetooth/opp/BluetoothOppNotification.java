@@ -99,10 +99,6 @@ class BluetoothOppNotification {
 
     private int mActiveNotificationId = 0;
 
-    private Notification mOutNoti = null;
-
-    private Notification mInNoti = null;
-
     /**
      * This inner class is used to describe some properties for one transfer.
      */
@@ -348,21 +344,20 @@ class BluetoothOppNotification {
         outboundNum = outboundSuccNumber + outboundFailNumber;
         // create the outbound notification
         if (outboundNum > 0) {
-            mOutNoti = new Notification();
-            mOutNoti.icon = android.R.drawable.stat_sys_upload_done;
+            Notification outNoti = new Notification();
+            outNoti.icon = android.R.drawable.stat_sys_upload_done;
             title = mContext.getString(R.string.outbound_noti_title);
             caption = mContext.getString(R.string.noti_caption, outboundSuccNumber,
                     outboundFailNumber);
             intent = new Intent(Constants.ACTION_OPEN_OUTBOUND_TRANSFER);
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
-            mOutNoti.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(
+            outNoti.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(
                     mContext, 0, intent, 0));
-            mOutNoti.when = timeStamp;
-            mNotificationMgr.notify(NOTIFICATION_ID_OUTBOUND, mOutNoti);
+            outNoti.when = timeStamp;
+            mNotificationMgr.notify(NOTIFICATION_ID_OUTBOUND, outNoti);
         } else {
-            if (mNotificationMgr != null && mOutNoti != null) {
+            if (mNotificationMgr != null) {
                 mNotificationMgr.cancel(NOTIFICATION_ID_OUTBOUND);
-                mOutNoti = null;
                 if (V) Log.v(TAG, "outbound notification was removed.");
             }
         }
@@ -393,21 +388,20 @@ class BluetoothOppNotification {
         inboundNum = inboundSuccNumber + inboundFailNumber;
         // create the inbound notification
         if (inboundNum > 0) {
-            mInNoti = new Notification();
-            mInNoti.icon = android.R.drawable.stat_sys_download_done;
+            Notification inNoti = new Notification();
+            inNoti.icon = android.R.drawable.stat_sys_download_done;
             title = mContext.getString(R.string.inbound_noti_title);
             caption = mContext.getString(R.string.noti_caption, inboundSuccNumber,
                     inboundFailNumber);
             intent = new Intent(Constants.ACTION_OPEN_INBOUND_TRANSFER);
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
-            mInNoti.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(
+            inNoti.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(
                     mContext, 0, intent, 0));
-            mInNoti.when = timeStamp;
-            mNotificationMgr.notify(NOTIFICATION_ID_INBOUND, mInNoti);
+            inNoti.when = timeStamp;
+            mNotificationMgr.notify(NOTIFICATION_ID_INBOUND, inNoti);
         } else {
-            if (mNotificationMgr != null && mInNoti != null) {
+            if (mNotificationMgr != null) {
                 mNotificationMgr.cancel(NOTIFICATION_ID_INBOUND);
-                mInNoti = null;
                 if (V) Log.v(TAG, "inbound notification was removed.");
             }
         }
