@@ -49,6 +49,7 @@ import java.util.Arrays;
 import javax.obex.ServerRequestHandler;
 import javax.obex.ResponseCodes;
 import javax.obex.ApplicationParameter;
+import javax.obex.ServerOperation;
 import javax.obex.Operation;
 import javax.obex.HeaderSet;
 
@@ -151,6 +152,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     public static int ORDER_BY_ALPHABETICAL = 1;
 
+    public static boolean sIsAborted = false;
+
     public static class ContentType {
         public static final int PHONEBOOK = 1;
 
@@ -237,6 +240,13 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     @Override
+    public int onAbort(HeaderSet request, HeaderSet reply) {
+        if (D) Log.d(TAG, "onAbort(): enter.");
+        sIsAborted = true;
+        return ResponseCodes.OBEX_HTTP_OK;
+    }
+
+    @Override
     public int onPut(final Operation op) {
         if (D) Log.d(TAG, "onPut(): not support PUT request.");
         return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
@@ -297,7 +307,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     @Override
-    public int onGet(final Operation op) {
+    public int onGet(Operation op) {
+        sisAborted = false;
         HeaderSet request = null;
         HeaderSet reply = new HeaderSet();
         String type = "";
@@ -525,7 +536,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     /** Form and Send an XML format String to client for Phone book listing */
-    private final int sendVcardListingXml(final int type, final Operation op,
+    private final int sendVcardListingXml(final int type, Operation op,
             final int maxListCount, final int listStartOffset, final String searchValue,
             String searchAttr) {
         StringBuilder result = new StringBuilder();
@@ -659,7 +670,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     /** Function to send vcard data to client */
-    private final int pushBytes(final Operation op, final String vcardString) {
+    private final int pushBytes(Operation op, final String vcardString) {
         if (vcardString == null) {
             Log.w(TAG, "vcardString is null!");
             return ResponseCodes.OBEX_HTTP_OK;
@@ -682,6 +693,11 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         int outputBufferSize = op.getMaxPacketSize();
         if (V) Log.v(TAG, "outputBufferSize = " + outputBufferSize);
         while (position != vcardStringLen) {
+            if (sIsAborted) {
+                ((ServerOperation)op).isAborted = true;
+                sIsAborted = false;
+                break;
+            }
             if (V) timestamp = System.currentTimeMillis();
             int readLength = outputBufferSize;
             if (vcardStringLen - position < outputBufferSize) {
@@ -713,7 +729,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     private final int handleAppParaForResponse(AppParamValue appParamValue, int size,
-            HeaderSet reply, final Operation op) {
+            HeaderSet reply, Operation op) {
         byte[] misnum = new byte[1];
         ApplicationParameter ap = new ApplicationParameter();
 
@@ -779,7 +795,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     private final int pullVcardListing(byte[] appParam, AppParamValue appParamValue,
-            HeaderSet reply, final Operation op) {
+            HeaderSet reply, Operation op) {
         String searchAttr = appParamValue.searchAttr.trim();
 
         if (searchAttr == null || searchAttr.length() == 0) {
@@ -840,7 +856,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     private final int pullVcardEntry(byte[] appParam, AppParamValue appParamValue,
-            final Operation op, final String name, final String current_path) {
+            Operation op, final String name, final String current_path) {
         if (name == null || name.length() < VCARD_NAME_SUFFIX_LENGTH) {
             if (D) Log.d(TAG, "Name is Null, or the length of name < 5 !");
             return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
@@ -894,7 +910,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     private final int pullPhonebook(byte[] appParam, AppParamValue appParamValue, HeaderSet reply,
-            final Operation op, final String name) {
+            Operation op, final String name) {
         // code start for passing PTS3.2 TC_PSE_PBD_BI_01_C
         if (name != null) {
             int dotIndex = name.indexOf(".");
