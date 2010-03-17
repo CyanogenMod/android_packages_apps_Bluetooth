@@ -36,6 +36,7 @@ import com.android.bluetooth.R;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -74,6 +75,9 @@ public class BluetoothOppTransferHistory extends Activity implements
     private int mIdColumnId;
 
     private int mContextMenuPosition;
+
+    /** Class to handle Notification Manager updates */
+    private BluetoothOppNotification mNotifier;
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -117,6 +121,8 @@ public class BluetoothOppTransferHistory extends Activity implements
             mListView.setOnCreateContextMenuListener(this);
             mListView.setOnItemClickListener(this);
         }
+
+        mNotifier = new BluetoothOppNotification(this);
     }
 
     @Override
@@ -151,12 +157,14 @@ public class BluetoothOppTransferHistory extends Activity implements
         switch (item.getItemId()) {
             case R.id.transfer_menu_open:
                 openCompleteTransfer();
+                updateNotificationWhenBtDisabled();
                 return true;
 
             case R.id.transfer_menu_clear:
                 int sessionId = mTransferCursor.getInt(mIdColumnId);
                 Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + sessionId);
                 BluetoothOppUtility.updateVisibilityToHidden(this, contentUri);
+                updateNotificationWhenBtDisabled();
                 return true;
         }
         return false;
@@ -224,6 +232,7 @@ public class BluetoothOppTransferHistory extends Activity implements
 
                 mTransferCursor.moveToNext();
             }
+            updateNotificationWhenBtDisabled();
         }
     }
 
@@ -237,6 +246,7 @@ public class BluetoothOppTransferHistory extends Activity implements
         // Open the selected item
         mTransferCursor.moveToPosition(position);
         openCompleteTransfer();
+        updateNotificationWhenBtDisabled();
     }
 
     /**
@@ -263,6 +273,19 @@ public class BluetoothOppTransferHistory extends Activity implements
             in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             in.setData(contentUri);
             this.startActivity(in);
+        }
+    }
+
+    /**
+     * When Bluetooth is disabled, notification can not be updated by
+     * ContentObserver in OppService, so need update manually.
+     */
+    private void updateNotificationWhenBtDisabled() {
+        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+        if (!adapter.isEnabled()) {
+            if (V) Log.v(TAG, "Bluetooth is not enabled, update notification manually.");
+            mNotifier.updateNotification();
+            mNotifier.finishNotification();
         }
     }
 }
