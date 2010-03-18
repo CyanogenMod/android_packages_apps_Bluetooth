@@ -99,17 +99,16 @@ public class BluetoothOppSendFileInfo {
 
     public static BluetoothOppSendFileInfo generateFileInfo(Context context, String uri,
             String type, String dest) {
-        //TODO consider uri is a file:// uri
         ContentResolver contentResolver = context.getContentResolver();
         Uri u = Uri.parse(uri);
         String scheme = u.getScheme();
-        String authority = u.getAuthority();
         String fileName = null;
         String contentType = null;
         long length = 0;
-        if (scheme.equals("content") && authority.equals("media")
-                || type.equals(Contacts.CONTENT_VCARD_TYPE)) {
-
+        // Support all Uri with "content" scheme
+        // This will allow more 3rd party applications to share files via
+        // bluetooth
+        if (scheme.equals("content")) {
             contentType = contentResolver.getType(u);
             Cursor metadataCursor = contentResolver.query(u, new String[] {
                     OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE
@@ -119,6 +118,7 @@ public class BluetoothOppSendFileInfo {
                     if (metadataCursor.moveToFirst()) {
                         fileName = metadataCursor.getString(0);
                         length = metadataCursor.getInt(1);
+                        if (D) Log.d(TAG, "fileName = " + fileName + " length = " + length);
                     }
                 } finally {
                     metadataCursor.close();
@@ -142,14 +142,14 @@ public class BluetoothOppSendFileInfo {
                     BluetoothShare.STATUS_FILE_ERROR, dest);
         }
 
-        // VCard stream length got from content provider is 0, we can only get
-        // the real value after the real encoding process complete
-        if (type.equals(Contacts.CONTENT_VCARD_TYPE)) {
+        // If we can not get file length from content provider, we can try to
+        // get the length via the opened stream.
+        if (length == 0) {
             try {
                 length = is.available();
-                if (V) Log.v(TAG, "Contacts file length is " + length);
+                if (V) Log.v(TAG, "file length is " + length);
             } catch (IOException e) {
-                Log.e(TAG, "Read contacts vcard stream exception: ", e);
+                Log.e(TAG, "Read stream exception: ", e);
                 return new BluetoothOppSendFileInfo(null, null, 0, null,
                         BluetoothShare.STATUS_FILE_ERROR, dest);
             }
