@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (C) 2009 The Android Open Source Project
+<!--  Copyright (C) 2007 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -12,7 +12,8 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
--->
+ -->
+
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Aceder ao gestor de transferências."</string>
@@ -94,4 +95,17 @@
     <string name="status_protocol_error" msgid="8898902951085043597">"Não é possível processar o pedido correctamente"</string>
     <string name="status_unknown_error" msgid="7441602228720350817">"Erro desconhecido"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth recebido"</string>
+    <string name="download_success" msgid="8038161914083925191">"%1$s Recepção concluída."</string>
+    <string name="upload_success" msgid="8160573453144095129">"%1$s Envio concluído"</string>
+    <string name="inbound_history_title" msgid="6940914942271327563">"Transferências de entrada"</string>
+    <string name="outbound_history_title" msgid="4279418703178140526">"Transferências de saída"</string>
+    <string name="no_transfers" msgid="3482965619151865672">"O histórico de transferências está vazio."</string>
+    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Todos os itens serão removidos da lista."</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Partilha por Bluetooth: ficheiros enviados"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Partilha por Bluetooth: ficheiros recebidos"</string>
+    <string name="noti_caption" msgid="5553338716725484736">"%1$s com êxito, %2$s sem êxito."</string>
+    <string name="transfer_menu_clear_all" msgid="790017462957873132">"Limpar lista"</string>
+    <string name="transfer_menu_open" msgid="3368984869083107200">"Abrir"</string>
+    <string name="transfer_menu_clear" msgid="5854038118831427492">"Limpar da lista"</string>
+    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Limpar"</string>
 </resources>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (C) 2009 The Android Open Source Project
+<!--  Copyright (C) 2007 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -12,7 +12,8 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
--->
+ -->
+
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Доступ к диспетчеру загрузки."</string>
@@ -94,4 +95,17 @@
     <string name="status_protocol_error" msgid="8898902951085043597">"Невозможно правильно обработать запрос."</string>
     <string name="status_unknown_error" msgid="7441602228720350817">"Неизвестная ошибка"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Получено по Bluetooth"</string>
+    <string name="download_success" msgid="8038161914083925191">"Получено: %1$s"</string>
+    <string name="upload_success" msgid="8160573453144095129">"Отправлено: %1$s"</string>
+    <string name="inbound_history_title" msgid="6940914942271327563">"Входящие передачи"</string>
+    <string name="outbound_history_title" msgid="4279418703178140526">"Исходящие передачи"</string>
+    <string name="no_transfers" msgid="3482965619151865672">"История передач пуста."</string>
+    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Все элементы будут удалены из списка."</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth: отправленные файлы"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth: полученные файлы"</string>
+    <string name="noti_caption" msgid="5553338716725484736">"Выполнено: %1$s, не выполнено: %2$s."</string>
+    <string name="transfer_menu_clear_all" msgid="790017462957873132">"Очистить список"</string>
+    <string name="transfer_menu_open" msgid="3368984869083107200">"Открыть"</string>
+    <string name="transfer_menu_clear" msgid="5854038118831427492">"Удалить из списка"</string>
+    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Очистить"</string>
 </resources>

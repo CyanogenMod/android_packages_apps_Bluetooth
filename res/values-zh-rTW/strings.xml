@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (C) 2009 The Android Open Source Project
+<!--  Copyright (C) 2007 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -12,7 +12,8 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
--->
+ -->
+
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"存取下載管理員。"</string>
@@ -94,32 +95,17 @@
     <string name="status_protocol_error" msgid="8898902951085043597">"無法正確處理要求"</string>
     <string name="status_unknown_error" msgid="7441602228720350817">"未知的錯誤"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"已透過藍牙接收"</string>
-    <!-- no translation found for download_success (8038161914083925191) -->
-    <skip />
-    <!-- no translation found for upload_success (8160573453144095129) -->
-    <skip />
-    <!-- no translation found for inbound_history_title (6940914942271327563) -->
-    <skip />
-    <!-- no translation found for outbound_history_title (4279418703178140526) -->
-    <skip />
-    <!-- no translation found for no_transfers (3482965619151865672) -->
-    <skip />
-    <!-- no translation found for transfer_clear_dlg_msg (1712376797268438075) -->
-    <skip />
-    <!-- no translation found for outbound_noti_title (8051906709452260849) -->
-    <skip />
-    <!-- no translation found for inbound_noti_title (4143352641953027595) -->
-    <skip />
-    <!-- no translation found for noti_title (754968847219764692) -->
-    <skip />
-    <!-- no translation found for noti_caption (5553338716725484736) -->
-    <skip />
-    <!-- no translation found for transfer_menu_clear_all (790017462957873132) -->
-    <skip />
-    <!-- no translation found for transfer_menu_open (3368984869083107200) -->
-    <skip />
-    <!-- no translation found for transfer_menu_clear (5854038118831427492) -->
-    <skip />
-    <!-- no translation found for transfer_clear_dlg_title (2953444575556460386) -->
-    <skip />
+    <string name="download_success" msgid="8038161914083925191">"%1$ 接收完成。"</string>
+    <string name="upload_success" msgid="8160573453144095129">"%1$ 傳送完成。"</string>
+    <string name="inbound_history_title" msgid="6940914942271327563">"向內傳輸"</string>
+    <string name="outbound_history_title" msgid="4279418703178140526">"向外傳輸"</string>
+    <string name="no_transfers" msgid="3482965619151865672">"傳輸記錄是空的。"</string>
+    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"將會從清單清除所有項目。"</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"藍芽分享：傳送的檔案"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"藍芽分享：接收的檔案"</string>
+    <string name="noti_caption" msgid="5553338716725484736">"%1$ 成功，%2$ 失敗。"</string>
+    <string name="transfer_menu_clear_all" msgid="790017462957873132">"清除清單"</string>
+    <string name="transfer_menu_open" msgid="3368984869083107200">"開啟"</string>
+    <string name="transfer_menu_clear" msgid="5854038118831427492">"從清單清除"</string>
+    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"清除"</string>
 </resources>
