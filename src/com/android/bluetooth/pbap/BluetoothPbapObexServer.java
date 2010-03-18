@@ -308,7 +308,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     @Override
     public int onGet(Operation op) {
-        sisAborted = false;
+        sIsAborted = false;
         HeaderSet request = null;
         HeaderSet reply = new HeaderSet();
         String type = "";
