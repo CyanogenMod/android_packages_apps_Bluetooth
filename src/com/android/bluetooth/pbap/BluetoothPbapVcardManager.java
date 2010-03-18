@@ -54,6 +54,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
+import javax.obex.ServerOperation;
 import javax.obex.Operation;
 import javax.obex.ResponseCodes;
 
@@ -261,7 +262,7 @@ public class BluetoothPbapVcardManager {
         return numberList;
     }
 
-    public final int composeAndSendCallLogVcards(final int type, final Operation op,
+    public final int composeAndSendCallLogVcards(final int type, Operation op,
             final int startPoint, final int endPoint, final boolean vcardType21) {
         if (startPoint < 1 || startPoint > endPoint) {
             Log.e(TAG, "internal error: startPoint or endPoint is not correct.");
@@ -322,7 +323,7 @@ public class BluetoothPbapVcardManager {
         return composeAndSendVCards(op, selection, vcardType21, null, false);
     }
 
-    public final int composeAndSendPhonebookVcards(final Operation op, final int startPoint,
+    public final int composeAndSendPhonebookVcards(Operation op, final int startPoint,
             final int endPoint, final boolean vcardType21, String ownerVCard) {
         if (startPoint < 1 || startPoint > endPoint) {
             Log.e(TAG, "internal error: startPoint or endPoint is not correct.");
@@ -367,7 +368,7 @@ public class BluetoothPbapVcardManager {
         return composeAndSendVCards(op, selection, vcardType21, ownerVCard, true);
     }
 
-    public final int composeAndSendPhonebookOneVcard(final Operation op, final int offset,
+    public final int composeAndSendPhonebookOneVcard(Operation op, final int offset,
             final boolean vcardType21, String ownerVCard, int orderByWhat) {
         if (offset < 1) {
             Log.e(TAG, "Internal error: offset is not correct.");
@@ -416,7 +417,7 @@ public class BluetoothPbapVcardManager {
         return composeAndSendVCards(op, selection, vcardType21, ownerVCard, true);
     }
 
-    public final int composeAndSendVCards(final Operation op, final String selection,
+    public final int composeAndSendVCards(Operation op, final String selection,
             final boolean vcardType21, String ownerVCard, boolean isContacts) {
         long timestamp = 0;
         if (V) timestamp = System.currentTimeMillis();
@@ -439,6 +440,11 @@ public class BluetoothPbapVcardManager {
                 }
 
                 while (!composer.isAfterLast()) {
+                    if (BluetoothPbapObexServer.sIsAborted) {
+                        ((ServerOperation)op).isAborted = true;
+                        BluetoothPbapObexServer.sIsAborted = false;
+                        break;
+                    }
                     if (!composer.createOneEntry()) {
                         Log.e(TAG, "Failed to read a contact. Error reason: "
                                 + composer.getErrorReason());
@@ -460,6 +466,11 @@ public class BluetoothPbapVcardManager {
                 }
 
                 while (!composer.isAfterLast()) {
+                    if (BluetoothPbapObexServer.sIsAborted) {
+                        ((ServerOperation)op).isAborted = true;
+                        BluetoothPbapObexServer.sIsAborted = false;
+                        break;
+                    }
                     if (!composer.createOneEntry()) {
                         Log.e(TAG, "Failed to read a contact. Error reason: "
                                 + composer.getErrorReason());
@@ -531,7 +542,8 @@ public class BluetoothPbapVcardManager {
                 int position = 0;
 
                 // Need while loop to handle the big vcard case
-                while (position < (vcardStringLen - maxPacketSize)) {
+                while (!BluetoothPbapObexServer.sIsAborted
+                        && position < (vcardStringLen - maxPacketSize)) {
                     if (V) timestamp = System.currentTimeMillis();
 
                     String subStr = mVcardResults.toString().substring(position,
