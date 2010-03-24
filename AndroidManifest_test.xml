@@ -84,6 +84,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".pbap.BluetoothPbapActivity"
+            android:process="@string/process"
             android:label=" "
             android:theme="@*android:style/Theme.Dialog.Alert">
             <intent-filter>

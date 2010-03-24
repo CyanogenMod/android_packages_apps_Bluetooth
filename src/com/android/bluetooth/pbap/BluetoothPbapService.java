@@ -617,57 +617,56 @@ public class BluetoothPbapService extends Service {
     }
 
     private void createPbapNotification(String action) {
-        Context context = getApplicationContext();
 
-        NotificationManager nm = (NotificationManager)context
-                .getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager nm = (NotificationManager)
+            getSystemService(Context.NOTIFICATION_SERVICE);
 
         // Create an intent triggered by clicking on the status icon.
         Intent clickIntent = new Intent();
-        clickIntent.setClass(context, BluetoothPbapActivity.class);
+        clickIntent.setClass(this, BluetoothPbapActivity.class);
         clickIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         clickIntent.setAction(action);
 
         // Create an intent triggered by clicking on the
         // "Clear All Notifications" button
         Intent deleteIntent = new Intent();
-        deleteIntent.setClass(context, BluetoothPbapReceiver.class);
+        deleteIntent.setClass(this, BluetoothPbapReceiver.class);
 
         Notification notification = null;
         String name = getRemoteDeviceName();
+
         if (action.equals(ACCESS_REQUEST_ACTION)) {
             deleteIntent.setAction(ACCESS_DISALLOWED_ACTION);
-            notification = new Notification(android.R.drawable.stat_sys_data_bluetooth, context
-                    .getString(R.string.pbap_notif_ticker), System.currentTimeMillis());
-            notification.setLatestEventInfo(context, context.getString(R.string.pbap_notif_title),
-                    context.getString(R.string.pbap_notif_message, name), PendingIntent
-                            .getActivity(context, 0, clickIntent, 0));
+            notification = new Notification(android.R.drawable.stat_sys_data_bluetooth,
+                getString(R.string.pbap_notif_ticker), System.currentTimeMillis());
+            notification.setLatestEventInfo(this, getString(R.string.pbap_notif_title),
+                    getString(R.string.pbap_notif_message, name), PendingIntent
+                            .getActivity(this, 0, clickIntent, 0));
 
             notification.flags |= Notification.FLAG_AUTO_CANCEL;
             notification.flags |= Notification.FLAG_ONLY_ALERT_ONCE;
             notification.defaults = Notification.DEFAULT_SOUND;
-            notification.deleteIntent = PendingIntent.getBroadcast(context, 0, deleteIntent, 0);
+            notification.deleteIntent = PendingIntent.getBroadcast(this, 0, deleteIntent, 0);
             nm.notify(NOTIFICATION_ID_ACCESS, notification);
         } else if (action.equals(AUTH_CHALL_ACTION)) {
             deleteIntent.setAction(AUTH_CANCELLED_ACTION);
-            notification = new Notification(android.R.drawable.stat_sys_data_bluetooth, context
-                    .getString(R.string.auth_notif_ticker), System.currentTimeMillis());
-            notification.setLatestEventInfo(context, context.getString(R.string.auth_notif_title),
-                    context.getString(R.string.auth_notif_message, name), PendingIntent
-                            .getActivity(context, 0, clickIntent, 0));
+            notification = new Notification(android.R.drawable.stat_sys_data_bluetooth,
+                getString(R.string.auth_notif_ticker), System.currentTimeMillis());
+            notification.setLatestEventInfo(this, getString(R.string.auth_notif_title),
+                    getString(R.string.auth_notif_message, name), PendingIntent
+                            .getActivity(this, 0, clickIntent, 0));
 
             notification.flags |= Notification.FLAG_AUTO_CANCEL;
             notification.flags |= Notification.FLAG_ONLY_ALERT_ONCE;
             notification.defaults = Notification.DEFAULT_SOUND;
-            notification.deleteIntent = PendingIntent.getBroadcast(context, 0, deleteIntent, 0);
+            notification.deleteIntent = PendingIntent.getBroadcast(this, 0, deleteIntent, 0);
             nm.notify(NOTIFICATION_ID_AUTH, notification);
         }
     }
 
     private void removePbapNotification(int id) {
-        Context context = getApplicationContext();
-        NotificationManager nm = (NotificationManager)context
-                .getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager nm = (NotificationManager)
+            getSystemService(Context.NOTIFICATION_SERVICE);
         nm.cancel(id);
     }
 

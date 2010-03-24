@@ -108,6 +108,7 @@
                   android:configChanges="orientation|keyboardHidden">
         </activity>
         <activity android:name=".pbap.BluetoothPbapActivity"
+            android:process="@string/process"
             android:excludeFromRecents="true"
             android:theme="@*android:style/Theme.Dialog.Alert">
             <intent-filter>

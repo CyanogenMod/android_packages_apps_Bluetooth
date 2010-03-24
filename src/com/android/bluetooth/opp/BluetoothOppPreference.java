@@ -83,8 +83,7 @@ public class BluetoothOppPreference {
             return true;
         mInitialized = true;
 
-        // This will be around as long as this process is
-        mContext = context.getApplicationContext();
+        mContext = context;
 
         mNamePreference = mContext.getSharedPreferences(Constants.BLUETOOTHOPP_NAME_PREFERENCE,
                 Context.MODE_PRIVATE);

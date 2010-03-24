@@ -127,8 +127,7 @@ public class BluetoothOppManager {
             return true;
         mInitialized = true;
 
-        // This will be around as long as this process is
-        mContext = context.getApplicationContext();
+        mContext = context;
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mAdapter == null) {
