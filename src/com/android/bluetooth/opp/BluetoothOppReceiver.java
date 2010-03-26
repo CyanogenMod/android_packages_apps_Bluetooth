@@ -196,7 +196,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                     int userConfirmationColumn = cursor
                             .getColumnIndexOrThrow(BluetoothShare.USER_CONFIRMATION);
                     int userConfirmation = cursor.getInt(userConfirmationColumn);
-                    if ((BluetoothShare.isStatusCompleted(status) || (userConfirmation == BluetoothShare.USER_CONFIRMATION_PENDING))
+                    if (((userConfirmation == BluetoothShare.USER_CONFIRMATION_PENDING))
                             && visibility == BluetoothShare.VISIBILITY_VISIBLE) {
                         ContentValues values = new ContentValues();
                         values.put(BluetoothShare.VISIBILITY, BluetoothShare.VISIBILITY_HIDDEN);
@@ -206,6 +206,12 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                 }
                 cursor.close();
             }
+        } else if (action.equals(Constants.ACTION_COMPLETE_HIDE)) {
+            if (V) Log.v(TAG, "Receiver ACTION_COMPLETE_HIDE");
+            ContentValues updateValues = new ContentValues();
+            updateValues.put(BluetoothShare.VISIBILITY, BluetoothShare.VISIBILITY_HIDDEN);
+            context.getContentResolver().update(BluetoothShare.CONTENT_URI, updateValues,
+                    BluetoothOppNotification.WHERE_COMPLETED, null);
         } else if (action.equals(BluetoothShare.TRANSFER_COMPLETED_ACTION)) {
             if (V) Log.v(TAG, "Receiver Transfer Complete Intent for " + intent.getData());
 

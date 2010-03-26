@@ -69,10 +69,16 @@ public class Constants {
     public static final String ACTION_LIST = "android.btopp.intent.action.LIST";
 
     /**
-     * the intent that gets sent when deleting the notification of a completed
-     * transfer
+     * the intent that gets sent when deleting the incoming file confirmation
+     * notification
      */
     public static final String ACTION_HIDE = "android.btopp.intent.action.HIDE";
+
+    /**
+     * the intent that gets sent when deleting the notifications of outbound and
+     * inbound completed transfer
+     */
+    public static final String ACTION_COMPLETE_HIDE = "android.btopp.intent.action.HIDE_COMPLETE";
 
     /**
      * the intent that gets sent when clicking a incoming file confirm
