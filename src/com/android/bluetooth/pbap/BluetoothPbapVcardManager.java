@@ -433,6 +433,7 @@ public class BluetoothPbapVcardManager {
                     vcardType = VCardConfig.VCARD_TYPE_V30_GENERIC_UTF8;
                 }
                 vcardType |= VCardConfig.FLAG_REFRAIN_IMAGE_EXPORT;
+                vcardType |= VCardConfig.FLAG_REFRAIN_PHONE_NUMBER_FORMATTING;
 
                 composer = new VCardComposer(mContext, vcardType, true);
                 composer.addHandler(new HandlerForStringBuffer(op, ownerVCard));
