@@ -322,7 +322,7 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
                 mLine2View.setText(tmp);
                 mLine3View = (TextView)mView.findViewById(R.id.line3_view);
                 tmp = getString(R.string.download_fail_line3, BluetoothOppUtility
-                        .getStatusDescription(this, mTransInfo.mStatus));
+                        .getStatusDescription(this, mTransInfo.mStatus, mTransInfo.mDeviceName));
                 mLine3View.setText(tmp);
             }
             mLine5View = (TextView)mView.findViewById(R.id.line5_view);
@@ -336,7 +336,7 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
             mLine2View.setText(tmp);
             mLine3View = (TextView)mView.findViewById(R.id.line3_view);
             tmp = getString(R.string.download_fail_line3, BluetoothOppUtility.getStatusDescription(
-                    this, mTransInfo.mStatus));
+                    this, mTransInfo.mStatus, mTransInfo.mDeviceName));
             mLine3View.setText(tmp);
             mLine5View = (TextView)mView.findViewById(R.id.line5_view);
             mLine5View.setVisibility(View.GONE);
