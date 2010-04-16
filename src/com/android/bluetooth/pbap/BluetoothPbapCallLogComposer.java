@@ -183,7 +183,7 @@ public class BluetoothPbapCallLogComposer {
     }
 
     private String createOneCallLogEntryInternal() {
-        final VCardBuilder builder = new VCardBuilder(VCardConfig.VCARD_TYPE_V21_GENERIC_UTF8);
+        final VCardBuilder builder = new VCardBuilder(VCardConfig.VCARD_TYPE_V21_GENERIC);
         String name = mCursor.getString(CALLER_NAME_COLUMN_INDEX);
         if (TextUtils.isEmpty(name)) {
             name = mCursor.getString(NUMBER_COLUMN_INDEX);
@@ -210,8 +210,8 @@ public class BluetoothPbapCallLogComposer {
     public String composeVCardForPhoneOwnNumber(int phonetype, String phoneName,
             String phoneNumber, boolean vcardVer21) {
         final int vcardType = (vcardVer21 ?
-                VCardConfig.VCARD_TYPE_V21_GENERIC_UTF8 :
-                    VCardConfig.VCARD_TYPE_V30_GENERIC_UTF8);
+                VCardConfig.VCARD_TYPE_V21_GENERIC :
+                    VCardConfig.VCARD_TYPE_V30_GENERIC);
         final VCardBuilder builder = new VCardBuilder(vcardType);
         boolean needCharset = false;
         if (!(VCardUtils.containsOnlyPrintableAscii(phoneName))) {
