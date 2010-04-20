@@ -432,6 +432,7 @@ public class BluetoothPbapVcardManager {
                 } else {
                     vcardType = VCardConfig.VCARD_TYPE_V30_GENERIC;
                 }
+                vcardType |= VCardConfig.FLAG_REFRAIN_IMAGE_EXPORT;
 
                 composer = new VCardComposer(mContext, vcardType, true);
                 composer.addHandler(new HandlerForStringBuffer(op, ownerVCard));
