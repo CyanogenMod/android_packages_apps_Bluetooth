@@ -20,8 +20,8 @@
     <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"응용프로그램에서 BluetoothShare 관리자에 액세스하고 이를 사용하여 파일을 전송할 수 있습니다."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"알 수 없는 장치"</string>
-    <string name="airplane_error_title" msgid="2683839635115739939">"비행 모드"</string>
-    <string name="airplane_error_msg" msgid="8031842956782631624">"휴대전화가 비행 모드인 경우에는 Bluetooth를 사용할 수 없습니다."</string>
+    <string name="airplane_error_title" msgid="2683839635115739939">"비행기 모드"</string>
+    <string name="airplane_error_msg" msgid="8031842956782631624">"휴대전화가 비행기 모드인 경우에는 Bluetooth를 사용할 수 없습니다."</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Bluetooth 서비스를 사용하려면 먼저 Bluetooth를 켜야 합니다."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"지금 Bluetooth를 사용하시겠습니까?"</string>
@@ -101,8 +101,8 @@
     <string name="outbound_history_title" msgid="4279418703178140526">"발신 전송"</string>
     <string name="no_transfers" msgid="3482965619151865672">"전송 기록이 없습니다."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"목록에서 모든 항목이 삭제됩니다."</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"블루투스 공유: 파일 보냄"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"블루투스 공유: 파일 받음"</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth 공유: 파일 보냄"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth 공유: 파일 받음"</string>
     <string name="noti_caption" msgid="5553338716725484736">"%1$s 성공, %2$s 실패."</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"목록 지우기"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"열기"</string>
