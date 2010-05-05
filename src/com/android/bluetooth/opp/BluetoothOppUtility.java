@@ -249,7 +249,7 @@ public class BluetoothOppUtility {
     /**
      * Get status description according to status code.
      */
-    public static String getStatusDescription(Context context, int statusCode) {
+    public static String getStatusDescription(Context context, int statusCode, String deviceName) {
         String ret;
         if (statusCode == BluetoothShare.STATUS_PENDING) {
             ret = context.getString(R.string.status_pending);
@@ -270,7 +270,7 @@ public class BluetoothOppUtility {
         } else if (statusCode == BluetoothShare.STATUS_CONNECTION_ERROR) {
             ret = context.getString(R.string.status_connection_error);
         } else if (statusCode == BluetoothShare.STATUS_ERROR_SDCARD_FULL) {
-            ret = context.getString(R.string.bt_sm_2_1);
+            ret = context.getString(R.string.bt_sm_2_1, deviceName);
         } else if ((statusCode == BluetoothShare.STATUS_BAD_REQUEST)
                 || (statusCode == BluetoothShare.STATUS_LENGTH_REQUIRED)
                 || (statusCode == BluetoothShare.STATUS_PRECONDITION_FAILED)

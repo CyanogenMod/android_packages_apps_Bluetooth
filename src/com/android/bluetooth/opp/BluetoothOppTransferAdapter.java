@@ -104,7 +104,7 @@ public class BluetoothOppTransferAdapter extends ResourceCursorAdapter {
             tv = (TextView)view.findViewById(R.id.complete_text);
             tv.setVisibility(View.VISIBLE);
             if (BluetoothShare.isStatusError(status)) {
-                tv.setText(BluetoothOppUtility.getStatusDescription(mContext, status));
+                tv.setText(BluetoothOppUtility.getStatusDescription(mContext, status, deviceName));
             } else {
                 String completeText;
                 if (dir == BluetoothShare.DIRECTION_INBOUND) {
