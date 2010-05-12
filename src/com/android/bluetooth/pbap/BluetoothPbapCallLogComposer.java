@@ -163,6 +163,8 @@ public class BluetoothPbapCallLogComposer {
             Log.e(TAG, "OutOfMemoryError occured. Ignore the entry");
             System.gc();
             return true;
+        } finally {
+            mCursor.moveToNext();
         }
 
         if (mCareHandlerErrors) {
