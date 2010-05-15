@@ -45,6 +45,7 @@
             </intent-filter>
         </receiver>
         <activity android:name=".opp.BluetoothOppLauncherActivity"
+            android:process="@string/process"
             android:theme="@android:style/Theme.Dialog" android:label="@string/bt_share_picker_label">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
@@ -66,17 +67,23 @@
                 <data android:mimeType="vnd.android.cursor.item/vnd.android.btopp" />
             </intent-filter>
         </activity>
-        <activity android:name=".opp.BluetoothOppBtEnableActivity">
+        <activity android:name=".opp.BluetoothOppBtEnableActivity"
+            android:process="@string/process">
         </activity>
-        <activity android:name=".opp.BluetoothOppBtErrorActivity">
+        <activity android:name=".opp.BluetoothOppBtErrorActivity"
+          android:process="@string/process">
         </activity>
-        <activity android:name=".opp.BluetoothOppBtEnablingActivity">
+        <activity android:name=".opp.BluetoothOppBtEnablingActivity"
+            android:process="@string/process">
             android:theme="@android:style/Theme.Dialog"> </activity>
-        <activity android:name=".opp.BluetoothOppIncomingFileConfirmActivity">
+        <activity android:name=".opp.BluetoothOppIncomingFileConfirmActivity"
+            android:process="@string/process">
         </activity>
-        <activity android:name=".opp.BluetoothOppTransferActivity">
+        <activity android:name=".opp.BluetoothOppTransferActivity"
+            android:process="@string/process">
         </activity>
         <activity android:name=".opp.BluetoothOppLiveFolder"
+            android:process="@string/process"
             android:label="@string/btopp_live_folder">
             <intent-filter>
                 <action android:name="android.intent.action.CREATE_LIVE_FOLDER" />
