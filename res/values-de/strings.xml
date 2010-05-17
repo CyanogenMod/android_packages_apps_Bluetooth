@@ -50,7 +50,7 @@
     <!-- no translation found for download_line4 (8535996869722666525) -->
     <skip />
     <string name="download_line5" msgid="3069560415845295386">"Datei wird heruntergeladen..."</string>
-    <string name="download_cancel" msgid="9177305996747500768">"Anhalten"</string>
+    <string name="download_cancel" msgid="9177305996747500768">"Abbrechen"</string>
     <string name="download_ok" msgid="5000360731674466039">"Ausblenden"</string>
     <string name="download_fail_line1" msgid="3846450148862894552">"Datei nicht empfangen"</string>
     <string name="download_fail_line2" msgid="3138506111127456201">"Datei: %1$s"</string>
