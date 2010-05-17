@@ -20,16 +20,17 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
-import android.pim.vcard.VCardBuilder;
-import android.pim.vcard.VCardConfig;
-import android.pim.vcard.VCardConstants;
-import android.pim.vcard.VCardUtils;
-import android.pim.vcard.VCardComposer.OneEntryHandler;
 import android.provider.CallLog;
 import android.provider.CallLog.Calls;
 import android.text.TextUtils;
 import android.text.format.Time;
 import android.util.Log;
+
+import com.android.vcard.VCardBuilder;
+import com.android.vcard.VCardConfig;
+import com.android.vcard.VCardConstants;
+import com.android.vcard.VCardUtils;
+import com.android.vcard.VCardComposer.OneEntryHandler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
