@@ -44,6 +44,7 @@
             </intent-filter>
         </receiver>
         <activity android:name=".opp.BluetoothOppLauncherActivity"
+            android:process="@string/process"
             android:theme="@android:style/Theme.Dialog" android:label="@string/bt_share_picker_label">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
@@ -75,26 +76,32 @@
             </intent-filter>
         </activity>
         <activity android:name=".opp.BluetoothOppBtEnableActivity"
+                  android:process="@string/process"
                   android:excludeFromRecents="true"
                   android:theme="@*android:style/Theme.Dialog.Alert">
         </activity>
         <activity android:name=".opp.BluetoothOppBtErrorActivity"
+                  android:process="@string/process"
                   android:excludeFromRecents="true"
                   android:theme="@*android:style/Theme.Dialog.Alert">
         </activity>
         <activity android:name=".opp.BluetoothOppBtEnablingActivity"
+                  android:process="@string/process"
                   android:excludeFromRecents="true"
                   android:theme="@*android:style/Theme.Dialog.Alert">
         </activity>
         <activity android:name=".opp.BluetoothOppIncomingFileConfirmActivity"
+                  android:process="@string/process"
                   android:excludeFromRecents="true"
                   android:theme="@*android:style/Theme.Dialog.Alert">
         </activity>
         <activity android:name=".opp.BluetoothOppTransferActivity"
+                  android:process="@string/process"
                   android:excludeFromRecents="true"
                   android:theme="@*android:style/Theme.Dialog.Alert">
         </activity>
         <activity android:name=".opp.BluetoothOppLiveFolder"
+            android:process="@string/process"
             android:icon="@drawable/ic_launcher_folder_bluetooth"
             android:label="@string/btopp_live_folder">
             <intent-filter>
@@ -103,6 +110,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".opp.BluetoothOppTransferHistory"
+                  android:process="@string/process"
                   android:label=""
                   android:excludeFromRecents="true"
                   android:configChanges="orientation|keyboardHidden">
