@@ -71,8 +71,8 @@ public class BluetoothPbapCallLogComposer {
 
     // Property for call log entry
     private static final String VCARD_PROPERTY_X_TIMESTAMP = "X-IRMC-CALL-DATETIME";
-    private static final String VCARD_PROPERTY_CALLTYPE_INCOMING = "INCOMING";
-    private static final String VCARD_PROPERTY_CALLTYPE_OUTGOING = "OUTGOING";
+    private static final String VCARD_PROPERTY_CALLTYPE_INCOMING = "RECEIVED";
+    private static final String VCARD_PROPERTY_CALLTYPE_OUTGOING = "DIALED";
     private static final String VCARD_PROPERTY_CALLTYPE_MISSED = "MISSED";
 
     private static final String FLAG_TIMEZONE_UTC = "Z";
