@@ -15,6 +15,8 @@
  */
 package com.android.bluetooth.pbap;
 
+import com.android.bluetooth.R;
+
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
@@ -198,7 +200,10 @@ public class BluetoothPbapCallLogComposer {
         builder.appendLine(VCardConstants.PROPERTY_FN, name, needCharset, false);
         builder.appendLine(VCardConstants.PROPERTY_N, name, needCharset, false);
 
-        final String number = mCursor.getString(NUMBER_COLUMN_INDEX);
+        String number = mCursor.getString(NUMBER_COLUMN_INDEX);
+        if (number.equals("-1")) {
+            number = mContext.getString(R.string.unknownNumber);
+        }
         final int type = mCursor.getInt(CALLER_NUMBERTYPE_COLUMN_INDEX);
         String label = mCursor.getString(CALLER_NUMBERLABEL_COLUMN_INDEX);
         if (TextUtils.isEmpty(label)) {
