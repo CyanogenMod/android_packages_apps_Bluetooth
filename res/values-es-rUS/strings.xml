@@ -80,7 +80,7 @@
     <string name="bt_toast_4" msgid="6320052202214451994">"Enviando archivo a \"%1$s\""</string>
     <string name="bt_toast_5" msgid="3481598201604043629">"Enviando %1$s archivos a \"%2$s\""</string>
     <string name="bt_toast_6" msgid="4157809141200418519">"Se detuvo el envío del archivo a \"%1$s\"\""</string>
-    <string name="bt_sm_2_1" msgid="6625813581585502551">"No hay espacio suficiente en la tarjeta SD para guardar el archivo de \"% \"%1$s\"."</string>
+    <string name="bt_sm_2_1" msgid="6625813581585502551">"No hay espacio suficiente en la tarjeta SD para guardar el archivo de \"%1$s\"."</string>
     <string name="bt_sm_2_2" msgid="2697023602119073395">"Espacio necesario: %1$s"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Se están procesando demasiadas solicitudes. Vuelve a intentarlo más tarde."</string>
     <string name="status_pending" msgid="7446884326084324082">"La transferencia del archivo aún no ha comenzado."</string>
