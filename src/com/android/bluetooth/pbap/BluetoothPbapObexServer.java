@@ -396,7 +396,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             }
         }
 
-        if (!parseApplicationParameter(appParam, appParamValue)) {
+        if ((appParam != null) && !parseApplicationParameter(appParam, appParamValue)) {
             return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
         }
 
@@ -452,7 +452,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         public boolean vcard21;
 
         public AppParamValue() {
-            maxListCount = 0;
+            maxListCount = 0xFFFF;
             listStartOffset = 0;
             searchValue = "";
             searchAttr = "";
@@ -486,11 +486,10 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                     break;
                 case ApplicationParameter.TRIPLET_TAGID.SEARCH_VALUE_TAGID:
                     i += 1; // length field in triplet
-                    for (int k = 1; k <= appParam[i]; k++) {
-                        appParamValue.searchValue += Byte.toString(appParam[i + k]);
-                    }
                     // length of search value is variable
-                    i += appParam[i];
+                    int length = appParam[i];
+                    appParamValue.searchValue = new String(appParam, i + 1, length);
+                    i += length;
                     i += 1;
                     break;
                 case ApplicationParameter.TRIPLET_TAGID.SEARCH_ATTRIBUTE_TAGID:
@@ -547,72 +546,14 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
         // Phonebook listing request
         if (type == ContentType.PHONEBOOK) {
-            // begin of search by name
-            if (searchAttr.equals("0")) {
+            if (searchAttr.equals("0")) { // search by name
                 ArrayList<String> nameList = mVcardManager.getPhonebookNameList(mOrderBy );
-                int requestSize = nameList.size() >= maxListCount ? maxListCount : nameList.size();
-                int startPoint = listStartOffset;
-                int endPoint = startPoint + requestSize;
-                if (endPoint > nameList.size()) {
-                    endPoint = nameList.size();
-                }
-
-                if (D) Log.d(TAG, "search by name, size=" + requestSize + " offset=" +
-                        listStartOffset + " searchValue=" + searchValue);
-
-
-                // if searchValue if not set by client,provide the entire
-                // list by name
-                if (searchValue == null || searchValue.trim().length() == 0) {
-                    for (int j = startPoint; j < endPoint; j++) {
-                        result.append("<card handle=\"" + j + ".vcf\" name=\"" + nameList.get(j)
-                                + "\"" + "/>");
-                        itemsFound++;
-                    }
-                } else {
-                    for (int j = startPoint; j < endPoint; j++) {
-                        // only find the name which begins with the searchValue
-                        if (nameList.get(j).startsWith(searchValue.trim())) {
-                            // TODO: PCE not work with it
-                            itemsFound++;
-                            result.append("<card handle=\"" + j + ".vcf\" name=\""
-                                    + nameList.get(j) + "\"" + "/>");
-                        }
-                    }
-                }
-            }// end of search by name
-            // begin of search by number
-            else if (searchAttr.equals("1")) {
+                itemsFound = createList(maxListCount, listStartOffset, searchValue, result,
+                        nameList, "name");
+            } else if (searchAttr.equals("1")) { // search by number
                 ArrayList<String> numberList = mVcardManager.getPhonebookNumberList();
-                int requestSize = numberList.size() >= maxListCount ? maxListCount : numberList
-                        .size();
-                int startPoint = listStartOffset;
-                int endPoint = startPoint + requestSize;
-                if (endPoint > numberList.size()) {
-                    endPoint = numberList.size();
-                }
-
-                if (D) Log.d(TAG, "search by number, size=" + requestSize + " offset="
-                            + listStartOffset + " searchValue=" + searchValue);
-
-                // if searchValue if not set by client,provide the entire
-                // list by number
-                if (searchValue == null || searchValue.trim().length() == 0) {
-                    for (int j = startPoint; j < endPoint; j++) {
-                        result.append("<card handle=\"" + j + ".vcf\" number=\""
-                                + numberList.get(j) + "\"" + "/>");
-                        itemsFound++;
-                    }
-                } else {
-                    for (int j = startPoint; j < endPoint; j++) {
-                        // only find the name which begins with the searchValue
-                        if (numberList.get(j).startsWith(searchValue.trim())) {
-                            itemsFound++;
-                            result.append("<card handle=\"" + j + ".vcf\" number=\""
-                                    + numberList.get(j) + "\"" + "/>");
-                        }
-                    }
-                }
+                itemsFound = createList(maxListCount, listStartOffset, searchValue, result,
+                        numberList, "number");
             }// end of search by number
             else {
                 return ResponseCodes.OBEX_HTTP_PRECON_FAILED;
@@ -641,6 +582,26 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         if (V) Log.v(TAG, "itemsFound =" + itemsFound);
 
         return pushBytes(op, result.toString());
+    }
+
+    private int createList(final int maxListCount, final int listStartOffset,
+            final String searchValue, StringBuilder result,
+            ArrayList<String> dataList, String type) {
+        int itemsFound = 0;
+        int requestSize = dataList.size() >= maxListCount ? maxListCount : dataList.size();
+
+        if (D) Log.d(TAG, "search by " + type + ", size=" + requestSize + " offset="
+                    + listStartOffset + " searchValue=" + searchValue);
+
+        for (int pos = listStartOffset; pos < dataList.size() && itemsFound < requestSize; pos++) {
+            String currentValue = dataList.get(pos);
+            if (searchValue == null || currentValue.startsWith(searchValue.trim())) {
+                itemsFound++;
+                result.append("<card handle=\"" + pos + ".vcf\" " + type + "=\""
+                        + currentValue + "\"" + "/>");
+            }
+        }
+        return itemsFound;
     }
 
     /**
