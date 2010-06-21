@@ -93,7 +93,7 @@
     <string name="status_connection_error" msgid="7695388111375688873">"연결 실패"</string>
     <string name="status_protocol_error" msgid="8898902951085043597">"요청을 제대로 처리할 수 없습니다."</string>
     <string name="status_unknown_error" msgid="7441602228720350817">"알 수 없는 오류"</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth가 수신되었습니다."</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth 수신함"</string>
     <string name="download_success" msgid="8038161914083925191">"%1$s 수신 완료."</string>
     <string name="upload_success" msgid="8160573453144095129">"%1$s 전송 완료."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"수신 전송"</string>
