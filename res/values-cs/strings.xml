@@ -47,8 +47,7 @@
     <string name="download_line1" msgid="3470164761579278582">"Z: „%1$s“"</string>
     <string name="download_line2" msgid="65085079456902842">"Soubor: %1$s"</string>
     <string name="download_line3" msgid="7381726201104929958">"Velikost souboru: %1$s"</string>
-    <!-- no translation found for download_line4 (8535996869722666525) -->
-    <skip />
+    <string name="download_line4" msgid="8535996869722666525"></string>
     <string name="download_line5" msgid="3069560415845295386">"Přijímání souboru..."</string>
     <string name="download_cancel" msgid="9177305996747500768">"Zastavit"</string>
     <string name="download_ok" msgid="5000360731674466039">"Skrýt"</string>
