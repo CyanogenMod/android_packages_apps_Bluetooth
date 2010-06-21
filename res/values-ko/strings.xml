@@ -17,7 +17,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"다운로드 관리자에 액세스합니다."</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"응용프로그램에서 BluetoothShare 관리자에 액세스하고 이를 사용하여 파일을 전송할 수 있습니다."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"애플리케이션에서 BluetoothShare 관리자에 액세스하고 이를 사용하여 파일을 전송할 수 있습니다."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"알 수 없는 장치"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"비행기 모드"</string>
@@ -47,8 +47,7 @@
     <string name="download_line1" msgid="3470164761579278582">"위치: \'%1$s\'"</string>
     <string name="download_line2" msgid="65085079456902842">"파일: %1$s"</string>
     <string name="download_line3" msgid="7381726201104929958">"파일 크기: %1$s"</string>
-    <!-- no translation found for download_line4 (8535996869722666525) -->
-    <skip />
+    <string name="download_line4" msgid="8535996869722666525"></string>
     <string name="download_line5" msgid="3069560415845295386">"파일을 수신하는 중..."</string>
     <string name="download_cancel" msgid="9177305996747500768">"중지"</string>
     <string name="download_ok" msgid="5000360731674466039">"숨기기"</string>
