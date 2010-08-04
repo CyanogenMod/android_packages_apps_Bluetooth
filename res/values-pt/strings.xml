@@ -20,6 +20,7 @@
     <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"Permite que o aplicativo acesse e use o gerenciador BluetoothShare para transferir arquivos."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Dispositivo desconhecido"</string>
+    <string name="unknownNumber" msgid="4994750948072751566">"Desconhecido"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Modo para avião"</string>
     <string name="airplane_error_msg" msgid="8031842956782631624">"Você não pode usar Bluetooth quando o telefone estiver no modo para avião."</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>

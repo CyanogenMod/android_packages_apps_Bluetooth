@@ -20,6 +20,7 @@
     <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"允許應用程式存取 BluetoothShare 管理員並使用它傳輸檔案。"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"藍牙"</string>
     <string name="unknown_device" msgid="9221903979877041009">"未知的裝置"</string>
+    <string name="unknownNumber" msgid="4994750948072751566">"不明"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"飛行模式"</string>
     <string name="airplane_error_msg" msgid="8031842956782631624">"手機處於飛行模式時，無法使用藍牙功能。"</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"藍牙"</string>

@@ -20,6 +20,7 @@
     <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"애플리케이션에서 BluetoothShare 관리자에 액세스하고 이를 사용하여 파일을 전송할 수 있습니다."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"알 수 없는 장치"</string>
+    <string name="unknownNumber" msgid="4994750948072751566">"알 수 없음"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"비행기 모드"</string>
     <string name="airplane_error_msg" msgid="8031842956782631624">"휴대전화가 비행기 모드인 경우에는 Bluetooth를 사용할 수 없습니다."</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
