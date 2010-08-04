@@ -20,6 +20,7 @@
     <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"Consente l\'accesso dell\'applicazione al gestore BluetoothShare e il suo utilizzo per trasferire i file."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Dispositivo sconosciuto"</string>
+    <string name="unknownNumber" msgid="4994750948072751566">"Sconosciuto"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Modalità aereo"</string>
     <string name="airplane_error_msg" msgid="8031842956782631624">"Non puoi utilizzare Bluetooth quando il telefono è in modalità aereo."</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
