@@ -96,7 +96,7 @@
     <string name="status_unknown_error" msgid="7441602228720350817">"Άγνωστο σφάλμα"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Ελήφθη μέσω Bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"Ελήφθησαν πλήρως <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>
-    <string name="upload_success" msgid="4014469387779648949">"Η αποστολή <xliff:g id="FILE_SIZE">%1$s</xliff:g> ολοκληρώθηκε."</string>
+    <string name="upload_success" msgid="4014469387779648949">"Ολοκληρώθηκε η αποστολή <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Εισερχόμενες μεταφορές"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Εξερχόμενες μεταφορές"</string>
     <string name="no_transfers" msgid="3482965619151865672">"Το ιστορικό μεταφορών είναι κενό."</string>

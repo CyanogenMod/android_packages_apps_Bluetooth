@@ -33,21 +33,21 @@
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Recusar"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Aceitar"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="860272542827665475">"Ok"</string>
-    <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"O tempo limite foi atingido ao aceitar um arquivo recebido de \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
+    <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Tempo limite excedido ao receber um arquivo de \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Compartilhamento Bluetooth: arquivo recebido"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="85804056450169291">"Confirme que deseja receber esse arquivo"</string>
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Chegou um arquivo de outro dispositivo. Confirme se deseja receber esse arquivo"</string>
-    <string name="notification_receiving" msgid="4674648179652543984">"Compartilhamento Bluetooth: recebendo <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received" msgid="3324588019186687985">"Compartilhamento Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> recebido"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Compartilhamento Bluetooth: o arquivo <xliff:g id="FILE">%1$s</xliff:g> não foi recebido"</string>
-    <string name="notification_sending" msgid="3035748958534983833">"Compartilhamento Bluetooth: enviando <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"Compartilhamento Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> enviado"</string>
+    <string name="notification_receiving" msgid="4674648179652543984">"Compart. Bluetooth: recebendo <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received" msgid="3324588019186687985">"Compart. Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> recebido"</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"Compart. Bluetooth: o arquivo <xliff:g id="FILE">%1$s</xliff:g> não foi recebido"</string>
+    <string name="notification_sending" msgid="3035748958534983833">"Compart. Bluetooth: enviando <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"Compart. Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> enviado"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"100% concluído"</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"Compartilhamento Bluetooth: o arquivo <xliff:g id="FILE">%1$s</xliff:g> não foi enviado"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"Compart. Bluetooth: o arquivo <xliff:g id="FILE">%1$s</xliff:g> não foi enviado"</string>
     <string name="download_title" msgid="3353228219772092586">"Transferência de arquivo"</string>
     <string name="download_line1" msgid="4926604799202134144">"De: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"Arquivo: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="download_line3" msgid="4384821622908676061">"Tamanho do arquivo: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
+    <string name="download_line3" msgid="4384821622908676061">"Tam. do arquivo: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="download_line4" msgid="8535996869722666525"></string>
     <string name="download_line5" msgid="3069560415845295386">"Recebendo arquivo…"</string>
     <string name="download_cancel" msgid="9177305996747500768">"Parar"</string>

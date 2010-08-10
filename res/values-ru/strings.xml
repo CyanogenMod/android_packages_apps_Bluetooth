@@ -45,7 +45,7 @@
     <string name="notification_sent_complete" msgid="302943281067557969">"100% завершено."</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Передача по Bluetooth: файл <xliff:g id="FILE">%1$s</xliff:g> не отправлен"</string>
     <string name="download_title" msgid="3353228219772092586">"Передача файла"</string>
-    <string name="download_line1" msgid="4926604799202134144">"От: <xliff:g id="SENDER">%1$s</xliff:g>"</string>
+    <string name="download_line1" msgid="4926604799202134144">"От: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"Файл: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_line3" msgid="4384821622908676061">"Размер файла: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="download_line4" msgid="8535996869722666525"></string>
@@ -63,7 +63,7 @@
     <string name="upload_line5" msgid="7759322537674229752">"Отправка файла..."</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"Файл отправлен"</string>
     <string name="upload_succ_ok" msgid="7705428476405478828">"ОК"</string>
-    <string name="upload_fail_line1" msgid="229249873880944683">"Файл не был отправлен на устройство \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"."</string>
+    <string name="upload_fail_line1" msgid="229249873880944683">"Файл не был отправлен на \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Файл: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="upload_fail_ok" msgid="5807702461606714296">"Повторить"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Закрыть"</string>
@@ -76,9 +76,9 @@
     <string name="enabling_progress_content" msgid="1291028079299309898">"Включение Bluetooth…"</string>
     <string name="bt_toast_1" msgid="972182708034353383">"Этот файл будет получен. Ход выполнения отображается на панели уведомлений."</string>
     <string name="bt_toast_2" msgid="6357386241778417651">"Этот файл не будет получен."</string>
-    <string name="bt_toast_3" msgid="6707884165086862518">"Получение файла с устройства \"<xliff:g id="SENDER">%1$s</xliff:g>\" прервано"</string>
+    <string name="bt_toast_3" msgid="6707884165086862518">"Получение файла от \"<xliff:g id="SENDER">%1$s</xliff:g>\" прервано"</string>
     <string name="bt_toast_4" msgid="4678812947604395649">"Отправка файла на \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
-    <string name="bt_toast_5" msgid="2846870992823019494">"Отправляются файлы (<xliff:g id="NUMBER">%1$s</xliff:g>) на устройство \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
+    <string name="bt_toast_5" msgid="2846870992823019494">"Отправка файлов (<xliff:g id="NUMBER">%1$s</xliff:g>) на \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Отправка файла на \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" остановлена"</string>
     <string name="bt_sm_2_1" msgid="2801238507525833799">"Недостаточно места на SD-карте для сохранения файла, полученного от \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Необходимое свободное место: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
