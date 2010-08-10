@@ -20,7 +20,7 @@
     <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"Die Anwendung kann auf den Bluetooth-Weiterleitungs-Manager zugreifen und diesen für die Übertragung von Dateien verwenden."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Unbekanntes Gerät"</string>
-    <string name="unknownNumber" msgid="4994750948072751566">"Unbekannt"</string>
+    <string name="unknownNumber" msgid="4994750948072751566">"Unbekannter Anrufer"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Flugmodus"</string>
     <string name="airplane_error_msg" msgid="8031842956782631624">"Wenn sich das Telefon im Flugmodus befindet, können Sie Bluetooth nicht verwenden."</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
@@ -29,7 +29,7 @@
     <string name="bt_enable_cancel" msgid="1988832367505151727">"Abbrechen"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"Aktivieren"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"Dateiübertragung"</string>
-    <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" möchte Ihnen <xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>). "\n\n" senden. Datei annehmen?"</string>
+    <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" möchte Ihnen <xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>) senden. "\n\n" Datei annehmen?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Ablehnen"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Akzeptieren"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="860272542827665475">"OK"</string>
