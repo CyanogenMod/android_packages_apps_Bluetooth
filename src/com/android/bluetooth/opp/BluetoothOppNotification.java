@@ -43,6 +43,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 import android.widget.RemoteViews;
+import android.os.Handler;
+import android.os.Message;
 import android.os.Process;
 import java.util.HashMap;
 
@@ -87,9 +89,7 @@ class BluetoothOppNotification {
 
     private NotificationUpdateThread mUpdateNotificationThread;
 
-    private boolean mPendingUpdate = false;
-
-    private boolean mFinised = false;
+    private int mPendingUpdate = 0;
 
     private static final int NOTIFICATION_ID_OUTBOUND = -1000005;
 
@@ -127,25 +127,51 @@ class BluetoothOppNotification {
         mNotifications = new HashMap<String, NotificationItem>();
     }
 
-    public void finishNotification() {
-        synchronized (BluetoothOppNotification.this) {
-            mFinised = true;
-        }
-    }
-
     /**
      * Update the notification ui.
      */
     public void updateNotification() {
         synchronized (BluetoothOppNotification.this) {
-            mPendingUpdate = true;
-            if (mUpdateNotificationThread == null) {
-                mUpdateNotificationThread = new NotificationUpdateThread();
-                mUpdateNotificationThread.start();
-                mFinised = false;
+            mPendingUpdate++;
+            if (mPendingUpdate > 1) {
+                if (V) Log.v(TAG, "update too frequent, put in queue");
+                return;
+            }
+            if (!mHandler.hasMessages(NOTIFY)) {
+                if (V) Log.v(TAG, "send message");
+                mHandler.sendMessage(mHandler.obtainMessage(NOTIFY));
             }
         }
     }
+
+    private static final int NOTIFY = 0;
+    // Use 1 second timer to limit notification frequency.
+    // 1. On the first notification, create the update thread.
+    //    Buffer other updates.
+    // 2. Update thread will clear mPendingUpdate.
+    // 3. Handler sends a delayed message to self
+    // 4. Handler checks if there are any more updates after 1 second.
+    // 5. If there is an update, update it else stop.
+    private Handler mHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case NOTIFY:
+                    synchronized (BluetoothOppNotification.this) {
+                        if (mPendingUpdate > 0 && mUpdateNotificationThread == null) {
+                            if (V) Log.v(TAG, "new notify threadi!");
+                            mUpdateNotificationThread = new NotificationUpdateThread();
+                            mUpdateNotificationThread.start();
+                            if (V) Log.v(TAG, "send delay message");
+                            mHandler.sendMessageDelayed(mHandler.obtainMessage(NOTIFY), 1000);
+                        } else if (mPendingUpdate > 0) {
+                            if (V) Log.v(TAG, "previous thread is not finished yet");
+                            mHandler.sendMessageDelayed(mHandler.obtainMessage(NOTIFY), 1000);
+                        }
+                        break;
+                    }
+              }
+         }
+    };
 
     private class NotificationUpdateThread extends Thread {
 
@@ -156,21 +182,18 @@ class BluetoothOppNotification {
         @Override
         public void run() {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-            for (;;) {
-                synchronized (BluetoothOppNotification.this) {
-                    if (mUpdateNotificationThread != this) {
-                        throw new IllegalStateException(
-                                "multiple UpdateThreads in BluetoothOppNotification");
-                    }
-                    if (!mPendingUpdate && mFinised) {
-                        mUpdateNotificationThread = null;
-                        return;
-                    }
-                    mPendingUpdate = false;
+            synchronized (BluetoothOppNotification.this) {
+                if (mUpdateNotificationThread != this) {
+                    throw new IllegalStateException(
+                            "multiple UpdateThreads in BluetoothOppNotification");
                 }
-                updateActiveNotification();
-                updateCompletedNotification();
-                updateIncomingFileConfirmNotification();
+                mPendingUpdate = 0;
+            }
+            updateActiveNotification();
+            updateCompletedNotification();
+            updateIncomingFileConfirmNotification();
+            synchronized (BluetoothOppNotification.this) {
+                mUpdateNotificationThread = null;
             }
         }
     }
