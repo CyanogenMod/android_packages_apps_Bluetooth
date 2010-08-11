@@ -158,7 +158,6 @@ public class BluetoothOppService extends Service {
         mNotifier = new BluetoothOppNotification(this);
         mNotifier.mNotificationMgr.cancelAll();
         mNotifier.updateNotification();
-        mNotifier.finishNotification();
 
         trimDatabase();
 
@@ -316,7 +315,6 @@ public class BluetoothOppService extends Service {
     public void onDestroy() {
         if (V) Log.v(TAG, "Service onDestroy");
         super.onDestroy();
-        mNotifier.finishNotification();
         getContentResolver().unregisterContentObserver(mObserver);
         unregisterReceiver(mBluetoothReceiver);
         mSocketListener.stop();
@@ -391,8 +389,6 @@ public class BluetoothOppService extends Service {
                             stopSelf();
                             break;
                         }
-                        mNotifier.updateNotification();
-                        mNotifier.finishNotification();
                         return;
                     }
                     mPendingUpdate = false;

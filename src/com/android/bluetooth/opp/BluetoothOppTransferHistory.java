@@ -285,7 +285,6 @@ public class BluetoothOppTransferHistory extends Activity implements
         if (!adapter.isEnabled()) {
             if (V) Log.v(TAG, "Bluetooth is not enabled, update notification manually.");
             mNotifier.updateNotification();
-            mNotifier.finishNotification();
         }
     }
 }
