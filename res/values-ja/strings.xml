@@ -94,7 +94,7 @@
     <string name="status_connection_error" msgid="7695388111375688873">"接続失敗"</string>
     <string name="status_protocol_error" msgid="8898902951085043597">"リクエストを正しく処理できません"</string>
     <string name="status_unknown_error" msgid="7441602228720350817">"不明なエラー"</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetoothを受信しました"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetoothで受信"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g>の受信が完了しました。"</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g>の送信が完了しました。"</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"外部からの転送"</string>
