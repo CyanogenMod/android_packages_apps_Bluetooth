@@ -189,7 +189,7 @@ public class BluetoothPbapCallLogComposer {
     private String createOneCallLogEntryInternal() {
         // We should not allow vCard composer to re-format phone numbers, since
         // some characters are (inappropriately) removed and devices do not work fine.
-        final int vcardType = VCardConfig.VCARD_TYPE_V21_GENERIC_UTF8 |
+        final int vcardType = VCardConfig.VCARD_TYPE_V21_GENERIC |
                 VCardConfig.FLAG_REFRAIN_PHONE_NUMBER_FORMATTING;
         final VCardBuilder builder = new VCardBuilder(vcardType);
         String name = mCursor.getString(CALLER_NAME_COLUMN_INDEX);
@@ -221,8 +221,8 @@ public class BluetoothPbapCallLogComposer {
     public String composeVCardForPhoneOwnNumber(int phonetype, String phoneName,
             String phoneNumber, boolean vcardVer21) {
         final int vcardType = (vcardVer21 ?
-                VCardConfig.VCARD_TYPE_V21_GENERIC_UTF8 :
-                    VCardConfig.VCARD_TYPE_V30_GENERIC_UTF8) |
+                VCardConfig.VCARD_TYPE_V21_GENERIC :
+                    VCardConfig.VCARD_TYPE_V30_GENERIC) |
                 VCardConfig.FLAG_REFRAIN_PHONE_NUMBER_FORMATTING;
         final VCardBuilder builder = new VCardBuilder(vcardType);
         boolean needCharset = false;
