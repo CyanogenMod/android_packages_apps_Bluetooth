@@ -130,7 +130,7 @@ public class BluetoothOppPreference {
         if (!name.equals(getName(remoteDevice))) {
             Editor ed = mNamePreference.edit();
             ed.putString(remoteDevice.getAddress(), name);
-            ed.commit();
+            ed.apply();
             mNames.put(remoteDevice.getAddress(), name);
         }
     }
@@ -142,7 +142,7 @@ public class BluetoothOppPreference {
             String key = getChannelKey(remoteDevice, uuid);
             Editor ed = mChannelPreference.edit();
             ed.putInt(key, channel);
-            ed.commit();
+            ed.apply();
             mChannels.put(key, channel);
         }
     }
@@ -151,7 +151,7 @@ public class BluetoothOppPreference {
         String key = getChannelKey(remoteDevice, uuid);
         Editor ed = mChannelPreference.edit();
         ed.remove(key);
-        ed.commit();
+        ed.apply();
         mChannels.remove(key);
     }
 
