@@ -69,11 +69,11 @@ public class BluetoothOppManager {
 
     private BluetoothAdapter mAdapter;
 
-    private String mMimeTypeOfSendigFile;
+    private String mMimeTypeOfSendingFile;
 
     private String mUriOfSendingFile;
 
-    private String mMimeTypeOfSendigFiles;
+    private String mMimeTypeOfSendingFiles;
 
     private ArrayList<Uri> mUrisOfSendingFiles;
 
@@ -148,13 +148,13 @@ public class BluetoothOppManager {
 
         // All member vars are not initialized till now
         mSendingFlag = settings.getBoolean(SENDING_FLAG, false);
-        mMimeTypeOfSendigFile = settings.getString(MIME_TYPE, null);
+        mMimeTypeOfSendingFile = settings.getString(MIME_TYPE, null);
         mUriOfSendingFile = settings.getString(FILE_URI, null);
-        mMimeTypeOfSendigFiles = settings.getString(MIME_TYPE_MULTIPLE, null);
+        mMimeTypeOfSendingFiles = settings.getString(MIME_TYPE_MULTIPLE, null);
         mMultipleFlag = settings.getBoolean(MULTIPLE_FLAG, false);
 
         if (V) Log.v(TAG, "restoreApplicationData! " + mSendingFlag + mMultipleFlag
-                    + mMimeTypeOfSendigFile + mUriOfSendingFile);
+                    + mMimeTypeOfSendingFile + mUriOfSendingFile);
 
         String strUris = settings.getString(FILE_URIS, null);
         mUrisOfSendingFiles = new ArrayList<Uri>();
@@ -166,7 +166,7 @@ public class BluetoothOppManager {
             }
         }
 
-        mContext.getSharedPreferences(OPP_PREFERENCE_FILE, 0).edit().clear().commit();
+        mContext.getSharedPreferences(OPP_PREFERENCE_FILE, 0).edit().clear().apply();
     }
 
     /**
@@ -175,10 +175,10 @@ public class BluetoothOppManager {
     private void storeApplicationData() {
         SharedPreferences.Editor editor = mContext.getSharedPreferences(OPP_PREFERENCE_FILE, 0)
                 .edit();
-        editor.putBoolean(SENDING_FLAG, mSendingFlag).commit();
-        editor.putBoolean(MULTIPLE_FLAG, mMultipleFlag).commit();
+        editor.putBoolean(SENDING_FLAG, mSendingFlag);
+        editor.putBoolean(MULTIPLE_FLAG, mMultipleFlag);
         if (mMultipleFlag) {
-            editor.putString(MIME_TYPE_MULTIPLE, mMimeTypeOfSendigFiles).commit();
+            editor.putString(MIME_TYPE_MULTIPLE, mMimeTypeOfSendingFiles);
             StringBuilder sb = new StringBuilder();
             for (int i = 0, count = mUrisOfSendingFiles.size(); i < count; i++) {
                 Uri uriContent = mUrisOfSendingFiles.get(i);
@@ -186,24 +186,25 @@ public class BluetoothOppManager {
                 sb.append(ARRAYLIST_ITEM_SEPERATOR);
             }
             String strUris = sb.toString();
-            editor.putString(FILE_URIS, strUris).commit();
+            editor.putString(FILE_URIS, strUris);
 
-            editor.remove(MIME_TYPE).commit();
-            editor.remove(FILE_URI).commit();
+            editor.remove(MIME_TYPE);
+            editor.remove(FILE_URI);
         } else {
-            editor.putString(MIME_TYPE, mMimeTypeOfSendigFile).commit();
-            editor.putString(FILE_URI, mUriOfSendingFile).commit();
+            editor.putString(MIME_TYPE, mMimeTypeOfSendingFile);
+            editor.putString(FILE_URI, mUriOfSendingFile);
 
-            editor.remove(MIME_TYPE_MULTIPLE).commit();
-            editor.remove(FILE_URIS).commit();
+            editor.remove(MIME_TYPE_MULTIPLE);
+            editor.remove(FILE_URIS);
         }
+        editor.apply();
         if (V) Log.v(TAG, "Application data stored to SharedPreference! ");
     }
 
     public void saveSendingFileInfo(String mimeType, String uri) {
         synchronized (BluetoothOppManager.this) {
             mMultipleFlag = false;
-            mMimeTypeOfSendigFile = mimeType;
+            mMimeTypeOfSendingFile = mimeType;
             mUriOfSendingFile = uri;
             storeApplicationData();
         }
@@ -212,7 +213,7 @@ public class BluetoothOppManager {
     public void saveSendingFileInfo(String mimeType, ArrayList<Uri> uris) {
         synchronized (BluetoothOppManager.this) {
             mMultipleFlag = true;
-            mMimeTypeOfSendigFiles = mimeType;
+            mMimeTypeOfSendingFiles = mimeType;
             mUrisOfSendingFiles = uris;
             storeApplicationData();
         }
@@ -293,8 +294,8 @@ public class BluetoothOppManager {
 
                 return;
             }
-            insertThread = new InsertShareInfoThread(device, mMultipleFlag, mMimeTypeOfSendigFile,
-                    mUriOfSendingFile, mMimeTypeOfSendigFiles, mUrisOfSendingFiles);
+            insertThread = new InsertShareInfoThread(device, mMultipleFlag, mMimeTypeOfSendingFile,
+                    mUriOfSendingFile, mMimeTypeOfSendingFiles, mUrisOfSendingFiles);
             if (mMultipleFlag) {
                 mfileNumInBatch = mUrisOfSendingFiles.size();
             }
