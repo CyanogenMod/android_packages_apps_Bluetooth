@@ -95,15 +95,15 @@
     <string name="status_protocol_error" msgid="8898902951085043597">"無法正確處理要求"</string>
     <string name="status_unknown_error" msgid="7441602228720350817">"未知的錯誤"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"已透過藍牙接收"</string>
-    <string name="download_success" msgid="8038161914083925191">"%1$ 接收完成。"</string>
-    <string name="upload_success" msgid="8160573453144095129">"%1$ 傳送完成。"</string>
+    <string name="download_success" msgid="7036160438766730871">"已完成 <xliff:g id="FILE_SIZE">%1$s</xliff:g> 的接收作業。"</string>
+    <string name="upload_success" msgid="4014469387779648949">"已完成 <xliff:g id="FILE_SIZE">%1$s</xliff:g> 的傳送作業。"</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"向內傳輸"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"向外傳輸"</string>
     <string name="no_transfers" msgid="3482965619151865672">"傳輸記錄是空的。"</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"將會從清單清除所有項目。"</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"藍芽分享：傳送的檔案"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"藍芽分享：接收的檔案"</string>
-    <string name="noti_caption" msgid="5553338716725484736">"%1$ 成功，%2$ 失敗。"</string>
+    <string name="noti_caption" msgid="8510712376046370819">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> 個成功，<xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> 個失敗。"</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"清除清單"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"開啟"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"從清單清除"</string>
