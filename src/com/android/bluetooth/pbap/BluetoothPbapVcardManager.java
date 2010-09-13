@@ -432,6 +432,7 @@ public class BluetoothPbapVcardManager {
                 } else {
                     vcardType = VCardConfig.VCARD_TYPE_V30_GENERIC;
                 }
+                vcardType |= VCardConfig.FLAG_REFRAIN_IMAGE_EXPORT;
                 vcardType |= VCardConfig.FLAG_REFRAIN_PHONE_NUMBER_FORMATTING;
 
                 composer = new VCardComposer(mContext, vcardType, true);
