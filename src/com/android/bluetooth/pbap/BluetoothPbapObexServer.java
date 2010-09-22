@@ -148,6 +148,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     private int mOrderBy  = ORDER_BY_INDEXED;
 
+    private static int CALLLOG_NUM_LIMIT = 50;
+
     public static int ORDER_BY_INDEXED = 0;
 
     public static int ORDER_BY_ALPHABETICAL = 1;
@@ -901,6 +903,13 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         if (startPoint < 0 || startPoint >= pbSize) {
             Log.w(TAG, "listStartOffset is not correct! " + startPoint);
             return ResponseCodes.OBEX_HTTP_OK;
+        }
+
+        // Limit the number of call log to CALLLOG_NUM_LIMIT
+        if (appParamValue.needTag != BluetoothPbapObexServer.ContentType.PHONEBOOK) {
+            if (requestSize > CALLLOG_NUM_LIMIT) {
+               requestSize = CALLLOG_NUM_LIMIT;
+            }
         }
 
         int endPoint = startPoint + requestSize - 1;
