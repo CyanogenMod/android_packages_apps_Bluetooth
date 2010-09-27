@@ -96,7 +96,7 @@
     <string name="status_unknown_error" msgid="7441602228720350817">"Erro desconhecido"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth recebido"</string>
     <string name="download_success" msgid="7036160438766730871">"Recepção completa de <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>
-    <string name="upload_success" msgid="4014469387779648949">"Envio de <xliff:g id="FILE_SIZE">%1$s</xliff:g> concluído "</string>
+    <string name="upload_success" msgid="4014469387779648949">"Envio de <xliff:g id="FILE_SIZE">%1$s</xliff:g> concluído"</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Transferências de entrada"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Transferências de saída"</string>
     <string name="no_transfers" msgid="3482965619151865672">"O histórico de transferências está vazio."</string>
