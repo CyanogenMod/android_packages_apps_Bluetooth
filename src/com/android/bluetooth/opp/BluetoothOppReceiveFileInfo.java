@@ -244,6 +244,11 @@ public class BluetoothOppReceiveFileInfo {
             // Prevent abuse of path backslashes by converting all backlashes '\\' chars
             // to UNIX-style forward-slashes '/'
             hint = hint.replace('\\', '/');
+            // Convert all whitespace characters to spaces.
+            hint = hint.replaceAll("\\s", " ");
+            // Replace illegal fat filesystem characters from the
+            // filename hint i.e. :"<>*?| with something safe.
+            hint = hint.replaceAll("[:\"<>*?|]", "_");
             if (V) Log.v(Constants.TAG, "getting filename from hint");
             int index = hint.lastIndexOf('/') + 1;
             if (index > 0) {
