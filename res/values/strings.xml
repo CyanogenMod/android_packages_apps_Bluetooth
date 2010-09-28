@@ -167,8 +167,10 @@
     <string name="bt_toast_5">Sending <xliff:g id="number">%1$s</xliff:g> files to \u0022<xliff:g id="recipient">%2$s</xliff:g>\u0022</string>
     <string name="bt_toast_6">Stopped sending file to \u0022<xliff:g id="recipient">%1$s</xliff:g>\u0022</string>
 
+    <!-- Bluetooth System Messages [CHAR LIMIT=NONE] -->
+    <string name="bt_sm_2_1" product="nosdcard">There is not enough space on the shared storage to save the file from \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022</string>
     <!-- Bluetooth System Messages -->
-    <string name="bt_sm_2_1">There is not enough space on the SD card to save the file from \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022</string>
+    <string name="bt_sm_2_1" product="default">There is not enough space on the SD card to save the file from \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022</string>
     <string name="bt_sm_2_2">Space needed: <xliff:g id="size">%1$s</xliff:g></string>
 
     <string name="ErrorTooManyRequests">Too many requests are being processed. Try again later.</string>
@@ -181,7 +183,9 @@
     <string name="status_forbidden">This transfer is forbidden by the target device</string>
     <string name="status_canceled">This transfer was canceled by the user</string>
     <string name="status_file_error">Storage issue</string>
-    <string name="status_no_sd_card">No SD card. Insert an SD card to save transferred files.</string>
+    <!-- Shown when shared storage cannot be found.  [CHAR LIMIT=NONE] -->
+    <string name="status_no_sd_card" product="nosdcard">No shared storage. Mount shared storage to save transferred files.</string>
+    <string name="status_no_sd_card" product="default">No SD card. Insert an SD card to save transferred files.</string>
     <string name="status_connection_error">Connection failure</string>
     <string name="status_protocol_error">The request can not be handled correctly</string>
     <string name="status_unknown_error">Unknown error</string>
