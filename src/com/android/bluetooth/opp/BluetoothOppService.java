@@ -40,6 +40,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.ContentUris;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -159,7 +160,12 @@ public class BluetoothOppService extends Service {
         mNotifier.mNotificationMgr.cancelAll();
         mNotifier.updateNotification();
 
-        trimDatabase();
+        final ContentResolver contentResolver = getContentResolver();
+        new Thread("trimDatabase") {
+            public void run() {
+                trimDatabase(contentResolver);
+            }
+        }.start();
 
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(mBluetoothReceiver, filter);
@@ -864,7 +870,8 @@ public class BluetoothOppService extends Service {
                 && info.mDirection == BluetoothShare.DIRECTION_INBOUND && !info.mMediaScanned;
     }
 
-    private void trimDatabase() {
+    // Run in a background thread at boot.
+    private static void trimDatabase(ContentResolver contentResolver) {
         final String INVISIBLE = BluetoothShare.VISIBILITY + "=" +
                 BluetoothShare.VISIBILITY_HIDDEN;
 
@@ -872,7 +879,7 @@ public class BluetoothOppService extends Service {
         final String WHERE_INVISIBLE_COMPLETE_OUTBOUND = BluetoothShare.DIRECTION + "="
                 + BluetoothShare.DIRECTION_OUTBOUND + " AND " + BluetoothShare.STATUS + ">="
                 + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
-        int delNum = getContentResolver().delete(BluetoothShare.CONTENT_URI,
+        int delNum = contentResolver.delete(BluetoothShare.CONTENT_URI,
                 WHERE_INVISIBLE_COMPLETE_OUTBOUND, null);
         if (V) Log.v(TAG, "Deleted complete outbound shares, number =  " + delNum);
 
@@ -880,7 +887,7 @@ public class BluetoothOppService extends Service {
         final String WHERE_INVISIBLE_COMPLETE_INBOUND_FAILED = BluetoothShare.DIRECTION + "="
                 + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + ">"
                 + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
-        delNum = getContentResolver().delete(BluetoothShare.CONTENT_URI,
+        delNum = contentResolver.delete(BluetoothShare.CONTENT_URI,
                 WHERE_INVISIBLE_COMPLETE_INBOUND_FAILED, null);
         if (V) Log.v(TAG, "Deleted complete inbound failed shares, number = " + delNum);
 
@@ -889,7 +896,7 @@ public class BluetoothOppService extends Service {
         final String WHERE_INBOUND_SUCCESS = BluetoothShare.DIRECTION + "="
                 + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + "="
                 + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
-        Cursor cursor = getContentResolver().query(BluetoothShare.CONTENT_URI, new String[] {
+        Cursor cursor = contentResolver.query(BluetoothShare.CONTENT_URI, new String[] {
             BluetoothShare._ID
         }, WHERE_INBOUND_SUCCESS, null, BluetoothShare._ID); // sort by id
 
@@ -904,7 +911,7 @@ public class BluetoothOppService extends Service {
             if (cursor.moveToPosition(numToDelete)) {
                 int columnId = cursor.getColumnIndexOrThrow(BluetoothShare._ID);
                 long id = cursor.getLong(columnId);
-                delNum = getContentResolver().delete(BluetoothShare.CONTENT_URI,
+                delNum = contentResolver.delete(BluetoothShare.CONTENT_URI,
                         BluetoothShare._ID + " < " + id, null);
                 if (V) Log.v(TAG, "Deleted old inbound success share: " + delNum);
             }
