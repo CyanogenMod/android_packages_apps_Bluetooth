@@ -80,7 +80,8 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"Dosya \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" hedefine gönderiliyor"</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"<xliff:g id="NUMBER">%1$s</xliff:g> dosya \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\" hedefine gönderiliyor"</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"\"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" hedefine dosya gönderme işlemi durduruldu"</string>
-    <string name="bt_sm_2_1" msgid="2801238507525833799">"SD kartta \"<xliff:g id="SENDER">%1$s</xliff:g>\" kaynağından gelen dosyayı kaydedecek kadar alan yok"</string>
+    <!-- outdated translation 2801238507525833799 -->     <string name="bt_sm_2_1" product="nosdcard" msgid="2780938917139242180">"SD kartta \"<xliff:g id="SENDER">%1$s</xliff:g>\" kaynağından gelen dosyayı kaydedecek kadar alan yok"</string>
+    <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">"SD kartta \"<xliff:g id="SENDER">%1$s</xliff:g>\" kaynağından gelen dosyayı kaydedecek kadar alan yok"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Gereken alan: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Çok fazla sayıda istek işleniyor. Daha sonra yeniden deneyin."</string>
     <string name="status_pending" msgid="7446884326084324082">"Dosya aktarımı henüz başlatılmadı"</string>
@@ -90,7 +91,8 @@
     <string name="status_forbidden" msgid="8499236547788725258">"Bu aktarım hedef cihaz tarafından yasaklandı"</string>
     <string name="status_canceled" msgid="5514756906439790976">"Bu aktarım kullanıcı tarafından iptal edildi"</string>
     <string name="status_file_error" msgid="6125632529575521755">"Depolama sorunu"</string>
-    <string name="status_no_sd_card" msgid="5760944071743325592">"SD kart yok. Aktarılan dosyaları kaydetmek için lütfen bir SD kart takın."</string>
+    <!-- outdated translation 5760944071743325592 -->     <string name="status_no_sd_card" product="nosdcard" msgid="936235132494805940">"SD kart yok. Aktarılan dosyaları kaydetmek için lütfen bir SD kart takın."</string>
+    <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"SD kart yok. Aktarılan dosyaları kaydetmek için lütfen bir SD kart takın."</string>
     <string name="status_connection_error" msgid="7695388111375688873">"Bağlantı hatası"</string>
     <string name="status_protocol_error" msgid="8898902951085043597">"İstek düzgün bir şekilde işlenemiyor"</string>
     <string name="status_unknown_error" msgid="7441602228720350817">"Bilinmeyen hata"</string>
