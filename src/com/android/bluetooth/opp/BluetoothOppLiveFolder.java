@@ -56,7 +56,8 @@ public class BluetoothOppLiveFolder extends Activity {
 
         if (LiveFolders.ACTION_CREATE_LIVE_FOLDER.equals(action)) {
             setResult(RESULT_OK, createLiveFolder(this, CONTENT_URI, this
-                    .getString(R.string.btopp_live_folder), R.drawable.bt_share));
+                    .getString(R.string.btopp_live_folder),
+                    R.drawable.ic_launcher_folder_bluetooth));
         } else {
             setResult(RESULT_CANCELED);
         }
