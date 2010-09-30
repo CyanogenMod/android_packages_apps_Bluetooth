@@ -432,6 +432,10 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                         }
                     }
 
+                    final int onePercent = Math.max((int)(fileInfo.mLength / 100), 1);
+                    int percentPosition = 0;
+                    updateValues = new ContentValues();
+
                     while (!mInterrupted && okToProceed && (position != fileInfo.mLength)) {
                         {
                             if (V) timestamp = System.currentTimeMillis();
@@ -448,15 +452,21 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                                 okToProceed = false;
                             } else {
                                 position += readLength;
+                                percentPosition += readLength;
                                 if (V) {
                                     Log.v(TAG, "Sending file position = " + position
                                             + " readLength " + readLength + " bytes took "
                                             + (System.currentTimeMillis() - timestamp) + " ms");
                                 }
-                                updateValues = new ContentValues();
-                                updateValues.put(BluetoothShare.CURRENT_BYTES, position);
-                                mContext1.getContentResolver().update(contentUri, updateValues,
-                                        null, null);
+
+                                // Limit the number of update() calls to once per percent as it is
+                                // expensive.
+                                if (percentPosition >= onePercent) {
+                                    updateValues.put(BluetoothShare.CURRENT_BYTES, position);
+                                    mContext1.getContentResolver().update(contentUri, updateValues,
+                                            null, null);
+                                    percentPosition = percentPosition % onePercent;
+                                }
                             }
                         }
                     }
