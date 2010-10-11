@@ -42,6 +42,7 @@ import android.provider.ContactsContract.CommonDataKinds;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.ContactsContract.PhoneLookup;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -211,9 +212,11 @@ public class BluetoothPbapVcardManager {
         Cursor contactCursor = null;
         try {
             if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_INDEXED) {
+                if (V) Log.v(TAG, "getPhonebookNameList, order by index");
                 contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
                         null, Contacts._ID);
             } else if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL) {
+                if (V) Log.v(TAG, "getPhonebookNameList, order by alpha");
                 contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
                         null, Contacts.DISPLAY_NAME);
             }
@@ -235,31 +238,35 @@ public class BluetoothPbapVcardManager {
         return nameList;
     }
 
-    public final ArrayList<String> getPhonebookNumberList() {
-        ArrayList<String> numberList = new ArrayList<String>();
-        numberList.add(BluetoothPbapService.getLocalPhoneNum());
+    public final ArrayList<String> getContactNamesByNumber(final String phoneNumber) {
+        ArrayList<String> nameList = new ArrayList<String>();
 
-        final Uri myUri = Phone.CONTENT_URI;
-        Cursor phoneCursor = null;
+        Cursor contactCursor = null;
+        final Uri uri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI,
+                Uri.encode(phoneNumber));
+
         try {
-            phoneCursor = mResolver.query(myUri, PHONES_PROJECTION, CLAUSE_ONLY_VISIBLE, null,
-                    SORT_ORDER_PHONE_NUMBER);
-            if (phoneCursor != null) {
-                for (phoneCursor.moveToFirst(); !phoneCursor.isAfterLast(); phoneCursor
+            contactCursor = mResolver.query(uri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
+                        null, Contacts._ID);
+
+            if (contactCursor != null) {
+                for (contactCursor.moveToFirst(); !contactCursor.isAfterLast(); contactCursor
                         .moveToNext()) {
-                    String number = phoneCursor.getString(PHONE_NUMBER_COLUMN_INDEX);
-                    if (TextUtils.isEmpty(number)) {
-                        number = mContext.getString(R.string.defaultnumber);
+                    String name = contactCursor.getString(CONTACTS_NAME_COLUMN_INDEX);
+                    long id = contactCursor.getLong(CONTACTS_ID_COLUMN_INDEX);
+                    if (TextUtils.isEmpty(name)) {
+                        name = mContext.getString(android.R.string.unknownName);
                     }
-                    numberList.add(number);
+                    if (V) Log.v(TAG, "got name " + name + " by number " + phoneNumber + " @" + id);
+                    nameList.add(name);
                 }
             }
         } finally {
-            if (phoneCursor != null) {
-                phoneCursor.close();
+            if (contactCursor != null) {
+                contactCursor.close();
             }
         }
-        return numberList;
+        return nameList;
     }
 
     public final int composeAndSendCallLogVcards(final int type, Operation op,

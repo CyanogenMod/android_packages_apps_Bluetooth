@@ -490,7 +490,15 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                     i += 1; // length field in triplet
                     // length of search value is variable
                     int length = appParam[i];
-                    appParamValue.searchValue = new String(appParam, i + 1, length);
+                    if (length == 0) {
+                        parseOk = false;
+                        break;
+                    }
+                    if (appParam[i+length] == 0x0) {
+                        appParamValue.searchValue = new String(appParam, i + 1, length-1);
+                    } else {
+                        appParamValue.searchValue = new String(appParam, i + 1, length);
+                    }
                     i += length;
                     i += 1;
                     break;
@@ -549,13 +557,11 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         // Phonebook listing request
         if (type == ContentType.PHONEBOOK) {
             if (searchAttr.equals("0")) { // search by name
-                ArrayList<String> nameList = mVcardManager.getPhonebookNameList(mOrderBy );
                 itemsFound = createList(maxListCount, listStartOffset, searchValue, result,
-                        nameList, "name");
+                        "name");
             } else if (searchAttr.equals("1")) { // search by number
-                ArrayList<String> numberList = mVcardManager.getPhonebookNumberList();
                 itemsFound = createList(maxListCount, listStartOffset, searchValue, result,
-                        numberList, "number");
+                        "number");
             }// end of search by number
             else {
                 return ResponseCodes.OBEX_HTTP_PRECON_FAILED;
@@ -587,20 +593,49 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     private int createList(final int maxListCount, final int listStartOffset,
-            final String searchValue, StringBuilder result,
-            ArrayList<String> dataList, String type) {
+            final String searchValue, StringBuilder result, String type) {
         int itemsFound = 0;
-        int requestSize = dataList.size() >= maxListCount ? maxListCount : dataList.size();
+        ArrayList<String> nameList = mVcardManager.getPhonebookNameList(mOrderBy);
+        final int requestSize = nameList.size() >= maxListCount ? maxListCount : nameList.size();
+        final int listSize = nameList.size();
+        String compareValue = "", currentValue;
 
-        if (D) Log.d(TAG, "search by " + type + ", size=" + requestSize + " offset="
+        if (D) Log.d(TAG, "search by " + type + ", requestSize=" + requestSize + " offset="
                     + listStartOffset + " searchValue=" + searchValue);
 
-        for (int pos = listStartOffset; pos < dataList.size() && itemsFound < requestSize; pos++) {
-            String currentValue = dataList.get(pos);
-            if (searchValue == null || currentValue.startsWith(searchValue.trim())) {
-                itemsFound++;
-                result.append("<card handle=\"" + pos + ".vcf\" " + type + "=\""
-                        + currentValue + "\"" + "/>");
+        if (type.equals("number")) {
+            // query the number, to get the names
+            ArrayList<String> names = mVcardManager.getContactNamesByNumber(searchValue);
+            for (int i = 0; i < names.size(); i++) {
+                compareValue = names.get(i).trim();
+                if (D) Log.d(TAG, "compareValue=" + compareValue);
+                for (int pos = listStartOffset; pos < listSize &&
+                        itemsFound < requestSize; pos++) {
+                    currentValue = nameList.get(pos);
+                    if (D) Log.d(TAG, "currentValue=" + currentValue);
+                    if (currentValue.startsWith(compareValue)) {
+                        itemsFound++;
+                        result.append("<card handle=\"" + pos + ".vcf\" name=\""
+                                + currentValue + "\"" + "/>");
+                    }
+                }
+                if (itemsFound >= requestSize) {
+                    break;
+                }
+            }
+        } else {
+            if (searchValue != null) {
+                compareValue = searchValue.trim();
+            }
+            for (int pos = listStartOffset; pos < listSize &&
+                    itemsFound < requestSize; pos++) {
+                currentValue = nameList.get(pos);
+                if (D) Log.d(TAG, "currentValue=" + currentValue);
+                if (searchValue == null || currentValue.startsWith(compareValue)) {
+                    itemsFound++;
+                    result.append("<card handle=\"" + pos + ".vcf\" name=\""
+                            + currentValue + "\"" + "/>");
+                }
             }
         }
         return itemsFound;
@@ -791,7 +826,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         String orderPara = appParamValue.order.trim();
         if (TextUtils.isEmpty(orderPara)) {
             // If order parameter is not set by PCE, set default value per spec.
-            appParamValue.order = "0";
+            orderPara = "0";
             if (D) Log.d(TAG, "Order parameter is not set by PCE. " +
                        "Assume order by 'Indexed' by default");
         } else if (!orderPara.equals("0") && !orderPara.equals("1")) {
