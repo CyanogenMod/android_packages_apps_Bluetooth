@@ -286,14 +286,14 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         if (V) Log.v(TAG, "mLocalShareInfoId = " + mLocalShareInfoId);
 
         if (V) Log.v(TAG, "acquire partial WakeLock");
-        if (mWakeLock.isHeld()) {
-            mPartialWakeLock.acquire();
-            mWakeLock.release();
-        }
 
-        mServerBlocking = true;
 
         synchronized (this) {
+            if (mWakeLock.isHeld()) {
+                mPartialWakeLock.acquire();
+                mWakeLock.release();
+            }
+            mServerBlocking = true;
             try {
 
                 while (mServerBlocking) {
@@ -538,15 +538,20 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         resp.responseCode = ResponseCodes.OBEX_HTTP_OK;
     }
 
-    @Override
-    public void onClose() {
-        if (V) Log.v(TAG, "release WakeLock");
+    private synchronized void releaseWakeLocks() {
         if (mWakeLock.isHeld()) {
             mWakeLock.release();
         }
         if (mPartialWakeLock.isHeld()) {
             mPartialWakeLock.release();
         }
+    }
+
+    @Override
+    public void onClose() {
+        if (V) Log.v(TAG, "release WakeLock");
+        releaseWakeLocks();
+
         /* onClose could happen even before start() where mCallback is set */
         if (mCallback != null) {
             Message msg = Message.obtain(mCallback);
