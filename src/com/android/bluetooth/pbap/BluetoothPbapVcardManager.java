@@ -444,7 +444,7 @@ public class BluetoothPbapVcardManager {
 
                 composer = new VCardComposer(mContext, vcardType, true);
                 composer.addHandler(new HandlerForStringBuffer(op, ownerVCard));
-                if (!composer.init(Contacts.CONTENT_URI, selection, null, null)) {
+                if (!composer.init(Contacts.CONTENT_URI, selection, null, Contacts._ID)) {
                     return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
                 }
 
@@ -470,7 +470,8 @@ public class BluetoothPbapVcardManager {
             try {
                 composer = new BluetoothPbapCallLogComposer(mContext, true);
                 composer.addHandler(new HandlerForStringBuffer(op, ownerVCard));
-                if (!composer.init(CallLog.Calls.CONTENT_URI, selection, null, null)) {
+                if (!composer.init(CallLog.Calls.CONTENT_URI, selection, null,
+                                   CALLLOG_SORT_ORDER)) {
                     return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
                 }
 
