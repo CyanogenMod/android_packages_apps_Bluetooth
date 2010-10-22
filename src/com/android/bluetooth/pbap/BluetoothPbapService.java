@@ -32,32 +32,32 @@
 
 package com.android.bluetooth.pbap;
 
-import com.android.bluetooth.R;
-
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
-import android.content.Intent;
-import android.content.res.Resources;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothPbap;
-import android.bluetooth.BluetoothSocket;
 import android.bluetooth.BluetoothServerSocket;
+import android.bluetooth.BluetoothSocket;
+import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothPbap;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
-import android.provider.ContactsContract.RawContacts;
+import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.android.bluetooth.R;
+
 import java.io.IOException;
-import java.util.ArrayList;
 
 import javax.obex.ServerSession;
 
@@ -194,8 +194,15 @@ public class BluetoothPbapService extends Service {
 
     private int mStartId = -1;
 
+    private IBluetooth mBluetoothService;
+
     public BluetoothPbapService() {
         mState = BluetoothPbap.STATE_DISCONNECTED;
+        IBinder b = ServiceManager.getService(BluetoothAdapter.BLUETOOTH_SERVICE);
+        if (b == null) {
+            throw new RuntimeException("Bluetooth service not available");
+        }
+        mBluetoothService = IBluetooth.Stub.asInterface(b);
     }
 
     @Override
@@ -619,6 +626,11 @@ public class BluetoothPbapService extends Service {
             intent.putExtra(BluetoothPbap.PBAP_STATE, mState);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
             sendBroadcast(intent, BLUETOOTH_PERM);
+            try {
+                mBluetoothService.sendConnectionStateChange(mRemoteDevice, mState, state);
+            } catch (RemoteException e) {
+                Log.e(TAG, "RemoteException in sendConnectionStateChange");
+            }
         }
     }
 
