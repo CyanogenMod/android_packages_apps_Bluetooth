@@ -80,7 +80,7 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"Odesílání souboru uživateli <xliff:g id="RECIPIENT">%1$s</xliff:g>"</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Odesílání souborů (počet: <xliff:g id="NUMBER">%1$s</xliff:g>) uživateli <xliff:g id="RECIPIENT">%2$s</xliff:g>"</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Odesílání souboru uživateli <xliff:g id="RECIPIENT">%1$s</xliff:g> bylo zastaveno"</string>
-    <string name="bt_sm_2_1" product="nosdcard" msgid="2780938917139242180">"Pro uložení souboru od odesílatele <xliff:g id="SENDER">%1$s</xliff:g> není ve sdíleném úložišti dost místa."</string>
+    <!-- outdated translation 2780938917139242180 -->     <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"Pro uložení souboru od odesílatele <xliff:g id="SENDER">%1$s</xliff:g> není ve sdíleném úložišti dost místa."</string>
     <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">"Na kartě SD není dost místa pro uložení souboru od uživatele <xliff:g id="SENDER">%1$s</xliff:g>"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Požadované místo v paměti: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Je zpracováváno příliš mnoho požadavků. Opakujte akci později."</string>
@@ -91,7 +91,7 @@
     <string name="status_forbidden" msgid="8499236547788725258">"Tento přenos byl cílovým zařízením zakázán"</string>
     <string name="status_canceled" msgid="5514756906439790976">"Tento přenos byl uživatelem zrušen"</string>
     <string name="status_file_error" msgid="6125632529575521755">"Problém s úložištěm"</string>
-    <string name="status_no_sd_card" product="nosdcard" msgid="936235132494805940">"Sdílené úložiště není k dispozici. Chcete-li přenesené soubory uložit, připojte sdílené úložiště."</string>
+    <!-- outdated translation 936235132494805940 -->     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Sdílené úložiště není k dispozici. Chcete-li přenesené soubory uložit, připojte sdílené úložiště."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Žádná karta SD není dostupná. Chcete-li přenášené soubory uložit, vložte kartu SD."</string>
     <string name="status_connection_error" msgid="7695388111375688873">"Selhání připojení"</string>
     <string name="status_protocol_error" msgid="8898902951085043597">"Požadavek není možné správně zpracovat"</string>

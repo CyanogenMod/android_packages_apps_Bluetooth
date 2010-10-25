@@ -80,7 +80,7 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"Skickar fil till <xliff:g id="RECIPIENT">%1$s</xliff:g>"</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Skickar <xliff:g id="NUMBER">%1$s</xliff:g> filer till <xliff:g id="RECIPIENT">%2$s</xliff:g>"</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Filöverföringen till <xliff:g id="RECIPIENT">%1$s</xliff:g> har avbrutits"</string>
-    <string name="bt_sm_2_1" product="nosdcard" msgid="2780938917139242180">"Det finns för lite utrymme i delad lagring för att spara filen från <xliff:g id="SENDER">%1$s</xliff:g>"</string>
+    <!-- outdated translation 2780938917139242180 -->     <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"Det finns för lite utrymme på den delade lagringsenheten för att spara filen från <xliff:g id="SENDER">%1$s</xliff:g>"</string>
     <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">"Det finns för lite utrymme på SD-kortet för att spara filen från <xliff:g id="SENDER">%1$s</xliff:g>"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Utrymmesbehov: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"För många begäranden bearbetas. Försök igen senare."</string>
@@ -91,7 +91,7 @@
     <string name="status_forbidden" msgid="8499236547788725258">"Målenheten tillåter inte filöverföringen"</string>
     <string name="status_canceled" msgid="5514756906439790976">"Överföringen har avbrutits av användaren"</string>
     <string name="status_file_error" msgid="6125632529575521755">"Lagringsproblem"</string>
-    <string name="status_no_sd_card" product="nosdcard" msgid="936235132494805940">"Ingen delad lagring. Sätt in enhet för delad lagring så överförs filer."</string>
+    <!-- outdated translation 936235132494805940 -->     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Det finns ingen delad lagringsenhet. Sätt i en enhet om du vill spara överförda filer."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Det finns inget SD-kort. Sätt i ett SD-kort om du vill spara överförda filer."</string>
     <string name="status_connection_error" msgid="7695388111375688873">"Anslutningsfel"</string>
     <string name="status_protocol_error" msgid="8898902951085043597">"Begäran kan inte hanteras korrekt"</string>

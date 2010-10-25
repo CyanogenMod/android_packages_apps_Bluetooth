@@ -80,7 +80,7 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"正在向“<xliff:g id="RECIPIENT">%1$s</xliff:g>”发送文件"</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"正在将 <xliff:g id="NUMBER">%1$s</xliff:g> 个文件发送给“<xliff:g id="RECIPIENT">%2$s</xliff:g>”"</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"已停止向“<xliff:g id="RECIPIENT">%1$s</xliff:g>”发送文件"</string>
-    <string name="bt_sm_2_1" product="nosdcard" msgid="2780938917139242180">"共享存储设备空间不足，无法保存来自“<xliff:g id="SENDER">%1$s</xliff:g>”的文件"</string>
+    <!-- outdated translation 2780938917139242180 -->     <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"共享存储设备空间不足，无法保存来自“<xliff:g id="SENDER">%1$s</xliff:g>”的文件"</string>
     <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">"SD 卡存储空间不足，无法保存来自“<xliff:g id="SENDER">%1$s</xliff:g>”的文件"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"所需空间：<xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"正在处理的请求太多。请稍后重试。"</string>
@@ -91,7 +91,7 @@
     <string name="status_forbidden" msgid="8499236547788725258">"目标设备禁止该传输"</string>
     <string name="status_canceled" msgid="5514756906439790976">"用户已取消该传输"</string>
     <string name="status_file_error" msgid="6125632529575521755">"存储问题"</string>
-    <string name="status_no_sd_card" product="nosdcard" msgid="936235132494805940">"没有共享存储设备。请装载共享存储设备，以便保存传输文件。"</string>
+    <!-- outdated translation 936235132494805940 -->     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"没有共享的存储设备。请装载共享存储设备，以便保存传输文件。"</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"无 SD 卡。请插入 SD 卡保存传输的文件。"</string>
     <string name="status_connection_error" msgid="7695388111375688873">"连接失败"</string>
     <string name="status_protocol_error" msgid="8898902951085043597">"无法正确处理请求"</string>
