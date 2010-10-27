@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  Copyright (C) 2007 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+ -->
+
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- no translation found for permlab_bluetoothShareManager (311492132450338925) -->
+    <skip />
+    <!-- no translation found for permdesc_bluetoothShareManager (8739116224907566462) -->
+    <skip />
+    <!-- no translation found for bt_share_picker_label (6268100924487046932) -->
+    <skip />
+    <!-- no translation found for unknown_device (9221903979877041009) -->
+    <skip />
+    <!-- no translation found for unknownNumber (4994750948072751566) -->
+    <skip />
+    <!-- no translation found for airplane_error_title (2683839635115739939) -->
+    <skip />
+    <!-- no translation found for airplane_error_msg (8031842956782631624) -->
+    <skip />
+    <!-- no translation found for bt_enable_title (2371250311764527124) -->
+    <skip />
+    <!-- no translation found for bt_enable_line1 (7203551583048149) -->
+    <skip />
+    <!-- no translation found for bt_enable_line2 (4341936569415937994) -->
+    <skip />
+    <!-- no translation found for bt_enable_cancel (1988832367505151727) -->
+    <skip />
+    <!-- no translation found for bt_enable_ok (3432462749994538265) -->
+    <skip />
+    <!-- no translation found for incoming_file_confirm_title (8139874248612182627) -->
+    <skip />
+    <!-- no translation found for incoming_file_confirm_content (6673812334377911289) -->
+    <skip />
+    <!-- no translation found for incoming_file_confirm_cancel (2973321832477704805) -->
+    <skip />
+    <!-- no translation found for incoming_file_confirm_ok (281462442932231475) -->
+    <skip />
+    <!-- no translation found for incoming_file_confirm_timeout_ok (860272542827665475) -->
+    <skip />
+    <!-- no translation found for incoming_file_confirm_timeout_content (172779756093975981) -->
+    <skip />
+    <!-- no translation found for incoming_file_confirm_Notification_title (2958227698135117210) -->
+    <skip />
+    <!-- no translation found for incoming_file_confirm_Notification_caption (85804056450169291) -->
+    <skip />
+    <!-- no translation found for incoming_file_toast_msg (5763638110029586276) -->
+    <skip />
+    <!-- no translation found for notification_receiving (4674648179652543984) -->
+    <skip />
+    <!-- no translation found for notification_received (3324588019186687985) -->
+    <skip />
+    <!-- no translation found for notification_received_fail (3619350997285714746) -->
+    <skip />
+    <!-- no translation found for notification_sending (3035748958534983833) -->
+    <skip />
+    <!-- no translation found for notification_sent (9218710861333027778) -->
+    <skip />
+    <!-- no translation found for notification_sent_complete (302943281067557969) -->
+    <skip />
+    <!-- no translation found for notification_sent_fail (6696082233774569445) -->
+    <skip />
+    <!-- no translation found for download_title (3353228219772092586) -->
+    <skip />
+    <!-- no translation found for download_line1 (4926604799202134144) -->
+    <skip />
+    <!-- no translation found for download_line2 (5876973543019417712) -->
+    <skip />
+    <!-- no translation found for download_line3 (4384821622908676061) -->
+    <skip />
+    <string name="download_line4" msgid="8535996869722666525"></string>
+    <!-- no translation found for download_line5 (3069560415845295386) -->
+    <skip />
+    <!-- no translation found for download_cancel (9177305996747500768) -->
+    <skip />
+    <!-- no translation found for download_ok (5000360731674466039) -->
+    <skip />
+    <!-- no translation found for download_fail_line1 (3846450148862894552) -->
+    <skip />
+    <!-- no translation found for download_fail_line2 (8950394574689971071) -->
+    <skip />
+    <!-- no translation found for download_fail_line3 (5611058289180135888) -->
+    <skip />
+    <!-- no translation found for download_fail_ok (1521733664438320300) -->
+    <skip />
+    <!-- no translation found for download_succ_line5 (4509944688281573595) -->
+    <skip />
+    <!-- no translation found for download_succ_ok (7053688246357050216) -->
+    <skip />
+    <!-- no translation found for upload_line1 (2055952074059709052) -->
+    <skip />
+    <!-- no translation found for upload_line3 (5866755479845641607) -->
+    <skip />
+    <!-- no translation found for upload_line5 (7759322537674229752) -->
+    <skip />
+    <!-- no translation found for upload_succ_line5 (5687317197463383601) -->
+    <skip />
+    <!-- no translation found for upload_succ_ok (7705428476405478828) -->
+    <skip />
+    <!-- no translation found for upload_fail_line1 (229249873880944683) -->
+    <skip />
+    <!-- no translation found for upload_fail_line1_2 (2108129204050841798) -->
+    <skip />
+    <!-- no translation found for upload_fail_ok (5807702461606714296) -->
+    <skip />
+    <!-- no translation found for upload_fail_cancel (9118496285835687125) -->
+    <skip />
+    <!-- no translation found for bt_error_btn_ok (5965151173011534240) -->
+    <skip />
+    <!-- no translation found for unknown_file (6092727753965095366) -->
+    <skip />
+    <!-- no translation found for unknown_file_desc (5845231383612478643) -->
+    <skip />
+    <!-- no translation found for not_exist_file (2245958259960700777) -->
+    <skip />
+    <!-- no translation found for not_exist_file_desc (2392808771821464983) -->
+    <skip />
+    <!-- no translation found for enabling_progress_title (436157952334723406) -->
+    <skip />
+    <!-- no translation found for enabling_progress_content (1291028079299309898) -->
+    <skip />
+    <!-- no translation found for bt_toast_1 (972182708034353383) -->
+    <skip />
+    <!-- no translation found for bt_toast_2 (6357386241778417651) -->
+    <skip />
+    <!-- no translation found for bt_toast_3 (6707884165086862518) -->
+    <skip />
+    <!-- no translation found for bt_toast_4 (4678812947604395649) -->
+    <skip />
+    <!-- no translation found for bt_toast_5 (2846870992823019494) -->
+    <skip />
+    <!-- no translation found for bt_toast_6 (1855266596936622458) -->
+    <skip />
+    <!-- no translation found for bt_sm_2_1 (8445781725395414465) -->
+    <skip />
+    <!-- no translation found for bt_sm_2_1 (2801238507525833799) -->
+    <skip />
+    <!-- no translation found for bt_sm_2_2 (2965243265852680543) -->
+    <skip />
+    <!-- no translation found for ErrorTooManyRequests (8578277541472944529) -->
+    <skip />
+    <!-- no translation found for status_pending (7446884326084324082) -->
+    <skip />
+    <!-- no translation found for status_running (2695810336448055064) -->
+    <skip />
+    <!-- no translation found for status_success (2268261336330060663) -->
+    <skip />
+    <!-- no translation found for status_not_accept (149046562468006301) -->
+    <skip />
+    <!-- no translation found for status_forbidden (8499236547788725258) -->
+    <skip />
+    <!-- no translation found for status_canceled (5514756906439790976) -->
+    <skip />
+    <!-- no translation found for status_file_error (6125632529575521755) -->
+    <skip />
+    <!-- no translation found for status_no_sd_card (1112125377088421469) -->
+    <skip />
+    <!-- no translation found for status_no_sd_card (5760944071743325592) -->
+    <skip />
+    <!-- no translation found for status_connection_error (7695388111375688873) -->
+    <skip />
+    <!-- no translation found for status_protocol_error (8898902951085043597) -->
+    <skip />
+    <!-- no translation found for status_unknown_error (7441602228720350817) -->
+    <skip />
+    <!-- no translation found for btopp_live_folder (7967791481444474554) -->
+    <skip />
+    <!-- no translation found for download_success (7036160438766730871) -->
+    <skip />
+    <!-- no translation found for upload_success (4014469387779648949) -->
+    <skip />
+    <!-- no translation found for inbound_history_title (6940914942271327563) -->
+    <skip />
+    <!-- no translation found for outbound_history_title (4279418703178140526) -->
+    <skip />
+    <!-- no translation found for no_transfers (3482965619151865672) -->
+    <skip />
+    <!-- no translation found for transfer_clear_dlg_msg (1712376797268438075) -->
+    <skip />
+    <!-- no translation found for outbound_noti_title (8051906709452260849) -->
+    <skip />
+    <!-- no translation found for inbound_noti_title (4143352641953027595) -->
+    <skip />
+    <!-- no translation found for noti_caption (8510712376046370819) -->
+    <skip />
+    <!-- no translation found for transfer_menu_clear_all (790017462957873132) -->
+    <skip />
+    <!-- no translation found for transfer_menu_open (3368984869083107200) -->
+    <skip />
+    <!-- no translation found for transfer_menu_clear (5854038118831427492) -->
+    <skip />
+    <!-- no translation found for transfer_clear_dlg_title (2953444575556460386) -->
+    <skip />
+</resources>

@@ -80,7 +80,8 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"Invio del file a \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Invio di <xliff:g id="NUMBER">%1$s</xliff:g> file a \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Invio del file a \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" interrotto"</string>
-    <string name="bt_sm_2_1" msgid="2801238507525833799">"Spazio sulla scheda SD insufficiente per salvare il file da \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
+    <!-- outdated translation 2780938917139242180 -->     <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"Spazio dell\'archivio condiviso insufficiente per salvare il file ricevuto da \"<xliff:g id="SENDER">%1$s</xliff:g>\"."</string>
+    <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">"Spazio sulla scheda SD insufficiente per salvare il file da \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Spazio necessario: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Troppe richieste in fase di elaborazione. Riprova più tardi."</string>
     <string name="status_pending" msgid="7446884326084324082">"Trasferimento file non ancora iniziato"</string>
@@ -90,7 +91,8 @@
     <string name="status_forbidden" msgid="8499236547788725258">"Il dispositivo di destinazione non consente questo trasferimento"</string>
     <string name="status_canceled" msgid="5514756906439790976">"Questo trasferimento è stato annullato dall\'utente"</string>
     <string name="status_file_error" msgid="6125632529575521755">"Problema di memorizzazione"</string>
-    <string name="status_no_sd_card" msgid="5760944071743325592">"Nessuna scheda SD. Inserisci una scheda SD per salvare i file trasferiti."</string>
+    <!-- outdated translation 936235132494805940 -->     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Nessun archivio condiviso. Monta l\'archivio condiviso per salvare i file trasferiti."</string>
+    <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Nessuna scheda SD. Inserisci una scheda SD per salvare i file trasferiti."</string>
     <string name="status_connection_error" msgid="7695388111375688873">"Errore di connessione"</string>
     <string name="status_protocol_error" msgid="8898902951085043597">"La richiesta non può essere gestita correttamente"</string>
     <string name="status_unknown_error" msgid="7441602228720350817">"Errore sconosciuto"</string>
