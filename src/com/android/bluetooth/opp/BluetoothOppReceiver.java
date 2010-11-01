@@ -54,7 +54,6 @@ import android.widget.Toast;
  */
 public class BluetoothOppReceiver extends BroadcastReceiver {
     private static final String TAG = "BluetoothOppReceiver";
-    private static final boolean D = Constants.DEBUG;
     private static final boolean V = Constants.VERBOSE;
 
     @Override

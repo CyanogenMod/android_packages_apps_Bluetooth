@@ -100,18 +100,12 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
     private EventHandler mSessionHandler;
 
-    /*
-     * TODO check if we need PowerManager here
-     */
-    private PowerManager mPowerManager;
-
     private long mTimestamp;
 
     public BluetoothOppTransfer(Context context, PowerManager powerManager,
             BluetoothOppBatch batch, BluetoothOppObexSession session) {
 
         mContext = context;
-        mPowerManager = powerManager;
         mBatch = batch;
         mSession = session;
 
