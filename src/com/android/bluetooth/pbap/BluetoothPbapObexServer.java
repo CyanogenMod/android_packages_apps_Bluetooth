@@ -38,7 +38,6 @@ import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.provider.CallLog.Calls;
-import android.provider.ContactsContract.Contacts;
 import android.provider.CallLog;
 
 import java.io.IOException;
@@ -138,8 +137,6 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     // record current path the client are browsing
     private String mCurrentPath = "";
 
-    private long mConnectionId;
-
     private Handler mCallback = null;
 
     private Context mContext;
@@ -168,7 +165,6 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     public BluetoothPbapObexServer(Handler callback, Context context) {
         super();
-        mConnectionId = -1;
         mCallback = callback;
         mContext = context;
         mVcardManager = new BluetoothPbapVcardManager(mContext);
@@ -910,7 +906,6 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         if (D) Log.d(TAG, "pullPhonebook(): requestSize=" + requestSize + " startPoint=" +
                 startPoint + " endPoint=" + endPoint);
 
-        String result = null;
         boolean vcard21 = appParamValue.vcard21;
         if (appParamValue.needTag == BluetoothPbapObexServer.ContentType.PHONEBOOK) {
             if (startPoint == 0) {
