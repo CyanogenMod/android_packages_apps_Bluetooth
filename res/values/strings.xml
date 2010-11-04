@@ -44,7 +44,7 @@
     <!-- string for "the title of airplane mode error" -->
     <string name="airplane_error_title">Airplane mode</string>
     <!-- string for "error message in airplane mode" -->
-    <string name="airplane_error_msg">You can\'t use Bluetooth when the phone is in airplane mode.</string>
+    <string name="airplane_error_msg">You can\'t use Bluetooth in Airplane mode.</string>
 
     <!-- Activate Bluetooth Confirmation Dialog -->
     <!--Title -->
@@ -106,7 +106,7 @@
     <!--Line 3 -->
     <string name="download_line3">File size: <xliff:g id="size">%1$s</xliff:g></string>
     <!--Line 4 -->
-    <string name="download_line4"></string>
+    <string name="download_line4" />
     <string name="download_line5">Receiving file\u2026</string>
     <!-- Label for a cancel button. -->
     <string name="download_cancel">Stop</string>
@@ -179,7 +179,7 @@
     <string name="status_pending">File transfer not started yet</string>
     <string name="status_running">File transfer is ongoing</string>
     <string name="status_success">The file transfer has completed successfully</string>
-    <string name="status_not_accept">The phone can\'t handle this type of content</string>
+    <string name="status_not_accept">Content not supported.</string>
     <string name="status_forbidden">This transfer is forbidden by the target device</string>
     <string name="status_canceled">This transfer was canceled by the user</string>
     <string name="status_file_error">Storage issue</string>
@@ -214,8 +214,8 @@
 
     <!-- Used to run Bluetooth.apk in another process if needed -->
     <!-- Do not translate. android:sharedUserId string of this application. -->
-    <string name="sharedUserId" translate="false"><xliff:g id="x"></xliff:g></string>
+    <string name="sharedUserId" translate="false"><xliff:g id="x" /></string>
     <!-- Do not translate. android:process of this application. -->
-    <string name="process" translate="false"><xliff:g id="x"></xliff:g></string>
+    <string name="process" translate="false"><xliff:g id="x" /></string>
 
 </resources>
