@@ -80,7 +80,7 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"Отправка файла на \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Отправка файлов (<xliff:g id="NUMBER">%1$s</xliff:g>) на \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Отправка файла на \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" остановлена"</string>
-    <!-- outdated translation 2780938917139242180 -->     <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"Недостаточно места на общем накопителе для сохранения файла, полученного от устройства <xliff:g id="SENDER">%1$s</xliff:g>."</string>
+    <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"Недостаточно места на USB-накопителе для сохранения файла, полученного от устройства <xliff:g id="SENDER">%1$s</xliff:g>."</string>
     <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">"Недостаточно места на SD-карте для сохранения файла, полученного от \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Необходимое свободное место: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Обрабатывается слишком много запросов. Повторите попытку позднее."</string>
@@ -91,7 +91,7 @@
     <string name="status_forbidden" msgid="8499236547788725258">"Передача запрещена на принимающем устройстве"</string>
     <string name="status_canceled" msgid="5514756906439790976">"Передача отменена пользователем."</string>
     <string name="status_file_error" msgid="6125632529575521755">"Ошибка хранилища"</string>
-    <!-- outdated translation 936235132494805940 -->     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Нет накопителя. Для сохранения полученных файлов необходимо подключить его."</string>
+    <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"USB-накопитель не найден."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Отсутствует SD-карта. Вставьте SD-карту для сохранения переданных файлов."</string>
     <string name="status_connection_error" msgid="7695388111375688873">"Ошибка подключения"</string>
     <string name="status_protocol_error" msgid="8898902951085043597">"Невозможно правильно обработать запрос."</string>
