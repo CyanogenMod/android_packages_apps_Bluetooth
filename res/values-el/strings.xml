@@ -22,7 +22,7 @@
     <string name="unknown_device" msgid="9221903979877041009">"Άγνωστη συσκευή"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Άγνωστος"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Λειτουργία πτήσης"</string>
-    <string name="airplane_error_msg" msgid="8031842956782631624">"Δεν μπορείτε να χρησιμοποιήσετε το Bluetooth όταν το τηλέφωνο βρίσκεται σε λειτουργία πτήσης."</string>
+    <!-- outdated translation 8031842956782631624 -->     <string name="airplane_error_msg" msgid="8698965595254137230">"Δεν μπορείτε να χρησιμοποιήσετε το Bluetooth όταν το τηλέφωνο βρίσκεται σε λειτουργία πτήσης."</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Για να χρησιμοποιήσετε υπηρεσίες Bluetooth, θα πρέπει πρώτα να ενεργοποιήσετε τη λειτουργία Bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Να γίνει τώρα ενεργοποίηση του Bluetooth;"</string>
@@ -80,18 +80,18 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"Γίνεται αποστολή του αρχείου στον παραλήπτη \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Αποστολή <xliff:g id="NUMBER">%1$s</xliff:g> αρχείων στον παραλήπτη \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Διακόπηκε η αποστολή του αρχείου στον παραλήπτη \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
-    <!-- outdated translation 2780938917139242180 -->     <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"Δεν υπάρχει αρκετός χώρος στον κοινόχρηστο αποθηκευτικό χώρο για την αποθήκευση του αρχείου από τον αποστολέα \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
+    <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"Δεν υπάρχει αρκετός χώρος στον χώρο αποθήκευσης USB για την αποθήκευση του αρχείου από τον αποστολέα \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">"Δεν υπάρχει αρκετός χώρος στην κάρτα SD για την αποθήκευση του αρχείου από τον αποστολέα \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Απαιτούμενος χώρος: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Πραγματοποιείται επεξεργασία πάρα πολλών αιτημάτων. Προσπαθήστε ξανά αργότερα."</string>
     <string name="status_pending" msgid="7446884326084324082">"Δεν έχει ξεκινήσει ακόμα η μεταφορά αρχείου"</string>
     <string name="status_running" msgid="2695810336448055064">"Η μεταφορά του αρχείου βρίσκεται σε εξέλιξη"</string>
     <string name="status_success" msgid="2268261336330060663">"Η μεταφορά του αρχείου ολοκληρώθηκε με επιτυχία"</string>
-    <string name="status_not_accept" msgid="149046562468006301">"Το τηλέφωνο δεν μπορεί να χειριστεί αυτόν τον τύπο περιεχομένου"</string>
+    <!-- outdated translation 149046562468006301 -->     <string name="status_not_accept" msgid="2489805942397459486">"Το τηλέφωνο δεν μπορεί να χειριστεί αυτόν τον τύπο περιεχομένου"</string>
     <string name="status_forbidden" msgid="8499236547788725258">"Δεν επιτρέπεται αυτή η μεταφορά από τη συσκευή προορισμού"</string>
     <string name="status_canceled" msgid="5514756906439790976">"Αυτή η μεταφορά ακυρώθηκε από το χρήστη"</string>
     <string name="status_file_error" msgid="6125632529575521755">"Πρόβλημα χώρου αποθήκευσης"</string>
-    <!-- outdated translation 936235132494805940 -->     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Δεν υπάρχει κοινόχρηστος αποθηκευτικός χώρος. Κάντε προσάρτηση κοινόχρηστου αποθηκευτικού χώρου για την αποθήκευση αρχείων που έχουν μεταφερθεί."</string>
+    <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Δεν υπάρχει χώρος αποθήκευσης USB."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Δεν υπάρχει κάρτα SD card. Εισαγάγετε μια κάρτα SD για να αποθηκεύετε τα μεταφερόμενα αρχεία."</string>
     <string name="status_connection_error" msgid="7695388111375688873">"Αποτυχία σύνδεσης"</string>
     <string name="status_protocol_error" msgid="8898902951085043597">"Δεν μπορεί να γίνει σωστός χειρισμός του αιτήματος"</string>
