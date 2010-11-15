@@ -134,5 +134,24 @@
                 <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>
             </intent-filter>
         </receiver>
+        <activity android:name=".ftp.BluetoothFtpActivity"
+            android:process="@string/process"
+            android:excludeFromRecents="true"
+            android:theme="@*android:style/Theme.Dialog.Alert">
+            <intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <service
+            android:process="@string/process"
+            android:name=".ftp.BluetoothFtpService" >
+        </service>
+        <receiver
+            android:process="@string/process"
+            android:name=".ftp.BluetoothFtpReceiver">
+            <intent-filter>
+                <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
