@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="pbap_acceptance_dialog_title" msgid="4606773169019619760">"%1$s doreşte să acceseze agenda dvs. şi istoricul apelurilor. Permiteţi accesul pentru %2$s?"</string>
+    <string name="pbap_acceptance_dialog_header" msgid="5456473921987026974">"Acces la agenda telefonică"</string>
+    <string name="pbap_session_key_dialog_title" msgid="3580996574333882561">"Introduceţi cheia de sesiune pentru %1$s"</string>
+    <string name="pbap_session_key_dialog_header" msgid="2772472422782758981">"Cheie de sesiune Bluetooth solicitată"</string>
+    <string name="pbap_acceptance_timeout_message" msgid="1107401415099814293">"A expirat timpul pentru acceptarea conexiunii cu %1$s"</string>
+    <string name="pbap_authentication_timeout_message" msgid="4166979525521902687">"A expirat timpul de introducere a cheii de sesiune cu %1$s"</string>
+    <string name="pbap_notif_ticker" msgid="1653350586489072739">"Solicitare de acces la agenda telefonică"</string>
+    <string name="pbap_notif_title" msgid="2967094612841799440">"Solicitare PBAP"</string>
+    <string name="pbap_notif_message" msgid="6046731677513301195">"Permiteţi accesarea agendei telefonice de %1$s"</string>
+    <string name="auth_notif_ticker" msgid="1575825798053163744">"Cerere de autentificare pentru protocolul OBEX"</string>
+    <string name="auth_notif_title" msgid="7599854855681573258">"Cheia sesiunii"</string>
+    <string name="auth_notif_message" msgid="6667218116427605038">"Introduceţi cheia de sesiune pentru %1$s"</string>
+    <string name="alwaysallowed" msgid="1912976993660130849">"Permis întotdeauna?"</string>
+    <string name="defaultname" msgid="4821590500649090078">"Set de maşină"</string>
+    <string name="unknownName" msgid="2841414754740600042">"Nume necunoscut"</string>
+    <string name="localPhoneName" msgid="2349001318925409159">"Numele meu"</string>
+    <string name="defaultnumber" msgid="8520116145890867338">"000000"</string>
+</resources>
