@@ -80,7 +80,8 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"Trametter la datoteca a <xliff:g id="RECIPIENT">%1$s</xliff:g>"</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Trametter <xliff:g id="NUMBER">%1$s</xliff:g> datotecas a <xliff:g id="RECIPIENT">%2$s</xliff:g>"</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Interrut la transmissiun da la datoteca a <xliff:g id="RECIPIENT">%1$s</xliff:g>"</string>
-    <!-- outdated translation 2801238507525833799 -->     <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"La capacitad da memorisar sin la carta SD n\'è betg suffizienta per memorisar la datoteca da <xliff:g id="SENDER">%1$s</xliff:g>"</string>
+    <!-- no translation found for bt_sm_2_1 (8445781725395414465) -->
+    <skip />
     <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">"La capacitad da memorisar sin la carta SD n\'è betg suffizienta per memorisar la datoteca da <xliff:g id="SENDER">%1$s</xliff:g>"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Capacitad da memorisar: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Actualmain vegnan memia bleras dumondas elavuradas. Empruvai pli tard anc ina giada."</string>

@@ -80,7 +80,8 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"Sending file to \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Sending <xliff:g id="NUMBER">%1$s</xliff:g> files to \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Stopped sending file to \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
-    <!-- outdated translation 2801238507525833799 -->     <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"There is not enough space on the SD card to save the file from \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
+    <!-- no translation found for bt_sm_2_1 (8445781725395414465) -->
+    <skip />
     <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">"There is not enough space on the SD card to save the file from \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Space needed: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Too many requests are being processed. Try again later."</string>
