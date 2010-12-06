@@ -126,7 +126,7 @@ public class BluetoothOppPreference {
 
     public void setName(BluetoothDevice remoteDevice, String name) {
         if (V) Log.v(TAG, "Setname for " + remoteDevice + " to " + name);
-        if (!name.equals(getName(remoteDevice))) {
+        if (name != null && !name.equals(getName(remoteDevice))) {
             Editor ed = mNamePreference.edit();
             ed.putString(remoteDevice.getAddress(), name);
             ed.apply();
