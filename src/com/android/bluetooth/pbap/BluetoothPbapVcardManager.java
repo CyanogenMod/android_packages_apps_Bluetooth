@@ -78,15 +78,7 @@ public class BluetoothPbapVcardManager {
             Contacts.DISPLAY_NAME, // 4
     };
 
-    private static final int ID_COLUMN_INDEX = 0;
-
-    private static final int PHONE_TYPE_COLUMN_INDEX = 1;
-
-    private static final int PHONE_LABEL_COLUMN_INDEX = 2;
-
     private static final int PHONE_NUMBER_COLUMN_INDEX = 3;
-
-    private static final int CONTACTS_DISPLAY_NAME_COLUMN_INDEX = 4;
 
     static final String SORT_ORDER_PHONE_NUMBER = CommonDataKinds.Phone.NUMBER + " ASC";
 
@@ -504,7 +496,6 @@ public class BluetoothPbapVcardManager {
      * Handler to emit VCard String to PCE once size grow to maxPacketSize.
      */
     public class HandlerForStringBuffer implements OneEntryHandler {
-        @SuppressWarnings("hiding")
         private Operation operation;
 
         private OutputStream outputStream;

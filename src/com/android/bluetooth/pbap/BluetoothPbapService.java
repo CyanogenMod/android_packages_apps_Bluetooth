@@ -572,7 +572,6 @@ public class BluetoothPbapService extends Service {
         public void handleMessage(Message msg) {
             if (VERBOSE) Log.v(TAG, "Handler(): got msg=" + msg.what);
 
-            CharSequence tmpTxt;
             switch (msg.what) {
                 case START_LISTENER:
                     if (mAdapter.isEnabled()) {

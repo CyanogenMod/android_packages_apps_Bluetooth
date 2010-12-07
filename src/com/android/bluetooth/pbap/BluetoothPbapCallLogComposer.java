@@ -171,8 +171,6 @@ public class BluetoothPbapCallLogComposer {
         }
 
         if (mCareHandlerErrors) {
-            List<OneEntryHandler> finishedList = new ArrayList<OneEntryHandler>(
-                    mHandlerList.size());
             for (OneEntryHandler handler : mHandlerList) {
                 if (!handler.onEntryCreated(vcard)) {
                     return false;
