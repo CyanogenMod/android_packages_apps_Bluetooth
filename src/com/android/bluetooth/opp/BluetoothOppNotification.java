@@ -55,7 +55,6 @@ import java.util.HashMap;
  */
 class BluetoothOppNotification {
     private static final String TAG = "BluetoothOppNotification";
-    private static final boolean D = Constants.DEBUG;
     private static final boolean V = Constants.VERBOSE;
 
     static final String status = "(" + BluetoothShare.STATUS + " == '192'" + ")";

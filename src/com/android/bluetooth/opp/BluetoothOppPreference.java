@@ -46,7 +46,6 @@ import android.util.Log;
  */
 public class BluetoothOppPreference {
     private static final String TAG = "BluetoothOppPreference";
-    private static final boolean D = Constants.DEBUG;
     private static final boolean V = Constants.VERBOSE;
 
     private static BluetoothOppPreference INSTANCE;
