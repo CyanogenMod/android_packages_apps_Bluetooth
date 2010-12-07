@@ -37,9 +37,7 @@ import javax.obex.ObexTransport;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
-import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -263,7 +261,7 @@ public class BluetoothOppService extends Service {
                             } catch (IOException e) {
                                 Log.e(TAG, "close tranport error");
                             }
-                        } else if (Constants.USE_TCP_DEBUG && !Constants.USE_TCP_SIMPLE_SERVER){
+                        } else if (Constants.USE_TCP_DEBUG && !Constants.USE_TCP_SIMPLE_SERVER) {
                             Log.i(TAG, "Start Obex Server in TCP DEBUG mode");
                             createServerSession(transport);
                         } else {

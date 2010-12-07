@@ -55,7 +55,6 @@ import java.util.ArrayList;
  */
 public class BluetoothOppManager {
     private static final String TAG = "BluetoothOppManager";
-    private static final boolean D = Constants.DEBUG;
     private static final boolean V = Constants.VERBOSE;
 
     private static BluetoothOppManager INSTANCE;
