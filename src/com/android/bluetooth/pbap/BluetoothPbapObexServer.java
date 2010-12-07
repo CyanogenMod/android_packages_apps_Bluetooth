@@ -869,7 +869,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         int size = mVcardManager.getPhonebookSize(appParamValue.needTag);
         if (size == 0) {
             if (V) Log.v(TAG, "PhonebookSize is 0, return.");
-            return ResponseCodes.OBEX_HTTP_OK;
+            return ResponseCodes.OBEX_HTTP_NOT_FOUND;
         }
 
         boolean vcard21 = appParamValue.vcard21;
@@ -879,7 +879,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         } else if (appParamValue.needTag == ContentType.PHONEBOOK) {
             if (intIndex < 0 || intIndex >= size) {
                 Log.w(TAG, "The requested vcard is not acceptable! name= " + name);
-                return ResponseCodes.OBEX_HTTP_OK;
+                return ResponseCodes.OBEX_HTTP_NOT_FOUND;
             } else if (intIndex == 0) {
                 // For PB_PATH, 0.vcf is the phone number of this phone.
                 String ownerVcard = mVcardManager.getOwnerPhoneNumberVcard(vcard21);
@@ -891,7 +891,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         } else {
             if (intIndex <= 0 || intIndex > size) {
                 Log.w(TAG, "The requested vcard is not acceptable! name= " + name);
-                return ResponseCodes.OBEX_HTTP_OK;
+                return ResponseCodes.OBEX_HTTP_NOT_FOUND;
             }
             // For others (ich/och/cch/mch), 0.vcf is meaningless, and must
             // begin from 1.vcf
