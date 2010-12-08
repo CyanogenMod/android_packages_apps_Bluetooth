@@ -43,7 +43,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.OpenableColumns;
-import android.provider.ContactsContract.Contacts;
 
 /**
  * This class stores information about a single sending file It will only be

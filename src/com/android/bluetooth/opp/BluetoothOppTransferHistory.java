@@ -62,8 +62,6 @@ public class BluetoothOppTransferHistory extends Activity implements
         View.OnCreateContextMenuListener, OnItemClickListener {
     private static final String TAG = "BluetoothOppTransferHistory";
 
-    private static final boolean D = Constants.DEBUG;
-
     private static final boolean V = Constants.VERBOSE;
 
     private ListView mListView;
@@ -242,7 +240,7 @@ public class BluetoothOppTransferHistory extends Activity implements
      * android.widget.AdapterView.OnItemClickListener#onItemClick(android.widget
      * .AdapterView, android.view.View, int, long)
      */
-    public void onItemClick(AdapterView parent, View view, int position, long id) {
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         // Open the selected item
         mTransferCursor.moveToPosition(position);
         openCompleteTransfer();
