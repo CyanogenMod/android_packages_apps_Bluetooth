@@ -23,7 +23,7 @@
     <!-- no translation found for unknownNumber (4994750948072751566) -->
     <skip />
     <string name="airplane_error_title" msgid="2683839635115739939">"Mod Avion"</string>
-    <!-- outdated translation 8031842956782631624 -->     <string name="airplane_error_msg" msgid="8698965595254137230">"Dacă telefonul este setat în modul Avion, nu puteţi utiliza serviciile Bluetooth."</string>
+    <string name="airplane_error_msg" msgid="8698965595254137230">"Nu puteţi utiliza funcţia Bluetooth în modul Avion."</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Pentru a putea utiliza serviciile Bluetooth, trebuie mai întâi să le activaţi."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Activaţi acum Bluetooth?"</string>
@@ -112,7 +112,7 @@
     <string name="status_pending" msgid="7446884326084324082">"Transferul fişierului nu a început încă"</string>
     <string name="status_running" msgid="2695810336448055064">"Transferul de fişier este în curs de desfăşurare"</string>
     <string name="status_success" msgid="2268261336330060663">"Transferul fişierului s-a încheiat"</string>
-    <!-- outdated translation 149046562468006301 -->     <string name="status_not_accept" msgid="2489805942397459486">"Telefonul nu poate gestiona acest tip de conţinut"</string>
+    <string name="status_not_accept" msgid="2489805942397459486">"Nu se acceptă conţinutul."</string>
     <string name="status_forbidden" msgid="8499236547788725258">"Acest transfer este interzis de dispozitivul de destinaţie"</string>
     <string name="status_canceled" msgid="5514756906439790976">"Acest transfer a fost anulat de utilizator"</string>
     <string name="status_file_error" msgid="6125632529575521755">"Problemă de stocare"</string>

@@ -22,7 +22,7 @@
     <string name="unknown_device" msgid="9221903979877041009">"Dispositivo sconosciuto"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Sconosciuto"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Modalità aereo"</string>
-    <!-- outdated translation 8031842956782631624 -->     <string name="airplane_error_msg" msgid="8698965595254137230">"Non puoi utilizzare Bluetooth quando il telefono è in modalità aereo."</string>
+    <string name="airplane_error_msg" msgid="8698965595254137230">"Non puoi utilizzare Bluetooth in modalità aereo."</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Per utilizzare i servizi Bluetooth, prima è necessario attivare Bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Attivare Bluetooth adesso?"</string>
@@ -87,7 +87,7 @@
     <string name="status_pending" msgid="7446884326084324082">"Trasferimento file non ancora iniziato"</string>
     <string name="status_running" msgid="2695810336448055064">"Trasferimento file in corso"</string>
     <string name="status_success" msgid="2268261336330060663">"Il trasferimento del file è stato completato"</string>
-    <!-- outdated translation 149046562468006301 -->     <string name="status_not_accept" msgid="2489805942397459486">"Il telefono non può gestire questo tipo di contenuti"</string>
+    <string name="status_not_accept" msgid="2489805942397459486">"Contenuti non supportati."</string>
     <string name="status_forbidden" msgid="8499236547788725258">"Il dispositivo di destinazione non consente questo trasferimento"</string>
     <string name="status_canceled" msgid="5514756906439790976">"Questo trasferimento è stato annullato dall\'utente"</string>
     <string name="status_file_error" msgid="6125632529575521755">"Problema di memorizzazione"</string>

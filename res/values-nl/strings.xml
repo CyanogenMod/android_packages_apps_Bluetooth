@@ -22,7 +22,7 @@
     <string name="unknown_device" msgid="9221903979877041009">"Onbekend apparaat"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Onbekend"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Vliegmodus"</string>
-    <!-- outdated translation 8031842956782631624 -->     <string name="airplane_error_msg" msgid="8698965595254137230">"U kunt Bluetooth niet gebruiken als de vliegtuigmodus van de telefoon actief is."</string>
+    <string name="airplane_error_msg" msgid="8698965595254137230">"U kunt Bluetooth niet gebruiken in Vliegmodus."</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Als u Bluetooth-services wilt gebruiken, moet u eerst Bluetooth inschakelen."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Bluetooth nu inschakelen?"</string>
@@ -87,7 +87,7 @@
     <string name="status_pending" msgid="7446884326084324082">"Bestandsoverdracht nog niet gestart"</string>
     <string name="status_running" msgid="2695810336448055064">"Bestandsoverdracht wordt uitgevoerd"</string>
     <string name="status_success" msgid="2268261336330060663">"De bestandsoverdracht is voltooid"</string>
-    <!-- outdated translation 149046562468006301 -->     <string name="status_not_accept" msgid="2489805942397459486">"De telefoon kan dit type inhoud niet verwerken"</string>
+    <string name="status_not_accept" msgid="2489805942397459486">"Inhoud wordt niet ondersteund."</string>
     <string name="status_forbidden" msgid="8499236547788725258">"Deze overdracht wordt niet toegestaan door het doelapparaat"</string>
     <string name="status_canceled" msgid="5514756906439790976">"Deze overdracht is geannuleerd door de gebruiker"</string>
     <string name="status_file_error" msgid="6125632529575521755">"Probleem met opslagruimte"</string>

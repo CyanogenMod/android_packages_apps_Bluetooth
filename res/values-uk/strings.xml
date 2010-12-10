@@ -23,7 +23,7 @@
     <!-- no translation found for unknownNumber (4994750948072751566) -->
     <skip />
     <string name="airplane_error_title" msgid="2683839635115739939">"Режим польоту"</string>
-    <!-- outdated translation 8031842956782631624 -->     <string name="airplane_error_msg" msgid="8698965595254137230">"Ви не можете викор. Bluetooth, коли телефон у режимі польоту."</string>
+    <string name="airplane_error_msg" msgid="8698965595254137230">"Не можна викор. Bluetooth у режимі польоту"</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Щоб корист. послугами Bluetooth, спершу треба ввімкн. Bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Увімк. Bluetooth зараз?"</string>
@@ -112,7 +112,7 @@
     <string name="status_pending" msgid="7446884326084324082">"Пересилка файлів ще не почалася"</string>
     <string name="status_running" msgid="2695810336448055064">"Виконується пересилка файлу"</string>
     <string name="status_success" msgid="2268261336330060663">"Пересилку файлу успішно виконано"</string>
-    <!-- outdated translation 149046562468006301 -->     <string name="status_not_accept" msgid="2489805942397459486">"Телефон не може обробити цей тип вмісту"</string>
+    <string name="status_not_accept" msgid="2489805942397459486">"Вміст не підтримується."</string>
     <string name="status_forbidden" msgid="8499236547788725258">"Ця пересилка заборонена цільовим пристроєм"</string>
     <string name="status_canceled" msgid="5514756906439790976">"Цю пересилку було скасовано користувачем"</string>
     <string name="status_file_error" msgid="6125632529575521755">"Пробл. зі зберіг."</string>

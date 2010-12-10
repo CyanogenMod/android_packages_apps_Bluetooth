@@ -22,7 +22,7 @@
     <string name="unknown_device" msgid="9221903979877041009">"不明な携帯端末"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"不明"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"機内モード"</string>
-    <!-- outdated translation 8031842956782631624 -->     <string name="airplane_error_msg" msgid="8698965595254137230">"携帯が機内モードのときはBluetoothを使用できません。"</string>
+    <string name="airplane_error_msg" msgid="8698965595254137230">"機内モードではBluetoothを使用できません。"</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Bluetoothサービスを利用するには、まずBluetoothをONにしてください。"</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Bluetoothを今すぐONにしますか？"</string>
@@ -87,7 +87,7 @@
     <string name="status_pending" msgid="7446884326084324082">"ファイル転送はまだ開始されていません"</string>
     <string name="status_running" msgid="2695810336448055064">"ファイルを転送中です"</string>
     <string name="status_success" msgid="2268261336330060663">"ファイル転送が正常に完了しました"</string>
-    <!-- outdated translation 149046562468006301 -->     <string name="status_not_accept" msgid="2489805942397459486">"携帯ではこのタイプのコンテンツを処理できません"</string>
+    <string name="status_not_accept" msgid="2489805942397459486">"このコンテンツには対応していません。"</string>
     <string name="status_forbidden" msgid="8499236547788725258">"この転送は転送先の携帯端末で禁止されています"</string>
     <string name="status_canceled" msgid="5514756906439790976">"この転送はユーザーによりキャンセルされました"</string>
     <string name="status_file_error" msgid="6125632529575521755">"ストレージの問題"</string>

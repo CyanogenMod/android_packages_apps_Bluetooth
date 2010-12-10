@@ -22,7 +22,7 @@
     <string name="unknown_device" msgid="9221903979877041009">"未知的裝置"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"不明"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"飛行模式"</string>
-    <!-- outdated translation 8031842956782631624 -->     <string name="airplane_error_msg" msgid="8698965595254137230">"手機處於飛行模式時，無法使用藍牙功能。"</string>
+    <string name="airplane_error_msg" msgid="8698965595254137230">"手機處於飛行模式時，無法使用藍牙功能。"</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"藍牙"</string>
     <string name="bt_enable_line1" msgid="7203551583048149">"如果要使用藍牙服務，請先開啟藍牙功能。"</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"要立即開啟藍牙功能嗎？"</string>
@@ -87,7 +87,7 @@
     <string name="status_pending" msgid="7446884326084324082">"尚未開始傳輸檔案"</string>
     <string name="status_running" msgid="2695810336448055064">"正在進行檔案傳輸"</string>
     <string name="status_success" msgid="2268261336330060663">"已完成檔案傳輸"</string>
-    <!-- outdated translation 149046562468006301 -->     <string name="status_not_accept" msgid="2489805942397459486">"您的手機無法處理這類型的內容"</string>
+    <string name="status_not_accept" msgid="2489805942397459486">"內容不受支援。"</string>
     <string name="status_forbidden" msgid="8499236547788725258">"目標裝置禁止此傳輸"</string>
     <string name="status_canceled" msgid="5514756906439790976">"使用者已取消傳輸作業"</string>
     <string name="status_file_error" msgid="6125632529575521755">"儲存空間問題"</string>

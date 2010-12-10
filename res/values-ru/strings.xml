@@ -22,7 +22,7 @@
     <string name="unknown_device" msgid="9221903979877041009">"Неизвестное устройство"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Неизвестно"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Режим полета"</string>
-    <!-- outdated translation 8031842956782631624 -->     <string name="airplane_error_msg" msgid="8698965595254137230">"Невозможно использовать функцию Bluetooth в режиме полета."</string>
+    <string name="airplane_error_msg" msgid="8698965595254137230">"В режиме полета нельзя использовать Bluetooth."</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Чтобы использовать службы Bluetooth, включите адаптер Bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Включить Bluetooth?"</string>
@@ -87,7 +87,7 @@
     <string name="status_pending" msgid="7446884326084324082">"Передача файла еще не началась."</string>
     <string name="status_running" msgid="2695810336448055064">"Выполняется передача файла."</string>
     <string name="status_success" msgid="2268261336330060663">"Передача файла успешно завершена."</string>
-    <!-- outdated translation 149046562468006301 -->     <string name="status_not_accept" msgid="2489805942397459486">"Телефон не может обработать этот тип содержания."</string>
+    <string name="status_not_accept" msgid="2489805942397459486">"Это содержание не поддерживается."</string>
     <string name="status_forbidden" msgid="8499236547788725258">"Передача запрещена на принимающем устройстве"</string>
     <string name="status_canceled" msgid="5514756906439790976">"Передача отменена пользователем."</string>
     <string name="status_file_error" msgid="6125632529575521755">"Ошибка хранилища"</string>
