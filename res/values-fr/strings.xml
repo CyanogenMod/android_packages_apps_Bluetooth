@@ -22,7 +22,7 @@
     <string name="unknown_device" msgid="9221903979877041009">"Périphérique inconnu"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Inconnu"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Mode Avion"</string>
-    <string name="airplane_error_msg" msgid="8698965595254137230">"Vous ne pouvez pas utiliser Bluetooth en mode Avion."</string>
+    <string name="airplane_error_msg" msgid="8698965595254137230">"Bluetooth ne peut être utilisé en mode Avion."</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Vous devez activer la fonction Bluetooth pour pouvoir utiliser les services Bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Activer le Bluetooth maintenant ?"</string>

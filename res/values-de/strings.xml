@@ -74,7 +74,7 @@
     <string name="not_exist_file_desc" msgid="2392808771821464983">"Die Datei ist nicht vorhanden! "\n</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Bitte warten..."</string>
     <string name="enabling_progress_content" msgid="1291028079299309898">"Bluetooth wird aktiviert..."</string>
-    <string name="bt_toast_1" msgid="972182708034353383">"Die Datei wird empfangen. Überprüfen Sie den Fortschritt im Benachrichtigungsfenster."</string>
+    <string name="bt_toast_1" msgid="972182708034353383">"Die Datei wird empfangen. Überprüfen Sie den Fortschritt in der Benachrichtigungskonsole."</string>
     <string name="bt_toast_2" msgid="6357386241778417651">"Die Datei wird nicht empfangen."</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"Der Empfang der Datei von \"<xliff:g id="SENDER">%1$s</xliff:g>\" wurde angehalten."</string>
     <string name="bt_toast_4" msgid="4678812947604395649">"Die Datei wird an \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" gesendet."</string>

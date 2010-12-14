@@ -22,7 +22,7 @@
     <string name="unknown_device" msgid="9221903979877041009">"Άγνωστη συσκευή"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Άγνωστος"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Λειτουργία πτήσης"</string>
-    <string name="airplane_error_msg" msgid="8698965595254137230">"Δεν μπορείτε να χρησιμοποιήσετε το Bluetooth όταν βρίσκεστε σε Λειτουργία πτήσης."</string>
+    <string name="airplane_error_msg" msgid="8698965595254137230">"Δεν μπορείτε να χρησιμοποιήσετε το Bluetooth σε Λειτουργία πτήσης."</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Για να χρησιμοποιήσετε υπηρεσίες Bluetooth, θα πρέπει πρώτα να ενεργοποιήσετε τη λειτουργία Bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Να γίνει τώρα ενεργοποίηση του Bluetooth;"</string>
