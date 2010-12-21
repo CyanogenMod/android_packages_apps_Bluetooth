@@ -47,6 +47,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.bluetooth.R;
+import com.android.internal.telephony.CallerInfo;
 import com.android.vcard.VCardComposer;
 import com.android.vcard.VCardConfig;
 
@@ -181,8 +182,13 @@ public class BluetoothPbapVcardManager {
                         callCursor.moveToNext()) {
                     String name = callCursor.getString(CALLS_NAME_COLUMN_INDEX);
                     if (TextUtils.isEmpty(name)) {
-                        // name not found,use number instead
+                        // name not found, use number instead
                         name = callCursor.getString(CALLS_NUMBER_COLUMN_INDEX);
+                        if (CallerInfo.UNKNOWN_NUMBER.equals(name) ||
+                                CallerInfo.PRIVATE_NUMBER.equals(name) ||
+                                CallerInfo.PAYPHONE_NUMBER.equals(name)) {
+                            name = mContext.getString(R.string.unknownNumber);
+                        }
                     }
                     list.add(name);
                 }
