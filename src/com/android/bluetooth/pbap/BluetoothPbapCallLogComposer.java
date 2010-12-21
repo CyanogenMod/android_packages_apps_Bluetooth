@@ -16,6 +16,7 @@
 package com.android.bluetooth.pbap;
 
 import com.android.bluetooth.R;
+import com.android.internal.telephony.CallerInfo;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -191,14 +192,21 @@ public class BluetoothPbapCallLogComposer {
         final VCardBuilder builder = new VCardBuilder(vcardType);
         String name = mCursor.getString(CALLER_NAME_COLUMN_INDEX);
         if (TextUtils.isEmpty(name)) {
-            name = mCursor.getString(NUMBER_COLUMN_INDEX);
+            name = "";
+        }
+        if (CallerInfo.UNKNOWN_NUMBER.equals(name) || CallerInfo.PRIVATE_NUMBER.equals(name) ||
+                CallerInfo.PAYPHONE_NUMBER.equals(name)) {
+            // setting name to "" as FN/N must be empty fields in this case.
+            name = "";
         }
         final boolean needCharset = !(VCardUtils.containsOnlyPrintableAscii(name));
         builder.appendLine(VCardConstants.PROPERTY_FN, name, needCharset, false);
         builder.appendLine(VCardConstants.PROPERTY_N, name, needCharset, false);
 
         String number = mCursor.getString(NUMBER_COLUMN_INDEX);
-        if (number.equals("-1")) {
+        if (CallerInfo.UNKNOWN_NUMBER.equals(number) ||
+                CallerInfo.PRIVATE_NUMBER.equals(number) ||
+                CallerInfo.PAYPHONE_NUMBER.equals(number)) {
             number = mContext.getString(R.string.unknownNumber);
         }
         final int type = mCursor.getInt(CALLER_NUMBERTYPE_COLUMN_INDEX);
