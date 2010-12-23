@@ -80,8 +80,7 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"Sending file to \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Sending <xliff:g id="NUMBER">%1$s</xliff:g> files to \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Stopped sending file to \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
-    <!-- no translation found for bt_sm_2_1 (8445781725395414465) -->
-    <skip />
+    <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"There is not enough space on USB storage to save the file from \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">"There is not enough space on the SD card to save the file from \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Space needed: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Too many requests are being processed. Try again later."</string>
@@ -92,7 +91,7 @@
     <string name="status_forbidden" msgid="8499236547788725258">"This transfer is forbidden by the target device"</string>
     <string name="status_canceled" msgid="5514756906439790976">"This transfer was cancelled by the user"</string>
     <string name="status_file_error" msgid="6125632529575521755">"Storage issue"</string>
-    <!-- outdated translation 5760944071743325592 -->     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"No SD card. Insert an SD card to save transferred files."</string>
+    <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"No USB storage."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"No SD card. Insert an SD card to save transferred files."</string>
     <string name="status_connection_error" msgid="7695388111375688873">"Connection failure"</string>
     <string name="status_protocol_error" msgid="8898902951085043597">"The request cannot be handled correctly"</string>
