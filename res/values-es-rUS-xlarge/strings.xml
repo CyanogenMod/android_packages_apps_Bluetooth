@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- XL -->
+    <string name="airplane_error_title" msgid="427781392650646869">"Modo avión"</string>
+    <!-- XL -->
+    <string name="upload_fail_ok" msgid="5725505231236054094">"Vuelve a intentarlo."</string>
+</resources>
