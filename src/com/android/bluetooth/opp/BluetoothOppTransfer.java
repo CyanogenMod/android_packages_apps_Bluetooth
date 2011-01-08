@@ -72,17 +72,21 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
     private static final boolean V = Constants.VERBOSE;
 
-    public static final int RFCOMM_ERROR = 10;
+    private static final int RFCOMM_ERROR = 10;
 
-    public static final int RFCOMM_CONNECTED = 11;
+    private static final int RFCOMM_CONNECTED = 11;
 
-    public static final int SDP_RESULT = 12;
+    private static final int SDP_RESULT = 12;
+
+    private static final int SOCKET_ERROR_RETRY = 13;
 
     private static final int CONNECT_WAIT_TIMEOUT = 45000;
 
     private static final int CONNECT_RETRY_TIME = 100;
 
     private static final short OPUSH_UUID16 = 0x1105;
+
+    private static final String SOCKET_LINK_KEY_ERROR = "Invalid exchange";
 
     private Context mContext;
 
@@ -145,7 +149,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                         // ignore
                     }
                     if (msg.arg1 > 0) {
-                        mConnectThread = new SocketConnectThread(mBatch.mDestination, msg.arg1);
+                        mConnectThread = new
+                            SocketConnectThread(mBatch.mDestination, msg.arg1, false);
                         mConnectThread.start();
                     } else {
                         /* SDP query fail case */
@@ -155,37 +160,41 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                     }
 
                     break;
-
-                /*
-                 * RFCOMM connect fail is for outbound share only! Mark batch
-                 * failed, and all shares in batch failed
-                 */
+                case SOCKET_ERROR_RETRY:
+                    mConnectThread = new
+                        SocketConnectThread((BluetoothDevice)msg.obj, msg.arg1, true);
+                    mConnectThread.start();
+                    break;
                 case RFCOMM_ERROR:
+                    /*
+                    * RFCOMM connect fail is for outbound share only! Mark batch
+                    * failed, and all shares in batch failed
+                    */
                     if (V) Log.v(TAG, "receive RFCOMM_ERROR msg");
                     mConnectThread = null;
                     markBatchFailed(BluetoothShare.STATUS_CONNECTION_ERROR);
                     mBatch.mStatus = Constants.BATCH_STATUS_FAILED;
 
                     break;
-                /*
-                 * RFCOMM connected is for outbound share only! Create
-                 * BluetoothOppObexClientSession and start it
-                 */
                 case RFCOMM_CONNECTED:
+                    /*
+                    * RFCOMM connected is for outbound share only! Create
+                    * BluetoothOppObexClientSession and start it
+                    */
                     if (V) Log.v(TAG, "Transfer receive RFCOMM_CONNECTED msg");
                     mConnectThread = null;
                     mTransport = (ObexTransport)msg.obj;
                     startObexSession();
 
                     break;
-                /*
-                 * Put next share if available,or finish the transfer.
-                 * For outbound session, call session.addShare() to send next file,
-                 * or call session.stop().
-                 * For inbounds session, do nothing. If there is next file to receive,it
-                 * will be notified through onShareAdded()
-                 */
                 case BluetoothOppObexSession.MSG_SHARE_COMPLETE:
+                    /*
+                    * Put next share if available,or finish the transfer.
+                    * For outbound session, call session.addShare() to send next file,
+                    * or call session.stop().
+                    * For inbounds session, do nothing. If there is next file to receive,it
+                    * will be notified through onShareAdded()
+                    */
                     BluetoothOppShareInfo info = (BluetoothOppShareInfo)msg.obj;
                     if (V) Log.v(TAG, "receive MSG_SHARE_COMPLETE for info " + info.mId);
                     if (mBatch.mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
@@ -203,11 +212,11 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                         }
                     }
                     break;
-                /*
-                 * Handle session completed status Set batch status to
-                 * finished
-                 */
                 case BluetoothOppObexSession.MSG_SESSION_COMPLETE:
+                    /*
+                    * Handle session completed status Set batch status to
+                    * finished
+                    */
                     BluetoothOppShareInfo info1 = (BluetoothOppShareInfo)msg.obj;
                     if (V) Log.v(TAG, "receive MSG_SESSION_COMPLETE for batch " + mBatch.mId);
                     mBatch.mStatus = Constants.BATCH_STATUS_FINISHED;
@@ -217,8 +226,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                     tickShareStatus(info1);
                     break;
 
-                /* Handle the error state of an Obex session */
                 case BluetoothOppObexSession.MSG_SESSION_ERROR:
+                    /* Handle the error state of an Obex session */
                     if (V) Log.v(TAG, "receive MSG_SESSION_ERROR for batch " + mBatch.mId);
                     BluetoothOppShareInfo info2 = (BluetoothOppShareInfo)msg.obj;
                     mSession.stop();
@@ -586,6 +595,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
         private BluetoothSocket btSocket = null;
 
+        private boolean mRetry = false;
+
         /* create a TCP socket */
         public SocketConnectThread(String host, int port, int dummy) {
             super("Socket Connect Thread");
@@ -596,12 +607,14 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         }
 
         /* create a Rfcomm Socket */
-        public SocketConnectThread(BluetoothDevice device, int channel) {
+        public SocketConnectThread(BluetoothDevice device, int channel, boolean
+                retry) {
             super("Socket Connect Thread");
             this.device = device;
             this.host = null;
             this.channel = channel;
             isConnected = false;
+            mRetry = retry;
         }
 
         public void interrupt() {
@@ -700,11 +713,22 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
                     mSessionHandler.obtainMessage(RFCOMM_CONNECTED, transport).sendToTarget();
                 } catch (IOException e) {
-                    Log.e(TAG, "Rfcomm socket connect exception ");
-                    BluetoothOppPreference.getInstance(mContext)
-                            .removeChannel(device, OPUSH_UUID16);
-                    markConnectionFailed(btSocket);
-                    return;
+                    Log.e(TAG, "Rfcomm socket connect exception");
+                    // If the devices were paired before, but unpaired on the
+                    // remote end, it will return an error for the auth request
+                    // for the socket connection. Link keys will get exchanged
+                    // again, but we need to retry. There is no good way to
+                    // inform this socket asking it to retry apart from a blind
+                    // delayed retry.
+                    if (mRetry) {
+                        BluetoothOppPreference.getInstance(mContext)
+                                .removeChannel(device, OPUSH_UUID16);
+                        markConnectionFailed(btSocket);
+                    } else if (e.getMessage().equals(SOCKET_LINK_KEY_ERROR)) {
+                        Message msg = mSessionHandler.obtainMessage(SOCKET_ERROR_RETRY,
+                                channel, -1, device);
+                        mSessionHandler.sendMessageDelayed(msg, 2500);
+                    }
                 }
             }
         }
