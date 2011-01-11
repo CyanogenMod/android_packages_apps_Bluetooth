@@ -741,6 +741,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                     ApplicationParameter.TRIPLET_LENGTH.PHONEBOOKSIZE_LENGTH, pbsize);
 
             if (mNeedNewMissedCallsNum) {
+                mNeedNewMissedCallsNum = false;
                 int nmnum = size - mMissedCallSize;
                 mMissedCallSize = size;
 
