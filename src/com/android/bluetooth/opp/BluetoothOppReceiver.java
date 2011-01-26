@@ -182,6 +182,14 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             in.putExtra("direction", BluetoothShare.DIRECTION_INBOUND);
             context.startActivity(in);
+        } else if (action.equals(Constants.ACTION_OPEN_RECEIVED_FILES)) {
+            if (V) Log.v(TAG, "Received ACTION_OPEN_RECEIVED_FILES.");
+
+            Intent in = new Intent(context, BluetoothOppTransferHistory.class);
+            in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            in.putExtra("direction", BluetoothShare.DIRECTION_INBOUND);
+            in.putExtra(Constants.EXTRA_SHOW_ALL_FILES, true);
+            context.startActivity(in);
         } else if (action.equals(Constants.ACTION_HIDE)) {
             if (V) Log.v(TAG, "Receiver hide for " + intent.getData());
             Cursor cursor = context.getContentResolver().query(intent.getData(), null, null, null,

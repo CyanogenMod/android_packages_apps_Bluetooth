@@ -65,6 +65,12 @@ public class Constants {
     /** the intent that gets sent when clicking a inbound transfer notification */
     public static final String ACTION_OPEN_INBOUND_TRANSFER = "android.btopp.intent.action.OPEN_INBOUND";
 
+    /** the intent that gets sent from the Settings app to show the received files */
+    public static final String ACTION_OPEN_RECEIVED_FILES = "android.btopp.intent.action.OPEN_RECEIVED_FILES";
+
+    /** the intent extra to show all received files in the transfer history */
+    public static final String EXTRA_SHOW_ALL_FILES = "android.btopp.intent.extra.SHOW_ALL";
+
     /** the intent that gets sent when clicking an incomplete/failed transfer */
     public static final String ACTION_LIST = "android.btopp.intent.action.LIST";
 
