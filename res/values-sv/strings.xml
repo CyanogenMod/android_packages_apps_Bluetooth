@@ -69,7 +69,7 @@
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Stäng"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"OK"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Okänd fil"</string>
-    <string name="unknown_file_desc" msgid="5845231383612478643">"Det finns inget program som kan hantera filtypen. "\n</string>
+    <string name="unknown_file_desc" msgid="5845231383612478643">"Det finns ingen app som kan hantera filtypen. "\n</string>
     <string name="not_exist_file" msgid="2245958259960700777">"Filen finns inte"</string>
     <string name="not_exist_file_desc" msgid="2392808771821464983">"Filen finns inte! "\n</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Vänta …"</string>
