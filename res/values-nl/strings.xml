@@ -17,7 +17,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Downloadbeheer weergeven."</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"Hiermee krijgt de toepassing toegang tot de beheerfunctie voor delen via Bluetooth om deze functie te gebruiken voor het overdragen van bestanden."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"Hiermee krijgt de app toegang tot de beheerfunctie voor delen via Bluetooth om deze functie te gebruiken voor het overdragen van bestanden."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Onbekend apparaat"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Onbekend"</string>
@@ -69,7 +69,7 @@
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Sluiten"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"OK"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Onbekend bestand"</string>
-    <string name="unknown_file_desc" msgid="5845231383612478643">"Er is geen toepassing beschikbaar waarmee dit bestandstype kan worden verwerkt. "\n</string>
+    <string name="unknown_file_desc" msgid="5845231383612478643">"Er is geen app beschikbaar waarmee dit bestandstype kan worden verwerkt. "\n</string>
     <string name="not_exist_file" msgid="2245958259960700777">"Bestand bestaat niet"</string>
     <string name="not_exist_file_desc" msgid="2392808771821464983">"Het bestand bestaat niet. "\n</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Een ogenblik geduld..."</string>
