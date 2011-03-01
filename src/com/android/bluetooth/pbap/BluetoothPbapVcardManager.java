@@ -234,8 +234,14 @@ public class BluetoothPbapVcardManager {
         ArrayList<String> nameList = new ArrayList<String>();
 
         Cursor contactCursor = null;
-        final Uri uri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI,
+        Uri uri = null;
+
+        if (phoneNumber != null && phoneNumber.length() == 0) {
+            uri = Contacts.CONTENT_URI;
+        } else {
+            uri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI,
                 Uri.encode(phoneNumber));
+        }
 
         try {
             contactCursor = mResolver.query(uri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
