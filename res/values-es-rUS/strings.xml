@@ -33,7 +33,7 @@
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Rechazar"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Aceptar"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="860272542827665475">"Aceptar"</string>
-    <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Se produjo un tiempo de espera al aceptar un archivo entrante de \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
+    <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Tiempo de espera agotado al aceptar un archivo entrante de \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Compartir por Bluetooth: Archivo entrante"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="85804056450169291">"Confirma si deseas recibir este archivo."</string>
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Hay un archivo entrante de otro dispositivo, confirma si deseas recibir este archivo."</string>
