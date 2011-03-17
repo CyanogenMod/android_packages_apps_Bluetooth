@@ -32,11 +32,8 @@ import com.android.vcard.VCardBuilder;
 import com.android.vcard.VCardConfig;
 import com.android.vcard.VCardConstants;
 import com.android.vcard.VCardUtils;
-import com.android.vcard.VCardComposer.OneEntryHandler;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * VCard composer especially for Call Log used in Bluetooth.
@@ -82,18 +79,14 @@ public class BluetoothPbapCallLogComposer {
     private final Context mContext;
     private ContentResolver mContentResolver;
     private Cursor mCursor;
-    private final boolean mCareHandlerErrors;
 
     private boolean mTerminateIsCalled;
-    private final List<OneEntryHandler> mHandlerList;
 
     private String mErrorReason = NO_ERROR;
 
-    public BluetoothPbapCallLogComposer(final Context context, boolean careHandlerErrors) {
+    public BluetoothPbapCallLogComposer(final Context context) {
         mContext = context;
         mContentResolver = context.getContentResolver();
-        mCareHandlerErrors = careHandlerErrors;
-        mHandlerList = new ArrayList<OneEntryHandler>();
     }
 
     public boolean init(final Uri contentUri, final String selection,
@@ -114,24 +107,6 @@ public class BluetoothPbapCallLogComposer {
             return false;
         }
 
-        if (mCareHandlerErrors) {
-            List<OneEntryHandler> finishedList = new ArrayList<OneEntryHandler>(
-                    mHandlerList.size());
-            for (OneEntryHandler handler : mHandlerList) {
-                if (!handler.onInit(mContext)) {
-                    for (OneEntryHandler finished : finishedList) {
-                        finished.onTerminate();
-                    }
-                    return false;
-                }
-            }
-        } else {
-            // Just ignore the false returned from onInit().
-            for (OneEntryHandler handler : mHandlerList) {
-                handler.onInit(mContext);
-            }
-        }
-
         if (mCursor.getCount() == 0 || !mCursor.moveToFirst()) {
             try {
                 mCursor.close();
@@ -147,42 +122,16 @@ public class BluetoothPbapCallLogComposer {
         return true;
     }
 
-    public void addHandler(OneEntryHandler handler) {
-        if (handler != null) {
-            mHandlerList.add(handler);
-        }
-    }
-
-    public boolean createOneEntry() {
+    public String createOneEntry() {
         if (mCursor == null || mCursor.isAfterLast()) {
             mErrorReason = FAILURE_REASON_NOT_INITIALIZED;
-            return false;
+            return null;
         }
-
-        final String vcard;
         try {
-            vcard = createOneCallLogEntryInternal();
-        } catch (OutOfMemoryError error) {
-            Log.e(TAG, "OutOfMemoryError occured. Ignore the entry");
-            System.gc();
-            return true;
+            return createOneCallLogEntryInternal();
         } finally {
             mCursor.moveToNext();
         }
-
-        if (mCareHandlerErrors) {
-            for (OneEntryHandler handler : mHandlerList) {
-                if (!handler.onEntryCreated(vcard)) {
-                    return false;
-                }
-            }
-        } else {
-            for (OneEntryHandler handler : mHandlerList) {
-                handler.onEntryCreated(vcard);
-            }
-        }
-
-        return true;
     }
 
     private String createOneCallLogEntryInternal() {
@@ -290,10 +239,6 @@ public class BluetoothPbapCallLogComposer {
     }
 
     public void terminate() {
-        for (OneEntryHandler handler : mHandlerList) {
-            handler.onTerminate();
-        }
-
         if (mCursor != null) {
             try {
                 mCursor.close();
