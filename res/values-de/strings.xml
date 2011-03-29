@@ -34,16 +34,16 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Akzeptieren"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="860272542827665475">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Die Zeit zum Empfang der eingehenden Datei von \"<xliff:g id="SENDER">%1$s</xliff:g>\" ist abgelaufen."</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth-Weiterleitung: Eingehende Datei"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth-Freigabe: Eingehende Datei"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="85804056450169291">"Bestätigen Sie, dass Sie diese Datei empfangen möchten."</string>
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Ein anderes Gerät versucht, eine Datei zu übertragen. Bestätigen Sie, dass Sie diese Datei empfangen möchten."</string>
-    <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth-Weiterleitung: <xliff:g id="FILE">%1$s</xliff:g> wird empfangen"</string>
-    <string name="notification_received" msgid="3324588019186687985">"Bluetooth-Weiterleitung: <xliff:g id="FILE">%1$s</xliff:g> wurde empfangen"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth-Weiterleitung: Die Datei <xliff:g id="FILE">%1$s</xliff:g> wurde nicht empfangen."</string>
-    <string name="notification_sending" msgid="3035748958534983833">"Bluetooth-Weiterleitung: <xliff:g id="FILE">%1$s</xliff:g> wird gesendet"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"Bluetooth-Weiterleitung: <xliff:g id="FILE">%1$s</xliff:g> gesendet"</string>
+    <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth-Freigabe: <xliff:g id="FILE">%1$s</xliff:g> wird empfangen"</string>
+    <string name="notification_received" msgid="3324588019186687985">"Bluetooth-Freigabe: <xliff:g id="FILE">%1$s</xliff:g> wurde empfangen"</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth-Freigabe: Datei <xliff:g id="FILE">%1$s</xliff:g> wurde nicht empfangen."</string>
+    <string name="notification_sending" msgid="3035748958534983833">"Bluetooth-Freigabe: <xliff:g id="FILE">%1$s</xliff:g> wird gesendet"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"Bluetooth-Freigabe: <xliff:g id="FILE">%1$s</xliff:g> gesendet"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"Zu 100 % abgeschlossen"</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth-Weiterleitung: Die Datei <xliff:g id="FILE">%1$s</xliff:g> wurde nicht gesendet"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth-Freigabe: Datei <xliff:g id="FILE">%1$s</xliff:g> wurde nicht gesendet"</string>
     <string name="download_title" msgid="3353228219772092586">"Dateiübertragung"</string>
     <string name="download_line1" msgid="4926604799202134144">"Von: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"Datei: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -103,8 +103,8 @@
     <string name="outbound_history_title" msgid="4279418703178140526">"Ausgehende Übertragungen"</string>
     <string name="no_transfers" msgid="3482965619151865672">"Übertragungsverlauf ist leer."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Alle Elemente werden aus der Liste gelöscht."</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth-Weiterleitung: gesendete Dateien"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth-Weiterleitung: empfangene Dateien"</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth-Freigabe: gesendete Dateien"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth-Freigabe: Empfangene Dateien"</string>
     <string name="noti_caption" msgid="8510712376046370819">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> erfolgreich, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> fehlgeschlagen."</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Liste löschen"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Öffnen"</string>
