@@ -110,6 +110,8 @@ class BluetoothOppNotification {
 
         int totalTotal = 0; // total bytes for current transfer
 
+        int timeStamp = 0; // Database time stamp. Used for sorting ongoing transfers.
+
         String description; // the text above progress bar
     }
 
@@ -247,6 +249,7 @@ class BluetoothOppNotification {
                 // Batch sending case
             } else {
                 NotificationItem item = new NotificationItem();
+                item.timeStamp = timeStamp;
                 item.id = id;
                 item.direction = dir;
                 if (item.direction == BluetoothShare.DIRECTION_OUTBOUND) {
@@ -284,6 +287,7 @@ class BluetoothOppNotification {
 
             // Build the notification object
             Notification n = new Notification();
+            n.when = item.timeStamp;
             if (item.direction == BluetoothShare.DIRECTION_OUTBOUND) {
                 n.icon = android.R.drawable.stat_sys_upload;
                 expandedView.setImageViewResource(R.id.appIcon, android.R.drawable.stat_sys_upload);
