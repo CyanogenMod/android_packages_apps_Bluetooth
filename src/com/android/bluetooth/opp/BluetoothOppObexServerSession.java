@@ -230,10 +230,13 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             }
 
             // Reject policy: anything outside the "white list" plus unspecified
-            // MIME Types.
+            // MIME Types. Also reject everything in the "black list".
             if (!pre_reject
-                    && (mimeType == null || (!Constants.mimeTypeMatches(mimeType,
-                            Constants.ACCEPTABLE_SHARE_INBOUND_TYPES)))) {
+                    && (mimeType == null
+                            || !Constants.mimeTypeMatches(mimeType,
+                                    Constants.ACCEPTABLE_SHARE_INBOUND_TYPES)
+                            || Constants.mimeTypeMatches(mimeType,
+                                    Constants.UNACCEPTABLE_SHARE_INBOUND_TYPES))) {
                 if (D) Log.w(TAG, "mimeType is null or in unacceptable list, reject the transfer");
                 pre_reject = true;
                 obexResponse = ResponseCodes.OBEX_HTTP_UNSUPPORTED_TYPE;
