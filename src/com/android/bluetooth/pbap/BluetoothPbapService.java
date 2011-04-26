@@ -245,10 +245,17 @@ public class BluetoothPbapService extends Service {
         int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
         boolean removeTimeoutMsg = true;
         if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-            removeTimeoutMsg = false;
             if (state == BluetoothAdapter.STATE_OFF) {
+                // Send any pending timeout now, as this service will be destroyed.
+                if (mSessionStatusHandler.hasMessages(USER_TIMEOUT)) {
+                    Intent timeoutIntent = new Intent(USER_CONFIRM_TIMEOUT_ACTION);
+                    sendBroadcast(timeoutIntent);
+                    removePbapNotification(NOTIFICATION_ID_ACCESS);
+                }
                 // Release all resources
                 closeService();
+            } else {
+                removeTimeoutMsg = false;
             }
         } else if (action.equals(ACCESS_ALLOWED_ACTION)) {
             if (intent.getBooleanExtra(EXTRA_ALWAYS_ALLOWED, false)) {
