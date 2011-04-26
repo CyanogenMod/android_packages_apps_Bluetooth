@@ -61,6 +61,12 @@ public class BluetoothPbapReceiver extends BroadcastReceiver {
                     || (state == BluetoothAdapter.STATE_TURNING_OFF)) {
                 startService = false;
             }
+        } else {
+            // Don't forward intent unless device has bluetooth and bluetooth is enabled.
+            BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+            if (adapter == null || !adapter.isEnabled()) {
+                startService = false;
+            }
         }
         if (startService) {
             context.startService(in);
