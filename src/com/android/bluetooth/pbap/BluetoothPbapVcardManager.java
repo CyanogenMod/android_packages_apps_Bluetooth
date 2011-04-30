@@ -479,7 +479,7 @@ public class BluetoothPbapVcardManager {
                         BluetoothPbapObexServer.sIsAborted = false;
                         break;
                     }
-                    if (!composer.createOneEntry()) {
+                    if (!composer.createOneEntry(vcardType21)) {
                         Log.e(TAG, "Failed to read a contact. Error reason: "
                                 + composer.getErrorReason());
                         return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
