@@ -491,7 +491,7 @@ public class BluetoothPbapVcardManager {
                         BluetoothPbapObexServer.sIsAborted = false;
                         break;
                     }
-                    String vcard = composer.createOneEntry();
+                    String vcard = composer.createOneEntry(vcardType21);
                     if (vcard == null) {
                         Log.e(TAG, "Failed to read a contact. Error reason: "
                                 + composer.getErrorReason());
