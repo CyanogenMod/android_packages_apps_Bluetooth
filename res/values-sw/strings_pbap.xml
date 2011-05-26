@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="pbap_acceptance_dialog_title" msgid="4606773169019619760">"%1$s angependa kufikia anwani zako na historia ya simu. Toa kibali cha ufikiaji kwa %2$s?"</string>
+    <string name="pbap_acceptance_dialog_header" msgid="5456473921987026974">"Ufikiaji wa kitabu cha simu"</string>
+    <string name="pbap_session_key_dialog_title" msgid="3580996574333882561">"Andika ufunguo wa kipindi wa %1$s"</string>
+    <string name="pbap_session_key_dialog_header" msgid="2772472422782758981">"Ufunguo wa kipindi cha Bluetooth unahitajika"</string>
+    <string name="pbap_acceptance_timeout_message" msgid="1107401415099814293">"Muda wa kukubali muunganisho na %1$s umepita"</string>
+    <string name="pbap_authentication_timeout_message" msgid="4166979525521902687">"Muda wa kuweka ufunguo wa kipindi na %1$s umepita"</string>
+    <string name="pbap_notif_ticker" msgid="1653350586489072739">"Ombi la kufikia kitabu cha simu"</string>
+    <string name="pbap_notif_title" msgid="2967094612841799440">"Ombi la PBAP"</string>
+    <string name="pbap_notif_message" msgid="6046731677513301195">"Ruhusu kitabu cha simu kifikiwe na %1$s"</string>
+    <string name="auth_notif_ticker" msgid="1575825798053163744">"Ombi la uthibitishaji kutoka Obex"</string>
+    <string name="auth_notif_title" msgid="7599854855681573258">"Ufunguo wa Kipindi"</string>
+    <string name="auth_notif_message" msgid="6667218116427605038">"Andika ufunguo wa kipindi wa %1$s"</string>
+    <string name="alwaysallowed" msgid="1912976993660130849">"Ruhusu kila wakati?"</string>
+    <string name="defaultname" msgid="4821590500649090078">"Kifaa cha gari"</string>
+    <string name="unknownName" msgid="2841414754740600042">"Jina lisilojulikana"</string>
+    <string name="localPhoneName" msgid="2349001318925409159">"Jina langu"</string>
+    <string name="defaultnumber" msgid="8520116145890867338">"000000"</string>
+</resources>
