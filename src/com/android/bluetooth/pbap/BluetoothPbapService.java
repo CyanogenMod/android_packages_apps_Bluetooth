@@ -40,7 +40,6 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothPbap;
@@ -51,13 +50,11 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
-import android.provider.ContactsContract.RawContacts;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import javax.obex.ServerSession;
 
@@ -336,13 +333,7 @@ public class BluetoothPbapService extends Service {
             try {
                 // It is mandatory for PSE to support initiation of bonding and
                 // encryption.
-                // InsecureRfcomm => encryption is on, authentication of link
-                // key is off. For legacy pairing it doesn't matter, for 2.1
-                // pairing - if we have already done MITM protection, then
-                // the same linkeys will be used. If not, then all core profiles
-                // will have the same level of protection. This API has to be
-                // renamed - its no as insecure as the name suggests.
-                mServerSocket = mAdapter.listenUsingInsecureRfcommOn(PORT_NUM);
+                mServerSocket = mAdapter.listenUsingEncryptedRfcommOn(PORT_NUM);
             } catch (IOException e) {
                 Log.e(TAG, "Error create RfcommServerSocket " + e.toString());
                 initSocketOK = false;
@@ -572,7 +563,6 @@ public class BluetoothPbapService extends Service {
         public void handleMessage(Message msg) {
             if (VERBOSE) Log.v(TAG, "Handler(): got msg=" + msg.what);
 
-            CharSequence tmpTxt;
             switch (msg.what) {
                 case START_LISTENER:
                     if (mAdapter.isEnabled()) {

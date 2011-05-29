@@ -49,8 +49,6 @@ import android.util.Log;
 public class BluetoothOppRfcommListener {
     private static final String TAG = "BtOppRfcommListener";
 
-    private static final boolean D = Constants.DEBUG;
-
     private static final boolean V = Constants.VERBOSE;
 
     public static final int MSG_INCOMING_BTOPP_CONNECTION = 100;

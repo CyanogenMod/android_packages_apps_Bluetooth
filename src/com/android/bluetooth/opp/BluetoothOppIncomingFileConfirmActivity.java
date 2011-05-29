@@ -171,8 +171,9 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity imple
 
             Toast.makeText(this, getString(R.string.bt_toast_2), Toast.LENGTH_SHORT).show();
             finish();
+            return true;
         }
-        return true;
+        return false;
     }
 
     @Override

@@ -78,15 +78,7 @@ public class BluetoothPbapVcardManager {
             Contacts.DISPLAY_NAME, // 4
     };
 
-    private static final int ID_COLUMN_INDEX = 0;
-
-    private static final int PHONE_TYPE_COLUMN_INDEX = 1;
-
-    private static final int PHONE_LABEL_COLUMN_INDEX = 2;
-
     private static final int PHONE_NUMBER_COLUMN_INDEX = 3;
-
-    private static final int CONTACTS_DISPLAY_NAME_COLUMN_INDEX = 4;
 
     static final String SORT_ORDER_PHONE_NUMBER = CommonDataKinds.Phone.NUMBER + " ASC";
 
@@ -242,8 +234,14 @@ public class BluetoothPbapVcardManager {
         ArrayList<String> nameList = new ArrayList<String>();
 
         Cursor contactCursor = null;
-        final Uri uri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI,
+        Uri uri = null;
+
+        if (phoneNumber != null && phoneNumber.length() == 0) {
+            uri = Contacts.CONTENT_URI;
+        } else {
+            uri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI,
                 Uri.encode(phoneNumber));
+        }
 
         try {
             contactCursor = mResolver.query(uri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
@@ -481,7 +479,7 @@ public class BluetoothPbapVcardManager {
                         BluetoothPbapObexServer.sIsAborted = false;
                         break;
                     }
-                    if (!composer.createOneEntry()) {
+                    if (!composer.createOneEntry(vcardType21)) {
                         Log.e(TAG, "Failed to read a contact. Error reason: "
                                 + composer.getErrorReason());
                         return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
@@ -504,7 +502,6 @@ public class BluetoothPbapVcardManager {
      * Handler to emit VCard String to PCE once size grow to maxPacketSize.
      */
     public class HandlerForStringBuffer implements OneEntryHandler {
-        @SuppressWarnings("hiding")
         private Operation operation;
 
         private OutputStream outputStream;

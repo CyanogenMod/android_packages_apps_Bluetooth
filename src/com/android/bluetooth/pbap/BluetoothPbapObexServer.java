@@ -38,7 +38,6 @@ import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.provider.CallLog.Calls;
-import android.provider.ContactsContract.Contacts;
 import android.provider.CallLog;
 
 import java.io.IOException;
@@ -138,8 +137,6 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     // record current path the client are browsing
     private String mCurrentPath = "";
 
-    private long mConnectionId;
-
     private Handler mCallback = null;
 
     private Context mContext;
@@ -170,7 +167,6 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     public BluetoothPbapObexServer(Handler callback, Context context) {
         super();
-        mConnectionId = -1;
         mCallback = callback;
         mContext = context;
         mVcardManager = new BluetoothPbapVcardManager(mContext);
@@ -674,7 +670,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             return ResponseCodes.OBEX_HTTP_OK;
         }
 
-        int vcardStringLen = vcardString.length();
+        byte[] vcardBytes = vcardString.getBytes();
+        int vcardStringLen = vcardBytes.length;
         if (D) Log.d(TAG, "Send Data: len=" + vcardStringLen);
 
         OutputStream outputStream = null;
@@ -701,9 +698,9 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             if (vcardStringLen - position < outputBufferSize) {
                 readLength = vcardStringLen - position;
             }
-            String subStr = vcardString.substring(position, position + readLength);
+            byte[] subByteArray = Arrays.copyOfRange(vcardBytes, position, position + readLength);
             try {
-                outputStream.write(subStr.getBytes(), 0, readLength);
+                outputStream.write(subByteArray, 0, readLength);
             } catch (IOException e) {
                 Log.e(TAG, "write outputstrem failed" + e.toString());
                 pushResult = ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
@@ -745,6 +742,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                     ApplicationParameter.TRIPLET_LENGTH.PHONEBOOKSIZE_LENGTH, pbsize);
 
             if (mNeedNewMissedCallsNum) {
+                mNeedNewMissedCallsNum = false;
                 int nmnum = size - mMissedCallSize;
                 mMissedCallSize = size;
 
@@ -873,7 +871,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         int size = mVcardManager.getPhonebookSize(appParamValue.needTag);
         if (size == 0) {
             if (V) Log.v(TAG, "PhonebookSize is 0, return.");
-            return ResponseCodes.OBEX_HTTP_OK;
+            return ResponseCodes.OBEX_HTTP_NOT_FOUND;
         }
 
         boolean vcard21 = appParamValue.vcard21;
@@ -883,7 +881,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         } else if (appParamValue.needTag == ContentType.PHONEBOOK) {
             if (intIndex < 0 || intIndex >= size) {
                 Log.w(TAG, "The requested vcard is not acceptable! name= " + name);
-                return ResponseCodes.OBEX_HTTP_OK;
+                return ResponseCodes.OBEX_HTTP_NOT_FOUND;
             } else if (intIndex == 0) {
                 // For PB_PATH, 0.vcf is the phone number of this phone.
                 String ownerVcard = mVcardManager.getOwnerPhoneNumberVcard(vcard21);
@@ -895,7 +893,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         } else {
             if (intIndex <= 0 || intIndex > size) {
                 Log.w(TAG, "The requested vcard is not acceptable! name= " + name);
-                return ResponseCodes.OBEX_HTTP_OK;
+                return ResponseCodes.OBEX_HTTP_NOT_FOUND;
             }
             // For others (ich/och/cch/mch), 0.vcf is meaningless, and must
             // begin from 1.vcf
@@ -954,7 +952,6 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         if (D) Log.d(TAG, "pullPhonebook(): requestSize=" + requestSize + " startPoint=" +
                 startPoint + " endPoint=" + endPoint);
 
-        String result = null;
         boolean vcard21 = appParamValue.vcard21;
         if (appParamValue.needTag == BluetoothPbapObexServer.ContentType.PHONEBOOK) {
             if (startPoint == 0) {
