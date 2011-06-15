@@ -76,8 +76,6 @@ public class BluetoothPbapCallLogComposer {
     private static final String VCARD_PROPERTY_CALLTYPE_OUTGOING = "DIALED";
     private static final String VCARD_PROPERTY_CALLTYPE_MISSED = "MISSED";
 
-    private static final String FLAG_TIMEZONE_UTC = "Z";
-
     private final Context mContext;
     private ContentResolver mContentResolver;
     private Cursor mCursor;
@@ -239,13 +237,12 @@ public class BluetoothPbapCallLogComposer {
 
     /**
      * Format according to RFC 2445 DATETIME type.
-     * The format is: ("%Y%m%dT%H%M%SZ").
+     * The format is: ("%Y%m%dT%H%M%S").
      */
     private final String toRfc2455Format(final long millSecs) {
         Time startDate = new Time();
         startDate.set(millSecs);
-        String date = startDate.format2445();
-        return date + FLAG_TIMEZONE_UTC;
+        return startDate.format2445();
     }
 
     /**
@@ -260,7 +257,7 @@ public class BluetoothPbapCallLogComposer {
         // to the requesting device (For example, transferring phone book
         // when connected over bluetooth)
         //
-        // e.g. "X-IRMC-CALL-DATETIME;MISSED:20050320T100000Z"
+        // e.g. "X-IRMC-CALL-DATETIME;MISSED:20050320T100000"
         final int callLogType = mCursor.getInt(CALL_TYPE_COLUMN_INDEX);
         final String callLogTypeStr;
         switch (callLogType) {
