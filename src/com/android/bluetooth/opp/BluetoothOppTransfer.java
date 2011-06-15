@@ -720,14 +720,14 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                     // again, but we need to retry. There is no good way to
                     // inform this socket asking it to retry apart from a blind
                     // delayed retry.
-                    if (mRetry) {
-                        BluetoothOppPreference.getInstance(mContext)
-                                .removeChannel(device, OPUSH_UUID16);
-                        markConnectionFailed(btSocket);
-                    } else if (e.getMessage().equals(SOCKET_LINK_KEY_ERROR)) {
+                    if (!mRetry && e.getMessage().equals(SOCKET_LINK_KEY_ERROR)) {
                         Message msg = mSessionHandler.obtainMessage(SOCKET_ERROR_RETRY,
                                 channel, -1, device);
                         mSessionHandler.sendMessageDelayed(msg, 2500);
+                    } else {
+                        BluetoothOppPreference.getInstance(mContext)
+                                .removeChannel(device, OPUSH_UUID16);
+                        markConnectionFailed(btSocket);
                     }
                 }
             }
