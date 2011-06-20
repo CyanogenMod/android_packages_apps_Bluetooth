@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- no translation found for pbap_acceptance_dialog_title (4606773169019619760) -->
+    <skip />
+    <!-- no translation found for pbap_acceptance_dialog_header (5456473921987026974) -->
+    <skip />
+    <!-- no translation found for pbap_session_key_dialog_title (3580996574333882561) -->
+    <skip />
+    <!-- no translation found for pbap_session_key_dialog_header (2772472422782758981) -->
+    <skip />
+    <!-- no translation found for pbap_acceptance_timeout_message (1107401415099814293) -->
+    <skip />
+    <!-- no translation found for pbap_authentication_timeout_message (4166979525521902687) -->
+    <skip />
+    <!-- no translation found for pbap_notif_ticker (1653350586489072739) -->
+    <skip />
+    <!-- no translation found for pbap_notif_title (2967094612841799440) -->
+    <skip />
+    <!-- no translation found for pbap_notif_message (6046731677513301195) -->
+    <skip />
+    <!-- no translation found for auth_notif_ticker (1575825798053163744) -->
+    <skip />
+    <!-- no translation found for auth_notif_title (7599854855681573258) -->
+    <skip />
+    <!-- no translation found for auth_notif_message (6667218116427605038) -->
+    <skip />
+    <!-- no translation found for alwaysallowed (1912976993660130849) -->
+    <skip />
+    <!-- no translation found for defaultname (4821590500649090078) -->
+    <skip />
+    <!-- no translation found for unknownName (2841414754740600042) -->
+    <skip />
+    <string name="localPhoneName" msgid="2349001318925409159">"My naam"</string>
+    <!-- no translation found for defaultnumber (8520116145890867338) -->
+    <skip />
+</resources>

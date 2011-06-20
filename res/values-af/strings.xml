@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  Copyright (C) 2007 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+ -->
+
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- no translation found for permlab_bluetoothShareManager (311492132450338925) -->
+    <skip />
+    <!-- no translation found for permdesc_bluetoothShareManager (8739116224907566462) -->
+    <skip />
+    <!-- no translation found for bt_share_picker_label (6268100924487046932) -->
+    <skip />
+    <!-- no translation found for unknown_device (9221903979877041009) -->
+    <skip />
+    <string name="unknownNumber" msgid="4994750948072751566">"Onbekend"</string>
+    <!-- no translation found for airplane_error_title (2683839635115739939) -->
+    <skip />
+    <string name="airplane_error_msg" msgid="8698965595254137230">"Jy kan nie Bluetooth in vliegtuigmodus gebruik nie."</string>
+    <!-- no translation found for bt_enable_title (2371250311764527124) -->
+    <skip />
+    <!-- no translation found for bt_enable_line1 (7203551583048149) -->
+    <skip />
+    <!-- no translation found for bt_enable_line2 (4341936569415937994) -->
+    <skip />
+    <!-- no translation found for bt_enable_cancel (1988832367505151727) -->
+    <skip />
+    <!-- no translation found for bt_enable_ok (3432462749994538265) -->
+    <skip />
+    <!-- no translation found for incoming_file_confirm_title (8139874248612182627) -->
+    <skip />
+    <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" wil <xliff:g id="FILE">%2$s</xliff:g> vir jou stuur (<xliff:g id="SIZE">%3$s</xliff:g>). "\n\n" Aanvaar die lêer?"</string>
+    <!-- no translation found for incoming_file_confirm_cancel (2973321832477704805) -->
+    <skip />
+    <!-- no translation found for incoming_file_confirm_ok (281462442932231475) -->
+    <skip />
+    <!-- no translation found for incoming_file_confirm_timeout_ok (860272542827665475) -->
+    <skip />
+    <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Daar was \'n uittelling terwyl \'n inkomende lêer van \"<xliff:g id="SENDER">%1$s</xliff:g>\" aanvaar is"</string>
+    <!-- no translation found for incoming_file_confirm_Notification_title (2958227698135117210) -->
+    <skip />
+    <!-- no translation found for incoming_file_confirm_Notification_caption (85804056450169291) -->
+    <skip />
+    <!-- no translation found for incoming_file_toast_msg (5763638110029586276) -->
+    <skip />
+    <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth-deling: Ontvang <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received" msgid="3324588019186687985">"Bluetooth-deling: Het \"<xliff:g id="FILE">%1$s</xliff:g>\" ontvang"</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth-deling: Lêer <xliff:g id="FILE">%1$s</xliff:g> nie ontvang nie"</string>
+    <string name="notification_sending" msgid="3035748958534983833">"Bluetooth-deling: Stuur <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"Bluetooth-deling: <xliff:g id="FILE">%1$s</xliff:g> gestuur"</string>
+    <!-- no translation found for notification_sent_complete (302943281067557969) -->
+    <skip />
+    <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth-deling: Lêer <xliff:g id="FILE">%1$s</xliff:g> nie gestuur nie"</string>
+    <!-- no translation found for download_title (3353228219772092586) -->
+    <skip />
+    <string name="download_line1" msgid="4926604799202134144">"Van: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
+    <string name="download_line2" msgid="5876973543019417712">"Lêer: <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="download_line3" msgid="4384821622908676061">"Lêergrootte: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
+    <string name="download_line4" msgid="8535996869722666525"></string>
+    <!-- no translation found for download_line5 (3069560415845295386) -->
+    <skip />
+    <!-- no translation found for download_cancel (9177305996747500768) -->
+    <skip />
+    <!-- no translation found for download_ok (5000360731674466039) -->
+    <skip />
+    <!-- no translation found for download_fail_line1 (3846450148862894552) -->
+    <skip />
+    <string name="download_fail_line2" msgid="8950394574689971071">"Lêer: <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="download_fail_line3" msgid="5611058289180135888">"Rede vir mislukking: <xliff:g id="REASON">%1$s</xliff:g>"</string>
+    <!-- no translation found for download_fail_ok (1521733664438320300) -->
+    <skip />
+    <!-- no translation found for download_succ_line5 (4509944688281573595) -->
+    <skip />
+    <!-- no translation found for download_succ_ok (7053688246357050216) -->
+    <skip />
+    <string name="upload_line1" msgid="2055952074059709052">"Aan: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
+    <string name="upload_line3" msgid="5866755479845641607">"Lêertipe: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
+    <!-- no translation found for upload_line5 (7759322537674229752) -->
+    <skip />
+    <!-- no translation found for upload_succ_line5 (5687317197463383601) -->
+    <skip />
+    <!-- no translation found for upload_succ_ok (7705428476405478828) -->
+    <skip />
+    <string name="upload_fail_line1" msgid="229249873880944683">"Die lêer is nie na \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" gestuur nie."</string>
+    <string name="upload_fail_line1_2" msgid="2108129204050841798">"Lêer: <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <!-- no translation found for upload_fail_ok (5807702461606714296) -->
+    <skip />
+    <!-- no translation found for upload_fail_cancel (9118496285835687125) -->
+    <skip />
+    <!-- no translation found for bt_error_btn_ok (5965151173011534240) -->
+    <skip />
+    <!-- no translation found for unknown_file (6092727753965095366) -->
+    <skip />
+    <!-- no translation found for unknown_file_desc (5845231383612478643) -->
+    <skip />
+    <!-- no translation found for not_exist_file (2245958259960700777) -->
+    <skip />
+    <!-- no translation found for not_exist_file_desc (2392808771821464983) -->
+    <skip />
+    <!-- no translation found for enabling_progress_title (436157952334723406) -->
+    <skip />
+    <!-- no translation found for enabling_progress_content (1291028079299309898) -->
+    <skip />
+    <!-- no translation found for bt_toast_1 (972182708034353383) -->
+    <skip />
+    <!-- no translation found for bt_toast_2 (6357386241778417651) -->
+    <skip />
+    <string name="bt_toast_3" msgid="6707884165086862518">"Opgehou om lêer van \"<xliff:g id="SENDER">%1$s</xliff:g>\" te ontvang"</string>
+    <string name="bt_toast_4" msgid="4678812947604395649">"Stuur lêer na \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
+    <string name="bt_toast_5" msgid="2846870992823019494">"Stuur <xliff:g id="NUMBER">%1$s</xliff:g> lêers na \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
+    <string name="bt_toast_6" msgid="1855266596936622458">"Opgehou om lêer na \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" te stuur"</string>
+    <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"Daar is nie genoeg ruimte op die USB-berging om die lêer van \"<xliff:g id="SENDER">%1$s</xliff:g>\" te stoor nie"</string>
+    <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">"Daar is te min spasie op die SD-kaart om die lêer van \"<xliff:g id="SENDER">%1$s</xliff:g>\" te stoor"</string>
+    <string name="bt_sm_2_2" msgid="2965243265852680543">"Spasie nodig: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
+    <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Te veel versoeke word verwerk. Probeer later weer."</string>
+    <!-- no translation found for status_pending (7446884326084324082) -->
+    <skip />
+    <!-- no translation found for status_running (2695810336448055064) -->
+    <skip />
+    <!-- no translation found for status_success (2268261336330060663) -->
+    <skip />
+    <string name="status_not_accept" msgid="2489805942397459486">"Inhoud nie ondersteun nie."</string>
+    <!-- no translation found for status_forbidden (8499236547788725258) -->
+    <skip />
+    <!-- no translation found for status_canceled (5514756906439790976) -->
+    <skip />
+    <!-- no translation found for status_file_error (6125632529575521755) -->
+    <skip />
+    <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Geen USB-berging nie."</string>
+    <!-- outdated translation 1112125377088421469 -->     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Geen USB-berging nie."</string>
+    <!-- no translation found for status_connection_error (7695388111375688873) -->
+    <skip />
+    <!-- no translation found for status_protocol_error (8898902951085043597) -->
+    <skip />
+    <!-- no translation found for status_unknown_error (7441602228720350817) -->
+    <skip />
+    <!-- no translation found for btopp_live_folder (7967791481444474554) -->
+    <skip />
+    <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g>  volledig ontvang."</string>
+    <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> klaar gestuur."</string>
+    <string name="inbound_history_title" msgid="6940914942271327563">"Inkomende oordragte"</string>
+    <string name="outbound_history_title" msgid="4279418703178140526">"Uitgaande oordragte"</string>
+    <string name="no_transfers" msgid="3482965619151865672">"Oordraggeskiedenis is leeg."</string>
+    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Alle items sal uit die lys verwyder word."</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth-deling: Gestuurde lêers"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth-deling: Ontvangde lêers"</string>
+    <string name="noti_caption" msgid="8510712376046370819">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> suksesvol, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> misluk."</string>
+    <string name="transfer_menu_clear_all" msgid="790017462957873132">"Vee lys uit"</string>
+    <string name="transfer_menu_open" msgid="3368984869083107200">"Open"</string>
+    <string name="transfer_menu_clear" msgid="5854038118831427492">"Verwyder uit lys"</string>
+    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Vee uit"</string>
+</resources>

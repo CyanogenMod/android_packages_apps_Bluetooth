@@ -22,7 +22,7 @@
     <string name="unknown_device" msgid="9221903979877041009">"Kifaa kisichojulikana"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Haijulikani"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"hali ya ndege"</string>
-    <!-- outdated translation 8031842956782631624 -->     <string name="airplane_error_msg" msgid="8698965595254137230">"Huwezi kutumia Bluetooth wakati simu ipo katika hali ya ndege."</string>
+    <string name="airplane_error_msg" msgid="8698965595254137230">"Huwezi kutumia Bluetooth katika hali ya Ndege."</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Kutumia huduma za Bluetooth, lazima kwanza uwashe Bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Washa Bluetooth sasa?"</string>
@@ -80,19 +80,18 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"Inatuma faili kwa \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Inatuma faili <xliff:g id="NUMBER">%1$s</xliff:g> kwa \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Ilikomesha utumaji faili kwa \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
-    <!-- no translation found for bt_sm_2_1 (8445781725395414465) -->
-    <skip />
+    <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"Hakuna nafasi ya kutosha kwenye hifadhi ya USB ili kuhifadhi faili kutoka kwa \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">"Hakuna nafasi ya kutosha katika kadi ya SD ya kuhifadhi faili kutoka \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Nafasi inayohitajika: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Maombi mengi sana yanashughulikiwa. Jaribu tena baadaye."</string>
     <string name="status_pending" msgid="7446884326084324082">"hali wa faili bado haujaanzishwa"</string>
     <string name="status_running" msgid="2695810336448055064">"hali wa faili unaendelea"</string>
     <string name="status_success" msgid="2268261336330060663">"Uhamishaji faili umefaulu kukamilika"</string>
-    <!-- outdated translation 149046562468006301 -->     <string name="status_not_accept" msgid="2489805942397459486">"Simu haiwezi kushughulikia maudhui ya aina hii"</string>
+    <string name="status_not_accept" msgid="2489805942397459486">"Maudhui hayahimiliwi."</string>
     <string name="status_forbidden" msgid="8499236547788725258">"hali huu umekatazwa na kifaa lengwa"</string>
     <string name="status_canceled" msgid="5514756906439790976">"Uhamishaji huu ulighairiwa na mtumiaji"</string>
     <string name="status_file_error" msgid="6125632529575521755">"Suala la hifadhi"</string>
-    <!-- outdated translation 5760944071743325592 -->     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Hakuna kadi ya SD. Ingiza kadi ya SD ili kuhifadhi faili zilizohamishwa."</string>
+    <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Hakuna hifadhi ya USB."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Hakuna kadi ya SD. Ingiza kadi ya SD ili kuhifadhi faili zilizohamishwa."</string>
     <string name="status_connection_error" msgid="7695388111375688873">"Muunganisho umeshindwa"</string>
     <string name="status_protocol_error" msgid="8898902951085043597">"Ombi haliwezi kushughulikiwa vizuri"</string>

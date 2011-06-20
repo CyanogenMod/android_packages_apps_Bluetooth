@@ -17,7 +17,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Få adgang til downloadadministrator."</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"Giver programmer adgang til BluetoothShare-administratoren og til at bruge det til overførsel af filer."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"Giver applikationer adgang til BluetoothShare-administratoren og til at bruge det til overførsel af filer."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Ukendt enhed"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Ukendt"</string>
@@ -69,7 +69,7 @@
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Luk"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"OK"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Ukendt fil"</string>
-    <string name="unknown_file_desc" msgid="5845231383612478643">"Der blev ikke fundet noget program til denne filtype. "\n</string>
+    <string name="unknown_file_desc" msgid="5845231383612478643">"Der blev ikke fundet nogen applikation til denne filtype. "\n</string>
     <string name="not_exist_file" msgid="2245958259960700777">"Filen findes ikke."</string>
     <string name="not_exist_file_desc" msgid="2392808771821464983">"Filen eksisterer ikke! "\n</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Vent ..."</string>

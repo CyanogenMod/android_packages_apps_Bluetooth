@@ -22,7 +22,7 @@
     <string name="unknown_device" msgid="9221903979877041009">"ያልታወቀ መሣሪያ"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"ያልታወቀ"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"የአውሮፕላን ሁነታ"</string>
-    <!-- outdated translation 8031842956782631624 -->     <string name="airplane_error_msg" msgid="8698965595254137230">"ስልኩ በአውሮፕላን ሁነታ ላይ ሲሆን ብሉቱዝ መጠቀም አይችሉም።"</string>
+    <string name="airplane_error_msg" msgid="8698965595254137230">"ብሉቱዝበአውሮፕላን ሁነትመጠቀም አይችሉም።"</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"ብሉቱዝ"</string>
     <string name="bt_enable_line1" msgid="7203551583048149">"የብሉቱዝ አገልግሎት ለመጠቀም፣ መጀመሪያ ብሉቱዝን ያብሩ።"</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"አብራ  ብሉቱዝ"</string>
@@ -80,19 +80,18 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"ፋይል ወደ \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" በመላክ ላይ"</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"<xliff:g id="NUMBER">%1$s</xliff:g> ፋይሎችን ወደ \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\" በመላክ ላይ"</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"ለ \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" ፋይል መላክ አቁሟል"</string>
-    <!-- no translation found for bt_sm_2_1 (8445781725395414465) -->
-    <skip />
+    <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"በUSB ማከማቻ ላይ ከ<xliff:g id="SENDER">%1$s</xliff:g> ፋይል ለማስቀመጥ ምንም በቂ ባዶ ቦታ የለም"</string>
     <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">" ከ \"<xliff:g id="SENDER">%1$s</xliff:g>\" በ SD ካርዱ ላይ ፋይሉን ለማስቀመጥ ምንም በቂ ቦታ የለም"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"የሚያስፈልግ ቦታ፡ <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"እጅግ ብዙ ጥየቃዎች ተካሂደዋል። ትንሽ ቆይተው እንደገና ይሞክሩ።"</string>
     <string name="status_pending" msgid="7446884326084324082">"የፋይል ዝውውርገና አልተጀመረም"</string>
     <string name="status_running" msgid="2695810336448055064">"የፋይል ዝውውር በመኪያሄድ ላይ ነው"</string>
     <string name="status_success" msgid="2268261336330060663">"የፋይል ዝውውሩ በተሳካ ተጠናቋል"</string>
-    <!-- outdated translation 149046562468006301 -->     <string name="status_not_accept" msgid="2489805942397459486">"ስልኩ ይህን አይነት ይዘት ማስተናገድ አይችልም።"</string>
+    <string name="status_not_accept" msgid="2489805942397459486">"ያልታገዘ ይዘት።"</string>
     <string name="status_forbidden" msgid="8499236547788725258">"ይህ ዝውውር በታለመው መሣሪያ የተከለከለ ነው።"</string>
     <string name="status_canceled" msgid="5514756906439790976">" ይህ ማስተላለፍ በተጠቃሚው ተሰርዟል"</string>
     <string name="status_file_error" msgid="6125632529575521755">"የማከማቻ ጉዳይ"</string>
-    <!-- outdated translation 5760944071743325592 -->     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"ምንምSD ካርድ የለም። የተዘዋወሩ ፋይሎችን ለማስቀመጥ SD ካርድ አስገባ።"</string>
+    <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"ምንም USB ማከማቻ የለም።"</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"ምንምSD ካርድ የለም። የተዘዋወሩ ፋይሎችን ለማስቀመጥ SD ካርድ አስገባ።"</string>
     <string name="status_connection_error" msgid="7695388111375688873">"የተያያዥ መሳን"</string>
     <string name="status_protocol_error" msgid="8898902951085043597">"ጥየቃውን በትክክል መያዝ አይቻልም።"</string>

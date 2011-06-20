@@ -22,7 +22,7 @@
     <string name="unknown_device" msgid="9221903979877041009">"Idivayisi engaziwa"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Akwaziwa"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Imodi yendiza"</string>
-    <!-- outdated translation 8031842956782631624 -->     <string name="airplane_error_msg" msgid="8698965595254137230">"Awukwazi ukusebenzisa i-Bluetooth uma ifoni ikwimodi yendiza."</string>
+    <string name="airplane_error_msg" msgid="8698965595254137230">"Awukwazi ukusebenzisa i-Bluetooth kwimodi yeNdiza."</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"I-Bluetooth"</string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Ukusebenzisa insizakalo ye-Bluetooth, kumele uvule kuqala i-Bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Vula i-Bluetooth manje?"</string>
@@ -80,19 +80,18 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"Ithumela ifayela ku- \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Ithumela <xliff:g id="NUMBER">%1$s</xliff:g> amafayela ku- \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Imise ukuthumela ifayela ku- \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
-    <!-- no translation found for bt_sm_2_1 (8445781725395414465) -->
-    <skip />
+    <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"Asikho isikhala esanele sokugcina nge-USB ukulondoloza ifayela kusuka ku- \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">"Asikho isikhala esanele ekhadini le-SD ukugcina ifayela esuka ku- \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Isikhala esidingekayo: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Kunezicelo eziningi ezenziwayo. Zama futhi emva kwesikhathi."</string>
     <string name="status_pending" msgid="7446884326084324082">"Ukudlulisa ifayela akuqalisiwe okwamanje"</string>
     <string name="status_running" msgid="2695810336448055064">"Ukudlulisa ifayela kuyaqhubeka"</string>
     <string name="status_success" msgid="2268261336330060663">"Ukudlulisa ifayela kuqede ngokuphumelelayo"</string>
-    <!-- outdated translation 149046562468006301 -->     <string name="status_not_accept" msgid="2489805942397459486">"Ifoni ayikwazi ukuphatha lolu hlobo lokuqukethwe"</string>
+    <string name="status_not_accept" msgid="2489805942397459486">"Okuqukethwe akusekelwe."</string>
     <string name="status_forbidden" msgid="8499236547788725258">"Lokhu kudlulisa kunqatshelwe idivayisi eqondiwe"</string>
     <string name="status_canceled" msgid="5514756906439790976">"Lokhu kudlulisa kususwe umsebenzisi"</string>
     <string name="status_file_error" msgid="6125632529575521755">"Inkinga yokugcina"</string>
-    <!-- outdated translation 5760944071743325592 -->     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Alikho ikhadi le-SD. Faka ikhadi le-SD ukulondoloza amafayela adlulisiwe."</string>
+    <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Akukho ukugcina nge-USB."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Alikho ikhadi le-SD. Faka ikhadi le-SD ukulondoloza amafayela adlulisiwe."</string>
     <string name="status_connection_error" msgid="7695388111375688873">"Ukwehluleka koxhumano"</string>
     <string name="status_protocol_error" msgid="8898902951085043597">"Isicelo asikwazi ukuphathwa ngokulungile"</string>
