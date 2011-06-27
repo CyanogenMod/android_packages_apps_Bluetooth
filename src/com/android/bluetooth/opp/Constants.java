@@ -199,6 +199,7 @@ public class Constants {
      * Today, restricted to images, audio, video and certain text types.
      */
     public static final String[] ACCEPTABLE_SHARE_INBOUND_TYPES = new String[] {
+        "*",
         "image/*",
         "video/*",
         "audio/*",
