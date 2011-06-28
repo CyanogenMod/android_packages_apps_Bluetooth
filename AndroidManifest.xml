@@ -136,6 +136,8 @@
             android:name=".pbap.BluetoothPbapReceiver">
             <intent-filter>
                 <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>
+                <action android:name="android.bluetooth.device.action.CONNECTION_ACCESS_REPLY" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
     </application>

@@ -71,9 +71,7 @@ public class BluetoothPbapActivity extends AlertActivity implements
 
     private static final int BLUETOOTH_OBEX_AUTHKEY_MAX_LENGTH = 16;
 
-    private static final int DIALOG_YES_NO_CONNECT = 1;
-
-    private static final int DIALOG_YES_NO_AUTH = 2;
+    private static final int DIALOG_YES_NO_AUTH = 1;
 
     private static final String KEY_USER_TIMEOUT = "user_timeout";
 
@@ -114,10 +112,7 @@ public class BluetoothPbapActivity extends AlertActivity implements
         super.onCreate(savedInstanceState);
         Intent i = getIntent();
         String action = i.getAction();
-        if (action.equals(BluetoothPbapService.ACCESS_REQUEST_ACTION)) {
-            showPbapDialog(DIALOG_YES_NO_CONNECT);
-            mCurrentDialog = DIALOG_YES_NO_CONNECT;
-        } else if (action.equals(BluetoothPbapService.AUTH_CHALL_ACTION)) {
+        if (action.equals(BluetoothPbapService.AUTH_CHALL_ACTION)) {
             showPbapDialog(DIALOG_YES_NO_AUTH);
             mCurrentDialog = DIALOG_YES_NO_AUTH;
         } else {
@@ -132,17 +127,6 @@ public class BluetoothPbapActivity extends AlertActivity implements
     private void showPbapDialog(int id) {
         final AlertController.AlertParams p = mAlertParams;
         switch (id) {
-            case DIALOG_YES_NO_CONNECT:
-                p.mIconId = android.R.drawable.ic_dialog_info;
-                p.mTitle = getString(R.string.pbap_acceptance_dialog_header);
-                p.mView = createView(DIALOG_YES_NO_CONNECT);
-                p.mPositiveButtonText = getString(android.R.string.yes);
-                p.mPositiveButtonListener = this;
-                p.mNegativeButtonText = getString(android.R.string.no);
-                p.mNegativeButtonListener = this;
-                mOkButton = mAlert.getButton(DialogInterface.BUTTON_POSITIVE);
-                setupAlert();
-                break;
             case DIALOG_YES_NO_AUTH:
                 p.mIconId = android.R.drawable.ic_dialog_info;
                 p.mTitle = getString(R.string.pbap_session_key_dialog_header);
@@ -163,10 +147,6 @@ public class BluetoothPbapActivity extends AlertActivity implements
     private String createDisplayText(final int id) {
         String mRemoteName = BluetoothPbapService.getRemoteDeviceName();
         switch (id) {
-            case DIALOG_YES_NO_CONNECT:
-                String mMessage1 = getString(R.string.pbap_acceptance_dialog_title, mRemoteName,
-                        mRemoteName);
-                return mMessage1;
             case DIALOG_YES_NO_AUTH:
                 String mMessage2 = getString(R.string.pbap_session_key_dialog_title, mRemoteName);
                 return mMessage2;
@@ -177,22 +157,6 @@ public class BluetoothPbapActivity extends AlertActivity implements
 
     private View createView(final int id) {
         switch (id) {
-            case DIALOG_YES_NO_CONNECT:
-                mView = getLayoutInflater().inflate(R.layout.access, null);
-                messageView = (TextView)mView.findViewById(R.id.message);
-                messageView.setText(createDisplayText(id));
-                mAlwaysAllowed = (CheckBox)mView.findViewById(R.id.alwaysallowed);
-                mAlwaysAllowed.setChecked(true);
-                mAlwaysAllowed.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        if (isChecked) {
-                            mAlwaysAllowedValue = true;
-                        } else {
-                            mAlwaysAllowedValue = false;
-                        }
-                    }
-                });
-                return mView;
             case DIALOG_YES_NO_AUTH:
                 mView = getLayoutInflater().inflate(R.layout.auth, null);
                 messageView = (TextView)mView.findViewById(R.id.message);
@@ -210,10 +174,7 @@ public class BluetoothPbapActivity extends AlertActivity implements
 
     private void onPositive() {
         if (!mTimeout) {
-            if (mCurrentDialog == DIALOG_YES_NO_CONNECT) {
-                sendIntentToReceiver(BluetoothPbapService.ACCESS_ALLOWED_ACTION,
-                        BluetoothPbapService.EXTRA_ALWAYS_ALLOWED, mAlwaysAllowedValue);
-            } else if (mCurrentDialog == DIALOG_YES_NO_AUTH) {
+            if (mCurrentDialog == DIALOG_YES_NO_AUTH) {
                 sendIntentToReceiver(BluetoothPbapService.AUTH_RESPONSE_ACTION,
                         BluetoothPbapService.EXTRA_SESSION_KEY, mSessionKey);
                 mKeyView.removeTextChangedListener(this);
@@ -224,9 +185,7 @@ public class BluetoothPbapActivity extends AlertActivity implements
     }
 
     private void onNegative() {
-        if (mCurrentDialog == DIALOG_YES_NO_CONNECT) {
-            sendIntentToReceiver(BluetoothPbapService.ACCESS_DISALLOWED_ACTION, null, null);
-        } else if (mCurrentDialog == DIALOG_YES_NO_AUTH) {
+        if (mCurrentDialog == DIALOG_YES_NO_AUTH) {
             sendIntentToReceiver(BluetoothPbapService.AUTH_CANCELLED_ACTION, null, null);
             mKeyView.removeTextChangedListener(this);
         }
@@ -274,13 +233,7 @@ public class BluetoothPbapActivity extends AlertActivity implements
 
     private void onTimeout() {
         mTimeout = true;
-        if (mCurrentDialog == DIALOG_YES_NO_CONNECT) {
-            messageView.setText(getString(R.string.pbap_acceptance_timeout_message,
-                    BluetoothPbapService.getRemoteDeviceName()));
-            mAlert.getButton(DialogInterface.BUTTON_NEGATIVE).setVisibility(View.GONE);
-            mAlwaysAllowed.setVisibility(View.GONE);
-            mAlwaysAllowed.clearFocus();
-        } else if (mCurrentDialog == DIALOG_YES_NO_AUTH) {
+        if (mCurrentDialog == DIALOG_YES_NO_AUTH) {
             messageView.setText(getString(R.string.pbap_authentication_timeout_message,
                     BluetoothPbapService.getRemoteDeviceName()));
             mKeyView.setVisibility(View.GONE);
