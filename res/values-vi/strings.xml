@@ -26,7 +26,7 @@
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Để sử dụng dịch vụ Bluetooth, trước tiên, bạn phải bật Bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Bật Bluetooth ngay bây giờ?"</string>
-    <string name="bt_enable_cancel" msgid="1988832367505151727">"Huỷ"</string>
+    <string name="bt_enable_cancel" msgid="1988832367505151727">"Hủy"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"Bật"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"Chuyển tệp"</string>
     <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" muốn gửi cho bạn <xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>). "\n\n" Chấp nhận tệp?"</string>
@@ -89,7 +89,7 @@
     <string name="status_success" msgid="2268261336330060663">"Chuyển tệp đã hoàn tất thành công"</string>
     <string name="status_not_accept" msgid="2489805942397459486">"Nội dung không được hỗ trợ."</string>
     <string name="status_forbidden" msgid="8499236547788725258">"Quá trình chuyển tệp này bị thiết bị đích chặn"</string>
-    <string name="status_canceled" msgid="5514756906439790976">"Quá trình chuyển tệp này đã bị người dùng huỷ"</string>
+    <string name="status_canceled" msgid="5514756906439790976">"Quá trình chuyển tệp này đã bị người dùng hủy"</string>
     <string name="status_file_error" msgid="6125632529575521755">"Sự cố về dung lượng"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Không có bộ nhớ USB."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Không có thẻ SD nào. Hãy lắp thẻ SD để lưu tệp được chuyển."</string>
