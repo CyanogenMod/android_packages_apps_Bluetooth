@@ -46,6 +46,8 @@ import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.PhoneLookup;
+import android.provider.ContactsContract.Preferences;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -196,6 +198,19 @@ public class BluetoothPbapVcardManager {
         return list;
     }
 
+    private Cursor queryContacts(Uri uri, boolean orderById) {
+        int order = Settings.System.getInt(mResolver,
+                Preferences.DISPLAY_ORDER, Preferences.DISPLAY_ORDER_PRIMARY);
+        String columnName = order == Preferences.DISPLAY_ORDER_ALTERNATIVE
+                ? Contacts.DISPLAY_NAME_ALTERNATIVE
+                : Contacts.DISPLAY_NAME;
+
+        CONTACTS_PROJECTION[CONTACTS_NAME_COLUMN_INDEX] = columnName;
+
+        return mResolver.query(uri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE, null,
+                        orderById ? Contacts._ID : columnName);
+    }
+
     public final ArrayList<String> getPhonebookNameList(final int orderByWhat) {
         ArrayList<String> nameList = new ArrayList<String>();
         nameList.add(BluetoothPbapService.getLocalPhoneName());
@@ -205,12 +220,10 @@ public class BluetoothPbapVcardManager {
         try {
             if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_INDEXED) {
                 if (V) Log.v(TAG, "getPhonebookNameList, order by index");
-                contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
-                        null, Contacts._ID);
+                contactCursor = queryContacts(myUri, true);
             } else if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL) {
                 if (V) Log.v(TAG, "getPhonebookNameList, order by alpha");
-                contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
-                        null, Contacts.DISPLAY_NAME);
+                contactCursor = queryContacts(myUri, false);
             }
             if (contactCursor != null) {
                 for (contactCursor.moveToFirst(); !contactCursor.isAfterLast(); contactCursor
@@ -244,8 +257,7 @@ public class BluetoothPbapVcardManager {
         }
 
         try {
-            contactCursor = mResolver.query(uri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
-                        null, Contacts._ID);
+            contactCursor = queryContacts(uri, true);
 
             if (contactCursor != null) {
                 for (contactCursor.moveToFirst(); !contactCursor.isAfterLast(); contactCursor
@@ -340,8 +352,7 @@ public class BluetoothPbapVcardManager {
         long startPointId = 0;
         long endPointId = 0;
         try {
-            contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE, null,
-                    Contacts._ID);
+            contactCursor = queryContacts(myUri, true);
             if (contactCursor != null) {
                 contactCursor.moveToPosition(startPoint - 1);
                 startPointId = contactCursor.getLong(CONTACTS_ID_COLUMN_INDEX);
@@ -385,8 +396,7 @@ public class BluetoothPbapVcardManager {
         long contactId = 0;
         if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_INDEXED) {
             try {
-                contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
-                        null, Contacts._ID);
+                contactCursor = queryContacts(myUri, true);
                 if (contactCursor != null) {
                     contactCursor.moveToPosition(offset - 1);
                     contactId = contactCursor.getLong(CONTACTS_ID_COLUMN_INDEX);
@@ -399,8 +409,7 @@ public class BluetoothPbapVcardManager {
             }
         } else if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL) {
             try {
-                contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
-                        null, Contacts.DISPLAY_NAME);
+                contactCursor = queryContacts(myUri, false);
                 if (contactCursor != null) {
                     contactCursor.moveToPosition(offset - 1);
                     contactId = contactCursor.getLong(CONTACTS_ID_COLUMN_INDEX);

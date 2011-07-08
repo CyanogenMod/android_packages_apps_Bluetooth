@@ -15,11 +15,15 @@
  */
 package com.android.bluetooth.pbap;
 
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.net.Uri;
 import android.pim.vcard.VCardComposer;
 import android.pim.vcard.VCardBuilder;
 import android.pim.vcard.VCardConfig;
+import android.provider.ContactsContract.Contacts;
+import android.provider.ContactsContract.Preferences;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Event;
 import android.provider.ContactsContract.CommonDataKinds.Nickname;
@@ -30,7 +34,7 @@ import android.provider.ContactsContract.CommonDataKinds.Photo;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.provider.ContactsContract.CommonDataKinds.Website;
-import android.telephony.PhoneNumberUtils;
+import android.provider.Settings;
 import android.util.Log;
 
 import java.util.List;
@@ -70,16 +74,65 @@ public class BluetoothPbapVcardComposer extends VCardComposer
     public static final long FILTER_SORT_STRING = (1L << 27); // String used for sorting operations
     public static final long FILTER_X_IRMC_CALL_DATETIME = (1L << 28); // Time stamp
 
+    private final ContentResolver mResolver;
     private final int mVCardType;
     private final String mCharset;
     private final long mFilter;
 
+    private static final String[] sContactsProjection = new String[] {
+        Contacts._ID,
+        Contacts.DISPLAY_NAME_PRIMARY,
+        Contacts.DISPLAY_NAME_ALTERNATIVE
+    };
+
+    private final class PbapVcardBuilder extends VCardBuilder {
+        public PbapVcardBuilder(int vcardType, String charset) {
+            super(vcardType, charset);
+        }
+
+        @Override
+        protected ContentValues getPrimaryContentValue(final List<ContentValues> contentValuesList) {
+            ContentValues values = super.getPrimaryContentValue(contentValuesList);
+            if (values != null) {
+                int order = Settings.System.getInt(mResolver,
+                        Preferences.DISPLAY_ORDER, Preferences.DISPLAY_ORDER_PRIMARY);
+
+                if (order == Preferences.DISPLAY_ORDER_ALTERNATIVE) {
+                    final String displayName = values.getAsString(StructuredName.DISPLAY_NAME);
+                    final int displayNameAltColumn =
+                            getCursor().getColumnIndex(StructuredName.DISPLAY_NAME_ALTERNATIVE);
+                    final String displayNameAlternative =
+                            displayNameAltColumn >= 0 ? getCursor().getString(displayNameAltColumn) : null;
+
+                    if (displayName != null && displayNameAlternative != null) {
+                        if (BluetoothPbapService.VERBOSE) {
+                            Log.v(LOG_TAG, "Replaced display name " + displayName +
+                                    " by alternative " + displayNameAlternative);
+                        }
+                        values.put(StructuredName.DISPLAY_NAME, displayNameAlternative);
+                    }
+                }
+            }
+
+            return values;
+        }
+    };
+
     public BluetoothPbapVcardComposer(final Context context, final int vcardType,
             long filter, final boolean careHandlerErrors) {
         super(context, vcardType, null, careHandlerErrors);
+        mResolver = context.getContentResolver();
         mVCardType = vcardType;
         mCharset = null;
         mFilter = filter;
+    }
+
+    @Override
+    protected String[] getContactsProjection(final Uri contentUri) {
+        if (super.getContactsProjection(contentUri) != null) {
+            return sContactsProjection;
+        }
+        return null;
     }
 
     public String buildVCard(final Map<String, List<ContentValues>> contentValuesListMap) {
@@ -88,11 +141,10 @@ public class BluetoothPbapVcardComposer extends VCardComposer
             return "";
         } else {
             Log.i(LOG_TAG, "buildVCard filter = " + mFilter);
-            final VCardBuilder builder = new VCardBuilder(mVCardType, mCharset);
-            // TODO: not perfect here - perhaps subclass VCardBuilder to separate N and FN
+            final VCardBuilder builder = new PbapVcardBuilder(mVCardType, mCharset);
+            // not perfect here - perhaps subclass VCardBuilder to separate N and FN
             if (((mFilter & FILTER_N) != 0) || ((mFilter & FILTER_FN) != 0))
-                builder.appendNameProperties(contentValuesListMap
-                        .get(StructuredName.CONTENT_ITEM_TYPE));
+                builder.appendNameProperties(contentValuesListMap.get(StructuredName.CONTENT_ITEM_TYPE));
             if ((mFilter & FILTER_NICKNAME) != 0)
                 builder.appendNickNames(contentValuesListMap.get(Nickname.CONTENT_ITEM_TYPE));
             if ((mFilter & FILTER_TEL) != 0)
@@ -112,9 +164,16 @@ public class BluetoothPbapVcardComposer extends VCardComposer
                 builder.appendNotes(contentValuesListMap.get(Note.CONTENT_ITEM_TYPE));
             if ((mFilter & FILTER_BDAY) != 0)
                 builder.appendEvents(contentValuesListMap.get(Event.CONTENT_ITEM_TYPE));
-            // builder.appendIms(contentValuesListMap.get(Im.CONTENT_ITEM_TYPE));
-            // builder.appendRelation(contentValuesListMap.get(Relation.CONTENT_ITEM_TYPE));
-            return builder.toString();
+            //builder.appendIms(contentValuesListMap.get(Im.CONTENT_ITEM_TYPE));
+            //builder.appendRelation(contentValuesListMap.get(Relation.CONTENT_ITEM_TYPE));
+
+            final String vcard = builder.toString();
+
+            if (BluetoothPbapService.VERBOSE) {
+                Log.v(LOG_TAG, "Built phonebook VCard: " + vcard);
+            }
+
+            return vcard;
         }
     }
 }
