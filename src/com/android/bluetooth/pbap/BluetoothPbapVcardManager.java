@@ -44,6 +44,8 @@ import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.PhoneLookup;
+import android.provider.ContactsContract.Preferences;
+import android.provider.Settings;
 import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.util.Log;
@@ -87,12 +89,13 @@ public class BluetoothPbapVcardManager {
 
     static final String[] CONTACTS_PROJECTION = new String[] {
             Contacts._ID, // 0
-            Contacts.DISPLAY_NAME, // 1
+            Contacts.DISPLAY_NAME_PRIMARY, // 1
+            Contacts.DISPLAY_NAME_ALTERNATIVE // 2
     };
 
     static final int CONTACTS_ID_COLUMN_INDEX = 0;
-
-    static final int CONTACTS_NAME_COLUMN_INDEX = 1;
+    static final int CONTACTS_PRIM_NAME_COLUMN_INDEX = 1;
+    static final int CONTACTS_ALT_NAME_COLUMN_INDEX = 2;
 
     // call histories use dynamic handles, and handles should order by date; the
     // most recently one should be the first handle. In table "calls", _id and
@@ -234,6 +237,24 @@ public class BluetoothPbapVcardManager {
         return list;
     }
 
+    private int getDisplayNameColumnIndex() {
+        int order = Settings.System.getInt(mResolver,
+                Preferences.DISPLAY_ORDER, Preferences.DISPLAY_ORDER_PRIMARY);
+
+        return order == Preferences.DISPLAY_ORDER_ALTERNATIVE
+                ? CONTACTS_ALT_NAME_COLUMN_INDEX
+                : CONTACTS_PRIM_NAME_COLUMN_INDEX;
+    }
+
+    private String getDisplayNameColumn() {
+        int order = Settings.System.getInt(mResolver,
+                Preferences.DISPLAY_ORDER, Preferences.DISPLAY_ORDER_PRIMARY);
+
+        return order == Preferences.DISPLAY_ORDER_ALTERNATIVE
+                ? Contacts.DISPLAY_NAME_ALTERNATIVE
+                : Contacts.DISPLAY_NAME_PRIMARY;
+    }
+
     public final ArrayList<String> getPhonebookNameList(final int orderByWhat) {
         ArrayList<String> nameList = new ArrayList<String>();
         //Owner vCard enhancement. Use "ME" profile if configured
@@ -257,12 +278,13 @@ public class BluetoothPbapVcardManager {
             } else if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL) {
                 if (V) Log.v(TAG, "getPhonebookNameList, order by alpha");
                 contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
-                        null, Contacts.DISPLAY_NAME);
+                        null, getDisplayNameColumn());
             }
             if (contactCursor != null) {
+                int nameIndex = getDisplayNameColumnIndex();
                 for (contactCursor.moveToFirst(); !contactCursor.isAfterLast(); contactCursor
                         .moveToNext()) {
-                    String name = contactCursor.getString(CONTACTS_NAME_COLUMN_INDEX);
+                    String name = contactCursor.getString(nameIndex);
                     if (TextUtils.isEmpty(name)) {
                         name = mContext.getString(android.R.string.unknownName);
                     }
@@ -295,9 +317,10 @@ public class BluetoothPbapVcardManager {
                         null, Contacts._ID);
 
             if (contactCursor != null) {
+                int nameIndex = getDisplayNameColumnIndex();
                 for (contactCursor.moveToFirst(); !contactCursor.isAfterLast(); contactCursor
                         .moveToNext()) {
-                    String name = contactCursor.getString(CONTACTS_NAME_COLUMN_INDEX);
+                    String name = contactCursor.getString(nameIndex);
                     long id = contactCursor.getLong(CONTACTS_ID_COLUMN_INDEX);
                     if (TextUtils.isEmpty(name)) {
                         name = mContext.getString(android.R.string.unknownName);
@@ -447,7 +470,7 @@ public class BluetoothPbapVcardManager {
         } else if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL) {
             try {
                 contactCursor = mResolver.query(myUri, CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
-                        null, Contacts.DISPLAY_NAME);
+                        null, getDisplayNameColumn());
                 if (contactCursor != null) {
                     contactCursor.moveToPosition(offset - 1);
                     contactId = contactCursor.getLong(CONTACTS_ID_COLUMN_INDEX);
@@ -490,6 +513,12 @@ public class BluetoothPbapVcardManager {
                     vcardType |= VCardConfig.FLAG_REFRAIN_IMAGE_EXPORT;
                 }
 
+                int order = Settings.System.getInt(mResolver,
+                        Preferences.DISPLAY_ORDER, Preferences.DISPLAY_ORDER_PRIMARY);
+                if (order == Preferences.DISPLAY_ORDER_ALTERNATIVE) {
+                    vcardType |= VCardConfig.FLAG_USE_ALTERNATIVE_NAME_ORDERING;
+                }
+
                 //Enhancement: customize Vcard based on preferences/settings and input from caller
                 composer = BluetoothPbapUtils.createFilteredVCardComposer(mContext, vcardType,null);
                 //End enhancement
@@ -510,8 +539,11 @@ public class BluetoothPbapVcardManager {
                             }
                         });
                 buffer = new HandlerForStringBuffer(op, ownerVCard);
-                if (!composer.init(Contacts.CONTENT_URI, selection, null, Contacts._ID) ||
-                        !buffer.onInit(mContext)) {
+                if (!composer.init(Contacts.CONTENT_URI, CONTACTS_PROJECTION,
+                            selection, null, Contacts._ID, null)) {
+                    return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+                }
+                if (!buffer.onInit(mContext)) {
                     return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
                 }
 
