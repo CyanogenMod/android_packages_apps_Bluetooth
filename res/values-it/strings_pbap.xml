@@ -1,19 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="pbap_acceptance_dialog_title" msgid="4606773169019619760">"%1$s vorrebbe accedere ai tuoi contatti e alla tua cronologia chiamate. Consentire l\'accesso a %2$s?"</string>
-    <string name="pbap_acceptance_dialog_header" msgid="5456473921987026974">"Accesso rubrica"</string>
     <string name="pbap_session_key_dialog_title" msgid="3580996574333882561">"Digita la chiave di sessione per %1$s"</string>
     <string name="pbap_session_key_dialog_header" msgid="2772472422782758981">"Chiave sessione Bluetooth necessaria"</string>
     <string name="pbap_acceptance_timeout_message" msgid="1107401415099814293">"Timeout dell\'accettazione della connessione con %1$s"</string>
     <string name="pbap_authentication_timeout_message" msgid="4166979525521902687">"Timeout dell\'ingresso della chiave di sessione con %1$s"</string>
-    <string name="pbap_notif_ticker" msgid="1653350586489072739">"Richiesta di accesso alla rubrica"</string>
-    <string name="pbap_notif_title" msgid="2967094612841799440">"Richiesta PBAP"</string>
-    <string name="pbap_notif_message" msgid="6046731677513301195">"Consenti a %1$s di accedere alla rubrica"</string>
     <string name="auth_notif_ticker" msgid="1575825798053163744">"Richiesta di autenticazione Obex"</string>
     <string name="auth_notif_title" msgid="7599854855681573258">"Chiave sessione"</string>
     <string name="auth_notif_message" msgid="6667218116427605038">"Digita la chiave di sessione per %1$s"</string>
-    <string name="alwaysallowed" msgid="1912976993660130849">"Sempre consentito?"</string>
     <string name="defaultname" msgid="4821590500649090078">"Kit auto"</string>
     <string name="unknownName" msgid="2841414754740600042">"Nome sconosciuto"</string>
     <string name="localPhoneName" msgid="2349001318925409159">"Il mio nome"</string>

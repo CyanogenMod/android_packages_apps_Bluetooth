@@ -1,19 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="pbap_acceptance_dialog_title" msgid="4606773169019619760">"%1$s ber om å få tilgang til kontaktene og ringeloggen. Vil du gi %2$s tilgang?"</string>
-    <string name="pbap_acceptance_dialog_header" msgid="5456473921987026974">"Tilgang til telefonbok"</string>
     <string name="pbap_session_key_dialog_title" msgid="3580996574333882561">"Skriv inn øktsnøkkel for %1$s"</string>
     <string name="pbap_session_key_dialog_header" msgid="2772472422782758981">"Bluetooth-øktsnøkkel kreves"</string>
     <string name="pbap_acceptance_timeout_message" msgid="1107401415099814293">"Det·tok·for·lang·tid·å·godta·forbindelsen·med·«%1$s»"</string>
     <string name="pbap_authentication_timeout_message" msgid="4166979525521902687">"Det·tok·for·lang·tid·å·legge·inn·øktsnøkkel·med·%1$s"</string>
-    <string name="pbap_notif_ticker" msgid="1653350586489072739">"Forespørsel om tilgang til telefonboka"</string>
-    <string name="pbap_notif_title" msgid="2967094612841799440">"PBAP-forespørsel"</string>
-    <string name="pbap_notif_message" msgid="6046731677513301195">"Gi·%1$s·tilgang·til·telefonboka"</string>
     <string name="auth_notif_ticker" msgid="1575825798053163744">"Autentiseringsforespørsel fra Obex"</string>
     <string name="auth_notif_title" msgid="7599854855681573258">"Øktsnøkkel"</string>
     <string name="auth_notif_message" msgid="6667218116427605038">"Skriv inn øktsnøkkel for %1$s"</string>
-    <string name="alwaysallowed" msgid="1912976993660130849">"Alltid tillatt?"</string>
     <string name="defaultname" msgid="4821590500649090078">"Bilsett"</string>
     <string name="unknownName" msgid="2841414754740600042">"Ukjent navn"</string>
     <string name="localPhoneName" msgid="2349001318925409159">"Navnet mitt"</string>
