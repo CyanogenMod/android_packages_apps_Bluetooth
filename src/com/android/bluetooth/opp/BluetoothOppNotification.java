@@ -448,9 +448,10 @@ class BluetoothOppNotification {
         }
 
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-            String title = mContext.getString(R.string.incoming_file_confirm_Notification_title);
-            String caption = mContext
-                    .getString(R.string.incoming_file_confirm_Notification_caption);
+            CharSequence title =
+                    mContext.getText(R.string.incoming_file_confirm_Notification_title);
+            CharSequence caption = mContext
+                    .getText(R.string.incoming_file_confirm_Notification_caption);
             int id = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID));
             long timeStamp = cursor.getLong(cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP));
             Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + id);
@@ -458,8 +459,10 @@ class BluetoothOppNotification {
             Notification n = new Notification();
             n.icon = R.drawable.bt_incomming_file_notification;
             n.flags |= Notification.FLAG_ONLY_ALERT_ONCE;
+            n.flags |= Notification.FLAG_ONGOING_EVENT;
             n.defaults = Notification.DEFAULT_SOUND;
             n.tickerText = title;
+
             Intent intent = new Intent(Constants.ACTION_INCOMING_FILE_CONFIRM);
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
             intent.setData(contentUri);
