@@ -63,12 +63,22 @@ public class BluetoothOppBtEnablingActivity extends AlertActivity {
 
     private static final int BT_ENABLING_TIMEOUT_VALUE = 20000;
 
+    private boolean mRegistered = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // If BT is already enabled jus return.
+        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+        if (adapter.isEnabled()) {
+            finish();
+            return;
+        }
+
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(mBluetoothReceiver, filter);
+        mRegistered = true;
 
         // Set up the "dialog"
         final AlertController.AlertParams p = mAlertParams;
@@ -103,7 +113,9 @@ public class BluetoothOppBtEnablingActivity extends AlertActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(mBluetoothReceiver);
+        if (mRegistered) {
+            unregisterReceiver(mBluetoothReceiver);
+        }
     }
 
     private final Handler mTimeoutHandler = new Handler() {
