@@ -172,7 +172,7 @@ public class BluetoothOppService extends Service {
             if (mAdapter == null) {
                 Log.w(TAG, "Local BT device is not enabled");
             } else {
-                startListenerDelayed();
+                startListener();
             }
         }
         if (V) BluetoothOppPreference.getInstance(this).dump();
@@ -187,18 +187,18 @@ public class BluetoothOppService extends Service {
             if (mAdapter == null) {
                 Log.w(TAG, "Local BT device is not enabled");
             } else {
-                startListenerDelayed();
+                startListener();
             }
             updateFromProvider();
         }
         return retCode;
     }
 
-    private void startListenerDelayed() {
+    private void startListener() {
         if (!mListenStarted) {
             if (mAdapter.isEnabled()) {
-                if (V) Log.v(TAG, "Starting RfcommListener in 9 seconds");
-                mHandler.sendMessageDelayed(mHandler.obtainMessage(START_LISTENER), 9000);
+                if (V) Log.v(TAG, "Starting RfcommListener");
+                mHandler.sendMessage(mHandler.obtainMessage(START_LISTENER));
                 mListenStarted = true;
             }
         }
