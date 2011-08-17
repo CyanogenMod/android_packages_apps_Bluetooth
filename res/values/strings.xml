@@ -186,9 +186,9 @@
     <!-- Shown when USB storage cannot be found.  [CHAR LIMIT=NONE] -->
     <string name="status_no_sd_card" product="nosdcard">No USB storage.</string>
     <string name="status_no_sd_card" product="default">No SD card. Insert an SD card to save transferred files.</string>
-    <string name="status_connection_error">Connection failure</string>
-    <string name="status_protocol_error">The request can not be handled correctly</string>
-    <string name="status_unknown_error">Unknown error</string>
+    <string name="status_connection_error">Connection unsuccessful.</string>
+    <string name="status_protocol_error">The request can\'t be handled correctly.</string>
+    <string name="status_unknown_error">Unknown error.</string>
 
     <!-- Bluetooth OPP Live Folder -->
     <string name="btopp_live_folder">Bluetooth received</string>
