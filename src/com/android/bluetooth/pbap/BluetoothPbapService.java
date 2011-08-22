@@ -39,6 +39,7 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothPbap;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.bluetooth.IBluetooth;
@@ -633,7 +634,8 @@ public class BluetoothPbapService extends Service {
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
             sendBroadcast(intent, BLUETOOTH_PERM);
             try {
-                mBluetoothService.sendConnectionStateChange(mRemoteDevice, mState, state);
+                mBluetoothService.sendConnectionStateChange(mRemoteDevice, BluetoothProfile.PBAP,
+                                                            mState, state);
             } catch (RemoteException e) {
                 Log.e(TAG, "RemoteException in sendConnectionStateChange");
             }
