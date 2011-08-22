@@ -93,9 +93,9 @@
     <string name="status_file_error" msgid="6125632529575521755">"Probleem met opslagruimte"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Geen USB-opslag."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Geen SD-kaart. Plaats een SD-kaart om overgedragen bestanden op te slaan."</string>
-    <string name="status_connection_error" msgid="7695388111375688873">"Verbindingsfout"</string>
-    <string name="status_protocol_error" msgid="8898902951085043597">"Het verzoek kan niet correct worden verwerkt"</string>
-    <string name="status_unknown_error" msgid="7441602228720350817">"Onbekende fout"</string>
+    <!-- outdated translation 7695388111375688873 -->     <string name="status_connection_error" msgid="947681831523219891">"Verbindingsfout"</string>
+    <!-- outdated translation 8898902951085043597 -->     <string name="status_protocol_error" msgid="1199135510987767468">"Het verzoek kan niet correct worden verwerkt"</string>
+    <!-- outdated translation 7441602228720350817 -->     <string name="status_unknown_error" msgid="8156660554237824912">"Onbekende fout"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Ontvangen via Bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ontvangen voltooid."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> verzonden voltooid."</string>

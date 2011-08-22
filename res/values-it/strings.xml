@@ -93,9 +93,9 @@
     <string name="status_file_error" msgid="6125632529575521755">"Problema di memorizzazione"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Nessun archivio USB."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Nessuna scheda SD. Inserisci una scheda SD per salvare i file trasferiti."</string>
-    <string name="status_connection_error" msgid="7695388111375688873">"Errore di connessione"</string>
-    <string name="status_protocol_error" msgid="8898902951085043597">"La richiesta non può essere gestita correttamente"</string>
-    <string name="status_unknown_error" msgid="7441602228720350817">"Errore sconosciuto"</string>
+    <!-- outdated translation 7695388111375688873 -->     <string name="status_connection_error" msgid="947681831523219891">"Errore di connessione"</string>
+    <!-- outdated translation 8898902951085043597 -->     <string name="status_protocol_error" msgid="1199135510987767468">"La richiesta non può essere gestita correttamente"</string>
+    <!-- outdated translation 7441602228720350817 -->     <string name="status_unknown_error" msgid="8156660554237824912">"Errore sconosciuto"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Ricezione Bluetooth avvenuta"</string>
     <string name="download_success" msgid="7036160438766730871">"Ricezione completata (<xliff:g id="FILE_SIZE">%1$s</xliff:g>)"</string>
     <string name="upload_success" msgid="4014469387779648949">"Invio completato (<xliff:g id="FILE_SIZE">%1$s</xliff:g>)"</string>

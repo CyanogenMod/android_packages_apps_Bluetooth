@@ -93,9 +93,9 @@
     <string name="status_file_error" msgid="6125632529575521755">"Problema de armazenamento"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Nenhum armazenamento USB."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Não há cartão SD. Insira um cartão SD para salvar os arquivos transferidos."</string>
-    <string name="status_connection_error" msgid="7695388111375688873">"Falha na conexão"</string>
-    <string name="status_protocol_error" msgid="8898902951085043597">"A solicitação não pode ser tratada corretamente"</string>
-    <string name="status_unknown_error" msgid="7441602228720350817">"Erro desconhecido"</string>
+    <!-- outdated translation 7695388111375688873 -->     <string name="status_connection_error" msgid="947681831523219891">"Falha na conexão"</string>
+    <!-- outdated translation 8898902951085043597 -->     <string name="status_protocol_error" msgid="1199135510987767468">"A solicitação não pode ser tratada corretamente"</string>
+    <!-- outdated translation 7441602228720350817 -->     <string name="status_unknown_error" msgid="8156660554237824912">"Erro desconhecido"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth recebido"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Recebimento concluído."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Envio concluído."</string>

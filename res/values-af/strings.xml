@@ -139,11 +139,11 @@
     <skip />
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Geen USB-berging nie."</string>
     <!-- outdated translation 1112125377088421469 -->     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Geen USB-berging nie."</string>
-    <!-- no translation found for status_connection_error (7695388111375688873) -->
+    <!-- no translation found for status_connection_error (947681831523219891) -->
     <skip />
-    <!-- no translation found for status_protocol_error (8898902951085043597) -->
+    <!-- no translation found for status_protocol_error (1199135510987767468) -->
     <skip />
-    <!-- no translation found for status_unknown_error (7441602228720350817) -->
+    <!-- no translation found for status_unknown_error (8156660554237824912) -->
     <skip />
     <!-- no translation found for btopp_live_folder (7967791481444474554) -->
     <skip />

@@ -93,9 +93,9 @@
     <string name="status_file_error" msgid="6125632529575521755">"Problema con el espacio de almacenamiento"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Almacenamiento USB sin espacio"</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"No se ha encontrado una tarjeta SD. Inserta una tarjeta SD para guardar los archivos transferidos."</string>
-    <string name="status_connection_error" msgid="7695388111375688873">"Falla de la conexión"</string>
-    <string name="status_protocol_error" msgid="8898902951085043597">"No se pudo administrar la solicitud correctamente."</string>
-    <string name="status_unknown_error" msgid="7441602228720350817">"Error desconocido"</string>
+    <!-- outdated translation 7695388111375688873 -->     <string name="status_connection_error" msgid="947681831523219891">"Falla de la conexión"</string>
+    <!-- outdated translation 8898902951085043597 -->     <string name="status_protocol_error" msgid="1199135510987767468">"No se pudo administrar la solicitud correctamente."</string>
+    <!-- outdated translation 7441602228720350817 -->     <string name="status_unknown_error" msgid="8156660554237824912">"Error desconocido"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth recibido"</string>
     <string name="download_success" msgid="7036160438766730871">"Se recibieron <xliff:g id="FILE_SIZE">%1$s</xliff:g> completos."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> enviados por completo."</string>

@@ -93,9 +93,9 @@
     <string name="status_file_error" msgid="6125632529575521755">"Isu storan"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Tiada storan USB."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Tiada kad SD. Masukkan kad SD untuk menyimpan fail yang dipindahkan."</string>
-    <string name="status_connection_error" msgid="7695388111375688873">"Kegagalan sambungan"</string>
-    <string name="status_protocol_error" msgid="8898902951085043597">"Permintaan tidak boleh dikendalikan dengan betul"</string>
-    <string name="status_unknown_error" msgid="7441602228720350817">"Ralat tidak diketahui"</string>
+    <string name="status_connection_error" msgid="947681831523219891">"Sambungan tidak berjaya."</string>
+    <string name="status_protocol_error" msgid="1199135510987767468">"Permintaan tidak dapat dikendalikan dengan betul."</string>
+    <string name="status_unknown_error" msgid="8156660554237824912">"Ralat tidak diketahui."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth diterima"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Penerimaan selesai."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Penghantaran selesai."</string>

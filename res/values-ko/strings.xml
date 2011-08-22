@@ -93,9 +93,9 @@
     <string name="status_file_error" msgid="6125632529575521755">"저장용량 문제"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"USB 저장소가 없습니다."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"SD 카드가 없습니다. 전송된 파일을 저장할 SD 카드를 삽입하세요."</string>
-    <string name="status_connection_error" msgid="7695388111375688873">"연결 실패"</string>
-    <string name="status_protocol_error" msgid="8898902951085043597">"요청을 제대로 처리할 수 없습니다."</string>
-    <string name="status_unknown_error" msgid="7441602228720350817">"알 수 없는 오류"</string>
+    <!-- outdated translation 7695388111375688873 -->     <string name="status_connection_error" msgid="947681831523219891">"연결 실패"</string>
+    <!-- outdated translation 8898902951085043597 -->     <string name="status_protocol_error" msgid="1199135510987767468">"요청을 제대로 처리할 수 없습니다."</string>
+    <!-- outdated translation 7441602228720350817 -->     <string name="status_unknown_error" msgid="8156660554237824912">"알 수 없는 오류"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth 수신함"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> 수신을 완료했습니다."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> 전송을 완료했습니다."</string>
