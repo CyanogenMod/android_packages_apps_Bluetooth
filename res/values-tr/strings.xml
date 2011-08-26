@@ -93,9 +93,9 @@
     <string name="status_file_error" msgid="6125632529575521755">"Depolama sorunu"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"USB depolama birimi yok."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"SD kart yok. Aktarılan dosyaları kaydetmek için lütfen bir SD kart takın."</string>
-    <!-- outdated translation 7695388111375688873 -->     <string name="status_connection_error" msgid="947681831523219891">"Bağlantı hatası"</string>
-    <!-- outdated translation 8898902951085043597 -->     <string name="status_protocol_error" msgid="1199135510987767468">"İstek düzgün bir şekilde işlenemiyor"</string>
-    <!-- outdated translation 7441602228720350817 -->     <string name="status_unknown_error" msgid="8156660554237824912">"Bilinmeyen hata"</string>
+    <string name="status_connection_error" msgid="947681831523219891">"Bağlantı başarısız."</string>
+    <string name="status_protocol_error" msgid="1199135510987767468">"İstek düzgün bir şekilde işlenemiyor."</string>
+    <string name="status_unknown_error" msgid="8156660554237824912">"Bilinmeyen hata."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth alındı"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Alma tamamlandı."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Gönderme tamamlandı."</string>

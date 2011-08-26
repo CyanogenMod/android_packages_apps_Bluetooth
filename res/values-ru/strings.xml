@@ -93,9 +93,9 @@
     <string name="status_file_error" msgid="6125632529575521755">"Ошибка хранилища"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"USB-накопитель не найден."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Отсутствует SD-карта. Вставьте SD-карту для сохранения переданных файлов."</string>
-    <!-- outdated translation 7695388111375688873 -->     <string name="status_connection_error" msgid="947681831523219891">"Ошибка подключения"</string>
-    <!-- outdated translation 8898902951085043597 -->     <string name="status_protocol_error" msgid="1199135510987767468">"Невозможно правильно обработать запрос."</string>
-    <!-- outdated translation 7441602228720350817 -->     <string name="status_unknown_error" msgid="8156660554237824912">"Неизвестная ошибка"</string>
+    <string name="status_connection_error" msgid="947681831523219891">"Сбой подключения."</string>
+    <string name="status_protocol_error" msgid="1199135510987767468">"Невозможно правильно обработать запрос."</string>
+    <string name="status_unknown_error" msgid="8156660554237824912">"Неизвестная ошибка."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Получено по Bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"Получено: <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>
     <string name="upload_success" msgid="4014469387779648949">"Отправлено: <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>

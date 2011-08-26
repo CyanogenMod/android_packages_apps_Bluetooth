@@ -93,9 +93,9 @@
     <string name="status_file_error" msgid="6125632529575521755">"Isyu sa Pag-iimbak"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Walang imbakan na USB."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Walang SD card. Magpasok ng isang SD card upang i-save ang mga inilipat na file."</string>
-    <!-- outdated translation 7695388111375688873 -->     <string name="status_connection_error" msgid="947681831523219891">"Pagkabigo ng koneksyon"</string>
-    <!-- outdated translation 8898902951085043597 -->     <string name="status_protocol_error" msgid="1199135510987767468">"Hindi maasikaso nang tama ang kahilingan"</string>
-    <!-- outdated translation 7441602228720350817 -->     <string name="status_unknown_error" msgid="8156660554237824912">"Hindi kilalang error"</string>
+    <string name="status_connection_error" msgid="947681831523219891">"Hindi matagumpay ang koneksyon."</string>
+    <string name="status_protocol_error" msgid="1199135510987767468">"Hindi mapangasiwaan nang tama ang kahilingan."</string>
+    <string name="status_unknown_error" msgid="8156660554237824912">"Hindi kilalang error."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Natanggap ang bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Kumpleto na ang pagtanggap."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Kumpleto na ang pagpapadala."</string>

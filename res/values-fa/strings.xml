@@ -93,9 +93,9 @@
     <string name="status_file_error" msgid="6125632529575521755">"مشکل ذخیره"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"حافظه USB وجود ندارد."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"هیچ کارت SD موجود نیست. برای ذخیره فایل های منتقل شده، یک کارت SD در گوشی قرار دهید."</string>
-    <!-- outdated translation 7695388111375688873 -->     <string name="status_connection_error" msgid="947681831523219891">"اتصال برقرار نشد"</string>
-    <!-- outdated translation 8898902951085043597 -->     <string name="status_protocol_error" msgid="1199135510987767468">"درخواست به درستی انجام نمی شود"</string>
-    <!-- outdated translation 7441602228720350817 -->     <string name="status_unknown_error" msgid="8156660554237824912">"خطای ناشناس"</string>
+    <string name="status_connection_error" msgid="947681831523219891">"اتصال ناموفق بود."</string>
+    <string name="status_protocol_error" msgid="1199135510987767468">"درخواست نمی‌تواند به درستی انجام شود."</string>
+    <string name="status_unknown_error" msgid="8156660554237824912">"خطای ناشناخته."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"بلوتوث دریافت شد"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> دریافت کامل شد."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ارسال کامل شد."</string>

@@ -93,9 +93,9 @@
     <string name="status_file_error" msgid="6125632529575521755">"Problem z zapisem"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Brak nośnika USB."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Brak karty SD. Włóż kartę SD, aby zapisać przesłane pliki."</string>
-    <!-- outdated translation 7695388111375688873 -->     <string name="status_connection_error" msgid="947681831523219891">"Błąd połączenia"</string>
-    <!-- outdated translation 8898902951085043597 -->     <string name="status_protocol_error" msgid="1199135510987767468">"Nie można poprawnie obsłużyć żądania"</string>
-    <!-- outdated translation 7441602228720350817 -->     <string name="status_unknown_error" msgid="8156660554237824912">"Nieznany błąd"</string>
+    <string name="status_connection_error" msgid="947681831523219891">"Nie można połączyć."</string>
+    <string name="status_protocol_error" msgid="1199135510987767468">"Nie można poprawnie obsłużyć żądania."</string>
+    <string name="status_unknown_error" msgid="8156660554237824912">"Nieznany błąd."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Odebrane przez Bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"Odbiór <xliff:g id="FILE_SIZE">%1$s</xliff:g> zakończony."</string>
     <string name="upload_success" msgid="4014469387779648949">"Wysyłanie <xliff:g id="FILE_SIZE">%1$s</xliff:g> zakończono."</string>

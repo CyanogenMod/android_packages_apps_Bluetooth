@@ -87,15 +87,15 @@
     <string name="status_pending" msgid="7446884326084324082">"העברת הקבצים עדיין לא התחילה"</string>
     <string name="status_running" msgid="2695810336448055064">"העברת קבצים מתבצעת"</string>
     <string name="status_success" msgid="2268261336330060663">"העברת הקבצים הושלמה בהצלחה"</string>
-    <string name="status_not_accept" msgid="2489805942397459486">"תוכן לא נתמך."</string>
+    <string name="status_not_accept" msgid="2489805942397459486">"התוכן אינו נתמך."</string>
     <string name="status_forbidden" msgid="8499236547788725258">"מכשיר היעד אסר על העברה זו"</string>
     <string name="status_canceled" msgid="5514756906439790976">"המשתמש ביטל העברה זו"</string>
     <string name="status_file_error" msgid="6125632529575521755">"בעיה באחסון"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"אין אמצעי אחסון מסוג USB."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"אין כרטיס SD. הכנס כרטיס SD כדי לשמור קבצים שהועברו."</string>
-    <!-- outdated translation 7695388111375688873 -->     <string name="status_connection_error" msgid="947681831523219891">"כשל בחיבור"</string>
-    <!-- outdated translation 8898902951085043597 -->     <string name="status_protocol_error" msgid="1199135510987767468">"לא ניתן לטפל בבקשה כראוי"</string>
-    <!-- outdated translation 7441602228720350817 -->     <string name="status_unknown_error" msgid="8156660554237824912">"שגיאה לא ידועה"</string>
+    <string name="status_connection_error" msgid="947681831523219891">"החיבור נכשל."</string>
+    <string name="status_protocol_error" msgid="1199135510987767468">"לא ניתן לטפל בבקשה כראוי."</string>
+    <string name="status_unknown_error" msgid="8156660554237824912">"שגיאה לא ידועה."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"התקבל באמצעות Bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> שהתקבלו הושלמו."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> שנשלחו הושלמו."</string>
