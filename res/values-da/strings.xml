@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Der var en indgående fil fra en anden tjeneste. Bekræft, at du vil modtage denne fil"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Deling med Bluetooth: Modtager <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Deling med Bluetooth: Modtog <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Deling med Bluetooth: Filen <xliff:g id="FILE">%1$s</xliff:g> blev ikke modtaget"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Deling med Bluetooth: Sender <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Deling med Bluetooth: Sendt <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100 % fuldført"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Deling med Bluetooth: Filen <xliff:g id="FILE">%1$s</xliff:g> blev ikke sendt"</string>
     <string name="download_title" msgid="3353228219772092586">"Filoverførsel"</string>
     <string name="download_line1" msgid="4926604799202134144">"Fra: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>

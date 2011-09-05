@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Hi ha un fitxer entrant d\'un altre dispositiu; confirmeu que voleu rebre\'l"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Ús compartit de Bluetooth: s\'està rebent <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Ús compartit de Bluetooth: s\'ha rebut <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth compartit: fitxer <xliff:g id="FILE">%1$s</xliff:g> no rebut"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Ús compartit de Bluetooth: s\'està enviant <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Ús compartit de Bluetooth: s\'ha enviat <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100% complet"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Ús compartit de Bluetooth: no s\'ha enviat el fitxer <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_title" msgid="3353228219772092586">"Transferència del fitxer"</string>
     <string name="download_line1" msgid="4926604799202134144">"De: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>

@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"別の携帯端末からファイルが着信しました。このファイルを受信してもよろしいですか"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth共有: <xliff:g id="FILE">%1$s</xliff:g>を受信中"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth共有: <xliff:g id="FILE">%1$s</xliff:g>を受信済み"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth共有: ファイル<xliff:g id="FILE">%1$s</xliff:g>の受信に失敗"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Bluetooth共有: <xliff:g id="FILE">%1$s</xliff:g>を送信中"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Bluetooth共有: <xliff:g id="FILE">%1$s</xliff:g>を送信済み"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100%完了"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth共有: ファイル<xliff:g id="FILE">%1$s</xliff:g>の送信に失敗"</string>
     <string name="download_title" msgid="3353228219772092586">"ファイル転送"</string>
     <string name="download_line1" msgid="4926604799202134144">"送信元: 「<xliff:g id="SENDER">%1$s</xliff:g>」"</string>

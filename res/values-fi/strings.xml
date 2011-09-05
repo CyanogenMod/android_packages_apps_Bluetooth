@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Toinen laite lähettää tiedostoa – vahvista, että haluat ottaa tiedoston vastaan"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth-jako: vastaanotetaan tiedostoa <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth-jako: <xliff:g id="FILE">%1$s</xliff:g> vastaanotettu"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth-jako: tiedostoa <xliff:g id="FILE">%1$s</xliff:g> ei vastaanotettu"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Bluetooth-jako: lähetetään tiedostoa <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Bluetooth-jako: lähetä <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100 % valmis"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth-jako: tiedostoa <xliff:g id="FILE">%1$s</xliff:g> ei lähetetty"</string>
     <string name="download_title" msgid="3353228219772092586">"Tiedostonsiirto"</string>
     <string name="download_line1" msgid="4926604799202134144">"Lähettäjä: <xliff:g id="SENDER">%1$s</xliff:g>"</string>

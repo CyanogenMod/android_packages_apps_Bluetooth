@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Postoji dolazna datoteka s drugog uređaja, potvrdite da želite primiti ovu datoteku"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Dijeljenje Bluetoothom: Primanje datoteke <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Dijeljenje Bluetoothom: Primljena datoteka <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Dijeljenje Bluetoothom: Datoteka <xliff:g id="FILE">%1$s</xliff:g> nije primljena"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Dijeljenje Bluetoothom: Slanje datoteke <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Dijeljenje Bluetoothom: Datoteka <xliff:g id="FILE">%1$s</xliff:g> poslana"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100% dovršeno"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Dijeljenje Bluetoothom: Datoteka <xliff:g id="FILE">%1$s</xliff:g> nije poslana"</string>
     <string name="download_title" msgid="3353228219772092586">"Prijenos datoteke"</string>
     <string name="download_line1" msgid="4926604799202134144">"Šalje: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>

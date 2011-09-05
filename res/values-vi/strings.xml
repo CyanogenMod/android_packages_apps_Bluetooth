@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Có tệp chuyển đến từ thiết bị khác, vui lòng xác nhận rằng bạn muốn nhận tệp này"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Chia sẻ qua Bluetooth: Đang nhận <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Chia sẻ qua Bluetooth: Đã nhận <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Chia sẻ qua Bluetooth: Chưa nhận được tệp <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Chia sẻ qua Bluetooth: Đang gửi <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Chia sẻ qua Bluetooth: Đã gửi <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"Hoàn tất 100%"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Chia sẻ qua Bluetooth: Chưa gửi được tệp <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_title" msgid="3353228219772092586">"Chuyển tệp"</string>
     <string name="download_line1" msgid="4926604799202134144">"Từ: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>

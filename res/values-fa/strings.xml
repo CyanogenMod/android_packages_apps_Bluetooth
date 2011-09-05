@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"یک فایل ورودی از دستگاه دیگر وجود دارد، دریافت این فایل را تأیید کنید."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"اشتراک بلوتوث: در حال دریافت <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"اشتراک بلوتوث: <xliff:g id="FILE">%1$s</xliff:g> دریافت شد"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"اشتراک بلوتوث: فایل <xliff:g id="FILE">%1$s</xliff:g>دریافت نشد"</string>
     <string name="notification_sending" msgid="3035748958534983833">"اشتراک بلوتوث: در حال ارسال <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"اشتراک بلوتوث:<xliff:g id="FILE">%1$s</xliff:g> ارسال شد"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100% کامل شد"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"اشتراک بلوتوث: فایل <xliff:g id="FILE">%1$s</xliff:g> ارسال نشد"</string>
     <string name="download_title" msgid="3353228219772092586">"انتقال فایل"</string>
     <string name="download_line1" msgid="4926604799202134144">"از: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>

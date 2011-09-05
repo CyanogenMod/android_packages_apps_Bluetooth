@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"มีไฟล์ส่งมาจากอุปกรณ์อื่น โปรดยืนยันว่าคุณต้องการรับไฟล์นี้"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"การแบ่งปันทางบลูทูธ: กำลังรับ <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"การแบ่งปันทางบลูทูธ: รับ <xliff:g id="FILE">%1$s</xliff:g> แล้ว"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"การแบ่งปันทางบลูทูธ: ไม่ได้รับไฟล์ <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sending" msgid="3035748958534983833">"การแบ่งปันทางบลูทูธ: กำลังส่ง <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"การแบ่งปันทางบลูทูธ: ส่ง <xliff:g id="FILE">%1$s</xliff:g> แล้ว"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"เสร็จสมบูรณ์ 100%"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"การแบ่งปันทางบลูทูธ: ไฟล์ <xliff:g id="FILE">%1$s</xliff:g> ไม่ถูกส่ง"</string>
     <string name="download_title" msgid="3353228219772092586">"การถ่ายโอนไฟล์"</string>
     <string name="download_line1" msgid="4926604799202134144">"จาก: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>

@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Már van egy bejövő fájl egy másik eszközről. Kérjük, erősítse meg, hogy fogadni szeretné ezt a fájlt"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth megosztás: <xliff:g id="FILE">%1$s</xliff:g> fogadása"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth megosztás: <xliff:g id="FILE">%1$s</xliff:g> fogadva"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth megosztás: <xliff:g id="FILE">%1$s</xliff:g> fájl fogadása nem sikerült"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Bluetooth megosztás: <xliff:g id="FILE">%1$s</xliff:g> küldése"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Bluetooth megosztás: <xliff:g id="FILE">%1$s</xliff:g> elküldve"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100% kész"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth megosztás: <xliff:g id="FILE">%1$s</xliff:g> fájl küldése nem sikerült"</string>
     <string name="download_title" msgid="3353228219772092586">"Fájlátvitel"</string>
     <string name="download_line1" msgid="4926604799202134144">"Feladó: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>

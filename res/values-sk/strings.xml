@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Potvrďte príjem prichádzajúceho súboru z iného zariadenia"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Zdieľanie Bluetooth: Prijímanie súboru <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Zdieľanie Bluetooth: Súbor <xliff:g id="FILE">%1$s</xliff:g> bol prijatý"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Zdieľanie Bluetooth: Súbor <xliff:g id="FILE">%1$s</xliff:g> nebol prijatý"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Zdieľanie Bluetooth: Odosielanie súboru <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Zdieľanie Bluetooth: Súbor <xliff:g id="FILE">%1$s</xliff:g> bol odoslaný"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100 % hotovo"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Zdieľanie Bluetooth: Súbor <xliff:g id="FILE">%1$s</xliff:g> nebol odoslaný"</string>
     <string name="download_title" msgid="3353228219772092586">"Prenos súborov"</string>
     <string name="download_line1" msgid="4926604799202134144">"Z jazyka: „<xliff:g id="SENDER">%1$s</xliff:g>“"</string>

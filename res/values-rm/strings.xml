@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"In auter apparat emprova da trametter ina datoteca. Confermai sche Vus vulais retschaiver questa datoteca."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Cundivisiun bluetooth: retschaiver <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Cundivisiun bluetooth: retschet <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Cundivisiun bluetooth: datoteca <xliff:g id="FILE">%1$s</xliff:g> betg retschavida"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Cundivisiun bluetooth: trametter <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Cundivisiun bluetooth: tramess <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100% cumplettà"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Cundivisiun bluetooth: betg tramess la datoteca <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_title" msgid="3353228219772092586">"Transferiment da datoteca"</string>
     <string name="download_line1" msgid="4926604799202134144">"Da: <xliff:g id="SENDER">%1$s</xliff:g>"</string>

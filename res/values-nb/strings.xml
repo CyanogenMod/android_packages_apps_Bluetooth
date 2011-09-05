@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"En fil er på vei inn fra en annen enhet. Bekreft at du vil motta denne filen"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth-deling: Mottar <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth-deling: <xliff:g id="FILE">%1$s</xliff:g> er mottatt"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth-deling: Filen <xliff:g id="FILE">%1$s</xliff:g> er ikke mottatt"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Bluetooth-deling: Sender <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Bluetooth-deling: Sendt <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100 % fullført"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth-deling: Filen <xliff:g id="FILE">%1$s</xliff:g> ble ikke sendt"</string>
     <string name="download_title" msgid="3353228219772092586">"Filoverføring"</string>
     <string name="download_line1" msgid="4926604799202134144">"Fra: «<xliff:g id="SENDER">%1$s</xliff:g>»"</string>

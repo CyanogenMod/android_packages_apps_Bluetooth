@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Er is een inkomend bestand van een ander apparaat beschikbaar. Als u dit bestand wilt ontvangen, moet u dit bevestigen."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Delen via Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> ontvangen"</string>
     <string name="notification_received" msgid="3324588019186687985">"Delen via Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> ontvangen"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Delen via Bluetooth: bestand <xliff:g id="FILE">%1$s</xliff:g> niet ontvangen"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Delen via Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> verzenden"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Delen via Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> verzonden"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100% voltooid"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Delen via Bluetooth: bestand <xliff:g id="FILE">%1$s</xliff:g> niet verzonden"</string>
     <string name="download_title" msgid="3353228219772092586">"Bestandsoverdracht"</string>
     <string name="download_line1" msgid="4926604799202134144">"Van: \'<xliff:g id="SENDER">%1$s</xliff:g>\'"</string>

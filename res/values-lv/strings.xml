@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"No citas ierīces tiek sūtīts fails, lūdzu, apstipriniet, ka vēlaties saņemt šo failu."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Kopīgošana, izmantojot Bluetooth: notiek faila <xliff:g id="FILE">%1$s</xliff:g> saņemšana"</string>
     <string name="notification_received" msgid="3324588019186687985">"Kopīgošana, izmantojot Bluetooth: saņemts fails <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Kopīgošana, izmantojot Bluetooth: fails <xliff:g id="FILE">%1$s</xliff:g> netika saņemts"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Kopīgošana, izmantojot Bluetooth: notiek faila <xliff:g id="FILE">%1$s</xliff:g> sūtīšana"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Kopīgošana, izmantojot Bluetooth: nosūtīts fails <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100% pabeigts"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Kopīgošana, izmantojot Bluetooth: fails <xliff:g id="FILE">%1$s</xliff:g> netika nosūtīts"</string>
     <string name="download_title" msgid="3353228219772092586">"Faila pārsūtīšana"</string>
     <string name="download_line1" msgid="4926604799202134144">"No: <xliff:g id="SENDER">%1$s</xliff:g>"</string>

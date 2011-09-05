@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"May isang papasok na file mula sa isa pang device, pakikumpirma na gusto mong tanggapin ang file na ito."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Pagbahagi sa Bluetooth: Tinatanggap ang <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Pagbahagi sa Bluetooth: Natanggap ang <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Pagbahagi sa Bluetooth: Hindi natanggap ang file na <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Pagbahagi sa Bluetooth: Ipinapadala ang <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Pagbahagi sa Bluetooth: Ipinadala ang <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100% kumpleto"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Pagbahagi sa Bluetooth: Hindi naipadala ang file na <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_title" msgid="3353228219772092586">"Paglilipat ng file"</string>
     <string name="download_line1" msgid="4926604799202134144">"Mula: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>

@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Датотека је послата са другог уређаја. Потврдите да желите да је примите."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth дељење: пријем <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth дељење: примљено <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth дељење: датотека <xliff:g id="FILE">%1$s</xliff:g> није примљена"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Bluetooth дељење: слање <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Bluetooth дељење: послато <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"Довршено је 100%"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth дељење: датотека <xliff:g id="FILE">%1$s</xliff:g> није послата"</string>
     <string name="download_title" msgid="3353228219772092586">"Пренос датотеке"</string>
     <string name="download_line1" msgid="4926604799202134144">"Од: „<xliff:g id="SENDER">%1$s</xliff:g>“"</string>

@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Има входящ файл от друго устройство. Моля, потвърдете, че искате да го получите."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Споделяне чрез Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> се получава"</string>
     <string name="notification_received" msgid="3324588019186687985">"Споделяне чрез Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> се получи"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Споделяне чрез Bluetooth: Файлът <xliff:g id="FILE">%1$s</xliff:g> не е получен"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Споделяне чрез Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> се изпраща"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Споделяне чрез Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> се изпрати"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100% завършено"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Споделяне чрез Bluetooth: Файлът <xliff:g id="FILE">%1$s</xliff:g> не е изпратен"</string>
     <string name="download_title" msgid="3353228219772092586">"Прехвърляне на файл"</string>
     <string name="download_line1" msgid="4926604799202134144">"От: „<xliff:g id="SENDER">%1$s</xliff:g>“"</string>

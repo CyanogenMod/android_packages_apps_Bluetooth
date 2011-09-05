@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Réception en cours d\'un fichier provenant d\'un autre périphérique. Veuillez confirmer que vous souhaitez recevoir ce fichier."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Partage Bluetooth : réception de <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Partage Bluetooth : <xliff:g id="FILE">%1$s</xliff:g> reçu"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Partage Bluetooth : fichier <xliff:g id="FILE">%1$s</xliff:g> non reçu"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Partage Bluetooth : envoi de <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Partage Bluetooth : <xliff:g id="FILE">%1$s</xliff:g> envoyé"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100 % effectués"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Partage Bluetooth : fichier <xliff:g id="FILE">%1$s</xliff:g> non envoyé"</string>
     <string name="download_title" msgid="3353228219772092586">"Transfert de fichier"</string>
     <string name="download_line1" msgid="4926604799202134144">"De : \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>

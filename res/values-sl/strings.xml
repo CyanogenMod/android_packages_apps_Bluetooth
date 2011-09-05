@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Iz druge naprave prihaja datoteka, potrdite, da jo želite prejeti"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Delež Bluetootha: Prejemanje<xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Delež Bluetootha: Prejeto<xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth: Datoteka <xliff:g id="FILE">%1$s</xliff:g> ni bila prejeta"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Delež Bluetootha: Pošiljanje<xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Bluetooth: Poslano <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"Dokončano: 100 %"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Delež Bluetootha: Datoteka <xliff:g id="FILE">%1$s</xliff:g> ni bila poslana"</string>
     <string name="download_title" msgid="3353228219772092586">"Prenos datoteke"</string>
     <string name="download_line1" msgid="4926604799202134144">"Od: »<xliff:g id="SENDER">%1$s</xliff:g>«"</string>

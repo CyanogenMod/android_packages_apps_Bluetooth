@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Gaunamas failas iš kito įrenginio; patvirtinkite, kad norite gauti šį failą"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"„Bluetooth“ bendrinimas: gaunamas <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"„Bluetooth“ bendrinimas: <xliff:g id="FILE">%1$s</xliff:g> gautas"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"„Bluetooth“ bendrinimas: <xliff:g id="FILE">%1$s</xliff:g> failas negautas"</string>
     <string name="notification_sending" msgid="3035748958534983833">"„Bluetooth“ bendrinimas: siunčiamas <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"„Bluetooth“ bendrinimas: <xliff:g id="FILE">%1$s</xliff:g> išsiųstas"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100 % baigta"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"„Bluetooth“ bendrinimas: <xliff:g id="FILE">%1$s</xliff:g> failas neišsiųstas"</string>
     <string name="download_title" msgid="3353228219772092586">"Failo perkėlimas"</string>
     <string name="download_line1" msgid="4926604799202134144">"Nuo: <xliff:g id="SENDER">%1$s</xliff:g>"</string>

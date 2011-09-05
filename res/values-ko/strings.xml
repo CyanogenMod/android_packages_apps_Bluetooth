@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"다른 장치에서 수신 중인 파일이 있습니다. 이 파일을 수신할 것인지 확인하세요."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"블루투스 공유: <xliff:g id="FILE">%1$s</xliff:g> 받는 중"</string>
     <string name="notification_received" msgid="3324588019186687985">"블루투스 공유: <xliff:g id="FILE">%1$s</xliff:g> 받음"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"블루투스 공유: <xliff:g id="FILE">%1$s</xliff:g> 파일이 수신되지 않았습니다."</string>
     <string name="notification_sending" msgid="3035748958534983833">"블루투스 공유: <xliff:g id="FILE">%1$s</xliff:g> 보내는 중"</string>
     <string name="notification_sent" msgid="9218710861333027778">"블루투스 공유: <xliff:g id="FILE">%1$s</xliff:g> 보냄"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100% 완료"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"블루투스 공유: <xliff:g id="FILE">%1$s</xliff:g> 파일을 보내지 못함"</string>
     <string name="download_title" msgid="3353228219772092586">"파일 전송"</string>
     <string name="download_line1" msgid="4926604799202134144">"보낸사람: \'<xliff:g id="SENDER">%1$s</xliff:g>\'"</string>

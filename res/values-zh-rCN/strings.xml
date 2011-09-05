@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"从其他设备收到一个文件，请确认是否要接收该文件"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"蓝牙共享：正在接收 <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"蓝牙共享：<xliff:g id="FILE">%1$s</xliff:g> 已接收"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"蓝牙共享：未收到文件 <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sending" msgid="3035748958534983833">"蓝牙共享：正在发送 <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"蓝牙共享：<xliff:g id="FILE">%1$s</xliff:g> 已发送"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"已完成 100%"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"蓝牙共享：未发送文件 <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_title" msgid="3353228219772092586">"文件传输"</string>
     <string name="download_line1" msgid="4926604799202134144">"发件人：“<xliff:g id="SENDER">%1$s</xliff:g>”"</string>

@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Un fişier de la alt dispozitiv se află în curs de primire. Confirmaţi dacă doriţi primirea acestuia."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Distribuire prin Bluetooth: se primeşte <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Distribuire prin Bluetooth: s-a primit <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Distribuire prin Bluetooth: fişierul <xliff:g id="FILE">%1$s</xliff:g> nu s-a primit"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Distribuire prin Bluetooth: se trimite <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Distribuire prin Bluetooth: s-a trimis <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100 % finalizat"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Distribuire prin Bluetooth: fişierul <xliff:g id="FILE">%1$s</xliff:g> nu a fost trimis"</string>
     <string name="download_title" msgid="3353228219772092586">"Transfer de fişier"</string>
     <string name="download_line1" msgid="4926604799202134144">"De la: „<xliff:g id="SENDER">%1$s</xliff:g>”"</string>

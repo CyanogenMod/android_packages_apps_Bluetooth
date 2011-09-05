@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Ada berkas masuk dari perangkat lain, konfirmasikan bahwa Anda ingin menerima berkas ini"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Berbagi Bluetooth: Menerima <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Berbagi Bluetooth: Telah menerima <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Berbagi Bluetooth: Berkas <xliff:g id="FILE">%1$s</xliff:g> tidak diterima"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Berbagi Bluetooth: Mengirim <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Berbagi Bluetooth: Telah mengirim <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100% selesai"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Berbagi Bluetooth: Berkas <xliff:g id="FILE">%1$s</xliff:g> tidak terkirim"</string>
     <string name="download_title" msgid="3353228219772092586">"Transfer berkas"</string>
     <string name="download_line1" msgid="4926604799202134144">"Dari: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>

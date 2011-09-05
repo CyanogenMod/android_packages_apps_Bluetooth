@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Przysłano plik z innego urządzenia. Potwierdź, że chcesz go odebrać."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Udostępnianie Bluetooth: odbieranie <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Udostępnianie Bluetooth: odebrano <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Udostępnianie Bluetooth: nie odebrano pliku <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Udostępnianie Bluetooth: wysyłanie <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Udostępnianie Bluetooth: wysłano <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"Ukończono w 100%"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Udostępnianie Bluetooth: plik <xliff:g id="FILE">%1$s</xliff:g> nie został wysłany"</string>
     <string name="download_title" msgid="3353228219772092586">"Przesyłanie pliku"</string>
     <string name="download_line1" msgid="4926604799202134144">"Od: „<xliff:g id="SENDER">%1$s</xliff:g>”"</string>

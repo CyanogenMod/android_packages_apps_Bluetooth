@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Υπάρχει ένα εισερχόμενο αρχείο από μια άλλη συσκευή, επιβεβαιώστε ότι θέλετε να λάβετε αυτό το αρχείο"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Κοινή χρήση μέσω Bluetooth: Λήψη του <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Κοινή χρήση μέσω Bluetooth: Ελήφθη το <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Κοινή χρήση μέσω Bluetooth: Το αρχείο <xliff:g id="FILE">%1$s</xliff:g> δεν ελήφθη"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Κοινή χρήση μέσω Bluetooth: Αποστολή του <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Κοινή χρήση μέσω Bluetooth: Εστάλη το <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"Ολοκληρώθηκε το 100%"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Κοινή χρήση μέσω Bluetooth: Το αρχείο <xliff:g id="FILE">%1$s</xliff:g> δεν εστάλη"</string>
     <string name="download_title" msgid="3353228219772092586">"Μεταφορά αρχείου"</string>
     <string name="download_line1" msgid="4926604799202134144">"Από: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>

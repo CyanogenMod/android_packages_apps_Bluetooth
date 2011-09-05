@@ -39,10 +39,8 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"There is an incoming file from another device. Please confirm that you want to receive this file"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth share: Receiving <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth share: Received <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth share: File <xliff:g id="FILE">%1$s</xliff:g> not received"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Bluetooth share: Sending <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Bluetooth share: Sent <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100% complete"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth share: File <xliff:g id="FILE">%1$s</xliff:g> not sent"</string>
     <string name="download_title" msgid="3353228219772092586">"File transfer"</string>
     <string name="download_line1" msgid="4926604799202134144">"From: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
