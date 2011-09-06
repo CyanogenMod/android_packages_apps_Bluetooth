@@ -273,41 +273,29 @@ class BluetoothOppNotification {
 
         // Add the notifications
         for (NotificationItem item : mNotifications.values()) {
-            // Build the RemoteView object
-            RemoteViews expandedView = new RemoteViews(Constants.THIS_PACKAGE_NAME,
-                    R.layout.status_bar_ongoing_event_progress_bar);
-
-            expandedView.setTextViewText(R.id.description, item.description);
-
-            expandedView.setProgressBar(R.id.progress_bar, item.totalTotal, item.totalCurrent,
-                    item.totalTotal == -1);
-
-            expandedView.setTextViewText(R.id.progress_text, BluetoothOppUtility
-                    .formatProgressText(item.totalTotal, item.totalCurrent));
-
             // Build the notification object
-            Notification n = new Notification();
-            n.when = item.timeStamp;
+            // TODO: split description into two rows with filename in second row
+            Notification.Builder b = new Notification.Builder(mContext);
+            b.setContentTitle(item.description);
+            b.setContentInfo(
+                    BluetoothOppUtility.formatProgressText(item.totalTotal, item.totalCurrent));
+            b.setProgress(item.totalTotal, item.totalCurrent, item.totalTotal == -1);
+            b.setWhen(item.timeStamp);
             if (item.direction == BluetoothShare.DIRECTION_OUTBOUND) {
-                n.icon = android.R.drawable.stat_sys_upload;
-                expandedView.setImageViewResource(R.id.appIcon, android.R.drawable.stat_sys_upload);
+                b.setSmallIcon(android.R.drawable.stat_sys_upload);
             } else if (item.direction == BluetoothShare.DIRECTION_INBOUND) {
-                n.icon = android.R.drawable.stat_sys_download;
-                expandedView.setImageViewResource(R.id.appIcon,
-                        android.R.drawable.stat_sys_download);
+                b.setSmallIcon(android.R.drawable.stat_sys_download);
             } else {
                 if (V) Log.v(TAG, "mDirection ERROR!");
             }
-
-            n.flags |= Notification.FLAG_ONGOING_EVENT;
-            n.contentView = expandedView;
+            b.setOngoing(true);
 
             Intent intent = new Intent(Constants.ACTION_LIST);
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
             intent.setData(Uri.parse(BluetoothShare.CONTENT_URI + "/" + item.id));
 
-            n.contentIntent = PendingIntent.getBroadcast(mContext, 0, intent, 0);
-            mNotificationMgr.notify(item.id, n);
+            b.setContentIntent(PendingIntent.getBroadcast(mContext, 0, intent, 0));
+            mNotificationMgr.notify(item.id, b.getNotification());
 
             mActiveNotificationId = item.id;
         }
