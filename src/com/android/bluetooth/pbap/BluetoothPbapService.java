@@ -243,7 +243,7 @@ public class BluetoothPbapService extends Service {
                     Intent timeoutIntent =
                         new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
                     timeoutIntent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
-                    sendBroadcast(timeoutIntent);
+                    sendBroadcast(timeoutIntent, BLUETOOTH_ADMIN_PERM);
                 }
                 // Release all resources
                 closeService();
@@ -545,7 +545,7 @@ public class BluetoothPbapService extends Service {
                         intent.putExtra(BluetoothDevice.EXTRA_PACKAGE_NAME, getPackageName());
                         intent.putExtra(BluetoothDevice.EXTRA_CLASS_NAME,
                                         BluetoothPbapReceiver.class.getName());
-                        sendBroadcast(intent, BLUETOOTH_PERM);
+                        sendBroadcast(intent, BLUETOOTH_ADMIN_PERM);
                         isWaitingAuthorization = true;
 
                         if (VERBOSE) Log.v(TAG, "waiting for authorization for connection from: "
