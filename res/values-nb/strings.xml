@@ -69,7 +69,7 @@
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Lukk"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"OK"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Ukjent fil"</string>
-    <string name="unknown_file_desc" msgid="5845231383612478643">"Det foreligger ikke noe program som kan behandle denne filtypen. "\n</string>
+    <string name="unknown_file_desc" msgid="5845231383612478643">"Det finnes ikke noen applikasjon som kan behandle denne filtypen. "\n</string>
     <string name="not_exist_file" msgid="2245958259960700777">"Filen fins ikke"</string>
     <string name="not_exist_file_desc" msgid="2392808771821464983">"Filen fins ikke! "\n</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Vent litt ..."</string>
