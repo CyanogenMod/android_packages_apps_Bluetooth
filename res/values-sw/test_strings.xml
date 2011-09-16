@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="hello" msgid="1740533743008967039">"Hujambo Ulimwengu, Shughuli ya Jaribio"</string>
+    <string name="hello" msgid="1740533743008967039">"Halo Dunia, Shughuli ya Jaribio"</string>
     <string name="app_name" msgid="1203877025577761792">"Shiriki Bluetooth"</string>
     <string name="insert_record" msgid="1450997173838378132">"Ingiza rekodi"</string>
     <string name="update_record" msgid="2480425402384910635">"Thibitisha rekodi"</string>
