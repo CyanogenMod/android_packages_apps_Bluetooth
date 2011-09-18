@@ -43,6 +43,7 @@ import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.PhoneLookup;
+import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -50,6 +51,7 @@ import com.android.bluetooth.R;
 import com.android.vcard.VCardComposer;
 import com.android.vcard.VCardConfig;
 import com.android.internal.telephony.CallerInfo;
+import com.android.vcard.VCardPhoneNumberTranslationCallback;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -442,9 +444,23 @@ public class BluetoothPbapVcardManager {
                     vcardType = VCardConfig.VCARD_TYPE_V30_GENERIC;
                 }
                 vcardType |= VCardConfig.FLAG_REFRAIN_IMAGE_EXPORT;
-                vcardType |= VCardConfig.FLAG_REFRAIN_PHONE_NUMBER_FORMATTING;
 
                 composer = new VCardComposer(mContext, vcardType, true);
+                // BT does want PAUSE/WAIT conversion while it doesn't want the other formatting
+                // done by vCard library by default.
+                composer.setPhoneNumberTranslationCallback(
+                        new VCardPhoneNumberTranslationCallback() {
+                            public String onValueReceived(
+                                    String rawValue, int type, String label, boolean isPrimary) {
+                                // 'p' and 'w' are the standard characters for pause and wait
+                                // (see RFC 3601)
+                                // so use those when exporting phone numbers via vCard.
+                                String numberWithControlSequence = rawValue
+                                        .replace(PhoneNumberUtils.PAUSE, 'p')
+                                        .replace(PhoneNumberUtils.WAIT, 'w');
+                                return numberWithControlSequence;
+                            }
+                        });
                 buffer = new HandlerForStringBuffer(op, ownerVCard);
                 if (!composer.init(Contacts.CONTENT_URI, selection, null, Contacts._ID) ||
                         !buffer.onInit(mContext)) {
