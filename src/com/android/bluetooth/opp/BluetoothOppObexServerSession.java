@@ -530,7 +530,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             byte[] uuid = (byte[])request.getHeader(HeaderSet.TARGET);
             if (V) Log.v(TAG, "onConnect(): uuid =" + Arrays.toString(uuid));
             if(uuid != null) {
-                reply.setHeader(HeaderSet.WHO, uuid);
+                 return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
             }
         } catch (IOException e) {
             Log.e(TAG, e.toString());
