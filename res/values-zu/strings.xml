@@ -90,7 +90,7 @@
     <string name="status_not_accept" msgid="2489805942397459486">"Okuqukethwe akusekelwe."</string>
     <string name="status_forbidden" msgid="8499236547788725258">"Lokhu kudlulisa kunqatshelwe idivayisi eqondiwe"</string>
     <string name="status_canceled" msgid="5514756906439790976">"Lokhu kudlulisa kususwe umsebenzisi"</string>
-    <string name="status_file_error" msgid="6125632529575521755">"Inkinga yesitoreji"</string>
+    <string name="status_file_error" msgid="6125632529575521755">"Inkinga yokugcina"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Akukho sitoreji se-USB."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Alikho ikhadi le-SD. Faka ikhadi le-SD ukulondoloza amafayela adlulisiwe."</string>
     <string name="status_connection_error" msgid="947681831523219891">"Ukuxhumeka akuphumelelanga."</string>
