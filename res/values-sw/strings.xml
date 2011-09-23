@@ -16,15 +16,15 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Fikia kidhibiti kipakuzi"</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"Huruhusu programu kufikia kidhibiti cha kushiriki Bluetooth  na kukitumia ili kuhamisha faili."</string>
+    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Fikia kidhibiti cha vipakuzi"</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"Huruhusu programu kufikia kidhibiti cha kushiriki kupitia Bluetooth na kukitumia ili kuhamisha faili."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Kifaa kisichojulikana"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Haijulikani"</string>
-    <string name="airplane_error_title" msgid="2683839635115739939">"Muundo wa ndege"</string>
+    <string name="airplane_error_title" msgid="2683839635115739939">"Hali ya wa ndege"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"Huwezi kutumia Bluetooth katika hali ya Ndege."</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
-    <string name="bt_enable_line1" msgid="7203551583048149">"Kutumia huduma za Bluetooth, lazima kwanza ufungue Bluetooth."</string>
+    <string name="bt_enable_line1" msgid="7203551583048149">"Kutumia huduma za Bluetooth, lazima kwanza uwashe Bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Je wataka kuwasha Bluetooth sasa?"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"Ghairi"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"Washa"</string>
@@ -42,7 +42,7 @@
     <string name="notification_received_fail" msgid="3619350997285714746">"Kushiriki kwa Bluetooth: Faili <xliff:g id="FILE">%1$s</xliff:g> haijapokewa"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Kushiriki kwa bluetooth: Inatuma <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Kushiriki kwa bluetooth: <xliff:g id="FILE">%1$s</xliff:g> Iliyotumwa"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100% imekamilika"</string>
+    <string name="notification_sent_complete" msgid="302943281067557969">"Imekamilika 100%"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Kushiriki kwa bluetooth: Faili <xliff:g id="FILE">%1$s</xliff:g> haijatumwa"</string>
     <string name="download_title" msgid="3353228219772092586">"Uhamishaji faili"</string>
     <string name="download_line1" msgid="4926604799202134144">"Kutoka: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
@@ -84,9 +84,9 @@
     <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">"Hakuna nafasi ya kutosha katika kadi ya SD ya kuhifadhi faili kutoka \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Nafasi inayohitajika: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Maombi mengi sana yanashughulikiwa. Jaribu tena baadaye."</string>
-    <string name="status_pending" msgid="7446884326084324082">"Utumaji faili bado haujaanzishwa"</string>
+    <string name="status_pending" msgid="7446884326084324082">"Utumaji faili bado haujaanza"</string>
     <string name="status_running" msgid="2695810336448055064">"Uhamishaji wa faili unaendelea"</string>
-    <string name="status_success" msgid="2268261336330060663">"Uhamishaji wa faili umefaulu kukamilika"</string>
+    <string name="status_success" msgid="2268261336330060663">"Uhamishaji wa faili umekamilika kwa mafanikio"</string>
     <string name="status_not_accept" msgid="2489805942397459486">"Maudhui hayahimiliwi."</string>
     <string name="status_forbidden" msgid="8499236547788725258">"Utumaji huu umekatazwa na kifaa lengwa"</string>
     <string name="status_canceled" msgid="5514756906439790976">"Uhamishaji huu ulighairiwa na mtumiaji"</string>
