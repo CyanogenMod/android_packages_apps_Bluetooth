@@ -67,6 +67,14 @@ public class BluetoothOppLauncherActivity extends Activity {
         Intent intent = getIntent();
         String action = intent.getAction();
 
+        if (action == null) {
+            /*
+             * If an invalid intent without action is set (example: File Manager)
+             * we should not die because of a NPE
+             */
+            return;
+        }
+
         if (action.equals(Intent.ACTION_SEND) || action.equals(Intent.ACTION_SEND_MULTIPLE)) {
             /*
              * Other application is trying to share a file via Bluetooth,
