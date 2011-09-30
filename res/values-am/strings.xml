@@ -56,7 +56,7 @@
     <string name="download_fail_line2" msgid="8950394574689971071">"ፋይል: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_fail_line3" msgid="5611058289180135888">"የመታወክ ምክንያት፡ <xliff:g id="REASON">%1$s</xliff:g>"</string>
     <string name="download_fail_ok" msgid="1521733664438320300">"እሺ"</string>
-    <string name="download_succ_line5" msgid="4509944688281573595">"ፋይልደርሷል"</string>
+    <string name="download_succ_line5" msgid="4509944688281573595">"ፋይል ደርሷል"</string>
     <string name="download_succ_ok" msgid="7053688246357050216">"ክፈት"</string>
     <string name="upload_line1" msgid="2055952074059709052">"ለ: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="upload_line3" msgid="5866755479845641607">"የፋይል ዓይነት: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
@@ -84,7 +84,7 @@
     <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">" ከ \"<xliff:g id="SENDER">%1$s</xliff:g>\" በ SD ካርዱ ላይ ፋይሉን ለማስቀመጥ ምንም በቂ ቦታ የለም"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"የሚያስፈልግ ቦታ፡ <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"እጅግ ብዙ ጥየቃዎች ተካሂደዋል። ትንሽ ቆይተው እንደገና ይሞክሩ።"</string>
-    <string name="status_pending" msgid="7446884326084324082">"የፋይል ሰደዳገና አልተጀመረም"</string>
+    <string name="status_pending" msgid="7446884326084324082">"የፋይል ሰደዳ ገና አልተጀመረም"</string>
     <string name="status_running" msgid="2695810336448055064">"የፋይል ሰደዳ በመኪያሄድ ላይ ነው"</string>
     <string name="status_success" msgid="2268261336330060663">"የፋይል ዝውውሩ በተሳካ ተጠናቋል"</string>
     <string name="status_not_accept" msgid="2489805942397459486">"ያልታገዘ ይዘት።"</string>

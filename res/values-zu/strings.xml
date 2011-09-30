@@ -18,12 +18,12 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Finyelela kumphathi wokulayisha."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"Ivumela uhlelo lokusebenza ukufinyelela umphathi we-BluetoothShare ngisho nokuyisebenzisela ukudlulisa amafayela."</string>
-    <string name="bt_share_picker_label" msgid="6268100924487046932">"I-Bluetooth"</string>
+    <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Idivayisi engaziwa"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Akwaziwa"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Imodi yendiza"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"Awukwazi ukusebenzisa i-Bluetooth kwimodi yeNdiza."</string>
-    <string name="bt_enable_title" msgid="2371250311764527124">"I-Bluetooth"</string>
+    <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Ukusebenzisa insizakalo ye-Bluetooth, kumele uvule kuqala i-Bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Vula i-Bluetooth manje?"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"Khansela"</string>
