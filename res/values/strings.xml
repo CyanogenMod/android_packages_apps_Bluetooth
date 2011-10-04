@@ -29,8 +29,8 @@
         permission controls access to the Download Manager by applications
         that initiate downloads.
     -->
-    <string name="permdesc_bluetoothShareManager">Allows the application to access the
-        BluetoothShare manager and to use it to transfer files. </string>
+    <string name="permdesc_bluetoothShareManager">Allows the app to access the
+        BluetoothShare manager and use it to transfer files. </string>
 
     <!-- string showed on "Share picutre via" dialog -->
     <string name="bt_share_picker_label">Bluetooth</string>
@@ -48,7 +48,7 @@
 
     <!-- Activate Bluetooth Confirmation Dialog -->
     <!--Title -->
-    <string name="bt_enable_title">Bluetooth</string>
+    <string name="bt_enable_title"></string>
     <!--Line 1 -->
     <string name="bt_enable_line1">To use Bluetooth services, you must first turn on Bluetooth.</string>
     <!--Line 2 -->
@@ -68,15 +68,15 @@
     <!-- Label for a confirm button.-->
     <string name="incoming_file_confirm_ok">Accept</string>
     <!-- Label for timeout OK button.-->
-    <string name="incoming_file_confirm_timeout_ok">Ok</string>
+    <string name="incoming_file_confirm_timeout_ok">OK</string>
     <!-- content for timeout-->
     <string name="incoming_file_confirm_timeout_content">There was a timeout while accepting an incoming file from \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022</string>
 
     <!-- Bluetooth File Transfer Acceptance Notification item -->
     <string name="incoming_file_confirm_Notification_title">Bluetooth share: Incoming file</string>
-    <string name="incoming_file_confirm_Notification_caption">Please confirm you want to receive this file</string>
-    <string name="incoming_file_toast_msg">There is an incoming file from another device,
-        please confirm that you want to receive this file</string>
+    <string name="incoming_file_confirm_Notification_caption">Do you want to receive this file?</string>
+    <string name="incoming_file_toast_msg">Incoming file from another device.
+        Confirm you want to receive this file.</string>
 
     <!-- Inbound File Transfer Progress Notification item -->
     <!-- label for the notification item of receiving file -->
@@ -90,8 +90,8 @@
     <!-- label for the notification item of sending file -->
     <string name="notification_sending">Bluetooth share: Sending <xliff:g id="file">%1$s</xliff:g></string>
     <!-- label for the notification item of sent file -->
-    <string name="notification_sent">Bluetooth share: Sent <xliff:g id="file">%1$s</xliff:g></string>
-    <!-- label for the notification item of sent file -status -->
+    <string name="notification_sent">Bluetooth share: Sent <xliff:g id="file">%1$s</xliff:g></string> 
+    <!-- label for the notification item of sent file -status --> 
     <string name="notification_sent_complete">100% complete</string>
     <!-- label for the notification item of failed sending file -->
     <string name="notification_sent_fail">Bluetooth share: File <xliff:g id="file">%1$s</xliff:g> not sent</string>
@@ -119,7 +119,7 @@
     <!--Line 2  -->
     <string name="download_fail_line2">File: <xliff:g id="file">%1$s</xliff:g></string>
     <!--Line 3  -->
-    <string name="download_fail_line3">Failure reason: <xliff:g id="reason">%1$s</xliff:g></string>
+    <string name="download_fail_line3">Reason: <xliff:g id="reason">%1$s</xliff:g></string>
     <!-- Label for ok button.-->
     <string name="download_fail_ok">OK</string>
 
@@ -131,7 +131,7 @@
 
     <!-- Bluetooth Upload Progress Dialog -->
     <string name="upload_line1">To: \u0022<xliff:g id="recipient">%1$s</xliff:g>\u0022</string>
-    <string name="upload_line3">File Type: <xliff:g id="type">%1$s</xliff:g> (<xliff:g id="size">%2$s</xliff:g>)</string>
+    <string name="upload_line3">File type: <xliff:g id="type">%1$s</xliff:g> (<xliff:g id="size">%2$s</xliff:g>)</string>
     <string name="upload_line5">Sending file\u2026</string>
 
     <!-- Bluetooth Successful Upload Progress Dialog -->
@@ -141,7 +141,7 @@
     <string name="upload_succ_ok">OK</string>
 
     <!-- Bluetooth Failed Upload File Transfer Dialog -->
-    <string name="upload_fail_line1">The file was not sent to \u0022<xliff:g id="recipient">%1$s</xliff:g>\u0022.</string>
+    <string name="upload_fail_line1">The file wasn\'t sent to \u0022<xliff:g id="recipient">%1$s</xliff:g>\u0022.</string>
     <string name="upload_fail_line1_2">File: <xliff:g id="file">%1$s</xliff:g></string>
     <!-- Label for a try again button.-->
     <string name="upload_fail_ok">Try again</string>
@@ -151,43 +151,43 @@
     <!-- Bluetooth error dialog -->
     <string name="bt_error_btn_ok">OK</string>
     <string name="unknown_file">Unknown file</string>
-    <string name="unknown_file_desc">There is no application to handle this file type. \n</string>
-    <string name="not_exist_file">File does not exist</string>
-    <string name="not_exist_file_desc">The file does not exist! \n</string>
+    <string name="unknown_file_desc">There\'s no app to handle this type of file. \n</string>
+    <string name="not_exist_file">No file</string>
+    <string name="not_exist_file_desc">The file doesn\'t exist. \n</string>
 
     <!-- Bluetooth  Enabling progress dialog -->
     <string name="enabling_progress_title">Please wait\u2026</string>
-    <string name="enabling_progress_content">Turning on bluetooth\u2026</string>
+    <string name="enabling_progress_content">Turning on Bluetooth\u2026</string>
 
     <!-- Bluetooth Toast Message -->
     <string name="bt_toast_1">The file will be received. Check progress in the Notifications panel.</string>
-    <string name="bt_toast_2">The file will not be received.</string>
+    <string name="bt_toast_2">The file can\'t be received.</string>
     <string name="bt_toast_3">Stopped receiving file from \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022</string>
     <string name="bt_toast_4">Sending file to \u0022<xliff:g id="recipient">%1$s</xliff:g>\u0022</string>
     <string name="bt_toast_5">Sending <xliff:g id="number">%1$s</xliff:g> files to \u0022<xliff:g id="recipient">%2$s</xliff:g>\u0022</string>
     <string name="bt_toast_6">Stopped sending file to \u0022<xliff:g id="recipient">%1$s</xliff:g>\u0022</string>
 
     <!-- Bluetooth System Messages [CHAR LIMIT=NONE] -->
-    <string name="bt_sm_2_1" product="nosdcard">There is not enough space on USB storage to save the file from \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022</string>
+    <string name="bt_sm_2_1" product="nosdcard">There isn\'t enough space in USB storage to save the file from \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022</string>
     <!-- Bluetooth System Messages -->
-    <string name="bt_sm_2_1" product="default">There is not enough space on the SD card to save the file from \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022</string>
+    <string name="bt_sm_2_1" product="default">There isn\'t enough space on the SD card to save the file from \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022</string>
     <string name="bt_sm_2_2">Space needed: <xliff:g id="size">%1$s</xliff:g></string>
 
     <string name="ErrorTooManyRequests">Too many requests are being processed. Try again later.</string>
 
     <!-- Bluetooth Transfer Failure Reason -->
-    <string name="status_pending">File transfer not started yet</string>
-    <string name="status_running">File transfer is ongoing</string>
-    <string name="status_success">The file transfer has completed successfully</string>
-    <string name="status_not_accept">Content not supported.</string>
-    <string name="status_forbidden">This transfer is forbidden by the target device</string>
-    <string name="status_canceled">This transfer was canceled by the user</string>
-    <string name="status_file_error">Storage issue</string>
+    <string name="status_pending">File transfer not started yet.</string>
+    <string name="status_running">File transfer is ongoing.</string>
+    <string name="status_success">File transfer completed successfully.</string>
+    <string name="status_not_accept">Content isn\'t supported.</string>
+    <string name="status_forbidden">Transfer forbidden by target device.</string>
+    <string name="status_canceled">Transfer canceled by user.</string>
+    <string name="status_file_error">Storage issue.</string>
     <!-- Shown when USB storage cannot be found.  [CHAR LIMIT=NONE] -->
     <string name="status_no_sd_card" product="nosdcard">No USB storage.</string>
     <string name="status_no_sd_card" product="default">No SD card. Insert an SD card to save transferred files.</string>
     <string name="status_connection_error">Connection unsuccessful.</string>
-    <string name="status_protocol_error">The request can\'t be handled correctly.</string>
+    <string name="status_protocol_error">Request can\'t be handled correctly.</string>
     <string name="status_unknown_error">Unknown error.</string>
 
     <!-- Bluetooth OPP Live Folder -->
@@ -202,7 +202,7 @@
     <string name="transfer_clear_dlg_msg">All items will be cleared from the list.</string>
     <string name="outbound_noti_title">Bluetooth share: Sent files</string>
     <string name="inbound_noti_title">Bluetooth share: Received files</string>
-    <string name="noti_caption"> <xliff:g id="successful_number">%1$s</xliff:g> successful, <xliff:g id="unsuccessful_number">%2$s</xliff:g> failed.</string>
+    <string name="noti_caption"> <xliff:g id="successful_number">%1$s</xliff:g> successful, <xliff:g id="unsuccessful_number">%2$s</xliff:g> unsuccessful.</string>
 
     <string name="transfer_menu_clear_all">Clear list</string>
     <string name="transfer_menu_open">Open</string>
