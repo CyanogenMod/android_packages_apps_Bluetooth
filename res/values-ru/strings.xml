@@ -17,13 +17,13 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Доступ к диспетчеру загрузки."</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"Позволяет приложению получать доступ к диспетчеру передачи файлов по каналу Bluetooth и использовать его для передачи файлов."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Приложение получит доступ к диспетчеру передачи файлов по каналу Bluetooth и сможет использовать его для передачи файлов."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Неизвестное устройство"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Неизвестно"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Режим полета"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"В режиме полета нельзя использовать Bluetooth."</string>
-    <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
+    <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Чтобы использовать службы Bluetooth, включите адаптер Bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Включить Bluetooth?"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"Отмена"</string>
@@ -32,11 +32,11 @@
     <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" отправляет вам файл <xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>). "\n\n"Принять файл?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Отклонить"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Принять"</string>
-    <string name="incoming_file_confirm_timeout_ok" msgid="860272542827665475">"ОК"</string>
+    <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ОК"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"В процессе приема файла от \"<xliff:g id="SENDER">%1$s</xliff:g>\" произошел тайм-аут"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Передача по Bluetooth: входящий файл"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="85804056450169291">"Подтвердите прием этого файла."</string>
-    <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Входящий файл с другого устройства. Подтвердите получение этого файла."</string>
+    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Принять файл?"</string>
+    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Входящий файл с другого устройства. Подтвердите разрешение на получение этого файла."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Передача по Bluetooth: получение файла <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Передача по Bluetooth: файл <xliff:g id="FILE">%1$s</xliff:g> получен"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Передача по Bluetooth: файл <xliff:g id="FILE">%1$s</xliff:g> не получен"</string>
@@ -54,47 +54,47 @@
     <string name="download_ok" msgid="5000360731674466039">"Скрыть"</string>
     <string name="download_fail_line1" msgid="3846450148862894552">"Файл не получен."</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"Файл: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="download_fail_line3" msgid="5611058289180135888">"Причина ошибки: <xliff:g id="REASON">%1$s</xliff:g>"</string>
+    <string name="download_fail_line3" msgid="3451040656154861722">"Причина: <xliff:g id="REASON">%1$s</xliff:g>"</string>
     <string name="download_fail_ok" msgid="1521733664438320300">"ОК"</string>
     <string name="download_succ_line5" msgid="4509944688281573595">"Файл получен."</string>
     <string name="download_succ_ok" msgid="7053688246357050216">"Открыть"</string>
     <string name="upload_line1" msgid="2055952074059709052">"Куда: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
-    <string name="upload_line3" msgid="5866755479845641607">"Тип файла: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
+    <string name="upload_line3" msgid="4920689672457037437">"Тип файла: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
     <string name="upload_line5" msgid="7759322537674229752">"Отправка файла..."</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"Файл отправлен"</string>
     <string name="upload_succ_ok" msgid="7705428476405478828">"ОК"</string>
-    <string name="upload_fail_line1" msgid="229249873880944683">"Файл не был отправлен на \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"."</string>
+    <string name="upload_fail_line1" msgid="7899394672421491701">"Файл не был отправлен на устройство \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Файл: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="upload_fail_ok" msgid="5807702461606714296">"Повторить"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Закрыть"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"ОК"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Неизвестный файл"</string>
-    <string name="unknown_file_desc" msgid="5845231383612478643">"Отсутствует приложение для открытия этого файла. "\n</string>
-    <string name="not_exist_file" msgid="2245958259960700777">"Файл не существует."</string>
-    <string name="not_exist_file_desc" msgid="2392808771821464983">"Файл не существует! "\n</string>
+    <string name="unknown_file_desc" msgid="480434281415453287">"Нет приложения для работы с данным типом файла. "\n</string>
+    <string name="not_exist_file" msgid="3489434189599716133">"Нет файла"</string>
+    <string name="not_exist_file_desc" msgid="4059531573790529229">"Файл не существует! . "\n</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Подождите..."</string>
-    <string name="enabling_progress_content" msgid="1291028079299309898">"Включение Bluetooth…"</string>
+    <string name="enabling_progress_content" msgid="4601542238119927904">"Включение Bluetooth..."</string>
     <string name="bt_toast_1" msgid="972182708034353383">"Этот файл будет получен. Ход выполнения отображается на панели уведомлений."</string>
-    <string name="bt_toast_2" msgid="6357386241778417651">"Этот файл не будет получен."</string>
+    <string name="bt_toast_2" msgid="8602553334099066582">"Получение файла невозможно."</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"Получение файла от \"<xliff:g id="SENDER">%1$s</xliff:g>\" прервано"</string>
     <string name="bt_toast_4" msgid="4678812947604395649">"Отправка файла на \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Отправка файлов (<xliff:g id="NUMBER">%1$s</xliff:g>) на \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Отправка файла на \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" остановлена"</string>
-    <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"Недостаточно места на USB-накопителе для сохранения файла, полученного от устройства <xliff:g id="SENDER">%1$s</xliff:g>."</string>
-    <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">"Недостаточно места на SD-карте для сохранения файла, полученного от \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
+    <string name="bt_sm_2_1" product="nosdcard" msgid="352165168004521000">"Недостаточно места на USB-накопителе для сохранения файла, полученного от устройства \"<xliff:g id="SENDER">%1$s</xliff:g>\"."</string>
+    <string name="bt_sm_2_1" product="default" msgid="1989018443456803630">"Недостаточно места на SD-карте для сохранения файла, полученного от \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Необходимое свободное место: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Обрабатывается слишком много запросов. Повторите попытку позднее."</string>
-    <string name="status_pending" msgid="7446884326084324082">"Передача файла еще не началась."</string>
-    <string name="status_running" msgid="2695810336448055064">"Выполняется передача файла."</string>
-    <string name="status_success" msgid="2268261336330060663">"Передача файла успешно завершена."</string>
-    <string name="status_not_accept" msgid="2489805942397459486">"Это содержание не поддерживается."</string>
-    <string name="status_forbidden" msgid="8499236547788725258">"Передача запрещена на принимающем устройстве"</string>
-    <string name="status_canceled" msgid="5514756906439790976">"Передача отменена пользователем."</string>
-    <string name="status_file_error" msgid="6125632529575521755">"Ошибка хранилища"</string>
+    <string name="status_pending" msgid="2503691772030877944">"Передача файла еще не началась."</string>
+    <string name="status_running" msgid="6562808920311008696">"Выполняется передача файла."</string>
+    <string name="status_success" msgid="239573225847565868">"Передача файла успешно завершена."</string>
+    <string name="status_not_accept" msgid="1695082417193780738">"Содержимое не поддерживается."</string>
+    <string name="status_forbidden" msgid="613956401054050725">"Передача запрещена на принимающем устройстве."</string>
+    <string name="status_canceled" msgid="6664490318773098285">"Передача отменена пользователем."</string>
+    <string name="status_file_error" msgid="3671917770630165299">"Ошибка хранилища."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"USB-накопитель не найден."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Отсутствует SD-карта. Вставьте SD-карту для сохранения переданных файлов."</string>
     <string name="status_connection_error" msgid="947681831523219891">"Не удалось установить соединение."</string>
-    <string name="status_protocol_error" msgid="1199135510987767468">"Невозможно обработать запрос."</string>
+    <string name="status_protocol_error" msgid="3245444473429269539">"Невозможно правильно обработать запрос."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Неизвестная ошибка"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Получено по Bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"Получено: <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>
@@ -105,7 +105,7 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Все элементы будут удалены из списка."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth: отправленные файлы"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth: полученные файлы"</string>
-    <string name="noti_caption" msgid="8510712376046370819">"Выполнено: <xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g>; не выполнено: <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g>."</string>
+    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> удачно, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> неудачно."</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Очистить список"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Открыть"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Удалить из списка"</string>

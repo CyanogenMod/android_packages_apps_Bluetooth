@@ -17,13 +17,13 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Akses pengurus muat turun."</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"Membenarkan aplikasi mengakses pengurus Perkongsian Bluetooth dan menggunakannya untuk memindahkan fail."</string>
+    <!-- outdated translation 8739116224907566462 -->     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Membenarkan aplikasi mengakses pengurus Perkongsian Bluetooth dan menggunakannya untuk memindahkan fail."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Peranti tidak diketahui"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Tidak diketahui"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Mod pesawat"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"Anda tidak boleh menggunakan Bluetooth dalam mod Pesawat."</string>
-    <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
+    <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Untuk menggunakan perkhidmatan Bluetooth, anda perlu menghidupkan Bluetooth terlebih dahulu."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Hidupkan Bluetooth sekarang?"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"Batal"</string>
@@ -32,11 +32,11 @@
     <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" mahu menghantar <xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>) kepada anda. "\n\n" Terima fail?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Tolak"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Terima"</string>
-    <string name="incoming_file_confirm_timeout_ok" msgid="860272542827665475">"Ok"</string>
+    <!-- outdated translation 860272542827665475 -->     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"Ok"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Berlaku tamat masa semasa menerima fail masuk daripada \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Perkongsian Bluetooth: Fail masuk"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="85804056450169291">"Sila sahkan bahawa anda mahu menerima fail ini"</string>
-    <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Terdapat fail masuk dari peranti lain, sila sahkan bahawa anda mahu menerima fail ini"</string>
+    <!-- outdated translation 85804056450169291 -->     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Sila sahkan bahawa anda mahu menerima fail ini"</string>
+    <!-- outdated translation 5763638110029586276 -->     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Terdapat fail masuk dari peranti lain, sila sahkan bahawa anda mahu menerima fail ini"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Perkongsian Bluetooth: Menerima <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Perkongsian Bluetooth: Diterima <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Perkongsian Bluetooth: Fail <xliff:g id="FILE">%1$s</xliff:g> tidak diterima"</string>
@@ -54,47 +54,52 @@
     <string name="download_ok" msgid="5000360731674466039">"Sembunyi"</string>
     <string name="download_fail_line1" msgid="3846450148862894552">"Fail tidak diterima"</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"Fail: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="download_fail_line3" msgid="5611058289180135888">"Sebab kegagalan: <xliff:g id="REASON">%1$s</xliff:g>"</string>
+    <!-- no translation found for download_fail_line3 (3451040656154861722) -->
+    <skip />
     <string name="download_fail_ok" msgid="1521733664438320300">"OK"</string>
     <string name="download_succ_line5" msgid="4509944688281573595">"Fail diterima"</string>
     <string name="download_succ_ok" msgid="7053688246357050216">"Buka"</string>
     <string name="upload_line1" msgid="2055952074059709052">"Kepada: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
-    <string name="upload_line3" msgid="5866755479845641607">"Jenis Fail: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
+    <!-- no translation found for upload_line3 (4920689672457037437) -->
+    <skip />
     <string name="upload_line5" msgid="7759322537674229752">"Menghantar fail..."</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"Fail telah dihantar"</string>
     <string name="upload_succ_ok" msgid="7705428476405478828">"OK"</string>
-    <string name="upload_fail_line1" msgid="229249873880944683">"Fail tidak dihantarkan kepada \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"."</string>
+    <!-- no translation found for upload_fail_line1 (7899394672421491701) -->
+    <skip />
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Fail: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="upload_fail_ok" msgid="5807702461606714296">"Cuba lagi"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Tutup"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"OK"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Fail tidak diketahui"</string>
-    <string name="unknown_file_desc" msgid="5845231383612478643">"Tidak terdapat aplikasi untuk mengendalikan jenis fail ini. "\n</string>
-    <string name="not_exist_file" msgid="2245958259960700777">"Fail tidak wujud"</string>
-    <string name="not_exist_file_desc" msgid="2392808771821464983">"Fail tidak wujud! "\n</string>
+    <!-- outdated translation 5845231383612478643 -->     <string name="unknown_file_desc" msgid="480434281415453287">"Tidak terdapat aplikasi untuk mengendalikan jenis fail ini. "\n</string>
+    <!-- outdated translation 2245958259960700777 -->     <string name="not_exist_file" msgid="3489434189599716133">"Fail tidak wujud"</string>
+    <!-- outdated translation 2392808771821464983 -->     <string name="not_exist_file_desc" msgid="4059531573790529229">"Fail tidak wujud! "\n</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Sila tunggu..."</string>
-    <string name="enabling_progress_content" msgid="1291028079299309898">"Menghidupkan bluetooth..."</string>
+    <!-- outdated translation 1291028079299309898 -->     <string name="enabling_progress_content" msgid="4601542238119927904">"Menghidupkan bluetooth..."</string>
     <string name="bt_toast_1" msgid="972182708034353383">"Fail akan diterima. Semak kemajuan dalam panel Pemberitahuan."</string>
-    <string name="bt_toast_2" msgid="6357386241778417651">"Fail tidak akan diterima."</string>
+    <!-- outdated translation 6357386241778417651 -->     <string name="bt_toast_2" msgid="8602553334099066582">"Fail tidak akan diterima."</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"Penerimaan fail daripada \"<xliff:g id="SENDER">%1$s</xliff:g>\" dihentikan"</string>
     <string name="bt_toast_4" msgid="4678812947604395649">"Menghantar fail kepada \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Menghantar <xliff:g id="NUMBER">%1$s</xliff:g> fail kepada \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Penghantaran fail ke \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" dihentikan"</string>
-    <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"Tidak terdapat ruang yang mencukupi pada storan USB untuk menyimpan fail daripada \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">"Tidak terdapat ruang yang mencukupi pada kad SD untuk menyimpan fail daripada \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
+    <!-- no translation found for bt_sm_2_1 (352165168004521000) -->
+    <skip />
+    <!-- no translation found for bt_sm_2_1 (1989018443456803630) -->
+    <skip />
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Ruang diperlukan: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Terlalu banyak permintaan sedang diproses. Cuba sebentar lagi."</string>
-    <string name="status_pending" msgid="7446884326084324082">"Pemindahan fail belum lagi dimulakan"</string>
-    <string name="status_running" msgid="2695810336448055064">"Pemindahan fail sedang berlangsung"</string>
-    <string name="status_success" msgid="2268261336330060663">"Pemindahan fail telah berjaya diselesaikan"</string>
-    <string name="status_not_accept" msgid="2489805942397459486">"Kandungan tidak disokong."</string>
-    <string name="status_forbidden" msgid="8499236547788725258">"Pemindahan ini dilarang oleh peranti sasaran"</string>
-    <string name="status_canceled" msgid="5514756906439790976">"Pemindahan ini dibatalkan oleh pengguna"</string>
-    <string name="status_file_error" msgid="6125632529575521755">"Isu storan"</string>
+    <!-- outdated translation 7446884326084324082 -->     <string name="status_pending" msgid="2503691772030877944">"Pemindahan fail belum lagi dimulakan"</string>
+    <!-- outdated translation 2695810336448055064 -->     <string name="status_running" msgid="6562808920311008696">"Pemindahan fail sedang berlangsung"</string>
+    <!-- outdated translation 2268261336330060663 -->     <string name="status_success" msgid="239573225847565868">"Pemindahan fail telah berjaya diselesaikan"</string>
+    <!-- outdated translation 2489805942397459486 -->     <string name="status_not_accept" msgid="1695082417193780738">"Kandungan tidak disokong."</string>
+    <!-- outdated translation 8499236547788725258 -->     <string name="status_forbidden" msgid="613956401054050725">"Pemindahan ini dilarang oleh peranti sasaran"</string>
+    <!-- outdated translation 5514756906439790976 -->     <string name="status_canceled" msgid="6664490318773098285">"Pemindahan ini dibatalkan oleh pengguna"</string>
+    <!-- outdated translation 6125632529575521755 -->     <string name="status_file_error" msgid="3671917770630165299">"Isu storan"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Tiada storan USB."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Tiada kad SD. Masukkan kad SD untuk menyimpan fail yang dipindahkan."</string>
     <string name="status_connection_error" msgid="947681831523219891">"Sambungan tidak berjaya."</string>
-    <string name="status_protocol_error" msgid="1199135510987767468">"Permintaan tidak dapat dikendalikan dengan betul."</string>
+    <!-- outdated translation 1199135510987767468 -->     <string name="status_protocol_error" msgid="3245444473429269539">"Permintaan tidak dapat dikendalikan dengan betul."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Ralat tidak diketahui."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth diterima"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Penerimaan selesai."</string>
@@ -105,7 +110,8 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Semua item akan dipadam bersih daripada senarai."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Perkongsian Bluetooth: Fail diterima"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Perkongsian Bluetooth: Fail diterima"</string>
-    <string name="noti_caption" msgid="8510712376046370819">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> berjaya, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> gagal."</string>
+    <!-- no translation found for noti_caption (7508708288885707365) -->
+    <skip />
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Padam bersih senarai"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Buka"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Padam bersih daripada senarai"</string>

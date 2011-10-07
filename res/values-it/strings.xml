@@ -17,13 +17,13 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Accedere al gestore dei download."</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"Consente l\'accesso dell\'applicazione al gestore BluetoothShare e il suo utilizzo per trasferire i file."</string>
+    <!-- outdated translation 8739116224907566462 -->     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Consente l\'accesso dell\'applicazione al gestore BluetoothShare e il suo utilizzo per trasferire i file."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Dispositivo sconosciuto"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Sconosciuto"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Modalità aereo"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"Non puoi utilizzare Bluetooth in modalità aereo."</string>
-    <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
+    <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Per utilizzare i servizi Bluetooth, prima è necessario attivare Bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Attivare Bluetooth adesso?"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"Annulla"</string>
@@ -32,11 +32,11 @@
     <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" vuole inviarti <xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>). "\n\n" Accetti il file?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Rifiuta"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Accetta"</string>
-    <string name="incoming_file_confirm_timeout_ok" msgid="860272542827665475">"OK"</string>
+    <!-- outdated translation 860272542827665475 -->     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Si è verificato un timeout durante l\'accettazione di un file in arrivo da \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Condivisione Bluetooth: file in arrivo"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="85804056450169291">"Conferma che desideri ricevere questo file"</string>
-    <string name="incoming_file_toast_msg" msgid="5763638110029586276">"File in arrivo da un altro dispositivo, conferma che vuoi ricevere il file"</string>
+    <!-- outdated translation 85804056450169291 -->     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Conferma che desideri ricevere questo file"</string>
+    <!-- outdated translation 5763638110029586276 -->     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"File in arrivo da un altro dispositivo, conferma che vuoi ricevere il file"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Condivisione Bluetooth: ricezione file <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Condivisione Bluetooth: file <xliff:g id="FILE">%1$s</xliff:g> ricevuto"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Condivisione Bluetooth: file <xliff:g id="FILE">%1$s</xliff:g> non ricevuto"</string>
@@ -54,47 +54,52 @@
     <string name="download_ok" msgid="5000360731674466039">"Nascondi"</string>
     <string name="download_fail_line1" msgid="3846450148862894552">"File non ricevuto"</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"File: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="download_fail_line3" msgid="5611058289180135888">"Motivo dell\'errore: <xliff:g id="REASON">%1$s</xliff:g>"</string>
+    <!-- no translation found for download_fail_line3 (3451040656154861722) -->
+    <skip />
     <string name="download_fail_ok" msgid="1521733664438320300">"OK"</string>
     <string name="download_succ_line5" msgid="4509944688281573595">"File ricevuto"</string>
     <string name="download_succ_ok" msgid="7053688246357050216">"Apri"</string>
     <string name="upload_line1" msgid="2055952074059709052">"A: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
-    <string name="upload_line3" msgid="5866755479845641607">"Tipo di file: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
+    <!-- no translation found for upload_line3 (4920689672457037437) -->
+    <skip />
     <string name="upload_line5" msgid="7759322537674229752">"Invio file in corso..."</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"File inviato"</string>
     <string name="upload_succ_ok" msgid="7705428476405478828">"OK"</string>
-    <string name="upload_fail_line1" msgid="229249873880944683">"Impossibile inviare il file a \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"."</string>
+    <!-- no translation found for upload_fail_line1 (7899394672421491701) -->
+    <skip />
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"File: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="upload_fail_ok" msgid="5807702461606714296">"Riprova"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Chiudi"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"OK"</string>
     <string name="unknown_file" msgid="6092727753965095366">"File sconosciuto"</string>
-    <string name="unknown_file_desc" msgid="5845231383612478643">"Nessuna applicazione è in grado di gestire questo tipo di file. "\n</string>
-    <string name="not_exist_file" msgid="2245958259960700777">"Il file non esiste"</string>
-    <string name="not_exist_file_desc" msgid="2392808771821464983">"Il file non esiste! "\n</string>
+    <!-- outdated translation 5845231383612478643 -->     <string name="unknown_file_desc" msgid="480434281415453287">"Nessuna applicazione è in grado di gestire questo tipo di file. "\n</string>
+    <!-- outdated translation 2245958259960700777 -->     <string name="not_exist_file" msgid="3489434189599716133">"Il file non esiste"</string>
+    <!-- outdated translation 2392808771821464983 -->     <string name="not_exist_file_desc" msgid="4059531573790529229">"Il file non esiste! "\n</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Attendi..."</string>
-    <string name="enabling_progress_content" msgid="1291028079299309898">"Attivazione Bluetooth in corso…"</string>
+    <!-- outdated translation 1291028079299309898 -->     <string name="enabling_progress_content" msgid="4601542238119927904">"Attivazione Bluetooth in corso…"</string>
     <string name="bt_toast_1" msgid="972182708034353383">"Il file verrà ricevuto. Controlla l\'avanzamento nel pannello Notifiche."</string>
-    <string name="bt_toast_2" msgid="6357386241778417651">"Impossibile ricevere il file."</string>
+    <!-- outdated translation 6357386241778417651 -->     <string name="bt_toast_2" msgid="8602553334099066582">"Impossibile ricevere il file."</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"Interruzione della ricezione del file da \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_toast_4" msgid="4678812947604395649">"Invio del file a \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Invio di <xliff:g id="NUMBER">%1$s</xliff:g> file a \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Invio del file a \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" interrotto"</string>
-    <string name="bt_sm_2_1" product="nosdcard" msgid="8445781725395414465">"Spazio dell\'archivio USB insufficiente per salvare il file ricevuto da \"<xliff:g id="SENDER">%1$s</xliff:g>\"."</string>
-    <string name="bt_sm_2_1" product="default" msgid="2801238507525833799">"Spazio sulla scheda SD insufficiente per salvare il file da \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
+    <!-- no translation found for bt_sm_2_1 (352165168004521000) -->
+    <skip />
+    <!-- no translation found for bt_sm_2_1 (1989018443456803630) -->
+    <skip />
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Spazio necessario: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Troppe richieste in fase di elaborazione. Riprova più tardi."</string>
-    <string name="status_pending" msgid="7446884326084324082">"Trasferimento file non ancora iniziato"</string>
-    <string name="status_running" msgid="2695810336448055064">"Trasferimento file in corso"</string>
-    <string name="status_success" msgid="2268261336330060663">"Il trasferimento del file è stato completato"</string>
-    <string name="status_not_accept" msgid="2489805942397459486">"Contenuti non supportati."</string>
-    <string name="status_forbidden" msgid="8499236547788725258">"Il dispositivo di destinazione non consente questo trasferimento"</string>
-    <string name="status_canceled" msgid="5514756906439790976">"Questo trasferimento è stato annullato dall\'utente"</string>
-    <string name="status_file_error" msgid="6125632529575521755">"Problema di memorizzazione"</string>
+    <!-- outdated translation 7446884326084324082 -->     <string name="status_pending" msgid="2503691772030877944">"Trasferimento file non ancora iniziato"</string>
+    <!-- outdated translation 2695810336448055064 -->     <string name="status_running" msgid="6562808920311008696">"Trasferimento file in corso"</string>
+    <!-- outdated translation 2268261336330060663 -->     <string name="status_success" msgid="239573225847565868">"Il trasferimento del file è stato completato"</string>
+    <!-- outdated translation 2489805942397459486 -->     <string name="status_not_accept" msgid="1695082417193780738">"Contenuti non supportati."</string>
+    <!-- outdated translation 8499236547788725258 -->     <string name="status_forbidden" msgid="613956401054050725">"Il dispositivo di destinazione non consente questo trasferimento"</string>
+    <!-- outdated translation 5514756906439790976 -->     <string name="status_canceled" msgid="6664490318773098285">"Questo trasferimento è stato annullato dall\'utente"</string>
+    <!-- outdated translation 6125632529575521755 -->     <string name="status_file_error" msgid="3671917770630165299">"Problema di memorizzazione"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Nessun archivio USB."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Nessuna scheda SD. Inserisci una scheda SD per salvare i file trasferiti."</string>
     <string name="status_connection_error" msgid="947681831523219891">"Connessione non riuscita."</string>
-    <string name="status_protocol_error" msgid="1199135510987767468">"La richiesta non può essere gestita correttamente."</string>
+    <!-- outdated translation 1199135510987767468 -->     <string name="status_protocol_error" msgid="3245444473429269539">"La richiesta non può essere gestita correttamente."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Errore sconosciuto."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Ricezione Bluetooth avvenuta"</string>
     <string name="download_success" msgid="7036160438766730871">"Ricezione completata (<xliff:g id="FILE_SIZE">%1$s</xliff:g>)"</string>
@@ -105,7 +110,8 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Tutti gli elementi verranno cancellati dall\'elenco."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Condivisione Bluetooth: file inviati"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Condivisione Bluetooth: file ricevuti"</string>
-    <string name="noti_caption" msgid="8510712376046370819">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> operazioni riuscite, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> operazioni non riuscite."</string>
+    <!-- no translation found for noti_caption (7508708288885707365) -->
+    <skip />
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Cancella elenco"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Apri"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Cancella da elenco"</string>
