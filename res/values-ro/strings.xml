@@ -17,7 +17,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Accesaţi managerul de descărcare."</string>
-    <!-- outdated translation 8739116224907566462 -->     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Permite aplicaţiilor să acceseze managerul Distribuire prin Bluetooth şi să-l utilizeze la transferul fişierelor."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Permite aplicaţiilor să acceseze managerul Distribuire prin Bluetooth şi să-l utilizeze la transferul fişierelor."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Dispozitiv necunoscut"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Necunoscut"</string>
@@ -32,11 +32,11 @@
     <string name="incoming_file_confirm_content" msgid="6673812334377911289">"„<xliff:g id="SENDER">%1$s</xliff:g>” doreşte să vă trimită <xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>). "\n\n" Acceptaţi acest fişier?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Refuzaţi"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Acceptaţi"</string>
-    <!-- outdated translation 860272542827665475 -->     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"Ok"</string>
+    <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"A fost atins timpul limită pentru acceptarea unui fişier primit de la „<xliff:g id="SENDER">%1$s</xliff:g>”"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Distribuire prin Bluetooth: se primeşte fişierul"</string>
-    <!-- outdated translation 85804056450169291 -->     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Confirmaţi dacă doriţi să primiţi acest fişier"</string>
-    <!-- outdated translation 5763638110029586276 -->     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Un fişier de la alt dispozitiv se află în curs de primire. Confirmaţi dacă doriţi primirea acestuia."</string>
+    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Doriţi să primiţi acest fişier?"</string>
+    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Un fişier de la alt dispozitiv se află în curs de primire. Confirmaţi dacă doriţi primirea acestuia."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Distribuire prin Bluetooth: se primeşte <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Distribuire prin Bluetooth: s-a primit <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Distribuire prin Bluetooth: fişierul <xliff:g id="FILE">%1$s</xliff:g> nu s-a primit"</string>
@@ -54,52 +54,47 @@
     <string name="download_ok" msgid="5000360731674466039">"Ascundeţi"</string>
     <string name="download_fail_line1" msgid="3846450148862894552">"Fişierul nu este primit"</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"Fişier: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <!-- no translation found for download_fail_line3 (3451040656154861722) -->
-    <skip />
+    <string name="download_fail_line3" msgid="3451040656154861722">"Motiv: <xliff:g id="REASON">%1$s</xliff:g>"</string>
     <string name="download_fail_ok" msgid="1521733664438320300">"OK"</string>
     <string name="download_succ_line5" msgid="4509944688281573595">"Fişier primit"</string>
     <string name="download_succ_ok" msgid="7053688246357050216">"Deschideţi"</string>
     <string name="upload_line1" msgid="2055952074059709052">"Către: „<xliff:g id="RECIPIENT">%1$s</xliff:g>”"</string>
-    <!-- no translation found for upload_line3 (4920689672457037437) -->
-    <skip />
+    <string name="upload_line3" msgid="4920689672457037437">"Tip de fişier: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
     <string name="upload_line5" msgid="7759322537674229752">"Se trimite fişierul..."</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"Fişier trimis"</string>
     <string name="upload_succ_ok" msgid="7705428476405478828">"OK"</string>
-    <!-- no translation found for upload_fail_line1 (7899394672421491701) -->
-    <skip />
+    <string name="upload_fail_line1" msgid="7899394672421491701">"Fişierul nu a fost trimis la „<xliff:g id="RECIPIENT">%1$s</xliff:g>”."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Fişier: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="upload_fail_ok" msgid="5807702461606714296">"Încercaţi din nou"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Închideţi"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"OK"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Fişier necunoscut"</string>
-    <!-- outdated translation 5845231383612478643 -->     <string name="unknown_file_desc" msgid="480434281415453287">"Nu există nicio aplicaţie care să gestioneze acest tip de fişier. "\n</string>
-    <!-- outdated translation 2245958259960700777 -->     <string name="not_exist_file" msgid="3489434189599716133">"Fişierul nu există"</string>
-    <!-- outdated translation 2392808771821464983 -->     <string name="not_exist_file_desc" msgid="4059531573790529229">"Fişierul nu există! "\n</string>
+    <string name="unknown_file_desc" msgid="480434281415453287">"Nu există nicio aplicaţie care să gestioneze acest tip de fişier. "\n</string>
+    <string name="not_exist_file" msgid="3489434189599716133">"Niciun fişier"</string>
+    <string name="not_exist_file_desc" msgid="4059531573790529229">"Fişierul nu există. "\n</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Aşteptaţi..."</string>
-    <!-- outdated translation 1291028079299309898 -->     <string name="enabling_progress_content" msgid="4601542238119927904">"Se activează Bluetooth…"</string>
+    <string name="enabling_progress_content" msgid="4601542238119927904">"Se activează Bluetooth..."</string>
     <string name="bt_toast_1" msgid="972182708034353383">"Se va primi fişierul. Verificaţi progresul în panoul de notificări."</string>
-    <!-- outdated translation 6357386241778417651 -->     <string name="bt_toast_2" msgid="8602553334099066582">"Fişierul nu va fi primit."</string>
+    <string name="bt_toast_2" msgid="8602553334099066582">"Fişierul nu poate fi primit."</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"Primirea fişierului de la „<xliff:g id="SENDER">%1$s</xliff:g>” a fost anulată"</string>
     <string name="bt_toast_4" msgid="4678812947604395649">"Se trimite fişierul către „<xliff:g id="RECIPIENT">%1$s</xliff:g>”"</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Se trimit <xliff:g id="NUMBER">%1$s</xliff:g> (de) fişiere către „<xliff:g id="RECIPIENT">%2$s</xliff:g>”"</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Trimiterea fişierului către „<xliff:g id="RECIPIENT">%1$s</xliff:g>” a fost anulată"</string>
-    <!-- no translation found for bt_sm_2_1 (352165168004521000) -->
-    <skip />
-    <!-- no translation found for bt_sm_2_1 (1989018443456803630) -->
-    <skip />
+    <string name="bt_sm_2_1" product="nosdcard" msgid="352165168004521000">"Nu există spaţiu suficient pe stocarea USB pentru a salva fişierul de la „<xliff:g id="SENDER">%1$s</xliff:g>”"</string>
+    <string name="bt_sm_2_1" product="default" msgid="1989018443456803630">"Nu există suficient spaţiu pe cardul SD pentru a salva fişierul de la „<xliff:g id="SENDER">%1$s</xliff:g>”"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Spaţiu necesar: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Există prea multe solicitări în curs de procesare. Încercaţi din nou mai târziu."</string>
-    <!-- outdated translation 7446884326084324082 -->     <string name="status_pending" msgid="2503691772030877944">"Transferul fişierului nu a început încă"</string>
-    <!-- outdated translation 2695810336448055064 -->     <string name="status_running" msgid="6562808920311008696">"Transferul de fişier este în curs de desfăşurare"</string>
-    <!-- outdated translation 2268261336330060663 -->     <string name="status_success" msgid="239573225847565868">"Transferul fişierului s-a încheiat"</string>
-    <!-- outdated translation 2489805942397459486 -->     <string name="status_not_accept" msgid="1695082417193780738">"Conţinutul nu este acceptat."</string>
-    <!-- outdated translation 8499236547788725258 -->     <string name="status_forbidden" msgid="613956401054050725">"Acest transfer este interzis de dispozitivul de destinaţie"</string>
-    <!-- outdated translation 5514756906439790976 -->     <string name="status_canceled" msgid="6664490318773098285">"Acest transfer a fost anulat de utilizator"</string>
-    <!-- outdated translation 6125632529575521755 -->     <string name="status_file_error" msgid="3671917770630165299">"Problemă de stocare"</string>
+    <string name="status_pending" msgid="2503691772030877944">"Transferul fişierului nu a început încă."</string>
+    <string name="status_running" msgid="6562808920311008696">"Transferul fişierului este în curs de desfăşurare."</string>
+    <string name="status_success" msgid="239573225847565868">"Transferul fişierului s-a încheiat."</string>
+    <string name="status_not_accept" msgid="1695082417193780738">"Conţinutul nu este acceptat."</string>
+    <string name="status_forbidden" msgid="613956401054050725">"Transfer interzis de dispozitivul de destinaţie."</string>
+    <string name="status_canceled" msgid="6664490318773098285">"Transfer anulat de către utilizator."</string>
+    <string name="status_file_error" msgid="3671917770630165299">"Problemă de stocare."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Nu există spaţiu de stocare USB."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Nu există card SD. Introduceţi un card SD pentru a salva fişierele transferate."</string>
     <string name="status_connection_error" msgid="947681831523219891">"Conectare eşuată."</string>
-    <!-- outdated translation 1199135510987767468 -->     <string name="status_protocol_error" msgid="3245444473429269539">"Solicitarea nu poate fi gestionată corect."</string>
+    <string name="status_protocol_error" msgid="3245444473429269539">"Solicitarea nu poate fi gestionată corect."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Eroare necunoscută."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth recepţionat"</string>
     <string name="download_success" msgid="7036160438766730871">"Primire finalizată: <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>
@@ -110,8 +105,7 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Toate elementele din listă vor fi eliminate."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Distribuire prin Bluetooth: fişiere trimise"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Distribuire prin Bluetooth: fişiere primite"</string>
-    <!-- no translation found for noti_caption (7508708288885707365) -->
-    <skip />
+    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> reuşite, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> eşuate."</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Ştergeţi lista"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Deschideţi"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Ştergeţi din listă"</string>
