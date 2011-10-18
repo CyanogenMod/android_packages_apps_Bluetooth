@@ -17,7 +17,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Πρόσβαση στο πρόγραμμα διαχείρισης λήψεων."</string>
-    <!-- outdated translation 8739116224907566462 -->     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Επιτρέπει στην εφαρμογή να αποκτά πρόσβαση στο πρόγραμμα διαχείρισης BluetoothShare και να το χρησιμοποιεί για τη μεταφορά αρχείων."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Επιτρέπει στην εφαρμογή να αποκτά πρόσβαση στο πρόγραμμα διαχείρισης BluetoothShare και να το χρησιμοποιεί για τη μεταφορά αρχείων."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Άγνωστη συσκευή"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Άγνωστος"</string>
@@ -32,11 +32,11 @@
     <string name="incoming_file_confirm_content" msgid="6673812334377911289">"Ο αποστολέας \"<xliff:g id="SENDER">%1$s</xliff:g>\" θέλει να σας στείλει το <xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>). "\n\n" Αποδοχή του αρχείου;"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Απόρριψη"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Αποδοχή"</string>
-    <!-- outdated translation 860272542827665475 -->     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ΟΚ"</string>
+    <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Σημειώθηκε διακοπή κατά την αποδοχή ενός εισερχόμενου αρχείου από τον αποστολέα \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Κοινή χρήση μέσω Bluetooth: Εισερχόμενο αρχείο"</string>
-    <!-- outdated translation 85804056450169291 -->     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Επιβεβαιώστε ότι θέλετε να λάβετε αυτό το αρχείο"</string>
-    <!-- outdated translation 5763638110029586276 -->     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Υπάρχει ένα εισερχόμενο αρχείο από μια άλλη συσκευή, επιβεβαιώστε ότι θέλετε να λάβετε αυτό το αρχείο"</string>
+    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Θέλετε να λάβετε αυτό το αρχείο;"</string>
+    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Εισερχόμενο αρχείο από άλλη συσκευή. Επιβεβαιώστε ότι θέλετε να λάβετε αυτό το αρχείο."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Κοινή χρήση μέσω Bluetooth: Λήψη του <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Κοινή χρήση μέσω Bluetooth: Ελήφθη το <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Κοινή χρήση μέσω Bluetooth: Το αρχείο <xliff:g id="FILE">%1$s</xliff:g> δεν ελήφθη"</string>
@@ -54,52 +54,47 @@
     <string name="download_ok" msgid="5000360731674466039">"Απόκρυψη"</string>
     <string name="download_fail_line1" msgid="3846450148862894552">"Δεν ελήφθη το αρχείο"</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"Αρχείο: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <!-- no translation found for download_fail_line3 (3451040656154861722) -->
-    <skip />
+    <string name="download_fail_line3" msgid="3451040656154861722">"Λόγος: <xliff:g id="REASON">%1$s</xliff:g>"</string>
     <string name="download_fail_ok" msgid="1521733664438320300">"ΟΚ"</string>
     <string name="download_succ_line5" msgid="4509944688281573595">"Το αρχείο ελήφθη"</string>
     <string name="download_succ_ok" msgid="7053688246357050216">"Άνοιγμα"</string>
     <string name="upload_line1" msgid="2055952074059709052">"Προς: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
-    <!-- no translation found for upload_line3 (4920689672457037437) -->
-    <skip />
+    <string name="upload_line3" msgid="4920689672457037437">"Τύπος αρχείου: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
     <string name="upload_line5" msgid="7759322537674229752">"Αποστολή αρχείου..."</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"Το αρχείο εστάλη"</string>
     <string name="upload_succ_ok" msgid="7705428476405478828">"ΟΚ"</string>
-    <!-- no translation found for upload_fail_line1 (7899394672421491701) -->
-    <skip />
+    <string name="upload_fail_line1" msgid="7899394672421491701">"Το αρχείο δεν εστάλη στον παραλήπτη \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Αρχείο: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="upload_fail_ok" msgid="5807702461606714296">"Προσπαθήστε ξανά"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Κλείσιμο"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"ΟΚ"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Άγνωστο αρχείο"</string>
-    <!-- outdated translation 5845231383612478643 -->     <string name="unknown_file_desc" msgid="480434281415453287">"Δεν υπάρχει εφαρμογή για το χειρισμό αυτού του τύπου αρχείου. "\n</string>
-    <!-- outdated translation 2245958259960700777 -->     <string name="not_exist_file" msgid="3489434189599716133">"Το αρχείο δεν υπάρχει"</string>
-    <!-- outdated translation 2392808771821464983 -->     <string name="not_exist_file_desc" msgid="4059531573790529229">"Το αρχείο δεν υπάρχει! "\n</string>
+    <string name="unknown_file_desc" msgid="480434281415453287">"Δεν υπάρχει καμία εφαρμογή για τη διαχείριση αυτού του τύπου αρχείου. "\n</string>
+    <string name="not_exist_file" msgid="3489434189599716133">"Κανένα αρχείο"</string>
+    <string name="not_exist_file_desc" msgid="4059531573790529229">"Το αρχείο δεν υπάρχει. "\n</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Περιμένετε..."</string>
-    <!-- outdated translation 1291028079299309898 -->     <string name="enabling_progress_content" msgid="4601542238119927904">"Ενεργοποίηση του Bluetooth…"</string>
+    <string name="enabling_progress_content" msgid="4601542238119927904">"Ενεργοποίηση Bluetooth…"</string>
     <string name="bt_toast_1" msgid="972182708034353383">"Θα γίνει λήψη του αρχείου. Ελέγξτε την πρόοδο στο πλαίσιο \"Ειδοποιήσεις\"."</string>
-    <!-- outdated translation 6357386241778417651 -->     <string name="bt_toast_2" msgid="8602553334099066582">"Δεν θα γίνει λήψη του αρχείου."</string>
+    <string name="bt_toast_2" msgid="8602553334099066582">"Δεν είναι δυνατή η παραλαβή του αρχείου."</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"Διακόπηκε η λήψη του αρχείου από τον αποστολέα \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_toast_4" msgid="4678812947604395649">"Γίνεται αποστολή του αρχείου στον παραλήπτη \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Αποστολή <xliff:g id="NUMBER">%1$s</xliff:g> αρχείων στον παραλήπτη \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Διακόπηκε η αποστολή του αρχείου στον παραλήπτη \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
-    <!-- no translation found for bt_sm_2_1 (352165168004521000) -->
-    <skip />
-    <!-- no translation found for bt_sm_2_1 (1989018443456803630) -->
-    <skip />
+    <string name="bt_sm_2_1" product="nosdcard" msgid="352165168004521000">"Δεν υπάρχει αρκετός χώρος στον χώρο αποθήκευσης USB για την αποθήκευση του αρχείου από τον αποστολέα \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
+    <string name="bt_sm_2_1" product="default" msgid="1989018443456803630">"Δεν υπάρχει αρκετός χώρος στην κάρτα SD για την αποθήκευση του αρχείου από τον αποστολέα \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Απαιτούμενος χώρος: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Πραγματοποιείται επεξεργασία πάρα πολλών αιτημάτων. Προσπαθήστε ξανά αργότερα."</string>
-    <!-- outdated translation 7446884326084324082 -->     <string name="status_pending" msgid="2503691772030877944">"Δεν έχει ξεκινήσει ακόμα η μεταφορά αρχείου"</string>
-    <!-- outdated translation 2695810336448055064 -->     <string name="status_running" msgid="6562808920311008696">"Η μεταφορά του αρχείου βρίσκεται σε εξέλιξη"</string>
-    <!-- outdated translation 2268261336330060663 -->     <string name="status_success" msgid="239573225847565868">"Η μεταφορά του αρχείου ολοκληρώθηκε με επιτυχία"</string>
-    <!-- outdated translation 2489805942397459486 -->     <string name="status_not_accept" msgid="1695082417193780738">"Το περιεχόμενο δεν υποστηρίζεται."</string>
-    <!-- outdated translation 8499236547788725258 -->     <string name="status_forbidden" msgid="613956401054050725">"Δεν επιτρέπεται αυτή η μεταφορά από τη συσκευή προορισμού"</string>
-    <!-- outdated translation 5514756906439790976 -->     <string name="status_canceled" msgid="6664490318773098285">"Αυτή η μεταφορά ακυρώθηκε από το χρήστη"</string>
-    <!-- outdated translation 6125632529575521755 -->     <string name="status_file_error" msgid="3671917770630165299">"Πρόβλημα χώρου αποθήκευσης"</string>
+    <string name="status_pending" msgid="2503691772030877944">"Η μεταφορά του αρχείου δεν έχει ξεκινήσει ακόμα."</string>
+    <string name="status_running" msgid="6562808920311008696">"Η μεταφορά του αρχείου βρίσκεται σε εξέλιξη."</string>
+    <string name="status_success" msgid="239573225847565868">"Η μεταφορά του αρχείου ολοκληρώθηκε με επιτυχία."</string>
+    <string name="status_not_accept" msgid="1695082417193780738">"Το περιεχόμενο δεν υποστηρίζεται."</string>
+    <string name="status_forbidden" msgid="613956401054050725">"Δεν επιτρέπεται αυτή η μεταφορά από τη συσκευή προορισμού."</string>
+    <string name="status_canceled" msgid="6664490318773098285">"Η μεταφορά ακυρώθηκε από τον χρήστη."</string>
+    <string name="status_file_error" msgid="3671917770630165299">"Πρόβλημα χώρου αποθήκευσης."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Δεν υπάρχει χώρος αποθήκευσης USB."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Δεν υπάρχει κάρτα SD card. Εισαγάγετε μια κάρτα SD για να αποθηκεύετε τα μεταφερόμενα αρχεία."</string>
     <string name="status_connection_error" msgid="947681831523219891">"Η σύνδεση δεν ήταν επιτυχής."</string>
-    <!-- outdated translation 1199135510987767468 -->     <string name="status_protocol_error" msgid="3245444473429269539">"Δεν μπορεί να γίνει σωστός χειρισμός του αιτήματος."</string>
+    <string name="status_protocol_error" msgid="3245444473429269539">"Δεν μπορεί να γίνει σωστός χειρισμός του αιτήματος."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Άγνωστο σφάλμα."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Ελήφθη μέσω Bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"Ελήφθησαν πλήρως <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>
@@ -110,8 +105,7 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Θα γίνει εκκαθάριση όλων των στοιχείων από τη λίστα."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Κοινή χρήση Bluetooth: Απεσταλμένα αρχεία"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Κοινή χρήση Bluetooth: Ληφθέντα αρχεία"</string>
-    <!-- no translation found for noti_caption (7508708288885707365) -->
-    <skip />
+    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> επιτυχίες, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> αποτυχίες."</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Εκκαθάριση λίστας"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Άνοιγμα"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Εκκαθάριση από τη λίστα"</string>
