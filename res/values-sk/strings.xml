@@ -17,7 +17,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Získať prístup k správcovi preberania."</string>
-    <!-- outdated translation 8739116224907566462 -->     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Umožňuje aplikácii prístup k Správcovi zdieľania Bluetooth a jeho využívanie na prenos súborov."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Umožňuje aplikácii pristupovať k Správcovi BluetoothShare a jeho využívanie na prenos súborov."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Neznáme zariadenie"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Neznáme"</string>
@@ -32,11 +32,11 @@
     <string name="incoming_file_confirm_content" msgid="6673812334377911289">"Používateľ <xliff:g id="SENDER">%1$s</xliff:g> sa vám pokúša odoslať súbor <xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>). "\n\n" Chcete súbor prijať?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Odmietnuť"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Prijať"</string>
-    <!-- outdated translation 860272542827665475 -->     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
+    <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Pri prijímaní prichádzajúceho súboru od používateľa <xliff:g id="SENDER">%1$s</xliff:g> vypršal časový limit."</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Zdieľanie Bluetooth: Prichádzajúci súbor"</string>
-    <!-- outdated translation 85804056450169291 -->     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Potvrďte, či tento súbor chcete prijať"</string>
-    <!-- outdated translation 5763638110029586276 -->     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Potvrďte príjem prichádzajúceho súboru z iného zariadenia"</string>
+    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Chcete prijať tento súbor?"</string>
+    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Potvrďte príjem súboru prichádzajúceho z iného zariadenia."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Zdieľanie Bluetooth: Prijímanie súboru <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Zdieľanie Bluetooth: Súbor <xliff:g id="FILE">%1$s</xliff:g> bol prijatý"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Zdieľanie Bluetooth: Súbor <xliff:g id="FILE">%1$s</xliff:g> nebol prijatý"</string>
@@ -54,52 +54,47 @@
     <string name="download_ok" msgid="5000360731674466039">"Skryť"</string>
     <string name="download_fail_line1" msgid="3846450148862894552">"Súbor nebol prijatý"</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"Súbor: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <!-- no translation found for download_fail_line3 (3451040656154861722) -->
-    <skip />
+    <string name="download_fail_line3" msgid="3451040656154861722">"Dôvod: <xliff:g id="REASON">%1$s</xliff:g>"</string>
     <string name="download_fail_ok" msgid="1521733664438320300">"OK"</string>
     <string name="download_succ_line5" msgid="4509944688281573595">"Súbor bol prijatý"</string>
     <string name="download_succ_ok" msgid="7053688246357050216">"Otvoriť"</string>
     <string name="upload_line1" msgid="2055952074059709052">"Komu: „<xliff:g id="RECIPIENT">%1$s</xliff:g>“"</string>
-    <!-- no translation found for upload_line3 (4920689672457037437) -->
-    <skip />
+    <string name="upload_line3" msgid="4920689672457037437">"Typ súboru: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
     <string name="upload_line5" msgid="7759322537674229752">"Odosielanie súboru..."</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"Súbor bol odoslaný"</string>
     <string name="upload_succ_ok" msgid="7705428476405478828">"OK"</string>
-    <!-- no translation found for upload_fail_line1 (7899394672421491701) -->
-    <skip />
+    <string name="upload_fail_line1" msgid="7899394672421491701">"Súbor nebol odoslaný používateľovi „<xliff:g id="RECIPIENT">%1$s</xliff:g>“."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Súbor: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="upload_fail_ok" msgid="5807702461606714296">"Skúsiť znova"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Zavrieť"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"OK"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Neznámy súbor"</string>
-    <!-- outdated translation 5845231383612478643 -->     <string name="unknown_file_desc" msgid="480434281415453287">"Žiadna aplikácia nedokáže s týmto typom súboru pracovať. "\n</string>
-    <!-- outdated translation 2245958259960700777 -->     <string name="not_exist_file" msgid="3489434189599716133">"Súbor neexistuje"</string>
-    <!-- outdated translation 2392808771821464983 -->     <string name="not_exist_file_desc" msgid="4059531573790529229">"Súbor neexistuje! "\n</string>
+    <string name="unknown_file_desc" msgid="480434281415453287">"Na spracovanie tohto typu súboru nematé žiadnu aplikáciu. "\n</string>
+    <string name="not_exist_file" msgid="3489434189599716133">"Žiadny súbor"</string>
+    <string name="not_exist_file_desc" msgid="4059531573790529229">"Súbor neexistuje. "\n</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Čakajte..."</string>
-    <!-- outdated translation 1291028079299309898 -->     <string name="enabling_progress_content" msgid="4601542238119927904">"Prebieha zapínanie rozhrania Bluetooth..."</string>
+    <string name="enabling_progress_content" msgid="4601542238119927904">"Prebieha zapínanie rozhrania Bluetooth..."</string>
     <string name="bt_toast_1" msgid="972182708034353383">"Prebehne prijatie súboru. Priebeh môžete sledovať na paneli Oznámenie."</string>
-    <!-- outdated translation 6357386241778417651 -->     <string name="bt_toast_2" msgid="8602553334099066582">"Súbor nebude prijatý."</string>
+    <string name="bt_toast_2" msgid="8602553334099066582">"Súbor nemôže byť prijatý."</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"Prijímanie súboru od používateľa <xliff:g id="SENDER">%1$s</xliff:g> bolo zastavené"</string>
     <string name="bt_toast_4" msgid="4678812947604395649">"Odosielanie súboru používateľovi <xliff:g id="RECIPIENT">%1$s</xliff:g>"</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Odosielanie súborov (počet: <xliff:g id="NUMBER">%1$s</xliff:g>) používateľovi <xliff:g id="RECIPIENT">%2$s</xliff:g>"</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Odosielanie súboru používateľovi <xliff:g id="RECIPIENT">%1$s</xliff:g> bolo zastavené"</string>
-    <!-- no translation found for bt_sm_2_1 (352165168004521000) -->
-    <skip />
-    <!-- no translation found for bt_sm_2_1 (1989018443456803630) -->
-    <skip />
+    <string name="bt_sm_2_1" product="nosdcard" msgid="352165168004521000">"Na ukladacom priestore USB nie je dostatok miesta na uloženie súboru od používateľa „<xliff:g id="SENDER">%1$s</xliff:g>“"</string>
+    <string name="bt_sm_2_1" product="default" msgid="1989018443456803630">"Na karte SD nie je dostatok miesta na uloženie súboru od používateľa „<xliff:g id="SENDER">%1$s</xliff:g>“"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Požadované miesto v pamäti: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Spracúva sa príliš veľa žiadostí. Opakujte akciu neskôr."</string>
-    <!-- outdated translation 7446884326084324082 -->     <string name="status_pending" msgid="2503691772030877944">"Prenos súborov ešte nebol spustený"</string>
-    <!-- outdated translation 2695810336448055064 -->     <string name="status_running" msgid="6562808920311008696">"Prebieha prenos súborov"</string>
-    <!-- outdated translation 2268261336330060663 -->     <string name="status_success" msgid="239573225847565868">"Prenos súborov bol úspešne dokončený"</string>
-    <!-- outdated translation 2489805942397459486 -->     <string name="status_not_accept" msgid="1695082417193780738">"Obsah nie je podporovaný."</string>
-    <!-- outdated translation 8499236547788725258 -->     <string name="status_forbidden" msgid="613956401054050725">"Tento prenos bol cieľovým zariadením zakázaný"</string>
-    <!-- outdated translation 5514756906439790976 -->     <string name="status_canceled" msgid="6664490318773098285">"Tento prenos bol zrušený používateľom"</string>
-    <!-- outdated translation 6125632529575521755 -->     <string name="status_file_error" msgid="3671917770630165299">"Problém s pamäťou"</string>
+    <string name="status_pending" msgid="2503691772030877944">"Prenos súborov ešte nebol spustený."</string>
+    <string name="status_running" msgid="6562808920311008696">"Prebieha prenos súborov."</string>
+    <string name="status_success" msgid="239573225847565868">"Prenos súborov bol úspešne dokončený."</string>
+    <string name="status_not_accept" msgid="1695082417193780738">"Obsah nie je podporovaný."</string>
+    <string name="status_forbidden" msgid="613956401054050725">"Tento prenos bol zakázaný cieľovým zariadením."</string>
+    <string name="status_canceled" msgid="6664490318773098285">"Prenos bol zrušený používateľom."</string>
+    <string name="status_file_error" msgid="3671917770630165299">"Problém s ukladacím priestorom."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Žiadny ukladací priestor USB."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Žiadna karta SD nie je dostupná. Ak chcete prenášané súbory uložiť, vložte kartu SD."</string>
     <string name="status_connection_error" msgid="947681831523219891">"Neúspešný pokus o pripojenie."</string>
-    <!-- outdated translation 1199135510987767468 -->     <string name="status_protocol_error" msgid="3245444473429269539">"Žiadosť nie je možné správne spracovať."</string>
+    <string name="status_protocol_error" msgid="3245444473429269539">"Žiadosť nie je možné správne spracovať."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Neznáma chyba."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth – prijaté súbory"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Prijatie dokončené."</string>
@@ -110,8 +105,7 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Zo zoznamu budú vymazané všetky položky."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Zdieľanie Bluetooth: Odoslané súbory"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Zdieľanie Bluetooth: Prijaté súbory"</string>
-    <!-- no translation found for noti_caption (7508708288885707365) -->
-    <skip />
+    <string name="noti_caption" msgid="7508708288885707365">"Počet úspešných operácií: <xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g>, počet neúspešných operácií: <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g>."</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Vymazať zoznam"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Otvoriť"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Vymazať zo zoznamu"</string>
