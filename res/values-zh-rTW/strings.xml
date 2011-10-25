@@ -24,8 +24,8 @@
     <string name="airplane_error_title" msgid="2683839635115739939">"飛行模式"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"手機處於飛行模式時，無法使用藍牙功能。"</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
-    <string name="bt_enable_line1" msgid="7203551583048149">"如果要使用藍牙服務，請先開啟藍牙功能。"</string>
-    <string name="bt_enable_line2" msgid="4341936569415937994">"要立即開啟藍牙功能嗎？"</string>
+    <string name="bt_enable_line1" msgid="7203551583048149">"如要使用藍牙服務，請先開啟藍牙功能。"</string>
+    <string name="bt_enable_line2" msgid="4341936569415937994">"立即開啟藍牙功能？"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"取消"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"開啟"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"檔案傳輸"</string>
@@ -36,7 +36,7 @@
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"接收來自「<xliff:g id="SENDER">%1$s</xliff:g>」的檔案時發生作業逾時"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"藍牙分享：外來檔案"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"您要接收這個檔案嗎？"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"其他裝置傳來檔案，請確認您要接收這個檔案。"</string>
+    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"其他裝置傳來檔案，請確認是否要接收這個檔案。"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"藍牙分享：正在接收 <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"藍牙分享：已接收 <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"藍牙分享：未收到檔案 <xliff:g id="FILE">%1$s</xliff:g>"</string>
