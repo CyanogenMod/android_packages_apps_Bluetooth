@@ -36,7 +36,7 @@
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\'<xliff:g id="SENDER">%1$s</xliff:g>\'님이 보내는 파일을 수락하는 동안 제한 시간을 초과했습니다."</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"블루투스 공유: 수신 파일"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"이 파일을 받으시겠습니까?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"다른 기기에서 수신 중인 파일이 있습니다. 이 파일을 수신할 것인지 확인하세요."</string>
+    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"다른 기기에서 파일을 전송 중입니다. 이 파일을 수신할 것인지 확인하세요."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"블루투스 공유: <xliff:g id="FILE">%1$s</xliff:g> 받는 중"</string>
     <string name="notification_received" msgid="3324588019186687985">"블루투스 공유: <xliff:g id="FILE">%1$s</xliff:g> 받음"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"블루투스 공유: <xliff:g id="FILE">%1$s</xliff:g> 파일이 수신되지 않았습니다."</string>
@@ -80,15 +80,15 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"\'<xliff:g id="RECIPIENT">%1$s</xliff:g>\'님에게 파일을 보내는 중"</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"\'<xliff:g id="RECIPIENT">%2$s</xliff:g>\'에 <xliff:g id="NUMBER">%1$s</xliff:g>개 파일을 보내는 중"</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"\'<xliff:g id="RECIPIENT">%1$s</xliff:g>\'님에게 파일 보내기가 중지되었습니다."</string>
-    <string name="bt_sm_2_1" product="nosdcard" msgid="352165168004521000">"\'<xliff:g id="SENDER">%1$s</xliff:g>\'님이 보낸 파일을 저장할 USB 저장소의 공간이 부족합니다."</string>
-    <string name="bt_sm_2_1" product="default" msgid="1989018443456803630">"\'<xliff:g id="SENDER">%1$s</xliff:g>\'님이 보낸 파일을 저장할 SD 카드의 공간이 부족합니다."</string>
+    <string name="bt_sm_2_1" product="nosdcard" msgid="352165168004521000">"USB 저장소 공간이 부족해 \'<xliff:g id="SENDER">%1$s</xliff:g>\'님이 보낸 파일을 저장할 수 없습니다."</string>
+    <string name="bt_sm_2_1" product="default" msgid="1989018443456803630">"SD 카드 공간이 부족해 \'<xliff:g id="SENDER">%1$s</xliff:g>\'님이 보낸 파일을 저장할 수 없습니다."</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"필요한 공간: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"처리 중인 요청이 너무 많습니다. 잠시 후에 다시 시도해 주세요."</string>
     <string name="status_pending" msgid="2503691772030877944">"파일 전송을 시작하지 않았습니다."</string>
     <string name="status_running" msgid="6562808920311008696">"파일이 전송되는 중입니다."</string>
     <string name="status_success" msgid="239573225847565868">"파일 전송이 완료되었습니다."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"콘텐츠는 지원되지 않습니다."</string>
-    <string name="status_forbidden" msgid="613956401054050725">"대상 기기에서 전송을 금지했습니다."</string>
+    <string name="status_forbidden" msgid="613956401054050725">"상대 기기에서 전송을 금지했습니다."</string>
     <string name="status_canceled" msgid="6664490318773098285">"사용자가 전송을 취소했습니다."</string>
     <string name="status_file_error" msgid="3671917770630165299">"저장용량 문제"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"USB 저장소가 없습니다."</string>
