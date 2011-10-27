@@ -34,7 +34,7 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"接受"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"确定"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"接受来自“<xliff:g id="SENDER">%1$s</xliff:g>”的文件时发生超时"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth Share：传入文件"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"蓝牙共享：传入文件"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"要接收该文件吗？"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"从其他设备收到一个文件，请确认是否要接收该文件。"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"蓝牙共享：正在接收 <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -96,15 +96,15 @@
     <string name="status_connection_error" msgid="947681831523219891">"连接失败。"</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"无法正确处理请求。"</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"未知错误。"</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"通过蓝牙传输的文件"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"通过蓝牙接收的文件"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> 接收完成。"</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> 发送完成。"</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"传入历史记录"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"传出历史记录"</string>
     <string name="no_transfers" msgid="3482965619151865672">"传输历史记录为空。"</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"所有项都将从列表中清除。"</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"蓝牙分享：已发送的文件"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"蓝牙分享：已接收的文件"</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"蓝牙共享：已发送的文件"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"蓝牙共享：已接收的文件"</string>
     <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> 个成功，<xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> 个失败。"</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"清除列表"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"打开"</string>
