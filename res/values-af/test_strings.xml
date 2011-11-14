@@ -2,7 +2,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="hello" msgid="1740533743008967039">"Hallo wêreld, TestActivity"</string>
-    <string name="app_name" msgid="1203877025577761792">"Bluetooth-deel"</string>
+    <string name="app_name" msgid="1203877025577761792">"Bluetooth-deling"</string>
     <string name="insert_record" msgid="1450997173838378132">"Voeg rekord in"</string>
     <string name="update_record" msgid="2480425402384910635">"Bevestig rekord"</string>
     <string name="ack_record" msgid="6716152390978472184">"Ack-rekord"</string>
