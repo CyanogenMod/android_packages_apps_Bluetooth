@@ -96,7 +96,7 @@
     <string name="status_connection_error" msgid="947681831523219891">"Verbinding onsuksesvol."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"Versoek kan nie korrek hanteer word nie."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Onbekende fout"</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth ontvang"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"Ontvang deur Bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g>  volledig ontvang."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> klaar gestuur."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Inkomende oordragte"</string>
