@@ -110,6 +110,16 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
         mThread.addShare(share);
     }
 
+    private static int readFully(InputStream is, byte[] buffer, int size) throws IOException {
+        int done = 0;
+        while (done < size) {
+            int got = is.read(buffer, done, size - done);
+            if (got <= 0) break;
+            done += got;
+        }
+        return done;
+    }
+
     private class ClientThread extends Thread {
 
         private static final int sSleepTime = 500;
@@ -388,7 +398,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     BufferedInputStream a = new BufferedInputStream(fileInfo.mInputStream, 0x4000);
 
                     if (!mInterrupted && (position != fileInfo.mLength)) {
-                        readLength = a.read(buffer, 0, outputBufferSize);
+                        readLength = readFully(a, buffer, outputBufferSize);
 
                         mCallback.sendMessageDelayed(mCallback
                                 .obtainMessage(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT),
