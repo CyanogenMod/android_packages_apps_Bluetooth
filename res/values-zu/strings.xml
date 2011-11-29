@@ -27,7 +27,7 @@
     <string name="bt_enable_line1" msgid="7203551583048149">"Ukusebenzisa isevisi ye-Bluetooth, kumele uvule kuqala i-Bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Vula i-Bluetooth manje?"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"Khansela"</string>
-    <string name="bt_enable_ok" msgid="3432462749994538265">"Khanyisa"</string>
+    <string name="bt_enable_ok" msgid="3432462749994538265">"Vula"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"Ukudlulisa ifayela"</string>
     <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" ufuna ukukuthumela <xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>). "\n\n" Yamukela ifayela?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Nqaba"</string>
@@ -96,12 +96,12 @@
     <string name="status_connection_error" msgid="947681831523219891">"Ukuxhumeka akuphumelelanga."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"Isicelo asikwazi ukuphathwa ngokulungile"</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Iphutha elingaziwa"</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"I-Bluetooth itholiwe"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"I-Bluetooth etholiwe"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Ukuthola kuqedile."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Ukuthumela kuqedile."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Ukudlulisa kwangaphakathi"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Ukudlulisa kwangaphandle"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"Umlando wokudlulisa awunaluto."</string>
+    <string name="no_transfers" msgid="3482965619151865672">"Umlando wokudlulisa awunalutho."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Zonke izintwana zizosulwa ohlwini."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Abelana ne-Bluetooth. Amafayela athunyelwe"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Abelana ne-Bluetooth: Amafayela atholakele"</string>

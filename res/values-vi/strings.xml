@@ -57,7 +57,7 @@
     <string name="download_fail_line3" msgid="3451040656154861722">"Lý do: <xliff:g id="REASON">%1$s</xliff:g>"</string>
     <string name="download_fail_ok" msgid="1521733664438320300">"OK"</string>
     <string name="download_succ_line5" msgid="4509944688281573595">"Đã nhận tệp"</string>
-    <string name="download_succ_ok" msgid="7053688246357050216">"Mở"</string>
+    <string name="download_succ_ok" msgid="7053688246357050216">"Mở"</string>
     <string name="upload_line1" msgid="2055952074059709052">"Tới: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="upload_line3" msgid="4920689672457037437">"Loại tệp: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
     <string name="upload_line5" msgid="7759322537674229752">"Đang gửi tệp…"</string>
@@ -66,7 +66,7 @@
     <string name="upload_fail_line1" msgid="7899394672421491701">"Tệp chưa được gửi tới \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Tệp: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="upload_fail_ok" msgid="5807702461606714296">"Thử lại"</string>
-    <string name="upload_fail_cancel" msgid="9118496285835687125">"Đóng"</string>
+    <string name="upload_fail_cancel" msgid="9118496285835687125">"Đóng"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"OK"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Tệp không xác định"</string>
     <string name="unknown_file_desc" msgid="480434281415453287">"Không có ứng dụng nào để xử lý loại tệp này. "\n</string>
@@ -102,12 +102,12 @@
     <string name="inbound_history_title" msgid="6940914942271327563">"Nội dung chuyển đến"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Nội dung chuyển đi"</string>
     <string name="no_transfers" msgid="3482965619151865672">"Lịch sử chuyển trống."</string>
-    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Tất cả các mục sẽ bị xoá khỏi danh sách."</string>
+    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Tất cả các mục sẽ bị xóa khỏi danh sách."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Chia sẻ qua Bluetooth: Tệp đã gửi"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"Chia sẻ qua Bluetooth: Tệp đã nhận"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Chia sẻ qua Bluetooth: Tệp đã nhận"</string>
     <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> thành công, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> không thành công."</string>
-    <string name="transfer_menu_clear_all" msgid="790017462957873132">"Xoá danh sách"</string>
-    <string name="transfer_menu_open" msgid="3368984869083107200">"Mở"</string>
-    <string name="transfer_menu_clear" msgid="5854038118831427492">"Xoá khỏi danh sách"</string>
-    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Xoá"</string>
+    <string name="transfer_menu_clear_all" msgid="790017462957873132">"Xóa danh sách"</string>
+    <string name="transfer_menu_open" msgid="3368984869083107200">"Mở"</string>
+    <string name="transfer_menu_clear" msgid="5854038118831427492">"Xóa khỏi danh sách"</string>
+    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Xóa"</string>
 </resources>
