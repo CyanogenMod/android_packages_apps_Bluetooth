@@ -20,6 +20,14 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_SMS"></uses-permission>
+    <uses-permission android:name="android.permission.WRITE_SMS"></uses-permission>
+    <uses-permission android:name="android.permission.BROADCAST_SMS"></uses-permission>
+    <uses-permission android:name="android.permission.RECEIVE_SMS"></uses-permission>
+    <uses-permission android:name="android.permission.SEND_SMS"></uses-permission>
+    <uses-permission android:name="com.android.email.permission.ACCESS_PROVIDER"></uses-permission>
+    <uses-permission android:name="com.android.email.permission.READ_ATTACHMENT"></uses-permission>
+
     <application
         android:icon="@drawable/bt_share"
         android:label="@string/app_name">
@@ -133,6 +141,25 @@
         <receiver
             android:process="@string/process"
             android:name=".pbap.BluetoothPbapReceiver">
+            <intent-filter>
+                <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>
+            </intent-filter>
+        </receiver>
+        <activity android:name=".map.BluetoothMasActivity"
+            android:process="@string/process"
+            android:excludeFromRecents="true"
+            android:theme="@*android:style/Theme.Dialog.Alert">
+            <intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <service
+            android:process="@string/process"
+            android:name=".map.BluetoothMasService" >
+        </service>
+        <receiver
+            android:process="@string/process"
+            android:name=".map.BluetoothMasReceiver">
             <intent-filter>
                 <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>
             </intent-filter>
