@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="com.android.bluetooth"
-  android:sharedUserId="@string/sharedUserId">
+  android:sharedUserId="android.uid.bluetooth">
 
     <original-package android:name="com.android.bluetooth" />
 
@@ -36,7 +36,9 @@
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="com.android.permission.HANDOVER_STATUS" />
     <application
+        android:name=".btservice.AdapterService"
         android:icon="@drawable/bt_share"
+        android:persistent="true"
         android:label="@string/app_name">
         <uses-library android:name="javax.obex" />
         <provider android:name=".opp.BluetoothOppProvider"
