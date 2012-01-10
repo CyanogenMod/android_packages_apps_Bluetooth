@@ -965,7 +965,7 @@ public class BluetoothPbapVcardManager {
             //FN is not the mandatory field in 3.0 vacrd
             if(((!fn) && (vCardType21)) && (vCard.contains("FN"))) {
                 for (int i=0; i < attr.length; i++) {
-                    if(attr[i].contains("FN")){
+                    if(attr[i].startsWith("FN")){
                         vCard = vCard.replace(attr[i] + "\n", "");
                     }
                 }
@@ -974,7 +974,7 @@ public class BluetoothPbapVcardManager {
           //NOTE: No need to check photo, we already refrained it if it is not set in the filter
             if((!bday) && (vCard.contains("BDAY"))) {
                 for (int i=0; i < attr.length; i++) {
-                    if(attr[i].contains("BDAY")){
+                    if(attr[i].startsWith("BDAY")){
                         vCard = vCard.replace(attr[i] + "\n", "");
                     }
                 }
@@ -982,7 +982,7 @@ public class BluetoothPbapVcardManager {
 
             if((!adr) && (vCard.contains("ADR"))) {
                 for (int i=0; i < attr.length; i++) {
-                    if(attr[i].contains("ADR")){
+                    if(attr[i].startsWith("ADR")){
                         vCard = vCard.replace(attr[i] + "\n", "");
                     }
                 }
@@ -990,7 +990,7 @@ public class BluetoothPbapVcardManager {
 
             if((!email) && (vCard.contains("EMAIL"))) {
                 for (int i=0; i < attr.length; i++) {
-                    if(attr[i].contains("EMAIL")){
+                    if(attr[i].startsWith("EMAIL")){
                         vCard = vCard.replace(attr[i] + "\n", "");
                     }
                 }
@@ -998,7 +998,7 @@ public class BluetoothPbapVcardManager {
 
             if((!title) && (vCard.contains("TITLE"))) {
                 for (int i=0; i < attr.length; i++) {
-                    if(attr[i].contains("TITLE")){
+                    if(attr[i].startsWith("TITLE")){
                         vCard = vCard.replace(attr[i] + "\n", "");
                     }
                 }
@@ -1006,7 +1006,7 @@ public class BluetoothPbapVcardManager {
 
             if((!org) && (vCard.contains("ORG"))) {
                 for (int i=0; i < attr.length; i++) {
-                    if(attr[i].contains("ORG")){
+                    if(attr[i].startsWith("ORG")){
                         vCard = vCard.replace(attr[i] + "\n", "");
                     }
                 }
@@ -1014,7 +1014,7 @@ public class BluetoothPbapVcardManager {
 
             if((!notes) && (vCard.contains("NOTE"))) {
                 for (int i=0; i < attr.length; i++) {
-                    if(attr[i].contains("NOTE")){
+                    if(attr[i].startsWith("NOTE")){
                         vCard = vCard.replace(attr[i] + "\n", "");
                     }
                 }
@@ -1023,9 +1023,9 @@ public class BluetoothPbapVcardManager {
              *Android still ads it for 2.1 with nickname mentioned in lower case, and therefore
              *we need to check for both cases.
              */
-            if(((!nickname) || (vCardType21)) && (vCard.toUpperCase().contains("NICKNAME"))) {
+            if(((!nickname) || (vCardType21)) && (vCard.contains("NICKNAME"))) {
                 for (int i=0; i < attr.length; i++) {
-                    if(attr[i].toUpperCase().contains("NICKNAME")){
+                    if(attr[i].startsWith("NICKNAME")){
                         vCard = vCard.replace(attr[i] + "\n", "");
                     }
                 }
@@ -1033,7 +1033,7 @@ public class BluetoothPbapVcardManager {
 
             if((!url) && (vCard.contains("URL"))) {
                 for (int i=0; i < attr.length; i++) {
-                    if(attr[i].contains("URL")){
+                    if(attr[i].startsWith("URL")){
                         vCard = vCard.replace(attr[i] + "\n", "");
                     }
                 }
