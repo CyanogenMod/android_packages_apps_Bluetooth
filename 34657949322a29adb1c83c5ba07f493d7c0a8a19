@@ -1,0 +1,9 @@
+Change-Id: I34657949322a29adb1c83c5ba07f493d7c0a8a19
+Code-Review+2: Ricardo Cerqueira <cyanogenmod@cerqueira.org>
+Verified+1: Ricardo Cerqueira <cyanogenmod@cerqueira.org>
+Code-Review+1: djMesias <djmesias@terra.es>
+Submitted-by: Ricardo Cerqueira <cyanogenmod@cerqueira.org>
+Submitted-at: Sun, 15 Jan 2012 17:15:01 +0300
+Reviewed-on: http://review.cyanogenmod.com/11755
+Project: CyanogenMod/android_packages_apps_Bluetooth
+Branch: refs/heads/gingerbread
