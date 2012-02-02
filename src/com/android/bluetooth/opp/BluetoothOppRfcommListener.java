@@ -120,13 +120,15 @@ public class BluetoothOppRfcommListener {
                          * retry for 10 times
                          */
                         for (int i = 0; i < CREATE_RETRY_TIME && !mInterrupted; i++) {
+                            //TODO(BT)
+                            /*
                             try {
                                 mBtServerSocket = mAdapter
                                         .listenUsingInsecureRfcommOn(mBtOppRfcommChannel);
                             } catch (IOException e1) {
                                 Log.e(TAG, "Error create RfcommServerSocket " + e1);
                                 serverOK = false;
-                            }
+                            }*/
                             if (!serverOK) {
                                 synchronized (this) {
                                     try {
@@ -149,6 +151,8 @@ public class BluetoothOppRfcommListener {
                             Log.i(TAG, "Accept thread started on channel " + mBtOppRfcommChannel);
                         }
                         BluetoothSocket clientSocket;
+                        //TODO(BT)
+                        /*
                         while (!mInterrupted) {
                             try {
                                 clientSocket = mBtServerSocket.accept();
@@ -164,7 +168,7 @@ public class BluetoothOppRfcommListener {
                             } catch (IOException e) {
                                 Log.e(TAG, "Error accept connection " + e);
                             }
-                        }
+                        }*/
                         Log.i(TAG, "BluetoothSocket listen thread finished");
                     }
                 }

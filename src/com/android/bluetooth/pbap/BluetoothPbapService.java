@@ -475,7 +475,8 @@ public class BluetoothPbapService extends Service {
         // Last obex transaction is finished, we start to listen for incoming
         // connection again
         if (mAdapter.isEnabled()) {
-            startRfcommSocketListener();
+            //TODO(BT)
+            // startRfcommSocketListener();
         }
         setState(BluetoothPbap.STATE_DISCONNECTED);
     }
@@ -582,7 +583,8 @@ public class BluetoothPbapService extends Service {
             switch (msg.what) {
                 case START_LISTENER:
                     if (mAdapter.isEnabled()) {
-                        startRfcommSocketListener();
+                        //TODO(BT)
+                        //startRfcommSocketListener();
                     } else {
                         closeService();// release all resources
                     }
