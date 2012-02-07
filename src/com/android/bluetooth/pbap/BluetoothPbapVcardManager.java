@@ -46,14 +46,12 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.PhoneLookup;
 import android.provider.ContactsContract.Preferences;
 import android.provider.Settings;
-import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.bluetooth.R;
 import com.android.vcard.VCardComposer;
 import com.android.vcard.VCardConfig;
-import com.android.vcard.VCardPhoneNumberTranslationCallback;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -114,7 +112,7 @@ public class BluetoothPbapVcardManager {
      * @param vcardType21
      * @return
      */
-    private final String getOwnerPhoneNumberVcardFromProfile(final boolean vcardType21, final byte[] filter) {
+    private final String getOwnerPhoneNumberVcardFromProfile(final boolean vcardType21, final long filter) {
         // Currently only support Generic Vcard 2.1 and 3.0
         int vcardType;
         if (vcardType21) {
@@ -123,14 +121,10 @@ public class BluetoothPbapVcardManager {
             vcardType = VCardConfig.VCARD_TYPE_V30_GENERIC;
         }
 
-        if (!BluetoothPbapConfig.includePhotosInVcard()) {
-            vcardType |= VCardConfig.FLAG_REFRAIN_IMAGE_EXPORT;
-        }
-
         return BluetoothPbapUtils.createProfileVCard(mContext, vcardType,filter);
     }
 
-    public final String getOwnerPhoneNumberVcard(final boolean vcardType21, final byte[] filter) {
+    public final String getOwnerPhoneNumberVcard(final boolean vcardType21, final long filter) {
         //Owner vCard enhancement: Use "ME" profile if configured
         if (BluetoothPbapConfig.useProfileForOwnerVcard()) {
             String vcard = getOwnerPhoneNumberVcardFromProfile(vcardType21, filter);
@@ -339,7 +333,7 @@ public class BluetoothPbapVcardManager {
     }
 
     public final int composeAndSendCallLogVcards(final int type, Operation op,
-            final int startPoint, final int endPoint, final boolean vcardType21) {
+            final int startPoint, final int endPoint, final boolean vcardType21, long filter) {
         if (startPoint < 1 || startPoint > endPoint) {
             Log.e(TAG, "internal error: startPoint or endPoint is not correct.");
             return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
@@ -396,11 +390,11 @@ public class BluetoothPbapVcardManager {
 
         if (V) Log.v(TAG, "Call log query selection is: " + selection);
 
-        return composeAndSendVCards(op, selection, vcardType21, null, false);
+        return composeAndSendVCards(op, selection, vcardType21, filter, null, false);
     }
 
     public final int composeAndSendPhonebookVcards(Operation op, final int startPoint,
-            final int endPoint, final boolean vcardType21, String ownerVCard) {
+            final int endPoint, final boolean vcardType21, long filter, String ownerVCard) {
         if (startPoint < 1 || startPoint > endPoint) {
             Log.e(TAG, "internal error: startPoint or endPoint is not correct.");
             return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
@@ -441,11 +435,11 @@ public class BluetoothPbapVcardManager {
 
         if (V) Log.v(TAG, "Query selection is: " + selection);
 
-        return composeAndSendVCards(op, selection, vcardType21, ownerVCard, true);
+        return composeAndSendVCards(op, selection, vcardType21, filter, ownerVCard, true);
     }
 
     public final int composeAndSendPhonebookOneVcard(Operation op, final int offset,
-            final boolean vcardType21, String ownerVCard, int orderByWhat) {
+            final boolean vcardType21, String ownerVCard, int orderByWhat, long filter) {
         if (offset < 1) {
             Log.e(TAG, "Internal error: offset is not correct.");
             return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
@@ -490,11 +484,11 @@ public class BluetoothPbapVcardManager {
 
         if (V) Log.v(TAG, "Query selection is: " + selection);
 
-        return composeAndSendVCards(op, selection, vcardType21, ownerVCard, true);
+        return composeAndSendVCards(op, selection, vcardType21, filter, ownerVCard, true);
     }
 
     public final int composeAndSendVCards(Operation op, final String selection,
-            final boolean vcardType21, String ownerVCard, boolean isContacts) {
+            final boolean vcardType21, long filter, String ownerVCard, boolean isContacts) {
         long timestamp = 0;
         if (V) timestamp = System.currentTimeMillis();
 
@@ -520,25 +514,7 @@ public class BluetoothPbapVcardManager {
                     vcardType |= VCardConfig.FLAG_USE_ALTERNATIVE_NAME_ORDERING;
                 }
 
-                //Enhancement: customize Vcard based on preferences/settings and input from caller
-                composer = BluetoothPbapUtils.createFilteredVCardComposer(mContext, vcardType,null);
-                //End enhancement
-
-                // BT does want PAUSE/WAIT conversion while it doesn't want the other formatting
-                // done by vCard library by default.
-                composer.setPhoneNumberTranslationCallback(
-                        new VCardPhoneNumberTranslationCallback() {
-                            public String onValueReceived(
-                                    String rawValue, int type, String label, boolean isPrimary) {
-                                // 'p' and 'w' are the standard characters for pause and wait
-                                // (see RFC 3601)
-                                // so use those when exporting phone numbers via vCard.
-                                String numberWithControlSequence = rawValue
-                                        .replace(PhoneNumberUtils.PAUSE, 'p')
-                                        .replace(PhoneNumberUtils.WAIT, 'w');
-                                return numberWithControlSequence;
-                            }
-                        });
+                composer = new BluetoothPbapVcardComposer(mContext, vcardType, filter, true);
                 buffer = new HandlerForStringBuffer(op, ownerVCard);
                 if (!composer.init(Contacts.CONTENT_URI, CONTACTS_PROJECTION,
                             selection, null, Contacts._ID, null)) {
