@@ -3,7 +3,9 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES:= \
-    com_android_bluetooth_btservice_AdapterService.cpp
+    com_android_bluetooth_btservice_AdapterService.cpp \
+    com_android_bluetooth_hfp.cpp \
+    com_android_bluetooth_a2dp.cpp
 
 LOCAL_C_INCLUDES += \
     $(JNI_H_INCLUDE) \

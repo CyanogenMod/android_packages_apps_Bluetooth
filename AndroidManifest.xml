@@ -35,7 +35,10 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="com.android.permission.HANDOVER_STATUS" />
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
     <uses-permission android:name="android.permission.NET_ADMIN" />
+    <uses-permission android:name="android.permission.CALL_PRIVILEGED" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <application
         android:name=".btservice.AdapterService"
         android:icon="@drawable/bt_share"
@@ -177,5 +180,19 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
+        <service
+            android:process="@string/process"
+            android:name = ".hfp.HeadsetService">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothHeadset" />
+            </intent-filter>
+        </service>
+        <service
+            android:process="@string/process"
+            android:name = ".a2dp.A2dpService">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothA2dp" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>

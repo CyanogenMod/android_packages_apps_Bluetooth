@@ -4,10 +4,7 @@
 
 #define LOG_TAG "BluetoothServiceJni"
 
-#include "JNIHelp.h"
-#include "jni.h"
-#include "hardware/hardware.h"
-#include "hardware/bluetooth.h"
+#include "com_android_bluetooth.h"
 #include "utils/Log.h"
 #include "utils/misc.h"
 #include "cutils/properties.h"
@@ -20,6 +17,8 @@
 #include <fcntl.h>
 
 namespace android {
+
+#define ADDITIONAL_NREFS 50
 
 static jmethodID method_stateChangeCallback;
 static jmethodID method_adapterPropertyChangedCallback;
@@ -36,7 +35,15 @@ static JNIEnv *callbackEnv = NULL;
 static jobject sJniCallbacksObj;
 static jfieldID sJniCallbacksField;
 
-static void checkAndClearExceptionFromCallback(JNIEnv* env,
+const bt_interface_t* getBluetoothInterface() {
+    return sBluetoothInterface;
+}
+
+JNIEnv* getCallbackEnv() {
+   return callbackEnv;
+}
+
+void checkAndClearExceptionFromCallback(JNIEnv* env,
                                                const char* methodName) {
     if (env->ExceptionCheck()) {
         LOGE("An exception was thrown by callback '%s'.", methodName);
@@ -120,16 +127,14 @@ static void adapter_properties_callback(bt_status_t status, int num_properties,
     callbackEnv->CallVoidMethod(sJniCallbacksObj, method_adapterPropertyChangedCallback, types,
                                 props);
     checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
+    callbackEnv->DeleteLocalRef(props);
+    callbackEnv->DeleteLocalRef(types);
     return;
 
 }
 
 static void remote_device_properties_callback(bt_status_t status, bt_bdaddr_t *bd_addr,
                                               int num_properties, bt_property_t *properties) {
-    jobjectArray props;
-    jbyteArray addr = NULL;
-    jintArray types;
-
     if (!checkCallbackThread()) {
        LOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
        return;
@@ -142,6 +147,12 @@ static void remote_device_properties_callback(bt_status_t status, bt_bdaddr_t *b
         return;
     }
 
+    callbackEnv->PushLocalFrame(ADDITIONAL_NREFS);
+
+    jobjectArray props;
+    jbyteArray addr;
+    jintArray types;
+
     addr = callbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (addr == NULL) goto Fail;
     if (addr) callbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*)bd_addr);
@@ -149,12 +160,16 @@ static void remote_device_properties_callback(bt_status_t status, bt_bdaddr_t *b
     if (get_properties(num_properties, properties, &types, &props) < 0) {
         if (props) callbackEnv->DeleteLocalRef(props);
         if (types) callbackEnv->DeleteLocalRef(types);
+        callbackEnv->PopLocalFrame(NULL);
         return;
     }
 
     callbackEnv->CallVoidMethod(sJniCallbacksObj, method_devicePropertyChangedCallback, addr,
                                 types, props);
     checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
+    callbackEnv->DeleteLocalRef(props);
+    callbackEnv->DeleteLocalRef(types);
+    callbackEnv->PopLocalFrame(NULL);
     return;
 
 Fail:
@@ -192,6 +207,7 @@ static void device_found_callback(int num_properties, bt_property_t *properties)
 
     callbackEnv->CallVoidMethod(sJniCallbacksObj, method_deviceFoundCallback, addr);
     checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
+    callbackEnv->DeleteLocalRef(addr);
 }
 
 static void bond_state_changed_callback(bt_status_t status, bt_bdaddr_t *bd_addr,
@@ -215,8 +231,8 @@ static void bond_state_changed_callback(bt_status_t status, bt_bdaddr_t *bd_addr
 
     callbackEnv->CallVoidMethod(sJniCallbacksObj, method_bondStateChangeCallback, (jint) status,
                                 addr, (jint)state);
-
     checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
+    callbackEnv->DeleteLocalRef(addr);
 }
 
 static void discovery_state_changed_callback(bt_discovery_state_t state) {
@@ -257,6 +273,8 @@ static void pin_request_callback(bt_bdaddr_t *bd_addr, bt_bdname_t *bdname, uint
     callbackEnv->CallVoidMethod(sJniCallbacksObj, method_pinRequestCallback, addr, devname, cod);
 
     checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
+    callbackEnv->DeleteLocalRef(addr);
+    callbackEnv->DeleteLocalRef(devname);
     return;
 
 Fail:
@@ -289,6 +307,8 @@ static void ssp_request_callback(bt_bdaddr_t *bd_addr, bt_bdname_t *bdname, uint
                                 (jint) pairing_variant, pass_key);
 
     checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
+    callbackEnv->DeleteLocalRef(addr);
+    callbackEnv->DeleteLocalRef(devname);
     return;
 
 Fail:
@@ -705,14 +725,30 @@ int register_com_android_bluetooth_btservice_AdapterService(JNIEnv* env)
 jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 {
    JNIEnv *e;
+   int status;
 
    LOGV("Bluetooth Adapter Service : loading JNI\n");
 
    // Check JNI version
-   if(jvm->GetEnv((void **)&e, JNI_VERSION_1_6))
+   if(jvm->GetEnv((void **)&e, JNI_VERSION_1_6)) {
+       LOGE("JNI version mismatch error");
       return JNI_ERR;
+   }
 
-   if (android::register_com_android_bluetooth_btservice_AdapterService(e) == -1)
+   if ((status = android::register_com_android_bluetooth_btservice_AdapterService(e)) < 0) {
+       LOGE("jni adapter service registration failure, status: %d", status);
       return JNI_ERR;
+   }
+
+   if ((status = android::register_com_android_bluetooth_hfp(e)) < 0) {
+       LOGE("jni hfp registration failure, status: %d", status);
+      return JNI_ERR;
+   }
+
+   if ((status = android::register_com_android_bluetooth_a2dp(e)) < 0) {
+       LOGE("jni a2dp registration failure: %d", status);
+      return JNI_ERR;
+   }
+
    return JNI_VERSION_1_6;
 }

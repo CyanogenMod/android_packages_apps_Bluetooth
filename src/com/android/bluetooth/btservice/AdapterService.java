@@ -29,6 +29,8 @@ import android.provider.Settings;
 import android.util.Log;
 import android.util.Pair;
 
+import com.android.bluetooth.hfp.HeadsetService;
+import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 
@@ -87,12 +89,12 @@ public class AdapterService extends Application {
         initNative();
         mAdapterStateMachine.start();
         mBondStateMachine.start();
-        // TODO(BT): Start other profile services.
-        // startService();
         //TODO(BT): Remove this when BT is no longer a persitent process.
         int bluetoothOn = Settings.Secure.getInt(mContext.getContentResolver(),
                                             Settings.Secure.BLUETOOTH_ON, 0);
         if (!isAirplaneModeOn() && bluetoothOn != 0) mAdapter.enable();
+        startService(new Intent(this, HeadsetService.class));
+        startService(new Intent(this, A2dpService.class));
     }
 
     @Override
