@@ -112,7 +112,7 @@ static void adapter_properties_callback(bt_status_t status, int num_properties,
         return;
     }
 
-    if (!get_properties(num_properties, properties, &types, &props)) {
+    if (get_properties(num_properties, properties, &types, &props) < 0) {
         if (props) callbackEnv->DeleteLocalRef(props);
         if (types) callbackEnv->DeleteLocalRef(types);
         return;
@@ -147,7 +147,7 @@ static void remote_device_properties_callback(bt_status_t status, bt_bdaddr_t *b
     if (addr == NULL) goto Fail;
     if (addr) callbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*)bd_addr);
 
-    if (!get_properties(num_properties, properties, &types, &props)) {
+    if (get_properties(num_properties, properties, &types, &props) < 0) {
         if (props) callbackEnv->DeleteLocalRef(props);
         if (types) callbackEnv->DeleteLocalRef(types);
         return;

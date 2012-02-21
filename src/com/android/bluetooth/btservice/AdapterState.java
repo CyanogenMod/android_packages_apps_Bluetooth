@@ -186,7 +186,8 @@ final class AdapterState extends StateMachine {
         if (status == AbstractionLayer.BT_STATE_OFF) {
             sendMessage(DISABLED);
         } else if (status == AbstractionLayer.BT_STATE_ON) {
-            infoLog("Bluetooth is enabled, but waiting before sending the intent");
+            // We should have got the property change for adapter and remote devices.
+            sendMessage(ENABLED_READY);
         } else {
             errorLog("Incorrect status in stateChangeCallback");
         }
