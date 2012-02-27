@@ -35,6 +35,7 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="com.android.permission.HANDOVER_STATUS" />
+    <uses-permission android:name="android.permission.NET_ADMIN" />
     <application
         android:name=".btservice.AdapterService"
         android:icon="@drawable/bt_share"
