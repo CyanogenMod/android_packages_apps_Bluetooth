@@ -248,7 +248,7 @@ static void pin_request_callback(bt_bdaddr_t *bd_addr, bt_bdname_t *bdname, uint
 
     addr = callbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (addr == NULL) goto Fail;
-    callbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdname_t), (jbyte*)bd_addr);
+    callbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*)bd_addr);
 
     devname = callbackEnv->NewByteArray(sizeof(bt_bdname_t));
     if (devname == NULL) goto Fail;
