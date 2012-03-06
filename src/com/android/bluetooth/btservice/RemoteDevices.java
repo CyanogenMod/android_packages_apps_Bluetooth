@@ -290,18 +290,6 @@ final class RemoteDevices {
         return;
     }
 
-    void passkeyRequestCallback(byte[] address, byte[] name, int cod) {
-      //TODO(BT): Get wakelock and update name and cod
-      infoLog("passkeyRequestCallback: " + address + " name:" + name + " cod:" +
-                cod);
-      Intent intent = new Intent(BluetoothDevice.ACTION_PAIRING_REQUEST);
-      intent.putExtra(BluetoothDevice.EXTRA_DEVICE, getDevice(address));
-      intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT,
-              BluetoothDevice.PAIRING_VARIANT_PIN);
-      mContext.sendBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
-      return;
-  }
-
     void sspRequestCallback(byte[] address, byte[] name, int cod, int pairingVariant,
             int passkey) {
         //TODO(BT): Get wakelock and update name and cod
@@ -313,11 +301,12 @@ final class RemoteDevices {
             variant = BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION;
             displayPasskey = true;
         } else if (pairingVariant == AbstractionLayer.BT_SSP_VARIANT_CONSENT) {
-            //TODO(BT): This needs to be fixed in the HAL. They have it wrong.
             variant = BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION;
-            displayPasskey = true;
         } else if (pairingVariant == AbstractionLayer.BT_SSP_VARIANT_PASSKEY_ENTRY) {
             variant = BluetoothDevice.PAIRING_VARIANT_PASSKEY;
+        } else if (pairingVariant == AbstractionLayer.BT_SSP_VARIANT_DISPLAY_PASSKEY) {
+            variant = BluetoothDevice.PAIRING_VARIANT_DISPLAY_PASSKEY;
+	    displayPasskey = true;
         } else {
             errorLog("SSP Pairing variant not present");
             return;

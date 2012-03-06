@@ -50,10 +50,6 @@ final class JniCallbacks {
         mRemoteDevices.pinRequestCallback(address, name, cod);
     }
 
-    void passkeyRequestCallback(byte[] address, byte[] name, int cod) {
-        mRemoteDevices.passkeyRequestCallback(address, name, cod);
-    }
-
     void bondStateChangeCallback(int status, byte[] address, int newState) {
         mBondStateMachine.bondStateChangeCallback(status, address, newState);
     }

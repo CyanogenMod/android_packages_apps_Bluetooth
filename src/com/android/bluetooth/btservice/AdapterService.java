@@ -357,7 +357,8 @@ public class AdapterService extends Application {
             }
 
             byte[] addr = Utils.getBytesFromAddress(device.getAddress());
-            return passkeyReplyNative(addr, accept, len, Utils.byteArrayToInt(passkey));
+            return sspReplyNative(addr, AbstractionLayer.BT_SSP_VARIANT_PASSKEY_ENTRY, accept,
+                    Utils.byteArrayToInt(passkey));
         }
 
         public boolean setPairingConfirmation(BluetoothDevice device, boolean accept) {
@@ -368,7 +369,8 @@ public class AdapterService extends Application {
             }
 
             byte[] addr = Utils.getBytesFromAddress(device.getAddress());
-            return sspReplyNative(addr, accept);
+            return sspReplyNative(addr, AbstractionLayer.BT_SSP_VARIANT_PASSKEY_CONFIRMATION,
+                    accept, 0);
         }
 
         public void sendConnectionStateChange(BluetoothDevice
@@ -460,6 +462,6 @@ public class AdapterService extends Application {
     private native boolean cancelDiscoveryNative();
 
     private native boolean pinReplyNative(byte[] address, boolean accept, int len, byte[] pin);
-    private native boolean passkeyReplyNative(byte[] address, boolean accept, int len, int passkey);
-    private native boolean sspReplyNative(byte[] address, boolean accept);
+    private native boolean sspReplyNative(byte[] address, int type, boolean
+            accept, int passkey);
 }

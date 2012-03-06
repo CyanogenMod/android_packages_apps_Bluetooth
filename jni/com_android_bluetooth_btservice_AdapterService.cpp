@@ -26,7 +26,6 @@ static jmethodID method_adapterPropertyChangedCallback;
 static jmethodID method_devicePropertyChangedCallback;
 static jmethodID method_deviceFoundCallback;
 static jmethodID method_pinRequestCallback;
-static jmethodID method_passkeyRequestCallback;
 static jmethodID method_sspRequestCallback;
 static jmethodID method_bondStateChangeCallback;
 static jmethodID method_discoveryStateChangeCallback;
@@ -266,37 +265,6 @@ Fail:
     LOGE("Error while allocating in: %s", __FUNCTION__);
 }
 
-static void passkey_request_callback(bt_bdaddr_t *bd_addr, bt_bdname_t *bdname, uint32_t cod) {
-    jbyteArray addr, devname;
-    if (!checkCallbackThread()) {
-       LOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
-       return;
-    }
-    if (!bd_addr) {
-        LOGE("Address is null in %s", __FUNCTION__);
-        return;
-    }
-    addr = callbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-    if (addr == NULL) goto Fail;
-    callbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*)bd_addr);
-
-    devname = callbackEnv->NewByteArray(sizeof(bt_bdname_t));
-    if (devname == NULL) goto Fail;
-    callbackEnv->SetByteArrayRegion(devname, 0, sizeof(bt_bdname_t), (jbyte*)bdname);
-
-    callbackEnv->CallVoidMethod(sJniCallbacksObj, method_passkeyRequestCallback, addr, devname,
-                                cod);
-
-    checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
-    return;
-
-Fail:
-    if (addr) callbackEnv->DeleteLocalRef(addr);
-    if (devname) callbackEnv->DeleteLocalRef(devname);
-
-    LOGE("Error while allocating in: %s", __FUNCTION__);
-}
-
 static void ssp_request_callback(bt_bdaddr_t *bd_addr, bt_bdname_t *bdname, uint32_t cod,
                                  bt_ssp_variant_t pairing_variant, uint32_t pass_key) {
     jbyteArray addr, devname;
@@ -358,7 +326,6 @@ bt_callbacks_t sBluetoothCallbacks = {
     device_found_callback,
     discovery_state_changed_callback,
     pin_request_callback,
-    passkey_request_callback,
     ssp_request_callback,
     bond_state_changed_callback,
     callback_thread_event,
@@ -387,8 +354,6 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_deviceFoundCallback = env->GetMethodID(jniCallbackClass, "deviceFoundCallback", "([B)V");
     method_pinRequestCallback = env->GetMethodID(jniCallbackClass, "pinRequestCallback",
                                                  "([B[BI)V");
-    method_passkeyRequestCallback = env->GetMethodID(jniCallbackClass, "passkeyRequestCallback",
-                                                     "([B[BI)V");
     method_sspRequestCallback = env->GetMethodID(jniCallbackClass, "sspRequestCallback",
                                                  "([B[BIII)V");
 
@@ -581,29 +546,8 @@ static jboolean pinReplyNative(JNIEnv *env, jobject obj, jbyteArray address, jbo
     return result;
 }
 
-static jboolean passkeyReplyNative(JNIEnv *env, jobject obj, jbyteArray address, jboolean accept,
-                               jint len, uint32_t passkey) {
-    LOGV("%s:",__FUNCTION__);
-
-    jbyte *addr = NULL;
-    jboolean result = JNI_FALSE;
-    if (!sBluetoothInterface) return result;
-
-    addr = env->GetByteArrayElements(address, NULL);
-    if (addr == NULL) {
-        jniThrowIOException(env, EINVAL);
-        return result;
-    }
-
-    int ret = sBluetoothInterface->passkey_reply((bt_bdaddr_t *)addr, accept, passkey);
-    env->ReleaseByteArrayElements(address, addr, NULL);
-    result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
-
-    return result;
-}
-
 static jboolean sspReplyNative(JNIEnv *env, jobject obj, jbyteArray address,
-                               jboolean accept) {
+                               jint type, jboolean accept, jint passkey) {
     LOGV("%s:",__FUNCTION__);
 
     jbyte *addr;
@@ -616,7 +560,8 @@ static jboolean sspReplyNative(JNIEnv *env, jobject obj, jbyteArray address,
         return result;
     }
 
-    int ret = sBluetoothInterface->ssp_reply((bt_bdaddr_t *)addr, accept);
+    int ret = sBluetoothInterface->ssp_reply((bt_bdaddr_t *)addr,
+         (bt_ssp_variant_t) type, accept, passkey);
     env->ReleaseByteArrayElements(address, addr, NULL);
     result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 
@@ -742,8 +687,7 @@ static JNINativeMethod sMethods[] = {
     {"removeBondNative", "([B)Z", (void*) removeBondNative},
     {"cancelBondNative", "([B)Z", (void*) cancelBondNative},
     {"pinReplyNative", "([BZI[B)Z", (void*) pinReplyNative},
-    {"passkeyReplyNative", "([BZII)Z", (void*) passkeyReplyNative},
-    {"sspReplyNative", "([BZ)Z", (void*) sspReplyNative},
+    {"sspReplyNative", "([BIZI)Z", (void*) sspReplyNative},
 };
 
 int register_com_android_bluetooth_btservice_AdapterService(JNIEnv* env)
