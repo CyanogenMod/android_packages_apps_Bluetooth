@@ -207,7 +207,7 @@ public class AdapterService extends Application {
             setDiscoverableTimeout(duration);
 
             int newMode = convertScanModeToHal(mode);
-            return mAdapterProperties.setScanMode(mode);
+            return mAdapterProperties.setScanMode(newMode);
         }
 
         public int getDiscoverableTimeout() {
