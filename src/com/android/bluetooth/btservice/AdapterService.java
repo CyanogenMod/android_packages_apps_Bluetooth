@@ -89,6 +89,10 @@ public class AdapterService extends Application {
         mBondStateMachine.start();
         // TODO(BT): Start other profile services.
         // startService();
+        //TODO(BT): Remove this when BT is no longer a persitent process.
+        int bluetoothOn = Settings.Secure.getInt(mContext.getContentResolver(),
+                                            Settings.Secure.BLUETOOTH_ON, 0);
+        if (!isAirplaneModeOn() && bluetoothOn != 0) mAdapter.enable();
     }
 
     @Override
@@ -162,14 +166,22 @@ public class AdapterService extends Application {
         public boolean enable() {
             enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                     "Need BLUETOOTH ADMIN permission");
-            mAdapterStateMachine.sendMessage(AdapterState.USER_TURN_ON);
+            // Persist the setting
+            Message m =
+                    mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_ON);
+            m.arg1 = 1;
+            mAdapterStateMachine.sendMessage(m);
             return true;
         }
 
-        public boolean disable() {
+        public boolean disable(boolean persist) {
             enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                     "Need BLUETOOTH ADMIN permission");
-            mAdapterStateMachine.sendMessage(AdapterState.USER_TURN_OFF);
+            int val = (persist ? 1 : 0);
+            Message m =
+                    mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_OFF);
+            m.arg1 = val;
+            mAdapterStateMachine.sendMessage(m);
             return true;
         }
 

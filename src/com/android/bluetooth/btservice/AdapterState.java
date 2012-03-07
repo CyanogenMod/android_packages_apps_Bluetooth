@@ -69,6 +69,8 @@ final class AdapterState extends StateMachine {
         public boolean processMessage(Message msg) {
             switch(msg.what) {
                case USER_TURN_ON:
+                   int persist = msg.arg1;
+                   if (persist == 1) mAdapterService.persistBluetoothSetting(true);
                    sendIntent(BluetoothAdapter.STATE_TURNING_ON);
                    boolean ret = mAdapterService.enableNative();
                    if (!ret) {
@@ -102,6 +104,11 @@ final class AdapterState extends StateMachine {
         public boolean processMessage(Message msg) {
             switch(msg.what) {
                case USER_TURN_OFF:
+                   int persist = msg.arg1;
+                   if (persist == 1) {
+                           mAdapterService.persistBluetoothSetting(false);
+                   }
+                   //Fall Through
                case AIRPLANE_MODE_ON:
                    sendIntent(BluetoothAdapter.STATE_TURNING_OFF);
                    if (mAdapterProperties.getConnectionState() !=
