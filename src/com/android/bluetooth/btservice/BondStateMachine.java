@@ -90,7 +90,6 @@ final class BondStateMachine extends StateMachine {
         public void enter() {
             infoLog("Entering PendingCommandState State");
             BluetoothDevice dev = (BluetoothDevice)getCurrentMessage().obj;
-            mDevices.add(dev);
         }
 
         @Override
