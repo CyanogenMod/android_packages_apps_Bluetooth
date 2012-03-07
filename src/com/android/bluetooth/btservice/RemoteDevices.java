@@ -280,6 +280,10 @@ final class RemoteDevices {
 
     void pinRequestCallback(byte[] address, byte[] name, int cod) {
         //TODO(BT): Get wakelock and update name and cod
+        BluetoothDevice bdDevice = getDevice(address);
+        if (bdDevice == null) {
+            addDeviceProperties(address);
+        }
         infoLog("pinRequestCallback: " + address + " name:" + name + " cod:" +
                 cod);
         Intent intent = new Intent(BluetoothDevice.ACTION_PAIRING_REQUEST);
@@ -293,6 +297,11 @@ final class RemoteDevices {
     void sspRequestCallback(byte[] address, byte[] name, int cod, int pairingVariant,
             int passkey) {
         //TODO(BT): Get wakelock and update name and cod
+        BluetoothDevice bdDevice = getDevice(address);
+        if (bdDevice == null) {
+            addDeviceProperties(address);
+        }
+
         infoLog("sspRequestCallback: " + address + " name: " + name + " cod: " +
                 cod + " pairingVariant " + pairingVariant + " passkey: " + passkey);
         int variant;
