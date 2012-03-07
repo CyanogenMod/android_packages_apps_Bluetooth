@@ -156,6 +156,7 @@ final class AdapterState extends StateMachine {
                     break;
                 case ENABLED_READY:
                     removeMessages(ENABLE_TIMEOUT);
+                    mAdapterProperties.onBluetoothReady();
                     sendIntent(BluetoothAdapter.STATE_ON);
                     transitionTo(mOnState);
                     break;

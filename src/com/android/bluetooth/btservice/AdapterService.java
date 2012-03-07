@@ -444,15 +444,6 @@ public class AdapterService extends Application {
                                        Settings.Secure.BLUETOOTH_ON, 0) > 0);
     }
 
-    void onBluetoothEnabled() {
-        getAdapterPropertiesNative();
-    }
-
-    void onBluetoothEnabledAdapterReady() {
-        mAdapterStateMachine.sendMessage(AdapterState.ENABLED_READY);
-    }
-
-
     private native static void classInitNative();
     private native boolean initNative();
     private native void cleanupNative();

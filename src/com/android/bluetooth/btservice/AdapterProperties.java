@@ -424,6 +424,17 @@ class AdapterProperties {
         }
     }
 
+    void onBluetoothReady() {
+        // When BT is being turned on, all adapter properties will be sent in 1
+        // callback. At this stage, set the scan mode.
+        synchronized (mObject) {
+            if (getState() == BluetoothAdapter.STATE_TURNING_ON &&
+                    mScanMode == BluetoothAdapter.SCAN_MODE_NONE) {
+                    setScanMode(AbstractionLayer.BT_SCAN_MODE_CONNECTABLE);
+            }
+        }
+    }
+
     void discoveryStateChangeCallback(int state) {
         infoLog("Callback:discoveryStateChangeCallback with state:" + state);
         synchronized (mObject) {
