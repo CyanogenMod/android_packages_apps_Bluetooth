@@ -44,11 +44,11 @@ final public class HeadsetHalConstants {
     final static int AT_RESPONSE_OK = 1;
 
     // match up with bthf_call_state_t of bt_hf.h
-    final static int CALL_STATE_IDLE = 0;
-    final static int CALL_STATE_INCOMING = 1;
+    final static int CALL_STATE_ACTIVE = 0;
+    final static int CALL_STATE_HELD = 1;
     final static int CALL_STATE_DIALING = 2;
     final static int CALL_STATE_ALERTING = 3;
-    final static int CALL_STATE_WAITING = 4;
-    final static int CALL_STATE_ACTIVE = 5;
-    final static int CALL_STATE_ONHOLD = 6;
+    final static int CALL_STATE_INCOMING = 4;
+    final static int CALL_STATE_WAITING = 5;
+    final static int CALL_STATE_IDLE = 6;
 }

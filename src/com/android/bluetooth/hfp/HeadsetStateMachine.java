@@ -992,7 +992,13 @@ final class HeadsetStateMachine extends StateMachine {
                 atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
                 return;
             }
+            if (DBG) log("processDialCall, memory dial do last dial for now");
             dialNumber = mPhonebook.getLastDialledNumber();
+            if (dialNumber == null) {
+                if (DBG) log("processDialCall, last dial number null");
+                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+                return;
+            }
         } else {
             dialNumber = PhoneNumberUtils.convertPreDial(number);
         }
