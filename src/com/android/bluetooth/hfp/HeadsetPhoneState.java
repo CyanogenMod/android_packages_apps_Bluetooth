@@ -46,6 +46,7 @@ class HeadsetPhoneState {
     private int mBatteryCharge = 0;
 
     private int mSpeakerVolume = 0;
+
     private int mMicVolume = 0;
 
     private boolean mListening = false;

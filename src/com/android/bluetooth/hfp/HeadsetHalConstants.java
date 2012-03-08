@@ -15,7 +15,8 @@ final public class HeadsetHalConstants {
     final static int CONNECTION_STATE_DISCONNECTED = 0;
     final static int CONNECTION_STATE_CONNECTING = 1;
     final static int CONNECTION_STATE_CONNECTED = 2;
-    final static int CONNECTION_STATE_DISCONNECTING = 3;
+    final static int CONNECTION_STATE_SLC_CONNECTED = 3;
+    final static int CONNECTION_STATE_DISCONNECTING = 4;
 
     // match up with bthf_audio_state_t enum of bt_hf.h
     final static int AUDIO_STATE_DISCONNECTED = 0;
@@ -32,8 +33,8 @@ final public class HeadsetHalConstants {
     final static int VOLUME_TYPE_MIC = 1;
 
     // match up with bthf_network_state_t enum of bt_hf.h
-    final static int NETWORK_STATE_AVAILABLE = 0;
-    final static int NETWORK_STATE_NOT_AVAILABLE = 1;
+    final static int NETWORK_STATE_NOT_AVAILABLE = 0;
+    final static int NETWORK_STATE_AVAILABLE = 1;
 
     // match up with bthf_service_type_t enum of bt_hf.h
     final static int SERVICE_TYPE_HOME = 0;

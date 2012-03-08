@@ -629,6 +629,9 @@ final class HeadsetStateMachine extends StateMachine {
                         Log.e(TAG, "Disconnected from unknown device: " + device);
                     }
                     break;
+                case HeadsetHalConstants.CONNECTION_STATE_SLC_CONNECTED:
+                    processSlcConnected();
+                    break;
               default:
                   Log.e(TAG, "Connection State Device: " + device + " bad state: " + state);
                   break;
@@ -661,6 +664,19 @@ final class HeadsetStateMachine extends StateMachine {
                     Log.e(TAG, "Audio State Device: " + device + " bad state: " + state);
                     break;
             }
+        }
+
+        private void processSlcConnected() {
+            if (mPhoneProxy != null) {
+                try {
+                    mPhoneProxy.queryPhoneState();
+                } catch (RemoteException e) {
+                    Log.e(TAG, Log.getStackTraceString(new Throwable()));
+                }
+            } else {
+                Log.e(TAG, "Handsfree phone proxy null for query phone state");
+            }
+
         }
     }
 
@@ -1066,8 +1082,10 @@ final class HeadsetStateMachine extends StateMachine {
         log("mNumActive: " + callState.mNumActive + " mNumHeld: " + callState.mNumHeld +
             " mCallState: " + callState.mCallState);
         log("mNumber: " + callState.mNumber + " mType: " + callState.mType);
-        phoneStateChangeNative(callState.mNumActive, callState.mNumHeld, callState.mCallState,
-                               callState.mNumber, callState.mType);
+        if (getCurrentState() != mDisconnected) {
+            phoneStateChangeNative(callState.mNumActive, callState.mNumHeld, callState.mCallState,
+                                   callState.mNumber, callState.mType);
+        }
     }
 
     private void processAtChld(int chld) {
