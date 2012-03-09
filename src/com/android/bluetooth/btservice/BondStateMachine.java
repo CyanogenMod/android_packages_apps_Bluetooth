@@ -35,6 +35,10 @@ final class BondStateMachine extends StateMachine {
     static final int REMOVE_BOND = 3;
     static final int BONDING_STATE_CHANGE = 4;
 
+    static final int BOND_STATE_NONE = 0;
+    static final int BOND_STATE_BONDING = 1;
+    static final int BOND_STATE_BONDED = 2;
+
     private final AdapterService mAdapterService;
     private final Context mContext;
     private final AdapterProperties mAdapterProperties;
@@ -71,8 +75,21 @@ final class BondStateMachine extends StateMachine {
               case REMOVE_BOND:
                   removeBond(dev, true);
                   break;
-              case CANCEL_BOND:
               case BONDING_STATE_CHANGE:
+                int newState = msg.arg1;
+                /* if incoming pairing, transition to pending state */
+                if (newState == BluetoothDevice.BOND_BONDING)
+                {
+                    sendIntent(dev, newState);
+                    transitionTo(mPendingCommandState);
+                }
+                else
+                {
+                    Log.e(TAG, "In stable state, received invalid newState: " + newState);
+                }
+                break;
+
+              case CANCEL_BOND:
               default:
                    Log.e(TAG, "Received unhandled state: " + msg.what);
                    return false;
@@ -115,10 +132,20 @@ final class BondStateMachine extends StateMachine {
                 case BONDING_STATE_CHANGE:
                     int newState = msg.arg1;
                     sendIntent(dev, newState);
-                    result = mDevices.remove(dev);
-                    if (mDevices.isEmpty()) {
-                        transitionTo(mStableState);
+
+                    if (newState == BluetoothDevice.BOND_BONDING)
+                    {
+                        result = true;
                     }
+                    else
+                    {
+                        /* this is either none/bonded, remove and transition */
+                        result = !mDevices.remove(dev);
+                        if (mDevices.isEmpty()) {
+                            transitionTo(mStableState);
+                        }
+                    }
+
                     break;
                 default:
                     Log.e(TAG, "Received unhandled event:" + msg.what);
@@ -158,11 +185,11 @@ final class BondStateMachine extends StateMachine {
 
     private boolean createBond(BluetoothDevice dev, boolean transition) {
         if (dev.getBondState() == BluetoothDevice.BOND_NONE) {
-            sendIntent(dev, BluetoothDevice.BOND_BONDING);
             infoLog("Bond address is:" + dev);
             byte[] addr = Utils.getBytesFromAddress(dev.getAddress());
             if (!mAdapterService.createBondNative(addr)) {
                 sendIntent(dev, BluetoothDevice.BOND_NONE);
+                return false;
             } else if (transition) {
                 transitionTo(mPendingCommandState);
             }
@@ -201,8 +228,13 @@ final class BondStateMachine extends StateMachine {
         Message msg = obtainMessage(BONDING_STATE_CHANGE);
         msg.obj = device;
 
-        int state = (newState == 1 ? BluetoothDevice.BOND_BONDED : BluetoothDevice.BOND_NONE);
-        msg.arg1 = state;
+        if (newState == BOND_STATE_BONDED)
+            msg.arg1 = BluetoothDevice.BOND_BONDED;
+        else if (newState == BOND_STATE_BONDING)
+            msg.arg1 = BluetoothDevice.BOND_BONDING;
+        else
+            msg.arg1 = BluetoothDevice.BOND_NONE;
+
         sendMessage(msg);
     }
 
