@@ -824,7 +824,10 @@ final class HeadsetStateMachine extends StateMachine {
 
         private void processIntentScoVolume(Intent intent) {
             int volumeValue = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE, 0);
-            setVolumeNative(HeadsetHalConstants.VOLUME_TYPE_SPK, volumeValue);
+            if (mPhoneState.getSpeakerVolume() != volumeValue) {
+                mPhoneState.setSpeakerVolume(volumeValue);
+                setVolumeNative(HeadsetHalConstants.VOLUME_TYPE_SPK, volumeValue);
+            }
         }
     }
 
@@ -1017,9 +1020,14 @@ final class HeadsetStateMachine extends StateMachine {
 
     private void processVolumeEvent(int volumeType, int volume) {
         if (volumeType == HeadsetHalConstants.VOLUME_TYPE_SPK) {
+            mPhoneState.setSpeakerVolume(volume);
             int flag = (getCurrentState() == mAudioOn) ? AudioManager.FLAG_SHOW_UI : 0;
             mAudioManager.setStreamVolume(AudioManager.STREAM_BLUETOOTH_SCO, volume, flag);
-        } // TODO(BT) handle MIC volume change
+        } else if (volumeType == HeadsetHalConstants.VOLUME_TYPE_MIC) {
+            mPhoneState.setMicVolume(volume);
+        } else {
+            Log.e(TAG, "Bad voluem type: " + volumeType);
+        }
     }
 
     private void processSendDtmf(int dtmf) {

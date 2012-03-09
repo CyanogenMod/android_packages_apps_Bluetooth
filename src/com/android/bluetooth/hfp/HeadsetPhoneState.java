@@ -43,7 +43,10 @@ class HeadsetPhoneState {
     private int mRoam = HeadsetHalConstants.SERVICE_TYPE_HOME;
 
     // HFP 1.6 CIND battchg
-    private int mBatteryCharge;
+    private int mBatteryCharge = 0;
+
+    private int mSpeakerVolume = 0;
+    private int mMicVolume = 0;
 
     private boolean mListening = false;
 
@@ -119,6 +122,22 @@ class HeadsetPhoneState {
 
     int getBatteryCharge() {
         return mBatteryCharge;
+    }
+
+    void setSpeakerVolume(int volume) {
+        mSpeakerVolume = volume;
+    }
+
+    int getSpeakerVolume() {
+        return mSpeakerVolume;
+    }
+
+    void setMicVolume(int volume) {
+        mMicVolume = volume;
+    }
+
+    int getMicVolume() {
+        return mMicVolume;
     }
 
     boolean isInCall() {
