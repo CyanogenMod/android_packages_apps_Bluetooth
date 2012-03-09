@@ -260,6 +260,9 @@ final class HeadsetStateMachine extends StateMachine {
                     mCurrentDevice = device;
                     transitionTo(mConnected);
                 }
+                if (isInCall()) {
+                    deferMessage(obtainMessage(CONNECT_AUDIO, mCurrentDevice));
+                }
                 break;
             case HeadsetHalConstants.CONNECTION_STATE_DISCONNECTING:
                 Log.w(TAG, "Ignore HF DISCONNECTING event, device: " + device);
@@ -284,6 +287,7 @@ final class HeadsetStateMachine extends StateMachine {
             boolean retValue = HANDLED;
             switch(message.what) {
                 case CONNECT:
+                case CONNECT_AUDIO:
                     deferMessage(message);
                     break;
                 case CONNECT_TIMEOUT:
@@ -422,6 +426,10 @@ final class HeadsetStateMachine extends StateMachine {
                         mIncomingDevice = null;
                         transitionTo(mConnected);
                     }
+                    // All the above conditions go from disconnect/connecting to connected
+                    if (isInCall()) {
+                        deferMessage(obtainMessage(CONNECT_AUDIO, mCurrentDevice));
+                    }
                 }
                 break;
             case HeadsetHalConstants.CONNECTION_STATE_CONNECTING:
@@ -470,9 +478,6 @@ final class HeadsetStateMachine extends StateMachine {
         @Override
         public void enter() {
             log("Enter Connected: " + getCurrentMessage().what);
-            if (isInCall()) {
-                sendMessage(CONNECT_AUDIO);
-            }
         }
 
         @Override
@@ -671,7 +676,7 @@ final class HeadsetStateMachine extends StateMachine {
 
         @Override
         public void enter() {
-            log("Enter Audio: " + getCurrentMessage().what);
+            log("Enter AudioOn: " + getCurrentMessage().what);
             mAudioManager.setParameters(HEADSET_NAME + "=" + getCurrentDeviceName() + ";" +
                                         HEADSET_NREC + "=on");
         }
@@ -688,13 +693,19 @@ final class HeadsetStateMachine extends StateMachine {
 
             boolean retValue = HANDLED;
             switch(message.what) {
+                case DISCONNECT:
+                    deferMessage(obtainMessage(DISCONNECT, message.obj));
+                    // fall through
                 case DISCONNECT_AUDIO:
-                    // TODO(BT) when failure broadcast a audio disconnecting to connected intent
-                    //          check if device matches mCurrentDevice
-                    disconnectAudioNative(getByteAddress(mCurrentDevice));
+                    {
+                        BluetoothDevice device = (BluetoothDevice) message.obj;
+                        if (device != null && !mCurrentDevice.equals(device)) {
+                            break;
+                        }
+                        disconnectAudioNative(getByteAddress(mCurrentDevice));
+                    }
                     break;
                 case VOICE_RECOGNITION_START:
-                    // TODO(BT) should we check if device matches mCurrentDevice?
                     startVoiceRecognitionNative();
                     break;
                 case VOICE_RECOGNITION_STOP:
