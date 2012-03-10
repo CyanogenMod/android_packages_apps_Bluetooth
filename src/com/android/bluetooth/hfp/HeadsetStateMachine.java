@@ -212,6 +212,9 @@ final class HeadsetStateMachine extends StateMachine {
                     break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
+                    if (DBG) {
+                        log("event type: " + event.type);
+                    }
                     switch (event.type) {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
                             processConnectionEvent(event.valueInt, event.device);
@@ -312,6 +315,9 @@ final class HeadsetStateMachine extends StateMachine {
                     break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
+                    if (DBG) {
+                        log("event type: " + event.type);
+                    }
                     switch (event.type) {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
                             removeMessages(CONNECT_TIMEOUT);
@@ -549,6 +555,9 @@ final class HeadsetStateMachine extends StateMachine {
                     break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
+                    if (DBG) {
+                        log("event type: " + event.type);
+                    }
                     switch (event.type) {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
                             processConnectionEvent(event.valueInt, event.device);
@@ -717,6 +726,9 @@ final class HeadsetStateMachine extends StateMachine {
                     break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
+                    if (DBG) {
+                        log("event type: " + event.type);
+                    }
                     switch (event.type) {
                         case EVENT_TYPE_AUDIO_STATE_CHANGED:
                             processAudioEvent(event.valueInt, event.device);
