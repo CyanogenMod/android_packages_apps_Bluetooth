@@ -49,4 +49,6 @@ final public class AbstractionLayer {
     static final int BT_DISCOVERY_STARTED = 0x01;
 
     static final int BT_UUID_SIZE = 16; // bytes
+
+    public static final int BT_STATUS_SUCCESS = 0;
 }

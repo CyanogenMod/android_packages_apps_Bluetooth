@@ -5,6 +5,7 @@
 #define LOG_TAG "BluetoothServiceJni"
 
 #include "com_android_bluetooth.h"
+#include "hardware/bt_sock.h"
 #include "utils/Log.h"
 #include "utils/misc.h"
 #include "cutils/properties.h"
@@ -30,10 +31,12 @@ static jmethodID method_bondStateChangeCallback;
 static jmethodID method_discoveryStateChangeCallback;
 
 static const bt_interface_t *sBluetoothInterface = NULL;
+static const btsock_interface_t *sBluetoothSocketInterface = NULL;
 static JNIEnv *callbackEnv = NULL;
 
 static jobject sJniCallbacksObj;
 static jfieldID sJniCallbacksField;
+
 
 const bt_interface_t* getBluetoothInterface() {
     return sBluetoothInterface;
@@ -427,6 +430,10 @@ static bool initNative(JNIEnv* env, jobject obj) {
             sBluetoothInterface = NULL;
             return JNI_FALSE;
         }
+        if ( (sBluetoothSocketInterface = (btsock_interface_t *)
+                  sBluetoothInterface->get_profile_interface(BT_PROFILE_SOCKETS_ID)) == NULL) {
+                LOGE("Error getting socket interface");
+        }
         return JNI_TRUE;
     }
     return JNI_FALSE;
@@ -703,6 +710,86 @@ static jboolean setDevicePropertyNative(JNIEnv *env, jobject obj, jbyteArray add
     return result;
 }
 
+static int connectSocketNative(JNIEnv *env, jobject object, jbyteArray address, jint type,
+                                   jbyteArray uuidObj, jint channel, jint flag) {
+    jbyte *addr = NULL, *uuid = NULL;
+    int socket_fd;
+    bt_status_t status;
+
+    if (!sBluetoothSocketInterface) return NULL;
+
+    addr = env->GetByteArrayElements(address, NULL);
+    if (!addr) {
+        LOGE("failed to get Bluetooth device address");
+        goto Fail;
+    }
+
+    uuid = env->GetByteArrayElements(uuidObj, NULL);
+    if (!uuid) {
+        LOGE("failed to get uuid");
+        goto Fail;
+    }
+
+    if ( (status = sBluetoothSocketInterface->connect((bt_bdaddr_t *) addr, (btsock_type_t) type,
+                       (const uint8_t*) uuid, channel, &socket_fd, flag)) != BT_STATUS_SUCCESS) {
+        LOGE("Socket connection failed: %d", status);
+        goto Fail;
+    }
+
+
+    if (socket_fd < 0) {
+        LOGE("Fail to creat file descriptor on socket fd");
+        goto Fail;
+    }
+    env->ReleaseByteArrayElements(address, addr, 0);
+    env->ReleaseByteArrayElements(uuidObj, uuid, 0);
+    return socket_fd;
+
+Fail:
+    if (addr) env->ReleaseByteArrayElements(address, addr, 0);
+    if (uuid) env->ReleaseByteArrayElements(uuidObj, uuid, 0);
+
+    return -1;
+}
+
+static int createSocketChannelNative(JNIEnv *env, jobject object, jint type,
+                                         jstring name_str, jbyteArray uuidObj, jint channel, jint flag) {
+    const char *service_name;
+    jbyte *uuid = NULL;
+    int socket_fd;
+    bt_status_t status;
+
+    if (!sBluetoothSocketInterface) return NULL;
+
+    service_name = env->GetStringUTFChars(name_str, NULL);
+
+    uuid = env->GetByteArrayElements(uuidObj, NULL);
+    if (!uuid) {
+        LOGE("failed to get uuid");
+        goto Fail;
+    }
+
+    if ( (status = sBluetoothSocketInterface->listen((btsock_type_t) type, service_name,
+                       (const uint8_t*) uuid, channel, &socket_fd, flag)) != BT_STATUS_SUCCESS) {
+        LOGE("Socket listen failed: %d", status);
+        goto Fail;
+    }
+
+    if (socket_fd < 0) {
+        LOGE("Fail to creat file descriptor on socket fd");
+        goto Fail;
+    }
+    if (service_name) env->ReleaseStringUTFChars(name_str, service_name);
+    if (uuid) env->ReleaseByteArrayElements(uuidObj, uuid, 0);
+    return socket_fd;
+
+Fail:
+    if (service_name) env->ReleaseStringUTFChars(name_str, service_name);
+    if (uuid) env->ReleaseByteArrayElements(uuidObj, uuid, 0);
+
+    return -1;
+}
+
 static JNINativeMethod sMethods[] = {
      /* name, signature, funcPtr */
     {"classInitNative", "()V", (void *) classInitNative},
@@ -722,6 +809,9 @@ static JNINativeMethod sMethods[] = {
     {"cancelBondNative", "([B)Z", (void*) cancelBondNative},
     {"pinReplyNative", "([BZI[B)Z", (void*) pinReplyNative},
     {"sspReplyNative", "([BIZI)Z", (void*) sspReplyNative},
+    {"connectSocketNative", "([BI[BII)I", (void*) connectSocketNative},
+    {"createSocketChannelNative", "(ILjava/lang/String;[BII)I",
+     (void*) createSocketChannelNative},
 };
 
 int register_com_android_bluetooth_btservice_AdapterService(JNIEnv* env)

@@ -62,6 +62,19 @@ final public class Utils {
         return converter.array();
     }
 
+    public static byte[] uuidToByteArray(ParcelUuid pUuid) {
+        int length = BD_UUID_LEN;
+        ByteBuffer converter = ByteBuffer.allocate(length);
+        converter.order(ByteOrder.BIG_ENDIAN);
+        long msb, lsb;
+        UUID uuid = pUuid.getUuid();
+        msb = uuid.getMostSignificantBits();
+        lsb = uuid.getLeastSignificantBits();
+        converter.putLong(msb);
+        converter.putLong(8, lsb);
+        return converter.array();
+    }
+
     public static byte[] uuidsToByteArray(ParcelUuid[] uuids) {
         int length = uuids.length * BD_UUID_LEN;
         ByteBuffer converter = ByteBuffer.allocate(length);

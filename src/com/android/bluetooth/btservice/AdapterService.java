@@ -22,6 +22,7 @@ import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.ParcelFileDescriptor;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.os.ServiceManager;
@@ -36,6 +37,8 @@ import com.android.bluetooth.hdp.HealthService;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 
+import java.io.FileDescriptor;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -393,6 +396,7 @@ public class AdapterService extends Application {
 
         public void sendConnectionStateChange(BluetoothDevice
                 device, int profile, int state, int prevState) {
+            // TODO(BT) permission check?
             // Since this is a binder call check if Bluetooth is on still
             if (getState() == BluetoothAdapter.STATE_OFF) return;
 
@@ -400,6 +404,29 @@ public class AdapterService extends Application {
 
         }
 
+        public ParcelFileDescriptor connectSocket(BluetoothDevice device, int type,
+                                                  ParcelUuid uuid, int port, int flag) {
+            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+            int fd = connectSocketNative(Utils.getBytesFromAddress(device.getAddress()),
+                       type, Utils.uuidToByteArray(uuid), port, flag);
+            if (fd < 0) {
+                errorLog("Failed to connect socket");
+                return null;
+            }
+            return ParcelFileDescriptor.adoptFd(fd);
+        }
+
+        public ParcelFileDescriptor createSocketChannel(int type, String serviceName,
+                                                        ParcelUuid uuid, int port, int flag) {
+            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+            int fd =  createSocketChannelNative(type, serviceName,
+                                     Utils.uuidToByteArray(uuid), port, flag);
+            if (fd < 0) {
+                errorLog("Failed to create socket channel");
+                return null;
+            }
+            return ParcelFileDescriptor.adoptFd(fd);
+        }
     };
 
     private int convertScanModeToHal(int mode) {
@@ -473,4 +500,9 @@ public class AdapterService extends Application {
     private native boolean pinReplyNative(byte[] address, boolean accept, int len, byte[] pin);
     private native boolean sspReplyNative(byte[] address, int type, boolean
             accept, int passkey);
+    // TODO(BT) move this to ../btsock dir
+    private native int connectSocketNative(byte[] address, int type,
+                                           byte[] uuid, int port, int flag);
+    private native int createSocketChannelNative(int type, String serviceName,
+                                                 byte[] uuid, int port, int flag);
 }
