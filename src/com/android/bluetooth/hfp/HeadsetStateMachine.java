@@ -284,6 +284,7 @@ final class HeadsetStateMachine extends StateMachine {
             boolean retValue = HANDLED;
             switch(message.what) {
                 case CONNECT:
+                case CONNECT_AUDIO:
                     deferMessage(message);
                     break;
                 case CONNECT_TIMEOUT:
@@ -470,9 +471,6 @@ final class HeadsetStateMachine extends StateMachine {
         @Override
         public void enter() {
             log("Enter Connected: " + getCurrentMessage().what);
-            if (isInCall()) {
-                sendMessage(CONNECT_AUDIO);
-            }
         }
 
         @Override
@@ -687,7 +685,7 @@ final class HeadsetStateMachine extends StateMachine {
 
         @Override
         public void enter() {
-            log("Enter Audio: " + getCurrentMessage().what);
+            log("Enter AudioOn: " + getCurrentMessage().what);
             mAudioManager.setParameters(HEADSET_NAME + "=" + getCurrentDeviceName() + ";" +
                                         HEADSET_NREC + "=on");
         }
@@ -704,13 +702,19 @@ final class HeadsetStateMachine extends StateMachine {
 
             boolean retValue = HANDLED;
             switch(message.what) {
+                case DISCONNECT:
+                {
+                    BluetoothDevice device = (BluetoothDevice) message.obj;
+                    if (!mCurrentDevice.equals(device)) {
+                        break;
+                    }
+                    deferMessage(obtainMessage(DISCONNECT, message.obj));
+                }
+                // fall through
                 case DISCONNECT_AUDIO:
-                    // TODO(BT) when failure broadcast a audio disconnecting to connected intent
-                    //          check if device matches mCurrentDevice
                     disconnectAudioNative(getByteAddress(mCurrentDevice));
                     break;
                 case VOICE_RECOGNITION_START:
-                    // TODO(BT) should we check if device matches mCurrentDevice?
                     startVoiceRecognitionNative();
                     break;
                 case VOICE_RECOGNITION_STOP:
