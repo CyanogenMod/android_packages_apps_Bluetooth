@@ -72,7 +72,7 @@
     <string name="unknown_file_desc" msgid="480434281415453287">"Der er ingen app til at håndtere denne filtype. "\n</string>
     <string name="not_exist_file" msgid="3489434189599716133">"Ingen fil"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"Filen findes ikke. "\n</string>
-    <string name="enabling_progress_title" msgid="436157952334723406">"Vent ..."</string>
+    <string name="enabling_progress_title" msgid="436157952334723406">"Vent..."</string>
     <string name="enabling_progress_content" msgid="4601542238119927904">"Aktiverer Bluetooth..."</string>
     <string name="bt_toast_1" msgid="972182708034353383">"Filen modtages. Se status i meddelelsespanelet."</string>
     <string name="bt_toast_2" msgid="8602553334099066582">"Filen kan ikke modtages."</string>
