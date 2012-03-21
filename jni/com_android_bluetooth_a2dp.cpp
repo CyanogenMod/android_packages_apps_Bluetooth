@@ -20,9 +20,13 @@ static jobject mCallbacksObj = NULL;
 static JNIEnv *sCallbackEnv = NULL;
 
 static bool checkCallbackThread() {
-    if (sCallbackEnv == NULL) {
-        sCallbackEnv = getCallbackEnv();
-    }
+    // Always fetch the latest callbackEnv from AdapterService.
+    // Caching this could cause this sCallbackEnv to go out-of-sync
+    // with the AdapterService's ENV if an ASSOCIATE/DISASSOCIATE event
+    // is received
+    //if (sCallbackEnv == NULL) {
+    sCallbackEnv = getCallbackEnv();
+    //}
 
     JNIEnv* env = AndroidRuntime::getJNIEnv();
     if (sCallbackEnv != env || sCallbackEnv == NULL) return false;
