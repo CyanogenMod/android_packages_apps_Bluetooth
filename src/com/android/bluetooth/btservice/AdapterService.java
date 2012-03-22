@@ -31,6 +31,7 @@ import android.util.Pair;
 
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.a2dp.A2dpService;
+import com.android.bluetooth.hid.HidService;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 
@@ -95,6 +96,7 @@ public class AdapterService extends Application {
         if (!isAirplaneModeOn() && bluetoothOn != 0) mAdapter.enable();
         startService(new Intent(this, HeadsetService.class));
         startService(new Intent(this, A2dpService.class));
+        startService(new Intent(this, HidService.class));
     }
 
     @Override

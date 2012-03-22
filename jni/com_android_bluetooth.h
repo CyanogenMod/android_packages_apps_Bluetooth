@@ -23,6 +23,8 @@ int register_com_android_bluetooth_hfp(JNIEnv* env);
 
 int register_com_android_bluetooth_a2dp(JNIEnv* env);
 
+int register_com_android_bluetooth_hid(JNIEnv* env);
+
 }
 
 #endif /* COM_ANDROID_BLUETOOTH_H */

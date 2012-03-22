@@ -194,5 +194,12 @@
                 <action android:name="android.bluetooth.IBluetoothA2dp" />
             </intent-filter>
         </service>
+        <service
+            android:process="@string/process"
+            android:name = ".hid.HidService">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothInputDevice" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>
