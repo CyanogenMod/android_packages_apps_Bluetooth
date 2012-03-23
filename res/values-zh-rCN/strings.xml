@@ -17,7 +17,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"访问下载管理器。"</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"允许应用程序访问蓝牙共享 (BluetoothShare) 管理器并将其用于传输文件。"</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"允许应用访问蓝牙共享 (BluetoothShare) 管理器并将其用于传输文件。"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"蓝牙"</string>
     <string name="unknown_device" msgid="9221903979877041009">"未知设备"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"未知号码"</string>
@@ -69,7 +69,7 @@
     <string name="upload_fail_cancel" msgid="9118496285835687125">"关闭"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"确定"</string>
     <string name="unknown_file" msgid="6092727753965095366">"未知文件"</string>
-    <string name="unknown_file_desc" msgid="480434281415453287">"没有可处理此类文件的应用程序。"\n</string>
+    <string name="unknown_file_desc" msgid="480434281415453287">"没有可处理此类文件的应用。"\n</string>
     <string name="not_exist_file" msgid="3489434189599716133">"没有文件"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"该文件不存在。"\n</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"请稍候..."</string>
