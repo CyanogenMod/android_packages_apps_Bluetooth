@@ -254,14 +254,12 @@ static void initializeNativeDataNative(JNIEnv *env, jobject object) {
 
 static jboolean connectHfpNative(JNIEnv *env, jobject object, jbyteArray address) {
     jbyte *addr;
-    bt_bdaddr_t * btAddr;
     bt_status_t status;
 
     LOGI("%s: sBluetoothHfpInterface: %p", __FUNCTION__, sBluetoothHfpInterface);
     if (!sBluetoothHfpInterface) return JNI_FALSE;
 
     addr = env->GetByteArrayElements(address, NULL);
-    btAddr = (bt_bdaddr_t *) addr;
     if (!addr) {
         jniThrowIOException(env, EINVAL);
         return JNI_FALSE;

@@ -201,5 +201,12 @@
                 <action android:name="android.bluetooth.IBluetoothInputDevice" />
             </intent-filter>
         </service>
+        <service
+            android:process="@string/process"
+            android:name = ".hdp.HealthService">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothHealth" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>

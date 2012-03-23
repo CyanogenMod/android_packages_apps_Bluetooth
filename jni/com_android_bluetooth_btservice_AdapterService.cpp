@@ -54,7 +54,10 @@ void checkAndClearExceptionFromCallback(JNIEnv* env,
 
 static bool checkCallbackThread() {
     JNIEnv* env = AndroidRuntime::getJNIEnv();
-    if (callbackEnv != env || callbackEnv == NULL) return false;
+    if (callbackEnv != env || callbackEnv == NULL) {
+        LOGE("Callback env check fail: env: %p, callback: %p", env, callbackEnv);
+        return false;
+    }
     return true;
 }
 
@@ -763,6 +766,11 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 
    if ((status = android::register_com_android_bluetooth_hid(e)) < 0) {
        LOGE("jni hid registration failure: %d", status);
+       return JNI_ERR;
+   }
+
+   if ((status = android::register_com_android_bluetooth_hdp(e)) < 0) {
+       LOGE("jni hdp registration failure: %d", status);
       return JNI_ERR;
    }
 
