@@ -31,6 +31,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.ActivityNotFoundException;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.IBinder;
@@ -38,6 +39,8 @@ import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 import com.android.bluetooth.Utils;
@@ -71,10 +74,12 @@ final class HeadsetStateMachine extends StateMachine {
 
     private static final int STACK_EVENT = 101;
     private static final int DIALING_OUT_TIMEOUT = 102;
+    private static final int START_VR_TIMEOUT = 103;
 
     private static final int CONNECT_TIMEOUT = 201;
 
     private static final int DIALING_OUT_TIMEOUT_VALUE = 10000;
+    private static final int START_VR_TIMEOUT_VALUE = 5000;
 
     private static final ParcelUuid[] HEADSET_UUIDS = {
         BluetoothUuid.HSP,
@@ -87,10 +92,18 @@ final class HeadsetStateMachine extends StateMachine {
     private AudioOn mAudioOn;
 
     private Context mContext;
+
+    private PowerManager mPowerManager;
+
     private boolean mVoiceRecognitionStarted = false;
+    private boolean mWaitingForVoiceRecognition = false;
+    private WakeLock mStartVoiceRecognitionWakeLock;  // held while waiting for voice recognition
+
     private boolean mDialingOut = false;
     private AudioManager mAudioManager;
     private AtPhonebook mPhonebook;
+
+    private static Intent sVoiceCommandIntent;
 
     private HeadsetPhoneState mPhoneState;
     private int mAudioState;
@@ -133,6 +146,13 @@ final class HeadsetStateMachine extends StateMachine {
 
         mContext = context;
         mVoiceRecognitionStarted = false;
+        mWaitingForVoiceRecognition = false;
+
+        mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        mStartVoiceRecognitionWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                                                       TAG + ":VoiceRecognition");
+        mStartVoiceRecognitionWakeLock.setReferenceCounted(false);
+
         mDialingOut = false;
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         mPhonebook = new AtPhonebook(mContext);
@@ -151,6 +171,11 @@ final class HeadsetStateMachine extends StateMachine {
         mPending = new Pending();
         mConnected = new Connected();
         mAudioOn = new AudioOn();
+
+        if (sVoiceCommandIntent == null) {
+            sVoiceCommandIntent = new Intent(Intent.ACTION_VOICE_COMMAND);
+            sVoiceCommandIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        }
 
         addState(mDisconnected);
         addState(mPending);
@@ -528,7 +553,10 @@ final class HeadsetStateMachine extends StateMachine {
                     connectAudioNative(getByteAddress(mCurrentDevice));
                     break;
                 case VOICE_RECOGNITION_START:
-                    // TODO(BT) connect audio and do voice recognition in AudioOn state
+                    processLocalVrEvent(HeadsetHalConstants.VR_STATE_STARTED);
+                    break;
+                case VOICE_RECOGNITION_STOP:
+                    processLocalVrEvent(HeadsetHalConstants.VR_STATE_STOPPED);
                     break;
                 case CALL_STATE_CHANGED:
                     processCallState((HeadsetCallState) message.obj);
@@ -551,6 +579,13 @@ final class HeadsetStateMachine extends StateMachine {
                         atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
                     }
                     break;
+                case START_VR_TIMEOUT:
+                    if (mWaitingForVoiceRecognition) {
+                        mWaitingForVoiceRecognition = false;
+                        Log.e(TAG, "Timeout waiting for voice recognition to start");
+                        atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+                    }
+                    break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
                     if (DBG) {
@@ -562,6 +597,9 @@ final class HeadsetStateMachine extends StateMachine {
                             break;
                         case EVENT_TYPE_AUDIO_STATE_CHANGED:
                             processAudioEvent(event.valueInt, event.device);
+                            break;
+                        case EVENT_TYPE_VR_STATE_CHANGED:
+                            processVrEvent(event.valueInt);
                             break;
                         case EVENT_TYPE_ANSWER_CALL:
                             // TODO(BT) could answer call happen on Connected state?
@@ -715,10 +753,10 @@ final class HeadsetStateMachine extends StateMachine {
                     disconnectAudioNative(getByteAddress(mCurrentDevice));
                     break;
                 case VOICE_RECOGNITION_START:
-                    startVoiceRecognitionNative();
+                    processLocalVrEvent(HeadsetHalConstants.VR_STATE_STARTED);
                     break;
                 case VOICE_RECOGNITION_STOP:
-                    stopVoiceRecognitionNative();
+                    processLocalVrEvent(HeadsetHalConstants.VR_STATE_STOPPED);
                     break;
                 case INTENT_SCO_VOLUME_CHANGED:
                     processIntentScoVolume((Intent) message.obj);
@@ -741,6 +779,13 @@ final class HeadsetStateMachine extends StateMachine {
                 case DIALING_OUT_TIMEOUT:
                     if (mDialingOut) {
                         mDialingOut= false;
+                        atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+                    }
+                    break;
+                case START_VR_TIMEOUT:
+                    if (mWaitingForVoiceRecognition) {
+                        mWaitingForVoiceRecognition = false;
+                        Log.e(TAG, "Timeout waiting for voice recognition to start");
                         atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
                     }
                     break;
@@ -829,18 +874,6 @@ final class HeadsetStateMachine extends StateMachine {
                 default:
                     Log.e(TAG, "Audio State Device: " + device + " bad state: " + state);
                     break;
-            }
-        }
-
-        private void processVrEvent(int state) {
-            if (state == HeadsetHalConstants.VR_STATE_STARTED) {
-                mVoiceRecognitionStarted = true;
-                // TODO(BT) should we send out Intent.ACTION_VOICE_COMMAND intent
-                //     and do expectVoiceRecognition, acquire wake lock etc
-            } else if (state == HeadsetHalConstants.VR_STATE_STOPPED) {
-                mVoiceRecognitionStarted = false;
-            } else {
-                Log.e(TAG, "Bad Voice Recognition state: " + state);
             }
         }
 
@@ -939,6 +972,100 @@ final class HeadsetStateMachine extends StateMachine {
             }
         }
         return mAudioState;
+    }
+
+    private void processVrEvent(int state) {
+        Log.d(TAG, "processVrEvent: state=" + state + " mVoiceRecognitionStarted: " +
+            mVoiceRecognitionStarted + " mWaitingforVoiceRecognition: " + mWaitingForVoiceRecognition +
+            " isInCall: " + isInCall());
+        if (state == HeadsetHalConstants.VR_STATE_STARTED) {
+            // TODO(BT) handle virtualcall
+            if (!mVoiceRecognitionStarted &&
+                !isInCall())
+            {
+                try {
+                    mContext.startActivity(sVoiceCommandIntent);
+                } catch (ActivityNotFoundException e) {
+                    atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+                    return;
+                }
+                expectVoiceRecognition();
+            }
+        } else if (state == HeadsetHalConstants.VR_STATE_STOPPED) {
+            if (mVoiceRecognitionStarted || mWaitingForVoiceRecognition)
+            {
+                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK);
+                mVoiceRecognitionStarted = false;
+                mWaitingForVoiceRecognition = false;
+                if (!isInCall())
+                    disconnectAudioNative(getByteAddress(mCurrentDevice));
+            }
+            else
+            {
+                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+            }
+        } else {
+            Log.e(TAG, "Bad Voice Recognition state: " + state);
+        }
+    }
+
+    private void processLocalVrEvent(int state)
+    {
+        if (state == HeadsetHalConstants.VR_STATE_STARTED)
+        {
+            boolean needAudio = true;
+            if (mVoiceRecognitionStarted || isInCall())
+            {
+                Log.e(TAG, "Voice recognition started when call is active. isInCall:" + isInCall() + 
+                    " mVoiceRecognitionStarted: " + mVoiceRecognitionStarted);
+                return;
+            }
+            mVoiceRecognitionStarted = true;
+
+            if (mWaitingForVoiceRecognition)
+            {
+                Log.d(TAG, "Voice recognition started successfully");
+                mWaitingForVoiceRecognition = false;
+                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK);
+                removeMessages(START_VR_TIMEOUT);
+            }
+            else
+            {
+                Log.d(TAG, "Voice recognition started locally");
+                needAudio = startVoiceRecognitionNative();
+            }
+
+            if (needAudio && !isAudioOn())
+            {
+                Log.d(TAG, "Initiating audio connection for Voice Recognition");
+                connectAudioNative(getByteAddress(mCurrentDevice));
+            }
+
+            if (mStartVoiceRecognitionWakeLock.isHeld()) {
+                mStartVoiceRecognitionWakeLock.release();
+            }
+        }
+        else
+        {
+            Log.d(TAG, "Voice Recognition stopped. mVoiceRecognitionStarted: " + mVoiceRecognitionStarted +
+                " mWaitingForVoiceRecognition: " + mWaitingForVoiceRecognition);
+            if (mVoiceRecognitionStarted || mWaitingForVoiceRecognition)
+            {
+                mVoiceRecognitionStarted = false;
+                mWaitingForVoiceRecognition = false;
+
+                if (stopVoiceRecognitionNative() && !isInCall())
+                    disconnectAudioNative(getByteAddress(mCurrentDevice));
+            }
+        }
+    }
+
+    private synchronized void expectVoiceRecognition() {
+        mWaitingForVoiceRecognition = true;
+        sendMessageDelayed(START_VR_TIMEOUT, START_VR_TIMEOUT_VALUE);
+        if (!mStartVoiceRecognitionWakeLock.isHeld()) {
+            mStartVoiceRecognitionWakeLock.acquire(START_VR_TIMEOUT_VALUE);
+        }
     }
 
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
@@ -1345,7 +1472,8 @@ final class HeadsetStateMachine extends StateMachine {
     }
 
     private boolean isInCall() {
-        return mPhoneState.isInCall();
+        return ((mPhoneState.getNumActiveCall() > 0) || (mPhoneState.getNumHeldCall() > 0) ||
+                (mPhoneState.getCallState() != HeadsetHalConstants.CALL_STATE_IDLE));
     }
 
     boolean isConnected() {
