@@ -1311,14 +1311,21 @@ final class HeadsetStateMachine extends StateMachine {
                 Log.e(TAG, "Handsfree phone proxy null for answering call");
             }
         } else if (mPhoneState.getNumActiveCall() > 0) {
-            if (mPhoneProxy != null) {
-                try {
-                    mPhoneProxy.answerCall();
-                } catch (RemoteException e) {
-                    Log.e(TAG, Log.getStackTraceString(new Throwable()));
+            if (!isAudioOn())
+            {
+                connectAudioNative(getByteAddress(mCurrentDevice));
+            }
+            else
+            {
+                if (mPhoneProxy != null) {
+                    try {
+                        mPhoneProxy.hangupCall();
+                    } catch (RemoteException e) {
+                        Log.e(TAG, Log.getStackTraceString(new Throwable()));
+                    }
+                } else {
+                    Log.e(TAG, "Handsfree phone proxy null for hangup call");
                 }
-            } else {
-                Log.e(TAG, "Handsfree phone proxy null for hangup call");
             }
         } else {
             String dialNumber = mPhonebook.getLastDialledNumber();
