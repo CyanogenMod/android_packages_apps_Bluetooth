@@ -171,8 +171,8 @@ public class BluetoothMasAppIf {
     public boolean checkPath(boolean up, String name, boolean setPathFlag) {
         Log.d(TAG, "setPath called");
         /*
-         * /* Up and empty string  cd .. Up and name - cd ../name Down and name
-         * - cd name Down and empty string  cd to root
+         * /* Up and empty string cd .. Up and name - cd ../name Down and name
+         * - cd name Down and empty string cd to root
          */
 
         List<String> completeFolderList = new ArrayList<String>();

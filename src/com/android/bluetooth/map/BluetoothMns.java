@@ -204,7 +204,7 @@ public class BluetoothMns {
                     mSession.disconnect();
                     mSession = null;
                 }
-                    start((BluetoothDevice) msg.obj);
+                start((BluetoothDevice) msg.obj);
                 break;
             case MNS_DISCONNECT:
                 deregisterUpdates();
@@ -414,7 +414,11 @@ public class BluetoothMns {
             File fileR = new File(mContext.getFilesDir() + "/" + FILENAME);
             if (fileR.exists() == true) {
                 Log.d(TAG, " Sending event report file ");
-                mSession.sendEvent(fileR, (byte) 0);
+                if (mSession != null) {
+                    mSession.sendEvent(fileR, (byte) 0);
+                } else {
+                    Log.d(TAG, " Unable to send report file: mSession == null");
+                }
             } else {
                 Log.d(TAG, " ERROR IN CREATING SEND EVENT OBJ FILE");
             }
@@ -2846,7 +2850,7 @@ public class BluetoothMns {
                 mSessionHandler.obtainMessage(RFCOMM_CONNECTED, transport)
                         .sendToTarget();
             } catch (IOException e) {
-                Log.e(TAG, "Rfcomm socket connect exception ");
+                Log.e(TAG, "Rfcomm socket connect exception with error: " + e.getMessage());
                 BluetoothMnsPreference.getInstance(mContext).removeChannel(
                         device, MNS_UUID16);
                 markConnectionFailed(btSocket);
