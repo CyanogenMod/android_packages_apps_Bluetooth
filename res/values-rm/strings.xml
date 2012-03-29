@@ -17,12 +17,14 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Acceder a l\'administratur da telechargiadas"</string>
-    <!-- outdated translation 8739116224907566462 -->     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Permetta a l\'applicaziun dad acceder l\'administratur BluetoothShare e da l\'utilisar per il transferiment da datotecas."</string>
+    <!-- no translation found for permdesc_bluetoothShareManager (8930572979123190223) -->
+    <skip />
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Apparat nunenconuschent"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Nunenconuschent"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Modus d\'aviun"</string>
-    <!-- outdated translation 8031842956782631624 -->     <string name="airplane_error_msg" msgid="8698965595254137230">"Impussibel d\'utilisar bluetooth sch\'il telefon è en il modus d\'aviun."</string>
+    <!-- no translation found for airplane_error_msg (8698965595254137230) -->
+    <skip />
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Vus stuais activar la funcziun bluetooth per pudair utilisar ils servetschs da bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Activar ussa bluetooth?"</string>
@@ -32,11 +34,14 @@
     <string name="incoming_file_confirm_content" msgid="6673812334377911289">"<xliff:g id="SENDER">%1$s</xliff:g> As tramettess gugent <xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>). "\n\n" Acceptar la datoteca?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Refusar"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Acceptar"</string>
-    <!-- outdated translation 860272542827665475 -->     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
+    <!-- no translation found for incoming_file_confirm_timeout_ok (1414676773249857278) -->
+    <skip />
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Surpassà il temp per acceptar ina datoteca che arriva da <xliff:g id="SENDER">%1$s</xliff:g>"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Cundivisiun bluetooth: recepziun da datoteca"</string>
-    <!-- outdated translation 85804056450169291 -->     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Confermai che Vus acceptais questa datoteca."</string>
-    <!-- outdated translation 5763638110029586276 -->     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"In auter apparat emprova da trametter ina datoteca. Confermai sche Vus vulais retschaiver questa datoteca."</string>
+    <!-- no translation found for incoming_file_confirm_Notification_caption (6671081128475981157) -->
+    <skip />
+    <!-- no translation found for incoming_file_toast_msg (1733710749992901811) -->
+    <skip />
     <string name="notification_receiving" msgid="4674648179652543984">"Cundivisiun bluetooth: retschaiver <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Cundivisiun bluetooth: retschet <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Cundivisiun bluetooth: datoteca <xliff:g id="FILE">%1$s</xliff:g> betg retschavida"</string>
@@ -72,13 +77,18 @@
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Serrar"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"OK"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Datoteca nunenconuschenta"</string>
-    <!-- outdated translation 5845231383612478643 -->     <string name="unknown_file_desc" msgid="480434281415453287">"Nagina applicaziun sustegna quest tip da datoteca. "\n</string>
-    <!-- outdated translation 2245958259960700777 -->     <string name="not_exist_file" msgid="3489434189599716133">"Datoteca inexistenta"</string>
-    <!-- outdated translation 2392808771821464983 -->     <string name="not_exist_file_desc" msgid="4059531573790529229">"Questa datoteca n\'exista betg."\n</string>
+    <!-- no translation found for unknown_file_desc (480434281415453287) -->
+    <skip />
+    <!-- no translation found for not_exist_file (3489434189599716133) -->
+    <skip />
+    <!-- no translation found for not_exist_file_desc (4059531573790529229) -->
+    <skip />
     <string name="enabling_progress_title" msgid="436157952334723406">"Spetgar..."</string>
-    <!-- outdated translation 1291028079299309898 -->     <string name="enabling_progress_content" msgid="4601542238119927904">"Activar bluetooth..."</string>
+    <!-- no translation found for enabling_progress_content (4601542238119927904) -->
+    <skip />
     <string name="bt_toast_1" msgid="972182708034353383">"La recepziun da la datoteca entschaiva. Il progress vegn mussà en la tavla d\'avis."</string>
-    <!-- outdated translation 6357386241778417651 -->     <string name="bt_toast_2" msgid="8602553334099066582">"La datoteca na vegn betg retschavida."</string>
+    <!-- no translation found for bt_toast_2 (8602553334099066582) -->
+    <skip />
     <string name="bt_toast_3" msgid="6707884165086862518">"Interrut la recepziun da la datoteca da <xliff:g id="SENDER">%1$s</xliff:g>"</string>
     <string name="bt_toast_4" msgid="4678812947604395649">"Trametter la datoteca a <xliff:g id="RECIPIENT">%1$s</xliff:g>"</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Trametter <xliff:g id="NUMBER">%1$s</xliff:g> datotecas a <xliff:g id="RECIPIENT">%2$s</xliff:g>"</string>
@@ -89,18 +99,29 @@
     <skip />
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Capacitad da memorisar: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Actualmain vegnan memia bleras dumondas elavuradas. Empruvai pli tard anc ina giada."</string>
-    <!-- outdated translation 7446884326084324082 -->     <string name="status_pending" msgid="2503691772030877944">"Il transfer da datoteca n\'ha anc betg cumenzà."</string>
-    <!-- outdated translation 2695810336448055064 -->     <string name="status_running" msgid="6562808920311008696">"Il transfer da datoteca succeda"</string>
-    <!-- outdated translation 2268261336330060663 -->     <string name="status_success" msgid="239573225847565868">"Il transferiment da datas è vegnì exequì correctamain."</string>
-    <!-- outdated translation 149046562468006301 -->     <string name="status_not_accept" msgid="1695082417193780738">"Il telefonin na sustegna betg quest tip da cuntegn."</string>
-    <!-- outdated translation 8499236547788725258 -->     <string name="status_forbidden" msgid="613956401054050725">"Quest transfer n\'è betg autorisà da l\'apparat da destinaziun."</string>
-    <!-- outdated translation 5514756906439790976 -->     <string name="status_canceled" msgid="6664490318773098285">"L\'utilisader ha annullà quest transfer."</string>
-    <!-- outdated translation 6125632529575521755 -->     <string name="status_file_error" msgid="3671917770630165299">"Problem da memoria"</string>
-    <!-- outdated translation 5760944071743325592 -->     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"La carta SD manca. Inseri ina carta SD per memorisar las datotecas transferidas."</string>
+    <!-- no translation found for status_pending (2503691772030877944) -->
+    <skip />
+    <!-- no translation found for status_running (6562808920311008696) -->
+    <skip />
+    <!-- no translation found for status_success (239573225847565868) -->
+    <skip />
+    <!-- no translation found for status_not_accept (1695082417193780738) -->
+    <skip />
+    <!-- no translation found for status_forbidden (613956401054050725) -->
+    <skip />
+    <!-- no translation found for status_canceled (6664490318773098285) -->
+    <skip />
+    <!-- no translation found for status_file_error (3671917770630165299) -->
+    <skip />
+    <!-- no translation found for status_no_sd_card (1112125377088421469) -->
+    <skip />
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"La carta SD manca. Inseri ina carta SD per memorisar las datotecas transferidas."</string>
-    <!-- outdated translation 7695388111375688873 -->     <string name="status_connection_error" msgid="947681831523219891">"Errur da connexiun"</string>
-    <!-- outdated translation 8898902951085043597 -->     <string name="status_protocol_error" msgid="3245444473429269539">"La dumonda na po betg vegnir elavurada a moda correcta"</string>
-    <!-- outdated translation 7441602228720350817 -->     <string name="status_unknown_error" msgid="8156660554237824912">"Errur nunenconuschenta"</string>
+    <!-- no translation found for status_connection_error (947681831523219891) -->
+    <skip />
+    <!-- no translation found for status_protocol_error (3245444473429269539) -->
+    <skip />
+    <!-- no translation found for status_unknown_error (8156660554237824912) -->
+    <skip />
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth recepì"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Recepziun terminada."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Tramess cumplettamain"</string>
