@@ -109,6 +109,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     private static final String PB_PATH = "/telecom/pb";
 
+    private static final String SIM_PATH = "/SIM1/telecom";
+
     private static final String SIM_ICH_PATH = "/SIM1/telecom/ich";
 
     private static final String SIM_OCH_PATH = "/SIM1/telecom/och";
@@ -375,8 +377,12 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             // we have weak name checking here to provide better
             // compatibility with other devices,although unique name such as
             // "pb.vcf" is required by SIG spec.
-            if (name.contains(PB.subSequence(0, PB.length()))
-                && name.contains(SIM1.subSequence(0, SIM1.length()))) {
+            if (((name.contains(PB.subSequence(0, PB.length())) &&
+                 name.contains(SIM1.subSequence(0, SIM1.length()))) &&
+                (type.equals(TYPE_PB))) ||
+                (((name.contains(PB.subSequence(0, PB.length()))) &&
+                (mCurrentPath.equals(SIM_PATH))) && (type.equals(TYPE_LISTING))))
+            {
                 appParamValue.needTag = ContentType.SIM_PHONEBOOK;
                 if (D) Log.v(TAG, "download SIM phonebook request");
             } else if (name.contains(PB.subSequence(0, PB.length()))) {
