@@ -1140,7 +1140,7 @@ final class HeadsetStateMachine extends StateMachine {
 
     private void processDialCall(String number) {
         String dialNumber;
-        if (number == null) {
+        if ((number == null) || (number.length() == 0)) {
             dialNumber = mPhonebook.getLastDialledNumber();
             if (dialNumber == null) {
                 if (DBG) log("processDialCall, last dial number null");
@@ -1162,6 +1162,11 @@ final class HeadsetStateMachine extends StateMachine {
                 return;
             }
         } else {
+            // Remove trailing ';'
+            if (number.charAt(number.length() - 1) == ';') {
+                number = number.substring(0, number.length() - 1);
+            }
+
             dialNumber = PhoneNumberUtils.convertPreDial(number);
         }
         // TODO(BT) do we need to terminate virtual call first
