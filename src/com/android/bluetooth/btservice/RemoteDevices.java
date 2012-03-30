@@ -310,7 +310,7 @@ final class RemoteDevices {
             variant = BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION;
             displayPasskey = true;
         } else if (pairingVariant == AbstractionLayer.BT_SSP_VARIANT_CONSENT) {
-            variant = BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION;
+            variant = BluetoothDevice.PAIRING_VARIANT_CONSENT;
         } else if (pairingVariant == AbstractionLayer.BT_SSP_VARIANT_PASSKEY_ENTRY) {
             variant = BluetoothDevice.PAIRING_VARIANT_PASSKEY;
         } else if (pairingVariant == AbstractionLayer.BT_SSP_VARIANT_PASSKEY_NOTIFICATION) {
