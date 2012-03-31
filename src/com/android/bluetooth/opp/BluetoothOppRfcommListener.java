@@ -39,6 +39,7 @@ import java.net.Socket;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.bluetooth.BluetoothUuid;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -61,10 +62,6 @@ public class BluetoothOppRfcommListener {
 
     private static final int CREATE_RETRY_TIME = 10;
 
-    private static final int DEFAULT_OPP_CHANNEL = 12;
-
-    private final int mBtOppRfcommChannel;
-
     private final BluetoothAdapter mAdapter;
 
     private BluetoothServerSocket mBtServerSocket = null;
@@ -72,13 +69,9 @@ public class BluetoothOppRfcommListener {
     private ServerSocket mTcpServerSocket = null;
 
     public BluetoothOppRfcommListener(BluetoothAdapter adapter) {
-        this(adapter, DEFAULT_OPP_CHANNEL);
-    }
-
-    public BluetoothOppRfcommListener(BluetoothAdapter adapter, int channel) {
-        mBtOppRfcommChannel = channel;
         mAdapter = adapter;
     }
+
 
     public synchronized boolean start(Handler callback) {
         if (mSocketAcceptThread == null) {
@@ -120,19 +113,18 @@ public class BluetoothOppRfcommListener {
                          * retry for 10 times
                          */
                         for (int i = 0; i < CREATE_RETRY_TIME && !mInterrupted; i++) {
-                            //TODO(BT)
-                            /*
                             try {
-                                mBtServerSocket = mAdapter
-                                        .listenUsingInsecureRfcommOn(mBtOppRfcommChannel);
+                                if (V) Log.v(TAG, "Starting RFCOMM listener....");
+                                mBtServerSocket = mAdapter.listenUsingInsecureRfcommWithServiceRecord("OBEX Object Push", BluetoothUuid.ObexObjectPush.getUuid());
+                                if (V) Log.v(TAG, "Started RFCOMM listener....");
                             } catch (IOException e1) {
                                 Log.e(TAG, "Error create RfcommServerSocket " + e1);
                                 serverOK = false;
-                            }*/
+                            }
                             if (!serverOK) {
                                 synchronized (this) {
                                     try {
-                                        if (V) Log.v(TAG, "wait 3 seconds");
+                                        if (V) Log.v(TAG, "Wait 3 seconds");
                                         Thread.sleep(3000);
                                     } catch (InterruptedException e) {
                                         Log.e(TAG, "socketAcceptThread thread was interrupted (3)");
@@ -148,15 +140,14 @@ public class BluetoothOppRfcommListener {
                             mInterrupted = true;
                         }
                         if (!mInterrupted) {
-                            Log.i(TAG, "Accept thread started on channel " + mBtOppRfcommChannel);
+                            Log.i(TAG, "Accept thread started.");
                         }
                         BluetoothSocket clientSocket;
-                        //TODO(BT)
-                        /*
                         while (!mInterrupted) {
                             try {
+                                if (V) Log.v(TAG, "Accepting connection...");
                                 clientSocket = mBtServerSocket.accept();
-                                Log.i(TAG, "Accepted connectoin from "
+                                if (V) Log.v(TAG, "Accepted connection from "
                                         + clientSocket.getRemoteDevice());
                                 BluetoothOppRfcommTransport transport = new BluetoothOppRfcommTransport(
                                         clientSocket);
@@ -168,7 +159,7 @@ public class BluetoothOppRfcommListener {
                             } catch (IOException e) {
                                 Log.e(TAG, "Error accept connection " + e);
                             }
-                        }*/
+                        }
                         Log.i(TAG, "BluetoothSocket listen thread finished");
                     }
                 }

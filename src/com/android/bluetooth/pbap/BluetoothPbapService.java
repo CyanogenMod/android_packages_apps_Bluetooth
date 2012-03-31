@@ -44,6 +44,7 @@ import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothPbap;
+import android.bluetooth.BluetoothUuid;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
@@ -55,6 +56,8 @@ import android.os.ServiceManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
+
+
 
 import com.android.bluetooth.R;
 
@@ -127,7 +130,6 @@ public class BluetoothPbapService extends Service {
 
     private static final int AUTH_TIMEOUT = 3;
 
-    private static final int PORT_NUM = 19;
 
     private static final int USER_CONFIRM_TIMEOUT_VALUE = 30000;
 
@@ -338,7 +340,7 @@ public class BluetoothPbapService extends Service {
             try {
                 // It is mandatory for PSE to support initiation of bonding and
                 // encryption.
-                mServerSocket = mAdapter.listenUsingEncryptedRfcommOn(PORT_NUM);
+                mServerSocket = mAdapter.listenUsingRfcommWithServiceRecord("OBEX Phoneboox Access Server", BluetoothUuid.PBAP_PSE.getUuid());
             } catch (IOException e) {
                 Log.e(TAG, "Error create RfcommServerSocket " + e.toString());
                 initSocketOK = false;
@@ -359,7 +361,7 @@ public class BluetoothPbapService extends Service {
         }
 
         if (initSocketOK) {
-            if (VERBOSE) Log.v(TAG, "Succeed to create listening socket on channel " + PORT_NUM);
+            if (VERBOSE) Log.v(TAG, "Succeed to create listening socket ");
 
         } else {
             Log.e(TAG, "Error to create listening socket after " + CREATE_RETRY_TIME + " try");
@@ -468,15 +470,14 @@ public class BluetoothPbapService extends Service {
 
         try {
             closeSocket(false, true);
-            mConnSocket = null;
+	    mConnSocket = null;
         } catch (IOException e) {
             Log.e(TAG, "closeSocket error: " + e.toString());
         }
         // Last obex transaction is finished, we start to listen for incoming
         // connection again
         if (mAdapter.isEnabled()) {
-            //TODO(BT)
-            // startRfcommSocketListener();
+            startRfcommSocketListener();
         }
         setState(BluetoothPbap.STATE_DISCONNECTED);
     }
@@ -512,7 +513,9 @@ public class BluetoothPbapService extends Service {
         public void run() {
             while (!stopped) {
                 try {
+                    if (VERBOSE) Log.v(TAG, "Accepting socket connection...");
                     mConnSocket = mServerSocket.accept();
+                    if (VERBOSE) Log.v(TAG, "Accepted socket connection...");
 
                     mRemoteDevice = mConnSocket.getRemoteDevice();
                     if (mRemoteDevice == null) {
@@ -583,8 +586,7 @@ public class BluetoothPbapService extends Service {
             switch (msg.what) {
                 case START_LISTENER:
                     if (mAdapter.isEnabled()) {
-                        //TODO(BT)
-                        //startRfcommSocketListener();
+                        startRfcommSocketListener();
                     } else {
                         closeService();// release all resources
                     }
