@@ -222,7 +222,7 @@ final class RemoteDevices {
                         intent.putExtra(BluetoothDevice.EXTRA_NAME, device.mName);
                         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
                         mContext.sendBroadcast(intent, mAdapterService.BLUETOOTH_PERM);
-                        debugLog("Remote Device ame is: " + device.mName);
+                        debugLog("Remote Device name is: " + device.mName);
                         break;
                     case AbstractionLayer.BT_PROPERTY_REMOTE_FRIENDLY_NAME:
                         // TODO(BT) is null device.mAlias a valid senario?
