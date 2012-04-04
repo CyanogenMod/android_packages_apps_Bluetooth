@@ -26,6 +26,7 @@ static jmethodID method_deviceFoundCallback;
 static jmethodID method_pinRequestCallback;
 static jmethodID method_sspRequestCallback;
 static jmethodID method_bondStateChangeCallback;
+static jmethodID method_aclStateChangeCallback;
 static jmethodID method_discoveryStateChangeCallback;
 
 static const bt_interface_t *sBluetoothInterface = NULL;
@@ -301,6 +302,32 @@ static void bond_state_changed_callback(bt_status_t status, bt_bdaddr_t *bd_addr
     callbackEnv->DeleteLocalRef(addr);
 }
 
+static void acl_state_changed_callback(bt_status_t status, bt_bdaddr_t *bd_addr,
+                                       bt_acl_state_t state)
+{
+    jbyteArray addr;
+    int i;
+    if (!checkCallbackThread()) {
+       LOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
+       return;
+    }
+    if (!bd_addr) {
+        LOGE("Address is null in %s", __FUNCTION__);
+        return;
+    }
+    addr = callbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+    if (addr == NULL) {
+       LOGE("Address allocation failed in %s", __FUNCTION__);
+       return;
+    }
+    callbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *)bd_addr);
+
+    callbackEnv->CallVoidMethod(sJniCallbacksObj, method_aclStateChangeCallback, (jint) status,
+                                addr, (jint)state);
+    checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
+    callbackEnv->DeleteLocalRef(addr);
+}
+
 static void discovery_state_changed_callback(bt_discovery_state_t state) {
     jbyteArray addr;
     if (!checkCallbackThread()) {
@@ -414,6 +441,7 @@ bt_callbacks_t sBluetoothCallbacks = {
     pin_request_callback,
     ssp_request_callback,
     bond_state_changed_callback,
+    acl_state_changed_callback,
     callback_thread_event,
 };
 
@@ -446,6 +474,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_bondStateChangeCallback = env->GetMethodID(jniCallbackClass,
                                                      "bondStateChangeCallback", "(I[BI)V");
 
+    method_aclStateChangeCallback = env->GetMethodID(jniCallbackClass,
+                                                    "aclStateChangeCallback", "(I[BI)V");
     char value[PROPERTY_VALUE_MAX];
     property_get("bluetooth.mock_stack", value, "");
 
