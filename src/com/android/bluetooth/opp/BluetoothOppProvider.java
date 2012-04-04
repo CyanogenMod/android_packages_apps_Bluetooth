@@ -46,7 +46,9 @@ import android.net.Uri;
 import android.provider.LiveFolders;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * This provider allows application to interact with Bluetooth OPP manager
@@ -250,6 +252,7 @@ public final class BluetoothOppProvider extends ContentProvider {
         }
         Integer dir = values.getAsInteger(BluetoothShare.DIRECTION);
         Integer con = values.getAsInteger(BluetoothShare.USER_CONFIRMATION);
+        String address = values.getAsString(BluetoothShare.DESTINATION);
 
         if (values.getAsInteger(BluetoothShare.DIRECTION) == null) {
             dir = BluetoothShare.DIRECTION_OUTBOUND;
@@ -258,7 +261,12 @@ public final class BluetoothOppProvider extends ContentProvider {
             con = BluetoothShare.USER_CONFIRMATION_AUTO_CONFIRMED;
         }
         if (dir == BluetoothShare.DIRECTION_INBOUND && con == null) {
-            con = BluetoothShare.USER_CONFIRMATION_PENDING;
+            if (BluetoothOppManager.getInstance(getContext()).isWhitelisted(address)) {
+                if (D) Log.d(TAG, address + " is in whitelist, auto confirming");
+                con = BluetoothShare.USER_CONFIRMATION_AUTO_CONFIRMED;
+            } else {
+                con = BluetoothShare.USER_CONFIRMATION_PENDING;
+            }
         }
         filteredValues.put(BluetoothShare.USER_CONFIRMATION, con);
         filteredValues.put(BluetoothShare.DIRECTION, dir);

@@ -47,6 +47,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class provides a simplified interface on top of other Bluetooth service
@@ -137,6 +138,17 @@ public class BluetoothOppManager {
         restoreApplicationData();
 
         return true;
+    }
+
+    List<String> mWhitelist = new ArrayList<String>();
+
+    public void addToWhitelist(String address) {
+        //TODO: timeout whitelist
+        mWhitelist.add(address);
+    }
+
+    public boolean isWhitelisted(String address) {
+        return mWhitelist.contains(address);
     }
 
     /**
