@@ -81,9 +81,26 @@ final class AdapterState extends StateMachine {
                        transitionTo(mPendingCommandState);
                    }
                    break;
+               case AIRPLANE_MODE_OFF:
+               {
+                   if(mAdapterService.getBluetoothPersistedSetting()) {
+                        Log.i(TAG, "OffState : Turning BT on after Airplane"+
+                            " Mode OFF state");
+                        sendIntent(BluetoothAdapter.STATE_TURNING_ON);
+                        ret = mAdapterService.enableNative();
+                        if (!ret) {
+                            Log.e(TAG, "Error while turning Bluetooth On");
+                            sendIntent(BluetoothAdapter.STATE_OFF);
+                        } else {
+                            sendMessageDelayed(ENABLE_TIMEOUT,
+                                ENABLE_TIMEOUT_DELAY);
+                            transitionTo(mPendingCommandState);
+                        }
+                   }
+                   break;
+               }
                case USER_TURN_OFF:
                case AIRPLANE_MODE_ON:
-               case AIRPLANE_MODE_OFF:
                    //ignore
                    break;
                default:

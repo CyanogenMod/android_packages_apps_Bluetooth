@@ -471,7 +471,7 @@ public class AdapterService extends Application {
         Binder.restoreCallingIdentity(origCallerIdentityToken);
     }
 
-    private boolean getBluetoothPersistedSetting() {
+    boolean getBluetoothPersistedSetting() {
         ContentResolver contentResolver = mContext.getContentResolver();
         return (Settings.Secure.getInt(contentResolver,
                                        Settings.Secure.BLUETOOTH_ON, 0) > 0);
