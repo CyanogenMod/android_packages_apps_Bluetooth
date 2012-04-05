@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothDevicePicker;
 import android.content.Intent;
 import android.content.ContentResolver;
@@ -66,6 +67,7 @@ public class BluetoothOppLauncherActivity extends Activity {
 
         Intent intent = getIntent();
         String action = intent.getAction();
+        BluetoothDevice device = null;
 
         if (action.equals(Intent.ACTION_SEND) || action.equals(Intent.ACTION_SEND_MULTIPLE)) {
             /*
@@ -78,6 +80,9 @@ public class BluetoothOppLauncherActivity extends Activity {
                 String type = intent.getType();
                 Uri stream = (Uri)intent.getParcelableExtra(Intent.EXTRA_STREAM);
                 CharSequence extra_text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT);
+                //TODO: consider only checking EXTRA_DEVICE if it came from NFC
+                device = (BluetoothDevice)intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
                 // If we get ACTION_SEND intent with EXTRA_STREAM, we'll use the
                 // uri data;
                 // If we get ACTION_SEND intent without EXTRA_STREAM, but with
@@ -138,7 +143,7 @@ public class BluetoothOppLauncherActivity extends Activity {
                 Intent in = new Intent(this, BluetoothOppBtEnableActivity.class);
                 in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 this.startActivity(in);
-            } else {
+            } else if (device == null) {
                 if (V) Log.v(TAG, "BT already enabled!! ");
                 Intent in1 = new Intent(BluetoothDevicePicker.ACTION_LAUNCH);
                 in1.setFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
@@ -151,6 +156,9 @@ public class BluetoothOppLauncherActivity extends Activity {
                         BluetoothOppReceiver.class.getName());
 
                 this.startActivity(in1);
+            } else {
+                // we already know where to send to
+                BluetoothOppManager.getInstance(this).startTransfer(device);
             }
         } else if (action.equals(Constants.ACTION_OPEN)) {
             Uri uri = getIntent().getData();

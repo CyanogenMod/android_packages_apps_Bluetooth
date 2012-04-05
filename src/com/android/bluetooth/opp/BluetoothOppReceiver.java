@@ -54,6 +54,7 @@ import android.widget.Toast;
  */
 public class BluetoothOppReceiver extends BroadcastReceiver {
     private static final String TAG = "BluetoothOppReceiver";
+    private static final boolean D = Constants.DEBUG;
     private static final boolean V = Constants.VERBOSE;
 
     @Override
@@ -248,6 +249,13 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             if (toastMsg != null) {
                 Toast.makeText(context, toastMsg, Toast.LENGTH_SHORT).show();
             }
+        } else if (action.equals("todo-whitelist")) {
+            //TODO: Verify sender of intent
+            BluetoothDevice device =
+                    (BluetoothDevice)intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+            if (D) Log.d(TAG, "Adding " + device + " to whitelist");
+            if (device == null) return;
+            BluetoothOppManager.getInstance(context).addToWhitelist(device.getAddress());
         }
     }
 }
