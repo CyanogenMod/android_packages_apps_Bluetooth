@@ -229,6 +229,30 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                 return;
             }
 
+            if (transInfo.mHandoverInitiated) {
+                // Deal with handover-initiated transfers separately
+                Intent handoverIntent = new Intent(Constants.ACTION_BT_OPP_TRANSFER_DONE);
+                if (transInfo.mDirection == BluetoothShare.DIRECTION_INBOUND) {
+                    handoverIntent.putExtra(Constants.EXTRA_BT_OPP_TRANSFER_DIRECTION,
+                            Constants.DIRECTION_BLUETOOTH_INCOMING);
+                } else {
+                    handoverIntent.putExtra(Constants.EXTRA_BT_OPP_TRANSFER_DIRECTION,
+                            Constants.DIRECTION_BLUETOOTH_OUTGOING);
+                }
+                handoverIntent.putExtra(Constants.EXTRA_BT_OPP_TRANSFER_ID, transInfo.mID);
+                if (BluetoothShare.isStatusSuccess(transInfo.mStatus)) {
+                    handoverIntent.putExtra(Constants.EXTRA_BT_OPP_TRANSFER_STATUS,
+                            Constants.HANDOVER_TRANSFER_STATUS_SUCCESS);
+                    handoverIntent.putExtra(Constants.EXTRA_BT_OPP_TRANSFER_URI,
+                            transInfo.mFileName);
+                } else {
+                    handoverIntent.putExtra(Constants.EXTRA_BT_OPP_TRANSFER_STATUS,
+                            Constants.HANDOVER_TRANSFER_STATUS_FAILURE);
+                }
+                context.sendBroadcast(handoverIntent, Constants.HANDOVER_STATUS_PERMISSION);
+                return;
+            }
+
             if (BluetoothShare.isStatusSuccess(transInfo.mStatus)) {
                 if (transInfo.mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
                     toastMsg = context.getString(R.string.notification_sent, transInfo.mFileName);
@@ -249,13 +273,6 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             if (toastMsg != null) {
                 Toast.makeText(context, toastMsg, Toast.LENGTH_SHORT).show();
             }
-        } else if (action.equals("todo-whitelist")) {
-            //TODO: Verify sender of intent
-            BluetoothDevice device =
-                    (BluetoothDevice)intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-            if (D) Log.d(TAG, "Adding " + device + " to whitelist");
-            if (device == null) return;
-            BluetoothOppManager.getInstance(context).addToWhitelist(device.getAddress());
         }
     }
 }

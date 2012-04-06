@@ -258,12 +258,13 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         values.put(BluetoothShare.TOTAL_BYTES, length.intValue());
         values.put(BluetoothShare.MIMETYPE, mimeType);
 
+        String destination;
         if (mTransport instanceof BluetoothOppRfcommTransport) {
-            String a = ((BluetoothOppRfcommTransport)mTransport).getRemoteAddress();
-            values.put(BluetoothShare.DESTINATION, a);
+            destination = ((BluetoothOppRfcommTransport)mTransport).getRemoteAddress();
         } else {
-            values.put(BluetoothShare.DESTINATION, "FF:FF:FF:00:00:00");
+            destination = "FF:FF:FF:00:00:00";
         }
+        values.put(BluetoothShare.DESTINATION, destination);
 
         values.put(BluetoothShare.DIRECTION, BluetoothShare.DIRECTION_INBOUND);
         values.put(BluetoothShare.TIMESTAMP, mTimestamp);
@@ -273,6 +274,12 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         if (!mServerBlocking) {
             values.put(BluetoothShare.USER_CONFIRMATION,
                     BluetoothShare.USER_CONFIRMATION_AUTO_CONFIRMED);
+            needConfirm = false;
+        }
+
+        if (BluetoothOppManager.getInstance(mContext).isWhitelisted(destination)) {
+            values.put(BluetoothShare.USER_CONFIRMATION,
+                    BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED);
             needConfirm = false;
         }
 
@@ -335,7 +342,8 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         int status = BluetoothShare.STATUS_SUCCESS;
 
         if (mAccepted == BluetoothShare.USER_CONFIRMATION_CONFIRMED
-                || mAccepted == BluetoothShare.USER_CONFIRMATION_AUTO_CONFIRMED) {
+                || mAccepted == BluetoothShare.USER_CONFIRMATION_AUTO_CONFIRMED
+                || mAccepted == BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED) {
             /* Confirm or auto-confirm */
 
             if (mFileInfo.mFileName == null) {

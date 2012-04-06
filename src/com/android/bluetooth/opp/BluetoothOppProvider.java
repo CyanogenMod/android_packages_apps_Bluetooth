@@ -261,12 +261,7 @@ public final class BluetoothOppProvider extends ContentProvider {
             con = BluetoothShare.USER_CONFIRMATION_AUTO_CONFIRMED;
         }
         if (dir == BluetoothShare.DIRECTION_INBOUND && con == null) {
-            if (BluetoothOppManager.getInstance(getContext()).isWhitelisted(address)) {
-                if (D) Log.d(TAG, address + " is in whitelist, auto confirming");
-                con = BluetoothShare.USER_CONFIRMATION_AUTO_CONFIRMED;
-            } else {
-                con = BluetoothShare.USER_CONFIRMATION_PENDING;
-            }
+            con = BluetoothShare.USER_CONFIRMATION_PENDING;
         }
         filteredValues.put(BluetoothShare.USER_CONFIRMATION, con);
         filteredValues.put(BluetoothShare.DIRECTION, dir);

@@ -481,6 +481,9 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         /* This transfer need user confirm */
         if (V) Log.v(TAG, "processCurrentShare" + mCurrentShare.mId);
         mSession.addShare(mCurrentShare);
+        if (mCurrentShare.mConfirm == BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED) {
+            setConfirmed();
+        }
     }
 
     /**
@@ -778,8 +781,10 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             /*
              * TODO what if it's not auto confirmed?
              */
-            if (mCurrentShare != null
-                    && mCurrentShare.mConfirm == BluetoothShare.USER_CONFIRMATION_AUTO_CONFIRMED) {
+            if (mCurrentShare != null &&
+                    (mCurrentShare.mConfirm == BluetoothShare.USER_CONFIRMATION_AUTO_CONFIRMED ||
+                     mCurrentShare.mConfirm ==
+                     BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED)) {
                 /* have additional auto confirmed share to process */
                 if (V) Log.v(TAG, "Transfer continue session for info " + mCurrentShare.mId +
                         " from batch " + mBatch.mId);
