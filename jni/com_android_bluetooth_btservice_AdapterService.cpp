@@ -710,6 +710,25 @@ static jboolean setDevicePropertyNative(JNIEnv *env, jobject obj, jbyteArray add
     return result;
 }
 
+static jboolean getRemoteServicesNative(JNIEnv *env, jobject obj, jbyteArray address) {
+    LOGV("%s:",__FUNCTION__);
+
+    jbyte *addr = NULL;
+    jboolean result = JNI_FALSE;
+    if (!sBluetoothInterface) return result;
+
+    addr = env->GetByteArrayElements(address, NULL);
+    if (addr == NULL) {
+        jniThrowIOException(env, EINVAL);
+        return result;
+    }
+
+    int ret = sBluetoothInterface->get_remote_services((bt_bdaddr_t *)addr);
+    env->ReleaseByteArrayElements(address, addr, NULL);
+    result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+    return result;
+}
+
 static int connectSocketNative(JNIEnv *env, jobject object, jbyteArray address, jint type,
                                    jbyteArray uuidObj, jint channel, jint flag) {
     jbyte *addr = NULL, *uuid = NULL;
@@ -809,6 +828,7 @@ static JNINativeMethod sMethods[] = {
     {"cancelBondNative", "([B)Z", (void*) cancelBondNative},
     {"pinReplyNative", "([BZI[B)Z", (void*) pinReplyNative},
     {"sspReplyNative", "([BIZI)Z", (void*) sspReplyNative},
+    {"getRemoteServicesNative", "([B)Z", (void*) getRemoteServicesNative},
     {"connectSocketNative", "([BI[BII)I", (void*) connectSocketNative},
     {"createSocketChannelNative", "(ILjava/lang/String;[BII)I",
      (void*) createSocketChannelNative},

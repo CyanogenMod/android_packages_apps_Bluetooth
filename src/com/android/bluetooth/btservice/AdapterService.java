@@ -355,7 +355,7 @@ public class AdapterService extends Application {
 
         public boolean fetchRemoteUuids(BluetoothDevice device) {
             enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            mRemoteDevices.performSdp(device);
+            mRemoteDevices.fetchUuids(device);
             return true;
         }
 
@@ -500,6 +500,9 @@ public class AdapterService extends Application {
     private native boolean pinReplyNative(byte[] address, boolean accept, int len, byte[] pin);
     private native boolean sspReplyNative(byte[] address, int type, boolean
             accept, int passkey);
+
+    /*package*/ native boolean getRemoteServicesNative(byte[] address);
+
     // TODO(BT) move this to ../btsock dir
     private native int connectSocketNative(byte[] address, int type,
                                            byte[] uuid, int port, int flag);

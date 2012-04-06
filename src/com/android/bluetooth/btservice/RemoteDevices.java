@@ -193,8 +193,11 @@ final class RemoteDevices {
         DeviceProperties prop = getDeviceProperties(device);
         Intent intent = new Intent(BluetoothDevice.ACTION_UUID);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        intent.putExtra(BluetoothDevice.EXTRA_UUID, prop.mUuids);
+        intent.putExtra(BluetoothDevice.EXTRA_UUID, prop == null? null: prop.mUuids);
         mContext.sendBroadcast(intent, AdapterService.BLUETOOTH_ADMIN_PERM);
+
+        //Remove the outstanding UUID request
+        mSdpTracker.remove(device);
     }
 
     void devicePropertyChangedCallback(byte[] address, int[] types, byte[][] values) {
@@ -339,7 +342,7 @@ final class RemoteDevices {
     }
 
 
-    void performSdp(BluetoothDevice device) {
+    void fetchUuids(BluetoothDevice device) {
         if (mSdpTracker.contains(device)) return;
         mSdpTracker.add(device);
 
@@ -347,8 +350,8 @@ final class RemoteDevices {
         message.obj = device;
         mHandler.sendMessageDelayed(message, UUID_INTENT_DELAY);
 
-        //TODO(BT)
-        //mAdapterService.performSdpNative(device.mAddress);
+        //mAdapterService.getDevicePropertyNative(Utils.getBytesFromAddress(device.getAddress()), AbstractionLayer.BT_PROPERTY_UUIDS);
+        mAdapterService.getRemoteServicesNative(Utils.getBytesFromAddress(device.getAddress()));
     }
 
     private final Handler mHandler = new Handler() {
