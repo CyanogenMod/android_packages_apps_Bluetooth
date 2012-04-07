@@ -8,7 +8,7 @@
 
 #define CHECK_CALLBACK_ENV                                                      \
    if (!checkCallbackThread()) {                                                \
-       LOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);\
+       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);\
        return;                                                                  \
    }
 
@@ -33,7 +33,7 @@ static bool checkCallbackThread() {
 
     JNIEnv* env = AndroidRuntime::getJNIEnv();
     if (sCallbackEnv != env || sCallbackEnv == NULL) {
-        LOGE("Callback env check fail: env: %p, callback: %p", env, sCallbackEnv);
+        ALOGE("Callback env check fail: env: %p, callback: %p", env, sCallbackEnv);
         return false;
     }
     return true;
@@ -55,7 +55,7 @@ static void channel_state_callback(int app_id, bt_bdaddr_t *bd_addr, int mdep_cf
     CHECK_CALLBACK_ENV
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
-        LOGE("Fail to new jbyteArray bd addr for channel state");
+        ALOGE("Fail to new jbyteArray bd addr for channel state");
         checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
@@ -64,7 +64,7 @@ static void channel_state_callback(int app_id, bt_bdaddr_t *bd_addr, int mdep_cf
     if (state == BTHL_CONN_STATE_CONNECTED) {
         fileDescriptor = jniCreateFileDescriptor(sCallbackEnv, fd);
         if (!fileDescriptor) {
-            LOGE("Failed to convert file descriptor, fd: %d", fd);
+            ALOGE("Failed to convert file descriptor, fd: %d", fd);
             sCallbackEnv->DeleteLocalRef(addr);
             return;
         }
@@ -96,26 +96,26 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
 /*
     if ( (btInf = getBluetoothInterface()) == NULL) {
-        LOGE("Bluetooth module is not loaded");
+        ALOGE("Bluetooth module is not loaded");
         return;
     }
 
     if ( (sBluetoothHdpInterface = (bthl_interface_t *)
           btInf->get_profile_interface(BT_PROFILE_HEALTH_ID)) == NULL) {
-        LOGE("Failed to get Bluetooth Handsfree Interface");
+        ALOGE("Failed to get Bluetooth Handsfree Interface");
         return;
     }
 
     // TODO(BT) do this only once or
     //          Do we need to do this every time the BT reenables?
     if ( (status = sBluetoothHdpInterface->init(&sBluetoothHdpCallbacks)) != BT_STATUS_SUCCESS) {
-        LOGE("Failed to initialize Bluetooth HDP, status: %d", status);
+        ALOGE("Failed to initialize Bluetooth HDP, status: %d", status);
         sBluetoothHdpInterface = NULL;
         return;
     }
 */
 
-    LOGI("%s: succeeds", __FUNCTION__);
+    ALOGI("%s: succeeds", __FUNCTION__);
 }
 
 static void initializeNative(JNIEnv *env, jobject object) {
@@ -199,7 +199,7 @@ static jint registerHealthAppNative(JNIEnv *env, jobject object, jint data_type,
 
     if ( (status = sBluetoothHdpInterface->register_application(&reg_param, &app_id)) !=
          BT_STATUS_SUCCESS) {
-        LOGE("Failed register health app, status: %d", status);
+        ALOGE("Failed register health app, status: %d", status);
         return -1;
     }
 
@@ -213,7 +213,7 @@ static jboolean unregisterHealthAppNative(JNIEnv *env, jobject object, int app_i
     if (!sBluetoothHdpInterface) return JNI_FALSE;
 
     if ((status = sBluetoothHdpInterface->unregister_application(app_id)) != BT_STATUS_SUCCESS) {
-        LOGE("Failed to unregister app %d, status: %d", app_id, status);
+        ALOGE("Failed to unregister app %d, status: %d", app_id, status);
     }
     return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
@@ -227,14 +227,14 @@ static jint connectChannelNative(JNIEnv *env, jobject object,
 
     addr = env->GetByteArrayElements(address, NULL);
     if (!addr) {
-        LOGE("Bluetooth device address null");
+        ALOGE("Bluetooth device address null");
         return -1;
     }
 
     if ( (status = sBluetoothHdpInterface->connect_channel(app_id, (bt_bdaddr_t *) addr,
                                                            0, &chan_id)) !=
          BT_STATUS_SUCCESS) {
-        LOGE("Failed HDP channel connection, status: %d", status);
+        ALOGE("Failed HDP channel connection, status: %d", status);
         chan_id = -1;
     }
     env->ReleaseByteArrayElements(address, addr, 0);
@@ -248,7 +248,7 @@ static jboolean disconnectChannelNative(JNIEnv *env, jobject object, jint channe
 
     if ( (status = sBluetoothHdpInterface->destroy_channel(channel_id)) !=
          BT_STATUS_SUCCESS) {
-        LOGE("Failed disconnect health channel, status: %d", status);
+        ALOGE("Failed disconnect health channel, status: %d", status);
         return JNI_FALSE;
     }
     return JNI_TRUE;

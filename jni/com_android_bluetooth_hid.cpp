@@ -8,7 +8,7 @@
 
 #define CHECK_CALLBACK_ENV                                                      \
    if (!checkCallbackThread()) {                                                \
-       LOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);\
+       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);\
        return;                                                                  \
    }
 
@@ -50,7 +50,7 @@ static void connection_state_callback(bt_bdaddr_t *bd_addr, bthh_connection_stat
     CHECK_CALLBACK_ENV
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
-        LOGE("Fail to new jbyteArray bd addr for HID channel state");
+        ALOGE("Fail to new jbyteArray bd addr for HID channel state");
         checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
@@ -141,26 +141,26 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
 /*
     if ( (btInf = getBluetoothInterface()) == NULL) {
-        LOGE("Bluetooth module is not loaded");
+        ALOGE("Bluetooth module is not loaded");
         return;
     }
 
     if ( (sBluetoothHidInterface = (bthh_interface_t *)
           btInf->get_profile_interface(BT_PROFILE_HIDHOST_ID)) == NULL) {
-        LOGE("Failed to get Bluetooth Handsfree Interface");
+        ALOGE("Failed to get Bluetooth Handsfree Interface");
         return;
     }
 
     // TODO(BT) do this only once or
     //          Do we need to do this every time the BT reenables?
     if ( (status = sBluetoothHidInterface->init(&sBluetoothHidCallbacks)) != BT_STATUS_SUCCESS) {
-        LOGE("Failed to initialize Bluetooth HID, status: %d", status);
+        ALOGE("Failed to initialize Bluetooth HID, status: %d", status);
         sBluetoothHidInterface = NULL;
         return;
     }
 
-    ALOGI("%s: succeeds", __FUNCTION__);
 */
+    ALOGI("%s: succeeds", __FUNCTION__);
 }
 
 static void initializeNative(JNIEnv *env, jobject object) {
@@ -234,13 +234,13 @@ static jboolean connectHidNative(JNIEnv *env, jobject object, jbyteArray address
 
     addr = env->GetByteArrayElements(address, NULL);
     if (!addr) {
-        LOGE("Bluetooth device address null");
+        ALOGE("Bluetooth device address null");
         return JNI_FALSE;
     }
 
     if ((status = sBluetoothHidInterface->connect((bt_bdaddr_t *) addr)) !=
          BT_STATUS_SUCCESS) {
-        LOGE("Failed HID channel connection, status: %d", status);
+        ALOGE("Failed HID channel connection, status: %d", status);
         ret = JNI_FALSE;
     }
     env->ReleaseByteArrayElements(address, addr, 0);
@@ -256,13 +256,13 @@ static jboolean disconnectHidNative(JNIEnv *env, jobject object, jbyteArray addr
 
     addr = env->GetByteArrayElements(address, NULL);
     if (!addr) {
-        LOGE("Bluetooth device address null");
+        ALOGE("Bluetooth device address null");
         return JNI_FALSE;
     }
 
     if ( (status = sBluetoothHidInterface->disconnect((bt_bdaddr_t *) addr)) !=
          BT_STATUS_SUCCESS) {
-        LOGE("Failed disconnect hid channel, status: %d", status);
+        ALOGE("Failed disconnect hid channel, status: %d", status);
         ret = JNI_FALSE;
     }
     env->ReleaseByteArrayElements(address, addr, 0);
