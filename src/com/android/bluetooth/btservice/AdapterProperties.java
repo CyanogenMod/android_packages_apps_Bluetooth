@@ -443,6 +443,13 @@ class AdapterProperties {
         }
     }
 
+    void onBluetoothDisable() {
+        // When BT disable is invoked, set the scan_mode to NONE
+        // so no incoming connections are possible
+        if (getState() == BluetoothAdapter.STATE_TURNING_OFF) {
+            setScanMode(AbstractionLayer.BT_SCAN_MODE_NONE);
+        }
+    }
     void discoveryStateChangeCallback(int state) {
         infoLog("Callback:discoveryStateChangeCallback with state:" + state);
         synchronized (mObject) {

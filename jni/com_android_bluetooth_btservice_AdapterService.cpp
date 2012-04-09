@@ -3,7 +3,6 @@
  */
 
 #define LOG_TAG "BluetoothServiceJni"
-
 #include "com_android_bluetooth.h"
 #include "hardware/bt_sock.h"
 #include "utils/Log.h"
@@ -89,7 +88,8 @@ static int get_properties(int num_properties, bt_property_t *properties, jintArr
 
     *types = callbackEnv->NewIntArray(num_properties);
     if (*types == NULL) goto Fail;
-
+    // Delete the reference to val
+    callbackEnv->DeleteLocalRef(val);
     for (int i = 0; i < num_properties; i++) {
 
        /* The higher layers expect rssi as a short int value, while the value is sent as a byte
@@ -108,7 +108,8 @@ static int get_properties(int num_properties, bt_property_t *properties, jintArr
        callbackEnv->SetByteArrayRegion(propVal, 0, properties[i].len,
                                             (jbyte*)properties[i].val);
        callbackEnv->SetObjectArrayElement(*props, i, propVal);
-
+       // Delete reference to propVal
+       callbackEnv->DeleteLocalRef(propVal);
        callbackEnv->SetIntArrayRegion(*types, i, 1, (jint *)&properties[i].type);
     }
     return 0;

@@ -58,6 +58,7 @@
             android:permission="android.permission.ACCESS_BLUETOOTH_SHARE" />
         <receiver
             android:process="@string/process"
+            android:exported="true"
             android:name=".opp.BluetoothOppReceiver">
             <intent-filter>
                 <action android:name="android.bluetooth.adapter.action.STATE_CHANGED" />
@@ -173,6 +174,7 @@
         </service>
         <receiver
             android:process="@string/process"
+            android:exported="true"
             android:name=".pbap.BluetoothPbapReceiver">
             <intent-filter>
                 <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>

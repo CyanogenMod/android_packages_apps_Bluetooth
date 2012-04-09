@@ -128,6 +128,9 @@ final class AdapterState extends StateMachine {
                    //Fall Through
                case AIRPLANE_MODE_ON:
                    sendIntent(BluetoothAdapter.STATE_TURNING_OFF);
+                   // Invoke onBluetoothDisable which shall trigger a
+                   // setScanMode to SCAN_MODE_NONE
+                   mAdapterProperties.onBluetoothDisable();
                    if (mAdapterProperties.getConnectionState() !=
                            BluetoothAdapter.STATE_DISCONNECTED) {
                        sendMessageDelayed(ALL_DEVICES_DISCONNECTED,
