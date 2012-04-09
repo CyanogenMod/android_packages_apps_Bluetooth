@@ -20,12 +20,14 @@ import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetooth;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.ParcelUuid;
 import android.util.Log;
 import com.android.bluetooth.Utils;
 import com.android.internal.util.IState;
@@ -33,6 +35,7 @@ import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 final class A2dpStateMachine extends StateMachine {
     private static final String TAG = "A2dpStateMachine";
@@ -50,6 +53,9 @@ final class A2dpStateMachine extends StateMachine {
     private Context mContext;
     private BluetoothAdapter mAdapter;
     private IBluetooth mAdapterService;
+    private static final ParcelUuid[] A2DP_UUIDS = {
+        BluetoothUuid.AudioSink
+    };
 
     // mCurrentDevice is the device connected before the state changes
     // mTargetDevice is the device to be connected
@@ -526,9 +532,23 @@ final class A2dpStateMachine extends StateMachine {
     }
 
     synchronized List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
-        // TODO(BT) go through the 3 devices here add them for their state
-        // TODO(BT) add the rest of the device as disconncted devices
-        return null;
+        List<BluetoothDevice> deviceList = new ArrayList<BluetoothDevice>();
+        Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
+        int connectionState;
+
+        for (BluetoothDevice device : bondedDevices) {
+            ParcelUuid[] featureUuids = device.getUuids();
+            if (!BluetoothUuid.containsAnyUuid(featureUuids, A2DP_UUIDS)) {
+                continue;
+            }
+            connectionState = getConnectionState(device);
+            for(int i = 0; i < states.length; i++) {
+                if (connectionState == states[i]) {
+                    deviceList.add(device);
+                }
+            }
+        }
+        return deviceList;
     }
 
     // This method does not check for error conditon (newState == prevState)
