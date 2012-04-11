@@ -112,7 +112,7 @@ final class BondStateMachine extends StateMachine {
         @Override
         public boolean processMessage(Message msg) {
             BluetoothDevice dev = (BluetoothDevice)msg.obj;
-            boolean result;
+            boolean result = false;
             if (mDevices.contains(dev) &&
                     msg.what != CANCEL_BOND && msg.what != BONDING_STATE_CHANGE) {
                 deferMessage(msg);
@@ -132,12 +132,7 @@ final class BondStateMachine extends StateMachine {
                 case BONDING_STATE_CHANGE:
                     int newState = msg.arg1;
                     sendIntent(dev, newState);
-
-                    if (newState == BluetoothDevice.BOND_BONDING)
-                    {
-                        result = true;
-                    }
-                    else
+                    if(newState != BluetoothDevice.BOND_BONDING )
                     {
                         /* this is either none/bonded, remove and transition */
                         result = !mDevices.remove(dev);
@@ -145,7 +140,8 @@ final class BondStateMachine extends StateMachine {
                             transitionTo(mStableState);
                         }
                     }
-
+                    else if(!mDevices.contains(dev))
+                        result=true;
                     break;
                 default:
                     Log.e(TAG, "Received unhandled event:" + msg.what);

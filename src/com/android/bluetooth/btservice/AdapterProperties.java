@@ -406,10 +406,11 @@ class AdapterProperties {
                         byte[] addrByte = new byte[BD_ADDR_LEN];
                         for (int j = 0; j < number; j++) {
                             System.arraycopy(val, j * BD_ADDR_LEN, addrByte, 0, BD_ADDR_LEN);
-                            DeviceProperties prop = mRemoteDevices.addDeviceProperties(addrByte);
-                            prop.setBondState(BluetoothDevice.BOND_BONDED);
                             mBondedDevices[j] = mRemoteDevices.getDevice(addrByte);
-
+                            DeviceProperties prop = mRemoteDevices.getDeviceProperties(mBondedDevices[j]);
+                            if(prop == null)
+                                prop = mRemoteDevices.addDeviceProperties(addrByte);
+                            prop.setBondState(BluetoothDevice.BOND_BONDED);
                             debugLog("Bonded Device" +  mBondedDevices[j]);
                         }
                         break;
