@@ -1249,9 +1249,11 @@ final class HeadsetStateMachine extends StateMachine {
                 if (number != null) {
                     atResponseStringNative("+CNUM: ,\"" + number + "\"," +
                                            PhoneNumberUtils.toaFromString(number) + ",,4");
+                    atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK);
                 }
             } catch (RemoteException e) {
                 Log.e(TAG, Log.getStackTraceString(new Throwable()));
+                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
             }
         } else {
             Log.e(TAG, "Handsfree phone proxy null for At+CNUM");
