@@ -77,19 +77,7 @@ static void adapter_state_change_callback(bt_state_t status) {
 
 static int get_properties(int num_properties, bt_property_t *properties, jintArray *types,
                         jobjectArray *props) {
-    jbyteArray propVal, val;
-    val = (jbyteArray) callbackEnv->NewByteArray(num_properties);
-    if (val == NULL) goto Fail;
-
-    //TODO(BT) Is this the best way to do it ?
-    *props = callbackEnv->NewObjectArray(num_properties, callbackEnv->GetObjectClass(val),
-                                             NULL);
-    if (*props == NULL) goto Fail;
-
-    *types = callbackEnv->NewIntArray(num_properties);
-    if (*types == NULL) goto Fail;
-    // Delete the reference to val
-    callbackEnv->DeleteLocalRef(val);
+    jbyteArray propVal;
     for (int i = 0; i < num_properties; i++) {
 
        /* The higher layers expect rssi as a short int value, while the value is sent as a byte
@@ -114,7 +102,6 @@ static int get_properties(int num_properties, bt_property_t *properties, jintArr
     }
     return 0;
 Fail:
-    if (val) callbackEnv->DeleteLocalRef(val);
     if (propVal) callbackEnv->DeleteLocalRef(propVal);
     LOGE("Error while allocation of array in %s", __FUNCTION__);
     return -1;
@@ -124,6 +111,9 @@ static void adapter_properties_callback(bt_status_t status, int num_properties,
                                         bt_property_t *properties) {
     jobjectArray props;
     jintArray types;
+    jbyteArray val;
+    jclass mclass;
+
     if (!checkCallbackThread()) {
        LOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
        return;
@@ -135,6 +125,34 @@ static void adapter_properties_callback(bt_status_t status, int num_properties,
         LOGE("%s: Status %d is incorrect", __FUNCTION__, status);
         return;
     }
+
+    val = (jbyteArray) callbackEnv->NewByteArray(num_properties);
+    if (val == NULL) {
+        LOGE("%s: Error allocating byteArray", __FUNCTION__);
+        return;
+    }
+
+    mclass = callbackEnv->GetObjectClass(val);
+
+    /* (BT) Initialize the jobjectArray and jintArray here itself and send the
+     initialized array pointers alone to get_properties */
+
+    props = callbackEnv->NewObjectArray(num_properties, mclass,
+                                             NULL);
+    if (props == NULL) {
+        LOGE("%s: Error allocating object Array for properties", __FUNCTION__);
+        return;
+    }
+
+    types = (jintArray)callbackEnv->NewIntArray(num_properties);
+
+    if (types == NULL) {
+        LOGE("%s: Error allocating int Array for values", __FUNCTION__);
+        return;
+    }
+    // Delete the reference to val and mclass
+    callbackEnv->DeleteLocalRef(mclass);
+    callbackEnv->DeleteLocalRef(val);
 
     if (get_properties(num_properties, properties, &types, &props) < 0) {
         if (props) callbackEnv->DeleteLocalRef(props);
@@ -170,6 +188,36 @@ static void remote_device_properties_callback(bt_status_t status, bt_bdaddr_t *b
     jobjectArray props;
     jbyteArray addr;
     jintArray types;
+    jbyteArray val;
+    jclass mclass;
+
+    val = (jbyteArray) callbackEnv->NewByteArray(num_properties);
+    if (val == NULL) {
+        LOGE("%s: Error allocating byteArray", __FUNCTION__);
+        return;
+    }
+
+    mclass = callbackEnv->GetObjectClass(val);
+
+    /* Initialize the jobjectArray and jintArray here itself and send the
+     initialized array pointers alone to get_properties */
+
+    props = callbackEnv->NewObjectArray(num_properties, mclass,
+                                             NULL);
+    if (props == NULL) {
+        LOGE("%s: Error allocating object Array for properties", __FUNCTION__);
+        return;
+    }
+
+    types = (jintArray)callbackEnv->NewIntArray(num_properties);
+
+    if (types == NULL) {
+        LOGE("%s: Error allocating int Array for values", __FUNCTION__);
+        return;
+    }
+    // Delete the reference to val and mclass
+    callbackEnv->DeleteLocalRef(mclass);
+    callbackEnv->DeleteLocalRef(val);
 
     addr = callbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (addr == NULL) goto Fail;
@@ -187,6 +235,7 @@ static void remote_device_properties_callback(bt_status_t status, bt_bdaddr_t *b
     checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
     callbackEnv->DeleteLocalRef(props);
     callbackEnv->DeleteLocalRef(types);
+    callbackEnv->DeleteLocalRef(addr);
     callbackEnv->PopLocalFrame(NULL);
     return;
 
