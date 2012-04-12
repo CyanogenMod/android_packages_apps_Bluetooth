@@ -4,6 +4,7 @@
 
 package com.android.bluetooth;
 
+import android.bluetooth.BluetoothAdapter;
 import android.os.ParcelUuid;
 
 import java.nio.ByteBuffer;
@@ -19,6 +20,10 @@ final public class Utils {
     static final int BD_UUID_LEN = 16; // bytes
 
     public static String getAddressStringFromByte(byte[] address) {
+        if (address == null || address.length !=6) {
+            return null;
+        }
+
         return String.format("%02X:%02X:%02X:%02X:%02X:%02X",
                 address[0], address[1], address[2], address[3], address[4],
                 address[5]);
@@ -106,5 +111,15 @@ final public class Utils {
             offset += 16;
         }
         return puuids;
+    }
+
+    public static String debugGetAdapterStateString(int state) {
+        switch (state) {
+            case BluetoothAdapter.STATE_OFF : return "STATE_OFF";
+            case BluetoothAdapter.STATE_ON : return "STATE_ON";
+            case BluetoothAdapter.STATE_TURNING_ON : return "STATE_TURNING_ON";
+            case BluetoothAdapter.STATE_TURNING_OFF : return "STATE_TURNING_OFF";
+            default : return "UNKNOWN";
+        }
     }
 }

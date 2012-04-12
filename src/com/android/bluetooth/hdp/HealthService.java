@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import com.android.bluetooth.Utils;
+import android.content.pm.PackageManager;
+import com.android.bluetooth.btservice.AdapterService;
 
 /**
  * Provides Bluetooth Health Device profile, as a service in
@@ -67,18 +69,6 @@ public class HealthService extends Service {
     @Override
     public void onCreate() {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mHealthChannels = Collections.synchronizedList(new ArrayList<HealthChannel>());
-        mApps = Collections.synchronizedMap(new HashMap<BluetoothHealthAppConfiguration,
-                                            AppInfo>());
-        mHealthDevices = Collections.synchronizedMap(new HashMap<BluetoothDevice, Integer>());
-
-        HandlerThread thread = new HandlerThread("BluetoothHdpHandler");
-        thread.start();
-        Looper looper = thread.getLooper();
-        mHandler = new HealthServiceMessageHandler(looper);
-        mAdapterService = IBluetooth.Stub.asInterface(ServiceManager.getService("bluetooth"));
-
-        initializeNativeDataNative();
     }
 
     @Override
@@ -92,15 +82,74 @@ public class HealthService extends Service {
         log("onStart");
         if (mAdapter == null) {
             Log.w(TAG, "Stopping Bluetooth HealthService: device does not have BT");
-            stopSelf();
+            stop();
+        }
+
+        if (checkCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM)!=PackageManager.PERMISSION_GRANTED) {
+            Log.e(TAG, "Permission denied!");
+            return;
+        }
+
+        String action = intent.getStringExtra(AdapterService.EXTRA_ACTION);
+        if (!AdapterService.ACTION_SERVICE_STATE_CHANGED.equals(action)) {
+            Log.e(TAG, "Invalid action " + action);
+            return;
+        }
+
+        int state= intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);        
+        if(state==BluetoothAdapter.STATE_OFF) {
+            stop();
+        } else if (state== BluetoothAdapter.STATE_ON){
+            start();
         }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (DBG) log("Stopping Bluetooth HealthService");
-        // TBD
+        if (DBG) log("Destroying service.");
+    }
+
+    private void start() {
+        if (DBG) log("startService");
+        mHealthChannels = Collections.synchronizedList(new ArrayList<HealthChannel>());
+        mApps = Collections.synchronizedMap(new HashMap<BluetoothHealthAppConfiguration,
+                                            AppInfo>());
+        mHealthDevices = Collections.synchronizedMap(new HashMap<BluetoothDevice, Integer>());
+
+        HandlerThread thread = new HandlerThread("BluetoothHdpHandler");
+        thread.start();
+        Looper looper = thread.getLooper();
+        mHandler = new HealthServiceMessageHandler(looper);
+        mAdapterService = IBluetooth.Stub.asInterface(ServiceManager.getService("bluetooth"));
+        initializeNative();
+
+        //Notify adapter service
+        AdapterService sAdapter = AdapterService.getAdapterService();
+        if (sAdapter!= null) {
+            sAdapter.onProfileServiceStateChanged(getClass().getName(), BluetoothAdapter.STATE_ON);
+        }
+    }
+
+    private void stop() {
+        if (DBG) log("stop()");
+
+        //Cleanup looper
+        Looper looper = mHandler.getLooper();
+        if (looper != null) {
+            looper.quit();
+        }
+
+        //Cleanup native
+        cleanupNative();
+
+        //Notify adapter service
+        AdapterService sAdapter = AdapterService.getAdapterService();
+        if (sAdapter!= null) {
+            sAdapter.onProfileServiceStateChanged(getClass().getName(), BluetoothAdapter.STATE_OFF);
+        }
+        if (DBG) log("stop() done.");
+        stopSelf();
     }
 
     private final class HealthServiceMessageHandler extends Handler {
@@ -716,7 +765,8 @@ public class HealthService extends Service {
     private static final int CHANNEL_TYPE_ANY =2;
 
     private native static void classInitNative();
-    private native void initializeNativeDataNative();
+    private native void initializeNative();
+    private native void cleanupNative();
     private native int registerHealthAppNative(int dataType, int role, String name, int channelType);
     private native boolean unregisterHealthAppNative(int appId);
     private native int connectChannelNative(byte[] btAddress, int appId);

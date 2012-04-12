@@ -202,8 +202,10 @@ static bthf_callbacks_t sBluetoothHfpCallbacks = {
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
     int err;
+    /*
     const bt_interface_t* btInf;
     bt_status_t status;
+    */
 
     method_onConnectionStateChanged =
         env->GetMethodID(clazz, "onConnectionStateChanged", "(I[B)V");
@@ -223,6 +225,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onUnknownAt = env->GetMethodID(clazz, "onUnknownAt", "(Ljava/lang/String;)V");
     method_onKeyPressed = env->GetMethodID(clazz, "onKeyPressed", "()V");
 
+    /*
     if ( (btInf = getBluetoothInterface()) == NULL) {
         LOGE("Bluetooth module is not loaded");
         return;
@@ -241,15 +244,67 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
         sBluetoothHfpInterface = NULL;
         return;
     }
+    */
 
     LOGI("%s: succeeds", __FUNCTION__);
 }
 
-static void initializeNativeDataNative(JNIEnv *env, jobject object) {
-    // TODO(BT) clean it up when hfp service is stopped
-    //          Is there a need to do cleanup since HFP is always present for phone?
-    //          We need handle it for tablets. But should that be handle at compile time?
+static void initializeNative(JNIEnv *env, jobject object) {
+    const bt_interface_t* btInf;
+    bt_status_t status;
+
+    if ( (btInf = getBluetoothInterface()) == NULL) {
+        LOGE("Bluetooth module is not loaded");
+        return;
+    }
+
+    if (sBluetoothHfpInterface !=NULL) {
+        LOGW("Cleaning up Bluetooth Handsfree Interface before initializing...");
+        sBluetoothHfpInterface->cleanup();
+        sBluetoothHfpInterface = NULL;
+    }
+
+    if (mCallbacksObj != NULL) {
+        LOGW("Cleaning up Bluetooth Handsfree callback object");
+        env->DeleteGlobalRef(mCallbacksObj);
+        mCallbacksObj = NULL;
+    }
+
+    if ( (sBluetoothHfpInterface = (bthf_interface_t *)
+          btInf->get_profile_interface(BT_PROFILE_HANDSFREE_ID)) == NULL) {
+        LOGE("Failed to get Bluetooth Handsfree Interface");
+        return;
+    }
+
+    if ( (status = sBluetoothHfpInterface->init(&sBluetoothHfpCallbacks)) != BT_STATUS_SUCCESS) {
+        LOGE("Failed to initialize Bluetooth HFP, status: %d", status);
+        sBluetoothHfpInterface = NULL;
+        return;
+    }
+
     mCallbacksObj = env->NewGlobalRef(object);
+}
+
+static void cleanupNative(JNIEnv *env, jobject object) {
+    const bt_interface_t* btInf;
+    bt_status_t status;
+
+    if ( (btInf = getBluetoothInterface()) == NULL) {
+        LOGE("Bluetooth module is not loaded");
+        return;
+    }
+
+    if (sBluetoothHfpInterface !=NULL) {
+        LOGW("Cleaning up Bluetooth Handsfree Interface...");
+        sBluetoothHfpInterface->cleanup();
+        sBluetoothHfpInterface = NULL;
+    }
+
+    if (mCallbacksObj != NULL) {
+        LOGW("Cleaning up Bluetooth Handsfree callback object");
+        env->DeleteGlobalRef(mCallbacksObj);
+        mCallbacksObj = NULL;
+    }
 }
 
 static jboolean connectHfpNative(JNIEnv *env, jobject object, jbyteArray address) {
@@ -468,7 +523,8 @@ static jboolean phoneStateChangeNative(JNIEnv *env, jobject object, jint num_act
 
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
-    {"initializeNativeDataNative", "()V", (void *) initializeNativeDataNative},
+    {"initializeNative", "()V", (void *) initializeNative},
+    {"cleanupNative", "()V", (void *) cleanupNative},
     {"connectHfpNative", "([B)Z", (void *) connectHfpNative},
     {"disconnectHfpNative", "([B)Z", (void *) disconnectHfpNative},
     {"connectAudioNative", "([B)Z", (void *) connectAudioNative},
@@ -483,7 +539,6 @@ static JNINativeMethod sMethods[] = {
     {"atResponseCodeNative", "(I)Z", (void *)atResponseCodeNative},
     {"clccResponseNative", "(IIIIZLjava/lang/String;I)Z", (void *) clccResponseNative},
     {"phoneStateChangeNative", "(IIILjava/lang/String;I)Z", (void *) phoneStateChangeNative},
-    // TODO(BT) clean up
 };
 
 int register_com_android_bluetooth_hfp(JNIEnv* env)

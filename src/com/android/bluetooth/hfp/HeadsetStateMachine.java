@@ -165,7 +165,7 @@ final class HeadsetStateMachine extends StateMachine {
             Log.e(TAG, "Could not bind to Bluetooth Headset Phone Service");
         }
 
-        initializeNativeDataNative();
+        initializeNative();
 
         mDisconnected = new Disconnected();
         mPending = new Pending();
@@ -183,6 +183,21 @@ final class HeadsetStateMachine extends StateMachine {
         addState(mAudioOn);
 
         setInitialState(mDisconnected);
+    }
+
+    public void cleanup() {
+        cleanupNative();
+        if (mPhoneProxy != null) {
+            if (DBG) Log.d(TAG,"Unbinding service...");
+            synchronized (mConnection) {
+                try {
+                    mPhoneProxy = null;
+                    mContext.unbindService(mConnection);
+                } catch (Exception re) {
+                    Log.e(TAG,"",re);
+                }
+        }
+        }
     }
 
     private class Disconnected extends State {
@@ -1535,7 +1550,8 @@ final class HeadsetStateMachine extends StateMachine {
     }
 
     private native static void classInitNative();
-    private native void initializeNativeDataNative();
+    private native void initializeNative();
+    private native void cleanupNative();
     private native boolean connectHfpNative(byte[] address);
     private native boolean disconnectHfpNative(byte[] address);
     private native boolean connectAudioNative(byte[] address);

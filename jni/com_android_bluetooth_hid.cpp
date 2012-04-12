@@ -132,13 +132,14 @@ static bthh_callbacks_t sBluetoothHidCallbacks = {
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
     int err;
-    const bt_interface_t* btInf;
-    bt_status_t status;
+//    const bt_interface_t* btInf;
+//    bt_status_t status;
 
     method_onConnectStateChanged = env->GetMethodID(clazz, "onConnectStateChanged", "([BI)V");
     method_onGetProtocolMode = env->GetMethodID(clazz, "onGetProtocolMode", "([BI)V");
     method_onVirtualUnplug = env->GetMethodID(clazz, "onVirtualUnplug", "([BI)V");
 
+/*
     if ( (btInf = getBluetoothInterface()) == NULL) {
         LOGE("Bluetooth module is not loaded");
         return;
@@ -158,12 +159,71 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
         return;
     }
 
-    LOGI("%s: succeeds", __FUNCTION__);
+    ALOGI("%s: succeeds", __FUNCTION__);
+*/
 }
 
-static void initializeNativeDataNative(JNIEnv *env, jobject object) {
-    // TODO(BT) clean it up when hid service is stopped
+static void initializeNative(JNIEnv *env, jobject object) {
+    const bt_interface_t* btInf;
+    bt_status_t status;
+
+    if ( (btInf = getBluetoothInterface()) == NULL) {
+        LOGE("Bluetooth module is not loaded");
+        return;
+    }
+
+    if (sBluetoothHidInterface !=NULL) {
+        LOGW("Cleaning up Bluetooth HID Interface before initializing...");
+        sBluetoothHidInterface->cleanup();
+        sBluetoothHidInterface = NULL;
+    }
+
+    if (mCallbacksObj != NULL) {
+        LOGW("Cleaning up Bluetooth GID callback object");
+        env->DeleteGlobalRef(mCallbacksObj);
+        mCallbacksObj = NULL;
+    }
+
+
+    if ( (sBluetoothHidInterface = (bthh_interface_t *)
+          btInf->get_profile_interface(BT_PROFILE_HIDHOST_ID)) == NULL) {
+        LOGE("Failed to get Bluetooth HID Interface");
+        return;
+    }
+
+    if ( (status = sBluetoothHidInterface->init(&sBluetoothHidCallbacks)) != BT_STATUS_SUCCESS) {
+        LOGE("Failed to initialize Bluetooth HID, status: %d", status);
+        sBluetoothHidInterface = NULL;
+        return;
+    }
+
+
+
     mCallbacksObj = env->NewGlobalRef(object);
+}
+
+static void cleanupNative(JNIEnv *env, jobject object) {
+    const bt_interface_t* btInf;
+    bt_status_t status;
+
+    if ( (btInf = getBluetoothInterface()) == NULL) {
+        LOGE("Bluetooth module is not loaded");
+        return;
+    }
+
+    if (sBluetoothHidInterface !=NULL) {
+        LOGW("Cleaning up Bluetooth HID Interface...");
+        sBluetoothHidInterface->cleanup();
+        sBluetoothHidInterface = NULL;
+    }
+
+    if (mCallbacksObj != NULL) {
+        LOGW("Cleaning up Bluetooth GID callback object");
+        env->DeleteGlobalRef(mCallbacksObj);
+        mCallbacksObj = NULL;
+    }
+
+    env->DeleteGlobalRef(mCallbacksObj);
 }
 
 static jboolean connectHidNative(JNIEnv *env, jobject object, jbyteArray address) {
@@ -372,7 +432,8 @@ static jboolean sendDataNative(JNIEnv *env, jobject object, jbyteArray address, 
 
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
-    {"initializeNativeDataNative", "()V", (void *) initializeNativeDataNative},
+    {"initializeNative", "()V", (void *) initializeNative},
+    {"cleanupNative", "()V", (void *) cleanupNative},
     {"connectHidNative", "([B)Z", (void *) connectHidNative},
     {"disconnectHidNative", "([B)Z", (void *) disconnectHidNative},
     {"getProtocolModeNative", "([B)Z", (void *) getProtocolModeNative},

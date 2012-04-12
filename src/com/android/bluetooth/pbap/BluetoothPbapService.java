@@ -75,9 +75,9 @@ public class BluetoothPbapService extends Service {
      * DEBUG log: "setprop log.tag.BluetoothPbapService VERBOSE"
      */
 
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
 
-    public static final boolean VERBOSE = false;
+    public static final boolean VERBOSE = true;
 
     /**
      * Intent indicating incoming obex authentication request which is from
@@ -182,9 +182,12 @@ public class BluetoothPbapService extends Service {
 
     public BluetoothPbapService() {
         mState = BluetoothPbap.STATE_DISCONNECTED;
-        IBinder b = ServiceManager.getService(BluetoothAdapter.BLUETOOTH_SERVICE);
+        // IBinder b = ServiceManager.getService(BluetoothAdapter.BLUETOOTH_SERVICE);
+        IBinder b = null;
         if (b == null) {
-            throw new RuntimeException("Bluetooth service not available");
+            Log.e(TAG, "fail to get bluetooth service");
+            // throw new RuntimeException("Bluetooth service not available");
+            return;
         }
         mBluetoothService = IBluetooth.Stub.asInterface(b);
     }
@@ -211,7 +214,6 @@ public class BluetoothPbapService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (VERBOSE) Log.v(TAG, "Pbap Service onStartCommand");
         int retCode = super.onStartCommand(intent, flags, startId);
         if (retCode == START_STICKY) {
             mStartId = startId;
@@ -237,6 +239,8 @@ public class BluetoothPbapService extends Service {
         if (VERBOSE) Log.v(TAG, "action: " + action);
 
         int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+        if (VERBOSE) Log.v(TAG, "state: " + state);
+
         boolean removeTimeoutMsg = true;
         if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
             if (state == BluetoothAdapter.STATE_OFF) {
@@ -532,7 +536,7 @@ public class BluetoothPbapService extends Service {
 
                     if (trust) {
                         try {
-                            if (VERBOSE) Log.v(TAG, "incomming connection accepted from: "
+                            if (VERBOSE) Log.v(TAG, "incoming connection accepted from: "
                                 + sRemoteDeviceName + " automatically as trusted device");
                             startObexServerSession();
                         } catch (IOException ex) {
@@ -564,9 +568,12 @@ public class BluetoothPbapService extends Service {
                     }
                     stopped = true; // job done ,close this thread;
                 } catch (IOException ex) {
+                    stopped=true;
+                    /*
                     if (stopped) {
                         break;
                     }
+                    */
                     if (VERBOSE) Log.v(TAG, "Accept exception: " + ex.toString());
                 }
             }
@@ -638,11 +645,15 @@ public class BluetoothPbapService extends Service {
             intent.putExtra(BluetoothPbap.PBAP_STATE, mState);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
             sendBroadcast(intent, BLUETOOTH_PERM);
-            try {
-                mBluetoothService.sendConnectionStateChange(mRemoteDevice, BluetoothProfile.PBAP,
-                                                            mState, prevState);
-            } catch (RemoteException e) {
-                Log.e(TAG, "RemoteException in sendConnectionStateChange");
+            if (mBluetoothService != null) {
+                try {
+                    mBluetoothService.sendConnectionStateChange(mRemoteDevice, BluetoothProfile.PBAP,
+                                                                mState, prevState);
+                } catch (RemoteException e) {
+                    Log.e(TAG, "RemoteException in sendConnectionStateChange");
+                }
+            } else {
+                Log.e(TAG, "null mBluetoothService");
             }
         }
     }

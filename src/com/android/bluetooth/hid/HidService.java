@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.android.bluetooth.Utils;
+import android.content.pm.PackageManager;
+import com.android.bluetooth.btservice.AdapterService;
 
 /**
  * Provides Bluetooth Hid Device profile, as a service in
@@ -64,9 +66,6 @@ public class HidService extends Service {
     @Override
     public void onCreate() {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mAdapterService = IBluetooth.Stub.asInterface(ServiceManager.getService("bluetooth"));
-        mInputDevices = Collections.synchronizedMap(new HashMap<BluetoothDevice, Integer>());
-        initializeNativeDataNative();
     }
 
     @Override
@@ -75,21 +74,64 @@ public class HidService extends Service {
         return mBinder;
     }
 
-    @Override
     public void onStart(Intent intent, int startId) {
         log("onStart");
+
         if (mAdapter == null) {
-            Log.w(TAG, "Stopping Bluetooth HidService: device does not have BT");
-            stopSelf();
+            Log.w(TAG, "Stopping profile service: device does not have BT");
+            stop();
+        }
+
+        if (checkCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM)!=PackageManager.PERMISSION_GRANTED) {
+            Log.e(TAG, "Permission denied!");
+            return;
+        }
+
+        String action = intent.getStringExtra(AdapterService.EXTRA_ACTION);
+        if (!AdapterService.ACTION_SERVICE_STATE_CHANGED.equals(action)) {
+            Log.e(TAG, "Invalid action " + action);
+            return;
+        }
+
+        int state= intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);        
+        if(state==BluetoothAdapter.STATE_OFF) {
+            stop();
+        } else if (state== BluetoothAdapter.STATE_ON){
+            start();
         }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (DBG) log("Stopping Bluetooth HidService");
-        // TBD native cleanup
+        if (DBG) log("Destroying service.");
     }
+
+    private void start() {
+        mAdapterService = IBluetooth.Stub.asInterface(ServiceManager.getService("bluetooth"));
+        mInputDevices = Collections.synchronizedMap(new HashMap<BluetoothDevice, Integer>());
+        initializeNative();
+
+        //Notify adapter service
+        AdapterService sAdapter = AdapterService.getAdapterService();
+        if (sAdapter!= null) {
+            sAdapter.onProfileServiceStateChanged(getClass().getName(), BluetoothAdapter.STATE_ON);
+        }
+    }
+
+    private void stop() {
+        if (DBG) log("Stopping Bluetooth HidService");
+        cleanupNative();
+
+        //Notify adapter service
+        AdapterService sAdapter = AdapterService.getAdapterService();
+        if (sAdapter!= null) {
+            sAdapter.onProfileServiceStateChanged(getClass().getName(), BluetoothAdapter.STATE_OFF);
+        }
+        stopSelf();
+    }
+
+    
 
     private final Handler mHandler = new Handler() {
 
@@ -477,7 +519,8 @@ public class HidService extends Service {
     private final static int CONN_STATE_DISCONNECTING = 3;
 
     private native static void classInitNative();
-    private native void initializeNativeDataNative();
+    private native void initializeNative();
+    private native void cleanupNative();
     private native boolean connectHidNative(byte[] btAddress);
     private native boolean disconnectHidNative(byte[] btAddress);
     private native boolean getProtocolModeNative(byte[] btAddress);

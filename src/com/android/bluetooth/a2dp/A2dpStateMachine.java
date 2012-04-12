@@ -93,7 +93,7 @@ final class A2dpStateMachine extends StateMachine {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mAdapterService = IBluetooth.Stub.asInterface(ServiceManager.getService("bluetooth"));
 
-        initializeNativeDataNative();
+        initNative();
 
         mDisconnected = new Disconnected();
         mPending = new Pending();
@@ -104,6 +104,10 @@ final class A2dpStateMachine extends StateMachine {
         addState(mConnected);
 
         setInitialState(mDisconnected);
+    }
+
+    public void cleanup() {
+        cleanupNative();
     }
 
         private class Disconnected extends State {
@@ -611,7 +615,8 @@ final class A2dpStateMachine extends StateMachine {
     final static int CONNECTION_STATE_DISCONNECTING = 3;
 
     private native static void classInitNative();
-    private native void initializeNativeDataNative();
+    private native void initNative();
+    private native void cleanupNative();
     private native boolean connectA2dpNative(byte[] address);
     private native boolean disconnectA2dpNative(byte[] address);
 }

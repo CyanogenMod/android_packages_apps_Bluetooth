@@ -39,10 +39,10 @@ final class BondStateMachine extends StateMachine {
     static final int BOND_STATE_BONDING = 1;
     static final int BOND_STATE_BONDED = 2;
 
-    private final AdapterService mAdapterService;
-    private final Context mContext;
-    private final AdapterProperties mAdapterProperties;
-    private final RemoteDevices mRemoteDevices;
+    private AdapterService mAdapterService;
+    private Context mContext;
+    private AdapterProperties mAdapterProperties;
+    private RemoteDevices mRemoteDevices;
 
     private PendingCommandState mPendingCommandState = new PendingCommandState();
     private StableState mStableState = new StableState();
@@ -52,11 +52,14 @@ final class BondStateMachine extends StateMachine {
         super("BondStateMachine:");
         addState(mStableState);
         addState(mPendingCommandState);
-        setInitialState(mStableState);
+        mRemoteDevices = RemoteDevices.getInstance(service, context);
         mAdapterService = service;
         mAdapterProperties = prop;
         mContext = context;
-        mRemoteDevices = RemoteDevices.getInstance(service, context);
+        setInitialState(mStableState);
+    }
+
+    public void cleanup() {
     }
 
     private class StableState extends State {
@@ -67,8 +70,14 @@ final class BondStateMachine extends StateMachine {
 
         @Override
         public boolean processMessage(Message msg) {
+            if (msg.what == SM_QUIT_CMD) {
+                return false;
+            }
+
             BluetoothDevice dev = (BluetoothDevice)msg.obj;
+
             switch(msg.what) {
+
               case CREATE_BOND:
                   createBond(dev, true);
                   break;

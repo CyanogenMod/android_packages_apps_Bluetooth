@@ -87,13 +87,14 @@ static bthl_callbacks_t sBluetoothHdpCallbacks = {
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
     int err;
-    const bt_interface_t* btInf;
-    bt_status_t status;
+//    const bt_interface_t* btInf;
+//    bt_status_t status;
 
     method_onAppRegistrationState = env->GetMethodID(clazz, "onAppRegistrationState", "(II)V");
     method_onChannelStateChanged = env->GetMethodID(clazz, "onChannelStateChanged",
                                                     "(I[BIIILjava/io/FileDescriptor;)V");
 
+/*
     if ( (btInf = getBluetoothInterface()) == NULL) {
         LOGE("Bluetooth module is not loaded");
         return;
@@ -112,13 +113,67 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
         sBluetoothHdpInterface = NULL;
         return;
     }
+*/
 
     LOGI("%s: succeeds", __FUNCTION__);
 }
 
-static void initializeNativeDataNative(JNIEnv *env, jobject object) {
-    // TODO(BT) clean it up when hdp service is stopped
+static void initializeNative(JNIEnv *env, jobject object) {
+    const bt_interface_t* btInf;
+    bt_status_t status;
+
+    if ( (btInf = getBluetoothInterface()) == NULL) {
+        LOGE("Bluetooth module is not loaded");
+        return;
+    }
+
+    if (sBluetoothHdpInterface !=NULL) {
+         LOGW("Cleaning up Bluetooth Health Interface before initializing...");
+         sBluetoothHdpInterface->cleanup();
+         sBluetoothHdpInterface = NULL;
+    }
+
+    if (mCallbacksObj != NULL) {
+         LOGW("Cleaning up Bluetooth Health callback object");
+         env->DeleteGlobalRef(mCallbacksObj);
+         mCallbacksObj = NULL;
+    }
+
+    if ( (sBluetoothHdpInterface = (bthl_interface_t *)
+          btInf->get_profile_interface(BT_PROFILE_HEALTH_ID)) == NULL) {
+        LOGE("Failed to get Bluetooth Health Interface");
+        return;
+    }
+
+    if ( (status = sBluetoothHdpInterface->init(&sBluetoothHdpCallbacks)) != BT_STATUS_SUCCESS) {
+        LOGE("Failed to initialize Bluetooth HDP, status: %d", status);
+        sBluetoothHdpInterface = NULL;
+        return;
+    }
+
     mCallbacksObj = env->NewGlobalRef(object);
+}
+
+static void cleanupNative(JNIEnv *env, jobject object) {
+    const bt_interface_t* btInf;
+    bt_status_t status;
+
+    if ( (btInf = getBluetoothInterface()) == NULL) {
+        LOGE("Bluetooth module is not loaded");
+        return;
+    }
+
+    if (sBluetoothHdpInterface !=NULL) {
+        LOGW("Cleaning up Bluetooth Health Interface...");
+        sBluetoothHdpInterface->cleanup();
+        sBluetoothHdpInterface = NULL;
+    }
+
+    if (mCallbacksObj != NULL) {
+        LOGW("Cleaning up Bluetooth Health object");
+        env->DeleteGlobalRef(mCallbacksObj);
+        mCallbacksObj = NULL;
+    }
 }
 
 static jint registerHealthAppNative(JNIEnv *env, jobject object, jint data_type,
@@ -201,12 +256,12 @@ static jboolean disconnectChannelNative(JNIEnv *env, jobject object, jint channe
 
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
-    {"initializeNativeDataNative", "()V", (void *) initializeNativeDataNative},
+    {"initializeNative", "()V", (void *) initializeNative},
+    {"cleanupNative", "()V", (void *) cleanupNative},
     {"registerHealthAppNative", "(IILjava/lang/String;I)I", (void *) registerHealthAppNative},
     {"unregisterHealthAppNative", "(I)Z", (void *) unregisterHealthAppNative},
     {"connectChannelNative", "([BI)I", (void *) connectChannelNative},
     {"disconnectChannelNative", "(I)Z", (void *) disconnectChannelNative},
-    // TBD
 };
 
 int register_com_android_bluetooth_hdp(JNIEnv* env)

@@ -59,8 +59,18 @@ class AdapterProperties {
     }
 
     static synchronized AdapterProperties getInstance(AdapterService service, Context context) {
-        if (sInstance == null) sInstance = new AdapterProperties(service, context);
+        if (sInstance == null)  {
+            sInstance = new AdapterProperties(service, context);
+        } else {
+            sInstance.mService = service;
+            sInstance.mContext = context;
+            //Cleanup needed?
+        }
         return sInstance;
+    }
+
+    public void init() {
+        mProfileConnectionState.clear();
     }
 
     public Object Clone() throws CloneNotSupportedException {

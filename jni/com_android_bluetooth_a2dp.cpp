@@ -69,6 +69,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onConnectionStateChanged =
         env->GetMethodID(clazz, "onConnectionStateChanged", "(I[B)V");
 
+    /*
     if ( (btInf = getBluetoothInterface()) == NULL) {
         LOGE("Bluetooth module is not loaded");
         return;
@@ -79,22 +80,74 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
         LOGE("Failed to get Bluetooth A2DP Interface");
         return;
     }
+    */
 
     // TODO(BT) do this only once or
     //          Do we need to do this every time the BT reenables?
+    /*
+    if ( (status = sBluetoothA2dpInterface->init(&sBluetoothA2dpCallbacks)) != BT_STATUS_SUCCESS) {
+        LOGE("Failed to initialize Bluetooth A2DP, status: %d", status);
+        sBluetoothA2dpInterface = NULL;
+        return;
+    }*/
+
+    LOGI("%s: succeeds", __FUNCTION__);
+}
+
+static void initNative(JNIEnv *env, jobject object) {
+    const bt_interface_t* btInf;
+    bt_status_t status;
+
+    if ( (btInf = getBluetoothInterface()) == NULL) {
+        LOGE("Bluetooth module is not loaded");
+        return;
+    }
+
+    if (sBluetoothA2dpInterface !=NULL) {
+         LOGW("Cleaning up A2DP Interface before initializing...");
+         sBluetoothA2dpInterface->cleanup();
+         sBluetoothA2dpInterface = NULL;
+    }
+
+    if (mCallbacksObj != NULL) {
+         LOGW("Cleaning up A2DP callback object");
+         env->DeleteGlobalRef(mCallbacksObj);
+         mCallbacksObj = NULL;
+    }
+
+    if ( (sBluetoothA2dpInterface = (btav_interface_t *)
+          btInf->get_profile_interface(BT_PROFILE_ADVANCED_AUDIO_ID)) == NULL) {
+        LOGE("Failed to get Bluetooth A2DP Interface");
+        return;
+    }
+
     if ( (status = sBluetoothA2dpInterface->init(&sBluetoothA2dpCallbacks)) != BT_STATUS_SUCCESS) {
         LOGE("Failed to initialize Bluetooth A2DP, status: %d", status);
         sBluetoothA2dpInterface = NULL;
         return;
     }
 
-    LOGI("%s: succeeds", __FUNCTION__);
+    mCallbacksObj = env->NewGlobalRef(object);
 }
 
-static void initializeNativeDataNative(JNIEnv *env, jobject object) {
-    // TODO(BT) clean it up when a2dp service is stopped
-    //          Is there a need to do cleanup since A2DP is always present for phone and tablet?
-    mCallbacksObj = env->NewGlobalRef(object);
+static void cleanupNative(JNIEnv *env, jobject object) {
+    const bt_interface_t* btInf;
+    bt_status_t status;
+
+    if ( (btInf = getBluetoothInterface()) == NULL) {
+        LOGE("Bluetooth module is not loaded");
+        return;
+    }
+
+    if (sBluetoothA2dpInterface !=NULL) {
+        sBluetoothA2dpInterface->cleanup();
+        sBluetoothA2dpInterface = NULL;
+    }
+
+    if (mCallbacksObj != NULL) {
+        env->DeleteGlobalRef(mCallbacksObj);
+        mCallbacksObj = NULL;
+    }
 }
 
 static jboolean connectA2dpNative(JNIEnv *env, jobject object, jbyteArray address) {
@@ -140,10 +193,10 @@ static jboolean disconnectA2dpNative(JNIEnv *env, jobject object, jbyteArray add
 
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
-    {"initializeNativeDataNative", "()V", (void *) initializeNativeDataNative},
+    {"initNative", "()V", (void *) initNative},
+    {"cleanupNative", "()V", (void *) cleanupNative},
     {"connectA2dpNative", "([B)Z", (void *) connectA2dpNative},
     {"disconnectA2dpNative", "([B)Z", (void *) disconnectA2dpNative},
-    // TODO(BT) clean up
 };
 
 int register_com_android_bluetooth_a2dp(JNIEnv* env)

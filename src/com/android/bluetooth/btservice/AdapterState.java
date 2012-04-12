@@ -39,10 +39,10 @@ final class AdapterState extends StateMachine {
     private static final int DISCONNECT_TIMEOUT = 3000;
     private static final int ENABLE_TIMEOUT_DELAY = 6000; // 6 secs
 
-    private final AdapterService mAdapterService;
-    private final Context mContext;
-    private final AdapterProperties mAdapterProperties;
-
+    private AdapterService mAdapterService;
+    private Context mContext;
+    private AdapterProperties mAdapterProperties;
+    private boolean mPendingPersistEnable;
     private PendingCommandState mPendingCommandState = new PendingCommandState();
     private OnState mOnState = new OnState();
     private OffState mOffState = new OffState();
@@ -53,10 +53,13 @@ final class AdapterState extends StateMachine {
         addState(mOnState);
         addState(mOffState);
         addState(mPendingCommandState);
-        setInitialState(mOffState);
         mAdapterService = service;
         mContext = context;
         mAdapterProperties = adapterProperties;
+        setInitialState(mOffState);
+    }
+
+    public void cleanup() {
     }
 
     private class OffState extends State {
@@ -70,7 +73,9 @@ final class AdapterState extends StateMachine {
             switch(msg.what) {
                case USER_TURN_ON:
                    int persist = msg.arg1;
-                   if (persist == 1) mAdapterService.persistBluetoothSetting(true);
+                   //if (persist == 1) mAdapterService.persistBluetoothSetting(true);
+                   //Persist enable state only once enable completes
+                   mPendingPersistEnable = (persist ==1);
                    sendIntent(BluetoothAdapter.STATE_TURNING_ON);
                    boolean ret = mAdapterService.enableNative();
                    if (!ret) {
@@ -123,7 +128,8 @@ final class AdapterState extends StateMachine {
                case USER_TURN_OFF:
                    int persist = msg.arg1;
                    if (persist == 1) {
-                           mAdapterService.persistBluetoothSetting(false);
+                          //Persist disable immediately even before disable completes
+                       mAdapterService.persistBluetoothSetting(false);
                    }
                    //Fall Through
                case AIRPLANE_MODE_ON:
@@ -176,6 +182,11 @@ final class AdapterState extends StateMachine {
                     break;
                 case ENABLED_READY:
                     removeMessages(ENABLE_TIMEOUT);
+                    //Persist enable state only once enable completes
+                    if (mPendingPersistEnable) {
+                        mAdapterService.persistBluetoothSetting(true);
+                        mPendingPersistEnable=false;
+                    }
                     mAdapterProperties.onBluetoothReady();
                     sendIntent(BluetoothAdapter.STATE_ON);
                     transitionTo(mOnState);

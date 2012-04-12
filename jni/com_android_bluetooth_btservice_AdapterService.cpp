@@ -496,6 +496,8 @@ static bool cleanupNative(JNIEnv *env, jobject obj) {
     if (!sBluetoothInterface) return result;
 
     sBluetoothInterface->cleanup();
+    LOGV("%s: return from cleanup",__FUNCTION__);
+
     env->DeleteGlobalRef(sJniCallbacksObj);
     return JNI_TRUE;
 }
@@ -837,7 +839,7 @@ static int createSocketChannelNative(JNIEnv *env, jobject object, jint type,
         LOGE("failed to get uuid");
         goto Fail;
     }
-
+    LOGE("SOCK FLAG = %x ***********************",flag);
     if ( (status = sBluetoothSocketInterface->listen((btsock_type_t) type, service_name,
                        (const uint8_t*) uuid, channel, &socket_fd, flag)) != BT_STATUS_SUCCESS) {
         LOGE("Socket listen failed: %d", status);
@@ -931,6 +933,11 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 
    if ((status = android::register_com_android_bluetooth_hdp(e)) < 0) {
        LOGE("jni hdp registration failure: %d", status);
+      return JNI_ERR;
+   }
+
+   if ((status = android::register_com_android_bluetooth_pan(e)) < 0) {
+       LOGE("jni pan registration failure: %d", status);
       return JNI_ERR;
    }
 

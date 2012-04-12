@@ -21,6 +21,10 @@ import android.os.Message;
 import android.provider.Settings;
 import android.util.Log;
 import java.util.List;
+import java.util.Iterator;
+import java.util.Map;
+import android.content.pm.PackageManager;
+import com.android.bluetooth.btservice.AdapterService;
 
 /**
  * Provides Bluetooth Headset and Handsfree profile, as a service in
@@ -43,15 +47,6 @@ public class HeadsetService extends Service {
         log("onCreate");
         super.onCreate();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mAdapter == null) {
-            // no bluetooth on this device
-            return;
-        }
-        mStateMachine = new HeadsetStateMachine(this);
-        mStateMachine.start();
-        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        filter.addAction(AudioManager.VOLUME_CHANGED_ACTION);
-        registerReceiver(mHeadsetReceiver, filter);
     }
 
     @Override
@@ -62,17 +57,67 @@ public class HeadsetService extends Service {
 
     public void onStart(Intent intent, int startId) {
         log("onStart");
+
         if (mAdapter == null) {
-            Log.w(TAG, "Stopping Bluetooth HeadsetService: device does not have BT");
-            stopSelf();
+            Log.w(TAG, "Stopping profile service: device does not have BT");
+            stop();
+        }
+
+        if (checkCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM)!=PackageManager.PERMISSION_GRANTED) {
+            Log.e(TAG, "Permission denied!");
+            return;
+        }
+
+        String action = intent.getStringExtra(AdapterService.EXTRA_ACTION);
+        if (!AdapterService.ACTION_SERVICE_STATE_CHANGED.equals(action)) {
+            Log.e(TAG, "Invalid action " + action);
+            return;
+        }
+
+        int state= intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+        if(state==BluetoothAdapter.STATE_OFF) {
+            stop();
+        } else if (state== BluetoothAdapter.STATE_ON){
+            start();
         }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (DBG) log("Stopping Bluetooth HeadsetService");
+        if (DBG) log("Destroying service.");
+    }
+
+    private void start() {
+        mStateMachine = new HeadsetStateMachine(this);
+        mStateMachine.start();
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        filter.addAction(AudioManager.VOLUME_CHANGED_ACTION);
+        registerReceiver(mHeadsetReceiver, filter);
+
+        //Notify adapter service
+        AdapterService sAdapter = AdapterService.getAdapterService();
+        if (sAdapter!= null) {
+            sAdapter.onProfileServiceStateChanged(getClass().getName(), BluetoothAdapter.STATE_ON);
+        }
+    }
+
+    private void stop() {
+        if (DBG) log("stopService()");
         unregisterReceiver(mHeadsetReceiver);
+
+        if (mStateMachine!= null) {
+            mStateMachine.quit();
+            mStateMachine.cleanup();
+            mStateMachine=null;
+        }
+
+        //Notify adapter service
+        AdapterService sAdapter = AdapterService.getAdapterService();
+        if (sAdapter!= null) {
+            sAdapter.onProfileServiceStateChanged(getClass().getName(), BluetoothAdapter.STATE_OFF);
+        }
+        stopSelf();
     }
 
     private final BroadcastReceiver mHeadsetReceiver = new BroadcastReceiver() {
