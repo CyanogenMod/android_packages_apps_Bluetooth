@@ -32,7 +32,7 @@
     <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" Ingin mengirimi Anda <xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>). "\n\n" Terima file?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Tolak"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Terima"</string>
-    <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
+    <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"Oke"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Terjadi waktu tunggu saat menerima file masuk dari \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Berbagi-pakai bluetooth: File masuk"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Apakah Anda ingin menerima file ini?"</string>
@@ -55,19 +55,19 @@
     <string name="download_fail_line1" msgid="3846450148862894552">"File tidak diterima"</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"File: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_fail_line3" msgid="3451040656154861722">"Alasan: <xliff:g id="REASON">%1$s</xliff:g>"</string>
-    <string name="download_fail_ok" msgid="1521733664438320300">"OK"</string>
+    <string name="download_fail_ok" msgid="1521733664438320300">"Oke"</string>
     <string name="download_succ_line5" msgid="4509944688281573595">"File diterima"</string>
     <string name="download_succ_ok" msgid="7053688246357050216">"Buka"</string>
     <string name="upload_line1" msgid="2055952074059709052">"Ke: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="upload_line3" msgid="4920689672457037437">"Jenis file: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
     <string name="upload_line5" msgid="7759322537674229752">"Mengirim file…"</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"File terkirim"</string>
-    <string name="upload_succ_ok" msgid="7705428476405478828">"OK"</string>
+    <string name="upload_succ_ok" msgid="7705428476405478828">"Oke"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"File tidak terkirim ke \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"File: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="upload_fail_ok" msgid="5807702461606714296">"Coba lagi"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Tutup"</string>
-    <string name="bt_error_btn_ok" msgid="5965151173011534240">"OK"</string>
+    <string name="bt_error_btn_ok" msgid="5965151173011534240">"Oke"</string>
     <string name="unknown_file" msgid="6092727753965095366">"File tidak diketahui"</string>
     <string name="unknown_file_desc" msgid="480434281415453287">"Tidak ada apl untuk menangani file jenis ini. "\n</string>
     <string name="not_exist_file" msgid="3489434189599716133">"Tidak ada file"</string>
