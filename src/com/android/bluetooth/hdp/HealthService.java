@@ -53,8 +53,6 @@ public class HealthService extends Service {
     private Map <BluetoothHealthAppConfiguration, AppInfo> mApps;
     private Map <BluetoothDevice, Integer> mHealthDevices;
     private HealthServiceMessageHandler mHandler;
-    private IBluetooth mAdapterService;
-
     private static final int MESSAGE_REGISTER_APPLICATION = 1;
     private static final int MESSAGE_UNREGISTER_APPLICATION = 2;
     private static final int MESSAGE_CONNECT_CHANNEL = 3;
@@ -121,7 +119,6 @@ public class HealthService extends Service {
         thread.start();
         Looper looper = thread.getLooper();
         mHandler = new HealthServiceMessageHandler(looper);
-        mAdapterService = IBluetooth.Stub.asInterface(ServiceManager.getService("bluetooth"));
         initializeNative();
 
         //Notify adapter service
@@ -591,11 +588,9 @@ public class HealthService extends Service {
         } else {
             mHealthDevices.put(device, newDeviceState);
         }
-        try {
-            mAdapterService.sendConnectionStateChange(device, BluetoothProfile.HEALTH,
-                                                      newDeviceState, prevDeviceState);
-        } catch (RemoteException e) {
-            Log.e(TAG, Log.getStackTraceString(new Throwable()));
+        AdapterService svc = AdapterService.getAdapterService();
+        if (svc != null) {
+            svc.onProfileConnectionStateChanged(device, BluetoothProfile.HEALTH, newDeviceState, prevDeviceState);
         }
     }
 

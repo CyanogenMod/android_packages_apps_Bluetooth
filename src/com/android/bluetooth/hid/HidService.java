@@ -43,7 +43,6 @@ public class HidService extends Service {
     static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
 
     private BluetoothAdapter mAdapter;
-    private IBluetooth mAdapterService;
     private Map<BluetoothDevice, Integer> mInputDevices;
 
     private static final int MESSAGE_CONNECT = 1;
@@ -108,7 +107,6 @@ public class HidService extends Service {
     }
 
     private void start() {
-        mAdapterService = IBluetooth.Stub.asInterface(ServiceManager.getService("bluetooth"));
         mInputDevices = Collections.synchronizedMap(new HashMap<BluetoothDevice, Integer>());
         initializeNative();
 
@@ -458,11 +456,9 @@ public class HidService extends Service {
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
         sendBroadcast(intent, BLUETOOTH_PERM);
         if (DBG) log("Connection state " + device + ": " + prevState + "->" + newState);
-        try {
-            mAdapterService.sendConnectionStateChange(device, BluetoothProfile.INPUT_DEVICE, newState,
-                                                      prevState);
-        } catch (RemoteException e) {
-            Log.e(TAG, Log.getStackTraceString(new Throwable()));
+        AdapterService svc = AdapterService.getAdapterService();
+        if (svc != null) {
+            svc.onProfileConnectionStateChanged(device, BluetoothProfile.INPUT_DEVICE, newState, prevState);
         }
     }
 

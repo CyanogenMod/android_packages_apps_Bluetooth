@@ -44,6 +44,7 @@ import android.os.PowerManager.WakeLock;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.util.IState;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -108,7 +109,6 @@ final class HeadsetStateMachine extends StateMachine {
     private HeadsetPhoneState mPhoneState;
     private int mAudioState;
     private BluetoothAdapter mAdapter;
-    private IBluetooth mAdapterService;
     private IBluetoothHeadsetPhone mPhoneProxy;
 
     // mCurrentDevice is the device connected before the state changes
@@ -159,7 +159,6 @@ final class HeadsetStateMachine extends StateMachine {
         mPhoneState = new HeadsetPhoneState(context, this);
         mAudioState = BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mAdapterService = IBluetooth.Stub.asInterface(ServiceManager.getService("bluetooth"));
         if (!context.bindService(new Intent(IBluetoothHeadsetPhone.class.getName()),
                                  mConnection, 0)) {
             Log.e(TAG, "Could not bind to Bluetooth Headset Phone Service");
@@ -1112,11 +1111,9 @@ final class HeadsetStateMachine extends StateMachine {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         mContext.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
         if (DBG) log("Connection state " + device + ": " + prevState + "->" + newState);
-        try {
-            mAdapterService.sendConnectionStateChange(device, BluetoothProfile.HEADSET, newState,
-                                                      prevState);
-        } catch (RemoteException e) {
-            Log.e(TAG, Log.getStackTraceString(new Throwable()));
+        AdapterService svc = AdapterService.getAdapterService();
+        if (svc != null) {
+            svc.onProfileConnectionStateChanged(device, BluetoothProfile.HEADSET, newState, prevState);
         }
     }
 

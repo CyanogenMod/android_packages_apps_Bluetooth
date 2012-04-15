@@ -14,12 +14,15 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetooth;
+import android.bluetooth.IBluetoothManager;
+import android.bluetooth.IBluetoothManagerCallback;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -29,7 +32,6 @@ import android.os.RemoteException;
 import android.provider.Settings;
 import android.util.Log;
 import android.util.Pair;
-
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.hid.HidService;
 import com.android.bluetooth.hfp.HeadsetService;
@@ -37,7 +39,6 @@ import com.android.bluetooth.hdp.HealthService;
 import com.android.bluetooth.pan.PanService;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
-
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.HashMap;
@@ -46,7 +47,7 @@ import java.util.Map;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import android.content.pm.PackageManager;
-
+import android.os.ServiceManager;
 
 public class AdapterService extends Service {
     private static final String TAG = "BluetoothAdapterService";
@@ -73,6 +74,8 @@ public class AdapterService extends Service {
         android.Manifest.permission.BLUETOOTH_ADMIN;
     static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
 
+    private IBluetoothManager mBluetoothManager;
+    private IBluetooth mBluetoothService;
     private AdapterProperties mAdapterProperties;
     private int mAdapterState;
     private Context mContext;
@@ -105,7 +108,35 @@ public class AdapterService extends Service {
         return sAdapterService;
     }
 
+    public void onProfileConnectionStateChanged(BluetoothDevice device, int profileId, int newState, int prevState) {
+        Message m = mHandler.obtainMessage(MESSAGE_PROFILE_CONNECTION_STATE_CHANGED);
+        m.obj = device;
+        m.arg1 = profileId;
+        m.arg2 = newState;
+        Bundle b = new Bundle(1);
+        b.putInt("prevState", prevState);
+        mHandler.sendMessage(m);
+    }
+
+    private void processProfileStateChanged(BluetoothDevice device, int profileId, int newState, int prevState) {
+        if (mBluetoothService != null) {
+            try {
+                mBluetoothService.sendConnectionStateChange(device, profileId, newState,
+                prevState);
+            } catch (RemoteException re) {
+                Log.e(TAG, "",re);
+            }
+        }
+    }
+
     public void onProfileServiceStateChanged(String serviceName, int state) {
+        Message m = mHandler.obtainMessage(MESSAGE_PROFILE_SERVICE_STATE_CHANGED);
+        m.obj=serviceName;
+        m.arg1 = state;
+        mHandler.sendMessage(m);
+    }
+
+    private void processProfileServiceStateChanged(String serviceName, int state) {
         if (DBG) Log.d(TAG,"onProfileServiceStateChange: serviceName=" + serviceName + ", state = " + state);
         boolean doUpdate=false;
         synchronized (mProfileServicesState) {
@@ -133,8 +164,7 @@ public class AdapterService extends Service {
                 }
             }
             if (DBG) Log.d(TAG, "All profile services stopped...");
-            Message m = mHandler.obtainMessage(MESSAGE_ONSTOPPED_STOPPENDING);
-            mHandler.sendMessage(m);
+            processStopped();
         } else if (mStartPending) {
             //Process start pending
             //Check if all services are started if so, update state
@@ -150,9 +180,33 @@ public class AdapterService extends Service {
                 }
             }
             if (DBG) Log.d(TAG, "All profile services started.");
-            Message m = mHandler.obtainMessage(MESSAGE_ONSTARTED);
-            mHandler.sendMessage(m);
+            processStarted();
         }
+    }
+
+    private void processStarted() {
+        Log.d(TAG, "processStarted()");
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
+        registerForAirplaneMode(filter);
+        registerReceiver(mReceiver, filter);
+        mProfilesStarted = true;
+        mStartPending = false;
+    }
+
+    private void processStopped() {
+        Log.d(TAG, "processStopped");
+        mStopPending=false;
+        if (mBluetoothManager != null) {
+            try {
+                mBluetoothManager.unregisterAdapter(mManagerCallback);
+            } catch (RemoteException re) {
+                Log.e(TAG, "",re);
+            }
+        }
+        mBondStateMachine.quit();
+        mAdapterStateMachine.quit();
+        finish();
     }
 
     @Override
@@ -228,6 +282,23 @@ public class AdapterService extends Service {
         return START_STICKY;
     }
 
+    final private IBluetoothManagerCallback mManagerCallback =
+            new IBluetoothManagerCallback.Stub() {
+                public void onBluetoothServiceUp(IBluetooth bluetoothService) {
+                    if (DBG) Log.d(TAG, "onBluetoothServiceUp");
+                    synchronized (mManagerCallback) {
+                        mBluetoothService = bluetoothService;
+                    }
+                }
+
+                public void onBluetoothServiceDown() {
+                    if (DBG) Log.d(TAG, "onBluetoothServiceDown");
+                    synchronized (mManagerCallback) {
+                        mBluetoothService = null;
+                    }
+                }
+        };
+
     private void start() {
         if (DBG) Log.d(TAG,"start() called");
         if (mProfilesStarted || mStartPending) return;
@@ -235,6 +306,20 @@ public class AdapterService extends Service {
         mStartPending=true;
         mAdapterStateMachine.start();
         mBondStateMachine.start();
+
+        //Get bluetooth service for profiles
+        IBinder b = ServiceManager.getService(BluetoothAdapter.BLUETOOTH_MANAGER_SERVICE);
+        if (b != null) {
+            mBluetoothManager = IBluetoothManager.Stub.asInterface(b);
+            if (mBluetoothManager != null) {
+                try {
+                    mBluetoothService = mBluetoothManager.registerAdapter(mManagerCallback);
+                } catch (RemoteException re) {
+                    Log.e(TAG, "",re);
+                }
+            }
+        }
+        
         //Start profile services
         for (int i=0; i <SUPPORTED_PROFILE_SERVICES.length;i++) {
             startProfileService(SUPPORTED_PROFILE_SERVICES[i]);
@@ -259,31 +344,25 @@ public class AdapterService extends Service {
         }
     }
 
-    private static final int MESSAGE_ONSTARTED=1;
-    private static final int MESSAGE_ONSTOPPED_STOPPENDING =2;
+    private static final int MESSAGE_PROFILE_SERVICE_STATE_CHANGED =1;
+    private static final int MESSAGE_STARTED=2;
+    private static final int MESSAGE_STOPPED=3;
+    private static final int MESSAGE_PROFILE_CONNECTION_STATE_CHANGED=4;
+
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             if (DBG) Log.d (TAG, "Message: " + msg.what);
 
             switch (msg.what) {
-                case MESSAGE_ONSTARTED: {
-                    Log.d(TAG, "onStarted()");
-                    IntentFilter filter = new IntentFilter();
-                    filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
-                    registerForAirplaneMode(filter);
-                    registerReceiver(mReceiver, filter);
-                    mProfilesStarted = true;
-                    mStartPending = false;
+                case MESSAGE_PROFILE_SERVICE_STATE_CHANGED: {
+                    Log.d(TAG, "MESSAGE_PROFILE_SERVICE_STATE_CHANGED");
+                    processProfileServiceStateChanged((String) msg.obj, msg.arg1);
                 }
                 break;
-
-                case MESSAGE_ONSTOPPED_STOPPENDING: {
-                    Log.d(TAG, "onStopped_StopPending() called");
-                    mStopPending=false;
-                    mBondStateMachine.quit();
-                    mAdapterStateMachine.quit();
-                    finish();
+                case MESSAGE_PROFILE_CONNECTION_STATE_CHANGED: {
+                    Log.d(TAG, "MESSAGE_PROFILE_CONNECTION_STATE_CHANGED");
+                    processProfileStateChanged((BluetoothDevice) msg.obj, msg.arg1,msg.arg2, msg.getData().getInt("prevState",BluetoothAdapter.ERROR));
                 }
                 break;
             }

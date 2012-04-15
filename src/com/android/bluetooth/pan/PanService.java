@@ -56,7 +56,6 @@ public class PanService extends Service {
     private static final int BLUETOOTH_PREFIX_LENGTH        = 24;
 
     private BluetoothAdapter mAdapter;
-    private IBluetooth mAdapterService;
     private HashMap<BluetoothDevice, BluetoothPanDevice> mPanDevices;
     private ArrayList<String> mBluetoothIfaceAddresses;
     private int mMaxPanDevices;
@@ -119,9 +118,7 @@ public class PanService extends Service {
 
     private void start() {
         if (DBG) log("start");
-
         mPanDevices = new HashMap<BluetoothDevice, BluetoothPanDevice>();
-        mAdapterService = IBluetooth.Stub.asInterface(ServiceManager.getService("bluetooth"));
         mBluetoothIfaceAddresses = new ArrayList<String>();
         try {
             mMaxPanDevices = getResources().getInteger(
@@ -405,11 +402,9 @@ public class PanService extends Service {
 
         if (DBG) Log.d(TAG, "Pan Device state : device: " + device + " State:" +
                        prevState + "->" + state);
-        try {
-            mAdapterService.sendConnectionStateChange(device, BluetoothProfile.PAN, state,
-                                                      prevState);
-        } catch (RemoteException e) {
-            Log.e(TAG, Log.getStackTraceString(new Throwable()));
+        AdapterService svc = AdapterService.getAdapterService();
+        if (svc != null) {
+            svc.onProfileConnectionStateChanged(device, BluetoothProfile.PAN, state, prevState);
         }
     }
 

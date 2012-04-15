@@ -30,6 +30,7 @@ import android.os.ServiceManager;
 import android.os.ParcelUuid;
 import android.util.Log;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.util.IState;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -52,7 +53,6 @@ final class A2dpStateMachine extends StateMachine {
 
     private Context mContext;
     private BluetoothAdapter mAdapter;
-    private IBluetooth mAdapterService;
     private static final ParcelUuid[] A2DP_UUIDS = {
         BluetoothUuid.AudioSink
     };
@@ -91,7 +91,6 @@ final class A2dpStateMachine extends StateMachine {
         super(TAG);
         mContext = context;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mAdapterService = IBluetooth.Stub.asInterface(ServiceManager.getService("bluetooth"));
 
         initNative();
 
@@ -563,11 +562,9 @@ final class A2dpStateMachine extends StateMachine {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         mContext.sendBroadcast(intent, A2dpService.BLUETOOTH_PERM);
         if (DBG) log("Connection state " + device + ": " + prevState + "->" + newState);
-        try {
-            mAdapterService.sendConnectionStateChange(device, BluetoothProfile.A2DP, newState,
-                                                      prevState);
-        } catch (RemoteException e) {
-            Log.e(TAG, Log.getStackTraceString(new Throwable()));
+        AdapterService svc = AdapterService.getAdapterService();
+        if (svc != null) {
+            svc.onProfileConnectionStateChanged(device, BluetoothProfile.A2DP, newState, prevState);
         }
     }
 
