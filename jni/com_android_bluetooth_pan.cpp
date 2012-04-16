@@ -91,8 +91,9 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
     info("succeeds");
 }
+static const bt_interface_t* btIf;
+
 static void initializeNative(JNIEnv *env, jobject object) {
-    static const bt_interface_t* btIf;
     debug("pan");
     if(btIf)
         return;
@@ -131,13 +132,8 @@ static void initializeNative(JNIEnv *env, jobject object) {
 }
 
 static void cleanupNative(JNIEnv *env, jobject object) {
-    const bt_interface_t* btInf;
     bt_status_t status;
-
-    if ( (btInf = getBluetoothInterface()) == NULL) {
-        LOGE("Bluetooth module is not loaded");
-        return;
-    }
+    if (!btIf) return;
 
     if (sPanIf !=NULL) {
         LOGW("Cleaning up Bluetooth PAN Interface...");
@@ -150,6 +146,7 @@ static void cleanupNative(JNIEnv *env, jobject object) {
         env->DeleteGlobalRef(mCallbacksObj);
         mCallbacksObj = NULL;
     }
+    btIf = NULL;
 }
 
 static jboolean enablePanNative(JNIEnv *env, jobject object, jint local_role) {
