@@ -115,6 +115,7 @@ public class AdapterService extends Service {
         m.arg2 = newState;
         Bundle b = new Bundle(1);
         b.putInt("prevState", prevState);
+        m.setData(b);
         mHandler.sendMessage(m);
     }
 
