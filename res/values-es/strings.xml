@@ -90,7 +90,7 @@
     <string name="status_not_accept" msgid="1695082417193780738">"Contenido no admitido"</string>
     <string name="status_forbidden" msgid="613956401054050725">"El dispositivo de destino no permite la transferencia."</string>
     <string name="status_canceled" msgid="6664490318773098285">"Transferencia cancelada por el usuario"</string>
-    <string name="status_file_error" msgid="3671917770630165299">"Incidencia relacionada con el almacenamiento"</string>
+    <string name="status_file_error" msgid="3671917770630165299">"Error relacionada con el almacenamiento"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Sin almacenamiento USB"</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"No se detecta ninguna tarjeta SD. Inserta una tarjeta SD y guarda los archivos transferidos."</string>
     <string name="status_connection_error" msgid="947681831523219891">"Conexión incorrecta"</string>
