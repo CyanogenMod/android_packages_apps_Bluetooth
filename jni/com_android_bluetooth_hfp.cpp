@@ -489,10 +489,11 @@ static jboolean clccResponseNative(JNIEnv *env, jobject object, jint index, jint
                                    jint callStatus, jint mode, jboolean mpty, jstring number_str,
                                    jint type) {
     bt_status_t status;
-    const char *number;
+    const char *number = NULL;
     if (!sBluetoothHfpInterface) return JNI_FALSE;
 
-    number = env->GetStringUTFChars(number_str, NULL);
+    if (number_str)
+        number = env->GetStringUTFChars(number_str, NULL);
 
     if ( (status = sBluetoothHfpInterface->clcc_response(index, (bthf_call_direction_t) dir,
                      (bthf_call_state_t) callStatus,  (bthf_call_mode_t) mode,
@@ -500,7 +501,8 @@ static jboolean clccResponseNative(JNIEnv *env, jobject object, jint index, jint
                      number, (bthf_call_addrtype_t) type)) != BT_STATUS_SUCCESS) {
         LOGE("Failed sending CLCC response, status: %d", status);
     }
-    env->ReleaseStringUTFChars(number_str, number);
+    if (number)
+        env->ReleaseStringUTFChars(number_str, number);
     return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
