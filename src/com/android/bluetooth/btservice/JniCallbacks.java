@@ -71,4 +71,5 @@ final class JniCallbacks {
     void adapterPropertyChangedCallback(int[] types, byte[][] val) {
         mAdapterProperties.adapterPropertyChangedCallback(types, val);
     }
+
 }

@@ -226,12 +226,12 @@ public class Constants {
     /**
      * Debug level logging
      */
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
 
     /**
      * Verbose level logging
      */
-    public static final boolean VERBOSE = false;
+    public static final boolean VERBOSE = true;
 
     /** use TCP socket instead of Rfcomm Socket to develop */
     public static final boolean USE_TCP_DEBUG = false;

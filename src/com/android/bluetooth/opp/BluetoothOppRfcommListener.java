@@ -55,6 +55,7 @@ public class BluetoothOppRfcommListener {
     public static final int MSG_INCOMING_BTOPP_CONNECTION = 100;
 
     private volatile boolean mInterrupted;
+    private volatile boolean mFinish;
 
     private Thread mSocketAcceptThread;
 
@@ -146,16 +147,25 @@ public class BluetoothOppRfcommListener {
                         while (!mInterrupted) {
                             try {
                                 if (V) Log.v(TAG, "Accepting connection...");
-                                clientSocket = mBtServerSocket.accept();
-                                if (V) Log.v(TAG, "Accepted connection from "
+                                if (mBtServerSocket == null) {
+                                    
+                                }
+                                BluetoothServerSocket sSocket = mBtServerSocket;
+                                if (sSocket ==null) {
+                                    mInterrupted = true;
+                                    
+                                } else {
+                                    clientSocket = mBtServerSocket.accept();
+                                    if (V) Log.v(TAG, "Accepted connection from "
                                         + clientSocket.getRemoteDevice());
-                                BluetoothOppRfcommTransport transport = new BluetoothOppRfcommTransport(
+                                    BluetoothOppRfcommTransport transport = new BluetoothOppRfcommTransport(
                                         clientSocket);
-                                Message msg = Message.obtain();
-                                msg.setTarget(mCallback);
-                                msg.what = MSG_INCOMING_BTOPP_CONNECTION;
-                                msg.obj = transport;
-                                msg.sendToTarget();
+                                    Message msg = Message.obtain();
+                                    msg.setTarget(mCallback);
+                                    msg.what = MSG_INCOMING_BTOPP_CONNECTION;
+                                    msg.obj = transport;
+                                    msg.sendToTarget();
+                                }
                             } catch (IOException e) {
                                 Log.e(TAG, "Error accept connection " + e);
                             }
@@ -177,7 +187,7 @@ public class BluetoothOppRfcommListener {
             Log.i(TAG, "stopping Accept Thread");
 
             mInterrupted = true;
-            if (Constants.USE_TCP_DEBUG) {
+             if (Constants.USE_TCP_DEBUG) {
                 if (V) Log.v(TAG, "close mTcpServerSocket");
                 if (mTcpServerSocket != null) {
                     try {

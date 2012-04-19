@@ -60,6 +60,7 @@ import android.util.Log;
 
 
 import com.android.bluetooth.R;
+import com.android.bluetooth.btservice.AdapterService;
 
 import java.io.IOException;
 
@@ -171,7 +172,7 @@ public class BluetoothPbapService extends Service {
 
     private int mStartId = -1;
 
-    private IBluetooth mBluetoothService;
+    //private IBluetooth mBluetoothService;
 
     private boolean isWaitingAuthorization = false;
 
@@ -183,13 +184,13 @@ public class BluetoothPbapService extends Service {
     public BluetoothPbapService() {
         mState = BluetoothPbap.STATE_DISCONNECTED;
         // IBinder b = ServiceManager.getService(BluetoothAdapter.BLUETOOTH_SERVICE);
-        IBinder b = null;
-        if (b == null) {
-            Log.e(TAG, "fail to get bluetooth service");
+        //IBinder b = null;
+        //if (b == null) {
+        //    Log.e(TAG, "fail to get bluetooth service");
             // throw new RuntimeException("Bluetooth service not available");
-            return;
-        }
-        mBluetoothService = IBluetooth.Stub.asInterface(b);
+        //    return;
+        //}
+       // mBluetoothService = IBluetooth.Stub.asInterface(b);
     }
 
     @Override
@@ -650,16 +651,16 @@ public class BluetoothPbapService extends Service {
             intent.putExtra(BluetoothPbap.PBAP_STATE, mState);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
             sendBroadcast(intent, BLUETOOTH_PERM);
-            if (mBluetoothService != null) {
-                try {
-                    mBluetoothService.sendConnectionStateChange(mRemoteDevice, BluetoothProfile.PBAP,
-                                                                mState, prevState);
-                } catch (RemoteException e) {
-                    Log.e(TAG, "RemoteException in sendConnectionStateChange");
-                }
+            //if (mBluetoothService != null) {
+            AdapterService s = AdapterService.getAdapterService();
+            if (s != null) {
+                s.onProfileConnectionStateChanged(mRemoteDevice, BluetoothProfile.PBAP,
+                        mState, prevState);
+            }
+                /*
             } else {
                 Log.e(TAG, "null mBluetoothService");
-            }
+            }*/
         }
     }
 

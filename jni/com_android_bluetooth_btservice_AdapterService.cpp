@@ -19,7 +19,6 @@
 namespace android {
 
 #define ADDITIONAL_NREFS 50
-
 static jmethodID method_stateChangeCallback;
 static jmethodID method_adapterPropertyChangedCallback;
 static jmethodID method_devicePropertyChangedCallback;
@@ -496,7 +495,7 @@ static bool cleanupNative(JNIEnv *env, jobject obj) {
     if (!sBluetoothInterface) return result;
 
     sBluetoothInterface->cleanup();
-    LOGV("%s: return from cleanup",__FUNCTION__);
+    LOGI("%s: return from cleanup",__FUNCTION__);
 
     env->DeleteGlobalRef(sJniCallbacksObj);
     return JNI_TRUE;

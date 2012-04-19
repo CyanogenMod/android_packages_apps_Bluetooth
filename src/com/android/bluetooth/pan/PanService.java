@@ -37,25 +37,21 @@ import java.util.List;
 import java.util.Map;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.ProfileService;
 
 /**
  * Provides Bluetooth Pan Device profile, as a service in
  * the Bluetooth application.
  * @hide
  */
-public class PanService extends Service {
-    private static final String TAG = "BluetoothPanService";
+public class PanService extends ProfileService {
+    private static final String TAG = "PanService";
     private static final boolean DBG = true;
-
-    static final String BLUETOOTH_ADMIN_PERM =
-        android.Manifest.permission.BLUETOOTH_ADMIN;
-    static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
 
     private static final String BLUETOOTH_IFACE_ADDR_START= "192.168.44.1";
     private static final int BLUETOOTH_MAX_PAN_CONNECTIONS = 5;
     private static final int BLUETOOTH_PREFIX_LENGTH        = 24;
 
-    private BluetoothAdapter mAdapter;
     private HashMap<BluetoothDevice, BluetoothPanDevice> mPanDevices;
     private ArrayList<String> mBluetoothIfaceAddresses;
     private int mMaxPanDevices;
@@ -71,37 +67,8 @@ public class PanService extends Service {
         classInitNative();
     }
 
-    @Override
-    public void onCreate() {
-        Log.d(TAG, "onCreate");
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
-    }
-
-    @Override
-    public void onStart(Intent intent, int startId) {
-        log("onStart");
-        if (mAdapter == null) {
-            Log.w(TAG, "Stopping Bluetooth Pan Service: device does not have BT");
-            stop();
-        }
-
-        if (checkCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM)!=PackageManager.PERMISSION_GRANTED) {
-            Log.e(TAG, "Permission denied!");
-            return;
-        }
-
-        String action = intent.getStringExtra(AdapterService.EXTRA_ACTION);
-        if (!AdapterService.ACTION_SERVICE_STATE_CHANGED.equals(action)) {
-            Log.e(TAG, "Invalid action " + action);
-            return;
-        }
-
-        int state= intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);        
-        if(state==BluetoothAdapter.STATE_OFF) {
-            stop();
-        } else if (state== BluetoothAdapter.STATE_ON){
-            start();
-        }
+    protected String getName() {
+        return TAG;
     }
 
     @Override
@@ -110,14 +77,10 @@ public class PanService extends Service {
         return mBinder;
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (DBG) log("Stopping Bluetooth PanService");
+    protected boolean start() {
 
         //Cleanup referenced objects here
-        if(mAdapter != null)
-            mAdapter = null;
+        
         if(mPanDevices != null) {
             mPanDevices.clear();
             mPanDevices = null;
@@ -130,9 +93,7 @@ public class PanService extends Service {
             mPanIfName = null;
         if(mHandler != null)
             mHandler.removeCallbacksAndMessages(null);
-    }
-
-    private void start() {
+        
         if (DBG) log("start");
         mPanDevices = new HashMap<BluetoothDevice, BluetoothPanDevice>();
         mBluetoothIfaceAddresses = new ArrayList<String>();
@@ -144,28 +105,28 @@ public class PanService extends Service {
         }
 
         initializeNative();
-
-        //Notify adapter service
-        AdapterService sAdapter = AdapterService.getAdapterService();
-        if (sAdapter!= null) {
-            sAdapter.onProfileServiceStateChanged(getClass().getName(), BluetoothAdapter.STATE_ON);
-        }
-
+        return true;
     }
 
-    private void stop() {
+    protected boolean stop() {
         if (DBG) log("stop");
 
         //Cleanup native
         cleanupNative();
-
-        //Notify adapter service
-        AdapterService sAdapter = AdapterService.getAdapterService();
-        if (sAdapter!= null) {
-            sAdapter.onProfileServiceStateChanged(getClass().getName(), BluetoothAdapter.STATE_OFF);
+        
+        if(mPanDevices != null) {
+            mPanDevices.clear();
+            mPanDevices = null;
         }
-        if (DBG) log("stop() done.");
-        stopSelf();
+        if(mBluetoothIfaceAddresses != null) {
+            mBluetoothIfaceAddresses.clear();
+            mBluetoothIfaceAddresses = null;
+        }
+        if(mPanIfName != null)
+            mPanIfName = null;
+        if(mHandler != null)
+            mHandler.removeCallbacksAndMessages(null);
+        return true;
     }
 
     private final Handler mHandler = new Handler() {
@@ -532,10 +493,6 @@ public class PanService extends Service {
             mIface = iface;
             mLocalRole = localRole;
         }
-    }
-
-    private void log(String msg) {
-        Log.d(TAG, msg);
     }
 
     // Constants matching Hal header file bt_hh.h

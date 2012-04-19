@@ -34,21 +34,16 @@ import java.util.Map.Entry;
 import com.android.bluetooth.Utils;
 import android.content.pm.PackageManager;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.ProfileService;
 
 /**
  * Provides Bluetooth Health Device profile, as a service in
  * the Bluetooth application.
  * @hide
  */
-public class HealthService extends Service {
-    private static final String TAG = "BluetoothHealthService";
+public class HealthService extends ProfileService {
     private static final boolean DBG = true;
-
-    static final String BLUETOOTH_ADMIN_PERM =
-        android.Manifest.permission.BLUETOOTH_ADMIN;
-    static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
-
-    private BluetoothAdapter mAdapter;
+    private static final String TAG="HealthService";
     private List<HealthChannel> mHealthChannels;
     private Map <BluetoothHealthAppConfiguration, AppInfo> mApps;
     private Map <BluetoothDevice, Integer> mHealthDevices;
@@ -64,9 +59,8 @@ public class HealthService extends Service {
         classInitNative();
     }
 
-    @Override
-    public void onCreate() {
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
+    protected String getName() {
+        return TAG;
     }
 
     @Override
@@ -75,37 +69,7 @@ public class HealthService extends Service {
         return mBinder;
     }
 
-    @Override
-    public void onStart(Intent intent, int startId) {
-        log("onStart");
-        if (mAdapter == null) {
-            Log.w(TAG, "Stopping Bluetooth HealthService: device does not have BT");
-            stop();
-        }
-
-        if (checkCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM)!=PackageManager.PERMISSION_GRANTED) {
-            Log.e(TAG, "Permission denied!");
-            return;
-        }
-
-        String action = intent.getStringExtra(AdapterService.EXTRA_ACTION);
-        if (!AdapterService.ACTION_SERVICE_STATE_CHANGED.equals(action)) {
-            Log.e(TAG, "Invalid action " + action);
-            return;
-        }
-
-        int state= intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);        
-        if(state==BluetoothAdapter.STATE_OFF) {
-            stop();
-        } else if (state== BluetoothAdapter.STATE_ON){
-            start();
-        }
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (DBG) log("Destroying service.");
+    protected boolean start() {
 
         //Cleanup other object references
         if(mHealthChannels != null) {
@@ -120,12 +84,7 @@ public class HealthService extends Service {
             mApps.clear();
             mApps = null;
         }
-        if(mAdapter != null)
-            mAdapter = null;
-
-    }
-
-    private void start() {
+       
         if (DBG) log("startService");
         mHealthChannels = Collections.synchronizedList(new ArrayList<HealthChannel>());
         mApps = Collections.synchronizedMap(new HashMap<BluetoothHealthAppConfiguration,
@@ -138,14 +97,10 @@ public class HealthService extends Service {
         mHandler = new HealthServiceMessageHandler(looper);
         initializeNative();
 
-        //Notify adapter service
-        AdapterService sAdapter = AdapterService.getAdapterService();
-        if (sAdapter!= null) {
-            sAdapter.onProfileServiceStateChanged(getClass().getName(), BluetoothAdapter.STATE_ON);
-        }
+        return true;
     }
 
-    private void stop() {
+    protected boolean stop() {
         if (DBG) log("stop()");
 
         //Cleanup looper
@@ -158,14 +113,20 @@ public class HealthService extends Service {
 
         //Cleanup native
         cleanupNative();
-
-        //Notify adapter service
-        AdapterService sAdapter = AdapterService.getAdapterService();
-        if (sAdapter!= null) {
-            sAdapter.onProfileServiceStateChanged(getClass().getName(), BluetoothAdapter.STATE_OFF);
+        
+        if(mHealthChannels != null) {
+            mHealthChannels.clear();
+            mHealthChannels = null;
         }
-        if (DBG) log("stop() done.");
-        stopSelf();
+        if(mHealthDevices != null) {
+            mHealthDevices.clear();
+            mHealthDevices = null;
+        }
+        if(mApps != null) {
+            mApps.clear();
+            mApps = null;
+        }
+        return true;
     }
 
     private final class HealthServiceMessageHandler extends Handler {
@@ -699,10 +660,6 @@ public class HealthService extends Service {
             }
         }
         return healthDevices;
-    }
-
-    private void log(String msg) {
-        Log.d(TAG, msg);
     }
 
     private class AppInfo {

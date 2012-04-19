@@ -31,6 +31,7 @@ import android.os.ParcelUuid;
 import android.util.Log;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.util.IState;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -597,7 +598,7 @@ final class A2dpStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        mContext.sendBroadcast(intent, A2dpService.BLUETOOTH_PERM);
+        mContext.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
         if (DBG) log("Connection state " + device + ": " + prevState + "->" + newState);
         AdapterService svc = AdapterService.getAdapterService();
         if (svc != null) {

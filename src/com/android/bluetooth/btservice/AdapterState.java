@@ -47,6 +47,9 @@ final class AdapterState extends StateMachine {
     private OnState mOnState = new OnState();
     private OffState mOffState = new OffState();
 
+    public boolean isCurrentlyOn() {
+        return mOnState == getCurrentState();
+    }
     public AdapterState(AdapterService service, Context context,
             AdapterProperties adapterProperties) {
         super("BluetoothAdapterState:");
@@ -76,6 +79,11 @@ final class AdapterState extends StateMachine {
 
         @Override
         public boolean processMessage(Message msg) {
+            if (msg.what == SM_QUIT_CMD) {
+                Log.d(TAG, "Received quit request...");
+                return false;
+            }
+
             switch(msg.what) {
                case USER_TURN_ON:
                    int persist = msg.arg1;
@@ -92,27 +100,7 @@ final class AdapterState extends StateMachine {
                        transitionTo(mPendingCommandState);
                    }
                    break;
-               case AIRPLANE_MODE_OFF:
-               {
-                   if(mAdapterService.getBluetoothPersistedSetting()) {
-                        Log.i(TAG, "OffState : Turning BT on after Airplane"+
-                            " Mode OFF state");
-                        sendIntent(BluetoothAdapter.STATE_TURNING_ON);
-                        ret = mAdapterService.enableNative();
-                        if (!ret) {
-                            Log.e(TAG, "Error while turning Bluetooth On");
-                            sendIntent(BluetoothAdapter.STATE_OFF);
-                        } else {
-                            sendMessageDelayed(ENABLE_TIMEOUT,
-                                ENABLE_TIMEOUT_DELAY);
-                            transitionTo(mPendingCommandState);
-                        }
-                   }
-                   break;
-               }
                case USER_TURN_OFF:
-               case AIRPLANE_MODE_ON:
-                   //ignore
                    break;
                default:
                    Log.e(TAG, "Received unhandled state: " + msg.what);
@@ -132,13 +120,6 @@ final class AdapterState extends StateMachine {
         public boolean processMessage(Message msg) {
             switch(msg.what) {
                case USER_TURN_OFF:
-                   int persist = msg.arg1;
-                   if (persist == 1) {
-                          //Persist disable immediately even before disable completes
-                       mAdapterService.persistBluetoothSetting(false);
-                   }
-                   //Fall Through
-               case AIRPLANE_MODE_ON:
                    sendIntent(BluetoothAdapter.STATE_TURNING_OFF);
                    // Invoke onBluetoothDisable which shall trigger a
                    // setScanMode to SCAN_MODE_NONE
@@ -160,7 +141,7 @@ final class AdapterState extends StateMachine {
                    }
                    break;
                case USER_TURN_ON:
-               case AIRPLANE_MODE_OFF:
+               //case AIRPLANE_MODE_OFF:
                    //ignore
                    break;
                default:
@@ -188,23 +169,18 @@ final class AdapterState extends StateMachine {
                     break;
                 case ENABLED_READY:
                     removeMessages(ENABLE_TIMEOUT);
-                    //Persist enable state only once enable completes
-                    if (mPendingPersistEnable) {
-                        mAdapterService.persistBluetoothSetting(true);
-                        mPendingPersistEnable=false;
-                    }
-                    mAdapterProperties.onBluetoothReady();
-                    sendIntent(BluetoothAdapter.STATE_ON);
                     transitionTo(mOnState);
+                    mAdapterProperties.onBluetoothReady();
+                    mAdapterService.onBluetoothEnabled();
                     break;
                 case DISABLED:
-                    sendIntent(BluetoothAdapter.STATE_OFF);
                     transitionTo(mOffState);
+                    mAdapterService.onBluetoothDisabled();
                     break;
                 case ENABLE_TIMEOUT:
                     errorLog("Error enabling Bluetooth");
-                    sendIntent(BluetoothAdapter.STATE_OFF);
                     transitionTo(mOffState);
+                    mAdapterService.onBluetoothEnableTimeout();
                     break;
                 default:
                     Log.e(TAG, "Received unhandled event:" + msg.what);

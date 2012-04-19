@@ -28,21 +28,16 @@ import java.util.Map;
 import com.android.bluetooth.Utils;
 import android.content.pm.PackageManager;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.ProfileService;
 
 /**
  * Provides Bluetooth Hid Host profile, as a service in
  * the Bluetooth application.
  * @hide
  */
-public class HidService extends Service {
-    private static final String TAG = "BluetoothHidService";
+public class HidService extends ProfileService {
     private static final boolean DBG = true;
-
-    static final String BLUETOOTH_ADMIN_PERM =
-        android.Manifest.permission.BLUETOOTH_ADMIN;
-    static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
-
-    private BluetoothAdapter mAdapter;
+    private static final String TAG = "HidService";
     private Map<BluetoothDevice, Integer> mInputDevices;
 
     private static final int MESSAGE_CONNECT = 1;
@@ -62,9 +57,8 @@ public class HidService extends Service {
         classInitNative();
     }
 
-    @Override
-    public void onCreate() {
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
+    public String getName() {
+        return TAG;
     }
 
     @Override
@@ -73,66 +67,28 @@ public class HidService extends Service {
         return mBinder;
     }
 
-    public void onStart(Intent intent, int startId) {
-        log("onStart");
 
-        if (mAdapter == null) {
-            Log.w(TAG, "Stopping profile service: device does not have BT");
-            stop();
-        }
-
-        if (checkCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM)!=PackageManager.PERMISSION_GRANTED) {
-            Log.e(TAG, "Permission denied!");
-            return;
-        }
-
-        String action = intent.getStringExtra(AdapterService.EXTRA_ACTION);
-        if (!AdapterService.ACTION_SERVICE_STATE_CHANGED.equals(action)) {
-            Log.e(TAG, "Invalid action " + action);
-            return;
-        }
-
-        int state= intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);        
-        if(state==BluetoothAdapter.STATE_OFF) {
-            stop();
-        } else if (state== BluetoothAdapter.STATE_ON){
-            start();
-        }
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (DBG) log("Destroying service.");
-        if(mAdapter != null)
-            mAdapter = null;
+    protected boolean start() {
         if(mInputDevices != null) {
             mInputDevices.clear();
             mInputDevices = null;
         }
-    }
-
-    private void start() {
         mInputDevices = Collections.synchronizedMap(new HashMap<BluetoothDevice, Integer>());
         initializeNative();
 
-        //Notify adapter service
-        AdapterService sAdapter = AdapterService.getAdapterService();
-        if (sAdapter!= null) {
-            sAdapter.onProfileServiceStateChanged(getClass().getName(), BluetoothAdapter.STATE_ON);
-        }
+        return true;
     }
 
-    private void stop() {
+    protected boolean stop() {
         if (DBG) log("Stopping Bluetooth HidService");
         cleanupNative();
 
-        //Notify adapter service
-        AdapterService sAdapter = AdapterService.getAdapterService();
-        if (sAdapter!= null) {
-            sAdapter.onProfileServiceStateChanged(getClass().getName(), BluetoothAdapter.STATE_OFF);
+        if(mInputDevices != null) {
+            mInputDevices.clear();
+            mInputDevices = null;
         }
-        stopSelf();
+        
+        return true;
     }
 
     
@@ -509,9 +465,6 @@ public class HidService extends Service {
         }
     }
 
-    private void log(String msg) {
-        Log.d(TAG, msg);
-    }
 
     // Constants matching Hal header file bt_hh.h
     // bthh_connection_state_t

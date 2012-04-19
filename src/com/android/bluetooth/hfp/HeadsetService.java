@@ -25,28 +25,22 @@ import java.util.Iterator;
 import java.util.Map;
 import android.content.pm.PackageManager;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.ProfileService;
 
 /**
  * Provides Bluetooth Headset and Handsfree profile, as a service in
  * the Bluetooth application.
  * @hide
  */
-public class HeadsetService extends Service {
-    private static final String TAG = "BluetoothHeadsetService";
+public class HeadsetService extends ProfileService {
     private static final boolean DBG = true;
+    private static final String TAG = "HeadsetService";
 
-    static final String BLUETOOTH_ADMIN_PERM =
-        android.Manifest.permission.BLUETOOTH_ADMIN;
-    static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
-
-    private BluetoothAdapter mAdapter;
     private HeadsetStateMachine mStateMachine;
+    private boolean mReceiverRegistered;
 
-    @Override
-    public void onCreate() {
-        log("onCreate");
-        super.onCreate();
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
+    protected String getName() {
+        return TAG;
     }
 
     @Override
@@ -55,76 +49,33 @@ public class HeadsetService extends Service {
         return mBinder;
     }
 
-    public void onStart(Intent intent, int startId) {
-        log("onStart");
-
-        if (mAdapter == null) {
-            Log.w(TAG, "Stopping profile service: device does not have BT");
-            stop();
-        }
-
-        if (checkCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM)!=PackageManager.PERMISSION_GRANTED) {
-            Log.e(TAG, "Permission denied!");
-            return;
-        }
-
-        String action = intent.getStringExtra(AdapterService.EXTRA_ACTION);
-        if (!AdapterService.ACTION_SERVICE_STATE_CHANGED.equals(action)) {
-            Log.e(TAG, "Invalid action " + action);
-            return;
-        }
-
-        int state= intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
-        if(state==BluetoothAdapter.STATE_OFF) {
-            stop();
-        } else if (state== BluetoothAdapter.STATE_ON){
-            start();
-        }
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (DBG) log("Destroying service.");
-        if(mAdapter != null)
-            mAdapter = null;
-        if(mStateMachine != null)
-        {
-            mStateMachine.quit();
-            mStateMachine = null;
-        }
-    }
-
-    private void start() {
+    protected boolean start() {
         mStateMachine = new HeadsetStateMachine(this);
         mStateMachine.start();
         IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         filter.addAction(AudioManager.VOLUME_CHANGED_ACTION);
         registerReceiver(mHeadsetReceiver, filter);
-
-        //Notify adapter service
-        AdapterService sAdapter = AdapterService.getAdapterService();
-        if (sAdapter!= null) {
-            sAdapter.onProfileServiceStateChanged(getClass().getName(), BluetoothAdapter.STATE_ON);
-        }
+        mReceiverRegistered=true;
+        return true;
     }
 
-    private void stop() {
+    protected boolean stop() {
         if (DBG) log("stopService()");
-        unregisterReceiver(mHeadsetReceiver);
+        if (mReceiverRegistered) {
+            try {
+                unregisterReceiver(mHeadsetReceiver);
+            } catch (Exception e) {
+                Log.w(TAG,"Unable to unregister headset receiver",e);
+            }
+            mReceiverRegistered = false;
+        }
 
         if (mStateMachine!= null) {
             mStateMachine.quit();
             mStateMachine.cleanup();
             mStateMachine=null;
         }
-
-        //Notify adapter service
-        AdapterService sAdapter = AdapterService.getAdapterService();
-        if (sAdapter!= null) {
-            sAdapter.onProfileServiceStateChanged(getClass().getName(), BluetoothAdapter.STATE_OFF);
-        }
-        stopSelf();
+        return true;
     }
 
     private final BroadcastReceiver mHeadsetReceiver = new BroadcastReceiver() {
@@ -321,7 +272,4 @@ public class HeadsetService extends Service {
         }
     };
 
-    private static void log(String msg) {
-        Log.d(TAG, msg);
-    }
 }
