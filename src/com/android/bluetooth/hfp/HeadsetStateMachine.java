@@ -811,6 +811,9 @@ final class HeadsetStateMachine extends StateMachine {
                         log("event type: " + event.type);
                     }
                     switch (event.type) {
+                        case EVENT_TYPE_CONNECTION_STATE_CHANGED:
+                            processConnectionEvent(event.valueInt, event.device);
+                            break;
                         case EVENT_TYPE_AUDIO_STATE_CHANGED:
                             processAudioEvent(event.valueInt, event.device);
                             break;
@@ -865,6 +868,28 @@ final class HeadsetStateMachine extends StateMachine {
                     return NOT_HANDLED;
             }
             return retValue;
+        }
+
+        // in AudioOn state. Some headsets disconnect RFCOMM prior to SCO down. Handle this
+        private void processConnectionEvent(int state, BluetoothDevice device) {
+            switch (state) {
+                case HeadsetHalConstants.CONNECTION_STATE_DISCONNECTED:
+                    if (mCurrentDevice.equals(device)) {
+                        processAudioEvent (HeadsetHalConstants.AUDIO_STATE_DISCONNECTED, device);
+                        broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_DISCONNECTED,
+                                                 BluetoothProfile.STATE_CONNECTED);
+                        synchronized (HeadsetStateMachine.this) {
+                            mCurrentDevice = null;
+                            transitionTo(mDisconnected);
+                        }
+                    } else {
+                        Log.e(TAG, "Disconnected from unknown device: " + device);
+                    }
+                    break;
+              default:
+                  Log.e(TAG, "Connection State Device: " + device + " bad state: " + state);
+                  break;
+            }
         }
 
         // in AudioOn state
