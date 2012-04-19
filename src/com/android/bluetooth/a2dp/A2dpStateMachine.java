@@ -82,6 +82,7 @@ final class A2dpStateMachine extends StateMachine {
     private BluetoothDevice mCurrentDevice = null;
     private BluetoothDevice mTargetDevice = null;
     private BluetoothDevice mIncomingDevice = null;
+    private BluetoothDevice mPlayingA2dpDevice = null;
 
     static {
         classInitNative();
@@ -393,6 +394,9 @@ final class A2dpStateMachine extends StateMachine {
         @Override
         public void enter() {
             log("Enter Connected: " + getCurrentMessage().what);
+            // Upon connected, the audio starts out as stopped
+            broadcastAudioState(mCurrentDevice, BluetoothA2dp.STATE_NOT_PLAYING,
+                                BluetoothA2dp.STATE_PLAYING);
         }
 
         @Override
@@ -450,6 +454,9 @@ final class A2dpStateMachine extends StateMachine {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
                             processConnectionEvent(event.valueInt, event.device);
                             break;
+                        case EVENT_TYPE_AUDIO_STATE_CHANGED:
+                            processAudioStateEvent(event.valueInt, event.device);
+                            break;
                         default:
                             Log.e(TAG, "Unexpected stack event: " + event.type);
                             break;
@@ -478,6 +485,32 @@ final class A2dpStateMachine extends StateMachine {
                     break;
               default:
                   Log.e(TAG, "Connection State Device: " + device + " bad state: " + state);
+                  break;
+            }
+        }
+        private void processAudioStateEvent(int state, BluetoothDevice device) {
+            if (!mCurrentDevice.equals(device)) {
+                Log.e(TAG, "Audio State Device:" + device + "is different from ConnectedDevice:" +
+                                                           mCurrentDevice);
+                return;
+            }
+            switch (state) {
+                case AUDIO_STATE_STARTED:
+                    if (mPlayingA2dpDevice == null) {
+                       mPlayingA2dpDevice = device;
+                       broadcastAudioState(device, BluetoothA2dp.STATE_PLAYING,
+                                           BluetoothA2dp.STATE_NOT_PLAYING);
+                    }
+                    break;
+                case AUDIO_STATE_STOPPED:
+                    if(mPlayingA2dpDevice != null) {
+                        mPlayingA2dpDevice = null;
+                        broadcastAudioState(device, BluetoothA2dp.STATE_NOT_PLAYING,
+                                            BluetoothA2dp.STATE_PLAYING);
+                    }
+                    break;
+                default:
+                  Log.e(TAG, "Audio State Device: " + device + " bad state: " + state);
                   break;
             }
         }
@@ -527,7 +560,7 @@ final class A2dpStateMachine extends StateMachine {
 
     boolean isPlaying(BluetoothDevice device) {
         synchronized(this) {
-            if (getCurrentState() == mConnected && mCurrentDevice.equals(device)) {
+            if (device.equals(mPlayingA2dpDevice)) {
                 return true;
             }
         }
@@ -568,6 +601,17 @@ final class A2dpStateMachine extends StateMachine {
         }
     }
 
+    private void broadcastAudioState(BluetoothDevice device, int state, int prevState) {
+        Intent intent = new Intent(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
+        intent.putExtra(BluetoothProfile.EXTRA_STATE, state);
+        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+        mContext.sendBroadcast(intent, A2dpService.BLUETOOTH_PERM);
+
+        if (DBG) log("A2DP Playing state : device: " + device + " State:" + prevState + "->" + state);
+    }
+
     private byte[] getByteAddress(BluetoothDevice device) {
         return Utils.getBytesFromAddress(device.getAddress());
     }
@@ -579,6 +623,12 @@ final class A2dpStateMachine extends StateMachine {
         sendMessage(STACK_EVENT, event);
     }
 
+    private void onAudioStateChanged(int state, byte[] address) {
+        StackEvent event = new StackEvent(EVENT_TYPE_AUDIO_STATE_CHANGED);
+        event.valueInt = state;
+        event.device = getDevice(address);
+        sendMessage(STACK_EVENT, event);
+    }
     private BluetoothDevice getDevice(byte[] address) {
         return mAdapter.getRemoteDevice(Utils.getAddressStringFromByte(address));
     }
@@ -602,6 +652,7 @@ final class A2dpStateMachine extends StateMachine {
     // Event types for STACK_EVENT message
     final private static int EVENT_TYPE_NONE = 0;
     final private static int EVENT_TYPE_CONNECTION_STATE_CHANGED = 1;
+    final private static int EVENT_TYPE_AUDIO_STATE_CHANGED = 2;
 
    // Do not modify without upating the HAL bt_av.h files.
 
@@ -610,6 +661,11 @@ final class A2dpStateMachine extends StateMachine {
     final static int CONNECTION_STATE_CONNECTING = 1;
     final static int CONNECTION_STATE_CONNECTED = 2;
     final static int CONNECTION_STATE_DISCONNECTING = 3;
+
+    // match up with btav_audio_state_t enum of bt_av.h
+    final static int AUDIO_STATE_REMOTE_SUSPEND = 0;
+    final static int AUDIO_STATE_STOPPED = 1;
+    final static int AUDIO_STATE_STARTED = 2;
 
     private native static void classInitNative();
     private native void initNative();

@@ -14,6 +14,7 @@
 
 namespace android {
 static jmethodID method_onConnectionStateChanged;
+static jmethodID method_onAudioStateChanged;
 
 static const btav_interface_t *sBluetoothA2dpInterface = NULL;
 static jobject mCallbacksObj = NULL;
@@ -56,9 +57,33 @@ static void bta2dp_connection_state_callback(btav_connection_state_t state, bt_b
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
+static void bta2dp_audio_state_callback(btav_audio_state_t state, bt_bdaddr_t* bd_addr) {
+    jbyteArray addr;
+
+    LOGI("%s", __FUNCTION__);
+
+    if (!checkCallbackThread()) {                                       \
+        LOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__); \
+        return;                                                         \
+    }
+    addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+    if (!addr) {
+        LOGE("Fail to new jbyteArray bd addr for connection state");
+        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+        return;
+    }
+
+    sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAudioStateChanged, (jint) state,
+                                 addr);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+    sCallbackEnv->DeleteLocalRef(addr);
+}
+
 static btav_callbacks_t sBluetoothA2dpCallbacks = {
     sizeof(sBluetoothA2dpCallbacks),
     bta2dp_connection_state_callback,
+    bta2dp_audio_state_callback
 };
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
@@ -69,6 +94,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onConnectionStateChanged =
         env->GetMethodID(clazz, "onConnectionStateChanged", "(I[B)V");
 
+    method_onAudioStateChanged =
+        env->GetMethodID(clazz, "onAudioStateChanged", "(I[B)V");
     /*
     if ( (btInf = getBluetoothInterface()) == NULL) {
         LOGE("Bluetooth module is not loaded");
