@@ -106,6 +106,23 @@ public class HealthService extends Service {
     public void onDestroy() {
         super.onDestroy();
         if (DBG) log("Destroying service.");
+
+        //Cleanup other object references
+        if(mHealthChannels != null) {
+            mHealthChannels.clear();
+            mHealthChannels = null;
+        }
+        if(mHealthDevices != null) {
+            mHealthDevices.clear();
+            mHealthDevices = null;
+        }
+        if(mApps != null) {
+            mApps.clear();
+            mApps = null;
+        }
+        if(mAdapter != null)
+            mAdapter = null;
+
     }
 
     private void start() {
@@ -132,10 +149,12 @@ public class HealthService extends Service {
         if (DBG) log("stop()");
 
         //Cleanup looper
+        mHandler.removeCallbacksAndMessages(null);
         Looper looper = mHandler.getLooper();
         if (looper != null) {
             looper.quit();
         }
+        mHandler = null;
 
         //Cleanup native
         cleanupNative();

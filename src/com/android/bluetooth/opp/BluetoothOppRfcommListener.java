@@ -182,6 +182,7 @@ public class BluetoothOppRfcommListener {
                 if (mTcpServerSocket != null) {
                     try {
                         mTcpServerSocket.close();
+                        mTcpServerSocket = null;
                     } catch (IOException e) {
                         Log.e(TAG, "Error close mTcpServerSocket");
                     }
@@ -192,6 +193,7 @@ public class BluetoothOppRfcommListener {
                 if (mBtServerSocket != null) {
                     try {
                         mBtServerSocket.close();
+                        mBtServerSocket = null;
                     } catch (IOException e) {
                         Log.e(TAG, "Error close mBtServerSocket");
                     }

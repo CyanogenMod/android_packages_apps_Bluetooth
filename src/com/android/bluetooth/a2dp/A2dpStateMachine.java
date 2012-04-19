@@ -108,6 +108,10 @@ final class A2dpStateMachine extends StateMachine {
 
     public void cleanup() {
         cleanupNative();
+        if(mContext != null)
+            mContext = null;
+        if(mAdapter != null)
+            mAdapter = null;
     }
 
         private class Disconnected extends State {

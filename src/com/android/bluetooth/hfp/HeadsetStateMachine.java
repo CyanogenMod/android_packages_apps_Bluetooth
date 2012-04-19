@@ -197,6 +197,8 @@ final class HeadsetStateMachine extends StateMachine {
                 }
         }
         }
+        if(mContext != null)
+            mContext = null;
     }
 
     private class Disconnected extends State {

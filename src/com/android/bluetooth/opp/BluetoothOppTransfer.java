@@ -415,6 +415,28 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         }
     }
 
+    /**
+     * Object cleanup
+     */
+    public void cleanup() {
+        if(mContext != null)
+            mContext = null;
+        if(mAdapter != null)
+            mAdapter = null;
+        if(mBatch != null) {
+            mBatch = null;
+        }
+        if(mSession != null)
+            mSession = null;
+        if(mCurrentShare != null)
+            mCurrentShare = null;
+        if(mTransport != null)
+            mTransport = null;
+        if(mSessionHandler != null) {
+            mSessionHandler = null;
+        }
+    }
+
     private void startObexSession() {
 
         mBatch.mStatus = Constants.BATCH_STATUS_RUNNING;

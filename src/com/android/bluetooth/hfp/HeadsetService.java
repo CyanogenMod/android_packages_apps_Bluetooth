@@ -86,6 +86,13 @@ public class HeadsetService extends Service {
     public void onDestroy() {
         super.onDestroy();
         if (DBG) log("Destroying service.");
+        if(mAdapter != null)
+            mAdapter = null;
+        if(mStateMachine != null)
+        {
+            mStateMachine.quit();
+            mStateMachine = null;
+        }
     }
 
     private void start() {

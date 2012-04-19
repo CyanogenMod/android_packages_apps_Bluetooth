@@ -60,6 +60,12 @@ final class AdapterState extends StateMachine {
     }
 
     public void cleanup() {
+        if(mAdapterProperties != null)
+            mAdapterProperties = null;
+        if(mAdapterService != null)
+            mAdapterService = null;
+        if(mContext != null)
+            mContext = null;
     }
 
     private class OffState extends State {

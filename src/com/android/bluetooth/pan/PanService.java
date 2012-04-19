@@ -114,6 +114,22 @@ public class PanService extends Service {
     public void onDestroy() {
         super.onDestroy();
         if (DBG) log("Stopping Bluetooth PanService");
+
+        //Cleanup referenced objects here
+        if(mAdapter != null)
+            mAdapter = null;
+        if(mPanDevices != null) {
+            mPanDevices.clear();
+            mPanDevices = null;
+        }
+        if(mBluetoothIfaceAddresses != null) {
+            mBluetoothIfaceAddresses.clear();
+            mBluetoothIfaceAddresses = null;
+        }
+        if(mPanIfName != null)
+            mPanIfName = null;
+        if(mHandler != null)
+            mHandler.removeCallbacksAndMessages(null);
     }
 
     private void start() {

@@ -309,6 +309,11 @@ public class BluetoothPbapService extends Service {
             mWakeLock = null;
         }
         closeService();
+        if(mAdapter != null)
+            mAdapter = null;
+        if(mSessionStatusHandler != null) {
+            mSessionStatusHandler.removeCallbacksAndMessages(null);
+        }
     }
 
     @Override
