@@ -33,10 +33,8 @@ final class AdapterState extends StateMachine {
     static final int AIRPLANE_MODE_OFF = 4;
     static final int ENABLED_READY = 5;
     static final int DISABLED = 6;
-    static final int ALL_DEVICES_DISCONNECTED = 7;
-    static final int ENABLE_TIMEOUT = 8;
+    static final int ENABLE_TIMEOUT = 7;
 
-    private static final int DISCONNECT_TIMEOUT = 3000;
     private static final int ENABLE_TIMEOUT_DELAY = 6000; // 6 secs
 
     private AdapterService mAdapterService;
@@ -124,14 +122,8 @@ final class AdapterState extends StateMachine {
                    // Invoke onBluetoothDisable which shall trigger a
                    // setScanMode to SCAN_MODE_NONE
                    mAdapterProperties.onBluetoothDisable();
-                   if (mAdapterProperties.getConnectionState() !=
-                           BluetoothAdapter.STATE_DISCONNECTED) {
-                       sendMessageDelayed(ALL_DEVICES_DISCONNECTED,
-                                   DISCONNECT_TIMEOUT);
-                       break;
-                   }
-                   //Fall Through
-               case ALL_DEVICES_DISCONNECTED:
+
+                   // stack takes care of disconnecting profiles, send disable here
                    boolean ret = mAdapterService.disableNative();
                    if (!ret) {
                        Log.e(TAG, "Error while turning Bluetooth Off");
