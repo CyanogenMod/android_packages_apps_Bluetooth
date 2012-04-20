@@ -30,7 +30,7 @@ import android.content.pm.PackageManager;
 import com.android.bluetooth.btservice.AdapterService;
 
 /**
- * Provides Bluetooth Hid Device profile, as a service in
+ * Provides Bluetooth Hid Host profile, as a service in
  * the Bluetooth application.
  * @hide
  */
