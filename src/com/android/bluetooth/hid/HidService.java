@@ -324,7 +324,7 @@ public class HidService extends Service {
                 BluetoothProfile.PRIORITY_UNDEFINED);
             return priority;
         }
-
+        /* The following APIs regarding test app for compliance */
         public boolean getProtocolMode(BluetoothDevice device) {
             enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                            "Need BLUETOOTH_ADMIN permission");
