@@ -210,6 +210,15 @@ final class RemoteDevices {
         mSdpTracker.remove(device);
     }
 
+    private void sendDisplayPinIntent(byte[] address, int pin) {
+        Intent intent = new Intent(BluetoothDevice.ACTION_PAIRING_REQUEST);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, getDevice(address));
+        intent.putExtra(BluetoothDevice.EXTRA_PAIRING_KEY, pin);
+        intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT,
+                    BluetoothDevice.PAIRING_VARIANT_DISPLAY_PIN);
+        mContext.sendBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
+    }
+
     void devicePropertyChangedCallback(byte[] address, int[] types, byte[][] values) {
         Intent intent;
         byte[] val;
@@ -299,6 +308,24 @@ final class RemoteDevices {
         BluetoothDevice bdDevice = getDevice(address);
         if (bdDevice == null) {
             addDeviceProperties(address);
+        }
+        BluetoothClass btClass = bdDevice.getBluetoothClass();
+        int btDeviceClass = btClass.getDeviceClass();
+        if (btDeviceClass == BluetoothClass.Device.PERIPHERAL_KEYBOARD ||
+            btDeviceClass == BluetoothClass.Device.PERIPHERAL_KEYBOARD_POINTING) {
+            // Its a keyboard. Follow the HID spec recommendation of creating the
+            // passkey and displaying it to the user. If the keyboard doesn't follow
+            // the spec recommendation, check if the keyboard has a fixed PIN zero
+            // and pair.
+            //TODO: Add sFixedPinZerosAutoPairKeyboard() and maintain list of devices that have fixed pin
+            /*if (mAdapterService.isFixedPinZerosAutoPairKeyboard(address)) {
+                               mAdapterService.setPin(address, BluetoothDevice.convertPinToBytes("0000"));
+                               return;
+                     }*/
+            // Generate a variable PIN. This is not truly random but good enough.
+            int pin = (int) Math.floor(Math.random() * 1000000);
+            sendDisplayPinIntent(address, pin);
+            return;
         }
         infoLog("pinRequestCallback: " + address + " name:" + name + " cod:" +
                 cod);
