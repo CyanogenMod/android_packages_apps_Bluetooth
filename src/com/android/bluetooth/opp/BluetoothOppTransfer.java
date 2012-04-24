@@ -302,7 +302,11 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             }
         }
 
-        BluetoothOppShareInfo info = mBatch.getPendingShare();
+        BluetoothOppShareInfo info = null;
+        if (mBatch == null) {
+            return;
+        }
+        info = mBatch.getPendingShare();
         while (info != null) {
             if (info.mStatus < 200) {
                 info.mStatus = failReason;
@@ -694,6 +698,10 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
     /* update a trivial field of a share to notify Provider the batch status change */
     private void tickShareStatus(BluetoothOppShareInfo share) {
+        if (share == null) {
+            Log.d(TAG,"Share is null");
+            return;
+        }
         Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + share.mId);
         ContentValues updateValues = new ContentValues();
         updateValues.put(BluetoothShare.DIRECTION, share.mDirection);

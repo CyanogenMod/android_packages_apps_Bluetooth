@@ -65,7 +65,7 @@ final class BondStateMachine extends StateMachine {
     private class StableState extends State {
         @Override
         public void enter() {
-            infoLog("Entering Off State");
+            infoLog("StableState(): Entering Off State");
         }
 
         @Override
@@ -122,6 +122,11 @@ final class BondStateMachine extends StateMachine {
 
         @Override
         public boolean processMessage(Message msg) {
+            if (msg.what == SM_QUIT_CMD) {
+                Log.d(TAG, "PendingCommandState(): Received quit request...");
+                return false;
+            }
+
             BluetoothDevice dev = (BluetoothDevice)msg.obj;
             boolean result = false;
             if (mDevices.contains(dev) &&
