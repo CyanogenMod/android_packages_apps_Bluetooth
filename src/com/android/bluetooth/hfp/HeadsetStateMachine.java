@@ -56,6 +56,9 @@ final class HeadsetStateMachine extends StateMachine {
     private static final String TAG = "HeadsetStateMachine";
     private static final boolean DBG = true;
 
+    private static final String HEADSET_NAME = "bt_headset_name";
+    private static final String HEADSET_NREC = "bt_headset_nrec";
+
     static final int CONNECT = 1;
     static final int DISCONNECT = 2;
     static final int CONNECT_AUDIO = 3;
@@ -301,6 +304,7 @@ final class HeadsetStateMachine extends StateMachine {
                     mCurrentDevice = device;
                     transitionTo(mConnected);
                 }
+                configAudioParameters();
                 break;
             case HeadsetHalConstants.CONNECTION_STATE_DISCONNECTING:
                 Log.w(TAG, "Ignore HF DISCONNECTING event, device: " + device);
@@ -465,6 +469,7 @@ final class HeadsetStateMachine extends StateMachine {
                         transitionTo(mConnected);
                     }
                 }
+                configAudioParameters();
                 break;
             case HeadsetHalConstants.CONNECTION_STATE_CONNECTING:
                 if ((mCurrentDevice != null) && mCurrentDevice.equals(device)) {
@@ -634,6 +639,9 @@ final class HeadsetStateMachine extends StateMachine {
                         case EVENT_TYPE_SEND_DTMF:
                             processSendDtmf(event.valueInt);
                             break;
+                        case EVENT_TYPE_NOICE_REDUCTION:
+                            processNoiceReductionEvent(event.valueInt);
+                            break;
                         case EVENT_TYPE_AT_CHLD:
                             processAtChld(event.valueInt);
                             break;
@@ -733,15 +741,10 @@ final class HeadsetStateMachine extends StateMachine {
     }
 
     private class AudioOn extends State {
-        // Audio parameters
-        private static final String HEADSET_NAME = "bt_headset_name";
-        private static final String HEADSET_NREC = "bt_headset_nrec";
 
         @Override
         public void enter() {
             log("Enter AudioOn: " + getCurrentMessage().what);
-            mAudioManager.setParameters(HEADSET_NAME + "=" + getCurrentDeviceName() + ";" +
-                                        HEADSET_NREC + "=on");
         }
 
         @Override
@@ -915,16 +918,6 @@ final class HeadsetStateMachine extends StateMachine {
                 default:
                     Log.e(TAG, "Audio State Device: " + device + " bad state: " + state);
                     break;
-            }
-        }
-
-        // enable 1 enable noice reduction
-        //        0 disable noice reduction
-        private void processNoiceReductionEvent(int enable) {
-            if (enable == 1) {
-                mAudioManager.setParameters(HEADSET_NREC + "=on");
-            } else {
-                mAudioManager.setParameters(HEADSET_NREC + "off");
             }
         }
 
@@ -1153,6 +1146,13 @@ final class HeadsetStateMachine extends StateMachine {
         if (DBG) log("Audio state " + device + ": " + prevState + "->" + newState);
     }
 
+    private void configAudioParameters()
+    {
+        // Reset NREC on connect event. Headset will override later
+        mAudioManager.setParameters(HEADSET_NAME + "=" + getCurrentDeviceName() + ";" +
+                                    HEADSET_NREC + "=on");
+    }
+
     private void processAnswerCall() {
         if (mPhoneProxy != null) {
             try {
@@ -1260,6 +1260,16 @@ final class HeadsetStateMachine extends StateMachine {
         if (getCurrentState() != mDisconnected) {
             phoneStateChangeNative(callState.mNumActive, callState.mNumHeld, callState.mCallState,
                                    callState.mNumber, callState.mType);
+        }
+    }
+
+    // enable 1 enable noice reduction
+    //        0 disable noice reduction
+    private void processNoiceReductionEvent(int enable) {
+        if (enable == 1) {
+            mAudioManager.setParameters(HEADSET_NREC + "=on");
+        } else {
+            mAudioManager.setParameters(HEADSET_NREC + "off");
         }
     }
 
