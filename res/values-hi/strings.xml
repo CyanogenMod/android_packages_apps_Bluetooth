@@ -18,6 +18,14 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"डाउनलोड प्रबंधक में पहुंच प्राप्त करें."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"एप्लिकेशन को BluetoothShare प्रबंधक में पहुंच प्राप्त करने और फ़ाइलों को स्थानांतरित करने के लिए उसका उपयोग करने देता है."</string>
+    <!-- no translation found for permlab_bluetoothWhitelist (7091552898592306386) -->
+    <skip />
+    <!-- no translation found for permdesc_bluetoothWhitelist (5494513855192170109) -->
+    <skip />
+    <!-- no translation found for permlab_handoverStatus (7316032998801933554) -->
+    <skip />
+    <!-- no translation found for permdesc_handoverStatus (4752738070064786310) -->
+    <skip />
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"अज्ञात उपकरण"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"अज्ञात"</string>
