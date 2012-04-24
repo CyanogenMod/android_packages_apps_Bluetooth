@@ -10,6 +10,19 @@
         android:label="@string/permlab_bluetoothShareManager"
         android:description="@string/permdesc_bluetoothShareManager"
         android:protectionLevel="signature" />
+
+    <!--  Allows temporarily whitelisting Bluetooth addresses for sharing -->
+    <permission android:name="com.android.permission.WHITELIST_BLUETOOTH_DEVICE"
+        android:label="@string/permlab_bluetoothWhitelist"
+        android:description="@string/permdesc_bluetoothWhitelist"
+        android:protectionLevel="signature" />
+
+    <!--  Allows receiving handover status broadcasts from Bluetooth -->,
+    <permission android:name="com.android.permission.HANDOVER_STATUS"
+        android:label="@string/permlab_handoverStatus"
+        android:description="@string/permdesc_handoverStatus"
+        android:protectionLevel="signature" />
+
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.ACCESS_BLUETOOTH_SHARE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -21,6 +34,7 @@
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="com.android.permission.HANDOVER_STATUS" />
     <application
         android:icon="@drawable/bt_share"
         android:label="@string/app_name">
@@ -43,7 +57,14 @@
                 <action android:name="android.bluetooth.adapter.action.STATE_CHANGED" />
                 <!--action android:name="android.intent.action.BOOT_COMPLETED" /-->
                 <action android:name="android.btopp.intent.action.OPEN_RECEIVED_FILES" />
-                <action android:name="todo-whitelist" />
+            </intent-filter>
+        </receiver>
+         <receiver
+            android:process="@string/process"
+            android:name=".opp.BluetoothOppHandoverReceiver"
+            android:permission="com.android.permission.WHITELIST_BLUETOOTH_DEVICE">
+            <intent-filter>
+                <action android:name="android.btopp.intent.action.WHITELIST_DEVICE" />
             </intent-filter>
         </receiver>
         <activity android:name=".opp.BluetoothOppLauncherActivity"

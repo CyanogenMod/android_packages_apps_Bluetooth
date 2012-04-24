@@ -59,5 +59,6 @@ public class BluetoothOppTransferInfo {
 
     String mDeviceName; // bt device name
 
+    boolean mHandoverInitiated; // the transfer was initiated by connection handover (eg. NFC)
     // int mScanned;
 }

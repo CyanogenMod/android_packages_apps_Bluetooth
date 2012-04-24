@@ -32,6 +32,17 @@
     <string name="permdesc_bluetoothShareManager">Allows the app to access the
         BluetoothShare manager and use it to transfer files. </string>
 
+    <string name="permlab_bluetoothWhitelist">Whitelist bluetooth device access.</string>
+
+    <string name="permdesc_bluetoothWhitelist">Allows the app to temporarily whitelist
+        a Bluetooth device, allowing that device to send files to this device without user
+        confirmation.</string>
+
+    <!-- Strings used for a (system only) permission -->
+    <string name="permlab_handoverStatus">Receive BT handover transfer broadcasts.</string>
+    <string name="permdesc_handoverStatus">Allows receiving handover transfer status
+        information from Bluetooth.</string>
+
     <!-- string showed on "Share picutre via" dialog -->
     <string name="bt_share_picker_label">Bluetooth</string>
 

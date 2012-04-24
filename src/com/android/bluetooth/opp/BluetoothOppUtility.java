@@ -107,6 +107,11 @@ public class BluetoothOppUtility {
                 info.mDeviceName =
                         BluetoothOppManager.getInstance(context).getDeviceName(remoteDevice);
 
+                int confirmationType = cursor.getInt(
+                        cursor.getColumnIndexOrThrow(BluetoothShare.USER_CONFIRMATION));
+                info.mHandoverInitiated =
+                        confirmationType == BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED;
+
                 if (V) Log.v(TAG, "Get data from db:" + info.mFileName + info.mFileType
                             + info.mDestAddr);
             }

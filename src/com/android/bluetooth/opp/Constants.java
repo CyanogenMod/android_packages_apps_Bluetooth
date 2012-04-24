@@ -68,11 +68,61 @@ public class Constants {
     /** the intent that gets sent from the Settings app to show the received files */
     public static final String ACTION_OPEN_RECEIVED_FILES = "android.btopp.intent.action.OPEN_RECEIVED_FILES";
 
+    /** the intent that whitelists a remote bluetooth device for auto-receive confirmation (NFC) */
+    public static final String ACTION_WHITELIST_DEVICE = "android.btopp.intent.action.WHITELIST_DEVICE";
+
     /** the intent extra to show all received files in the transfer history */
     public static final String EXTRA_SHOW_ALL_FILES = "android.btopp.intent.extra.SHOW_ALL";
 
     /** the intent that gets sent when clicking an incomplete/failed transfer */
     public static final String ACTION_LIST = "android.btopp.intent.action.LIST";
+
+    /** intent action used to indicate the progress of a handover transfer */
+    public static final String ACTION_BT_OPP_TRANSFER_PROGRESS =
+            "android.btopp.intent.action.BT_OPP_TRANSFER_PROGRESS";
+
+    /** intent action used to indicate the completion of a handover transfer */
+    public static final String ACTION_BT_OPP_TRANSFER_DONE =
+            "android.btopp.intent.action.BT_OPP_TRANSFER_DONE";
+
+    /** intent extra used to indicate the success of a handover transfer */
+    public static final String EXTRA_BT_OPP_TRANSFER_STATUS =
+            "android.btopp.intent.extra.BT_OPP_TRANSFER_STATUS";
+
+    public static final int HANDOVER_TRANSFER_STATUS_SUCCESS = 0;
+
+    public static final int HANDOVER_TRANSFER_STATUS_FAILURE = 1;
+
+    /** intent extra used to indicate the direction of a handover transfer */
+    public static final String EXTRA_BT_OPP_TRANSFER_DIRECTION =
+            "android.btopp.intent.extra.BT_OPP_TRANSFER_DIRECTION";
+
+    public static final int DIRECTION_BLUETOOTH_INCOMING = 0;
+
+    public static final int DIRECTION_BLUETOOTH_OUTGOING = 1;
+
+    /** intent extra used to provide a unique ID for the transfer */
+    public static final String EXTRA_BT_OPP_TRANSFER_ID =
+            "android.btopp.intent.extra.BT_OPP_TRANSFER_ID";
+
+    /** intent extra used to provide progress of the transfer */
+    public static final String EXTRA_BT_OPP_TRANSFER_PROGRESS =
+            "android.btopp.intent.extra.BT_OPP_TRANSFER_PROGRESS";
+
+    /** intent extra used to provide the Uri where the data was stored
+     * by the handover transfer */
+    public static final String EXTRA_BT_OPP_TRANSFER_URI =
+            "android.btopp.intent.extra.BT_OPP_TRANSFER_URI";
+
+    /** permission needed to be able to receive handover status requests */
+    public static final String HANDOVER_STATUS_PERMISSION =
+            "com.android.permission.HANDOVER_STATUS";
+
+    /** intent extra that indicates this transfer is a handover from another
+      * transport (NFC, WIFI)
+      */
+    public static final String EXTRA_CONNECTION_HANDOVER =
+            "com.android.intent.extra.CONNECTION_HANDOVER";
 
     /**
      * the intent that gets sent when deleting the incoming file confirmation

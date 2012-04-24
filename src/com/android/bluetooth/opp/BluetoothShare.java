@@ -258,6 +258,12 @@ public final class BluetoothShare implements BaseColumns {
     public static final int USER_CONFIRMATION_TIMEOUT = 4;
 
     /**
+     * This transfer was initiated by a connection handover
+     * (for example WIFI, NFC) and has been auto-confirmed.
+     */
+    public static final int USER_CONFIRMATION_HANDOVER_CONFIRMED = 5;
+
+    /**
      * This transfer is visible and shows in the notifications while in progress
      * and after completion.
      */
