@@ -18,14 +18,10 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Access download manager."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Allows the application to access the Bluetooth Share manager and to use it to transfer files."</string>
-    <!-- no translation found for permlab_bluetoothWhitelist (7091552898592306386) -->
-    <skip />
-    <!-- no translation found for permdesc_bluetoothWhitelist (5494513855192170109) -->
-    <skip />
-    <!-- no translation found for permlab_handoverStatus (7316032998801933554) -->
-    <skip />
-    <!-- no translation found for permdesc_handoverStatus (4752738070064786310) -->
-    <skip />
+    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Whitelist bluetooth device access."</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Allows the app to temporarily whitelist a Bluetooth device, allowing that device to send files to this device without user confirmation."</string>
+    <string name="permlab_handoverStatus" msgid="7316032998801933554">"Receive BT handover transfer broadcasts."</string>
+    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"Allows receiving handover transfer status information from Bluetooth."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Unknown device"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Unknown"</string>
