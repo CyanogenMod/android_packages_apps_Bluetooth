@@ -213,7 +213,8 @@ public class BluetoothOppRfcommListener {
             try {
                 mSocketAcceptThread.interrupt();
                 if (V) Log.v(TAG, "waiting for thread to terminate");
-                mSocketAcceptThread.join(JOIN_TIMEOUT_MS);
+                //mSocketAcceptThread.join(JOIN_TIMEOUT_MS);
+                mSocketAcceptThread.join();
                 if (V) Log.v(TAG, "done waiting for thread to terminate");
                 mSocketAcceptThread = null;
                 mCallback = null;
