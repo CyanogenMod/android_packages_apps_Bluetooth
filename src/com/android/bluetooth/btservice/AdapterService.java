@@ -74,37 +74,31 @@ public class AdapterService extends Service {
         android.Manifest.permission.BLUETOOTH_ADMIN;
     static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
 
+    private static final int ADAPTER_SERVICE_TYPE=Service.START_STICKY;
+
+    static {
+        classInitNative();
+    }
+
+    private static AdapterService sAdapterService;
+    public static AdapterService getAdapterService(){
+        return sAdapterService;
+    }
+
     private IBluetoothManager mBluetoothManager;
     private IBluetooth mBluetoothService;
     private AdapterProperties mAdapterProperties;
     private int mAdapterState;
     private Context mContext;
-    private static AdapterService sAdapterService;
 
     private AdapterState mAdapterStateMachine;
     private BondStateMachine mBondStateMachine;
     private JniCallbacks mJniCallbacks;
     private RemoteDevices mRemoteDevices;
-    private boolean mStopPending;
-    private boolean mStartPending;
     private boolean mProfilesStarted;
     private boolean mNativeAvailable;
     private HashMap<String,Integer> mProfileServicesState = new HashMap<String,Integer>();
-
-    //In case Bluetooth app crashes, we need to reinit JNI
-    private static boolean mIsJniInited;
-    private static synchronized void initJni() {
-        if (!mIsJniInited) {
-            if (DBG) Log.d(TAG,"Initializing JNI Library");
-            System.loadLibrary("bluetooth_jni");
-            classInitNative();
-            mIsJniInited=true;
-        }
-    }
-
-    public static AdapterService getAdapterService(){
-        return sAdapterService;
-    }
+    private int mCurrentRequestId;
 
     public void onProfileConnectionStateChanged(BluetoothDevice device, int profileId, int newState, int prevState) {
         Message m = mHandler.obtainMessage(MESSAGE_PROFILE_CONNECTION_STATE_CHANGED);
@@ -136,8 +130,10 @@ public class AdapterService extends Service {
     }
 
     private void processProfileServiceStateChanged(String serviceName, int state) {
-        if (DBG) Log.d(TAG,"onProfileServiceStateChange: serviceName=" + serviceName + ", state = " + state);
         boolean doUpdate=false;
+        boolean isTurningOn;
+        boolean isTurningOff;
+
         synchronized (mProfileServicesState) {
             Integer prevState = mProfileServicesState.get(serviceName);
             if (prevState != null && prevState != state) {
@@ -145,10 +141,18 @@ public class AdapterService extends Service {
                 doUpdate=true;
             }
         }
+        if (DBG) Log.d(TAG,"onProfileServiceStateChange: serviceName=" + serviceName + ", state = " + state +", doUpdate = " + doUpdate);
+
         if (!doUpdate) {
             return;
         }
-        if (mStopPending) {
+
+        synchronized (mAdapterStateMachine) {
+            isTurningOff = mAdapterStateMachine.isTurningOff();
+            isTurningOn = mAdapterStateMachine.isTurningOn();
+        }
+
+        if (isTurningOff) {
             //Process stop or disable pending
             //Check if all services are stopped if so, do cleanup
             //if (DBG) Log.d(TAG,"Checking if all profiles are stopped...");
@@ -157,14 +161,14 @@ public class AdapterService extends Service {
                 while (i.hasNext()) {
                     Map.Entry<String,Integer> entry = i.next();
                     if (BluetoothAdapter.STATE_OFF != entry.getValue()) {
-                        //Log.d(TAG, "Profile still running: " entry.getKey());
+                        Log.d(TAG, "Profile still running: " + entry.getKey());
                         return;
                     }
                 }
             }
             if (DBG) Log.d(TAG, "All profile services stopped...");
-            processStopped();
-        } else if (mStartPending) {
+            onProfilesStopped();
+        } else if (isTurningOn) {
             //Process start pending
             //Check if all services are started if so, update state
             //if (DBG) Log.d(TAG,"Checking if all profiles are running...");
@@ -173,33 +177,28 @@ public class AdapterService extends Service {
                 while (i.hasNext()) {
                     Map.Entry<String,Integer> entry = i.next();
                     if (BluetoothAdapter.STATE_ON != entry.getValue()) {
-                        //Log.d(TAG, "Profile still not running:" + entry.getKey());
+                        Log.d(TAG, "Profile still not running:" + entry.getKey());
                         return;
                     }
                 }
             }
             if (DBG) Log.d(TAG, "All profile services started.");
-            processStarted();
+            onProfilesStarted();
         }
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        if (DBG) Log.d(TAG, "onCreate");
+        if (DBG) debugLog("onCreate");
         mContext = this;
         sAdapterService = this;
-        initJni(); //We always check and init JNI in case we crashed and restarted
-        mRemoteDevices = RemoteDevices.getInstance(this, mContext);
-        mRemoteDevices.init();
-        mAdapterProperties = AdapterProperties.getInstance(this, mContext);
-        mAdapterProperties.init();
+        mAdapterProperties = new AdapterProperties(this, mContext);
         mAdapterStateMachine =  new AdapterState(this, mContext, mAdapterProperties);
-        mBondStateMachine = new BondStateMachine(this, mContext, mAdapterProperties);
-        mJniCallbacks = JniCallbacks.getInstance(mRemoteDevices, mAdapterProperties,
-                                                 mAdapterStateMachine, mBondStateMachine);
+        mJniCallbacks = JniCallbacks.getInstance(null, mAdapterProperties,mAdapterStateMachine,null);
         initNative();
         mNativeAvailable=true;
+        mAdapterStateMachine.start();
 
         //Load the name and address
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDADDR);
@@ -208,40 +207,201 @@ public class AdapterService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        if (DBG) Log.d(TAG, "onBind");
+        if (DBG) debugLog("onBind");
         return mBinder;
     }
     public boolean onUnbind(Intent intent) {
-        if (DBG) Log.d(TAG,"onUnbind");
+        if (DBG) debugLog("onUnbind");
         return super.onUnbind(intent);
     }
 
     public void onDestroy() {
-        if (DBG) Log.d(TAG, "onDestroy()");
-        super.onDestroy();
+        debugLog("****onDestroy()********");
+        mHandler.removeMessages(MESSAGE_SHUTDOWN);
+        cleanup();
     }
 
     public int onStartCommand(Intent intent ,int flags, int startId) {
-        if (DBG) Log.d(TAG, "onStartCommand");
+
+        mCurrentRequestId = startId;
+        if (DBG) debugLog("onStartCommand: flags = " + flags + ", startId = " + startId);
         if (checkCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM)!=PackageManager.PERMISSION_GRANTED) {
             Log.e(TAG, "Permission denied!");
-            return START_STICKY;
+            return ADAPTER_SERVICE_TYPE;
         }
 
+        //Check if we are restarting
+        if (intent == null) {
+            debugLog("Restarting AdapterService");
+            return ADAPTER_SERVICE_TYPE;
+        }
+
+        //Get action and check if valid. If invalid, ignore and return
         String action  = intent.getStringExtra(EXTRA_ACTION);
-        if (DBG) Log.d(TAG,"onStartCommand(): action = " + action);
-        if (ACTION_SERVICE_STATE_CHANGED.equals(action)) {
-            int state= intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,BluetoothAdapter.ERROR);
-            if (DBG) Log.d(TAG,"onStartCommand(): state = " + Utils.debugGetAdapterStateString(state));
-            if (state == BluetoothAdapter.STATE_OFF) {
-                Message m = mHandler.obtainMessage(MESSAGE_STOP);
-                mHandler.sendMessage(m);
-            } else if (state == BluetoothAdapter.STATE_ON) {
-                Message m = mHandler.obtainMessage(MESSAGE_START);
-                mHandler.sendMessage(m);
+        debugLog("onStartCommand(): action = " + action);
+        if (!ACTION_SERVICE_STATE_CHANGED.equals(action)) {
+            Log.w(TAG,"Unknown action: " + action);
+            return ADAPTER_SERVICE_TYPE;
+        }
+
+        //Check state of request. If invalid, ignore and return
+        int state= intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,BluetoothAdapter.ERROR);
+        debugLog("onStartCommand(): state = " + Utils.debugGetAdapterStateString(state));
+
+        //Cancel any pending shutdown requests
+        synchronized (mHandler) {
+            mHandler.removeMessages(MESSAGE_SHUTDOWN);
+        }
+
+        if (state == BluetoothAdapter.STATE_OFF) {
+            Message m = mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_OFF);
+            m.arg1= startId;
+            mAdapterStateMachine.sendMessage(m);
+        } else if (state == BluetoothAdapter.STATE_ON) {
+            Message m = mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_ON);
+            m.arg1= startId;
+            mAdapterStateMachine.sendMessage(m);
+        } else {
+            Log.w(TAG,"Invalid state: " + action);
+            return ADAPTER_SERVICE_TYPE;
+        }
+        return ADAPTER_SERVICE_TYPE;
+    }
+
+    void processStart() {
+        if (DBG) debugLog("processStart()");
+
+        //Initialize data objects
+        for (int i=0; i < SUPPORTED_PROFILE_SERVICES.length;i++) {
+            mProfileServicesState.put(SUPPORTED_PROFILE_SERVICES[i].getName(),BluetoothAdapter.STATE_OFF);
+        }
+
+        mRemoteDevices = new RemoteDevices(this, mContext);
+        mRemoteDevices.init();
+        mAdapterProperties.init(mRemoteDevices);
+        mBondStateMachine = new BondStateMachine(this, mContext, mAdapterProperties, mRemoteDevices);
+        mJniCallbacks.init(mRemoteDevices, mAdapterProperties,mAdapterStateMachine,mBondStateMachine);
+
+        //Init BluetoothManager
+        if (DBG) {debugLog("processStart(): Initializing Bluetooth Manager");}
+        IBinder b = ServiceManager.getService(BluetoothAdapter.BLUETOOTH_MANAGER_SERVICE);
+        if (b != null) {
+            mBluetoothManager = IBluetoothManager.Stub.asInterface(b);
+            if (mBluetoothManager != null) {
+                try {
+                    Log.d(TAG, "FRED: Registering manager callback " + mManagerCallback);
+                    mBluetoothService = mBluetoothManager.registerAdapter(mManagerCallback);
+                } catch (RemoteException re) {
+                    Log.e(TAG, "",re);
+                }
             }
         }
-        return START_STICKY;
+
+        //Start Bond State Machine
+        if (DBG) {debugLog("processStart(): Starting Bond State Machine");}
+        mBondStateMachine.start();
+
+        //Start profile services
+        if (SUPPORTED_PROFILE_SERVICES.length==0 || mProfilesStarted) {
+            //Skip starting profiles and go to next step
+            if (DBG) {debugLog("processStart(): Profile Services started");}
+            Message m = mAdapterStateMachine.obtainMessage(AdapterState.STARTED);
+            mAdapterStateMachine.sendMessage(m);
+        } else {
+            //Startup all profile services
+            setProfileServiceState(SUPPORTED_PROFILE_SERVICES,BluetoothAdapter.STATE_ON);
+        }
+    }
+
+    void startBluetoothDisable() {
+        Log.d(TAG,"startBluetoothDisable()");
+        Message m = mAdapterStateMachine.obtainMessage(AdapterState.BEGIN_DISABLE);
+        mAdapterStateMachine.sendMessage(m);
+    }
+
+    void onProfilesStarted(){
+        Log.d(TAG,"onProfilesStarted()");
+        mProfilesStarted=true;
+        Message m = mAdapterStateMachine.obtainMessage(AdapterState.STARTED);
+        mAdapterStateMachine.sendMessage(m);
+    }
+
+    void onProfilesStopped() {
+        Log.d(TAG,"onProfilesStopped()");
+        mProfilesStarted=false;
+        //Message m = mAdapterStateMachine.obtainMessage(AdapterState.DISABLE);
+        Message m = mAdapterStateMachine.obtainMessage(AdapterState.STOPPED);
+        mAdapterStateMachine.sendMessage(m);
+    }
+
+
+    boolean stopProfileServices() {
+        if (SUPPORTED_PROFILE_SERVICES.length==0 || !mProfilesStarted) {
+            if (DBG) {debugLog("processDisable(): No profiles services to stop or already stopped.");}
+            return false;
+        }
+        setProfileServiceState(SUPPORTED_PROFILE_SERVICES,BluetoothAdapter.STATE_OFF);
+        return true;
+    }
+
+    void processStopped() {
+        Log.d(TAG, "processStopped()");
+
+        if (mBluetoothManager != null) {
+            try {
+                Log.d(TAG,"FRED: Unregistering manager callback " + mManagerCallback);
+                mBluetoothManager.unregisterAdapter(mManagerCallback);
+            } catch (RemoteException re) {
+                Log.e(TAG, "",re);
+            }
+        }
+        mBondStateMachine.quit();
+        mBondStateMachine.cleanup();
+        mBondStateMachine = null;
+    }
+
+    void startShutdown(int requestId) {
+        debugLog("startShutdown(): requestId = " + requestId + ", currentRequestId=" + mCurrentRequestId);
+        if (requestId <0) {
+            Log.w(TAG, "Ignoring shutdown request. Invalid requestId");
+            return;
+        }
+
+        Message m = mHandler.obtainMessage(MESSAGE_SHUTDOWN);
+        synchronized(mHandler) {
+            mHandler.sendMessageDelayed(m, SHUTDOWN_TIMEOUT);
+        }
+        stopSelfResult(requestId);
+    }
+
+    void cleanup () {
+        if (DBG)debugLog("cleanup()");
+
+        if (mNativeAvailable) {
+            Log.d(TAG, "Cleaning up adapter native....");
+            cleanupNative();
+            Log.d(TAG, "Done cleaning up adapter native....");
+            mNativeAvailable=false;
+        }
+
+        if (mAdapterStateMachine != null) {
+            mAdapterStateMachine.quit();
+            mAdapterStateMachine.cleanup();
+            mAdapterStateMachine = null;
+        }
+
+        if (mRemoteDevices != null) {
+            mRemoteDevices.cleanup();
+            mRemoteDevices = null;
+        }
+
+        if (mAdapterProperties != null) {
+            mAdapterProperties.cleanup();
+            mAdapterProperties = null;
+        }
+
+        mProfileServicesState.clear();
+        if (DBG)debugLog("cleanup() done");
     }
 
     final private IBluetoothManagerCallback mManagerCallback =
@@ -254,220 +414,36 @@ public class AdapterService extends Service {
                 }
 
                 public void onBluetoothServiceDown() {
-                    if (DBG) Log.d(TAG, "onBluetoothServiceDown");
+                    if (DBG) Log.d(TAG, "onBluetoothServiceDown " + this);
                     synchronized (mManagerCallback) {
                         mBluetoothService = null;
                     }
                 }
         };
 
-    private void processStart() {
-        if (DBG) Log.d(TAG,"start() called, mStartPending= " + mStartPending + ", mProfilesStarted=" + mProfilesStarted);
-        if (mProfilesStarted || mStartPending) return;
-        if (DBG) Log.d(TAG,"starting bluetooth state machine and profiles..");
-
-        mStartPending=true;
-
-        mAdapterStateMachine.start();
-        mBondStateMachine.start();
-
-        //Get bluetooth service for profiles
-        IBinder b = ServiceManager.getService(BluetoothAdapter.BLUETOOTH_MANAGER_SERVICE);
-        if (b != null) {
-            mBluetoothManager = IBluetoothManager.Stub.asInterface(b);
-            if (mBluetoothManager != null) {
-                try {
-                    mBluetoothService = mBluetoothManager.registerAdapter(mManagerCallback);
-                } catch (RemoteException re) {
-                    Log.e(TAG, "",re);
-                }
-            }
-        }
-
-        //Start profile services
-        if (SUPPORTED_PROFILE_SERVICES.length==0 || mProfilesStarted) {
-            //Skip starting profiles and go to next step
-            processStarted();
-        } else {
-            mHandler.sendMessageDelayed(mHandler.obtainMessage(MESSAGE_START_TIMEOUT), MAX_TIMEOUT_MS);
-            for (int i=0; i <SUPPORTED_PROFILE_SERVICES.length;i++) {
-                startProfileService(SUPPORTED_PROFILE_SERVICES[i]);
-            }
-        }
-    }
-
-    private void processStartTimeout(){
-        //FIXME:
-        Log.e(TAG,"************Start Timed out!!!*******************");
-        mStartPending = false;
-        sendIntent(BluetoothAdapter.STATE_OFF);
-        //Stop
-    }
-
-    private void processStarted() {
-        Log.d(TAG, "processStarted()");
-        mHandler.removeMessages(MESSAGE_START_TIMEOUT);
-        mProfilesStarted = true;
-        //Enable bluetooth
-        Message m = mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_ON);
-        mAdapterStateMachine.sendMessage(m);
-    }
-
-    void onBluetoothEnableTimeout() {
-        Log.e(TAG, "Timeout occurred while enabling bluetooth...");
-        sendIntent(BluetoothAdapter.STATE_OFF);
-        //FIXME: stop services and cleanup
-    }
-
-    void onBluetoothEnabled() {
-        Log.d(TAG, "onBluetoothEnabled()");
-        Message m = mHandler.obtainMessage(MESSAGE_ENABLED);
-        mHandler.sendMessage(m);
-    }
-
-    void processEnabled() {
-        mStartPending = false;
-        mStopPending=false;
-        sendIntent(BluetoothAdapter.STATE_ON);
-    }
-
-    //Called as part of disable or independently (when just getting address)
-    private void processStop() {
-        if (DBG) Log.d(TAG,"stop() called, mStopPending= " + mStopPending + ", mProfilesStarted=" + mProfilesStarted);
-        if (mStopPending) return;
-        mStopPending=true;
-
-        if (SUPPORTED_PROFILE_SERVICES.length==0 || !mProfilesStarted) {
-            cleanup();
-        } else {
-            Message m = mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_OFF);
-            mAdapterStateMachine.sendMessage(m);
-        }
-    }
-
-    void onBluetoothDisabled() {
-        Log.d(TAG, "onBluetoothDisabled()");
-        Message m = mHandler.obtainMessage(MESSAGE_DISABLED);
-        mHandler.sendMessage(m);
-    }
-
-    void onBluetoothDisableTimeout() {
-        Log.e(TAG, "Timeout occurred while disable bluetooth...");
-        Message m = mHandler.obtainMessage(MESSAGE_DISABLED);
-        mHandler.sendMessage(m);
-    }
-
-    private void processDisabled() {
-        mHandler.sendMessageDelayed(mHandler.obtainMessage(MESSAGE_STOP_TIMEOUT), MAX_TIMEOUT_MS);
-        for (int i=SUPPORTED_PROFILE_SERVICES.length-1; i >=0;i--) {
-                stopProfileService(SUPPORTED_PROFILE_SERVICES[i]);
-        }
-    }
-
-    private void processStopTimeout() {
-        //FIXME:
-        Log.e(TAG,"************Stop Timed out!!!*******************");
-        processStopped();
-    }
-
-    private void processStopped() {
-        Log.d(TAG, "processStopped()");
-        mHandler.removeMessages(MESSAGE_STOP_TIMEOUT);
-
-        if (mBluetoothManager != null) {
-            try {
-                mBluetoothManager.unregisterAdapter(mManagerCallback);
-            } catch (RemoteException re) {
-                Log.e(TAG, "",re);
-            }
-        }
-        mBondStateMachine.quit();
-        mAdapterStateMachine.quit();
-        sendIntent(BluetoothAdapter.STATE_OFF);
-        cleanup();
-    }
-
-    void cleanup () {
-        if (DBG) Log.d(TAG, "cleanup()");
-
-        if (mBondStateMachine != null) {
-            mBondStateMachine.cleanup();
-            mBondStateMachine = null;
-        }
-        if (mAdapterStateMachine != null) {
-            mAdapterStateMachine.cleanup();
-            mAdapterStateMachine = null;
-        }
-        if (mNativeAvailable) {
-            Log.d(TAG, "Cleaning up adapter native....");
-            cleanupNative();
-            Log.d(TAG, "Done cleaning up adapter native....");
-            mNativeAvailable=false;
-        }
-        mStartPending = false;
-        mStopPending=false;
-        mProfilesStarted = false;
-        stopSelf();
-    }
-
-    private void sendIntent(int newState) {
-        int oldState = mAdapterProperties.getState();
-        Intent intent = new Intent(BluetoothAdapter.ACTION_STATE_CHANGED);
-        intent.putExtra(BluetoothAdapter.EXTRA_PREVIOUS_STATE, oldState);
-        intent.putExtra(BluetoothAdapter.EXTRA_STATE, newState);
-        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-        mAdapterProperties.setState(newState);
-        mContext.sendBroadcast(intent, AdapterService.BLUETOOTH_PERM);
-        //infoLog("Bluetooth State Change Intent: " + oldState + " -> " + newState);
-    }
-
     private static final int MESSAGE_PROFILE_SERVICE_STATE_CHANGED =1;
-    private static final int MESSAGE_START=2;
-    private static final int MESSAGE_STOP=3;
-    private static final int MESSAGE_ENABLED=4;
-    private static final int MESSAGE_DISABLED=5;
-    private static final int MESSAGE_START_TIMEOUT=10;
-    private static final int MESSAGE_STOP_TIMEOUT=11;
     private static final int MESSAGE_PROFILE_CONNECTION_STATE_CHANGED=20;
-    private static final int MAX_TIMEOUT_MS=3000;
+    private static final int MESSAGE_SHUTDOWN= 100;
+    private static final int SHUTDOWN_TIMEOUT=2000;
 
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            if (DBG) Log.d (TAG, "Message: " + msg.what);
+            if (DBG) debugLog("Message: " + msg.what);
 
             switch (msg.what) {
-                case MESSAGE_START: {
-                    processStart();
-                }
-                    break;
-                case MESSAGE_START_TIMEOUT: {
-                    processStartTimeout();
-                }
-                    break;
-                case MESSAGE_ENABLED: {
-                    processEnabled();
-                }
-                    break;
-                case MESSAGE_STOP: {
-                    processStop();
-                }
-                    break;
-                case MESSAGE_STOP_TIMEOUT: {
-                    processStopTimeout();
-                }
-                    break;
-                case MESSAGE_DISABLED: {
-                    processDisabled();
+                case MESSAGE_SHUTDOWN: {
+                    if (DBG) Log.d(TAG,"***SHUTDOWN: TIMEOUT!!! Forcing shutdown...");
+                    stopSelf();
                 }
                     break;
                 case MESSAGE_PROFILE_SERVICE_STATE_CHANGED: {
-                    Log.d(TAG, "MESSAGE_PROFILE_SERVICE_STATE_CHANGED");
+                    if(DBG) debugLog("MESSAGE_PROFILE_SERVICE_STATE_CHANGED");
                     processProfileServiceStateChanged((String) msg.obj, msg.arg1);
                 }
                     break;
                 case MESSAGE_PROFILE_CONNECTION_STATE_CHANGED: {
-                    Log.d(TAG, "MESSAGE_PROFILE_CONNECTION_STATE_CHANGED");
+                    if (DBG) debugLog( "MESSAGE_PROFILE_CONNECTION_STATE_CHANGED");
                     processProfileStateChanged((BluetoothDevice) msg.obj, msg.arg1,msg.arg2, msg.getData().getInt("prevState",BluetoothAdapter.ERROR));
                 }
                     break;
@@ -476,36 +452,39 @@ public class AdapterService extends Service {
     };
 
     @SuppressWarnings("rawtypes")
-    private void startProfileService(Class service) {
-        String serviceName = service.getName();
-        Integer serviceState = mProfileServicesState.get(serviceName);
-        if(serviceState != null && serviceState != BluetoothAdapter.STATE_OFF) {
-            Log.w(TAG, "Unable to start service "+serviceName+". Invalid state: " + serviceState);
+    private void setProfileServiceState(Class[] services, int state) {
+        if (state != BluetoothAdapter.STATE_ON && state != BluetoothAdapter.STATE_OFF) {
+            Log.w(TAG,"setProfileServiceState(): invalid state...Leaving...");
             return;
         }
 
-        mProfileServicesState.put(serviceName,BluetoothAdapter.STATE_TURNING_ON);
-        Intent i = new Intent(this,service);
-        //i.putExtra(EXTRA_ACTION,ACTION_SERVICE_STATE_CHANGED);
-        //i.putExtra(BluetoothAdapter.EXTRA_STATE,BluetoothAdapter.STATE_ON);
-        if (DBG) Log.d(TAG, "Starting profile service "+serviceName);
-        startService(i);
-    }
-
-    @SuppressWarnings("rawtypes")
-    private void stopProfileService(Class service) {
-        String serviceName = service.getName();
-        Integer serviceState = mProfileServicesState.get(service.getName());
-        if(serviceState == null || serviceState != BluetoothAdapter.STATE_ON) {
-            Log.w(TAG, "Unable to stop service " + serviceName + ". Invalid state: " + serviceState);
-            return;
+        int expectedCurrentState= BluetoothAdapter.STATE_OFF;
+        int pendingState = BluetoothAdapter.STATE_TURNING_ON;
+        if (state == BluetoothAdapter.STATE_OFF) {
+            expectedCurrentState= BluetoothAdapter.STATE_ON;
+            pendingState = BluetoothAdapter.STATE_TURNING_OFF;
         }
-        mProfileServicesState.put(serviceName, BluetoothAdapter.STATE_TURNING_OFF);
-        Intent i = new Intent(this, service);
-        i.putExtra(EXTRA_ACTION,ACTION_SERVICE_STATE_CHANGED);
-        i.putExtra(BluetoothAdapter.EXTRA_STATE,BluetoothAdapter.STATE_OFF);
-        if (DBG) Log.d(TAG, "Stopping profile service "+serviceName);
-        startService(i);
+
+        for (int i=0; i <services.length;i++) {
+            String serviceName = services[i].getName();
+            Integer serviceState = mProfileServicesState.get(serviceName);
+            if(serviceState != null && serviceState != expectedCurrentState) {
+                Log.w(TAG, "Unable to " + (state == BluetoothAdapter.STATE_OFF? "start" : "stop" ) +" service " +
+                        serviceName+". Invalid state: " + serviceState);
+                continue;
+            }
+
+            if (DBG) {
+                Log.w(TAG, (state == BluetoothAdapter.STATE_OFF? "Stopping" : "Starting" ) +" service " +
+                        serviceName);
+            }
+
+            mProfileServicesState.put(serviceName,pendingState);
+            Intent intent = new Intent(this,services[i]);
+            intent.putExtra(EXTRA_ACTION,ACTION_SERVICE_STATE_CHANGED);
+            intent.putExtra(BluetoothAdapter.EXTRA_STATE,state);
+            startService(intent);
+        }
     }
 
     /**
@@ -519,13 +498,14 @@ public class AdapterService extends Service {
 
         public int getState() {
             enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+            debugLog("getState(): mAdapterProperties: " + mAdapterProperties);
             return mAdapterProperties.getState();
         }
 
         public boolean enable() {
             enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                     "Need BLUETOOTH ADMIN permission");
-            Log.d(TAG,"enable() called...");
+            if (DBG) debugLog("enable() called...");
             Message m =
                     mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_ON);
             m.arg1 = 1; //persist state
@@ -536,7 +516,7 @@ public class AdapterService extends Service {
         public boolean disable(boolean persist) {
             enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                     "Need BLUETOOTH ADMIN permission");
-            Log.d(TAG,"disable() called...");
+            if (DBG) debugLog("disable() called...");
             int val = (persist ? 1 : 0);
             Message m =
                     mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_OFF);
@@ -560,7 +540,12 @@ public class AdapterService extends Service {
         public String getName() {
             enforceCallingOrSelfPermission(BLUETOOTH_PERM,
                     "Need BLUETOOTH permission");
-            return mAdapterProperties.getName();
+            try {
+                return mAdapterProperties.getName();
+            } catch (Throwable t) {
+                Log.d(TAG, "Unexpected exception while calling getName()",t);
+            }
+            return null;
         }
 
         public boolean setName(String name) {
@@ -806,12 +791,12 @@ public class AdapterService extends Service {
         return -1;
     }
 
-    private static void debugLog(String msg) {
-        Log.d(TAG, msg);
+    private void debugLog(String msg) {
+        Log.d(TAG +"(" +hashCode()+")", msg);
     }
 
-    private static void errorLog(String msg) {
-        Log.e(TAG, msg);
+    private void errorLog(String msg) {
+        Log.e(TAG +"(" +hashCode()+")", msg);
     }
 
     private native static void classInitNative();

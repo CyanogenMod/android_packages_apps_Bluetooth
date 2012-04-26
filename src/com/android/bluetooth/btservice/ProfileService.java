@@ -12,6 +12,10 @@ public abstract class ProfileService extends Service {
             android.Manifest.permission.BLUETOOTH_ADMIN;
     public static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
 
+    //Profile services will not be automatically restarted.
+    //They must be explicitly restarted by AdapterService
+    private static final int PROFILE_SERVICE_MODE=Service.START_NOT_STICKY;
+
     protected BluetoothAdapter mAdapter;
     protected String mName;
 
@@ -30,10 +34,13 @@ public abstract class ProfileService extends Service {
         if (mName == null) {
             mName = "UnknownProfileService";
         }
+        mAdapter = BluetoothAdapter.getDefaultAdapter();
 
         log("onCreate");
         super.onCreate();
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
+    }
+
+    private void doStart(Intent intent) {
 
         //Start service
         if (mAdapter == null) {
@@ -41,68 +48,68 @@ public abstract class ProfileService extends Service {
         } else {
             mStartError = !start();
             if (!mStartError) {
-                notifyProfileOn();
+                notifyProfileServiceStateChange(BluetoothAdapter.STATE_ON);
             } else {
                 Log.e(mName, "Error starting profile. BluetoothAdapter is null");
             }
         }
     }
 
-    public void onStart(Intent intent, int startId) {
-        log("onStart");
-
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        log("onStartCommand()");
         if (mStartError || mAdapter == null) {
             Log.w(mName, "Stopping profile service: device does not have BT");
-            doStop();
-            return;
+            doStop(intent);
+            return PROFILE_SERVICE_MODE;
         }
 
         if (checkCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM)!=PackageManager.PERMISSION_GRANTED) {
             Log.e(mName, "Permission denied!");
-            return;
+            return PROFILE_SERVICE_MODE;
         }
 
-        String action = intent.getStringExtra(AdapterService.EXTRA_ACTION);
-        if (AdapterService.ACTION_SERVICE_STATE_CHANGED.equals(action)) {
-            int state= intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);        
-            if(state==BluetoothAdapter.STATE_OFF) {
-                Log.d(mName, "Received stop request...Stopping profile...");
-                doStop();
+        if (intent == null) {
+            Log.d(mName, "Restarting profile service...");
+            return PROFILE_SERVICE_MODE;
+        } else {
+            String action = intent.getStringExtra(AdapterService.EXTRA_ACTION);
+            if (AdapterService.ACTION_SERVICE_STATE_CHANGED.equals(action)) {
+                int state= intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+                if(state==BluetoothAdapter.STATE_OFF) {
+                    Log.d(mName, "Received stop request...Stopping profile...");
+                    doStop(intent);
+                } else if (state == BluetoothAdapter.STATE_ON) {
+                    Log.d(mName, "Received start request. Starting profile...");
+                    doStart(intent);
+                }
             }
         }
+        return PROFILE_SERVICE_MODE;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mAdapter = null;
         log("Destroying service.");
     }
 
-    private void doStop() {
+    private void doStop(Intent intent) {
         if (stop()) {
-            notifyProfileOff();
+            notifyProfileServiceStateChange(BluetoothAdapter.STATE_OFF);
             stopSelf();
         } else {
             Log.e(mName, "Unable to stop profile");
         }
     }
 
-    protected void notifyProfileOn() {
+    protected void notifyProfileServiceStateChange(int state) {
         //Notify adapter service
         AdapterService sAdapter = AdapterService.getAdapterService();
         if (sAdapter!= null) {
-            sAdapter.onProfileServiceStateChanged(getClass().getName(), BluetoothAdapter.STATE_ON);
+            sAdapter.onProfileServiceStateChanged(getClass().getName(), state);
         }
     }
 
-    protected void notifyProfileOff() {
-        //Notify adapter service
-        AdapterService sAdapter = AdapterService.getAdapterService();
-        if (sAdapter!= null) {
-            sAdapter.onProfileServiceStateChanged(getClass().getName(), BluetoothAdapter.STATE_OFF);
-        }
-    }
 
     protected void log(String msg) {
         Log.d(mName, msg);

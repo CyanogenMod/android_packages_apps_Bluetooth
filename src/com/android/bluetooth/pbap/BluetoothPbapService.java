@@ -183,14 +183,6 @@ public class BluetoothPbapService extends Service {
 
     public BluetoothPbapService() {
         mState = BluetoothPbap.STATE_DISCONNECTED;
-        // IBinder b = ServiceManager.getService(BluetoothAdapter.BLUETOOTH_SERVICE);
-        //IBinder b = null;
-        //if (b == null) {
-        //    Log.e(TAG, "fail to get bluetooth service");
-            // throw new RuntimeException("Bluetooth service not available");
-        //    return;
-        //}
-       // mBluetoothService = IBluetooth.Stub.asInterface(b);
     }
 
     @Override
@@ -215,8 +207,8 @@ public class BluetoothPbapService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        int retCode = super.onStartCommand(intent, flags, startId);
-        if (retCode == START_STICKY) {
+        //int retCode = super.onStartCommand(intent, flags, startId);
+        //if (retCode == START_STICKY) {
             mStartId = startId;
             if (mAdapter == null) {
                 Log.w(TAG, "Stopping BluetoothPbapService: "
@@ -230,8 +222,8 @@ public class BluetoothPbapService extends Service {
                     parseIntent(intent);
                 }
             }
-        }
-        return retCode;
+        //}
+        return START_NOT_STICKY;
     }
 
     // process the intent from receiver
@@ -310,8 +302,6 @@ public class BluetoothPbapService extends Service {
             mWakeLock = null;
         }
         closeService();
-        if(mAdapter != null)
-            mAdapter = null;
         if(mSessionStatusHandler != null) {
             mSessionStatusHandler.removeCallbacksAndMessages(null);
         }

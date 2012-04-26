@@ -48,11 +48,11 @@ final class BondStateMachine extends StateMachine {
     private StableState mStableState = new StableState();
 
     public BondStateMachine(AdapterService service, Context context,
-            AdapterProperties prop) {
+            AdapterProperties prop, RemoteDevices remoteDevices) {
         super("BondStateMachine:");
         addState(mStableState);
         addState(mPendingCommandState);
-        mRemoteDevices = RemoteDevices.getInstance(service, context);
+        mRemoteDevices = remoteDevices;
         mAdapterService = service;
         mAdapterProperties = prop;
         mContext = context;

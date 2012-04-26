@@ -38,39 +38,39 @@ class AdapterProperties {
     private int mConnectionState = BluetoothAdapter.STATE_DISCONNECTED;
     private int mState = BluetoothAdapter.STATE_OFF;
 
-    private static AdapterProperties sInstance;
-    private BluetoothAdapter mAdapter;
+    //private static AdapterProperties sInstance;
     private AdapterService mService;
     private Context mContext;
     private boolean mDiscovering;
-    private final RemoteDevices mRemoteDevices;
+    private RemoteDevices mRemoteDevices;
 
     // Lock for all getters and setters.
     // If finer grained locking is needer, more locks
     // can be added here.
     private Object mObject = new Object();
 
-    private AdapterProperties(AdapterService service, Context context) {
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
+    AdapterProperties(AdapterService service, Context context) {
         mService = service;
         mContext = context;
-        mProfileConnectionState = new HashMap<Integer, Pair<Integer, Integer>>();
-        mRemoteDevices = RemoteDevices.getInstance(service, context);
     }
 
-    static synchronized AdapterProperties getInstance(AdapterService service, Context context) {
-        if (sInstance == null)  {
-            sInstance = new AdapterProperties(service, context);
+    public void init(RemoteDevices remoteDevices) {
+        if (mProfileConnectionState ==null) {
+            mProfileConnectionState = new HashMap<Integer, Pair<Integer, Integer>>();
         } else {
-            sInstance.mService = service;
-            sInstance.mContext = context;
-            //Cleanup needed?
+            mProfileConnectionState.clear();
         }
-        return sInstance;
+        mRemoteDevices = remoteDevices;
     }
 
-    public void init() {
-        mProfileConnectionState.clear();
+    public void cleanup() {
+        if (mProfileConnectionState != null) {
+            mProfileConnectionState.clear();
+            mProfileConnectionState = null;
+        }
+        mRemoteDevices = null;
+        mService = null;
+        mContext = null;
     }
 
     public Object Clone() throws CloneNotSupportedException {
@@ -180,6 +180,7 @@ class AdapterProperties {
      */
     void setState(int mState) {
         synchronized (mObject) {
+            Log.d(TAG,"Setting state to " + mState);
             this.mState = mState;
         }
     }
@@ -189,6 +190,7 @@ class AdapterProperties {
      */
     int getState() {
         synchronized (mObject) {
+            Log.d(TAG,"State = " + mState);
             return mState;
         }
     }
@@ -406,6 +408,10 @@ class AdapterProperties {
                         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
                         mContext.sendBroadcast(intent, mService.BLUETOOTH_PERM);
                         debugLog("Scan Mode:" + mScanMode);
+                        if (mBluetoothDisabling) {
+                            mBluetoothDisabling=false;
+                            mService.startBluetoothDisable();
+                        }
                         break;
                     case AbstractionLayer.BT_PROPERTY_UUIDS:
                         mUuids = Utils.byteArrayToUuid(val);
@@ -440,6 +446,9 @@ class AdapterProperties {
     }
 
     void onBluetoothReady() {
+        Log.d(TAG, "ScanMode =  " + mScanMode );
+        Log.d(TAG, "State =  " + getState() );
+
         // When BT is being turned on, all adapter properties will be sent in 1
         // callback. At this stage, set the scan mode.
         synchronized (mObject) {
@@ -458,9 +467,16 @@ class AdapterProperties {
         }
     }
 
+    private boolean mBluetoothDisabling=false;
+
     void onBluetoothDisable() {
         // When BT disable is invoked, set the scan_mode to NONE
         // so no incoming connections are possible
+
+        //Set flag to indicate we are disabling. When property change of scan mode done
+        //continue with disable sequence
+        debugLog("onBluetoothDisable()");
+        mBluetoothDisabling = true;
         if (getState() == BluetoothAdapter.STATE_TURNING_OFF) {
             setScanMode(AbstractionLayer.BT_SCAN_MODE_NONE);
         }

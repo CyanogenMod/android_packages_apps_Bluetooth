@@ -53,6 +53,7 @@ public class BluetoothOppRfcommListener {
     private static final boolean V = Constants.VERBOSE;
 
     public static final int MSG_INCOMING_BTOPP_CONNECTION = 100;
+    private static final int JOIN_TIMEOUT_MS=2000;
 
     private volatile boolean mInterrupted;
     private volatile boolean mFinish;
@@ -212,7 +213,8 @@ public class BluetoothOppRfcommListener {
             try {
                 mSocketAcceptThread.interrupt();
                 if (V) Log.v(TAG, "waiting for thread to terminate");
-                mSocketAcceptThread.join();
+                mSocketAcceptThread.join(JOIN_TIMEOUT_MS);
+                if (V) Log.v(TAG, "done waiting for thread to terminate");
                 mSocketAcceptThread = null;
                 mCallback = null;
             } catch (InterruptedException e) {

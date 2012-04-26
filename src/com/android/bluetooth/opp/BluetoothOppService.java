@@ -182,16 +182,16 @@ public class BluetoothOppService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (V) Log.v(TAG, "Service onStartCommand");
-        int retCode = super.onStartCommand(intent, flags, startId);
-        if (retCode == START_STICKY) {
+        //int retCode = super.onStartCommand(intent, flags, startId);
+        //if (retCode == START_STICKY) {
             if (mAdapter == null) {
                 Log.w(TAG, "Local BT device is not enabled");
             } else {
                 startListener();
             }
             updateFromProvider();
-        }
-        return retCode;
+        //}
+        return START_NOT_STICKY;
     }
 
     private void startListener() {
@@ -212,10 +212,21 @@ public class BluetoothOppService extends Service {
 
     private static final int MSG_INCOMING_CONNECTION_RETRY = 4;
 
+    private static final int STOP_LISTENER = 200;
+
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
+                case STOP_LISTENER:
+                    mSocketListener.stop();
+                    mListenStarted = false;
+                    synchronized (BluetoothOppService.this) {
+                        if (mUpdateThread == null) {
+                            stopSelf();
+                        }
+                    }
+                    break;
                 case START_LISTENER:
                     if (mAdapter.isEnabled()) {
                         startSocketListener();
@@ -383,6 +394,8 @@ public class BluetoothOppService extends Service {
                         break;
                     case BluetoothAdapter.STATE_TURNING_OFF:
                         if (V) Log.v(TAG, "Receiver DISABLED_ACTION ");
+                        //FIX: Don't block main thread
+                        /*
                         mSocketListener.stop();
                         mListenStarted = false;
                         synchronized (BluetoothOppService.this) {
@@ -390,6 +403,9 @@ public class BluetoothOppService extends Service {
                                 stopSelf();
                             }
                         }
+                        */
+                        mHandler.sendMessage(mHandler.obtainMessage(STOP_LISTENER));
+
                         break;
                 }
             }

@@ -39,7 +39,7 @@ final class RemoteDevices {
     private HashMap<BluetoothDevice, DeviceProperties> mDevices;
     private static RemoteDevices sInstance;
 
-    private RemoteDevices(AdapterService service, Context context) {
+    RemoteDevices(AdapterService service, Context context) {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mContext = context;
         mAdapterService = service;
@@ -47,19 +47,19 @@ final class RemoteDevices {
         mDevices = new HashMap<BluetoothDevice, DeviceProperties>();
     }
 
-    static synchronized RemoteDevices getInstance(AdapterService service, Context context) {
-        if (sInstance == null)  {
-            sInstance = new RemoteDevices(service, context);
-        } else {
-            mContext = context;
-            mAdapterService = service;
-        }
-        return sInstance;
-    }
-
     public void init() {
         mSdpTracker.clear();
         mDevices.clear();
+    }
+
+    public void cleanup() {
+        mSdpTracker.clear();
+        mSdpTracker = null;
+        mDevices.clear();
+        mDevices = null;
+        mAdapterService = null;
+        mContext = null;
+        mAdapter= null;
     }
 
     public Object Clone() throws CloneNotSupportedException {

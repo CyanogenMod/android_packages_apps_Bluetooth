@@ -28,13 +28,21 @@ final class JniCallbacks {
                 new JniCallbacks(remoteDevices, adapterProperties, adapterStateMachine,
                         bondStateMachine);
         } else {
-            sInstance.mRemoteDevices = remoteDevices;
-            sInstance.mAdapterProperties = adapterProperties;
-            sInstance.mAdapterStateMachine = adapterStateMachine;
-            sInstance.mBondStateMachine = bondStateMachine;
+            sInstance.init(remoteDevices, adapterProperties, adapterStateMachine,
+                    bondStateMachine);
         }
         return sInstance;
     }
+
+    void init(RemoteDevices remoteDevices,
+            AdapterProperties adapterProperties, AdapterState adapterStateMachine,
+            BondStateMachine bondStateMachine) {
+        mRemoteDevices = remoteDevices;
+        mAdapterProperties = adapterProperties;
+        mAdapterStateMachine = adapterStateMachine;
+        mBondStateMachine = bondStateMachine;
+    }
+
     public Object Clone() throws CloneNotSupportedException {
         throw new CloneNotSupportedException();
     }
