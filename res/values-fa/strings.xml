@@ -18,14 +18,10 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"دسترسی به Download Manager."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"به برنامه برای دسترسی به مدیر BluetoothShare و استفاده از آن برای انتقال فایل‌ها اجازه می‌دهد."</string>
-    <!-- no translation found for permlab_bluetoothWhitelist (7091552898592306386) -->
-    <skip />
-    <!-- no translation found for permdesc_bluetoothWhitelist (5494513855192170109) -->
-    <skip />
-    <!-- no translation found for permlab_handoverStatus (7316032998801933554) -->
-    <skip />
-    <!-- no translation found for permdesc_handoverStatus (4752738070064786310) -->
-    <skip />
+    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"دسترسی دستگاه موجود در لیست سفید بلوتوث."</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"به برنامه اجازه می‌دهد تا موقتاً یک دستگاه بلوتوث را در لیست سفید وارد کند، و به آن دستگاه اجازه می‌دهد بدون تأیید کاربر به این دستگاه فایل ارسال کند."</string>
+    <string name="permlab_handoverStatus" msgid="7316032998801933554">"دریافت پخش‌های عمومی انتقالی از بلوتوث."</string>
+    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"اجازه می‌دهد اطلاعات وضعیت انتقالی را از بلوتوث دریافت کند."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"بلوتوث"</string>
     <string name="unknown_device" msgid="9221903979877041009">"دستگاه ناشناس"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"ناشناس"</string>
