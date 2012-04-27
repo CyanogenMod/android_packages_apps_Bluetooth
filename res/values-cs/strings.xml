@@ -18,14 +18,10 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Získat přístup ke správci stahování."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Umožňuje aplikaci přistupovat ke Správci sdílení Bluetooth a využívat jej k přenosu souborů."</string>
-    <!-- no translation found for permlab_bluetoothWhitelist (7091552898592306386) -->
-    <skip />
-    <!-- no translation found for permdesc_bluetoothWhitelist (5494513855192170109) -->
-    <skip />
-    <!-- no translation found for permlab_handoverStatus (7316032998801933554) -->
-    <skip />
-    <!-- no translation found for permdesc_handoverStatus (4752738070064786310) -->
-    <skip />
+    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Povolit přístup zařízení Bluetooth."</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Umožňuje aplikaci dočasně povolit zařízení Bluetooth, aby tak mohlo odesílat soubory do tohoto zařízení bez potvrzení uživatele."</string>
+    <string name="permlab_handoverStatus" msgid="7316032998801933554">"Přijímat vysílání přenosu z rozhraní Bluetooth."</string>
+    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"Umožňuje přijímat informace o stavu přenosu z rozhraní Bluetooth."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Neznámé zařízení"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Neznámé"</string>

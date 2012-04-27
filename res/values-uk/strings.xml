@@ -18,14 +18,10 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Доступ до менедж. завантаж."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Дозволяє програмі отримувати доступ до менеджера BluetoothShare і використовувати його для передавання файлів."</string>
-    <!-- no translation found for permlab_bluetoothWhitelist (7091552898592306386) -->
-    <skip />
-    <!-- no translation found for permdesc_bluetoothWhitelist (5494513855192170109) -->
-    <skip />
-    <!-- no translation found for permlab_handoverStatus (7316032998801933554) -->
-    <skip />
-    <!-- no translation found for permdesc_handoverStatus (4752738070064786310) -->
-    <skip />
+    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Доступ до дозволеного пристрою Bluetooth."</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Дозволяє програмі тимчасово додати пристрій Bluetooth у список дозволених пристроїв, що дасть йому змогу надсилати файли на цей пристрій без підтвердження від користувача."</string>
+    <string name="permlab_handoverStatus" msgid="7316032998801933554">"Отримувати повідомлення від Bluetooth про передачу прав на надсилання."</string>
+    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"Дозволяє отримувати від пристрою Bluetooth інформацію про статус передачі прав на надсилання."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Невідомий пристрій"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Невідомий"</string>
