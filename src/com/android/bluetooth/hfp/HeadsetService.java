@@ -54,6 +54,8 @@ public class HeadsetService extends ProfileService {
         mStateMachine.start();
         IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         filter.addAction(AudioManager.VOLUME_CHANGED_ACTION);
+        filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
+
         registerReceiver(mHeadsetReceiver, filter);
         mReceiverRegistered=true;
         return true;
@@ -91,6 +93,10 @@ public class HeadsetService extends ProfileService {
                     mStateMachine.sendMessage(HeadsetStateMachine.INTENT_SCO_VOLUME_CHANGED,
                                               intent);
                 }
+            }
+            else if (action.equals(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY)) {
+                Log.v(TAG, "HeadsetService -  Received BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY");
+                mStateMachine.handleAccessPermissionResult(intent);
             }
         }
     };

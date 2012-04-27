@@ -474,11 +474,11 @@ static jboolean atResponseStringNative(JNIEnv *env, jobject object, jstring resp
     return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean atResponseCodeNative(JNIEnv *env, jobject object, jint response_code) {
+static jboolean atResponseCodeNative(JNIEnv *env, jobject object, jint response_code, jint cmee_code) {
     bt_status_t status;
     if (!sBluetoothHfpInterface) return JNI_FALSE;
 
-    if ( (status = sBluetoothHfpInterface->at_response((bthf_at_response_t) response_code)) !=
+    if ( (status = sBluetoothHfpInterface->at_response((bthf_at_response_t) response_code, cmee_code)) !=
          BT_STATUS_SUCCESS) {
         LOGE("Failed AT response, status: %d", status);
     }
@@ -538,7 +538,7 @@ static JNINativeMethod sMethods[] = {
     {"copsResponseNative", "(Ljava/lang/String;)Z", (void *) copsResponseNative},
     {"cindResponseNative", "(IIIIIII)Z", (void *) cindResponseNative},
     {"atResponseStringNative", "(Ljava/lang/String;)Z", (void *) atResponseStringNative},
-    {"atResponseCodeNative", "(I)Z", (void *)atResponseCodeNative},
+    {"atResponseCodeNative", "(II)Z", (void *)atResponseCodeNative},
     {"clccResponseNative", "(IIIIZLjava/lang/String;I)Z", (void *) clccResponseNative},
     {"phoneStateChangeNative", "(IIILjava/lang/String;I)Z", (void *) phoneStateChangeNative},
 };

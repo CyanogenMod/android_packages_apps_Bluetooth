@@ -96,7 +96,6 @@ final class HeadsetStateMachine extends StateMachine {
     private AudioOn mAudioOn;
 
     private Context mContext;
-
     private PowerManager mPowerManager;
 
     private boolean mVoiceRecognitionStarted = false;
@@ -158,7 +157,7 @@ final class HeadsetStateMachine extends StateMachine {
 
         mDialingOut = false;
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-        mPhonebook = new AtPhonebook(mContext);
+        mPhonebook = new AtPhonebook(mContext, this);
         mPhoneState = new HeadsetPhoneState(context, this);
         mAudioState = BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -208,6 +207,7 @@ final class HeadsetStateMachine extends StateMachine {
         @Override
         public void enter() {
             log("Enter Disconnected: " + getCurrentMessage().what);
+            mPhonebook.resetAtState();
             mPhoneState.listenForPhoneState(false);
         }
 
@@ -597,14 +597,14 @@ final class HeadsetStateMachine extends StateMachine {
                 case DIALING_OUT_TIMEOUT:
                     if (mDialingOut) {
                         mDialingOut= false;
-                        atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+                        atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
                     }
                     break;
                 case START_VR_TIMEOUT:
                     if (mWaitingForVoiceRecognition) {
                         mWaitingForVoiceRecognition = false;
                         Log.e(TAG, "Timeout waiting for voice recognition to start");
-                        atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+                        atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
                     }
                     break;
                 case STACK_EVENT:
@@ -798,14 +798,14 @@ final class HeadsetStateMachine extends StateMachine {
                 case DIALING_OUT_TIMEOUT:
                     if (mDialingOut) {
                         mDialingOut= false;
-                        atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+                        atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
                     }
                     break;
                 case START_VR_TIMEOUT:
                     if (mWaitingForVoiceRecognition) {
                         mWaitingForVoiceRecognition = false;
                         Log.e(TAG, "Timeout waiting for voice recognition to start");
-                        atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+                        atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
                     }
                     break;
                 case STACK_EVENT:
@@ -1020,7 +1020,7 @@ final class HeadsetStateMachine extends StateMachine {
                 try {
                     mContext.startActivity(sVoiceCommandIntent);
                 } catch (ActivityNotFoundException e) {
-                    atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+                    atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
                     return;
                 }
                 expectVoiceRecognition();
@@ -1028,7 +1028,7 @@ final class HeadsetStateMachine extends StateMachine {
         } else if (state == HeadsetHalConstants.VR_STATE_STOPPED) {
             if (mVoiceRecognitionStarted || mWaitingForVoiceRecognition)
             {
-                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK);
+                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK, 0);
                 mVoiceRecognitionStarted = false;
                 mWaitingForVoiceRecognition = false;
                 if (!isInCall())
@@ -1036,7 +1036,7 @@ final class HeadsetStateMachine extends StateMachine {
             }
             else
             {
-                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
             }
         } else {
             Log.e(TAG, "Bad Voice Recognition state: " + state);
@@ -1060,7 +1060,7 @@ final class HeadsetStateMachine extends StateMachine {
             {
                 Log.d(TAG, "Voice recognition started successfully");
                 mWaitingForVoiceRecognition = false;
-                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK);
+                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK, 0);
                 removeMessages(START_VR_TIMEOUT);
             }
             else
@@ -1153,6 +1153,51 @@ final class HeadsetStateMachine extends StateMachine {
                                     HEADSET_NREC + "=on");
     }
 
+    private String parseUnknownAt(String atString)
+    {
+        StringBuilder atCommand = new StringBuilder(atString.length());
+        String result = null;
+
+        for (int i = 0; i < atString.length(); i++) {
+            char c = atString.charAt(i);
+            if (c == '"') {
+                int j = atString.indexOf('"', i + 1 );  // search for closing "
+                if (j == -1) {  // unmatched ", insert one.
+                    atCommand.append(atString.substring(i, atString.length()));
+                    atCommand.append('"');
+                    break;
+                }
+                atCommand.append(atString.substring(i, j + 1));
+                i = j;
+            } else if (c != ' ') {
+                atCommand.append(Character.toUpperCase(c));
+            }
+        }
+        result = atCommand.toString();
+        return result;
+    }
+
+    private int getAtCommandType(String atCommand)
+    {
+        int commandType = mPhonebook.TYPE_UNKNOWN;
+        String atString = null;
+        atCommand = atCommand.trim();
+        if (atCommand.length() > 5)
+        {
+            atString = atCommand.substring(5);
+            if (atString.startsWith("?"))     // Read
+                commandType = mPhonebook.TYPE_READ;
+            else if (atString.startsWith("=?"))   // Test
+                commandType = mPhonebook.TYPE_TEST;
+            else if (atString.startsWith("="))   // Set
+                commandType = mPhonebook.TYPE_SET;
+            else
+                commandType = mPhonebook.TYPE_UNKNOWN;
+        }
+        return commandType;
+    }
+
+
     private void processAnswerCall() {
         if (mPhoneProxy != null) {
             try {
@@ -1183,21 +1228,21 @@ final class HeadsetStateMachine extends StateMachine {
             dialNumber = mPhonebook.getLastDialledNumber();
             if (dialNumber == null) {
                 if (DBG) log("processDialCall, last dial number null");
-                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
                 return;
             }
         } else if (number.charAt(0) == '>') {
             // Yuck - memory dialling requested.
             // Just dial last number for now
             if (number.startsWith(">9999")) {   // for PTS test
-                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
                 return;
             }
             if (DBG) log("processDialCall, memory dial do last dial for now");
             dialNumber = mPhonebook.getLastDialledNumber();
             if (dialNumber == null) {
                 if (DBG) log("processDialCall, last dial number null");
-                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
                 return;
             }
         } else {
@@ -1250,7 +1295,7 @@ final class HeadsetStateMachine extends StateMachine {
         mPhoneState.setNumHeldCall(callState.mNumHeld);
         mPhoneState.setCallState(callState.mCallState);
         if (mDialingOut && callState.mCallState == HeadsetHalConstants.CALL_STATE_DIALING) {
-                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK);
+                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK, 0);
                 removeMessages(DIALING_OUT_TIMEOUT);
                 mDialingOut = false;
         }
@@ -1277,17 +1322,17 @@ final class HeadsetStateMachine extends StateMachine {
         if (mPhoneProxy != null) {
             try {
                 if (mPhoneProxy.processChld(chld)) {
-                    atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK);
+                    atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK, 0);
                 } else {
-                    atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+                    atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
                 }
             } catch (RemoteException e) {
                 Log.e(TAG, Log.getStackTraceString(new Throwable()));
-                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
             }
         } else {
             Log.e(TAG, "Handsfree phone proxy null for At+Chld");
-            atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+            atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
         }
     }
 
@@ -1298,11 +1343,11 @@ final class HeadsetStateMachine extends StateMachine {
                 if (number != null) {
                     atResponseStringNative("+CNUM: ,\"" + number + "\"," +
                                            PhoneNumberUtils.toaFromString(number) + ",,4");
-                    atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK);
+                    atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK, 0);
                 }
             } catch (RemoteException e) {
                 Log.e(TAG, Log.getStackTraceString(new Throwable()));
-                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+                atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
             }
         } else {
             Log.e(TAG, "Handsfree phone proxy null for At+CNUM");
@@ -1350,9 +1395,52 @@ final class HeadsetStateMachine extends StateMachine {
         }
     }
 
+    private void processAtCscs(String atString, int type) {
+        log("processAtCscs - atString = "+ atString);
+        if(mPhonebook != null) {
+            mPhonebook.handleCscsCommand(atString, type);
+        }
+        else {
+            Log.e(TAG, "Phonebook handle null for At+CSCS");
+            atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
+        }
+    }
+
+    private void processAtCpbs(String atString, int type) {
+        log("processAtCpbs - atString = "+ atString);
+        if(mPhonebook != null) {
+            mPhonebook.handleCpbsCommand(atString, type);
+        }
+        else {
+            Log.e(TAG, "Phonebook handle null for At+CPBS");
+            atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
+        }
+    }
+
+    private void processAtCpbr(String atString, int type, BluetoothDevice mCurrentDevice) {
+        log("processAtCpbr - atString = "+ atString);
+        if(mPhonebook != null) {
+            mPhonebook.handleCpbrCommand(atString, type, mCurrentDevice);
+        }
+        else {
+            Log.e(TAG, "Phonebook handle null for At+CPBR");
+            atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
+        }
+    }
+
     private void processUnknownAt(String atString) {
         // TODO (BT)
-        atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR);
+        log("processUnknownAt - atString = "+ atString);
+        String atCommand = parseUnknownAt(atString);
+        int commandType = getAtCommandType(atCommand);
+        if (atCommand.startsWith("+CSCS"))
+            processAtCscs(atCommand.substring(5), commandType);
+        else if (atCommand.startsWith("+CPBS"))
+            processAtCpbs(atCommand.substring(5), commandType);
+        else if (atCommand.startsWith("+CPBR"))
+            processAtCpbr(atCommand.substring(5), commandType, mCurrentDevice);
+        else
+            atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
     }
 
     private void processKeyPressed() {
@@ -1550,6 +1638,43 @@ final class HeadsetStateMachine extends StateMachine {
         }
     }
 
+    public void handleAccessPermissionResult(Intent intent) {
+        log("handleAccessPermissionResult");
+        if(mPhonebook != null) {
+            if (!mPhonebook.getCheckingAccessPermission()) {
+                return;
+            }
+            int atCommandResult = 0;
+            int atCommandErrorCode = 0;
+            //HeadsetBase headset = mHandsfree.getHeadset();
+            // ASSERT: (headset != null) && headSet.isConnected()
+            // REASON: mCheckingAccessPermission is true, otherwise resetAtState
+            // has set mCheckingAccessPermission to false
+            if (intent.getAction().equals(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY)) {
+                if (intent.getIntExtra(BluetoothDevice.EXTRA_CONNECTION_ACCESS_RESULT,
+                    BluetoothDevice.CONNECTION_ACCESS_NO) ==
+                    BluetoothDevice.CONNECTION_ACCESS_YES) {
+                    if (intent.getBooleanExtra(BluetoothDevice.EXTRA_ALWAYS_ALLOWED, false)) {
+                        mCurrentDevice.setTrust(true);
+                    }
+                    atCommandResult = mPhonebook.processCpbrCommand();
+                }
+            }
+            mPhonebook.setCpbrIndex(-1);
+            mPhonebook.setCheckingAccessPermission(false);
+
+            if (atCommandResult >= 0) {
+                atResponseCodeNative(atCommandResult, atCommandErrorCode);
+            }
+            else
+                log("handleAccessPermissionResult - RESULT_NONE");
+        }
+        else {
+            Log.e(TAG, "Phonebook handle null");
+            atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
+        }
+    }
+
     private static final String SCHEME_TEL = "tel";
 
     // Event types for STACK_EVENT message
@@ -1583,6 +1708,9 @@ final class HeadsetStateMachine extends StateMachine {
         }
     }
 
+    /*package*/native boolean atResponseCodeNative(int responseCode, int errorCode);
+    /*package*/ native boolean atResponseStringNative(String responseString);
+
     private native static void classInitNative();
     private native void initializeNative();
     private native void cleanupNative();
@@ -1598,11 +1726,11 @@ final class HeadsetStateMachine extends StateMachine {
                                               int batteryCharge);
     private native boolean notifyDeviceStatusNative(int networkState, int serviceType, int signal,
                                                     int batteryCharge);
-    private native boolean atResponseCodeNative(int responseCode);
+
     private native boolean clccResponseNative(int index, int dir, int status, int mode,
                                               boolean mpty, String number, int type);
     private native boolean copsResponseNative(String operatorName);
-    private native boolean atResponseStringNative(String responseString);
+
     private native boolean phoneStateChangeNative(int numActive, int numHeld, int callState,
                                                   String number, int type);
 }
