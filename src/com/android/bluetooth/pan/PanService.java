@@ -59,8 +59,8 @@ public class PanService extends ProfileService {
 
     private static final int MESSAGE_CONNECT = 1;
     private static final int MESSAGE_DISCONNECT = 2;
-    private static final int MESSAGE_SET_TETHERING = 3;
     private static final int MESSAGE_CONNECT_STATE_CHANGED = 11;
+    private boolean mTetherOn = false;
 
 
     static {
@@ -80,7 +80,7 @@ public class PanService extends ProfileService {
     protected boolean start() {
 
         //Cleanup referenced objects here
-        
+
         if(mPanDevices != null) {
             mPanDevices.clear();
             mPanDevices = null;
@@ -93,7 +93,7 @@ public class PanService extends ProfileService {
             mPanIfName = null;
         if(mHandler != null)
             mHandler.removeCallbacksAndMessages(null);
-        
+
         if (DBG) log("start");
         mPanDevices = new HashMap<BluetoothDevice, BluetoothPanDevice>();
         mBluetoothIfaceAddresses = new ArrayList<String>();
@@ -113,7 +113,7 @@ public class PanService extends ProfileService {
 
         //Cleanup native
         cleanupNative();
-        
+
         if(mPanDevices != null) {
             mPanDevices.clear();
             mPanDevices = null;
@@ -157,12 +157,6 @@ public class PanService extends ProfileService {
                         break;
                     }
                 }
-                    break;
-                case MESSAGE_SET_TETHERING:
-                    boolean tetherOn = (Boolean) msg.obj;
-                    if(tetherOn)
-                        enablePanNative(BluetoothPan.LOCAL_NAP_ROLE | BluetoothPan.LOCAL_PANU_ROLE);
-                    else enablePanNative(BluetoothPan.LOCAL_PANU_ROLE);
                     break;
                 case MESSAGE_CONNECT_STATE_CHANGED:
                 {
@@ -219,15 +213,19 @@ public class PanService extends ProfileService {
         }
         public boolean isTetheringOn() {
             // TODO(BT) have a variable marking the on/off state
-            return isPanNapOn();
+            return mTetherOn;
         }
 
         public void setBluetoothTethering(boolean value) {
-            if(DBG) Log.d(TAG, "setBluetoothTethering: " + value);
+            if(DBG) Log.d(TAG, "setBluetoothTethering: " + value +", mTetherOn: " + mTetherOn);
             enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-            Message msg = mHandler.obtainMessage(MESSAGE_SET_TETHERING);
-            msg.obj = new Boolean(value);
-            mHandler.sendMessage(msg);
+            if(mTetherOn != value) {
+                //drop any existing panu or pan-nap connection when changing the tethering state
+                mTetherOn = value;
+                List<BluetoothDevice> DevList = getConnectedDevices();
+                for(BluetoothDevice dev : DevList)
+                    disconnect(dev);
+            }
         }
 
         public List<BluetoothDevice> getConnectedDevices() {
@@ -321,9 +319,14 @@ public class PanService extends ProfileService {
         if (remote_role == BluetoothPan.LOCAL_PANU_ROLE) {
             Log.d(TAG, "handlePanDeviceStateChange LOCAL_NAP_ROLE:REMOTE_PANU_ROLE");
             if (state == BluetoothProfile.STATE_CONNECTED) {
-                if(DBG) Log.d(TAG, "handlePanDeviceStateChange: nap STATE_CONNECTED, enableTethering iface: " + iface);
+                if(!mTetherOn) {
+                    Log.d(TAG, "handlePanDeviceStateChange bluetooth tethering is off, drop the connection");
+                    disconnectPanNative(getByteAddress(device));
+                    return;
+                }
                 ifaceAddr = enableTethering(iface);
                 if (ifaceAddr == null) Log.e(TAG, "Error seting up tether interface");
+
             } else if (state == BluetoothProfile.STATE_DISCONNECTED) {
                 if (ifaceAddr != null) {
                     mBluetoothIfaceAddresses.remove(ifaceAddr);
