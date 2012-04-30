@@ -18,14 +18,10 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"I-access ang tagapamahala ng pag-download."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Binibigyang-daan ang app na i-access ang BluetoothShare manager at gamitin ito upang maglipat ng mga file."</string>
-    <!-- no translation found for permlab_bluetoothWhitelist (7091552898592306386) -->
-    <skip />
-    <!-- no translation found for permdesc_bluetoothWhitelist (5494513855192170109) -->
-    <skip />
-    <!-- no translation found for permlab_handoverStatus (7316032998801933554) -->
-    <skip />
-    <!-- no translation found for permdesc_handoverStatus (4752738070064786310) -->
-    <skip />
+    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Mag-whitelist ng access ng isang bluetooth device."</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Pinapayagan ang app na pansamantalang mag-whitelist ng isang Bluetooth device, na pinapayagan ang device na iyon na magpadala ng mga file sa device na ito nang walang kumpirmasyon ng user."</string>
+    <string name="permlab_handoverStatus" msgid="7316032998801933554">"Tumanggap ng mga broadcast sa paglilipat ng BT handover."</string>
+    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"Pinapayagan ang pagtanggap ng impormasyon sa katayuan ng paglilipat ng handover mula sa Bluetooth."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Hindi kilalang device"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Hindi alam"</string>
