@@ -19,7 +19,7 @@
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Aceder ao gestor de transferências."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Permite à aplicação aceder ao gestor BluetoothShare e utilizá-lo para transferir ficheiros."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Colocar na lista de autorizações o acesso do dispositivo Bluetooth."</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Permite que a aplicação coloque temporariamente um dispositivo Bluetooth na lista de autorizações, permitindo que o dispositivo envie ficheiros para este dispositivo sem a confirmação do utilizador."</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Permite que a aplicação coloque temporariamente um dispositivo Bluetooth na lista de autorizações, permitindo que esse dispositivo envie ficheiros para este dispositivo sem a confirmação do utilizador."</string>
     <string name="permlab_handoverStatus" msgid="7316032998801933554">"Receber transmissões de transferência de entrega de Bluetooth."</string>
     <string name="permdesc_handoverStatus" msgid="4752738070064786310">"Permite receber informações de estado de transferência de entrega a partir de Bluetooth."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
