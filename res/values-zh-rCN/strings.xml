@@ -18,7 +18,7 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"访问下载管理器。"</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"允许应用访问蓝牙共享 (BluetoothShare) 管理器并将其用于传输文件。"</string>
-    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"蓝牙设备访问权限列入白名单。"</string>
+    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"将蓝牙设备列入访问权限白名单。"</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"允许该应用暂时将某个蓝牙设备列入白名单，从而允许该设备在不经过用户确认的情况下，将文件发送到本设备。"</string>
     <string name="permlab_handoverStatus" msgid="7316032998801933554">"接收蓝牙交接传输广播。"</string>
     <string name="permdesc_handoverStatus" msgid="4752738070064786310">"允许通过蓝牙接收交接传输状态信息。"</string>
