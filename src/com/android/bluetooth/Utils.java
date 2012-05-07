@@ -7,7 +7,11 @@ package com.android.bluetooth;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.os.ParcelUuid;
+import android.util.Log;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.UUID;
@@ -17,6 +21,7 @@ import java.util.UUID;
  */
 
 final public class Utils {
+    private static final String TAG = "BluetoothUtils";
     static final int BD_ADDR_LEN = 6; // bytes
     static final int BD_UUID_LEN = 16; // bytes
 
@@ -125,6 +130,36 @@ final public class Utils {
             case BluetoothAdapter.STATE_TURNING_ON : return "STATE_TURNING_ON";
             case BluetoothAdapter.STATE_TURNING_OFF : return "STATE_TURNING_OFF";
             default : return "UNKNOWN";
+        }
+    }
+
+    public static void copyStream(InputStream is, OutputStream os, int bufferSize) throws IOException {
+        if (is != null && os!=null) {
+            byte[] buffer = new byte[bufferSize];
+            int bytesRead=0;
+            while ( (bytesRead = is.read(buffer))>=0) {
+                os.write(buffer,0,bytesRead);
+            }
+        }
+    }
+
+    public static void safeCloseStream(InputStream is) {
+        if (is != null) {
+            try {
+                is.close();
+            } catch (Throwable t) {
+                Log.d(TAG,"Error closing stream",t);
+            }
+        }
+    }
+
+    public static void safeCloseStream(OutputStream os) {
+        if (os != null) {
+            try {
+                os.close();
+            } catch (Throwable t) {
+                Log.d(TAG,"Error closing stream",t);
+            }
         }
     }
 }

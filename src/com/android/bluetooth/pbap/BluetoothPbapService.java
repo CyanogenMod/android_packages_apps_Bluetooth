@@ -196,7 +196,7 @@ public class BluetoothPbapService extends Service {
         if (!mHasStarted) {
             mHasStarted = true;
             if (VERBOSE) Log.v(TAG, "Starting PBAP service");
-
+            BluetoothPbapConfig.init(this);
             int state = mAdapter.getState();
             if (state == BluetoothAdapter.STATE_ON) {
                 mSessionStatusHandler.sendMessage(mSessionStatusHandler

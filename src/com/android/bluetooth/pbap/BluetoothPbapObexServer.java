@@ -849,7 +849,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 return ResponseCodes.OBEX_HTTP_NOT_FOUND;
             } else if (intIndex == 0) {
                 // For PB_PATH, 0.vcf is the phone number of this phone.
-                String ownerVcard = mVcardManager.getOwnerPhoneNumberVcard(vcard21);
+                String ownerVcard = mVcardManager.getOwnerPhoneNumberVcard(vcard21,null);
                 return pushBytes(op, ownerVcard);
             } else {
                 return mVcardManager.composeAndSendPhonebookOneVcard(op, intIndex, vcard21, null,
@@ -920,7 +920,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         boolean vcard21 = appParamValue.vcard21;
         if (appParamValue.needTag == BluetoothPbapObexServer.ContentType.PHONEBOOK) {
             if (startPoint == 0) {
-                String ownerVcard = mVcardManager.getOwnerPhoneNumberVcard(vcard21);
+                String ownerVcard = mVcardManager.getOwnerPhoneNumberVcard(vcard21,null);
                 if (endPoint == 0) {
                     return pushBytes(op, ownerVcard);
                 } else {
