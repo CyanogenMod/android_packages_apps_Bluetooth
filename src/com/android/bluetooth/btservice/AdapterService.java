@@ -52,6 +52,9 @@ import android.os.ServiceManager;
 public class AdapterService extends Service {
     private static final String TAG = "BluetoothAdapterService";
     private static final boolean DBG = true;
+    private static final boolean TRACE_REF = true;
+    //For Debugging only
+    private static int sRefCount=0;
 
     /**
      * List of profile services to support.Comment out to disable a profile
@@ -81,24 +84,60 @@ public class AdapterService extends Service {
     }
 
     private static AdapterService sAdapterService;
-    public static AdapterService getAdapterService(){
-        return sAdapterService;
+    public static synchronized AdapterService getAdapterService(){
+        if (sAdapterService != null && !sAdapterService.mCleaningUp) {
+            if (DBG) Log.d(TAG, "getAdapterService(): returning " + sAdapterService);
+            return sAdapterService;
+        }
+        if (DBG)  {
+            if (sAdapterService == null) {
+                Log.d(TAG, "getAdapterService(): service not available");
+            } else if (sAdapterService.mCleaningUp) {
+                Log.d(TAG,"getAdapterService(): service is cleaning up");
+            }
+        }
+        return null;
     }
 
-    private IBluetoothManager mBluetoothManager;
-    private IBluetooth mBluetoothService;
-    private AdapterProperties mAdapterProperties;
-    private int mAdapterState;
-    private Context mContext;
+    private static synchronized void setAdapterService(AdapterService instance) {
+        if (instance != null && !instance.mCleaningUp) {
+            if (DBG) Log.d(TAG, "setAdapterService(): set to: " + sAdapterService);
+            sAdapterService = instance;
+        } else {
+            if (DBG)  {
+                if (sAdapterService == null) {
+                    Log.d(TAG, "setAdapterService(): service not available");
+                } else if (sAdapterService.mCleaningUp) {
+                    Log.d(TAG,"setAdapterService(): service is cleaning up");
+                }
+            }
+        }
+    }
 
+    private static synchronized void clearAdapterService() {
+        sAdapterService = null;
+    }
+
+    private AdapterProperties mAdapterProperties;
     private AdapterState mAdapterStateMachine;
     private BondStateMachine mBondStateMachine;
     private JniCallbacks mJniCallbacks;
     private RemoteDevices mRemoteDevices;
     private boolean mProfilesStarted;
     private boolean mNativeAvailable;
+    private boolean mCleaningUp;
     private HashMap<String,Integer> mProfileServicesState = new HashMap<String,Integer>();
     private int mCurrentRequestId;
+
+    public AdapterService() {
+        super();
+        if (TRACE_REF) {
+            synchronized (AdapterService.class) {
+                sRefCount++;
+                Log.d(TAG, "REFCOUNT: CREATED. INSTANCE_COUNT" + sRefCount);
+            }
+        }
+    }
 
     public void onProfileConnectionStateChanged(BluetoothDevice device, int profileId, int newState, int prevState) {
         Message m = mHandler.obtainMessage(MESSAGE_PROFILE_CONNECTION_STATE_CHANGED);
@@ -112,10 +151,10 @@ public class AdapterService extends Service {
     }
 
     private void processProfileStateChanged(BluetoothDevice device, int profileId, int newState, int prevState) {
-        if (mBluetoothService != null) {
+        IBluetooth.Stub binder = mBinder;
+        if (binder != null) {
             try {
-                mBluetoothService.sendConnectionStateChange(device, profileId, newState,
-                prevState);
+                binder.sendConnectionStateChange(device, profileId, newState,prevState);
             } catch (RemoteException re) {
                 Log.e(TAG, "",re);
             }
@@ -167,7 +206,9 @@ public class AdapterService extends Service {
                 }
             }
             if (DBG) Log.d(TAG, "All profile services stopped...");
-            onProfilesStopped();
+            //Send message to state machine
+            mProfilesStarted=false;
+            mAdapterStateMachine.sendMessage(mAdapterStateMachine.obtainMessage(AdapterState.STOPPED));
         } else if (isTurningOn) {
             //Process start pending
             //Check if all services are started if so, update state
@@ -183,7 +224,9 @@ public class AdapterService extends Service {
                 }
             }
             if (DBG) Log.d(TAG, "All profile services started.");
-            onProfilesStarted();
+            mProfilesStarted=true;
+            //Send message to state machine
+            mAdapterStateMachine.sendMessage(mAdapterStateMachine.obtainMessage(AdapterState.STARTED));
         }
     }
 
@@ -191,11 +234,10 @@ public class AdapterService extends Service {
     public void onCreate() {
         super.onCreate();
         if (DBG) debugLog("onCreate");
-        mContext = this;
-        sAdapterService = this;
-        mAdapterProperties = new AdapterProperties(this, mContext);
-        mAdapterStateMachine =  new AdapterState(this, mContext, mAdapterProperties);
-        mJniCallbacks = JniCallbacks.getInstance(null, mAdapterProperties,mAdapterStateMachine,null);
+        mBinder = new AdapterServiceBinder(this);
+        mAdapterProperties = new AdapterProperties(this);
+        mAdapterStateMachine =  new AdapterState(this, mAdapterProperties);
+        mJniCallbacks =  new JniCallbacks(mAdapterStateMachine, mAdapterProperties);
         initNative();
         mNativeAvailable=true;
         mAdapterStateMachine.start();
@@ -203,6 +245,7 @@ public class AdapterService extends Service {
         //Load the name and address
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDADDR);
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDNAME);
+
     }
 
     @Override
@@ -222,8 +265,11 @@ public class AdapterService extends Service {
     }
 
     public int onStartCommand(Intent intent ,int flags, int startId) {
-
         mCurrentRequestId = startId;
+        if (mCleaningUp) {
+            Log.e(TAG,"*************Received new request while service is cleaning up****************************");
+        }
+
         if (DBG) debugLog("onStartCommand: flags = " + flags + ", startId = " + startId);
         if (checkCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM)!=PackageManager.PERMISSION_GRANTED) {
             Log.e(TAG, "Permission denied!");
@@ -275,89 +321,40 @@ public class AdapterService extends Service {
         for (int i=0; i < SUPPORTED_PROFILE_SERVICES.length;i++) {
             mProfileServicesState.put(SUPPORTED_PROFILE_SERVICES[i].getName(),BluetoothAdapter.STATE_OFF);
         }
-
-        mRemoteDevices = new RemoteDevices(this, mContext);
-        mRemoteDevices.init();
+        mRemoteDevices = new RemoteDevices(this);
+        mBondStateMachine = new BondStateMachine(this, mAdapterProperties, mRemoteDevices);
         mAdapterProperties.init(mRemoteDevices);
-        mBondStateMachine = new BondStateMachine(this, mContext, mAdapterProperties, mRemoteDevices);
-        mJniCallbacks.init(mRemoteDevices, mAdapterProperties,mAdapterStateMachine,mBondStateMachine);
-
-        //Init BluetoothManager
-        if (DBG) {debugLog("processStart(): Initializing Bluetooth Manager");}
-        IBinder b = ServiceManager.getService(BluetoothAdapter.BLUETOOTH_MANAGER_SERVICE);
-        if (b != null) {
-            mBluetoothManager = IBluetoothManager.Stub.asInterface(b);
-            if (mBluetoothManager != null) {
-                try {
-                    Log.d(TAG, "FRED: Registering manager callback " + mManagerCallback);
-                    mBluetoothService = mBluetoothManager.registerAdapter(mManagerCallback);
-                } catch (RemoteException re) {
-                    Log.e(TAG, "",re);
-                }
-            }
-        }
+        mJniCallbacks.init(mBondStateMachine,mRemoteDevices);
 
         //Start Bond State Machine
         if (DBG) {debugLog("processStart(): Starting Bond State Machine");}
         mBondStateMachine.start();
 
+        //FIXME: Set static instance here???
+        setAdapterService(this);
+
         //Start profile services
-        if (SUPPORTED_PROFILE_SERVICES.length==0 || mProfilesStarted) {
-            //Skip starting profiles and go to next step
-            if (DBG) {debugLog("processStart(): Profile Services started");}
-            Message m = mAdapterStateMachine.obtainMessage(AdapterState.STARTED);
-            mAdapterStateMachine.sendMessage(m);
-        } else {
+        if (!mProfilesStarted && SUPPORTED_PROFILE_SERVICES.length >0) {
             //Startup all profile services
             setProfileServiceState(SUPPORTED_PROFILE_SERVICES,BluetoothAdapter.STATE_ON);
+        }else {
+            if (DBG) {debugLog("processStart(): Profile Services alreay started");}
+            mAdapterStateMachine.sendMessage(mAdapterStateMachine.obtainMessage(AdapterState.STARTED));
         }
     }
 
     void startBluetoothDisable() {
-        Log.d(TAG,"startBluetoothDisable()");
-        Message m = mAdapterStateMachine.obtainMessage(AdapterState.BEGIN_DISABLE);
-        mAdapterStateMachine.sendMessage(m);
+        mAdapterStateMachine.sendMessage(mAdapterStateMachine.obtainMessage(AdapterState.BEGIN_DISABLE));
     }
-
-    void onProfilesStarted(){
-        Log.d(TAG,"onProfilesStarted()");
-        mProfilesStarted=true;
-        Message m = mAdapterStateMachine.obtainMessage(AdapterState.STARTED);
-        mAdapterStateMachine.sendMessage(m);
-    }
-
-    void onProfilesStopped() {
-        Log.d(TAG,"onProfilesStopped()");
-        mProfilesStarted=false;
-        //Message m = mAdapterStateMachine.obtainMessage(AdapterState.DISABLE);
-        Message m = mAdapterStateMachine.obtainMessage(AdapterState.STOPPED);
-        mAdapterStateMachine.sendMessage(m);
-    }
-
 
     boolean stopProfileServices() {
-        if (SUPPORTED_PROFILE_SERVICES.length==0 || !mProfilesStarted) {
-            if (DBG) {debugLog("processDisable(): No profiles services to stop or already stopped.");}
+        if (mProfilesStarted && SUPPORTED_PROFILE_SERVICES.length>0) {
+            setProfileServiceState(SUPPORTED_PROFILE_SERVICES,BluetoothAdapter.STATE_OFF);
+            return true;
+        } else {
+            if (DBG) {debugLog("stopProfileServices(): No profiles services to stop or already stopped.");}
             return false;
         }
-        setProfileServiceState(SUPPORTED_PROFILE_SERVICES,BluetoothAdapter.STATE_OFF);
-        return true;
-    }
-
-    void processStopped() {
-        Log.d(TAG, "processStopped()");
-
-        if (mBluetoothManager != null) {
-            try {
-                Log.d(TAG,"FRED: Unregistering manager callback " + mManagerCallback);
-                mBluetoothManager.unregisterAdapter(mManagerCallback);
-            } catch (RemoteException re) {
-                Log.e(TAG, "",re);
-            }
-        }
-        mBondStateMachine.quit();
-        mBondStateMachine.cleanup();
-        mBondStateMachine = null;
     }
 
     void startShutdown(int requestId) {
@@ -366,7 +363,6 @@ public class AdapterService extends Service {
             Log.w(TAG, "Ignoring shutdown request. Invalid requestId");
             return;
         }
-
         Message m = mHandler.obtainMessage(MESSAGE_SHUTDOWN);
         synchronized(mHandler) {
             mHandler.sendMessageDelayed(m, SHUTDOWN_TIMEOUT);
@@ -376,6 +372,29 @@ public class AdapterService extends Service {
 
     void cleanup () {
         if (DBG)debugLog("cleanup()");
+        if (mCleaningUp) {
+            Log.w(TAG,"*************service already starting to cleanup... Ignoring cleanup request.........");
+            return;
+        }
+
+        mCleaningUp = true;
+
+        if (mAdapterStateMachine != null) {
+            mAdapterStateMachine.quit();
+            mAdapterStateMachine.cleanup();
+            mAdapterStateMachine = null;
+        }
+
+        if (mBondStateMachine != null) {
+            mBondStateMachine.quit();
+            mBondStateMachine.cleanup();
+            mBondStateMachine = null;
+        }
+
+        if (mRemoteDevices != null) {
+            mRemoteDevices.cleanup();
+            mRemoteDevices = null;
+        }
 
         if (mNativeAvailable) {
             Log.d(TAG, "Cleaning up adapter native....");
@@ -384,42 +403,30 @@ public class AdapterService extends Service {
             mNativeAvailable=false;
         }
 
-        if (mAdapterStateMachine != null) {
-            mAdapterStateMachine.quit();
-            mAdapterStateMachine.cleanup();
-            mAdapterStateMachine = null;
-        }
-
-        if (mRemoteDevices != null) {
-            mRemoteDevices.cleanup();
-            mRemoteDevices = null;
-        }
-
         if (mAdapterProperties != null) {
             mAdapterProperties.cleanup();
             mAdapterProperties = null;
         }
 
-        mProfileServicesState.clear();
+        if (mJniCallbacks != null) {
+            mJniCallbacks.cleanup();
+            mJniCallbacks = null;
+        }
+
+        if (mProfileServicesState != null) {
+            mProfileServicesState.clear();
+            mProfileServicesState= null;
+        }
+
+        //FIXME: Set static instance here???
+        clearAdapterService();
+
+        if (mBinder != null) {
+            mBinder.cleanup();
+            mBinder = null;
+        }
         if (DBG)debugLog("cleanup() done");
     }
-
-    final private IBluetoothManagerCallback mManagerCallback =
-            new IBluetoothManagerCallback.Stub() {
-                public void onBluetoothServiceUp(IBluetooth bluetoothService) {
-                    if (DBG) Log.d(TAG, "onBluetoothServiceUp");
-                    synchronized (mManagerCallback) {
-                        mBluetoothService = bluetoothService;
-                    }
-                }
-
-                public void onBluetoothServiceDown() {
-                    if (DBG) Log.d(TAG, "onBluetoothServiceDown " + this);
-                    synchronized (mManagerCallback) {
-                        mBluetoothService = null;
-                    }
-                }
-        };
 
     private static final int MESSAGE_PROFILE_SERVICE_STATE_CHANGED =1;
     private static final int MESSAGE_PROFILE_CONNECTION_STATE_CHANGED=20;
@@ -487,285 +494,525 @@ public class AdapterService extends Service {
         }
     }
 
+    private boolean isAvailable() {
+        return !mCleaningUp;
+    }
+
     /**
      * Handlers for incoming service calls
      */
-    private final IBluetooth.Stub mBinder = new IBluetooth.Stub() {
-        public boolean isEnabled() {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            return mAdapterProperties.getState() == BluetoothAdapter.STATE_ON;
-        }
+    private AdapterServiceBinder mBinder;
 
-        public int getState() {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            debugLog("getState(): mAdapterProperties: " + mAdapterProperties);
-            return mAdapterProperties.getState();
-        }
+    /**
+     * The Binder implementation must be declared to be a static class, with
+     * the AdapterService instance passed in the constructor. Furthermore,
+     * when the AdapterService shuts down, the reference to the AdapterService 
+     * must be explicitly removed.
+     *
+     * Otherwise, a memory leak can occur from repeated starting/stopping the
+     * service...Please refer to android.os.Binder for further details on
+     * why an inner instance class should be avoided.
+     *
+     */
+    private static class AdapterServiceBinder extends IBluetooth.Stub {
+        private AdapterService mService;
 
-        public boolean enable() {
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                    "Need BLUETOOTH ADMIN permission");
-            if (DBG) debugLog("enable() called...");
-            Message m =
-                    mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_ON);
-            m.arg1 = 1; //persist state
-            mAdapterStateMachine.sendMessage(m);
+        public AdapterServiceBinder(AdapterService svc) {
+            mService = svc;
+        }
+        public boolean cleanup() {
+            mService = null;
             return true;
         }
 
-        public boolean disable(boolean persist) {
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                    "Need BLUETOOTH ADMIN permission");
-            if (DBG) debugLog("disable() called...");
-            int val = (persist ? 1 : 0);
-            Message m =
-                    mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_OFF);
-            m.arg1 = val;
-            mAdapterStateMachine.sendMessage(m);
-            return true;
-        }
-
-        public String getAddress() {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            String addrString = null;
-            byte[] address = mAdapterProperties.getAddress();
-            return Utils.getAddressStringFromByte(address);
-        }
-
-        public ParcelUuid[] getUuids() {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            return mAdapterProperties.getUuids();
-        }
-
-        public String getName() {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM,
-                    "Need BLUETOOTH permission");
-            try {
-                return mAdapterProperties.getName();
-            } catch (Throwable t) {
-                Log.d(TAG, "Unexpected exception while calling getName()",t);
+        public AdapterService getService() {
+            if (mService  != null && mService.isAvailable()) {
+                return mService;
             }
             return null;
         }
+        public boolean isEnabled() {
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.isEnabled();
+        }
+
+        public int getState() {
+            AdapterService service = getService();
+            if (service == null) return  BluetoothAdapter.STATE_OFF;
+            return service.getState();
+        }
+
+        public boolean enable() {
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.enable();
+        }
+
+        public boolean disable(boolean persist) {
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.disable(persist);
+        }
+
+        public String getAddress() {
+            AdapterService service = getService();
+            if (service == null) return null;
+            return service.getAddress();
+        }
+
+        public ParcelUuid[] getUuids() {
+            AdapterService service = getService();
+            if (service == null) return new ParcelUuid[0];
+            return service.getUuids();
+        }
+
+        public String getName() {
+            AdapterService service = getService();
+            if (service == null) return null;
+            return service.getName();
+        }
 
         public boolean setName(String name) {
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                    "Need BLUETOOTH ADMIN permission");
-            return mAdapterProperties.setName(name);
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.setName(name);
         }
 
         public int getScanMode() {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            return mAdapterProperties.getScanMode();
+            AdapterService service = getService();
+            if (service == null) return BluetoothAdapter.SCAN_MODE_NONE;
+            return service.getScanMode();
         }
 
         public boolean setScanMode(int mode, int duration) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            setDiscoverableTimeout(duration);
-
-            int newMode = convertScanModeToHal(mode);
-            return mAdapterProperties.setScanMode(newMode);
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.setScanMode(mode,duration);
         }
 
         public int getDiscoverableTimeout() {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            return mAdapterProperties.getDiscoverableTimeout();
+            AdapterService service = getService();
+            if (service == null) return 0;
+            return service.getDiscoverableTimeout();
         }
 
         public boolean setDiscoverableTimeout(int timeout) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            return mAdapterProperties.setDiscoverableTimeout(timeout);
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.setDiscoverableTimeout(timeout);
         }
 
         public boolean startDiscovery() {
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                    "Need BLUETOOTH ADMIN permission");
-            return startDiscoveryNative();
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.startDiscovery();
         }
 
         public boolean cancelDiscovery() {
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                    "Need BLUETOOTH ADMIN permission");
-            return cancelDiscoveryNative();
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.cancelDiscovery();
         }
-
         public boolean isDiscovering() {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            return mAdapterProperties.isDiscovering();
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.isDiscovering();
         }
 
         public BluetoothDevice[] getBondedDevices() {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            debugLog("Get Bonded Devices being called");
-            return mAdapterProperties.getBondedDevices();
+            AdapterService service = getService();
+            if (service == null) return new BluetoothDevice[0];
+            return service.getBondedDevices();
         }
 
         public int getAdapterConnectionState() {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            return mAdapterProperties.getConnectionState();
+            AdapterService service = getService();
+            if (service == null) return BluetoothAdapter.STATE_DISCONNECTED;
+            return service.getAdapterConnectionState();
         }
 
         public int getProfileConnectionState(int profile) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            return mAdapterProperties.getProfileConnectionState(profile);
+            AdapterService service = getService();
+            if (service == null) return BluetoothProfile.STATE_DISCONNECTED;
+            return service.getProfileConnectionState(profile);
         }
 
         public boolean createBond(BluetoothDevice device) {
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                "Need BLUETOOTH ADMIN permission");
-            DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-            if (deviceProp != null && deviceProp.getBondState() != BluetoothDevice.BOND_NONE) {
-                return false;
-            }
-
-            Message msg = mBondStateMachine.obtainMessage(BondStateMachine.CREATE_BOND);
-            msg.obj = device;
-            mBondStateMachine.sendMessage(msg);
-            return true;
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.createBond(device);
         }
 
         public boolean cancelBondProcess(BluetoothDevice device) {
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
-            byte[] addr = Utils.getBytesFromAddress(device.getAddress());
-            return cancelBondNative(addr);
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.cancelBondProcess(device);
         }
 
         public boolean removeBond(BluetoothDevice device) {
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                "Need BLUETOOTH ADMIN permission");
-            DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-            if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDED) {
-                return false;
-            }
-            Message msg = mBondStateMachine.obtainMessage(BondStateMachine.REMOVE_BOND);
-            msg.obj = device;
-            mBondStateMachine.sendMessage(msg);
-            return true;
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.removeBond(device);
         }
 
         public int getBondState(BluetoothDevice device) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-            if (deviceProp == null) {
-                return BluetoothDevice.BOND_NONE;
-            }
-            return deviceProp.getBondState();
+            AdapterService service = getService();
+            if (service == null) return BluetoothDevice.BOND_NONE;
+            return service.getBondState(device);
         }
 
         public String getRemoteName(BluetoothDevice device) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-            if (deviceProp == null) return null;
-            return deviceProp.getName();
+            AdapterService service = getService();
+            if (service == null) return null;
+            return service.getRemoteName(device);
         }
 
         public String getRemoteAlias(BluetoothDevice device) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-            if (deviceProp == null) return null;
-            return deviceProp.getAlias();
+            AdapterService service = getService();
+            if (service == null) return null;
+            return service.getRemoteAlias(device);
         }
 
         public boolean setRemoteAlias(BluetoothDevice device, String name) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-            if (deviceProp == null) return false;
-            deviceProp.setAlias(name);
-            return true;
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.setRemoteAlias(device, name);
         }
 
         public int getRemoteClass(BluetoothDevice device) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-            if (deviceProp == null) return 0;
-
-            return deviceProp.getBluetoothClass();
+            AdapterService service = getService();
+            if (service == null) return 0;
+            return service.getRemoteClass(device);
         }
 
         public ParcelUuid[] getRemoteUuids(BluetoothDevice device) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-            if (deviceProp == null) return null;
-            return deviceProp.getUuids();
+            AdapterService service = getService();
+            if (service == null) return null;
+            return service.getRemoteUuids(device);
         }
 
         public boolean fetchRemoteUuids(BluetoothDevice device) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            mRemoteDevices.fetchUuids(device);
-            return true;
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.fetchRemoteUuids(device);
         }
 
         public boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-            if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDING) {
-                return false;
-            }
-
-            byte[] addr = Utils.getBytesFromAddress(device.getAddress());
-            return pinReplyNative(addr, accept, len, pinCode);
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.setPin(device, accept, len, pinCode);
         }
 
         public boolean setPasskey(BluetoothDevice device, boolean accept, int len, byte[] passkey) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-            if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDING) {
-                return false;
-            }
-
-            byte[] addr = Utils.getBytesFromAddress(device.getAddress());
-            return sspReplyNative(addr, AbstractionLayer.BT_SSP_VARIANT_PASSKEY_ENTRY, accept,
-                    Utils.byteArrayToInt(passkey));
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.setPasskey(device, accept, len, passkey);
         }
 
         public boolean setPairingConfirmation(BluetoothDevice device, boolean accept) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-            if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDING) {
-                return false;
-            }
-
-            byte[] addr = Utils.getBytesFromAddress(device.getAddress());
-            return sspReplyNative(addr, AbstractionLayer.BT_SSP_VARIANT_PASSKEY_CONFIRMATION,
-                    accept, 0);
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.setPairingConfirmation(device, accept);
         }
 
         public void sendConnectionStateChange(BluetoothDevice
                 device, int profile, int state, int prevState) {
-            // TODO(BT) permission check?
-            // Since this is a binder call check if Bluetooth is on still
-            if (getState() == BluetoothAdapter.STATE_OFF) return;
-
-            mAdapterProperties.sendConnectionStateChange(device, profile, state, prevState);
-
+            AdapterService service = getService();
+            if (service == null) return;
+            service.sendConnectionStateChange(device, profile, state, prevState);
         }
 
         public ParcelFileDescriptor connectSocket(BluetoothDevice device, int type,
                                                   ParcelUuid uuid, int port, int flag) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            int fd = connectSocketNative(Utils.getBytesFromAddress(device.getAddress()),
-                       type, Utils.uuidToByteArray(uuid), port, flag);
-            if (fd < 0) {
-                errorLog("Failed to connect socket");
-                return null;
-            }
-            return ParcelFileDescriptor.adoptFd(fd);
+            AdapterService service = getService();
+            if (service == null) return null;
+            return service.connectSocket(device, type, uuid, port, flag);
         }
 
         public ParcelFileDescriptor createSocketChannel(int type, String serviceName,
                                                         ParcelUuid uuid, int port, int flag) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            int fd =  createSocketChannelNative(type, serviceName,
-                                     Utils.uuidToByteArray(uuid), port, flag);
-            if (fd < 0) {
-                errorLog("Failed to create socket channel");
-                return null;
-            }
-            return ParcelFileDescriptor.adoptFd(fd);
+            AdapterService service = getService();
+            if (service == null) return null;
+            return service.createSocketChannel(type, serviceName, uuid, port, flag);
         }
     };
 
-    private int convertScanModeToHal(int mode) {
+
+    //----API Methods--------
+     boolean isEnabled() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return mAdapterProperties.getState() == BluetoothAdapter.STATE_ON;
+    }
+
+     int getState() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        debugLog("getState(): mAdapterProperties: " + mAdapterProperties);
+        return mAdapterProperties.getState();
+    }
+
+     boolean enable() {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                "Need BLUETOOTH ADMIN permission");
+        if (DBG) debugLog("enable() called...");
+        Message m =
+                mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_ON);
+        m.arg1 = 1; //persist state
+        mAdapterStateMachine.sendMessage(m);
+        return true;
+    }
+
+     boolean disable(boolean persist) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                "Need BLUETOOTH ADMIN permission");
+        if (DBG) debugLog("disable() called...");
+        int val = (persist ? 1 : 0);
+        Message m =
+                mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_OFF);
+        m.arg1 = val;
+        mAdapterStateMachine.sendMessage(m);
+        return true;
+    }
+
+     String getAddress() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        String addrString = null;
+        byte[] address = mAdapterProperties.getAddress();
+        return Utils.getAddressStringFromByte(address);
+    }
+
+     ParcelUuid[] getUuids() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return mAdapterProperties.getUuids();
+    }
+
+     String getName() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM,
+                "Need BLUETOOTH permission");
+        try {
+            return mAdapterProperties.getName();
+        } catch (Throwable t) {
+            Log.d(TAG, "Unexpected exception while calling getName()",t);
+        }
+        return null;
+    }
+
+     boolean setName(String name) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                "Need BLUETOOTH ADMIN permission");
+        return mAdapterProperties.setName(name);
+    }
+
+     int getScanMode() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return mAdapterProperties.getScanMode();
+    }
+
+     boolean setScanMode(int mode, int duration) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        setDiscoverableTimeout(duration);
+
+        int newMode = convertScanModeToHal(mode);
+        return mAdapterProperties.setScanMode(newMode);
+    }
+
+     int getDiscoverableTimeout() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return mAdapterProperties.getDiscoverableTimeout();
+    }
+
+     boolean setDiscoverableTimeout(int timeout) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return mAdapterProperties.setDiscoverableTimeout(timeout);
+    }
+
+     boolean startDiscovery() {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                "Need BLUETOOTH ADMIN permission");
+        return startDiscoveryNative();
+    }
+
+     boolean cancelDiscovery() {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                "Need BLUETOOTH ADMIN permission");
+        return cancelDiscoveryNative();
+    }
+
+     boolean isDiscovering() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return mAdapterProperties.isDiscovering();
+    }
+
+     BluetoothDevice[] getBondedDevices() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        debugLog("Get Bonded Devices being called");
+        return mAdapterProperties.getBondedDevices();
+    }
+
+     int getAdapterConnectionState() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return mAdapterProperties.getConnectionState();
+    }
+
+     int getProfileConnectionState(int profile) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return mAdapterProperties.getProfileConnectionState(profile);
+    }
+
+     boolean createBond(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+            "Need BLUETOOTH ADMIN permission");
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp != null && deviceProp.getBondState() != BluetoothDevice.BOND_NONE) {
+            return false;
+        }
+
+        Message msg = mBondStateMachine.obtainMessage(BondStateMachine.CREATE_BOND);
+        msg.obj = device;
+        mBondStateMachine.sendMessage(msg);
+        return true;
+    }
+
+     boolean cancelBondProcess(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        byte[] addr = Utils.getBytesFromAddress(device.getAddress());
+        return cancelBondNative(addr);
+    }
+
+     boolean removeBond(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDED) {
+            return false;
+        }
+        Message msg = mBondStateMachine.obtainMessage(BondStateMachine.REMOVE_BOND);
+        msg.obj = device;
+        mBondStateMachine.sendMessage(msg);
+        return true;
+    }
+
+     int getBondState(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp == null) {
+            return BluetoothDevice.BOND_NONE;
+        }
+        return deviceProp.getBondState();
+    }
+
+     String getRemoteName(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp == null) return null;
+        return deviceProp.getName();
+    }
+
+     String getRemoteAlias(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp == null) return null;
+        return deviceProp.getAlias();
+    }
+
+     boolean setRemoteAlias(BluetoothDevice device, String name) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp == null) return false;
+        deviceProp.setAlias(name);
+        return true;
+    }
+
+     int getRemoteClass(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp == null) return 0;
+
+        return deviceProp.getBluetoothClass();
+    }
+
+     ParcelUuid[] getRemoteUuids(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp == null) return null;
+        return deviceProp.getUuids();
+    }
+
+     boolean fetchRemoteUuids(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        mRemoteDevices.fetchUuids(device);
+        return true;
+    }
+
+     boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDING) {
+            return false;
+        }
+
+        byte[] addr = Utils.getBytesFromAddress(device.getAddress());
+        return pinReplyNative(addr, accept, len, pinCode);
+    }
+
+     boolean setPasskey(BluetoothDevice device, boolean accept, int len, byte[] passkey) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDING) {
+            return false;
+        }
+
+        byte[] addr = Utils.getBytesFromAddress(device.getAddress());
+        return sspReplyNative(addr, AbstractionLayer.BT_SSP_VARIANT_PASSKEY_ENTRY, accept,
+                Utils.byteArrayToInt(passkey));
+    }
+
+     boolean setPairingConfirmation(BluetoothDevice device, boolean accept) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDING) {
+            return false;
+        }
+
+        byte[] addr = Utils.getBytesFromAddress(device.getAddress());
+        return sspReplyNative(addr, AbstractionLayer.BT_SSP_VARIANT_PASSKEY_CONFIRMATION,
+                accept, 0);
+    }
+
+     void sendConnectionStateChange(BluetoothDevice
+            device, int profile, int state, int prevState) {
+        // TODO(BT) permission check?
+        // Since this is a binder call check if Bluetooth is on still
+        if (getState() == BluetoothAdapter.STATE_OFF) return;
+
+        mAdapterProperties.sendConnectionStateChange(device, profile, state, prevState);
+
+    }
+
+     ParcelFileDescriptor connectSocket(BluetoothDevice device, int type,
+                                              ParcelUuid uuid, int port, int flag) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        int fd = connectSocketNative(Utils.getBytesFromAddress(device.getAddress()),
+                   type, Utils.uuidToByteArray(uuid), port, flag);
+        if (fd < 0) {
+            errorLog("Failed to connect socket");
+            return null;
+        }
+        return ParcelFileDescriptor.adoptFd(fd);
+    }
+
+     ParcelFileDescriptor createSocketChannel(int type, String serviceName,
+                                                    ParcelUuid uuid, int port, int flag) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        int fd =  createSocketChannelNative(type, serviceName,
+                                 Utils.uuidToByteArray(uuid), port, flag);
+        if (fd < 0) {
+            errorLog("Failed to create socket channel");
+            return null;
+        }
+        return ParcelFileDescriptor.adoptFd(fd);
+    }
+
+    private static int convertScanModeToHal(int mode) {
         switch (mode) {
             case BluetoothAdapter.SCAN_MODE_NONE:
                 return AbstractionLayer.BT_SCAN_MODE_NONE;
@@ -774,11 +1021,11 @@ public class AdapterService extends Service {
             case BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE:
                 return AbstractionLayer.BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE;
         }
-        errorLog("Incorrect scan mode in convertScanModeToHal");
+       // errorLog("Incorrect scan mode in convertScanModeToHal");
         return -1;
     }
 
-    int convertScanModeFromHal(int mode) {
+    static int convertScanModeFromHal(int mode) {
         switch (mode) {
             case AbstractionLayer.BT_SCAN_MODE_NONE:
                 return BluetoothAdapter.SCAN_MODE_NONE;
@@ -787,7 +1034,7 @@ public class AdapterService extends Service {
             case AbstractionLayer.BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE:
                 return BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE;
         }
-        errorLog("Incorrect scan mode in convertScanModeFromHal");
+        //errorLog("Incorrect scan mode in convertScanModeFromHal");
         return -1;
     }
 
@@ -830,4 +1077,14 @@ public class AdapterService extends Service {
                                            byte[] uuid, int port, int flag);
     private native int createSocketChannelNative(int type, String serviceName,
                                                  byte[] uuid, int port, int flag);
+
+    protected void finalize() {
+        cleanup();
+        if (TRACE_REF) {
+            synchronized (AdapterService.class) {
+                sRefCount--;
+                Log.d(TAG, "REFCOUNT: FINALIZED. INSTANCE_COUNT= " + sRefCount);
+            }
+        }
+    }
 }

@@ -55,6 +55,8 @@ import java.util.Set;
 final class HeadsetStateMachine extends StateMachine {
     private static final String TAG = "HeadsetStateMachine";
     private static final boolean DBG = true;
+    //For Debugging only
+    private static int sRefCount=0;
 
     private static final String HEADSET_NAME = "bt_headset_name";
     private static final String HEADSET_NREC = "bt_headset_nrec";
@@ -95,9 +97,8 @@ final class HeadsetStateMachine extends StateMachine {
     private Connected mConnected;
     private AudioOn mAudioOn;
 
-    private Context mContext;
+    private HeadsetService mService;
     private PowerManager mPowerManager;
-
     private boolean mVoiceRecognitionStarted = false;
     private boolean mWaitingForVoiceRecognition = false;
     private WakeLock mStartVoiceRecognitionWakeLock;  // held while waiting for voice recognition
@@ -112,6 +113,7 @@ final class HeadsetStateMachine extends StateMachine {
     private int mAudioState;
     private BluetoothAdapter mAdapter;
     private IBluetoothHeadsetPhone mPhoneProxy;
+    private boolean mNativeAvailable;
 
     // mCurrentDevice is the device connected before the state changes
     // mTargetDevice is the device to be connected
@@ -143,10 +145,9 @@ final class HeadsetStateMachine extends StateMachine {
         classInitNative();
     }
 
-    HeadsetStateMachine(Context context) {
+    HeadsetStateMachine(HeadsetService context) {
         super(TAG);
-
-        mContext = context;
+        mService = context;
         mVoiceRecognitionStarted = false;
         mWaitingForVoiceRecognition = false;
 
@@ -157,7 +158,7 @@ final class HeadsetStateMachine extends StateMachine {
 
         mDialingOut = false;
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-        mPhonebook = new AtPhonebook(mContext, this);
+        mPhonebook = new AtPhonebook(mService, this);
         mPhoneState = new HeadsetPhoneState(context, this);
         mAudioState = BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -167,6 +168,7 @@ final class HeadsetStateMachine extends StateMachine {
         }
 
         initializeNative();
+        mNativeAvailable=true;
 
         mDisconnected = new Disconnected();
         mPending = new Pending();
@@ -187,20 +189,32 @@ final class HeadsetStateMachine extends StateMachine {
     }
 
     public void cleanup() {
-        cleanupNative();
         if (mPhoneProxy != null) {
             if (DBG) Log.d(TAG,"Unbinding service...");
             synchronized (mConnection) {
                 try {
                     mPhoneProxy = null;
-                    mContext.unbindService(mConnection);
+                    mService.unbindService(mConnection);
                 } catch (Exception re) {
-                    Log.e(TAG,"",re);
+                    Log.e(TAG,"Error unbinding from IBluetoothHeadsetPhone",re);
                 }
+            }
         }
+        if (mPhoneState != null) {
+            mPhoneState.listenForPhoneState(false);
+            mPhoneState.cleanup();
+            mPhoneState=null;
         }
-        if(mContext != null)
-            mContext = null;
+        if (mPhonebook != null) {
+            mPhonebook.cleanup();
+            mPhonebook = null;
+        }
+        if (mNativeAvailable) {
+            cleanupNative();
+            mNativeAvailable = false;
+        }
+        mService = null;
+        mAdapter = null;
     }
 
     private class Disconnected extends State {
@@ -1025,7 +1039,7 @@ final class HeadsetStateMachine extends StateMachine {
                 !isInCall())
             {
                 try {
-                    mContext.startActivity(sVoiceCommandIntent);
+                    mService.startActivity(sVoiceCommandIntent);
                 } catch (ActivityNotFoundException e) {
                     atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
                     return;
@@ -1136,12 +1150,9 @@ final class HeadsetStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        mContext.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
+        mService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
         if (DBG) log("Connection state " + device + ": " + prevState + "->" + newState);
-        AdapterService svc = AdapterService.getAdapterService();
-        if (svc != null) {
-            svc.onProfileConnectionStateChanged(device, BluetoothProfile.HEADSET, newState, prevState);
-        }
+        mService.notifyProfileConnectionStateChanged(device, BluetoothProfile.HEADSET, newState, prevState);
     }
 
     private void broadcastAudioState(BluetoothDevice device, int newState, int prevState) {
@@ -1149,7 +1160,7 @@ final class HeadsetStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        mContext.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
+        mService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
         if (DBG) log("Audio state " + device + ": " + prevState + "->" + newState);
     }
 
@@ -1265,7 +1276,7 @@ final class HeadsetStateMachine extends StateMachine {
         Intent intent = new Intent(Intent.ACTION_CALL_PRIVILEGED,
                                    Uri.fromParts(SCHEME_TEL, dialNumber, null));
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        mContext.startActivity(intent);
+        mService.startActivity(intent);
         // TODO(BT) continue send OK reults code after call starts
         //          hold wait lock, start a timer, set wait call flag
         //          Get call started indication from bluetooth phone
@@ -1487,7 +1498,7 @@ final class HeadsetStateMachine extends StateMachine {
             Intent intent = new Intent(Intent.ACTION_CALL_PRIVILEGED,
                                        Uri.fromParts(SCHEME_TEL, dialNumber, null));
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            mContext.startActivity(intent);
+            mService.startActivity(intent);
         }
     }
 

@@ -26,7 +26,7 @@ final class RemoteDevices {
     private static final boolean DBG = true;
     private static final String TAG = "BluetoothRemoteDevices";
 
-    private static Context mContext;
+
     private static BluetoothAdapter mAdapter;
     private static AdapterService mAdapterService;
     private static ArrayList<BluetoothDevice> mSdpTracker;
@@ -37,28 +37,21 @@ final class RemoteDevices {
     private static final int MESSAGE_UUID_INTENT = 1;
 
     private HashMap<BluetoothDevice, DeviceProperties> mDevices;
-    private static RemoteDevices sInstance;
 
-    RemoteDevices(AdapterService service, Context context) {
+    RemoteDevices(AdapterService service) {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mContext = context;
         mAdapterService = service;
         mSdpTracker = new ArrayList<BluetoothDevice>();
         mDevices = new HashMap<BluetoothDevice, DeviceProperties>();
     }
 
-    public void init() {
-        mSdpTracker.clear();
-        mDevices.clear();
-    }
 
-    public void cleanup() {
+    void cleanup() {
         mSdpTracker.clear();
         mSdpTracker = null;
         mDevices.clear();
         mDevices = null;
         mAdapterService = null;
-        mContext = null;
         mAdapter= null;
     }
 
@@ -204,7 +197,7 @@ final class RemoteDevices {
         Intent intent = new Intent(BluetoothDevice.ACTION_UUID);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothDevice.EXTRA_UUID, prop == null? null: prop.mUuids);
-        mContext.sendBroadcast(intent, AdapterService.BLUETOOTH_ADMIN_PERM);
+        mAdapterService.sendBroadcast(intent, AdapterService.BLUETOOTH_ADMIN_PERM);
 
         //Remove the outstanding UUID request
         mSdpTracker.remove(device);
@@ -216,7 +209,7 @@ final class RemoteDevices {
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_KEY, pin);
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT,
                     BluetoothDevice.PAIRING_VARIANT_DISPLAY_PIN);
-        mContext.sendBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
+        mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
     }
 
     void devicePropertyChangedCallback(byte[] address, int[] types, byte[][] values) {
@@ -243,7 +236,7 @@ final class RemoteDevices {
                         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, bdDevice);
                         intent.putExtra(BluetoothDevice.EXTRA_NAME, device.mName);
                         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-                        mContext.sendBroadcast(intent, mAdapterService.BLUETOOTH_PERM);
+                        mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_PERM);
                         debugLog("Remote Device name is: " + device.mName);
                         break;
                     case AbstractionLayer.BT_PROPERTY_REMOTE_FRIENDLY_NAME:
@@ -263,7 +256,7 @@ final class RemoteDevices {
                         intent.putExtra(BluetoothDevice.EXTRA_CLASS,
                                 new BluetoothClass(device.mBluetoothClass));
                         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-                        mContext.sendBroadcast(intent, mAdapterService.BLUETOOTH_PERM);
+                        mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_PERM);
                         debugLog("Remote class is:" + device.mBluetoothClass);
                         break;
                     case AbstractionLayer.BT_PROPERTY_UUIDS:
@@ -300,7 +293,7 @@ final class RemoteDevices {
         intent.putExtra(BluetoothDevice.EXTRA_RSSI, deviceProp.mRssi);
         intent.putExtra(BluetoothDevice.EXTRA_NAME, deviceProp.mName);
 
-        mContext.sendBroadcast(intent, mAdapterService.BLUETOOTH_PERM);
+        mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_PERM);
     }
 
     void pinRequestCallback(byte[] address, byte[] name, int cod) {
@@ -333,7 +326,7 @@ final class RemoteDevices {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, getDevice(address));
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT,
                 BluetoothDevice.PAIRING_VARIANT_PIN);
-        mContext.sendBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
+        mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
         return;
     }
 
@@ -375,7 +368,7 @@ final class RemoteDevices {
             intent.putExtra(BluetoothDevice.EXTRA_PAIRING_KEY, passkey);
         }
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, variant);
-        mContext.sendBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
+        mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
     }
 
     void aclStateChangeCallback(int status, byte[] address, int newState) {
@@ -396,7 +389,7 @@ final class RemoteDevices {
         }
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-        mContext.sendBroadcast(intent, mAdapterService.BLUETOOTH_PERM);
+        mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_PERM);
     }
 
     void fetchUuids(BluetoothDevice device) {
@@ -440,4 +433,5 @@ final class RemoteDevices {
     private void warnLog(String msg) {
         Log.w(TAG, msg);
     }
+
 }

@@ -59,7 +59,7 @@ import java.lang.Thread;
  */
 public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
-    private static final String TAG = "BtOpp ObexClient";
+    private static final String TAG = "BtOppObexClient";
     private static final boolean D = Constants.DEBUG;
     private static final boolean V = Constants.VERBOSE;
 

@@ -52,6 +52,7 @@ final class A2dpStateMachine extends StateMachine {
     private Pending mPending;
     private Connected mConnected;
 
+    private A2dpService mService;
     private Context mContext;
     private BluetoothAdapter mAdapter;
     private static final ParcelUuid[] A2DP_UUIDS = {
@@ -89,8 +90,9 @@ final class A2dpStateMachine extends StateMachine {
         classInitNative();
     }
 
-    A2dpStateMachine(Context context) {
+    A2dpStateMachine(A2dpService svc, Context context) {
         super(TAG);
+        mService = svc;
         mContext = context;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -109,7 +111,9 @@ final class A2dpStateMachine extends StateMachine {
 
     public void cleanup() {
         cleanupNative();
-        if(mContext != null)
+        if(mService != null)
+            mService = null;
+        if (mContext != null)
             mContext = null;
         if(mAdapter != null)
             mAdapter = null;
@@ -600,10 +604,7 @@ final class A2dpStateMachine extends StateMachine {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         mContext.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
         if (DBG) log("Connection state " + device + ": " + prevState + "->" + newState);
-        AdapterService svc = AdapterService.getAdapterService();
-        if (svc != null) {
-            svc.onProfileConnectionStateChanged(device, BluetoothProfile.A2DP, newState, prevState);
-        }
+        mService.notifyProfileConnectionStateChanged(device, BluetoothProfile.A2DP, newState, prevState);
     }
 
     private void broadcastAudioState(BluetoothDevice device, int state, int prevState) {
@@ -659,7 +660,7 @@ final class A2dpStateMachine extends StateMachine {
     final private static int EVENT_TYPE_CONNECTION_STATE_CHANGED = 1;
     final private static int EVENT_TYPE_AUDIO_STATE_CHANGED = 2;
 
-   // Do not modify without upating the HAL bt_av.h files.
+   // Do not modify without updating the HAL bt_av.h files.
 
     // match up with btav_connection_state_t enum of bt_av.h
     final static int CONNECTION_STATE_DISCONNECTED = 0;

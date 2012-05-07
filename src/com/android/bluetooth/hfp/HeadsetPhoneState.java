@@ -19,7 +19,6 @@ import com.android.internal.telephony.Call;
 class HeadsetPhoneState {
     private static final String TAG = "HeadsetPhoneState";
 
-    private Context mContext;
     private HeadsetStateMachine mStateMachine;
     private TelephonyManager mTelephonyManager;
     private ServiceState mServiceState;
@@ -52,9 +51,14 @@ class HeadsetPhoneState {
     private boolean mListening = false;
 
     HeadsetPhoneState(Context context, HeadsetStateMachine stateMachine) {
-        mContext = context;
         mStateMachine = stateMachine;
-        mTelephonyManager = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
+        mTelephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+    }
+
+    public void cleanup() {
+        listenForPhoneState(false);
+        mTelephonyManager = null;
+        mStateMachine = null;
     }
 
     void listenForPhoneState(boolean start) {
@@ -116,8 +120,11 @@ class HeadsetPhoneState {
     void setBatteryCharge(int batteryLevel) {
         if (mBatteryCharge != batteryLevel) {
             mBatteryCharge = batteryLevel;
-            mStateMachine.sendMessage(HeadsetStateMachine.DEVICE_STATE_CHANGED,
+            HeadsetStateMachine sm = mStateMachine;
+            if (sm != null) {
+                sm.sendMessage(HeadsetStateMachine.DEVICE_STATE_CHANGED,
                 new HeadsetDeviceState(mService, mRoam, mSignal, mBatteryCharge));
+            }
         }
     }
 
@@ -145,7 +152,6 @@ class HeadsetPhoneState {
         return (mNumActive >= 1);
     }
 
-
     private PhoneStateListener mPhoneStateListener = new PhoneStateListener() {
         @Override
         public void onServiceStateChanged(ServiceState serviceState) {
@@ -153,8 +159,11 @@ class HeadsetPhoneState {
             mService = (serviceState.getState() == ServiceState.STATE_IN_SERVICE) ?
                 HeadsetHalConstants.NETWORK_STATE_AVAILABLE :
                 HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE;
-            mStateMachine.sendMessage(HeadsetStateMachine.DEVICE_STATE_CHANGED,
+            HeadsetStateMachine sm = mStateMachine;
+            if (sm != null) {
+                sm.sendMessage(HeadsetStateMachine.DEVICE_STATE_CHANGED,
                 new HeadsetDeviceState(mService, mRoam, mSignal, mBatteryCharge));
+            }
         }
 
         @Override

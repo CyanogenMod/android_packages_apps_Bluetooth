@@ -6,41 +6,26 @@ package com.android.bluetooth.btservice;
 
 final class JniCallbacks {
 
-    private static JniCallbacks sInstance;
     private RemoteDevices mRemoteDevices;
     private AdapterProperties mAdapterProperties;
     private AdapterState mAdapterStateMachine;
     private BondStateMachine mBondStateMachine;
 
-    private JniCallbacks(RemoteDevices remoteDevices, AdapterProperties adapterProperties,
-            AdapterState adapterStateMachine, BondStateMachine bondStateMachine) {
-        mRemoteDevices = remoteDevices;
-        mAdapterProperties = adapterProperties;
+    JniCallbacks(AdapterState adapterStateMachine,AdapterProperties adapterProperties) {
         mAdapterStateMachine = adapterStateMachine;
+        mAdapterProperties = adapterProperties;
+    }
+
+    void init(BondStateMachine bondStateMachine, RemoteDevices remoteDevices) {
+        mRemoteDevices = remoteDevices;
         mBondStateMachine = bondStateMachine;
     }
 
-    static synchronized JniCallbacks getInstance(RemoteDevices remoteDevices,
-            AdapterProperties adapterProperties, AdapterState adapterStateMachine,
-            BondStateMachine bondStateMachine) {
-        if (sInstance == null)  {
-            sInstance =
-                new JniCallbacks(remoteDevices, adapterProperties, adapterStateMachine,
-                        bondStateMachine);
-        } else {
-            sInstance.init(remoteDevices, adapterProperties, adapterStateMachine,
-                    bondStateMachine);
-        }
-        return sInstance;
-    }
-
-    void init(RemoteDevices remoteDevices,
-            AdapterProperties adapterProperties, AdapterState adapterStateMachine,
-            BondStateMachine bondStateMachine) {
-        mRemoteDevices = remoteDevices;
-        mAdapterProperties = adapterProperties;
-        mAdapterStateMachine = adapterStateMachine;
-        mBondStateMachine = bondStateMachine;
+    void cleanup() {
+        mRemoteDevices = null;
+        mAdapterProperties = null;
+        mAdapterStateMachine = null;
+        mBondStateMachine = null;
     }
 
     public Object Clone() throws CloneNotSupportedException {

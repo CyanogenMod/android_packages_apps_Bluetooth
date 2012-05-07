@@ -4,8 +4,6 @@
 
 package com.android.bluetooth.hdp;
 
-import android.app.Service;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHealth;
 import android.bluetooth.BluetoothHealthAppConfiguration;
@@ -14,7 +12,6 @@ import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothHealth;
 import android.bluetooth.IBluetoothHealthCallback;
 import android.content.Intent;
-import android.os.IBinder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -33,8 +30,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import com.android.bluetooth.Utils;
 import android.content.pm.PackageManager;
-import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.ProfileService.IProfileServiceBinder;
 
 /**
  * Provides Bluetooth Health Device profile, as a service in
@@ -44,9 +41,11 @@ import com.android.bluetooth.btservice.ProfileService;
 public class HealthService extends ProfileService {
     private static final boolean DBG = true;
     private static final String TAG="HealthService";
+
     private List<HealthChannel> mHealthChannels;
     private Map <BluetoothHealthAppConfiguration, AppInfo> mApps;
     private Map <BluetoothDevice, Integer> mHealthDevices;
+    private boolean mNativeAvailable;
     private HealthServiceMessageHandler mHandler;
     private static final int MESSAGE_REGISTER_APPLICATION = 1;
     private static final int MESSAGE_UNREGISTER_APPLICATION = 2;
@@ -63,29 +62,11 @@ public class HealthService extends ProfileService {
         return TAG;
     }
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        log("onBind");
-        return mBinder;
+    protected IProfileServiceBinder initBinder() {
+        return new BluetoothHealthBinder(this);
     }
 
     protected boolean start() {
-
-        //Cleanup other object references
-        if(mHealthChannels != null) {
-            mHealthChannels.clear();
-            mHealthChannels = null;
-        }
-        if(mHealthDevices != null) {
-            mHealthDevices.clear();
-            mHealthDevices = null;
-        }
-        if(mApps != null) {
-            mApps.clear();
-            mApps = null;
-        }
-       
-        if (DBG) log("startService");
         mHealthChannels = Collections.synchronizedList(new ArrayList<HealthChannel>());
         mApps = Collections.synchronizedMap(new HashMap<BluetoothHealthAppConfiguration,
                                             AppInfo>());
@@ -96,24 +77,26 @@ public class HealthService extends ProfileService {
         Looper looper = thread.getLooper();
         mHandler = new HealthServiceMessageHandler(looper);
         initializeNative();
-
+        mNativeAvailable=true;
         return true;
     }
 
     protected boolean stop() {
-        if (DBG) log("stop()");
-
-        //Cleanup looper
         mHandler.removeCallbacksAndMessages(null);
         Looper looper = mHandler.getLooper();
         if (looper != null) {
             looper.quit();
         }
-        mHandler = null;
+        return true;
+    }
 
+    protected boolean cleanup() {
+        mHandler = null;
         //Cleanup native
-        cleanupNative();
-        
+        if (mNativeAvailable) {
+            cleanupNative();
+            mNativeAvailable=false;
+        }
         if(mHealthChannels != null) {
             mHealthChannels.clear();
             mHealthChannels = null;
@@ -175,7 +158,7 @@ public class HealthService extends ProfileService {
                 case MESSAGE_CONNECT_CHANNEL:
                 {
                     HealthChannel chan = (HealthChannel) msg.obj;
-                    byte[] devAddr = getByteAddress(chan.mDevice);
+                    byte[] devAddr = Utils.getByteAddress(chan.mDevice);
                     int appId = (mApps.get(chan.mConfig)).mAppId;
                     chan.mChannelId = connectChannelNative(devAddr, appId);
                     if (chan.mChannelId == -1) {
@@ -256,95 +239,169 @@ public class HealthService extends ProfileService {
     /**
      * Handlers for incoming service calls
      */
-    private final IBluetoothHealth.Stub mBinder = new IBluetoothHealth.Stub() {
-        public boolean registerAppConfiguration(BluetoothHealthAppConfiguration config,
-                                                IBluetoothHealthCallback callback) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM,
-                                           "Need BLUETOOTH permission");
-            if (mApps.get(config) != null) {
-                if (DBG) log("Config has already been registered");
-                return false;
-            }
-            mApps.put(config, new AppInfo(callback));
-            Message msg = mHandler.obtainMessage(MESSAGE_REGISTER_APPLICATION);
-            msg.obj = config;
-            mHandler.sendMessage(msg);
+    private static class BluetoothHealthBinder extends IBluetoothHealth.Stub implements IProfileServiceBinder {
+        private HealthService mService;
+
+        public BluetoothHealthBinder(HealthService svc) {
+            mService = svc;
+        }
+
+        public boolean cleanup()  {
+            mService = null;
             return true;
         }
 
-        public boolean unregisterAppConfiguration(BluetoothHealthAppConfiguration config) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            if (mApps.get(config) == null) {
-                if (DBG) log("unregisterAppConfiguration: no app found");
-                return false;
+        private HealthService getService() {
+            if (mService  != null && mService.isAvailable()) {
+                return mService;
             }
+            return null;
+        }
 
-            Message msg = mHandler.obtainMessage(MESSAGE_UNREGISTER_APPLICATION);
-            msg.obj = config;
-            mHandler.sendMessage(msg);
-            return true;
+        public boolean registerAppConfiguration(BluetoothHealthAppConfiguration config,
+                                                IBluetoothHealthCallback callback) {
+            HealthService service = getService();
+            if (service == null) return false;
+            return service.registerAppConfiguration(config, callback);
+        }
+
+        public boolean unregisterAppConfiguration(BluetoothHealthAppConfiguration config) {
+            HealthService service = getService();
+            if (service == null) return false;
+            return service.unregisterAppConfiguration(config);
         }
 
         public boolean connectChannelToSource(BluetoothDevice device,
                                               BluetoothHealthAppConfiguration config) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            return connectChannel(device, config, BluetoothHealth.CHANNEL_TYPE_ANY);
+            HealthService service = getService();
+            if (service == null) return false;
+            return service.connectChannelToSource(device, config);
         }
 
         public boolean connectChannelToSink(BluetoothDevice device,
                            BluetoothHealthAppConfiguration config, int channelType) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            return connectChannel(device, config, channelType);
+            HealthService service = getService();
+            if (service == null) return false;
+            return service.connectChannelToSink(device, config, channelType);
         }
 
         public boolean disconnectChannel(BluetoothDevice device,
                                          BluetoothHealthAppConfiguration config, int channelId) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            HealthChannel chan = findChannelById(channelId);
-            if (chan == null) {
-                if (DBG) log("disconnectChannel: no channel found");
-                return false;
-            }
-            Message msg = mHandler.obtainMessage(MESSAGE_DISCONNECT_CHANNEL);
-            msg.obj = chan;
-            mHandler.sendMessage(msg);
-            return true;
+            HealthService service = getService();
+            if (service == null) return false;
+            return service.disconnectChannel(device, config, channelId);
         }
 
         public ParcelFileDescriptor getMainChannelFd(BluetoothDevice device,
                                                      BluetoothHealthAppConfiguration config) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            HealthChannel healthChan = null;
-            for (HealthChannel chan: mHealthChannels) {
-                if (chan.mDevice.equals(device) && chan.mConfig.equals(config)) {
-                    healthChan = chan;
-                }
-            }
-            if (healthChan == null) {
-                Log.e(TAG, "No channel found for device: " + device + " config: " + config);
-                return null;
-            }
-            return healthChan.mChannelFd;
+            HealthService service = getService();
+            if (service == null) return null;
+            return service.getMainChannelFd(device, config);
         }
 
         public int getHealthDeviceConnectionState(BluetoothDevice device) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            return getConnectionState(device);
+            HealthService service = getService();
+            if (service == null) return BluetoothHealth.STATE_DISCONNECTED;
+            return service.getHealthDeviceConnectionState(device);
         }
 
         public List<BluetoothDevice> getConnectedHealthDevices() {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            List<BluetoothDevice> devices = lookupHealthDevicesMatchingStates(
-                    new int[] {BluetoothHealth.STATE_CONNECTED});
-            return devices;
+            HealthService service = getService();
+            if (service == null) return new ArrayList<BluetoothDevice> (0);
+            return service.getConnectedHealthDevices();
         }
 
         public List<BluetoothDevice> getHealthDevicesMatchingConnectionStates(int[] states) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            List<BluetoothDevice> devices = lookupHealthDevicesMatchingStates(states);
-            return devices;
+            HealthService service = getService();
+            if (service == null) return new ArrayList<BluetoothDevice> (0);
+            return service.getHealthDevicesMatchingConnectionStates(states);
         }
     };
+
+    boolean registerAppConfiguration(BluetoothHealthAppConfiguration config,
+            IBluetoothHealthCallback callback) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM,
+                "Need BLUETOOTH permission");
+        if (mApps.get(config) != null) {
+            if (DBG) Log.d(TAG, "Config has already been registered");
+            return false;
+        }
+        mApps.put(config, new AppInfo(callback));
+        Message msg = mHandler.obtainMessage(MESSAGE_REGISTER_APPLICATION,config);
+        mHandler.sendMessage(msg);
+        return true;
+    }
+
+    boolean unregisterAppConfiguration(BluetoothHealthAppConfiguration config) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (mApps.get(config) == null) {
+            if (DBG) Log.d(TAG,"unregisterAppConfiguration: no app found");
+            return false;
+        }
+
+        Message msg = mHandler.obtainMessage(MESSAGE_UNREGISTER_APPLICATION,config);
+        mHandler.sendMessage(msg);
+        return true;
+    }
+
+    boolean connectChannelToSource(BluetoothDevice device,
+                                          BluetoothHealthAppConfiguration config) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return connectChannel(device, config, BluetoothHealth.CHANNEL_TYPE_ANY);
+    }
+
+    boolean connectChannelToSink(BluetoothDevice device,
+                       BluetoothHealthAppConfiguration config, int channelType) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return connectChannel(device, config, channelType);
+    }
+
+    boolean disconnectChannel(BluetoothDevice device,
+                                     BluetoothHealthAppConfiguration config, int channelId) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        HealthChannel chan = findChannelById(channelId);
+        if (chan == null) {
+            if (DBG) Log.d(TAG,"disconnectChannel: no channel found");
+            return false;
+        }
+        Message msg = mHandler.obtainMessage(MESSAGE_DISCONNECT_CHANNEL,chan);
+        mHandler.sendMessage(msg);
+        return true;
+    }
+
+    ParcelFileDescriptor getMainChannelFd(BluetoothDevice device,
+                                                 BluetoothHealthAppConfiguration config) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        HealthChannel healthChan = null;
+        for (HealthChannel chan: mHealthChannels) {
+            if (chan.mDevice.equals(device) && chan.mConfig.equals(config)) {
+                healthChan = chan;
+            }
+        }
+        if (healthChan == null) {
+            Log.e(TAG, "No channel found for device: " + device + " config: " + config);
+            return null;
+        }
+        return healthChan.mChannelFd;
+    }
+
+    int getHealthDeviceConnectionState(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return getConnectionState(device);
+    }
+
+    List<BluetoothDevice> getConnectedHealthDevices() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        List<BluetoothDevice> devices = lookupHealthDevicesMatchingStates(
+                new int[] {BluetoothHealth.STATE_CONNECTED});
+        return devices;
+    }
+
+    List<BluetoothDevice> getHealthDevicesMatchingConnectionStates(int[] states) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        List<BluetoothDevice> devices = lookupHealthDevicesMatchingStates(states);
+        return devices;
+    }
 
     private void onAppRegistrationState(int appId, int state) {
         Message msg = mHandler.obtainMessage(MESSAGE_APP_REGISTRATION_CALLBACK);
@@ -568,10 +625,7 @@ public class HealthService extends ProfileService {
         } else {
             mHealthDevices.put(device, newDeviceState);
         }
-        AdapterService svc = AdapterService.getAdapterService();
-        if (svc != null) {
-            svc.onProfileConnectionStateChanged(device, BluetoothProfile.HEALTH, newDeviceState, prevDeviceState);
-        }
+        notifyProfileConnectionStateChanged(device, BluetoothProfile.HEALTH, newDeviceState, prevDeviceState);
     }
 
     /**
@@ -632,14 +686,6 @@ public class HealthService extends ProfileService {
         return channels;
     }
 
-    private BluetoothDevice getDevice(byte[] address) {
-        return mAdapter.getRemoteDevice(Utils.getAddressStringFromByte(address));
-    }
-
-    private byte[] getByteAddress(BluetoothDevice device) {
-        return Utils.getBytesFromAddress(device.getAddress());
-    }
-
     private int getConnectionState(BluetoothDevice device) {
         if (mHealthDevices.get(device) == null) {
             return BluetoothHealth.STATE_DISCONNECTED;
@@ -662,7 +708,7 @@ public class HealthService extends ProfileService {
         return healthDevices;
     }
 
-    private class AppInfo {
+    private static class AppInfo {
         private IBluetoothHealthCallback mCallback;
         private int mAppId;
 
@@ -742,4 +788,5 @@ public class HealthService extends ProfileService {
     private native boolean unregisterHealthAppNative(int appId);
     private native int connectChannelNative(byte[] btAddress, int appId);
     private native boolean disconnectChannelNative(int channelId);
+
 }

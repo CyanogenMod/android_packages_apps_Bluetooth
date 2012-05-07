@@ -40,14 +40,13 @@ final class BondStateMachine extends StateMachine {
     static final int BOND_STATE_BONDED = 2;
 
     private AdapterService mAdapterService;
-    private Context mContext;
     private AdapterProperties mAdapterProperties;
     private RemoteDevices mRemoteDevices;
 
     private PendingCommandState mPendingCommandState = new PendingCommandState();
     private StableState mStableState = new StableState();
 
-    public BondStateMachine(AdapterService service, Context context,
+    public BondStateMachine(AdapterService service,
             AdapterProperties prop, RemoteDevices remoteDevices) {
         super("BondStateMachine:");
         addState(mStableState);
@@ -55,11 +54,13 @@ final class BondStateMachine extends StateMachine {
         mRemoteDevices = remoteDevices;
         mAdapterService = service;
         mAdapterProperties = prop;
-        mContext = context;
         setInitialState(mStableState);
     }
 
     public void cleanup() {
+        mAdapterService = null;
+        mRemoteDevices = null;
+        mAdapterProperties = null;
     }
 
     private class StableState extends State {
@@ -221,7 +222,7 @@ final class BondStateMachine extends StateMachine {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothDevice.EXTRA_BOND_STATE, newState);
         intent.putExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE, oldState);
-        mContext.sendBroadcast(intent, AdapterService.BLUETOOTH_PERM);
+        mAdapterService.sendBroadcast(intent, AdapterService.BLUETOOTH_PERM);
         infoLog("Bond State Change Intent:" + device + " OldState: " + oldState
                 + " NewState: " + newState);
     }

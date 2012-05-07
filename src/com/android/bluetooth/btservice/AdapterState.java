@@ -30,12 +30,11 @@ final class AdapterState extends StateMachine {
     static final int USER_TURN_ON = 1;
     static final int STARTED=2;
     static final int ENABLED_READY = 3;
-   // static final int POST_ENABLE =4;
 
     static final int USER_TURN_OFF = 20;
     static final int BEGIN_DISABLE = 21;
     static final int ALL_DEVICES_DISCONNECTED = 22;
-   // static final int DISABLE=23;
+
     static final int DISABLED = 24;
     static final int STOPPED=25;
 
@@ -53,7 +52,6 @@ final class AdapterState extends StateMachine {
     private static final int STOP_TIMEOUT_DELAY = 5000;
     private static final int PROPERTY_OP_DELAY =2000;
     private AdapterService mAdapterService;
-    private Context mContext;
     private AdapterProperties mAdapterProperties;
     private PendingCommandState mPendingCommandState = new PendingCommandState();
     private OnState mOnState = new OnState();
@@ -61,24 +59,22 @@ final class AdapterState extends StateMachine {
 
     public boolean isTurningOn() {
         boolean isTurningOn=  mPendingCommandState.isTurningOn();
-        Log.d(TAG,"isTurningOn()=" + isTurningOn);
+        if (DBG) Log.d(TAG,"isTurningOn()=" + isTurningOn);
         return isTurningOn;
     }
 
     public boolean isTurningOff() {
         boolean isTurningOff= mPendingCommandState.isTurningOff();
-        Log.d(TAG,"isTurningOff()=" + isTurningOff);
+        if (DBG) Log.d(TAG,"isTurningOff()=" + isTurningOff);
         return isTurningOff;
     }
 
-    public AdapterState(AdapterService service, Context context,
-            AdapterProperties adapterProperties) {
+    public AdapterState(AdapterService service,AdapterProperties adapterProperties) {
         super("BluetoothAdapterState:");
         addState(mOnState);
         addState(mOffState);
         addState(mPendingCommandState);
         mAdapterService = service;
-        mContext = context;
         mAdapterProperties = adapterProperties;
         setInitialState(mOffState);
     }
@@ -88,8 +84,6 @@ final class AdapterState extends StateMachine {
             mAdapterProperties = null;
         if(mAdapterService != null)
             mAdapterService = null;
-        if(mContext != null)
-            mContext = null;
     }
 
     private class OffState extends State {
@@ -273,7 +267,7 @@ final class AdapterState extends StateMachine {
                         Log.d(TAG,"Stopping profile services that were post enabled");
                         break;
                     }
-                    //Fall through if no post-enabled services or services already stopped
+                    //Fall through if no services or services already stopped
                 case STOPPED:
                     if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = STOPPED, isTurningOn=" + isTurningOn + ", isTurningOff=" + isTurningOff);
                     removeMessages(STOP_TIMEOUT);
@@ -282,7 +276,6 @@ final class AdapterState extends StateMachine {
                     setOffRequestId(-1);
                     transitionTo(mOffState);
                     sendIntent(BluetoothAdapter.STATE_OFF);
-                    mAdapterService.processStopped();
                     mAdapterService.startShutdown(requestId);
                     break;
                 case START_TIMEOUT:
@@ -328,7 +321,7 @@ final class AdapterState extends StateMachine {
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
         mAdapterProperties.setState(newState);
 
-        mContext.sendBroadcast(intent, AdapterService.BLUETOOTH_PERM);
+        mAdapterService.sendBroadcast(intent, AdapterService.BLUETOOTH_PERM);
         infoLog("Bluetooth State Change Intent: " + oldState + " -> " + newState);
     }
 

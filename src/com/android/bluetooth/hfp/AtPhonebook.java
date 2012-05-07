@@ -21,6 +21,7 @@ import com.android.bluetooth.R;
 import com.android.internal.telephony.GsmAlphabet;
 
 import android.bluetooth.BluetoothDevice;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -72,10 +73,9 @@ public class AtPhonebook {
         public int     nameColumn;
     };
 
+    private Context mContext;
+    private ContentResolver mContentResolver;
     private HeadsetStateMachine mStateMachine;
-
-    private final Context mContext;
-
     private String mCurrentPhonebook;
     private String mCharacterSet = "UTF-8";
 
@@ -98,6 +98,7 @@ public class AtPhonebook {
 
     public AtPhonebook(Context context, HeadsetStateMachine headsetState) {
         mContext = context;
+        mContentResolver = context.getContentResolver();
         mStateMachine = headsetState;
         mPhonebooks.put("DC", new PhonebookResult());  // dialled calls
         mPhonebooks.put("RC", new PhonebookResult());  // received calls
@@ -110,10 +111,17 @@ public class AtPhonebook {
         mCheckingAccessPermission = false;
     }
 
+    public void cleanup() {
+        mPhonebooks.clear();
+        mContentResolver = null;
+        mContext = null;
+        mStateMachine = null;
+    }
+
     /** Returns the last dialled number, or null if no numbers have been called */
     public String getLastDialledNumber() {
         String[] projection = {Calls.NUMBER};
-        Cursor cursor = mContext.getContentResolver().query(Calls.CONTENT_URI, projection,
+        Cursor cursor = mContentResolver.query(Calls.CONTENT_URI, projection,
                 Calls.TYPE + "=" + Calls.OUTGOING_TYPE, null, Calls.DEFAULT_SORT_ORDER +
                 " LIMIT 1");
         if (cursor == null) return null;
@@ -387,7 +395,7 @@ public class AtPhonebook {
         }
 
         if (ancillaryPhonebook) {
-            pbr.cursor = mContext.getContentResolver().query(
+            pbr.cursor = mContentResolver.query(
                     Calls.CONTENT_URI, CALLS_PROJECTION, where, null,
                     Calls.DEFAULT_SORT_ORDER + " LIMIT " + MAX_PHONEBOOK_SIZE);
             if (pbr.cursor == null) return false;
@@ -396,7 +404,7 @@ public class AtPhonebook {
             pbr.typeColumn = -1;
             pbr.nameColumn = -1;
         } else {
-            pbr.cursor = mContext.getContentResolver().query(Phone.CONTENT_URI, PHONES_PROJECTION,
+            pbr.cursor = mContentResolver.query(Phone.CONTENT_URI, PHONES_PROJECTION,
                     where, null, Phone.NUMBER + " LIMIT " + MAX_PHONEBOOK_SIZE);
             if (pbr.cursor == null) return false;
 
@@ -482,7 +490,7 @@ public class AtPhonebook {
                 // try caller id lookup
                 // TODO: This code is horribly inefficient. I saw it
                 // take 7 seconds to process 100 missed calls.
-                Cursor c = mContext.getContentResolver().
+                Cursor c = mContentResolver.
                     query(Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI, number),
                           new String[] {PhoneLookup.DISPLAY_NAME, PhoneLookup.TYPE},
                           null, null, null);

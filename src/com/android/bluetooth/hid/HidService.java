@@ -4,8 +4,6 @@
 
 package com.android.bluetooth.hid;
 
-import android.app.Service;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothInputDevice;
 import android.bluetooth.BluetoothProfile;
@@ -27,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import com.android.bluetooth.Utils;
 import android.content.pm.PackageManager;
-import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 
 /**
@@ -38,7 +35,9 @@ import com.android.bluetooth.btservice.ProfileService;
 public class HidService extends ProfileService {
     private static final boolean DBG = true;
     private static final String TAG = "HidService";
+
     private Map<BluetoothDevice, Integer> mInputDevices;
+    private boolean mNativeAvailable;
 
     private static final int MESSAGE_CONNECT = 1;
     private static final int MESSAGE_DISCONNECT = 2;
@@ -61,37 +60,34 @@ public class HidService extends ProfileService {
         return TAG;
     }
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        log("onBind");
-        return mBinder;
+    public IProfileServiceBinder initBinder() {
+        return new BluetoothInputDeviceBinder(this);
     }
 
-
     protected boolean start() {
-        if(mInputDevices != null) {
-            mInputDevices.clear();
-            mInputDevices = null;
-        }
         mInputDevices = Collections.synchronizedMap(new HashMap<BluetoothDevice, Integer>());
         initializeNative();
-
+        mNativeAvailable=true;
         return true;
     }
 
     protected boolean stop() {
         if (DBG) log("Stopping Bluetooth HidService");
-        cleanupNative();
+        return true;
+    }
+
+    protected boolean cleanup() {
+        if (mNativeAvailable) {
+            cleanupNative();
+            mNativeAvailable=false;
+        }
 
         if(mInputDevices != null) {
             mInputDevices.clear();
             mInputDevices = null;
         }
-        
         return true;
     }
-
-    
 
     private final Handler mHandler = new Handler() {
 
@@ -101,7 +97,7 @@ public class HidService extends ProfileService {
                 case MESSAGE_CONNECT:
                 {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
-                    if (!connectHidNative(getByteAddress(device)) ) {
+                    if (!connectHidNative(Utils.getByteAddress(device)) ) {
                         broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTING);
                         broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED);
                         break;
@@ -111,7 +107,7 @@ public class HidService extends ProfileService {
                 case MESSAGE_DISCONNECT:
                 {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
-                    if (!disconnectHidNative(getByteAddress(device)) ) {
+                    if (!disconnectHidNative(Utils.getByteAddress(device)) ) {
                         broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTING);
                         broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED);
                         break;
@@ -128,7 +124,7 @@ public class HidService extends ProfileService {
                 case MESSAGE_GET_PROTOCOL_MODE:
                 {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
-                    if(!getProtocolModeNative(getByteAddress(device)) ) {
+                    if(!getProtocolModeNative(Utils.getByteAddress(device)) ) {
                         Log.e(TAG, "Error: get protocol mode native returns false");
                     }
                 }
@@ -144,7 +140,7 @@ public class HidService extends ProfileService {
                 case MESSAGE_VIRTUAL_UNPLUG:
                 {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
-                    if(!virtualUnPlugNative(getByteAddress(device))) {
+                    if(!virtualUnPlugNative(Utils.getByteAddress(device))) {
                         Log.e(TAG, "Error: virtual unplug native returns false");
                     }
                 }
@@ -154,7 +150,7 @@ public class HidService extends ProfileService {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
                     byte protocolMode = (byte) msg.arg1;
                     log("sending set protocol mode(" + protocolMode + ")");
-                    if(!setProtocolModeNative(getByteAddress(device), protocolMode)) {
+                    if(!setProtocolModeNative(Utils.getByteAddress(device), protocolMode)) {
                         Log.e(TAG, "Error: set protocol mode native returns false");
                     }
                 }
@@ -166,7 +162,7 @@ public class HidService extends ProfileService {
                     byte reportType = data.getByte(BluetoothInputDevice.EXTRA_REPORT_TYPE);
                     byte reportId = data.getByte(BluetoothInputDevice.EXTRA_REPORT_ID);
                     int bufferSize = data.getInt(BluetoothInputDevice.EXTRA_REPORT_BUFFER_SIZE);
-                    if(!getReportNative(getByteAddress(device), reportType, reportId, bufferSize)) {
+                    if(!getReportNative(Utils.getByteAddress(device), reportType, reportId, bufferSize)) {
                         Log.e(TAG, "Error: get report native returns false");
                     }
                 }
@@ -177,7 +173,7 @@ public class HidService extends ProfileService {
                     Bundle data = msg.getData();
                     byte reportType = data.getByte(BluetoothInputDevice.EXTRA_REPORT_TYPE);
                     String report = data.getString(BluetoothInputDevice.EXTRA_REPORT);
-                    if(!setReportNative(getByteAddress(device), reportType, report)) {
+                    if(!setReportNative(Utils.getByteAddress(device), reportType, report)) {
                         Log.e(TAG, "Error: set report native returns false");
                     }
                 }
@@ -187,7 +183,7 @@ public class HidService extends ProfileService {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
                     Bundle data = msg.getData();
                     String report = data.getString(BluetoothInputDevice.EXTRA_REPORT);
-                    if(!sendDataNative(getByteAddress(device), report)) {
+                    if(!sendDataNative(Utils.getByteAddress(device), report)) {
                         Log.e(TAG, "Error: send data native returns false");
                     }
                 }
@@ -206,179 +202,264 @@ public class HidService extends ProfileService {
     /**
      * Handlers for incoming service calls
      */
-    private final IBluetoothInputDevice.Stub mBinder = new IBluetoothInputDevice.Stub() {
-        public boolean connect(BluetoothDevice device) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            if (getConnectionState(device) != BluetoothInputDevice.STATE_DISCONNECTED) {
-                Log.e(TAG, "Hid Device not disconnected: " + device);
-                return false;
-            }
-            if (getPriority(device) == BluetoothInputDevice.PRIORITY_OFF) {
-                Log.e(TAG, "Hid Device PRIORITY_OFF: " + device);
-                return false;
-            }
+    private static class BluetoothInputDeviceBinder extends IBluetoothInputDevice.Stub implements IProfileServiceBinder{
+        private HidService mService;
+        public BluetoothInputDeviceBinder(HidService svc) {
+            mService = svc;
+        }
 
-            Message msg = mHandler.obtainMessage(MESSAGE_CONNECT);
-            msg.obj = device;
-            mHandler.sendMessage(msg);
+        public boolean cleanup() {
+            mService = null;
             return true;
+        }
+
+        private HidService getService() {
+            if (mService  != null && mService.isAvailable()) {
+                return mService;
+            }
+            return null;
+        }
+
+        public boolean connect(BluetoothDevice device) {
+            HidService service = getService();
+            if (service == null) return false;
+            return service.connect(device);
         }
 
         public boolean disconnect(BluetoothDevice device) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            Message msg = mHandler.obtainMessage(MESSAGE_DISCONNECT);
-            msg.obj = device;
-            mHandler.sendMessage(msg);
-            return true;
+            HidService service = getService();
+            if (service == null) return false;
+            return service.disconnect(device);
         }
 
         public int getConnectionState(BluetoothDevice device) {
-            if (mInputDevices.get(device) == null) {
-                return BluetoothInputDevice.STATE_DISCONNECTED;
-            }
-            return mInputDevices.get(device);
+            HidService service = getService();
+            if (service == null) return BluetoothInputDevice.STATE_DISCONNECTED;
+            return service.getConnectionState(device);
         }
 
         public List<BluetoothDevice> getConnectedDevices() {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            List<BluetoothDevice> devices = getDevicesMatchingConnectionStates(
+            return getDevicesMatchingConnectionStates(
                     new int[] {BluetoothProfile.STATE_CONNECTED});
-            return devices;
         }
 
         public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
-            enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-            List<BluetoothDevice> inputDevices = new ArrayList<BluetoothDevice>();
-
-            for (BluetoothDevice device: mInputDevices.keySet()) {
-                int inputDeviceState = getConnectionState(device);
-                for (int state : states) {
-                    if (state == inputDeviceState) {
-                        inputDevices.add(device);
-                        break;
-                    }
-                }
-            }
-            return inputDevices;
+            HidService service = getService();
+            if (service == null) return new ArrayList<BluetoothDevice>(0);
+            return service.getDevicesMatchingConnectionStates(states);
         }
 
         public boolean setPriority(BluetoothDevice device, int priority) {
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                                           "Need BLUETOOTH_ADMIN permission");
-            Settings.Secure.putInt(getContentResolver(),
-                Settings.Secure.getBluetoothInputDevicePriorityKey(device.getAddress()),
-                priority);
-            if (DBG) log("Saved priority " + device + " = " + priority);
-            return true;
+            HidService service = getService();
+            if (service == null) return false;
+            return service.setPriority(device, priority);
         }
 
         public int getPriority(BluetoothDevice device) {
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                                           "Need BLUETOOTH_ADMIN permission");
-            int priority = Settings.Secure.getInt(getContentResolver(),
-                Settings.Secure.getBluetoothInputDevicePriorityKey(device.getAddress()),
-                BluetoothProfile.PRIORITY_UNDEFINED);
-            return priority;
+            HidService service = getService();
+            if (service == null) return BluetoothProfile.PRIORITY_UNDEFINED;
+            return service.getPriority(device);
         }
+
         /* The following APIs regarding test app for compliance */
         public boolean getProtocolMode(BluetoothDevice device) {
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                                           "Need BLUETOOTH_ADMIN permission");
-            int state = this.getConnectionState(device);
-            if (state != BluetoothInputDevice.STATE_CONNECTED) {
-                return false;
-            }
-            Message msg = mHandler.obtainMessage(MESSAGE_GET_PROTOCOL_MODE);
-            msg.obj = device;
-            mHandler.sendMessage(msg);
-            return true;
-            /* String objectPath = getObjectPathFromAddress(device.getAddress());
-                return getProtocolModeInputDeviceNative(objectPath);*/
+            HidService service = getService();
+            if (service == null) return false;
+            return service.getProtocolMode(device);
         }
 
         public boolean virtualUnplug(BluetoothDevice device) {
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                                           "Need BLUETOOTH_ADMIN permission");
-            int state = this.getConnectionState(device);
-            if (state != BluetoothInputDevice.STATE_CONNECTED) {
-                return false;
-            }
-            Message msg = mHandler.obtainMessage(MESSAGE_VIRTUAL_UNPLUG);
-            msg.obj = device;
-            mHandler.sendMessage(msg);
-
-            return true;
+            HidService service = getService();
+            if (service == null) return false;
+            return service.virtualUnplug(device);
         }
 
         public boolean setProtocolMode(BluetoothDevice device, int protocolMode) {
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                                           "Need BLUETOOTH_ADMIN permission");
-            int state = this.getConnectionState(device);
-            if (state != BluetoothInputDevice.STATE_CONNECTED) {
-                return false;
-            }
-            Message msg = mHandler.obtainMessage(MESSAGE_SET_PROTOCOL_MODE);
-            msg.obj = device;
-            msg.arg1 = protocolMode;
-            mHandler.sendMessage(msg);
-            return true ;
+            HidService service = getService();
+            if (service == null) return false;
+            return service.setProtocolMode(device, protocolMode);
         }
-
+        
         public boolean getReport(BluetoothDevice device, byte reportType, byte reportId, int bufferSize) {
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                                           "Need BLUETOOTH_ADMIN permission");
-            int state = this.getConnectionState(device);
-            if (state != BluetoothInputDevice.STATE_CONNECTED) {
-                return false;
-            }
-            Message msg = mHandler.obtainMessage(MESSAGE_GET_REPORT);
-            msg.obj = device;
-            Bundle data = new Bundle();
-            data.putByte(BluetoothInputDevice.EXTRA_REPORT_TYPE, reportType);
-            data.putByte(BluetoothInputDevice.EXTRA_REPORT_ID, reportId);
-            data.putInt(BluetoothInputDevice.EXTRA_REPORT_BUFFER_SIZE, bufferSize);
-            msg.setData(data);
-            mHandler.sendMessage(msg);
-            return true ;
+            HidService service = getService();
+            if (service == null) return false;
+            return service.getReport(device, reportType, reportId, bufferSize) ;
         }
 
         public boolean setReport(BluetoothDevice device, byte reportType, String report) {
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                                                       "Need BLUETOOTH_ADMIN permission");
-            int state = this.getConnectionState(device);
-            if (state != BluetoothInputDevice.STATE_CONNECTED) {
-                return false;
-            }
-            Message msg = mHandler.obtainMessage(MESSAGE_SET_REPORT);
-            msg.obj = device;
-            Bundle data = new Bundle();
-            data.putByte(BluetoothInputDevice.EXTRA_REPORT_TYPE, reportType);
-            data.putString(BluetoothInputDevice.EXTRA_REPORT, report);
-            msg.setData(data);
-            mHandler.sendMessage(msg);
-            return true ;
-
+            HidService service = getService();
+            if (service == null) return false;
+            return service.setReport(device, reportType, report);
         }
 
         public boolean sendData(BluetoothDevice device, String report) {
-            enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                                                       "Need BLUETOOTH_ADMIN permission");
-            int state = this.getConnectionState(device);
-            if (state != BluetoothInputDevice.STATE_CONNECTED) {
-                return false;
-            }
-
-            return sendDataNative(getByteAddress(device), report);
-            /*Message msg = mHandler.obtainMessage(MESSAGE_SEND_DATA);
-            msg.obj = device;
-            Bundle data = new Bundle();
-            data.putString(BluetoothInputDevice.EXTRA_REPORT, report);
-            msg.setData(data);
-            mHandler.sendMessage(msg);
-            return true ;*/
+            HidService service = getService();
+            if (service == null) return false;
+            return service.sendData(device, report);
         }
     };
 
+    //APIs
+    boolean connect(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (getConnectionState(device) != BluetoothInputDevice.STATE_DISCONNECTED) {
+            Log.e(TAG, "Hid Device not disconnected: " + device);
+            return false;
+        }
+        if (getPriority(device) == BluetoothInputDevice.PRIORITY_OFF) {
+            Log.e(TAG, "Hid Device PRIORITY_OFF: " + device);
+            return false;
+        }
+
+        Message msg = mHandler.obtainMessage(MESSAGE_CONNECT, device);
+        mHandler.sendMessage(msg);
+        return true;
+    }
+
+    boolean disconnect(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        Message msg = mHandler.obtainMessage(MESSAGE_DISCONNECT,device);
+        mHandler.sendMessage(msg);
+        return true;
+    }
+
+    int getConnectionState(BluetoothDevice device) {
+        if (mInputDevices.get(device) == null) {
+            return BluetoothInputDevice.STATE_DISCONNECTED;
+        }
+        return mInputDevices.get(device);
+    }
+
+    List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        List<BluetoothDevice> inputDevices = new ArrayList<BluetoothDevice>();
+
+        for (BluetoothDevice device: mInputDevices.keySet()) {
+            int inputDeviceState = getConnectionState(device);
+            for (int state : states) {
+                if (state == inputDeviceState) {
+                    inputDevices.add(device);
+                    break;
+                }
+            }
+        }
+        return inputDevices;
+    }
+
+    boolean setPriority(BluetoothDevice device, int priority) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                                       "Need BLUETOOTH_ADMIN permission");
+        Settings.Secure.putInt(getContentResolver(),
+            Settings.Secure.getBluetoothInputDevicePriorityKey(device.getAddress()),
+            priority);
+        if (DBG) Log.d(TAG,"Saved priority " + device + " = " + priority);
+        return true;
+    }
+
+    int getPriority(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                                       "Need BLUETOOTH_ADMIN permission");
+        int priority = Settings.Secure.getInt(getContentResolver(),
+            Settings.Secure.getBluetoothInputDevicePriorityKey(device.getAddress()),
+            BluetoothProfile.PRIORITY_UNDEFINED);
+        return priority;
+    }
+
+    /* The following APIs regarding test app for compliance */
+    boolean getProtocolMode(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                                       "Need BLUETOOTH_ADMIN permission");
+        int state = this.getConnectionState(device);
+        if (state != BluetoothInputDevice.STATE_CONNECTED) {
+            return false;
+        }
+        Message msg = mHandler.obtainMessage(MESSAGE_GET_PROTOCOL_MODE,device);
+        mHandler.sendMessage(msg);
+        return true;
+        /* String objectPath = getObjectPathFromAddress(device.getAddress());
+            return getProtocolModeInputDeviceNative(objectPath);*/
+    }
+
+    boolean virtualUnplug(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                                       "Need BLUETOOTH_ADMIN permission");
+        int state = this.getConnectionState(device);
+        if (state != BluetoothInputDevice.STATE_CONNECTED) {
+            return false;
+        }
+        Message msg = mHandler.obtainMessage(MESSAGE_VIRTUAL_UNPLUG,device);
+        mHandler.sendMessage(msg);
+        return true;
+    }
+
+    boolean setProtocolMode(BluetoothDevice device, int protocolMode) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                                       "Need BLUETOOTH_ADMIN permission");
+        int state = this.getConnectionState(device);
+        if (state != BluetoothInputDevice.STATE_CONNECTED) {
+            return false;
+        }
+        Message msg = mHandler.obtainMessage(MESSAGE_SET_PROTOCOL_MODE);
+        msg.obj = device;
+        msg.arg1 = protocolMode;
+        mHandler.sendMessage(msg);
+        return true ;
+    }
+
+    boolean getReport(BluetoothDevice device, byte reportType, byte reportId, int bufferSize) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                                       "Need BLUETOOTH_ADMIN permission");
+        int state = this.getConnectionState(device);
+        if (state != BluetoothInputDevice.STATE_CONNECTED) {
+            return false;
+        }
+        Message msg = mHandler.obtainMessage(MESSAGE_GET_REPORT);
+        msg.obj = device;
+        Bundle data = new Bundle();
+        data.putByte(BluetoothInputDevice.EXTRA_REPORT_TYPE, reportType);
+        data.putByte(BluetoothInputDevice.EXTRA_REPORT_ID, reportId);
+        data.putInt(BluetoothInputDevice.EXTRA_REPORT_BUFFER_SIZE, bufferSize);
+        msg.setData(data);
+        mHandler.sendMessage(msg);
+        return true ;
+    }
+
+    boolean setReport(BluetoothDevice device, byte reportType, String report) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                                                   "Need BLUETOOTH_ADMIN permission");
+        int state = this.getConnectionState(device);
+        if (state != BluetoothInputDevice.STATE_CONNECTED) {
+            return false;
+        }
+        Message msg = mHandler.obtainMessage(MESSAGE_SET_REPORT);
+        msg.obj = device;
+        Bundle data = new Bundle();
+        data.putByte(BluetoothInputDevice.EXTRA_REPORT_TYPE, reportType);
+        data.putString(BluetoothInputDevice.EXTRA_REPORT, report);
+        msg.setData(data);
+        mHandler.sendMessage(msg);
+        return true ;
+
+    }
+
+    boolean sendData(BluetoothDevice device, String report) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                                                   "Need BLUETOOTH_ADMIN permission");
+        int state = this.getConnectionState(device);
+        if (state != BluetoothInputDevice.STATE_CONNECTED) {
+            return false;
+        }
+
+        return sendDataNative(Utils.getByteAddress(device), report);
+        /*Message msg = mHandler.obtainMessage(MESSAGE_SEND_DATA);
+        msg.obj = device;
+        Bundle data = new Bundle();
+        data.putString(BluetoothInputDevice.EXTRA_REPORT, report);
+        msg.setData(data);
+        mHandler.sendMessage(msg);
+        return true ;*/
+    }
+    
     private void onGetProtocolMode(byte[] address, int mode) {
         Message msg = mHandler.obtainMessage(MESSAGE_ON_GET_PROTOCOL_MODE);
         msg.obj = address;
@@ -418,10 +499,7 @@ public class HidService extends ProfileService {
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
         sendBroadcast(intent, BLUETOOTH_PERM);
         if (DBG) log("Connection state " + device + ": " + prevState + "->" + newState);
-        AdapterService svc = AdapterService.getAdapterService();
-        if (svc != null) {
-            svc.onProfileConnectionStateChanged(device, BluetoothProfile.INPUT_DEVICE, newState, prevState);
-        }
+        notifyProfileConnectionStateChanged(device, BluetoothProfile.INPUT_DEVICE, newState, prevState);
     }
 
     private void broadcastProtocolMode(BluetoothDevice device, int protocolMode) {
@@ -441,15 +519,7 @@ public class HidService extends ProfileService {
         sendBroadcast(intent, BLUETOOTH_PERM);
     }
 
-    private BluetoothDevice getDevice(byte[] address) {
-        return mAdapter.getRemoteDevice(Utils.getAddressStringFromByte(address));
-    }
-
-    private byte[] getByteAddress(BluetoothDevice device) {
-        return Utils.getBytesFromAddress(device.getAddress());
-    }
-
-    private int convertHalState(int halState) {
+    private static int convertHalState(int halState) {
         switch (halState) {
             case CONN_STATE_CONNECTED:
                 return BluetoothProfile.STATE_CONNECTED;
@@ -464,7 +534,6 @@ public class HidService extends ProfileService {
                 return BluetoothProfile.STATE_DISCONNECTED;
         }
     }
-
 
     // Constants matching Hal header file bt_hh.h
     // bthh_connection_state_t

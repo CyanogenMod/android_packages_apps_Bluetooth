@@ -5,6 +5,7 @@
 package com.android.bluetooth;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.os.ParcelUuid;
 
 import java.nio.ByteBuffer;
@@ -27,6 +28,10 @@ final public class Utils {
         return String.format("%02X:%02X:%02X:%02X:%02X:%02X",
                 address[0], address[1], address[2], address[3], address[4],
                 address[5]);
+    }
+
+    public static byte[] getByteAddress(BluetoothDevice device) {
+        return getBytesFromAddress(device.getAddress());
     }
 
     public static byte[] getBytesFromAddress(String address) {

@@ -641,16 +641,11 @@ public class BluetoothPbapService extends Service {
             intent.putExtra(BluetoothPbap.PBAP_STATE, mState);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
             sendBroadcast(intent, BLUETOOTH_PERM);
-            //if (mBluetoothService != null) {
             AdapterService s = AdapterService.getAdapterService();
             if (s != null) {
                 s.onProfileConnectionStateChanged(mRemoteDevice, BluetoothProfile.PBAP,
                         mState, prevState);
             }
-                /*
-            } else {
-                Log.e(TAG, "null mBluetoothService");
-            }*/
         }
     }
 

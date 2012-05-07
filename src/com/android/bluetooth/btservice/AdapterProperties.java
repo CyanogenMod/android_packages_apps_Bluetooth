@@ -38,9 +38,7 @@ class AdapterProperties {
     private int mConnectionState = BluetoothAdapter.STATE_DISCONNECTED;
     private int mState = BluetoothAdapter.STATE_OFF;
 
-    //private static AdapterProperties sInstance;
     private AdapterService mService;
-    private Context mContext;
     private boolean mDiscovering;
     private RemoteDevices mRemoteDevices;
 
@@ -49,11 +47,9 @@ class AdapterProperties {
     // can be added here.
     private Object mObject = new Object();
 
-    AdapterProperties(AdapterService service, Context context) {
+    public AdapterProperties(AdapterService service) {
         mService = service;
-        mContext = context;
     }
-
     public void init(RemoteDevices remoteDevices) {
         if (mProfileConnectionState ==null) {
             mProfileConnectionState = new HashMap<Integer, Pair<Integer, Integer>>();
@@ -64,13 +60,12 @@ class AdapterProperties {
     }
 
     public void cleanup() {
+        mRemoteDevices = null;
         if (mProfileConnectionState != null) {
             mProfileConnectionState.clear();
             mProfileConnectionState = null;
         }
-        mRemoteDevices = null;
         mService = null;
-        mContext = null;
     }
 
     public Object Clone() throws CloneNotSupportedException {
@@ -257,7 +252,7 @@ class AdapterProperties {
                 intent.putExtra(BluetoothAdapter.EXTRA_PREVIOUS_CONNECTION_STATE,
                         convertToAdapterState(prevState));
                 intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-                mContext.sendBroadcast(intent, mService.BLUETOOTH_PERM);
+                mService.sendBroadcast(intent, mService.BLUETOOTH_PERM);
                 debugLog("CONNECTION_STATE_CHANGE: " + device + ": "
                         + prevState + " -> " + state);
             }
@@ -389,7 +384,7 @@ class AdapterProperties {
                         intent = new Intent(BluetoothAdapter.ACTION_LOCAL_NAME_CHANGED);
                         intent.putExtra(BluetoothAdapter.EXTRA_LOCAL_NAME, mName);
                         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-                        mContext.sendBroadcast(intent, mService.BLUETOOTH_PERM);
+                        mService.sendBroadcast(intent, mService.BLUETOOTH_PERM);
                         debugLog("Name is: " + mName);
                         break;
                     case AbstractionLayer.BT_PROPERTY_BDADDR:
@@ -406,7 +401,7 @@ class AdapterProperties {
                         intent = new Intent(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
                         intent.putExtra(BluetoothAdapter.EXTRA_SCAN_MODE, mScanMode);
                         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-                        mContext.sendBroadcast(intent, mService.BLUETOOTH_PERM);
+                        mService.sendBroadcast(intent, mService.BLUETOOTH_PERM);
                         debugLog("Scan Mode:" + mScanMode);
                         if (mBluetoothDisabling) {
                             mBluetoothDisabling=false;
@@ -488,11 +483,11 @@ class AdapterProperties {
             if (state == AbstractionLayer.BT_DISCOVERY_STOPPED) {
                 mDiscovering = false;
                 intent = new Intent(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-                mContext.sendBroadcast(intent, mService.BLUETOOTH_PERM);
+                mService.sendBroadcast(intent, mService.BLUETOOTH_PERM);
             } else if (state == AbstractionLayer.BT_DISCOVERY_STARTED) {
                 mDiscovering = true;
                 intent = new Intent(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-                mContext.sendBroadcast(intent, mService.BLUETOOTH_PERM);
+                mService.sendBroadcast(intent, mService.BLUETOOTH_PERM);
             }
         }
     }
