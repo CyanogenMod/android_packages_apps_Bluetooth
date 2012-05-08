@@ -769,7 +769,12 @@ final class HeadsetStateMachine extends StateMachine {
                 }
                 // fall through
                 case DISCONNECT_AUDIO:
-                    disconnectAudioNative(getByteAddress(mCurrentDevice));
+                    if (disconnectAudioNative(getByteAddress(mCurrentDevice))) {
+                        mAudioState = BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
+                        mAudioManager.setBluetoothScoOn(false);
+                        broadcastAudioState(mCurrentDevice, BluetoothHeadset.STATE_AUDIO_DISCONNECTED,
+                                            BluetoothHeadset.STATE_AUDIO_CONNECTED);
+                    }
                     break;
                 case VOICE_RECOGNITION_START:
                     processLocalVrEvent(HeadsetHalConstants.VR_STATE_STARTED);
@@ -904,10 +909,12 @@ final class HeadsetStateMachine extends StateMachine {
 
             switch (state) {
                 case HeadsetHalConstants.AUDIO_STATE_DISCONNECTED:
-                    mAudioState = BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
-                    mAudioManager.setBluetoothScoOn(false);
-                    broadcastAudioState(device, BluetoothHeadset.STATE_AUDIO_DISCONNECTED,
-                                        BluetoothHeadset.STATE_AUDIO_CONNECTED);
+                    if (mAudioState != BluetoothHeadset.STATE_AUDIO_DISCONNECTED) {
+                        mAudioState = BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
+                        mAudioManager.setBluetoothScoOn(false);
+                        broadcastAudioState(device, BluetoothHeadset.STATE_AUDIO_DISCONNECTED,
+                                            BluetoothHeadset.STATE_AUDIO_CONNECTED);
+                    }
                     transitionTo(mConnected);
                     break;
                 case HeadsetHalConstants.AUDIO_STATE_DISCONNECTING:
