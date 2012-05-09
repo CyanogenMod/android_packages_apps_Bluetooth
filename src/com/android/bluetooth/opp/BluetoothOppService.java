@@ -85,7 +85,7 @@ public class BluetoothOppService extends Service {
         }
     }
 
-    private static final String TAG = "BtOpp Service";
+    private static final String TAG = "BtOppService";
 
     /** Observer to get notified when the content observer's data changes */
     private BluetoothShareContentObserver mObserver;
@@ -146,7 +146,7 @@ public class BluetoothOppService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        if (V) Log.v(TAG, "Service onCreate");
+        if (V) Log.v(TAG, "onCreate");
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mSocketListener = new BluetoothOppRfcommListener(mAdapter);
         mShares = Lists.newArrayList();
@@ -181,7 +181,7 @@ public class BluetoothOppService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (V) Log.v(TAG, "Service onStartCommand");
+        if (V) Log.v(TAG, "onStartCommand");
         //int retCode = super.onStartCommand(intent, flags, startId);
         //if (retCode == START_STICKY) {
             if (mAdapter == null) {
@@ -328,7 +328,7 @@ public class BluetoothOppService extends Service {
 
     @Override
     public void onDestroy() {
-        if (V) Log.v(TAG, "Service onDestroy");
+        if (V) Log.v(TAG, "onDestroy");
         super.onDestroy();
         getContentResolver().unregisterContentObserver(mObserver);
         unregisterReceiver(mBluetoothReceiver);

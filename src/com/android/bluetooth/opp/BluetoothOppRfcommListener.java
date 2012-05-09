@@ -156,7 +156,7 @@ public class BluetoothOppRfcommListener {
                                     mInterrupted = true;
                                     
                                 } else {
-                                    clientSocket = mBtServerSocket.accept();
+                                    clientSocket = sSocket.accept();
                                     if (V) Log.v(TAG, "Accepted connection from "
                                         + clientSocket.getRemoteDevice());
                                     BluetoothOppRfcommTransport transport = new BluetoothOppRfcommTransport(

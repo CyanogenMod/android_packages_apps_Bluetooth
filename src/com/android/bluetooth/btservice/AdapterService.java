@@ -14,6 +14,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetooth;
+import android.bluetooth.IBluetoothCallback;
 import android.bluetooth.IBluetoothManager;
 import android.bluetooth.IBluetoothManagerCallback;
 import android.content.BroadcastReceiver;
@@ -28,6 +29,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.os.ParcelUuid;
+import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.provider.Settings;
 import android.util.Log;
@@ -127,6 +129,7 @@ public class AdapterService extends Service {
     private boolean mNativeAvailable;
     private boolean mCleaningUp;
     private HashMap<String,Integer> mProfileServicesState = new HashMap<String,Integer>();
+    private RemoteCallbackList<IBluetoothCallback> mCallbacks;//Only BluetoothManagerService should be registered
     private int mCurrentRequestId;
 
     public AdapterService() {
@@ -241,7 +244,7 @@ public class AdapterService extends Service {
         initNative();
         mNativeAvailable=true;
         mAdapterStateMachine.start();
-
+        mCallbacks = new RemoteCallbackList<IBluetoothCallback>();
         //Load the name and address
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDADDR);
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDNAME);
@@ -370,6 +373,21 @@ public class AdapterService extends Service {
         stopSelfResult(requestId);
     }
 
+     void updateAdapterState(int prevState, int newState){
+        if (mCallbacks !=null) {
+            int n=mCallbacks.beginBroadcast();
+            Log.d(TAG,"Broadcasting updateAdapterState() to " + n + " receivers.");
+            for (int i=0; i <n;i++) {
+                try {
+                    mCallbacks.getBroadcastItem(i).onBluetoothStateChange(prevState,newState);
+                }  catch (RemoteException e) {
+                    Log.e(TAG, "Unable to call onBluetoothStateChange() on callback #" + i, e);
+                }
+            }
+            mCallbacks.finishBroadcast();
+        }
+    }
+
     void cleanup () {
         if (DBG)debugLog("cleanup()");
         if (mCleaningUp) {
@@ -418,13 +436,17 @@ public class AdapterService extends Service {
             mProfileServicesState= null;
         }
 
-        //FIXME: Set static instance here???
         clearAdapterService();
 
         if (mBinder != null) {
             mBinder.cleanup();
             mBinder = null;
         }
+
+        if (mCallbacks !=null) {
+            mCallbacks.kill();
+        }
+
         if (DBG)debugLog("cleanup() done");
     }
 
@@ -736,6 +758,18 @@ public class AdapterService extends Service {
             if (service == null) return null;
             return service.createSocketChannel(type, serviceName, uuid, port, flag);
         }
+
+        public void registerCallback(IBluetoothCallback cb) {
+            AdapterService service = getService();
+            if (service == null) return ;
+            service.registerCallback(cb);
+         }
+
+         public void unregisterCallback(IBluetoothCallback cb) {
+             AdapterService service = getService();
+             if (service == null) return ;
+             service.unregisterCallback(cb);
+         }
     };
 
 
@@ -1011,6 +1045,14 @@ public class AdapterService extends Service {
         }
         return ParcelFileDescriptor.adoptFd(fd);
     }
+
+     void registerCallback(IBluetoothCallback cb) {
+         mCallbacks.register(cb);
+      }
+
+      void unregisterCallback(IBluetoothCallback cb) {
+         mCallbacks.unregister(cb);
+      }
 
     private static int convertScanModeToHal(int mode) {
         switch (mode) {

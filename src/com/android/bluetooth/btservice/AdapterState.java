@@ -103,7 +103,7 @@ final class AdapterState extends StateMachine {
             switch(msg.what) {
                case USER_TURN_ON:
                    if (DBG) Log.d(TAG,"CURRENT_STATE=OFF, MESSAGE = USER_TURN_ON, requestId= " + msg.arg1);
-                   sendIntent(BluetoothAdapter.STATE_TURNING_ON);
+                   notifyAdapterStateChange(BluetoothAdapter.STATE_TURNING_ON);
                    mPendingCommandState.setTurningOn(true);
                    transitionTo(mPendingCommandState);
                    sendMessageDelayed(START_TIMEOUT, START_TIMEOUT_DELAY);
@@ -133,7 +133,7 @@ final class AdapterState extends StateMachine {
             switch(msg.what) {
                case USER_TURN_OFF:
                    if (DBG) Log.d(TAG,"CURRENT_STATE=ON, MESSAGE = USER_TURN_OFF, requestId= " + msg.arg1);
-                   sendIntent(BluetoothAdapter.STATE_TURNING_OFF);
+                   notifyAdapterStateChange(BluetoothAdapter.STATE_TURNING_OFF);
                    mPendingCommandState.setTurningOff(true);
                    mPendingCommandState.setOffRequestId(msg.arg1);
                    transitionTo(mPendingCommandState);
@@ -226,7 +226,7 @@ final class AdapterState extends StateMachine {
                     boolean ret = mAdapterService.enableNative();
                     if (!ret) {
                         Log.e(TAG, "Error while turning Bluetooth On");
-                        sendIntent(BluetoothAdapter.STATE_OFF);
+                        notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
                         transitionTo(mOffState);
                     } else {
                         sendMessageDelayed(ENABLE_TIMEOUT, ENABLE_TIMEOUT_DELAY);
@@ -240,7 +240,7 @@ final class AdapterState extends StateMachine {
                     mAdapterProperties.onBluetoothReady();
                     mPendingCommandState.setTurningOn(false);
                     transitionTo(mOnState);
-                    sendIntent(BluetoothAdapter.STATE_ON);
+                    notifyAdapterStateChange(BluetoothAdapter.STATE_ON);
                     break;
 
                 case BEGIN_DISABLE: {
@@ -255,7 +255,7 @@ final class AdapterState extends StateMachine {
                         //FIXME: what about post enable services
                         mPendingCommandState.setTurningOff(false);
                         mPendingCommandState.setOffRequestId(-1);
-                        sendIntent(BluetoothAdapter.STATE_ON);
+                        notifyAdapterStateChange(BluetoothAdapter.STATE_ON);
                     }
                 }
                     break;
@@ -275,7 +275,7 @@ final class AdapterState extends StateMachine {
                     int requestId= getOffRequestId();
                     setOffRequestId(-1);
                     transitionTo(mOffState);
-                    sendIntent(BluetoothAdapter.STATE_OFF);
+                    notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
                     mAdapterService.startShutdown(requestId);
                     break;
                 case START_TIMEOUT:
@@ -283,14 +283,14 @@ final class AdapterState extends StateMachine {
                     errorLog("Error enabling Bluetooth");
                     mPendingCommandState.setTurningOn(false);
                     transitionTo(mOffState);
-                    sendIntent(BluetoothAdapter.STATE_OFF);
+                    notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
                     break;
                 case ENABLE_TIMEOUT:
                     if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = ENABLE_TIMEOUT, isTurningOn=" + isTurningOn + ", isTurningOff=" + isTurningOff);
                     errorLog("Error enabling Bluetooth");
                     mPendingCommandState.setTurningOn(false);
                     transitionTo(mOffState);
-                    sendIntent(BluetoothAdapter.STATE_OFF);
+                    notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
                     break;
                 case STOP_TIMEOUT:
                     if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = STOP_TIMEOUT, isTurningOn=" + isTurningOn + ", isTurningOff=" + isTurningOff);
@@ -313,16 +313,11 @@ final class AdapterState extends StateMachine {
     }
 
 
-    private void sendIntent(int newState) {
+    private void notifyAdapterStateChange(int newState) {
         int oldState = mAdapterProperties.getState();
-        Intent intent = new Intent(BluetoothAdapter.ACTION_STATE_CHANGED);
-        intent.putExtra(BluetoothAdapter.EXTRA_PREVIOUS_STATE, oldState);
-        intent.putExtra(BluetoothAdapter.EXTRA_STATE, newState);
-        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
         mAdapterProperties.setState(newState);
-
-        mAdapterService.sendBroadcast(intent, AdapterService.BLUETOOTH_PERM);
-        infoLog("Bluetooth State Change Intent: " + oldState + " -> " + newState);
+        infoLog("Bluetooth adapter state changed: " + oldState + "-> " + newState);
+        mAdapterService.updateAdapterState(oldState, newState);
     }
 
     void stateChangeCallback(int status) {
