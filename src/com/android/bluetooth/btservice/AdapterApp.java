@@ -36,6 +36,7 @@ public class AdapterApp extends Application {
     public void onCreate() {
         super.onCreate();
         if (DBG) Log.d(TAG, "onCreate");
+        Config.init(this);
     }
 
     @Override

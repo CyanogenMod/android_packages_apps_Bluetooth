@@ -39,10 +39,12 @@ import com.android.bluetooth.hid.HidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hdp.HealthService;
 import com.android.bluetooth.pan.PanService;
+import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.Map;
@@ -57,19 +59,6 @@ public class AdapterService extends Service {
     private static final boolean TRACE_REF = true;
     //For Debugging only
     private static int sRefCount=0;
-
-    /**
-     * List of profile services to support.Comment out to disable a profile
-     * Profiles started in order of appearance
-     */
-    @SuppressWarnings("rawtypes")
-    private static final Class[] SUPPORTED_PROFILE_SERVICES = {
-        HeadsetService.class,
-        A2dpService.class,
-        HidService.class,
-        HealthService.class,
-        PanService.class
-    };
 
     public static final String ACTION_LOAD_ADAPTER_PROPERTIES="com.android.bluetooth.btservice.action.LOAD_ADAPTER_PROPERTIES";
     public static final String ACTION_SERVICE_STATE_CHANGED="com.android.bluetooth.btservice.action.STATE_CHANGED";
@@ -319,7 +308,7 @@ public class AdapterService extends Service {
 
     void processStart() {
         if (DBG) debugLog("processStart()");
-
+        Class[] SUPPORTED_PROFILE_SERVICES = Config.getSupportedProfiles();
         //Initialize data objects
         for (int i=0; i < SUPPORTED_PROFILE_SERVICES.length;i++) {
             mProfileServicesState.put(SUPPORTED_PROFILE_SERVICES[i].getName(),BluetoothAdapter.STATE_OFF);
@@ -351,6 +340,7 @@ public class AdapterService extends Service {
     }
 
     boolean stopProfileServices() {
+        Class[] SUPPORTED_PROFILE_SERVICES = Config.getSupportedProfiles();
         if (mProfilesStarted && SUPPORTED_PROFILE_SERVICES.length>0) {
             setProfileServiceState(SUPPORTED_PROFILE_SERVICES,BluetoothAdapter.STATE_OFF);
             return true;

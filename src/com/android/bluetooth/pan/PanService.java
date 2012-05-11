@@ -89,7 +89,6 @@ public class PanService extends ProfileService {
     }
 
     protected boolean stop() {
-        if (DBG) log("stop");
         mHandler.removeCallbacksAndMessages(null);
         return true;
     }
