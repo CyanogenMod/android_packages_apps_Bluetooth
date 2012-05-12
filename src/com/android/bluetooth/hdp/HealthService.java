@@ -170,7 +170,6 @@ public class HealthService extends ProfileService {
                                                   BluetoothHealth.STATE_CHANNEL_DISCONNECTED,
                                                   BluetoothHealth.STATE_CHANNEL_DISCONNECTING,
                                                   chan.mChannelFd, chan.mChannelId);
-                        mHealthChannels.remove(chan);
                     }
                 }
                     break;
@@ -214,6 +213,7 @@ public class HealthService extends ProfileService {
                         BluetoothDevice device = getDevice(channelStateEvent.mAddr);
                         chan = new HealthChannel(device, appConfig, appConfig.getChannelType());
                         chan.mChannelId = channelStateEvent.mChannelId;
+                        mHealthChannels.add(chan);
                     }
                     newState = convertHalChannelState(channelStateEvent.mState);
                     if (newState == BluetoothHealth.STATE_CHANNEL_CONNECTED) {
@@ -499,7 +499,6 @@ public class HealthService extends ProfileService {
         }
 
         HealthChannel chan = new HealthChannel(device, config, channelType);
-        mHealthChannels.add(chan);
 
         Message msg = mHandler.obtainMessage(MESSAGE_CONNECT_CHANNEL);
         msg.obj = chan;
