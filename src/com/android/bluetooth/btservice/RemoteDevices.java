@@ -178,6 +178,14 @@ final class RemoteDevices {
         void setBondState(int mBondState) {
             synchronized (mObject) {
                 this.mBondState = mBondState;
+                if (mBondState == BluetoothDevice.BOND_NONE)
+                {
+                    /* Clearing the Uuids local copy when the device is unpaired. If not cleared,
+                    cachedBluetoothDevice issued a connect using the local cached copy of uuids,
+                    without waiting for the ACTION_UUID intent.
+                    This was resulting in multiple calls to connect().*/
+                    mUuids = null;
+                }
             }
         }
 
