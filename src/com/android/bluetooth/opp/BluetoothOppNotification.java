@@ -120,6 +120,8 @@ class BluetoothOppNotification {
         String description; // the text above progress bar
 
         boolean handoverInitiated = false; // transfer initiated by connection handover (eg NFC)
+
+        String destination; // destination associated with this transfer
     }
 
     /**
@@ -232,6 +234,7 @@ class BluetoothOppNotification {
         final int dataIndex = cursor.getColumnIndexOrThrow(BluetoothShare._DATA);
         final int filenameHintIndex = cursor.getColumnIndexOrThrow(BluetoothShare.FILENAME_HINT);
         final int confirmIndex = cursor.getColumnIndexOrThrow(BluetoothShare.USER_CONFIRMATION);
+        final int destinationIndex = cursor.getColumnIndexOrThrow(BluetoothShare.DESTINATION);
 
         mNotifications.clear();
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
@@ -242,6 +245,7 @@ class BluetoothOppNotification {
             int current = cursor.getInt(currentBytesIndex);
             int confirmation = cursor.getInt(confirmIndex);
 
+            String destination = cursor.getString(destinationIndex);
             String fileName = cursor.getString(dataIndex);
             if (fileName == null) {
                 fileName = cursor.getString(filenameHintIndex);
@@ -273,6 +277,7 @@ class BluetoothOppNotification {
                 item.totalTotal = total;
                 item.handoverInitiated =
                         confirmation == BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED;
+                item.destination = destination;
                 mNotifications.put(batchID, item);
 
                 if (V) Log.v(TAG, "ID=" + item.id + "; batchID=" + batchID + "; totoalCurrent"
@@ -302,7 +307,7 @@ class BluetoothOppNotification {
                 }
                 intent.putExtra(Constants.EXTRA_BT_OPP_TRANSFER_ID, item.id);
                 intent.putExtra(Constants.EXTRA_BT_OPP_TRANSFER_PROGRESS, progress);
-
+                intent.putExtra(Constants.EXTRA_BT_OPP_ADDRESS, item.destination);
                 mContext.sendBroadcast(intent, Constants.HANDOVER_STATUS_PERMISSION);
                 continue;
             }

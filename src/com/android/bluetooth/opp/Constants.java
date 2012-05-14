@@ -89,6 +89,10 @@ public class Constants {
     public static final String EXTRA_BT_OPP_TRANSFER_STATUS =
             "android.btopp.intent.extra.BT_OPP_TRANSFER_STATUS";
 
+    /** intent extra used to indicate the address associated with the transfer */
+    public static final String EXTRA_BT_OPP_ADDRESS =
+            "android.btopp.intent.extra.BT_OPP_ADDRESS";
+
     public static final int HANDOVER_TRANSFER_STATUS_SUCCESS = 0;
 
     public static final int HANDOVER_TRANSFER_STATUS_FAILURE = 1;
@@ -113,6 +117,11 @@ public class Constants {
      * by the handover transfer */
     public static final String EXTRA_BT_OPP_TRANSFER_URI =
             "android.btopp.intent.extra.BT_OPP_TRANSFER_URI";
+
+    /** intent extra used to provide the mime-type of the data in
+     *  the handover transfer */
+    public static final String EXTRA_BT_OPP_TRANSFER_MIMETYPE =
+            "android.btopp.intent.extra.BT_OPP_TRANSFER_MIMETYPE";
 
     /** permission needed to be able to receive handover status requests */
     public static final String HANDOVER_STATUS_PERMISSION =
