@@ -154,6 +154,11 @@ final class BondStateMachine extends StateMachine {
                         /* this is either none/bonded, remove and transition */
                         result = !mDevices.remove(dev);
                         if (mDevices.isEmpty()) {
+                            // Whenever mDevices is empty, then we need to
+                            // set result=false. Else, we will end up adding
+                            // the device to the list again. This prevents us
+                            // from pairing with a device that we just unpaired
+                            result = false;
                             transitionTo(mStableState);
                         }
                     }
