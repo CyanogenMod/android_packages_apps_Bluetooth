@@ -38,16 +38,16 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Принять"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ОК"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"В процессе приема файла от \"<xliff:g id="SENDER">%1$s</xliff:g>\" произошел тайм-аут"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Передача по Bluetooth: входящий файл"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Передача по Bluetooth"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Принять файл?"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Входящий файл с другого устройства. Подтвердите, что хотите загрузить его."</string>
-    <string name="notification_receiving" msgid="4674648179652543984">"Передача по Bluetooth: получение файла <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received" msgid="3324588019186687985">"Передача по Bluetooth: файл <xliff:g id="FILE">%1$s</xliff:g> получен"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Передача по Bluetooth: файл <xliff:g id="FILE">%1$s</xliff:g> не получен"</string>
-    <string name="notification_sending" msgid="3035748958534983833">"Передача по Bluetooth: отправка файла <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"Передача по Bluetooth: файл <xliff:g id="FILE">%1$s</xliff:g> отправлен"</string>
+    <string name="notification_receiving" msgid="4674648179652543984">"Передача по Bluetooth: <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received" msgid="3324588019186687985">"Получено по Bluetooth: <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"Файл не передан: <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sending" msgid="3035748958534983833">"Отправка по Bluetooth: <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"Передано по Bluetooth: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"100% завершено."</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"Передача по Bluetooth: файл <xliff:g id="FILE">%1$s</xliff:g> не отправлен"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"Файл не передан: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_title" msgid="3353228219772092586">"Передача файла"</string>
     <string name="download_line1" msgid="4926604799202134144">"От: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"Файл: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -107,8 +107,8 @@
     <string name="outbound_history_title" msgid="4279418703178140526">"Исходящие передачи"</string>
     <string name="no_transfers" msgid="3482965619151865672">"Нет данных"</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Все элементы будут удалены из списка."</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth: отправленные файлы"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth: полученные файлы"</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Передано по Bluetooth"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Получено по Bluetooth"</string>
     <string name="noti_caption" msgid="7508708288885707365">"Удачно: <xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g>, неудачно: <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g>."</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Очистить список"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Открыть"</string>
