@@ -16,8 +16,11 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.os.IBinder;
+import android.os.IBinder.DeathRecipient;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
+import java.util.NoSuchElementException;
 import android.os.ServiceManager;
 import android.util.Log;
 import java.io.FileDescriptor;
@@ -87,9 +90,21 @@ public class HealthService extends ProfileService {
         if (looper != null) {
             looper.quit();
         }
+        cleanupApps();
         return true;
     }
 
+    private void cleanupApps(){
+        for (Entry<BluetoothHealthAppConfiguration, AppInfo> entry : mApps.entrySet()) {
+            try{
+                AppInfo appInfo = entry.getValue();
+                appInfo.cleanup();
+                mApps.remove(entry.getKey());
+            }catch(Exception e){
+                Log.e(TAG,"Failed to cleanup appInfo for appid ="+entry.getKey());
+            }
+        }
+    }
     protected boolean cleanup() {
         mHandler = null;
         //Cleanup native
@@ -124,6 +139,8 @@ public class HealthService extends ProfileService {
                 {
                     BluetoothHealthAppConfiguration appConfig =
                         (BluetoothHealthAppConfiguration) msg.obj;
+                    AppInfo appInfo = mApps.get(appConfig);
+                    if (appInfo == null) break;
                     int halRole = convertRoleToHal(appConfig.getRole());
                     int halChannelType = convertChannelTypeToHal(appConfig.getChannelType());
                     if (DBG) log("register datatype: " + appConfig.getDataType() + " role: " +
@@ -131,13 +148,21 @@ public class HealthService extends ProfileService {
                                  halChannelType);
                     int appId = registerHealthAppNative(appConfig.getDataType(), halRole,
                                                         appConfig.getName(), halChannelType);
-
                     if (appId == -1) {
                         callStatusCallback(appConfig,
                                            BluetoothHealth.APP_CONFIG_REGISTRATION_FAILURE);
+                        appInfo.cleanup();
                         mApps.remove(appConfig);
                     } else {
-                        (mApps.get(appConfig)).mAppId = appId;
+                        //link to death with a recipient object to implement binderDead()
+                        appInfo.mRcpObj = new BluetoothHealthDeathRecipient(HealthService.this,appConfig);
+                        IBinder binder = appInfo.mCallback.asBinder();
+                        try {
+                            binder.linkToDeath(appInfo.mRcpObj,0);
+                        } catch (RemoteException e) {
+                            Log.e(TAG,"LinktoDeath Exception:"+e);
+                        }
+                        appInfo.mAppId = appId;
                         callStatusCallback(appConfig,
                                            BluetoothHealth.APP_CONFIG_REGISTRATION_SUCCESS);
                     }
@@ -197,6 +222,9 @@ public class HealthService extends ProfileService {
                     callStatusCallback(appConfig, regStatus);
                     if (regStatus == BluetoothHealth.APP_CONFIG_REGISTRATION_FAILURE ||
                         regStatus == BluetoothHealth.APP_CONFIG_UNREGISTRATION_SUCCESS) {
+                        //unlink to death once app is unregistered
+                        AppInfo appInfo = mApps.get(appConfig);
+                        appInfo.cleanup();
                         mApps.remove(appConfig);
                     }
                 }   
@@ -233,6 +261,27 @@ public class HealthService extends ProfileService {
                 }
                     break;
             }
+        }
+    }
+
+//Handler for DeathReceipient
+    private static class BluetoothHealthDeathRecipient implements IBinder.DeathRecipient{
+        private BluetoothHealthAppConfiguration mConfig;
+        private HealthService mService;
+
+        public BluetoothHealthDeathRecipient(HealthService service, BluetoothHealthAppConfiguration config) {
+            mService = service;
+            mConfig = config;
+        }
+
+        public void binderDied() {
+            Log.d(TAG,"Binder is dead.");
+            mService.unregisterAppConfiguration(mConfig);
+        }
+
+        public void cleanup(){
+            mService = null;
+            mConfig = null;
         }
     }
 
@@ -338,7 +387,6 @@ public class HealthService extends ProfileService {
             if (DBG) Log.d(TAG,"unregisterAppConfiguration: no app found");
             return false;
         }
-
         Message msg = mHandler.obtainMessage(MESSAGE_UNREGISTER_APPLICATION,config);
         mHandler.sendMessage(msg);
         return true;
@@ -709,12 +757,34 @@ public class HealthService extends ProfileService {
 
     private static class AppInfo {
         private IBluetoothHealthCallback mCallback;
+        private BluetoothHealthDeathRecipient mRcpObj;
         private int mAppId;
 
         private AppInfo(IBluetoothHealthCallback callback) {
             mCallback = callback;
+            mRcpObj = null;
             mAppId = -1;
         }
+
+        private void cleanup(){
+            if(mCallback != null){
+                if(mRcpObj != null){
+                    IBinder binder = mCallback.asBinder();
+                    try{
+                        binder.unlinkToDeath(mRcpObj,0);
+                    }catch(NoSuchElementException e){
+                        Log.e(TAG,"No death recipient registered"+e);
+                    }
+                    mRcpObj.cleanup();
+                    mRcpObj = null;
+                }
+                mCallback = null;
+            }
+            else if(mRcpObj != null){
+                    mRcpObj.cleanup();
+                    mRcpObj = null;
+            }
+       }
     }
 
     private class HealthChannel {
