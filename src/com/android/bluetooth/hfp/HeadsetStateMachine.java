@@ -301,24 +301,42 @@ final class HeadsetStateMachine extends StateMachine {
                 Log.w(TAG, "Ignore HF DISCONNECTED event, device: " + device);
                 break;
             case HeadsetHalConstants.CONNECTION_STATE_CONNECTING:
-                // TODO(BT) Assume it's incoming connection
-                //     Do we need to check priority and accept/reject accordingly?
-                broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
-                                         BluetoothProfile.STATE_DISCONNECTED);
-                synchronized (HeadsetStateMachine.this) {
-                    mIncomingDevice = device;
-                    transitionTo(mPending);
+                // check priority and accept or reject the connection
+                // Since the state changes to  Connecting or directly Connected in some cases.Have the check both in
+                // CONNECTION_STATE_CONNECTING and CONNECTION_STATE_CONNECTED.
+                if (BluetoothProfile.PRIORITY_OFF < mService.getPriority(device)) {
+                    Log.i(TAG,"Incoming Hf accepted");
+                    // TODO(BT) Assume it's incoming connection
+                    //     Do we need to check priority and accept/reject accordingly?
+                    broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
+                                             BluetoothProfile.STATE_DISCONNECTED);
+                    synchronized (HeadsetStateMachine.this) {
+                        mIncomingDevice = device;
+                        transitionTo(mPending);
+                    }
+                } else {
+                    Log.i(TAG,"Incoming Hf rejected");
+                    //reject the connection and stay in Disconnected state itself
+                    disconnectHfpNative(getByteAddress(device));
                 }
                 break;
             case HeadsetHalConstants.CONNECTION_STATE_CONNECTED:
                 Log.w(TAG, "HFP Connected from Disconnected state");
-                broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTED,
-                                         BluetoothProfile.STATE_DISCONNECTED);
-                synchronized (HeadsetStateMachine.this) {
-                    mCurrentDevice = device;
-                    transitionTo(mConnected);
+                if (BluetoothProfile.PRIORITY_OFF < mService.getPriority(device)) {
+                    Log.i(TAG,"Incoming Hf accepted");
+                    broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTED,
+                                             BluetoothProfile.STATE_DISCONNECTED);
+                    synchronized (HeadsetStateMachine.this) {
+                        mCurrentDevice = device;
+                        transitionTo(mConnected);
+                    }
+                    configAudioParameters();
+                } else {
+                    //reject the connection and stay in Disconnected state itself
+                    Log.d(TAG,"Incoming Hf rejected");
+                    disconnectHfpNative(getByteAddress(device));
                 }
-                configAudioParameters();
+
                 break;
             case HeadsetHalConstants.CONNECTION_STATE_DISCONNECTING:
                 Log.w(TAG, "Ignore HF DISCONNECTING event, device: " + device);

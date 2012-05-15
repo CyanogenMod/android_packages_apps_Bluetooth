@@ -188,22 +188,37 @@ final class A2dpStateMachine extends StateMachine {
                 Log.w(TAG, "Ignore HF DISCONNECTED event, device: " + device);
                 break;
             case CONNECTION_STATE_CONNECTING:
-                // TODO(BT) Assume it's incoming connection
-                //     Do we need to check priority and accept/reject accordingly?
-                broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
-                                         BluetoothProfile.STATE_DISCONNECTED);
-                synchronized (A2dpStateMachine.this) {
-                    mIncomingDevice = device;
-                    transitionTo(mPending);
+                // check priority and accept or reject the connection
+                // Since the state changes to  Connecting or directly Connected in some cases.Have the check both in
+                // CONNECTION_STATE_CONNECTING and CONNECTION_STATE_CONNECTED.
+                if (BluetoothProfile.PRIORITY_OFF < mService.getPriority(device)) {
+                    Log.i(TAG,"Incoming A2DP accepted");
+                    broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
+                                             BluetoothProfile.STATE_DISCONNECTED);
+                    synchronized (A2dpStateMachine.this) {
+                        mIncomingDevice = device;
+                        transitionTo(mPending);
+                    }
+                } else {
+                    //reject the connection and stay in Disconnected state itself
+                    Log.i(TAG,"Incoming A2DP rejected");
+                    disconnectA2dpNative(getByteAddress(device));
                 }
                 break;
             case CONNECTION_STATE_CONNECTED:
                 Log.w(TAG, "A2DP Connected from Disconnected state");
-                broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTED,
-                                         BluetoothProfile.STATE_DISCONNECTED);
-                synchronized (A2dpStateMachine.this) {
-                    mCurrentDevice = device;
-                    transitionTo(mConnected);
+                if (BluetoothProfile.PRIORITY_OFF < mService.getPriority(device)) {
+                    Log.i(TAG,"Incoming A2DP accepted");
+                    broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTED,
+                                             BluetoothProfile.STATE_DISCONNECTED);
+                    synchronized (A2dpStateMachine.this) {
+                        mCurrentDevice = device;
+                        transitionTo(mConnected);
+                    }
+                } else {
+                    //reject the connection and stay in Disconnected state itself
+                    Log.i(TAG,"Incoming A2DP rejected");
+                    disconnectA2dpNative(getByteAddress(device));
                 }
                 break;
             case CONNECTION_STATE_DISCONNECTING:
