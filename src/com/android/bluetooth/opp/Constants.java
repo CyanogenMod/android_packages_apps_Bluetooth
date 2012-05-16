@@ -71,6 +71,9 @@ public class Constants {
     /** the intent that whitelists a remote bluetooth device for auto-receive confirmation (NFC) */
     public static final String ACTION_WHITELIST_DEVICE = "android.btopp.intent.action.WHITELIST_DEVICE";
 
+    /** the intent that can be sent by handover requesters to stop a BTOPP transfer */
+    public static final String ACTION_STOP_HANDOVER = "android.btopp.intent.action.STOP_HANDOVER_TRANSFER";
+
     /** the intent extra to show all received files in the transfer history */
     public static final String EXTRA_SHOW_ALL_FILES = "android.btopp.intent.extra.SHOW_ALL";
 
