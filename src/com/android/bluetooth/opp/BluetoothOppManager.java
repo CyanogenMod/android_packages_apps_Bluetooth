@@ -165,13 +165,19 @@ public class BluetoothOppManager {
         }
     }
 
-    public void addToWhitelist(String address) {
+    public synchronized void addToWhitelist(String address) {
         if (address == null) return;
-
+        // Remove any existing entries
+        for (Iterator<Pair<String,Long>> iter = mWhitelist.iterator(); iter.hasNext(); ) {
+            Pair<String,Long> entry = iter.next();
+            if (entry.first.equals(address)) {
+                iter.remove();
+            }
+        }
         mWhitelist.add(new Pair<String, Long>(address, SystemClock.elapsedRealtime()));
     }
 
-    public boolean isWhitelisted(String address) {
+    public synchronized boolean isWhitelisted(String address) {
         cleanupWhitelist();
         for (Pair<String,Long> entry : mWhitelist) {
             if (entry.first.equals(address)) return true;
