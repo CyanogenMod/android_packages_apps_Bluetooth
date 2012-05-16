@@ -865,7 +865,8 @@ public class BluetoothOppService extends Service {
     private boolean shouldScanFile(int arrayPos) {
         BluetoothOppShareInfo info = mShares.get(arrayPos);
         return BluetoothShare.isStatusSuccess(info.mStatus)
-                && info.mDirection == BluetoothShare.DIRECTION_INBOUND && !info.mMediaScanned;
+                && info.mDirection == BluetoothShare.DIRECTION_INBOUND && !info.mMediaScanned &&
+                info.mConfirm != BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED;
     }
 
     // Run in a background thread at boot.
