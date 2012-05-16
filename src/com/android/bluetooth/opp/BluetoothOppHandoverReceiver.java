@@ -20,6 +20,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 
 public class BluetoothOppHandoverReceiver extends BroadcastReceiver {
@@ -36,6 +37,14 @@ public class BluetoothOppHandoverReceiver extends BroadcastReceiver {
             if (D) Log.d(TAG, "Adding " + device + " to whitelist");
             if (device == null) return;
             BluetoothOppManager.getInstance(context).addToWhitelist(device.getAddress());
+        } else if (action.equals(Constants.ACTION_STOP_HANDOVER)) {
+            int id = intent.getIntExtra(Constants.EXTRA_BT_OPP_TRANSFER_ID, -1);
+            if (id != -1) {
+                Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + id);
+
+                if (D) Log.d(TAG, "Stopping handover transfer with Uri " + contentUri);
+                context.getContentResolver().delete(contentUri, null, null);
+            }
         } else {
             if (D) Log.d(TAG, "Unknown action: " + action);
         }

@@ -65,6 +65,7 @@
             android:permission="com.android.permission.WHITELIST_BLUETOOTH_DEVICE">
             <intent-filter>
                 <action android:name="android.btopp.intent.action.WHITELIST_DEVICE" />
+                <action android:name="android.btopp.intent.action.STOP_HANDOVER_TRANSFER" />
             </intent-filter>
         </receiver>
         <activity android:name=".opp.BluetoothOppLauncherActivity"
