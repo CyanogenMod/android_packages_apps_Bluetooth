@@ -240,11 +240,15 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                             Constants.DIRECTION_BLUETOOTH_OUTGOING);
                 }
                 handoverIntent.putExtra(Constants.EXTRA_BT_OPP_TRANSFER_ID, transInfo.mID);
+                handoverIntent.putExtra(Constants.EXTRA_BT_OPP_ADDRESS, transInfo.mDestAddr);
+
                 if (BluetoothShare.isStatusSuccess(transInfo.mStatus)) {
                     handoverIntent.putExtra(Constants.EXTRA_BT_OPP_TRANSFER_STATUS,
                             Constants.HANDOVER_TRANSFER_STATUS_SUCCESS);
                     handoverIntent.putExtra(Constants.EXTRA_BT_OPP_TRANSFER_URI,
                             transInfo.mFileName);
+                    handoverIntent.putExtra(Constants.EXTRA_BT_OPP_TRANSFER_MIMETYPE,
+                            transInfo.mFileType);
                 } else {
                     handoverIntent.putExtra(Constants.EXTRA_BT_OPP_TRANSFER_STATUS,
                             Constants.HANDOVER_TRANSFER_STATUS_FAILURE);
