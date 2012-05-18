@@ -67,8 +67,6 @@ public class BluetoothOppLauncherActivity extends Activity {
 
         Intent intent = getIntent();
         String action = intent.getAction();
-        BluetoothDevice device = null;
-        boolean isHandover = false;
 
         if (action.equals(Intent.ACTION_SEND) || action.equals(Intent.ACTION_SEND_MULTIPLE)) {
             /*
@@ -76,10 +74,6 @@ public class BluetoothOppLauncherActivity extends Activity {
              * probably Pictures, videos, or vCards. The Intent should contain
              * an EXTRA_STREAM with the data to attach.
              */
-            if (intent.getBooleanExtra(Constants.EXTRA_CONNECTION_HANDOVER, false)) {
-                device = (BluetoothDevice)intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                isHandover = true;
-            }
             if (action.equals(Intent.ACTION_SEND)) {
                 // TODO: handle type == null case
                 String type = intent.getType();
@@ -96,7 +90,7 @@ public class BluetoothOppLauncherActivity extends Activity {
                     // Save type/stream, will be used when adding transfer
                     // session to DB.
                     BluetoothOppManager.getInstance(this).saveSendingFileInfo(type,
-                            stream.toString(), isHandover);
+                            stream.toString(), false);
                 } else if (extra_text != null && type != null) {
                     if (V) Log.v(TAG, "Get ACTION_SEND intent with Extra_text = "
                                 + extra_text.toString() + "; mimetype = " + type);
@@ -104,7 +98,7 @@ public class BluetoothOppLauncherActivity extends Activity {
 
                     if (fileUri != null) {
                         BluetoothOppManager.getInstance(this).saveSendingFileInfo(type,
-                                fileUri.toString(), isHandover);
+                                fileUri.toString(), false);
                     }
                 } else {
                     Log.e(TAG, "type is null; or sending file URI is null");
@@ -119,7 +113,7 @@ public class BluetoothOppLauncherActivity extends Activity {
                     if (V) Log.v(TAG, "Get ACTION_SHARE_MULTIPLE intent: uris " + uris + "\n Type= "
                                 + mimeType);
                     BluetoothOppManager.getInstance(this).saveSendingFileInfo(mimeType,
-                            uris, isHandover);
+                            uris, false);
                 } else {
                     Log.e(TAG, "type is null; or sending files URIs are null");
                     finish();
@@ -146,7 +140,7 @@ public class BluetoothOppLauncherActivity extends Activity {
                 Intent in = new Intent(this, BluetoothOppBtEnableActivity.class);
                 in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 this.startActivity(in);
-            } else if (device == null) {
+            } else {
                 if (V) Log.v(TAG, "BT already enabled!! ");
                 Intent in1 = new Intent(BluetoothDevicePicker.ACTION_LAUNCH);
                 in1.setFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
@@ -159,9 +153,6 @@ public class BluetoothOppLauncherActivity extends Activity {
                         BluetoothOppReceiver.class.getName());
 
                 this.startActivity(in1);
-            } else {
-                // we already know where to send to
-                BluetoothOppManager.getInstance(this).startTransfer(device);
             }
         } else if (action.equals(Constants.ACTION_OPEN)) {
             Uri uri = getIntent().getData();
