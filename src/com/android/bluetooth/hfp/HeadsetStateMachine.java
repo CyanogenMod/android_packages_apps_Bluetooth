@@ -1070,8 +1070,10 @@ final class HeadsetStateMachine extends StateMachine {
                 atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK, 0);
                 mVoiceRecognitionStarted = false;
                 mWaitingForVoiceRecognition = false;
-                if (!isInCall())
+                if (!isInCall()) {
                     disconnectAudioNative(getByteAddress(mCurrentDevice));
+                    mAudioManager.setParameters("A2dpSuspended=false");
+                }
             }
             else
             {
@@ -1111,6 +1113,15 @@ final class HeadsetStateMachine extends StateMachine {
             if (needAudio && !isAudioOn())
             {
                 Log.d(TAG, "Initiating audio connection for Voice Recognition");
+                // At this stage, we need to be sure that AVDTP is not streaming. This is needed
+                // to be compliant with the AV+HFP Whitepaper as we cannot have A2DP in
+                // streaming state while a SCO connection is established.
+                // This is needed for VoiceDial scenario alone and not for
+                // incoming call/outgoing call scenarios as the phone enters MODE_RINGTONE
+                // or MODE_IN_CALL which shall automatically suspend the AVDTP stream if needed.
+                // Whereas for VoiceDial we want to activate the SCO connection but we are still
+                // in MODE_NORMAL and hence the need to explicitly suspend the A2DP stream
+                mAudioManager.setParameters("A2dpSuspended=true");
                 connectAudioNative(getByteAddress(mCurrentDevice));
             }
 
@@ -1127,8 +1138,10 @@ final class HeadsetStateMachine extends StateMachine {
                 mVoiceRecognitionStarted = false;
                 mWaitingForVoiceRecognition = false;
 
-                if (stopVoiceRecognitionNative() && !isInCall())
+                if (stopVoiceRecognitionNative() && !isInCall()) {
                     disconnectAudioNative(getByteAddress(mCurrentDevice));
+                    mAudioManager.setParameters("A2dpSuspended=false");
+                }
             }
         }
     }
