@@ -120,6 +120,11 @@ public class BluetoothPbapVcardManager {
         } else {
             vcardType = VCardConfig.VCARD_TYPE_V30_GENERIC;
         }
+
+        if (!BluetoothPbapConfig.includePhotosInVcard()) {
+            vcardType |= VCardConfig.FLAG_REFRAIN_IMAGE_EXPORT;
+        }
+
         return BluetoothPbapUtils.createProfileVCard(mContext, vcardType,filter);
     }
 
@@ -480,7 +485,10 @@ public class BluetoothPbapVcardManager {
                 } else {
                     vcardType = VCardConfig.VCARD_TYPE_V30_GENERIC;
                 }
-                vcardType |= VCardConfig.FLAG_REFRAIN_IMAGE_EXPORT;
+
+                if (!BluetoothPbapConfig.includePhotosInVcard()) {
+                    vcardType |= VCardConfig.FLAG_REFRAIN_IMAGE_EXPORT;
+                }
 
                 //Enhancement: customize Vcard based on preferences/settings and input from caller
                 composer = BluetoothPbapUtils.createFilteredVCardComposer(mContext, vcardType,null);
