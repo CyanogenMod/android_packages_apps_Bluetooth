@@ -411,16 +411,18 @@ public class PanService extends ProfileService {
             panDevice.mIface = iface;
         }
 
+        /* Notifying the connection state change of the profile before sending the intent for
+           connection state change, as it was causing a race condition, with the UI not being
+           updated with the correct connection state. */
+        if (DBG) Log.d(TAG, "Pan Device state : device: " + device + " State:" +
+                       prevState + "->" + state);
+        notifyProfileConnectionStateChanged(device, BluetoothProfile.PAN, state, prevState);
         Intent intent = new Intent(BluetoothPan.ACTION_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothPan.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothPan.EXTRA_STATE, state);
         intent.putExtra(BluetoothPan.EXTRA_LOCAL_ROLE, local_role);
         sendBroadcast(intent, BLUETOOTH_PERM);
-
-        if (DBG) Log.d(TAG, "Pan Device state : device: " + device + " State:" +
-                       prevState + "->" + state);
-        notifyProfileConnectionStateChanged(device, BluetoothProfile.PAN, state, prevState);
     }
 
     // configured when we start tethering

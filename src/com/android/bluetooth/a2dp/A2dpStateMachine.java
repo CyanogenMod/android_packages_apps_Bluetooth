@@ -613,13 +613,17 @@ final class A2dpStateMachine extends StateMachine {
 
     // This method does not check for error conditon (newState == prevState)
     private void broadcastConnectionState(BluetoothDevice device, int newState, int prevState) {
+        /* Notifying the connection state change of the profile before sending the intent for
+           connection state change, as it was causing a race condition, with the UI not being
+           updated with the correct connection state. */
+        if (DBG) log("Connection state " + device + ": " + prevState + "->" + newState);
+        mService.notifyProfileConnectionStateChanged(device, BluetoothProfile.A2DP,
+                                                     newState, prevState);
         Intent intent = new Intent(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         mContext.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
-        if (DBG) log("Connection state " + device + ": " + prevState + "->" + newState);
-        mService.notifyProfileConnectionStateChanged(device, BluetoothProfile.A2DP, newState, prevState);
     }
 
     private void broadcastAudioState(BluetoothDevice device, int state, int prevState) {

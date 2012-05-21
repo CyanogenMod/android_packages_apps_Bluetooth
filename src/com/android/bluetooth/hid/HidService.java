@@ -492,14 +492,18 @@ public class HidService extends ProfileService {
         }
         mInputDevices.put(device, newState);
 
+        /* Notifying the connection state change of the profile before sending the intent for
+           connection state change, as it was causing a race condition, with the UI not being
+           updated with the correct connection state. */
+        if (DBG) log("Connection state " + device + ": " + prevState + "->" + newState);
+        notifyProfileConnectionStateChanged(device, BluetoothProfile.INPUT_DEVICE,
+                                            newState, prevState);
         Intent intent = new Intent(BluetoothInputDevice.ACTION_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
         sendBroadcast(intent, BLUETOOTH_PERM);
-        if (DBG) log("Connection state " + device + ": " + prevState + "->" + newState);
-        notifyProfileConnectionStateChanged(device, BluetoothProfile.INPUT_DEVICE, newState, prevState);
     }
 
     private void broadcastProtocolMode(BluetoothDevice device, int protocolMode) {
