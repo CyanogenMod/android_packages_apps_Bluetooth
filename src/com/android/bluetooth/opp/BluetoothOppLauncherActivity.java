@@ -68,7 +68,7 @@ public class BluetoothOppLauncherActivity extends Activity {
         Intent intent = getIntent();
         String action = intent.getAction();
         BluetoothDevice device = null;
-        boolean isHandover = true;
+        boolean isHandover = false;
 
         if (action.equals(Intent.ACTION_SEND) || action.equals(Intent.ACTION_SEND_MULTIPLE)) {
             /*
