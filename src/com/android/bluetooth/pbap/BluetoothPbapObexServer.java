@@ -42,6 +42,8 @@ import android.provider.CallLog;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -575,10 +577,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             if (D) Log.d(TAG, "call log list, size=" + requestSize + " offset=" + listStartOffset);
 
             for (int j = startPoint; j < endPoint; j++) {
-                // listing object begin with 1.vcf
-                result.append("<card handle=\"" + (j + 1) + ".vcf\" name=\"" + nameList.get(j)
-                        + "\"" + "/>");
-                itemsFound++;
+                writeVCardEntry(j+1, nameList.get(j),result);
             }
         }
         result.append("</vCard-listing>");
@@ -611,8 +610,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                     if (D) Log.d(TAG, "currentValue=" + currentValue);
                     if (currentValue.startsWith(compareValue)) {
                         itemsFound++;
-                        result.append("<card handle=\"" + pos + ".vcf\" name=\""
-                                + currentValue + "\"" + "/>");
+                        writeVCardEntry(pos, currentValue,result);
                     }
                 }
                 if (itemsFound >= requestSize) {
@@ -629,8 +627,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 if (D) Log.d(TAG, "currentValue=" + currentValue);
                 if (searchValue == null || currentValue.startsWith(compareValue)) {
                     itemsFound++;
-                    result.append("<card handle=\"" + pos + ".vcf\" name=\""
-                            + currentValue + "\"" + "/>");
+                    writeVCardEntry(pos, currentValue,result);
                 }
             }
         }
@@ -980,6 +977,48 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         }
         if (V) Log.v(TAG, "Call log selection: " + selection);
         return selection;
+    }
+
+    /**
+     * XML encode special characters in the name field
+     */
+    private void xmlEncode(String name, StringBuilder result) {
+        if (name == null) {
+            return;
+        }
+
+        final StringCharacterIterator iterator = new StringCharacterIterator(name);
+        char character =  iterator.current();
+        while (character != CharacterIterator.DONE ){
+            if (character == '<') {
+                result.append("&lt;");
+            }
+            else if (character == '>') {
+                result.append("&gt;");
+            }
+            else if (character == '\"') {
+                result.append("&quot;");
+            }
+            else if (character == '\'') {
+                result.append("&#039;");
+            }
+            else if (character == '&') {
+                result.append("&amp;");
+            }
+            else {
+                // The char is not a special one, add it to the result as is
+                result.append(character);
+            }
+            character = iterator.next();
+        }
+    }
+
+    private void writeVCardEntry(int vcfIndex, String name, StringBuilder result) {
+        result.append("<card handle=\"");
+        result.append(vcfIndex);
+        result.append(".vcf\" name=\"");
+        xmlEncode(name, result);
+        result.append("\"/>");
     }
 
     public static final void logHeader(HeaderSet hs) {

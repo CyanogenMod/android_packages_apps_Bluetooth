@@ -340,7 +340,8 @@ public class BluetoothPbapService extends Service {
             try {
                 // It is mandatory for PSE to support initiation of bonding and
                 // encryption.
-                mServerSocket = mAdapter.listenUsingRfcommWithServiceRecord("OBEX Phoneboox Access Server", BluetoothUuid.PBAP_PSE.getUuid());
+                mServerSocket = mAdapter. listenUsingEncryptedRfcommWithServiceRecord("OBEX Phoneboox Access Server", BluetoothUuid.PBAP_PSE.getUuid());
+
             } catch (IOException e) {
                 Log.e(TAG, "Error create RfcommServerSocket " + e.toString());
                 initSocketOK = false;
