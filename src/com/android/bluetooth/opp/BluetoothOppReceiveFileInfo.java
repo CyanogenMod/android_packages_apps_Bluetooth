@@ -91,7 +91,7 @@ public class BluetoothOppReceiveFileInfo {
 
         ContentResolver contentResolver = context.getContentResolver();
         Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + id);
-        String filename = null, hint = null;
+        String filename = null, hint = null, mimeType = null;
         long length = 0;
         Cursor metadataCursor = contentResolver.query(contentUri, new String[] {
                 BluetoothShare.FILENAME_HINT, BluetoothShare.TOTAL_BYTES, BluetoothShare.MIMETYPE
@@ -101,6 +101,7 @@ public class BluetoothOppReceiveFileInfo {
                 if (metadataCursor.moveToFirst()) {
                     hint = metadataCursor.getString(0);
                     length = metadataCursor.getInt(1);
+                    mimeType = metadataCursor.getString(2);
                 }
             } finally {
                 metadataCursor.close();
@@ -142,8 +143,12 @@ public class BluetoothOppReceiveFileInfo {
         String extension = null;
         int dotIndex = filename.lastIndexOf(".");
         if (dotIndex < 0) {
-            // should not happen. It must be pre-rejected
-            return new BluetoothOppReceiveFileInfo(BluetoothShare.STATUS_FILE_ERROR);
+            if (mimeType == null) {
+                // should not happen. It must be pre-rejected
+                return new BluetoothOppReceiveFileInfo(BluetoothShare.STATUS_FILE_ERROR);
+            } else {
+                extension = "";
+            }
         } else {
             extension = filename.substring(dotIndex);
             filename = filename.substring(0, dotIndex);

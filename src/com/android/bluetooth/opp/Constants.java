@@ -80,6 +80,14 @@ public class Constants {
     /** the intent that gets sent when clicking an incomplete/failed transfer */
     public static final String ACTION_LIST = "android.btopp.intent.action.LIST";
 
+    /** the intent that is used for initiating a handover transfer */
+    public static final String ACTION_HANDOVER_SEND =
+            "android.btopp.intent.action.HANDOVER_SEND";
+
+    /** the intent that is used for initiating a multi-uri handover transfer */
+    public static final String ACTION_HANDOVER_SEND_MULTIPLE =
+            "android.btopp.intent.action.HANDOVER_SEND_MULTIPLE";
+
     /** intent action used to indicate the progress of a handover transfer */
     public static final String ACTION_BT_OPP_TRANSFER_PROGRESS =
             "android.btopp.intent.action.BT_OPP_TRANSFER_PROGRESS";
