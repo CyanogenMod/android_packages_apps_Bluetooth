@@ -67,6 +67,16 @@
                 <action android:name="android.btopp.intent.action.WHITELIST_DEVICE" />
                 <action android:name="android.btopp.intent.action.STOP_HANDOVER_TRANSFER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.btopp.intent.action.HANDOVER_SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.btopp.intent.action.HANDOVER_SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
         </receiver>
         <activity android:name=".opp.BluetoothOppLauncherActivity"
             android:process="@string/process"

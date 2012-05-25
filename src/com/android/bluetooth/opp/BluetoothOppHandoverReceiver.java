@@ -23,6 +23,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
+import java.util.ArrayList;
+
 public class BluetoothOppHandoverReceiver extends BroadcastReceiver {
     public static final String TAG ="BluetoothOppHandoverReceiver";
     private static final boolean D = Constants.DEBUG;
@@ -31,7 +33,42 @@ public class BluetoothOppHandoverReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
-        if (action.equals(Constants.ACTION_WHITELIST_DEVICE)) {
+
+        if (action.equals(Constants.ACTION_HANDOVER_SEND) ||
+               action.equals(Constants.ACTION_HANDOVER_SEND_MULTIPLE)) {
+
+            BluetoothDevice device =
+                    (BluetoothDevice)intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+            if (device == null) {
+                if (D) Log.d(TAG, "No device attached to handover intent.");
+                return;
+            }
+            if (action.equals(Constants.ACTION_HANDOVER_SEND)) {
+                String type = intent.getType();
+                Uri stream = (Uri)intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                if (stream != null && type != null) {
+                    // Save type/stream, will be used when adding transfer
+                    // session to DB.
+                    BluetoothOppManager.getInstance(context).saveSendingFileInfo(type,
+                            stream.toString(), true);
+                } else {
+                    if (D) Log.d(TAG, "No mimeType or stream attached to handover request");
+                }
+            } else if (action.equals(Constants.ACTION_HANDOVER_SEND_MULTIPLE)) {
+                ArrayList<Uri> uris = new ArrayList<Uri>();
+                String mimeType = intent.getType();
+                uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+                if (mimeType != null && uris != null) {
+                    BluetoothOppManager.getInstance(context).saveSendingFileInfo(mimeType,
+                            uris, true);
+                } else {
+                    if (D) Log.d(TAG, "No mimeType or stream attached to handover request");
+                    return;
+                }
+            }
+            // we already know where to send to
+            BluetoothOppManager.getInstance(context).startTransfer(device);
+        } else if (action.equals(Constants.ACTION_WHITELIST_DEVICE)) {
             BluetoothDevice device =
                     (BluetoothDevice)intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
             if (D) Log.d(TAG, "Adding " + device + " to whitelist");
