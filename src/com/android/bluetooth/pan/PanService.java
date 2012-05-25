@@ -99,6 +99,11 @@ public class PanService extends ProfileService {
             mNativeAvailable=false;
         }
         if(mPanDevices != null) {
+            List<BluetoothDevice> DevList = getConnectedDevices();
+            for(BluetoothDevice dev : DevList) {
+               handlePanDeviceStateChange(dev, mPanIfName, BluetoothProfile.STATE_DISCONNECTED,
+                                                   BluetoothPan.LOCAL_PANU_ROLE, BluetoothPan.REMOTE_NAP_ROLE);
+            }
             mPanDevices.clear();
             mPanDevices = null;
         }
