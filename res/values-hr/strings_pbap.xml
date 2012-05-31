@@ -9,7 +9,7 @@
     <string name="pbap_authentication_timeout_message" msgid="4166979525521902687">"Došlo je do prekoračenja vremena za unos šifre sesije s korisnikom %1$s"</string>
     <string name="pbap_notif_ticker" msgid="1653350586489072739">"Zahtjev za pristup imeniku"</string>
     <string name="pbap_notif_title" msgid="2967094612841799440">"PBAP zahtjev"</string>
-    <string name="pbap_notif_message" msgid="6046731677513301195">"Dopusti pristup imeniku za korisnika %1$$s"</string>
+    <string name="pbap_notif_message" msgid="6046731677513301195">"Dopusti pristup imeniku za korisnika %1$s"</string>
     <string name="auth_notif_ticker" msgid="1575825798053163744">"Zahtjev za provjeru autentičnosti Obex protokola"</string>
     <string name="auth_notif_title" msgid="7599854855681573258">"Šifra sesije"</string>
     <string name="auth_notif_message" msgid="6667218116427605038">"Upiši šifru sesije za %1$s"</string>
