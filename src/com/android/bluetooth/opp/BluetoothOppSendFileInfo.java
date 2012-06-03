@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008-2009, Motorola, Inc.
+ * Copyright (c) 2013, The Linux Foundation. All rights reserved.
  *
  * All rights reserved.
  *
@@ -122,7 +123,7 @@ public class BluetoothOppSendFileInfo {
                 try {
                     if (metadataCursor.moveToFirst()) {
                         fileName = metadataCursor.getString(0);
-                        length = metadataCursor.getInt(1);
+                        length = metadataCursor.getLong(1);
                         if (D) Log.d(TAG, "fileName = " + fileName + " length = " + length);
                     }
                 } finally {
