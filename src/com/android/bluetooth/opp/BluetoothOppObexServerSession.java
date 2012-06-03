@@ -173,16 +173,16 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         private static final int sSleepTime = 500;
         private Uri contentUri;
         private Context mContext1;
-        private int position;
+        private long position;
 
-        public ContentResolverUpdateThread(Context context, Uri cntUri, int pos) {
+        public ContentResolverUpdateThread(Context context, Uri cntUri, long pos) {
             super("BtOpp Server ContentResolverUpdateThread");
             mContext1 = context;
             contentUri = cntUri;
             position = pos;
         }
 
-        public void updateProgress (int pos) {
+        public void updateProgress (long pos) {
             position = pos;
         }
 
@@ -317,7 +317,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         ContentValues values = new ContentValues();
 
         values.put(BluetoothShare.FILENAME_HINT, name);
-        values.put(BluetoothShare.TOTAL_BYTES, length.intValue());
+        values.put(BluetoothShare.TOTAL_BYTES, length);
         values.put(BluetoothShare.MIMETYPE, mimeType);
 
         values.put(BluetoothShare.DESTINATION, destination);
@@ -502,7 +502,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             mContext.getContentResolver().update(contentUri, updateValues, null, null);
         }
 
-        int position = 0;
+        long position = 0;
         if (!error) {
             bos = new BufferedOutputStream(fileInfo.mOutputStream, 0x10000);
         }

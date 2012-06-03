@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008-2009, Motorola, Inc.
+ * Copyright (c) 2013, The Linux Foundation. All rights reserved.
  *
  * All rights reserved.
  *
@@ -228,6 +229,13 @@ public final class BluetoothOppProvider extends ContentProvider {
         }
     }
 
+    private static final void copyLong(String key, ContentValues from, ContentValues to) {
+        Long i = from.getAsLong(key);
+        if (i != null) {
+            to.put(key, i);
+        }
+    }
+
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
@@ -245,7 +253,7 @@ public final class BluetoothOppProvider extends ContentProvider {
         copyString(BluetoothShare.DESTINATION, values, filteredValues);
 
         copyInteger(BluetoothShare.VISIBILITY, values, filteredValues);
-        copyInteger(BluetoothShare.TOTAL_BYTES, values, filteredValues);
+        copyLong(BluetoothShare.TOTAL_BYTES, values, filteredValues);
 
         if (values.getAsInteger(BluetoothShare.VISIBILITY) == null) {
             filteredValues.put(BluetoothShare.VISIBILITY, BluetoothShare.VISIBILITY_VISIBLE);

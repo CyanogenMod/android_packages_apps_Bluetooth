@@ -125,16 +125,16 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
         private static final int sSleepTime = 500;
         private Uri contentUri;
         private Context mContext1;
-        private int position;
+        private long position;
 
-        public ContentResolverUpdateThread(Context context, Uri cntUri, int pos) {
+        public ContentResolverUpdateThread(Context context, Uri cntUri, long pos) {
             super("BtOpp ContentResolverUpdateThread");
             mContext1 = context;
             contentUri = cntUri;
             position = pos;
         }
 
-        public void updateProgress (int pos) {
+        public void updateProgress (long pos) {
             position = pos;
         }
 
@@ -434,7 +434,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                 }
 
                 if (!error) {
-                    int position = 0;
+                    long position = 0;
                     int readLength = 0;
                     boolean okToProceed = false;
                     long timestamp = 0;
