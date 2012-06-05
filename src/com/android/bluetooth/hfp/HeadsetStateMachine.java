@@ -1031,7 +1031,15 @@ final class HeadsetStateMachine extends StateMachine {
 
     boolean isAudioConnected(BluetoothDevice device) {
         synchronized(this) {
-            if (getCurrentState() == mAudioOn && mCurrentDevice.equals(device)) {
+
+            /*  Additional check for audio state included for the case when PhoneApp queries
+            Bluetooth Audio state, before we receive the close event from the stack for the
+            sco disconnect issued in AudioOn state. This was causing a mismatch in the
+            Incall screen UI. */
+
+            if (getCurrentState() == mAudioOn && mCurrentDevice.equals(device)
+                && mAudioState != BluetoothHeadset.STATE_AUDIO_DISCONNECTED)
+            {
                 return true;
             }
         }
