@@ -17,6 +17,7 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 
 import java.util.HashMap;
+import java.util.ArrayList;
 
 class AdapterProperties {
     private static final boolean DBG = true;
@@ -29,7 +30,7 @@ class AdapterProperties {
     private int mScanMode;
     private int mDiscoverableTimeout;
     private ParcelUuid[] mUuids;
-    private BluetoothDevice[] mBondedDevices = new BluetoothDevice[0];
+    private ArrayList<BluetoothDevice> mBondedDevices = new ArrayList<BluetoothDevice>();
 
     private int mProfilesConnecting, mProfilesConnected, mProfilesDisconnecting;
     private HashMap<Integer, Pair<Integer, Integer>> mProfileConnectionState;
@@ -41,6 +42,7 @@ class AdapterProperties {
     private AdapterService mService;
     private boolean mDiscovering;
     private RemoteDevices mRemoteDevices;
+    private BluetoothAdapter mAdapter;
 
     // Lock for all getters and setters.
     // If finer grained locking is needer, more locks
@@ -49,6 +51,7 @@ class AdapterProperties {
 
     public AdapterProperties(AdapterService service) {
         mService = service;
+        mAdapter = BluetoothAdapter.getDefaultAdapter();
     }
     public void init(RemoteDevices remoteDevices) {
         if (mProfileConnectionState ==null) {
@@ -66,6 +69,8 @@ class AdapterProperties {
             mProfileConnectionState = null;
         }
         mService = null;
+        if (!mBondedDevices.isEmpty())
+            mBondedDevices.clear();
     }
 
     public Object Clone() throws CloneNotSupportedException {
@@ -194,8 +199,63 @@ class AdapterProperties {
      * @return the mBondedDevices
      */
     BluetoothDevice[] getBondedDevices() {
+        BluetoothDevice[] bondedDeviceList = new BluetoothDevice[0];
         synchronized (mObject) {
-            return mBondedDevices;
+            if(mBondedDevices.isEmpty())
+                return (new BluetoothDevice[0]);
+
+            try {
+                bondedDeviceList = mBondedDevices.toArray(bondedDeviceList);
+                debugLog("getBondedDevices: length="+bondedDeviceList.length);
+                return bondedDeviceList;
+            } catch(ArrayStoreException ee) {
+                errorLog("Error retrieving bonded device array");
+                return (new BluetoothDevice[0]);
+            }
+        }
+    }
+
+    void addBondedDevice(BluetoothDevice device) {
+        if(device == null)
+            return;
+
+        try {
+            byte[] addrByte = Utils.getByteAddress(device);
+            DeviceProperties prop = mRemoteDevices.getDeviceProperties(device);
+            if (prop == null)
+                prop = mRemoteDevices.addDeviceProperties(addrByte);
+            prop.setBondState(BluetoothDevice.BOND_BONDED);
+
+            // add if not already in list
+            if(!mBondedDevices.contains(device)) {
+                debugLog("Adding bonded device:" +  device);
+                mBondedDevices.add(device);
+            }
+        }
+        catch(Exception ee) {
+            Log.e(TAG, "Exception in addBondedDevice : ", ee);
+        }
+    }
+
+    void removeBondedDevice(BluetoothDevice device) {
+        if(device == null)
+            return;
+
+        try {
+            byte[] addrByte = device.getAddress().getBytes();
+            DeviceProperties prop = mRemoteDevices.getDeviceProperties(device);
+            if (prop == null)
+                prop = mRemoteDevices.addDeviceProperties(addrByte);
+            prop.setBondState(BluetoothDevice.BOND_NONE);
+
+            // remove device from list
+            if (mBondedDevices.remove(device))
+                debugLog("Removing bonded device:" +  device);
+            else
+                debugLog("Failed to remove device: " + device);
+        }
+        catch(Exception ee) {
+            Log.e(TAG, "Exception in removeBondedDevice : ", ee);
         }
     }
 
@@ -413,20 +473,10 @@ class AdapterProperties {
                         break;
                     case AbstractionLayer.BT_PROPERTY_ADAPTER_BONDED_DEVICES:
                         int number = val.length/BD_ADDR_LEN;
-                        mBondedDevices = new BluetoothDevice[number];
                         byte[] addrByte = new byte[BD_ADDR_LEN];
                         for (int j = 0; j < number; j++) {
                             System.arraycopy(val, j * BD_ADDR_LEN, addrByte, 0, BD_ADDR_LEN);
-                            mBondedDevices[j] = mRemoteDevices.getDevice(addrByte);
-                            DeviceProperties prop = null;
-                            if ( mBondedDevices[j] != null )
-                                prop = mRemoteDevices.getDeviceProperties(mBondedDevices[j]);
-                            if(mBondedDevices[j] == null || prop == null){
-                                prop = mRemoteDevices.addDeviceProperties(addrByte);
-                                mBondedDevices[j] = mRemoteDevices.getDevice(addrByte);
-                            }
-                            prop.setBondState(BluetoothDevice.BOND_BONDED);
-                            debugLog("Bonded Device" +  mBondedDevices[j]);
+                            addBondedDevice(mAdapter.getRemoteDevice(Utils.getAddressStringFromByte(addrByte)));
                         }
                         break;
                     case AbstractionLayer.BT_PROPERTY_ADAPTER_DISCOVERABLE_TIMEOUT:

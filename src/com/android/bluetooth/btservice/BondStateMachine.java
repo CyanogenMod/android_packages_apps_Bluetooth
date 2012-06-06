@@ -223,6 +223,11 @@ final class BondStateMachine extends StateMachine {
 
         devProp.setBondState(newState);
 
+        if (newState == BluetoothDevice.BOND_NONE)
+            mAdapterProperties.removeBondedDevice(device);
+        else if (newState == BluetoothDevice.BOND_BONDED)
+            mAdapterProperties.addBondedDevice(device);
+
         Intent intent = new Intent(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothDevice.EXTRA_BOND_STATE, newState);
