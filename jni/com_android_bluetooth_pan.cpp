@@ -20,11 +20,11 @@
 #include <string.h>
 
 #include <cutils/log.h>
-#define info(fmt, ...)  LOGI ("%s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
-#define debug(fmt, ...) LOGD ("%s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
-#define warn(fmt, ...) LOGW ("## WARNING : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
-#define error(fmt, ...) LOGE ("## ERROR : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
-#define asrt(s) if(!(s)) LOGE ("## %s(L%d): ASSERT %s failed! ##",__FUNCTION__, __LINE__, #s)
+#define info(fmt, ...)  ALOGI ("%s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
+#define debug(fmt, ...) ALOGD ("%s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
+#define warn(fmt, ...) ALOGW ("## WARNING : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
+#define error(fmt, ...) ALOGE ("## ERROR : %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
+#define asrt(s) if(!(s)) ALOGE ("## %s(L%d): ASSERT %s failed! ##",__FUNCTION__, __LINE__, #s)
 
 
 namespace android {
@@ -104,13 +104,13 @@ static void initializeNative(JNIEnv *env, jobject object) {
     }
 
     if (sPanIf !=NULL) {
-         LOGW("Cleaning up Bluetooth PAN Interface before initializing...");
+         ALOGW("Cleaning up Bluetooth PAN Interface before initializing...");
          sPanIf->cleanup();
          sPanIf = NULL;
     }
 
     if (mCallbacksObj != NULL) {
-         LOGW("Cleaning up Bluetooth PAN callback object");
+         ALOGW("Cleaning up Bluetooth PAN callback object");
          env->DeleteGlobalRef(mCallbacksObj);
          mCallbacksObj = NULL;
     }
@@ -136,13 +136,13 @@ static void cleanupNative(JNIEnv *env, jobject object) {
     if (!btIf) return;
 
     if (sPanIf !=NULL) {
-        LOGW("Cleaning up Bluetooth PAN Interface...");
+        ALOGW("Cleaning up Bluetooth PAN Interface...");
         sPanIf->cleanup();
         sPanIf = NULL;
     }
 
     if (mCallbacksObj != NULL) {
-        LOGW("Cleaning up Bluetooth PAN callback object");
+        ALOGW("Cleaning up Bluetooth PAN callback object");
         env->DeleteGlobalRef(mCallbacksObj);
         mCallbacksObj = NULL;
     }

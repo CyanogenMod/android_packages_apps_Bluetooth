@@ -467,15 +467,16 @@ public class PanService extends ProfileService {
             ifcg = service.getInterfaceConfig(iface);
             if (ifcg != null) {
                 InetAddress addr = null;
-                if (ifcg.addr == null || (addr = ifcg.addr.getAddress()) == null ||
+                LinkAddress linkAddr = ifcg.getLinkAddress();
+                if (linkAddr == null || (addr = linkAddr.getAddress()) == null ||
                         addr.equals(NetworkUtils.numericToInetAddress("0.0.0.0")) ||
                         addr.equals(NetworkUtils.numericToInetAddress("::0"))) {
                     addr = NetworkUtils.numericToInetAddress(address);
                 }
-                ifcg.interfaceFlags = ifcg.interfaceFlags.replace("down", "up");
-                ifcg.addr = new LinkAddress(addr, BLUETOOTH_PREFIX_LENGTH);
-                ifcg.interfaceFlags = ifcg.interfaceFlags.replace("running", "");
-                ifcg.interfaceFlags = ifcg.interfaceFlags.replace("  "," ");
+                ifcg.setInterfaceUp();
+                ifcg.setLinkAddress(new LinkAddress(addr, BLUETOOTH_PREFIX_LENGTH));
+                ifcg.clearFlag("running");
+                // TODO(BT) ifcg.interfaceFlags = ifcg.interfaceFlags.replace("  "," ");
                 service.setInterfaceConfig(iface, ifcg);
                 if (cm.tether(iface) != ConnectivityManager.TETHER_ERROR_NO_ERROR) {
                     Log.e(TAG, "Error tethering "+iface);

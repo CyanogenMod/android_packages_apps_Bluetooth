@@ -60,15 +60,15 @@ static void bta2dp_connection_state_callback(btav_connection_state_t state, bt_b
 static void bta2dp_audio_state_callback(btav_audio_state_t state, bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    LOGI("%s", __FUNCTION__);
+    ALOGI("%s", __FUNCTION__);
 
     if (!checkCallbackThread()) {                                       \
-        LOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__); \
+        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__); \
         return;                                                         \
     }
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
-        LOGE("Fail to new jbyteArray bd addr for connection state");
+        ALOGE("Fail to new jbyteArray bd addr for connection state");
         checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
@@ -126,30 +126,30 @@ static void initNative(JNIEnv *env, jobject object) {
     bt_status_t status;
 
     if ( (btInf = getBluetoothInterface()) == NULL) {
-        LOGE("Bluetooth module is not loaded");
+        ALOGE("Bluetooth module is not loaded");
         return;
     }
 
     if (sBluetoothA2dpInterface !=NULL) {
-         LOGW("Cleaning up A2DP Interface before initializing...");
+         ALOGW("Cleaning up A2DP Interface before initializing...");
          sBluetoothA2dpInterface->cleanup();
          sBluetoothA2dpInterface = NULL;
     }
 
     if (mCallbacksObj != NULL) {
-         LOGW("Cleaning up A2DP callback object");
+         ALOGW("Cleaning up A2DP callback object");
          env->DeleteGlobalRef(mCallbacksObj);
          mCallbacksObj = NULL;
     }
 
     if ( (sBluetoothA2dpInterface = (btav_interface_t *)
           btInf->get_profile_interface(BT_PROFILE_ADVANCED_AUDIO_ID)) == NULL) {
-        LOGE("Failed to get Bluetooth A2DP Interface");
+        ALOGE("Failed to get Bluetooth A2DP Interface");
         return;
     }
 
     if ( (status = sBluetoothA2dpInterface->init(&sBluetoothA2dpCallbacks)) != BT_STATUS_SUCCESS) {
-        LOGE("Failed to initialize Bluetooth A2DP, status: %d", status);
+        ALOGE("Failed to initialize Bluetooth A2DP, status: %d", status);
         sBluetoothA2dpInterface = NULL;
         return;
     }
@@ -162,7 +162,7 @@ static void cleanupNative(JNIEnv *env, jobject object) {
     bt_status_t status;
 
     if ( (btInf = getBluetoothInterface()) == NULL) {
-        LOGE("Bluetooth module is not loaded");
+        ALOGE("Bluetooth module is not loaded");
         return;
     }
 

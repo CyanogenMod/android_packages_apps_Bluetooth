@@ -128,7 +128,7 @@ static void adapter_properties_callback(bt_status_t status, int num_properties,
 
     val = (jbyteArray) callbackEnv->NewByteArray(num_properties);
     if (val == NULL) {
-        LOGE("%s: Error allocating byteArray", __FUNCTION__);
+        ALOGE("%s: Error allocating byteArray", __FUNCTION__);
         return;
     }
 
@@ -140,14 +140,14 @@ static void adapter_properties_callback(bt_status_t status, int num_properties,
     props = callbackEnv->NewObjectArray(num_properties, mclass,
                                              NULL);
     if (props == NULL) {
-        LOGE("%s: Error allocating object Array for properties", __FUNCTION__);
+        ALOGE("%s: Error allocating object Array for properties", __FUNCTION__);
         return;
     }
 
     types = (jintArray)callbackEnv->NewIntArray(num_properties);
 
     if (types == NULL) {
-        LOGE("%s: Error allocating int Array for values", __FUNCTION__);
+        ALOGE("%s: Error allocating int Array for values", __FUNCTION__);
         return;
     }
     // Delete the reference to val and mclass
@@ -193,7 +193,7 @@ static void remote_device_properties_callback(bt_status_t status, bt_bdaddr_t *b
 
     val = (jbyteArray) callbackEnv->NewByteArray(num_properties);
     if (val == NULL) {
-        LOGE("%s: Error allocating byteArray", __FUNCTION__);
+        ALOGE("%s: Error allocating byteArray", __FUNCTION__);
         return;
     }
 
@@ -205,14 +205,14 @@ static void remote_device_properties_callback(bt_status_t status, bt_bdaddr_t *b
     props = callbackEnv->NewObjectArray(num_properties, mclass,
                                              NULL);
     if (props == NULL) {
-        LOGE("%s: Error allocating object Array for properties", __FUNCTION__);
+        ALOGE("%s: Error allocating object Array for properties", __FUNCTION__);
         return;
     }
 
     types = (jintArray)callbackEnv->NewIntArray(num_properties);
 
     if (types == NULL) {
-        LOGE("%s: Error allocating int Array for values", __FUNCTION__);
+        ALOGE("%s: Error allocating int Array for values", __FUNCTION__);
         return;
     }
     // Delete the reference to val and mclass
@@ -308,16 +308,16 @@ static void acl_state_changed_callback(bt_status_t status, bt_bdaddr_t *bd_addr,
     jbyteArray addr;
     int i;
     if (!checkCallbackThread()) {
-       LOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
+       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
        return;
     }
     if (!bd_addr) {
-        LOGE("Address is null in %s", __FUNCTION__);
+        ALOGE("Address is null in %s", __FUNCTION__);
         return;
     }
     addr = callbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (addr == NULL) {
-       LOGE("Address allocation failed in %s", __FUNCTION__);
+       ALOGE("Address allocation failed in %s", __FUNCTION__);
        return;
     }
     callbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *)bd_addr);
@@ -525,7 +525,7 @@ static bool cleanupNative(JNIEnv *env, jobject obj) {
     if (!sBluetoothInterface) return result;
 
     sBluetoothInterface->cleanup();
-    LOGI("%s: return from cleanup",__FUNCTION__);
+    ALOGI("%s: return from cleanup",__FUNCTION__);
 
     env->DeleteGlobalRef(sJniCallbacksObj);
     return JNI_TRUE;
@@ -792,7 +792,7 @@ static jboolean setDevicePropertyNative(JNIEnv *env, jobject obj, jbyteArray add
 }
 
 static jboolean getRemoteServicesNative(JNIEnv *env, jobject obj, jbyteArray address) {
-    LOGV("%s:",__FUNCTION__);
+    ALOGV("%s:",__FUNCTION__);
 
     jbyte *addr = NULL;
     jboolean result = JNI_FALSE;
@@ -868,7 +868,7 @@ static int createSocketChannelNative(JNIEnv *env, jobject object, jint type,
         LOGE("failed to get uuid");
         goto Fail;
     }
-    LOGE("SOCK FLAG = %x ***********************",flag);
+    ALOGE("SOCK FLAG = %x ***********************",flag);
     if ( (status = sBluetoothSocketInterface->listen((btsock_type_t) type, service_name,
                        (const uint8_t*) uuid, channel, &socket_fd, flag)) != BT_STATUS_SUCCESS) {
         LOGE("Socket listen failed: %d", status);
@@ -966,7 +966,7 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
    }
 
    if ((status = android::register_com_android_bluetooth_pan(e)) < 0) {
-       LOGE("jni pan registration failure: %d", status);
+       ALOGE("jni pan registration failure: %d", status);
       return JNI_ERR;
    }
 

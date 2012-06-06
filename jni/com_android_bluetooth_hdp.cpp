@@ -123,30 +123,30 @@ static void initializeNative(JNIEnv *env, jobject object) {
     bt_status_t status;
 
     if ( (btInf = getBluetoothInterface()) == NULL) {
-        LOGE("Bluetooth module is not loaded");
+        ALOGE("Bluetooth module is not loaded");
         return;
     }
 
     if (sBluetoothHdpInterface !=NULL) {
-         LOGW("Cleaning up Bluetooth Health Interface before initializing...");
+         ALOGW("Cleaning up Bluetooth Health Interface before initializing...");
          sBluetoothHdpInterface->cleanup();
          sBluetoothHdpInterface = NULL;
     }
 
     if (mCallbacksObj != NULL) {
-         LOGW("Cleaning up Bluetooth Health callback object");
+         ALOGW("Cleaning up Bluetooth Health callback object");
          env->DeleteGlobalRef(mCallbacksObj);
          mCallbacksObj = NULL;
     }
 
     if ( (sBluetoothHdpInterface = (bthl_interface_t *)
           btInf->get_profile_interface(BT_PROFILE_HEALTH_ID)) == NULL) {
-        LOGE("Failed to get Bluetooth Health Interface");
+        ALOGE("Failed to get Bluetooth Health Interface");
         return;
     }
 
     if ( (status = sBluetoothHdpInterface->init(&sBluetoothHdpCallbacks)) != BT_STATUS_SUCCESS) {
-        LOGE("Failed to initialize Bluetooth HDP, status: %d", status);
+        ALOGE("Failed to initialize Bluetooth HDP, status: %d", status);
         sBluetoothHdpInterface = NULL;
         return;
     }
@@ -159,18 +159,18 @@ static void cleanupNative(JNIEnv *env, jobject object) {
     bt_status_t status;
 
     if ( (btInf = getBluetoothInterface()) == NULL) {
-        LOGE("Bluetooth module is not loaded");
+        ALOGE("Bluetooth module is not loaded");
         return;
     }
 
     if (sBluetoothHdpInterface !=NULL) {
-        LOGW("Cleaning up Bluetooth Health Interface...");
+        ALOGW("Cleaning up Bluetooth Health Interface...");
         sBluetoothHdpInterface->cleanup();
         sBluetoothHdpInterface = NULL;
     }
 
     if (mCallbacksObj != NULL) {
-        LOGW("Cleaning up Bluetooth Health object");
+        ALOGW("Cleaning up Bluetooth Health object");
         env->DeleteGlobalRef(mCallbacksObj);
         mCallbacksObj = NULL;
     }

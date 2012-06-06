@@ -254,30 +254,30 @@ static void initializeNative(JNIEnv *env, jobject object) {
     bt_status_t status;
 
     if ( (btInf = getBluetoothInterface()) == NULL) {
-        LOGE("Bluetooth module is not loaded");
+        ALOGE("Bluetooth module is not loaded");
         return;
     }
 
     if (sBluetoothHfpInterface !=NULL) {
-        LOGW("Cleaning up Bluetooth Handsfree Interface before initializing...");
+        ALOGW("Cleaning up Bluetooth Handsfree Interface before initializing...");
         sBluetoothHfpInterface->cleanup();
         sBluetoothHfpInterface = NULL;
     }
 
     if (mCallbacksObj != NULL) {
-        LOGW("Cleaning up Bluetooth Handsfree callback object");
+        ALOGW("Cleaning up Bluetooth Handsfree callback object");
         env->DeleteGlobalRef(mCallbacksObj);
         mCallbacksObj = NULL;
     }
 
     if ( (sBluetoothHfpInterface = (bthf_interface_t *)
           btInf->get_profile_interface(BT_PROFILE_HANDSFREE_ID)) == NULL) {
-        LOGE("Failed to get Bluetooth Handsfree Interface");
+        ALOGE("Failed to get Bluetooth Handsfree Interface");
         return;
     }
 
     if ( (status = sBluetoothHfpInterface->init(&sBluetoothHfpCallbacks)) != BT_STATUS_SUCCESS) {
-        LOGE("Failed to initialize Bluetooth HFP, status: %d", status);
+        ALOGE("Failed to initialize Bluetooth HFP, status: %d", status);
         sBluetoothHfpInterface = NULL;
         return;
     }
@@ -290,18 +290,18 @@ static void cleanupNative(JNIEnv *env, jobject object) {
     bt_status_t status;
 
     if ( (btInf = getBluetoothInterface()) == NULL) {
-        LOGE("Bluetooth module is not loaded");
+        ALOGE("Bluetooth module is not loaded");
         return;
     }
 
     if (sBluetoothHfpInterface !=NULL) {
-        LOGW("Cleaning up Bluetooth Handsfree Interface...");
+        ALOGW("Cleaning up Bluetooth Handsfree Interface...");
         sBluetoothHfpInterface->cleanup();
         sBluetoothHfpInterface = NULL;
     }
 
     if (mCallbacksObj != NULL) {
-        LOGW("Cleaning up Bluetooth Handsfree callback object");
+        ALOGW("Cleaning up Bluetooth Handsfree callback object");
         env->DeleteGlobalRef(mCallbacksObj);
         mCallbacksObj = NULL;
     }

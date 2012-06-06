@@ -561,6 +561,11 @@ public class AdapterService extends Service {
             return service.enable();
         }
 
+        public boolean enableNoAutoConnect() {
+            // TODO(BT)
+            return false;
+        }
+
         public boolean disable(boolean persist) {
             AdapterService service = getService();
             if (service == null) return false;
