@@ -214,48 +214,35 @@ class AdapterProperties {
             }
         }
     }
-
-    void addBondedDevice(BluetoothDevice device) {
+    // This function shall be invoked from BondStateMachine whenever the bond
+    // state changes.
+    void onBondStateChanged(BluetoothDevice device, int state)
+    {
         if(device == null)
             return;
-
         try {
             byte[] addrByte = Utils.getByteAddress(device);
             DeviceProperties prop = mRemoteDevices.getDeviceProperties(device);
             if (prop == null)
                 prop = mRemoteDevices.addDeviceProperties(addrByte);
-            prop.setBondState(BluetoothDevice.BOND_BONDED);
+            prop.setBondState(state);
 
-            // add if not already in list
-            if(!mBondedDevices.contains(device)) {
-                debugLog("Adding bonded device:" +  device);
-                mBondedDevices.add(device);
+            if (state == BluetoothDevice.BOND_BONDED) {
+                // add if not already in list
+                if(!mBondedDevices.contains(device)) {
+                    debugLog("Adding bonded device:" +  device);
+                    mBondedDevices.add(device);
+                }
+            } else if (state == BluetoothDevice.BOND_NONE) {
+                // remove device from list
+                if (mBondedDevices.remove(device))
+                    debugLog("Removing bonded device:" +  device);
+                else
+                    debugLog("Failed to remove device: " + device);
             }
         }
         catch(Exception ee) {
-            Log.e(TAG, "Exception in addBondedDevice : ", ee);
-        }
-    }
-
-    void removeBondedDevice(BluetoothDevice device) {
-        if(device == null)
-            return;
-
-        try {
-            byte[] addrByte = device.getAddress().getBytes();
-            DeviceProperties prop = mRemoteDevices.getDeviceProperties(device);
-            if (prop == null)
-                prop = mRemoteDevices.addDeviceProperties(addrByte);
-            prop.setBondState(BluetoothDevice.BOND_NONE);
-
-            // remove device from list
-            if (mBondedDevices.remove(device))
-                debugLog("Removing bonded device:" +  device);
-            else
-                debugLog("Failed to remove device: " + device);
-        }
-        catch(Exception ee) {
-            Log.e(TAG, "Exception in removeBondedDevice : ", ee);
+            Log.e(TAG, "Exception in onBondStateChanged : ", ee);
         }
     }
 
@@ -476,7 +463,9 @@ class AdapterProperties {
                         byte[] addrByte = new byte[BD_ADDR_LEN];
                         for (int j = 0; j < number; j++) {
                             System.arraycopy(val, j * BD_ADDR_LEN, addrByte, 0, BD_ADDR_LEN);
-                            addBondedDevice(mAdapter.getRemoteDevice(Utils.getAddressStringFromByte(addrByte)));
+                            onBondStateChanged(mAdapter.getRemoteDevice(
+                                               Utils.getAddressStringFromByte(addrByte)),
+                                               BluetoothDevice.BOND_BONDED);
                         }
                         break;
                     case AbstractionLayer.BT_PROPERTY_ADAPTER_DISCOVERABLE_TIMEOUT:

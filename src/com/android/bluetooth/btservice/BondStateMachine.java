@@ -42,6 +42,7 @@ final class BondStateMachine extends StateMachine {
     private AdapterService mAdapterService;
     private AdapterProperties mAdapterProperties;
     private RemoteDevices mRemoteDevices;
+    private BluetoothAdapter mAdapter;
 
     private PendingCommandState mPendingCommandState = new PendingCommandState();
     private StableState mStableState = new StableState();
@@ -54,6 +55,7 @@ final class BondStateMachine extends StateMachine {
         mRemoteDevices = remoteDevices;
         mAdapterService = service;
         mAdapterProperties = prop;
+        mAdapter = BluetoothAdapter.getDefaultAdapter();
         setInitialState(mStableState);
     }
 
@@ -218,15 +220,12 @@ final class BondStateMachine extends StateMachine {
 
     private void sendIntent(BluetoothDevice device, int newState) {
         DeviceProperties devProp = mRemoteDevices.getDeviceProperties(device);
-        int oldState = devProp.getBondState();
+        int oldState = BluetoothDevice.BOND_NONE;
+        if (devProp != null) {
+            oldState = devProp.getBondState();
+        }
         if (oldState == newState) return;
-
-        devProp.setBondState(newState);
-
-        if (newState == BluetoothDevice.BOND_NONE)
-            mAdapterProperties.removeBondedDevice(device);
-        else if (newState == BluetoothDevice.BOND_BONDED)
-            mAdapterProperties.addBondedDevice(device);
+        mAdapterProperties.onBondStateChanged(device, newState);
 
         Intent intent = new Intent(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
@@ -241,8 +240,10 @@ final class BondStateMachine extends StateMachine {
         BluetoothDevice device = mRemoteDevices.getDevice(address);
 
         if (device == null) {
-            errorLog("No record of the device:" + device);
-            return;
+            infoLog("No record of the device:" + device);
+            // This device will be added as part of the BONDING_STATE_CHANGE intent processing
+            // in sendIntent above
+            device = mAdapter.getRemoteDevice(Utils.getAddressStringFromByte(address));
         }
 
         infoLog("bondStateChangeCallback: Status: " + status + " Address: " + device
