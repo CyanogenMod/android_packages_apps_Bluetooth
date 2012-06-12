@@ -388,13 +388,13 @@ public class AdapterService extends Service {
         mCleaningUp = true;
 
         if (mAdapterStateMachine != null) {
-            mAdapterStateMachine.quit();
+            // TODO(BT) mAdapterStateMachine.quit();
             mAdapterStateMachine.cleanup();
             mAdapterStateMachine = null;
         }
 
         if (mBondStateMachine != null) {
-            mBondStateMachine.quit();
+            // TODO(BT) mBondStateMachine.quit();
             mBondStateMachine.cleanup();
             mBondStateMachine = null;
         }

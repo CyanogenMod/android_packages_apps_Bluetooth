@@ -94,10 +94,10 @@ final class AdapterState extends StateMachine {
 
         @Override
         public boolean processMessage(Message msg) {
-            if (msg.what == SM_QUIT_CMD) {
+            /* TODO(BT) if (msg.what == SM_QUIT_CMD) {
                 Log.d(TAG, "Received quit request...");
                 return false;
-            }
+                } */
             int requestId = msg.arg1;
 
             switch(msg.what) {

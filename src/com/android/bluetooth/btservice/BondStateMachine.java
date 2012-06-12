@@ -73,10 +73,11 @@ final class BondStateMachine extends StateMachine {
 
         @Override
         public boolean processMessage(Message msg) {
-            if (msg.what == SM_QUIT_CMD) {
-                Log.d(TAG, "Received quit request...");
-                return false;
-            }
+            // TODO(BT)
+            // if (msg.what == SM_QUIT_CMD) {
+            //     Log.d(TAG, "Received quit request...");
+            //     return false;
+            // }
 
 
             BluetoothDevice dev = (BluetoothDevice)msg.obj;
@@ -125,10 +126,11 @@ final class BondStateMachine extends StateMachine {
 
         @Override
         public boolean processMessage(Message msg) {
-            if (msg.what == SM_QUIT_CMD) {
-                Log.d(TAG, "PendingCommandState(): Received quit request...");
-                return false;
-            }
+            // TODO(BT)
+            // if (msg.what == SM_QUIT_CMD) {
+            //     Log.d(TAG, "PendingCommandState(): Received quit request...");
+            //     return false;
+            // }
 
             BluetoothDevice dev = (BluetoothDevice)msg.obj;
             boolean result = false;

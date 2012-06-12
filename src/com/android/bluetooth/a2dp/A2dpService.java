@@ -41,7 +41,7 @@ public class A2dpService extends ProfileService {
     }
 
     protected boolean stop() {
-        mStateMachine.quit();
+        // TODO(BT) mStateMachine.quit();
         return true;
     }
 

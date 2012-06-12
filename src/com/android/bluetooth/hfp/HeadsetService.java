@@ -63,7 +63,7 @@ public class HeadsetService extends ProfileService {
         } catch (Exception e) {
             Log.w(TAG,"Unable to unregister headset receiver",e);
         }
-        mStateMachine.quit();
+        // TODO(BT) mStateMachine.quit();
         return true;
     }
 
