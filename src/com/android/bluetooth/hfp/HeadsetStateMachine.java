@@ -78,6 +78,9 @@ final class HeadsetStateMachine extends StateMachine {
     static final int ROAM_CHANGED = 12;
     static final int SEND_CCLC_RESPONSE = 13;
 
+    static final int VIRTUAL_CALL_START = 14;
+    static final int VIRTUAL_CALL_STOP = 15;
+
     private static final int STACK_EVENT = 101;
     private static final int DIALING_OUT_TIMEOUT = 102;
     private static final int START_VR_TIMEOUT = 103;
@@ -99,6 +102,7 @@ final class HeadsetStateMachine extends StateMachine {
 
     private HeadsetService mService;
     private PowerManager mPowerManager;
+    private boolean mVirtualCallStarted = false;
     private boolean mVoiceRecognitionStarted = false;
     private boolean mWaitingForVoiceRecognition = false;
     private WakeLock mStartVoiceRecognitionWakeLock;  // held while waiting for voice recognition
@@ -266,7 +270,8 @@ final class HeadsetStateMachine extends StateMachine {
                     processRoamChanged((Boolean) message.obj);
                     break;
                 case CALL_STATE_CHANGED:
-                    processCallState((HeadsetCallState) message.obj);
+                    processCallState((HeadsetCallState) message.obj,
+                        ((message.arg1 == 1)?true:false));
                     break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
@@ -389,7 +394,8 @@ final class HeadsetStateMachine extends StateMachine {
                     processRoamChanged((Boolean) message.obj);
                     break;
                 case CALL_STATE_CHANGED:
-                    processCallState((HeadsetCallState) message.obj);
+                    processCallState((HeadsetCallState) message.obj,
+                        ((message.arg1 == 1)?true:false));
                     break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
@@ -612,7 +618,7 @@ final class HeadsetStateMachine extends StateMachine {
                     processLocalVrEvent(HeadsetHalConstants.VR_STATE_STOPPED);
                     break;
                 case CALL_STATE_CHANGED:
-                    processCallState((HeadsetCallState) message.obj);
+                    processCallState((HeadsetCallState) message.obj, ((message.arg1==1)?true:false));
                     break;
                 case INTENT_BATTERY_CHANGED:
                     processIntentBatteryChanged((Intent) message.obj);
@@ -631,6 +637,12 @@ final class HeadsetStateMachine extends StateMachine {
                         mDialingOut= false;
                         atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
                     }
+                    break;
+                case VIRTUAL_CALL_START:
+                    initiateScoUsingVirtualVoiceCall();
+                    break;
+                case VIRTUAL_CALL_STOP:
+                    terminateScoUsingVirtualVoiceCall();
                     break;
                 case START_VR_TIMEOUT:
                     if (mWaitingForVoiceRecognition) {
@@ -818,7 +830,7 @@ final class HeadsetStateMachine extends StateMachine {
                     processIntentScoVolume((Intent) message.obj);
                     break;
                 case CALL_STATE_CHANGED:
-                    processCallState((HeadsetCallState) message.obj);
+                    processCallState((HeadsetCallState) message.obj, ((message.arg1 == 1)?true:false));
                     break;
                 case INTENT_BATTERY_CHANGED:
                     processIntentBatteryChanged((Intent) message.obj);
@@ -832,6 +844,14 @@ final class HeadsetStateMachine extends StateMachine {
                 case SEND_CCLC_RESPONSE:
                     processSendClccResponse((HeadsetClccResponse) message.obj);
                     break;
+
+                case VIRTUAL_CALL_START:
+                    initiateScoUsingVirtualVoiceCall();
+                    break;
+                case VIRTUAL_CALL_STOP:
+                    terminateScoUsingVirtualVoiceCall();
+                    break;
+
                 case DIALING_OUT_TIMEOUT:
                     if (mDialingOut) {
                         mDialingOut= false;
@@ -1060,8 +1080,8 @@ final class HeadsetStateMachine extends StateMachine {
             mVoiceRecognitionStarted + " mWaitingforVoiceRecognition: " + mWaitingForVoiceRecognition +
             " isInCall: " + isInCall());
         if (state == HeadsetHalConstants.VR_STATE_STARTED) {
-            // TODO(BT) handle virtualcall
             if (!mVoiceRecognitionStarted &&
+                !isVirtualCallInProgress() &&
                 !isInCall())
             {
                 try {
@@ -1186,6 +1206,11 @@ final class HeadsetStateMachine extends StateMachine {
     // This method does not check for error conditon (newState == prevState)
     private void broadcastConnectionState(BluetoothDevice device, int newState, int prevState) {
         if (DBG) log("Connection state " + device + ": " + prevState + "->" + newState);
+        if(prevState == BluetoothProfile.STATE_CONNECTED) {
+            // Headset is disconnecting, stop Virtual call if active.
+            terminateScoUsingVirtualVoiceCall();
+        }
+
         /* Notifying the connection state change of the profile before sending the intent for
            connection state change, as it was causing a race condition, with the UI not being
            updated with the correct connection state. */
@@ -1199,6 +1224,11 @@ final class HeadsetStateMachine extends StateMachine {
     }
 
     private void broadcastAudioState(BluetoothDevice device, int newState, int prevState) {
+        if(prevState == BluetoothHeadset.STATE_AUDIO_CONNECTED) {
+            // When SCO gets disconnected during call transfer, Virtual call
+            //needs to be cleaned up.So call terminateScoUsingVirtualVoiceCall.
+            terminateScoUsingVirtualVoiceCall();
+        }
         Intent intent = new Intent(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
@@ -1258,6 +1288,57 @@ final class HeadsetStateMachine extends StateMachine {
         return commandType;
     }
 
+    /* Method to check if Virtual Call in Progress */
+    private boolean isVirtualCallInProgress() {
+        return mVirtualCallStarted;
+    }
+
+    void setVirtualCallInProgress(boolean state) {
+        mVirtualCallStarted = state;
+    }
+
+    /* NOTE: Currently the VirtualCall API does not support handling of
+    call transfers. If it is initiated from the handsfree device,
+    HeadsetStateMachine will end the virtual call by calling
+    terminateScoUsingVirtualVoiceCall() in broadcastAudioState() */
+    synchronized boolean initiateScoUsingVirtualVoiceCall() {
+        if (DBG) log("initiateScoUsingVirtualVoiceCall: Received");
+        // 1. Check if the SCO state is idle
+        if (isInCall() || mVoiceRecognitionStarted) {
+            Log.e(TAG, "initiateScoUsingVirtualVoiceCall: Call in progress.");
+            return false;
+        }
+
+        // 2. Send virtual phone state changed to initialize SCO
+        processCallState(new HeadsetCallState(0, 0,
+            HeadsetHalConstants.CALL_STATE_DIALING, "", 0), true);
+        processCallState(new HeadsetCallState(0, 0,
+            HeadsetHalConstants.CALL_STATE_ALERTING, "", 0), true);
+        processCallState(new HeadsetCallState(1, 0,
+            HeadsetHalConstants.CALL_STATE_IDLE, "", 0), true);
+        setVirtualCallInProgress(true);
+        // Done
+        if (DBG) log("initiateScoUsingVirtualVoiceCall: Done");
+        return true;
+    }
+
+    synchronized boolean terminateScoUsingVirtualVoiceCall() {
+        if (DBG) log("terminateScoUsingVirtualVoiceCall: Received");
+
+        if (!isVirtualCallInProgress()) {
+            Log.e(TAG, "terminateScoUsingVirtualVoiceCall:"+
+                "No present call to terminate");
+            return false;
+        }
+
+        // 2. Send virtual phone state changed to close SCO
+        processCallState(new HeadsetCallState(0, 0,
+            HeadsetHalConstants.CALL_STATE_IDLE, "", 0), true);
+        setVirtualCallInProgress(false);
+        // Done
+        if (DBG) log("terminateScoUsingVirtualVoiceCall: Done");
+        return true;
+    }
 
     private void processAnswerCall() {
         if (mPhoneProxy != null) {
@@ -1272,14 +1353,20 @@ final class HeadsetStateMachine extends StateMachine {
     }
 
     private void processHangupCall() {
-        if (mPhoneProxy != null) {
-            try {
-                mPhoneProxy.hangupCall();
-            } catch (RemoteException e) {
-                Log.e(TAG, Log.getStackTraceString(new Throwable()));
-            }
+        // Close the virtual call if active. Virtual call should be
+        // terminated for CHUP callback event
+        if (isVirtualCallInProgress()) {
+            terminateScoUsingVirtualVoiceCall();
         } else {
-            Log.e(TAG, "Handsfree phone proxy null for hanging up call");
+            if (mPhoneProxy != null) {
+                try {
+                    mPhoneProxy.hangupCall();
+                } catch (RemoteException e) {
+                    Log.e(TAG, Log.getStackTraceString(new Throwable()));
+                }
+            } else {
+                Log.e(TAG, "Handsfree phone proxy null for hanging up call");
+            }
         }
     }
 
@@ -1314,8 +1401,9 @@ final class HeadsetStateMachine extends StateMachine {
 
             dialNumber = PhoneNumberUtils.convertPreDial(number);
         }
-        // TODO(BT) do we need to terminate virtual call first
-        //          like call terminateScoUsingVirtualVoiceCall()?
+        // Check for virtual call to terminate before sending Call Intent
+        terminateScoUsingVirtualVoiceCall();
+
         Intent intent = new Intent(Intent.ACTION_CALL_PRIVILEGED,
                                    Uri.fromParts(SCHEME_TEL, dialNumber, null));
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -1352,20 +1440,31 @@ final class HeadsetStateMachine extends StateMachine {
     }
 
     private void processCallState(HeadsetCallState callState) {
+        processCallState(callState, false);
+    }
+
+    private void processCallState(HeadsetCallState callState,
+        boolean isVirtualCall) {
         mPhoneState.setNumActiveCall(callState.mNumActive);
         mPhoneState.setNumHeldCall(callState.mNumHeld);
         mPhoneState.setCallState(callState.mCallState);
-        if (mDialingOut && callState.mCallState == HeadsetHalConstants.CALL_STATE_DIALING) {
+        if (mDialingOut && callState.mCallState ==
+            HeadsetHalConstants.CALL_STATE_DIALING) {
                 atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK, 0);
                 removeMessages(DIALING_OUT_TIMEOUT);
                 mDialingOut = false;
         }
-        log("mNumActive: " + callState.mNumActive + " mNumHeld: " + callState.mNumHeld +
-            " mCallState: " + callState.mCallState);
+        log("mNumActive: " + callState.mNumActive + " mNumHeld: " +
+            callState.mNumHeld +" mCallState: " + callState.mCallState);
         log("mNumber: " + callState.mNumber + " mType: " + callState.mType);
+        if(!isVirtualCall) {
+            /* Not a Virtual call request. End the virtual call, if running,
+            before sending phoneStateChangeNative to BTIF */
+            terminateScoUsingVirtualVoiceCall();
+        }
         if (getCurrentState() != mDisconnected) {
-            phoneStateChangeNative(callState.mNumActive, callState.mNumHeld, callState.mCallState,
-                                   callState.mNumber, callState.mType);
+            phoneStateChangeNative(callState.mNumActive, callState.mNumHeld,
+                callState.mCallState, callState.mNumber, callState.mType);
         }
     }
 
@@ -1416,8 +1515,22 @@ final class HeadsetStateMachine extends StateMachine {
     }
 
     private void processAtCind() {
-        cindResponseNative(mPhoneState.getService(), mPhoneState.getNumActiveCall(),
-                           mPhoneState.getNumHeldCall(), mPhoneState.getCallState(),
+        int call, call_setup;
+
+        /* Handsfree carkits expect that +CIND is properly responded to
+         Hence we ensure that a proper response is sent
+         for the virtual call too.*/
+        if (isVirtualCallInProgress()) {
+            call = 1;
+            call_setup = 0;
+        } else {
+            // regular phone call
+            call = mPhoneState.getNumActiveCall();
+            call_setup = mPhoneState.getNumHeldCall();
+        }
+
+        cindResponseNative(mPhoneState.getService(), call,
+                           call_setup, mPhoneState.getCallState(),
                            mPhoneState.getSignal(), mPhoneState.getRoam(),
                            mPhoneState.getBatteryCharge());
     }
@@ -1443,7 +1556,20 @@ final class HeadsetStateMachine extends StateMachine {
     private void processAtClcc() {
         if (mPhoneProxy != null) {
             try {
-                if (!mPhoneProxy.listCurrentCalls()) {
+                if(isVirtualCallInProgress()) {
+                    String phoneNumber = "";
+                    int type = PhoneNumberUtils.TOA_Unknown;
+                    try {
+                        phoneNumber = mPhoneProxy.getSubscriberNumber();
+                        type = PhoneNumberUtils.toaFromString(phoneNumber);
+                    } catch (RemoteException ee) {
+                        Log.e(TAG, "Unable to retrieve phone number"+
+                            "using IBluetoothHeadsetPhone proxy");
+                        phoneNumber = "";
+                    }
+                    clccResponseNative(1, 0, 0, 0, false, phoneNumber, type);
+                }
+                else if (!mPhoneProxy.listCurrentCalls()) {
                     clccResponseNative(0, 0, 0, 0, false, "", 0);
                 }
             } catch (RemoteException e) {

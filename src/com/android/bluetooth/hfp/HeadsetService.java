@@ -396,21 +396,31 @@ public class HeadsetService extends ProfileService {
     }
 
     boolean startScoUsingVirtualVoiceCall(BluetoothDevice device) {
-        // TODO(BT) Is this right?
-        mStateMachine.sendMessage(HeadsetStateMachine.CONNECT_AUDIO, device);
+        int connectionState = mStateMachine.getConnectionState(device);
+        if (connectionState != BluetoothProfile.STATE_CONNECTED &&
+            connectionState != BluetoothProfile.STATE_CONNECTING) {
+            return false;
+        }
+        mStateMachine.sendMessage(HeadsetStateMachine.VIRTUAL_CALL_START, device);
         return true;
     }
 
     boolean stopScoUsingVirtualVoiceCall(BluetoothDevice device) {
-        // TODO(BT) Is this right?
-        mStateMachine.sendMessage(HeadsetStateMachine.DISCONNECT_AUDIO, device);
+        int connectionState = mStateMachine.getConnectionState(device);
+        if (connectionState != BluetoothProfile.STATE_CONNECTED &&
+            connectionState != BluetoothProfile.STATE_CONNECTING) {
+            return false;
+        }
+        mStateMachine.sendMessage(HeadsetStateMachine.VIRTUAL_CALL_STOP, device);
         return true;
     }
 
     private void phoneStateChanged(int numActive, int numHeld, int callState,
                                   String number, int type) {
-        mStateMachine.sendMessage(HeadsetStateMachine.CALL_STATE_CHANGED,
-            new HeadsetCallState(numActive, numHeld, callState, number, type));
+        Message msg = mStateMachine.obtainMessage(HeadsetStateMachine.CALL_STATE_CHANGED);
+        msg.obj = new HeadsetCallState(numActive, numHeld, callState, number, type);
+        msg.arg1 = 0; // false
+        mStateMachine.sendMessage(msg);
     }
 
     private void roamChanged(boolean roam) {
