@@ -252,6 +252,10 @@ public class HealthService extends ProfileService {
                             break;
                         }
                     }
+                    /*set the channel fd to null if channel state isnot equal to connected*/
+                    else{
+                        chan.mChannelFd = null;
+                    }
                     callHealthChannelCallback(chan.mConfig, chan.mDevice, newState,
                                               chan.mState, chan.mChannelFd, chan.mChannelId);
                     chan.mState = newState;
