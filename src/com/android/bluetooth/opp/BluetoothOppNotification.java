@@ -115,7 +115,7 @@ class BluetoothOppNotification {
 
         int totalTotal = 0; // total bytes for current transfer
 
-        int timeStamp = 0; // Database time stamp. Used for sorting ongoing transfers.
+        long timeStamp = 0; // Database time stamp. Used for sorting ongoing transfers.
 
         String description; // the text above progress bar
 
@@ -238,7 +238,7 @@ class BluetoothOppNotification {
 
         mNotifications.clear();
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-            int timeStamp = cursor.getInt(timestampIndex);
+            long timeStamp = cursor.getLong(timestampIndex);
             int dir = cursor.getInt(directionIndex);
             int id = cursor.getInt(idIndex);
             int total = cursor.getInt(totalBytesIndex);
