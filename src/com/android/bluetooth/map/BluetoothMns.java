@@ -133,7 +133,7 @@ public class BluetoothMns {
 
     private BluetoothAdapter mAdapter;
 
-    private BluetoothMnsObexSession mSession;
+    private BluetoothMnsObexSession mSession=null;
 
     private int mStartId = -1;
 
@@ -199,12 +199,15 @@ public class BluetoothMns {
             Log.d(TAG, " Handle Message " + msg.what);
             switch (msg.what) {
             case MNS_CONNECT:
-                if (mSession != null) {
-                    Log.d(TAG, "Disconnect previous obex connection");
-                    mSession.disconnect();
-                    mSession = null;
+                /*The documentation just specifies that no more than one connection is initiated
+                  at a time, so we re-use it here, rather than disconnecting and reconnecting,
+                  which can cause issues on some vehicles */
+                if (mSession == null) {
+                  start((BluetoothDevice) msg.obj);
                 }
-                    start((BluetoothDevice) msg.obj);
+                else
+                    Log.d(TAG, "Re-using previous obex connection");
+
                 break;
             case MNS_DISCONNECT:
                 deregisterUpdates();
@@ -239,7 +242,6 @@ public class BluetoothMns {
             case RFCOMM_ERROR:
                 if (V) Log.v(TAG, "receive RFCOMM_ERROR msg");
                 mConnectThread = null;
-
                 break;
             /*
              * RFCOMM connected. Do an OBEX connect by starting the session
@@ -283,7 +285,8 @@ public class BluetoothMns {
                 break;
 
             case MNS_SEND_EVENT:
-                sendEvent((String) msg.obj);
+                if(mSession != null) /* Prevents an FC in case the session has died */
+                  sendEvent((String) msg.obj);
                 break;
             }
         }
