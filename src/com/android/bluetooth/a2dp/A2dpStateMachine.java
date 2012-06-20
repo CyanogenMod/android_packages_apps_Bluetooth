@@ -23,6 +23,12 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetooth;
 import android.content.Context;
+import android.media.AudioManager;
+import android.os.Handler;
+import android.os.Message;
+import android.os.ParcelUuid;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.content.Intent;
 import android.os.Message;
 import android.os.RemoteException;
@@ -55,6 +61,12 @@ final class A2dpStateMachine extends StateMachine {
     private A2dpService mService;
     private Context mContext;
     private BluetoothAdapter mAdapter;
+    private final AudioManager mAudioManager;
+    private IntentBroadcastHandler mIntentBroadcastHandler;
+    private final WakeLock mWakeLock;
+
+    private static final int MSG_CONNECTION_STATE_CHANGED = 0;
+
     private static final ParcelUuid[] A2DP_UUIDS = {
         BluetoothUuid.AudioSink
     };
@@ -86,6 +98,7 @@ final class A2dpStateMachine extends StateMachine {
     private BluetoothDevice mIncomingDevice = null;
     private BluetoothDevice mPlayingA2dpDevice = null;
 
+
     static {
         classInitNative();
     }
@@ -107,6 +120,14 @@ final class A2dpStateMachine extends StateMachine {
         addState(mConnected);
 
         setInitialState(mDisconnected);
+
+        PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
+        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BluetoothA2dpService");
+
+        mIntentBroadcastHandler = new IntentBroadcastHandler();
+
+        mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+
     }
 
     public void cleanup() {
@@ -207,6 +228,7 @@ final class A2dpStateMachine extends StateMachine {
                 break;
             case CONNECTION_STATE_CONNECTED:
                 Log.w(TAG, "A2DP Connected from Disconnected state");
+
                 if (BluetoothProfile.PRIORITY_OFF < mService.getPriority(device)) {
                     Log.i(TAG,"Incoming A2DP accepted");
                     broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTED,
@@ -613,17 +635,16 @@ final class A2dpStateMachine extends StateMachine {
 
     // This method does not check for error conditon (newState == prevState)
     private void broadcastConnectionState(BluetoothDevice device, int newState, int prevState) {
-        /* Notifying the connection state change of the profile before sending the intent for
-           connection state change, as it was causing a race condition, with the UI not being
-           updated with the correct connection state. */
-        if (DBG) log("Connection state " + device + ": " + prevState + "->" + newState);
-        mService.notifyProfileConnectionStateChanged(device, BluetoothProfile.A2DP,
-                                                     newState, prevState);
-        Intent intent = new Intent(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
-        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
-        intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        mContext.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+
+        int delay = mAudioManager.setBluetoothA2dpDeviceConnectionState(device, newState);
+
+        mWakeLock.acquire();
+        mIntentBroadcastHandler.sendMessageDelayed(mIntentBroadcastHandler.obtainMessage(
+                                                        MSG_CONNECTION_STATE_CHANGED,
+                                                        prevState,
+                                                        newState,
+                                                        device),
+                                                        delay);
     }
 
     private void broadcastAudioState(BluetoothDevice device, int state, int prevState) {
@@ -673,6 +694,31 @@ final class A2dpStateMachine extends StateMachine {
             this.type = type;
         }
     }
+    /** Handles A2DP connection state change intent broadcasts. */
+    private class IntentBroadcastHandler extends Handler {
+
+        private void onConnectionStateChanged(BluetoothDevice device, int prevState, int state) {
+            Intent intent = new Intent(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+            intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
+            intent.putExtra(BluetoothProfile.EXTRA_STATE, state);
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+            intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+            mContext.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+            if (DBG) log("Connection state " + device + ": " + prevState + "->" + state);
+            mService.notifyProfileConnectionStateChanged(device, BluetoothProfile.A2DP, state, prevState);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_CONNECTION_STATE_CHANGED:
+                    onConnectionStateChanged((BluetoothDevice) msg.obj, msg.arg1, msg.arg2);
+                    mWakeLock.release();
+                    break;
+            }
+        }
+    }
+
 
     // Event types for STACK_EVENT message
     final private static int EVENT_TYPE_NONE = 0;
