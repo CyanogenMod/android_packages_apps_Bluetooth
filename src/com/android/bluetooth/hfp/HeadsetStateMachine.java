@@ -311,8 +311,6 @@ final class HeadsetStateMachine extends StateMachine {
                 // CONNECTION_STATE_CONNECTING and CONNECTION_STATE_CONNECTED.
                 if (BluetoothProfile.PRIORITY_OFF < mService.getPriority(device)) {
                     Log.i(TAG,"Incoming Hf accepted");
-                    // TODO(BT) Assume it's incoming connection
-                    //     Do we need to check priority and accept/reject accordingly?
                     broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
                                              BluetoothProfile.STATE_DISCONNECTED);
                     synchronized (HeadsetStateMachine.this) {
@@ -323,6 +321,8 @@ final class HeadsetStateMachine extends StateMachine {
                     Log.i(TAG,"Incoming Hf rejected");
                     //reject the connection and stay in Disconnected state itself
                     disconnectHfpNative(getByteAddress(device));
+                    // the other profile connection should be initiated
+                    broadcastConnectOtherProfilesIntent(device);
                 }
                 break;
             case HeadsetHalConstants.CONNECTION_STATE_CONNECTED:
@@ -340,6 +340,8 @@ final class HeadsetStateMachine extends StateMachine {
                     //reject the connection and stay in Disconnected state itself
                     Log.d(TAG,"Incoming Hf rejected");
                     disconnectHfpNative(getByteAddress(device));
+                    // the other profile connection should be initiated
+                    broadcastConnectOtherProfilesIntent(device);
                 }
 
                 break;
@@ -1219,6 +1221,15 @@ final class HeadsetStateMachine extends StateMachine {
         Intent intent = new Intent(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        mService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
+    }
+
+    private void broadcastConnectOtherProfilesIntent(BluetoothDevice device) {
+        // send other profile connect intent
+        if (DBG) log("Other Profile Connect intent sent " + device);
+
+        Intent intent = new Intent(BluetoothProfile.ACTION_CONNECT_OTHER_PROFILES);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         mService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
     }

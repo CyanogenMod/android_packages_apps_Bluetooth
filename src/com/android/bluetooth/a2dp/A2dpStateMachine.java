@@ -224,6 +224,8 @@ final class A2dpStateMachine extends StateMachine {
                     //reject the connection and stay in Disconnected state itself
                     Log.i(TAG,"Incoming A2DP rejected");
                     disconnectA2dpNative(getByteAddress(device));
+                    // the other profile connection should be initiated
+                    broadcastConnectOtherProfilesIntent(device);
                 }
                 break;
             case CONNECTION_STATE_CONNECTED:
@@ -241,6 +243,8 @@ final class A2dpStateMachine extends StateMachine {
                     //reject the connection and stay in Disconnected state itself
                     Log.i(TAG,"Incoming A2DP rejected");
                     disconnectA2dpNative(getByteAddress(device));
+                    // the other profile connection should be initiated
+                    broadcastConnectOtherProfilesIntent(device);
                 }
                 break;
             case CONNECTION_STATE_DISCONNECTING:
@@ -631,6 +635,15 @@ final class A2dpStateMachine extends StateMachine {
             }
         }
         return deviceList;
+    }
+
+    private void broadcastConnectOtherProfilesIntent(BluetoothDevice device) {
+        // send other profile connect intent
+        if (DBG) log("Other Profile Connect intent sent " + device);
+
+        Intent intent = new Intent(BluetoothProfile.ACTION_CONNECT_OTHER_PROFILES);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        mContext.sendBroadcast(intent, A2dpService.BLUETOOTH_PERM);
     }
 
     // This method does not check for error conditon (newState == prevState)
