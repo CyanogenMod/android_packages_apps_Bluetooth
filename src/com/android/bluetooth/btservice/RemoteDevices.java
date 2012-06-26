@@ -236,48 +236,52 @@ final class RemoteDevices {
         for (int j = 0; j < types.length; j++) {
             type = types[j];
             val = values[j];
-            synchronized(mObject) {
-                switch (type) {
-                    case AbstractionLayer.BT_PROPERTY_BDNAME:
-                        device.mName = new String(val);
-                        intent = new Intent(BluetoothDevice.ACTION_NAME_CHANGED);
-                        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, bdDevice);
-                        intent.putExtra(BluetoothDevice.EXTRA_NAME, device.mName);
-                        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-                        mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_PERM);
-                        debugLog("Remote Device name is: " + device.mName);
-                        break;
-                    case AbstractionLayer.BT_PROPERTY_REMOTE_FRIENDLY_NAME:
-                        // TODO(BT) is null device.mAlias a valid senario?
-                        if (device.mAlias != null) {
-                            System.arraycopy(val, 0, device.mAlias, 0, val.length);
-                        }
-                        break;
-                    case AbstractionLayer.BT_PROPERTY_BDADDR:
-                        device.mAddress = val;
-                        debugLog("Remote Address is:" + Utils.getAddressStringFromByte(val));
-                        break;
-                    case AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE:
-                        device.mBluetoothClass =  Utils.byteArrayToInt(val);
-                        intent = new Intent(BluetoothDevice.ACTION_CLASS_CHANGED);
-                        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, bdDevice);
-                        intent.putExtra(BluetoothDevice.EXTRA_CLASS,
-                                new BluetoothClass(device.mBluetoothClass));
-                        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-                        mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_PERM);
-                        debugLog("Remote class is:" + device.mBluetoothClass);
-                        break;
-                    case AbstractionLayer.BT_PROPERTY_UUIDS:
-                        int numUuids = val.length/AbstractionLayer.BT_UUID_SIZE;
-                        device.mUuids = Utils.byteArrayToUuid(val);
-                        sendUuidIntent(bdDevice);
-                        break;
-                    case AbstractionLayer.BT_PROPERTY_TYPE_OF_DEVICE:
-                        device.mDeviceType = Utils.byteArrayToInt(val);
-                        break;
-                    case AbstractionLayer.BT_PROPERTY_REMOTE_RSSI:
-                        device.mRssi = Utils.byteArrayToShort(val);
-                        break;
+            if(val.length <= 0)
+                errorLog("devicePropertyChangedCallback: bdDevice: " + bdDevice + ", value is empty for type: " + type);
+            else {
+                synchronized(mObject) {
+                    switch (type) {
+                        case AbstractionLayer.BT_PROPERTY_BDNAME:
+                            device.mName = new String(val);
+                            intent = new Intent(BluetoothDevice.ACTION_NAME_CHANGED);
+                            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, bdDevice);
+                            intent.putExtra(BluetoothDevice.EXTRA_NAME, device.mName);
+                            intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+                            mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_PERM);
+                            debugLog("Remote Device name is: " + device.mName);
+                            break;
+                        case AbstractionLayer.BT_PROPERTY_REMOTE_FRIENDLY_NAME:
+                            // TODO(BT) is null device.mAlias a valid senario?
+                            if (device.mAlias != null) {
+                                System.arraycopy(val, 0, device.mAlias, 0, val.length);
+                            }
+                            break;
+                        case AbstractionLayer.BT_PROPERTY_BDADDR:
+                            device.mAddress = val;
+                            debugLog("Remote Address is:" + Utils.getAddressStringFromByte(val));
+                            break;
+                        case AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE:
+                            device.mBluetoothClass =  Utils.byteArrayToInt(val);
+                            intent = new Intent(BluetoothDevice.ACTION_CLASS_CHANGED);
+                            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, bdDevice);
+                            intent.putExtra(BluetoothDevice.EXTRA_CLASS,
+                                    new BluetoothClass(device.mBluetoothClass));
+                            intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+                            mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_PERM);
+                            debugLog("Remote class is:" + device.mBluetoothClass);
+                            break;
+                        case AbstractionLayer.BT_PROPERTY_UUIDS:
+                            int numUuids = val.length/AbstractionLayer.BT_UUID_SIZE;
+                            device.mUuids = Utils.byteArrayToUuid(val);
+                            sendUuidIntent(bdDevice);
+                            break;
+                        case AbstractionLayer.BT_PROPERTY_TYPE_OF_DEVICE:
+                            device.mDeviceType = Utils.byteArrayToInt(val);
+                            break;
+                        case AbstractionLayer.BT_PROPERTY_REMOTE_RSSI:
+                            device.mRssi = Utils.byteArrayToShort(val);
+                            break;
+                    }
                 }
             }
         }
