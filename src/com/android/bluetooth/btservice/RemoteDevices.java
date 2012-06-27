@@ -79,6 +79,7 @@ final class RemoteDevices {
             DeviceProperties prop = new DeviceProperties();
             BluetoothDevice device =
                     mAdapter.getRemoteDevice(Utils.getAddressStringFromByte(address));
+            prop.mAddress = address;
             mDevices.put(device, prop);
             return prop;
         }
