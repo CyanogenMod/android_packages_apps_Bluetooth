@@ -204,15 +204,21 @@ final class A2dpStateMachine extends StateMachine {
 
         // in Disconnected state
         private void processConnectionEvent(int state, BluetoothDevice device) {
+            int priority;
             switch (state) {
             case CONNECTION_STATE_DISCONNECTED:
                 Log.w(TAG, "Ignore HF DISCONNECTED event, device: " + device);
                 break;
             case CONNECTION_STATE_CONNECTING:
-                // check priority and accept or reject the connection
+                // check priority and accept or reject the connection. if priority is undefined
+                // it is likely that our SDP has not completed and peer is initiating the
+                // connection. Allow this connection, provided the device is bonded
                 // Since the state changes to  Connecting or directly Connected in some cases.Have the check both in
                 // CONNECTION_STATE_CONNECTING and CONNECTION_STATE_CONNECTED.
-                if (BluetoothProfile.PRIORITY_OFF < mService.getPriority(device)) {
+                priority = mService.getPriority(device);
+                if ((BluetoothProfile.PRIORITY_OFF < priority) ||
+                    ((BluetoothProfile.PRIORITY_UNDEFINED == priority) &&
+                     (device.getBondState() != BluetoothDevice.BOND_NONE))){
                     Log.i(TAG,"Incoming A2DP accepted");
                     broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
                                              BluetoothProfile.STATE_DISCONNECTED);
@@ -230,8 +236,10 @@ final class A2dpStateMachine extends StateMachine {
                 break;
             case CONNECTION_STATE_CONNECTED:
                 Log.w(TAG, "A2DP Connected from Disconnected state");
-
-                if (BluetoothProfile.PRIORITY_OFF < mService.getPriority(device)) {
+                priority = mService.getPriority(device);
+                if ((BluetoothProfile.PRIORITY_OFF < priority) ||
+                    ((BluetoothProfile.PRIORITY_UNDEFINED == priority) &&
+                     (device.getBondState() != BluetoothDevice.BOND_NONE))){
                     Log.i(TAG,"Incoming A2DP accepted");
                     broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTED,
                                              BluetoothProfile.STATE_DISCONNECTED);

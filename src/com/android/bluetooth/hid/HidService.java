@@ -125,7 +125,8 @@ public class HidService extends ProfileService {
                         convertHalState(halState)+", prevState:"+prevState);
                      if(halState == CONN_STATE_CONNECTED &&
                         prevState == BluetoothInputDevice.STATE_DISCONNECTED &&
-                        BluetoothProfile.PRIORITY_OFF >= getPriority(device)) {
+                        (BluetoothProfile.PRIORITY_OFF == getPriority(device) ||
+                        device.getBondState() == BluetoothDevice.BOND_NONE)) {
                         Log.d(TAG,"Incoming HID connection rejected");
                         disconnectHidNative(Utils.getByteAddress(device));
                     } else {

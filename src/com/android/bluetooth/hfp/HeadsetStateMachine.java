@@ -301,15 +301,21 @@ final class HeadsetStateMachine extends StateMachine {
 
         // in Disconnected state
         private void processConnectionEvent(int state, BluetoothDevice device) {
+            int priority;
             switch (state) {
             case HeadsetHalConstants.CONNECTION_STATE_DISCONNECTED:
                 Log.w(TAG, "Ignore HF DISCONNECTED event, device: " + device);
                 break;
             case HeadsetHalConstants.CONNECTION_STATE_CONNECTING:
-                // check priority and accept or reject the connection
+                // check priority and accept or reject the connection. if priority is undefined
+                // it is likely that our SDP has not completed and peer is initiating the
+                // connection. Allow this connection, provided the device is bonded
                 // Since the state changes to  Connecting or directly Connected in some cases.Have the check both in
                 // CONNECTION_STATE_CONNECTING and CONNECTION_STATE_CONNECTED.
-                if (BluetoothProfile.PRIORITY_OFF < mService.getPriority(device)) {
+                priority = mService.getPriority(device);
+                if ((BluetoothProfile.PRIORITY_OFF < priority) ||
+                    ((BluetoothProfile.PRIORITY_UNDEFINED == priority) &&
+                     (device.getBondState() != BluetoothDevice.BOND_NONE))){
                     Log.i(TAG,"Incoming Hf accepted");
                     broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
                                              BluetoothProfile.STATE_DISCONNECTED);
@@ -318,7 +324,8 @@ final class HeadsetStateMachine extends StateMachine {
                         transitionTo(mPending);
                     }
                 } else {
-                    Log.i(TAG,"Incoming Hf rejected");
+                    Log.i(TAG,"Incoming Hf rejected. priority=" + priority +
+                              " bondState=" + device.getBondState());
                     //reject the connection and stay in Disconnected state itself
                     disconnectHfpNative(getByteAddress(device));
                     // the other profile connection should be initiated
@@ -327,7 +334,13 @@ final class HeadsetStateMachine extends StateMachine {
                 break;
             case HeadsetHalConstants.CONNECTION_STATE_CONNECTED:
                 Log.w(TAG, "HFP Connected from Disconnected state");
-                if (BluetoothProfile.PRIORITY_OFF < mService.getPriority(device)) {
+                // check priority and accept or reject the connection. if priority is undefined
+                // it is likely that our SDP has not completed and peer is initiating the
+                // connection. Allow this connection, provided the device is bonded
+                priority = mService.getPriority(device);
+                if ((BluetoothProfile.PRIORITY_OFF < priority) ||
+                    ((BluetoothProfile.PRIORITY_UNDEFINED == priority) &&
+                     (device.getBondState() != BluetoothDevice.BOND_NONE))){
                     Log.i(TAG,"Incoming Hf accepted");
                     broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTED,
                                              BluetoothProfile.STATE_DISCONNECTED);
@@ -338,7 +351,8 @@ final class HeadsetStateMachine extends StateMachine {
                     configAudioParameters();
                 } else {
                     //reject the connection and stay in Disconnected state itself
-                    Log.d(TAG,"Incoming Hf rejected");
+                    Log.i(TAG,"Incoming Hf rejected. priority=" + priority +
+                              " bondState=" + device.getBondState());
                     disconnectHfpNative(getByteAddress(device));
                     // the other profile connection should be initiated
                     broadcastConnectOtherProfilesIntent(device);
