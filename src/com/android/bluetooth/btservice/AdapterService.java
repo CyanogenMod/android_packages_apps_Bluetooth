@@ -256,62 +256,12 @@ public class AdapterService extends Service {
         cleanup();
     }
 
-    public int onStartCommand(Intent intent ,int flags, int startId) {
-        mCurrentRequestId = startId;
-        if (mCleaningUp) {
-            Log.e(TAG,"*************Received new request while service is cleaning up****************************");
-        }
-
-        if (DBG) debugLog("onStartCommand: flags = " + flags + ", startId = " + startId);
-        if (checkCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM)!=PackageManager.PERMISSION_GRANTED) {
-            Log.e(TAG, "Permission denied!");
-            return ADAPTER_SERVICE_TYPE;
-        }
-
-        //Check if we are restarting
-        if (intent == null) {
-            debugLog("Restarting AdapterService");
-            return ADAPTER_SERVICE_TYPE;
-        }
-
-        //Get action and check if valid. If invalid, ignore and return
-        String action  = intent.getStringExtra(EXTRA_ACTION);
-        debugLog("onStartCommand(): action = " + action);
-        if (!ACTION_SERVICE_STATE_CHANGED.equals(action)) {
-            Log.w(TAG,"Unknown action: " + action);
-            return ADAPTER_SERVICE_TYPE;
-        }
-
-        //Check state of request. If invalid, ignore and return
-        int state= intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,BluetoothAdapter.ERROR);
-        debugLog("onStartCommand(): state = " + Utils.debugGetAdapterStateString(state));
-
-        //Cancel any pending shutdown requests
-        synchronized (mHandler) {
-            mHandler.removeMessages(MESSAGE_SHUTDOWN);
-        }
-
-        if (state == BluetoothAdapter.STATE_OFF) {
-            Message m = mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_OFF);
-            m.arg1= startId;
-            mAdapterStateMachine.sendMessage(m);
-        } else if (state == BluetoothAdapter.STATE_ON) {
-            Message m = mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_ON);
-            m.arg1= startId;
-            mAdapterStateMachine.sendMessage(m);
-        } else {
-            Log.w(TAG,"Invalid state: " + action);
-            return ADAPTER_SERVICE_TYPE;
-        }
-        return ADAPTER_SERVICE_TYPE;
-    }
-
     void processStart() {
         if (DBG) debugLog("processStart()");
-        Class[] SUPPORTED_PROFILE_SERVICES = Config.getSupportedProfiles();
+        Class[] supportedProfileServices = Config.getSupportedProfiles();
         //Initialize data objects
-        for (int i=0; i < SUPPORTED_PROFILE_SERVICES.length;i++) {
-            mProfileServicesState.put(SUPPORTED_PROFILE_SERVICES[i].getName(),BluetoothAdapter.STATE_OFF);
+        for (int i=0; i < supportedProfileServices.length;i++) {
+            mProfileServicesState.put(supportedProfileServices[i].getName(),BluetoothAdapter.STATE_OFF);
         }
         mRemoteDevices = new RemoteDevices(this);
         mBondStateMachine = new BondStateMachine(this, mAdapterProperties, mRemoteDevices);
@@ -326,9 +276,9 @@ public class AdapterService extends Service {
         setAdapterService(this);
 
         //Start profile services
-        if (!mProfilesStarted && SUPPORTED_PROFILE_SERVICES.length >0) {
+        if (!mProfilesStarted && supportedProfileServices.length >0) {
             //Startup all profile services
-            setProfileServiceState(SUPPORTED_PROFILE_SERVICES,BluetoothAdapter.STATE_ON);
+            setProfileServiceState(supportedProfileServices,BluetoothAdapter.STATE_ON);
         }else {
             if (DBG) {debugLog("processStart(): Profile Services alreay started");}
             mAdapterStateMachine.sendMessage(mAdapterStateMachine.obtainMessage(AdapterState.STARTED));
@@ -340,27 +290,14 @@ public class AdapterService extends Service {
     }
 
     boolean stopProfileServices() {
-        Class[] SUPPORTED_PROFILE_SERVICES = Config.getSupportedProfiles();
-        if (mProfilesStarted && SUPPORTED_PROFILE_SERVICES.length>0) {
-            setProfileServiceState(SUPPORTED_PROFILE_SERVICES,BluetoothAdapter.STATE_OFF);
+        Class[] supportedProfileServices = Config.getSupportedProfiles();
+        if (mProfilesStarted && supportedProfileServices.length>0) {
+            setProfileServiceState(supportedProfileServices,BluetoothAdapter.STATE_OFF);
             return true;
         } else {
             if (DBG) {debugLog("stopProfileServices(): No profiles services to stop or already stopped.");}
             return false;
         }
-    }
-
-    void startShutdown(int requestId) {
-        debugLog("startShutdown(): requestId = " + requestId + ", currentRequestId=" + mCurrentRequestId);
-        if (requestId <0) {
-            Log.w(TAG, "Ignoring shutdown request. Invalid requestId");
-            return;
-        }
-        Message m = mHandler.obtainMessage(MESSAGE_SHUTDOWN);
-        synchronized(mHandler) {
-            mHandler.sendMessageDelayed(m, SHUTDOWN_TIMEOUT);
-        }
-        stopSelfResult(requestId);
     }
 
      void updateAdapterState(int prevState, int newState){
@@ -566,10 +503,10 @@ public class AdapterService extends Service {
             return false;
         }
 
-        public boolean disable(boolean persist) {
+        public boolean disable() {
             AdapterService service = getService();
             if (service == null) return false;
-            return service.disable(persist);
+            return service.disable();
         }
 
         public String getAddress() {
@@ -786,19 +723,16 @@ public class AdapterService extends Service {
         if (DBG) debugLog("enable() called...");
         Message m =
                 mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_ON);
-        m.arg1 = 1; //persist state
         mAdapterStateMachine.sendMessage(m);
         return true;
     }
 
-     boolean disable(boolean persist) {
+     boolean disable() {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                 "Need BLUETOOTH ADMIN permission");
         if (DBG) debugLog("disable() called...");
-        int val = (persist ? 1 : 0);
         Message m =
                 mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_OFF);
-        m.arg1 = val;
         mAdapterStateMachine.sendMessage(m);
         return true;
     }

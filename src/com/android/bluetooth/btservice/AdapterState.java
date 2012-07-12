@@ -42,6 +42,7 @@ final class AdapterState extends StateMachine {
     static final int ENABLE_TIMEOUT = 101;
     static final int DISABLE_TIMEOUT = 103;
     static final int STOP_TIMEOUT = 104;
+    static final int SET_SCAN_MODE_TIMEOUT = 105;
 
     static final int USER_TURN_OFF_DELAY_MS=500;
 
@@ -98,11 +99,10 @@ final class AdapterState extends StateMachine {
                 Log.d(TAG, "Received quit request...");
                 return false;
                 } */
-            int requestId = msg.arg1;
 
             switch(msg.what) {
                case USER_TURN_ON:
-                   if (DBG) Log.d(TAG,"CURRENT_STATE=OFF, MESSAGE = USER_TURN_ON, requestId= " + msg.arg1);
+                   if (DBG) Log.d(TAG,"CURRENT_STATE=OFF, MESSAGE = USER_TURN_ON");
                    notifyAdapterStateChange(BluetoothAdapter.STATE_TURNING_ON);
                    mPendingCommandState.setTurningOn(true);
                    transitionTo(mPendingCommandState);
@@ -110,9 +110,8 @@ final class AdapterState extends StateMachine {
                    mAdapterService.processStart();
                    break;
                case USER_TURN_OFF:
-                   if (DBG) Log.d(TAG,"CURRENT_STATE=OFF, MESSAGE = USER_TURN_OFF, requestId= " + msg.arg1);
-                   //Handle case of service started and stopped without enable
-                   mAdapterService.startShutdown(requestId);
+                   if (DBG) Log.d(TAG,"CURRENT_STATE=OFF, MESSAGE = USER_TURN_OFF");
+                   //TODO: Handle case of service started and stopped without enable
                    break;
                default:
                    if (DBG) Log.d(TAG,"ERROR: UNEXPECTED MESSAGE: CURRENT_STATE=OFF, MESSAGE = " + msg.what );
@@ -132,22 +131,20 @@ final class AdapterState extends StateMachine {
         public boolean processMessage(Message msg) {
             switch(msg.what) {
                case USER_TURN_OFF:
-                   if (DBG) Log.d(TAG,"CURRENT_STATE=ON, MESSAGE = USER_TURN_OFF, requestId= " + msg.arg1);
+                   if (DBG) Log.d(TAG,"CURRENT_STATE=ON, MESSAGE = USER_TURN_OFF");
                    notifyAdapterStateChange(BluetoothAdapter.STATE_TURNING_OFF);
                    mPendingCommandState.setTurningOff(true);
-                   mPendingCommandState.setOffRequestId(msg.arg1);
                    transitionTo(mPendingCommandState);
 
                    // Invoke onBluetoothDisable which shall trigger a
                    // setScanMode to SCAN_MODE_NONE
-                   Message m = obtainMessage(BEGIN_DISABLE);
-                   m.arg1 = msg.arg1;
+                   Message m = obtainMessage(SET_SCAN_MODE_TIMEOUT);
                    sendMessageDelayed(m, PROPERTY_OP_DELAY);
                    mAdapterProperties.onBluetoothDisable();
                    break;
 
                case USER_TURN_ON:
-                   if (DBG) Log.d(TAG,"CURRENT_STATE=ON, MESSAGE = USER_TURN_ON, requestId= " + msg.arg1);
+                   if (DBG) Log.d(TAG,"CURRENT_STATE=ON, MESSAGE = USER_TURN_ON");
                    Log.i(TAG,"Bluetooth already ON, ignoring USER_TURN_ON");
                    break;
                default:
@@ -161,8 +158,6 @@ final class AdapterState extends StateMachine {
     private class PendingCommandState extends State {
         private boolean mIsTurningOn;
         private boolean mIsTurningOff;
-
-        private int mRequestId;
 
         public void enter() {
             infoLog("Entering PendingCommandState State: isTurningOn()=" + isTurningOn() + ", isTurningOff()=" + isTurningOff());
@@ -184,21 +179,13 @@ final class AdapterState extends StateMachine {
             return mIsTurningOff;
         }
 
-        public void setOffRequestId(int requestId) {
-            mRequestId = requestId;
-        }
-
-        public int getOffRequestId() {
-            return mRequestId;
-        }
-
         @Override
         public boolean processMessage(Message msg) {
             boolean isTurningOn= isTurningOn();
             boolean isTurningOff = isTurningOff();
             switch (msg.what) {
                 case USER_TURN_ON:
-                    if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = USER_TURN_ON, requestId= " + msg.arg1
+                    if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = USER_TURN_ON"
                             + ", isTurningOn=" + isTurningOn + ", isTurningOff=" + isTurningOff);
                     if (isTurningOn) {
                         Log.i(TAG,"CURRENT_STATE=PENDING: Alreadying turning on bluetooth... Ignoring USER_TURN_ON...");
@@ -208,7 +195,7 @@ final class AdapterState extends StateMachine {
                     }
                     break;
                 case USER_TURN_OFF:
-                    if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = USER_TURN_ON, requestId= " + msg.arg1
+                    if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = USER_TURN_ON"
                             + ", isTurningOn=" + isTurningOn + ", isTurningOff=" + isTurningOff);
                     if (isTurningOff) {
                         Log.i(TAG,"CURRENT_STATE=PENDING: Alreadying turning off bluetooth... Ignoring USER_TURN_OFF...");
@@ -243,10 +230,12 @@ final class AdapterState extends StateMachine {
                     notifyAdapterStateChange(BluetoothAdapter.STATE_ON);
                     break;
 
+                case SET_SCAN_MODE_TIMEOUT:
+                     Log.w(TAG,"Timeout will setting scan mode..Continuing with disable...");
+                     //Fall through
                 case BEGIN_DISABLE: {
                     if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = BEGIN_DISABLE" + isTurningOn + ", isTurningOff=" + isTurningOff);
-                    removeMessages(BEGIN_DISABLE); //Remove extra message we setup in USER_TURN_OFF
-                    //Log.d(TAG,"CURRENT_STATE=ON, MESSAGE = BEGIN_DISABLE_ON, requestId= " + msg.arg1);
+                    removeMessages(SET_SCAN_MODE_TIMEOUT);
                     sendMessageDelayed(DISABLE_TIMEOUT, DISABLE_TIMEOUT_DELAY);
                     boolean ret = mAdapterService.disableNative();
                     if (!ret) {
@@ -254,7 +243,6 @@ final class AdapterState extends StateMachine {
                         Log.e(TAG, "Error while turning Bluetooth Off");
                         //FIXME: what about post enable services
                         mPendingCommandState.setTurningOff(false);
-                        mPendingCommandState.setOffRequestId(-1);
                         notifyAdapterStateChange(BluetoothAdapter.STATE_ON);
                     }
                 }
@@ -272,11 +260,8 @@ final class AdapterState extends StateMachine {
                     if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = STOPPED, isTurningOn=" + isTurningOn + ", isTurningOff=" + isTurningOff);
                     removeMessages(STOP_TIMEOUT);
                     setTurningOff(false);
-                    int requestId= getOffRequestId();
-                    setOffRequestId(-1);
                     transitionTo(mOffState);
                     notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
-                    mAdapterService.startShutdown(requestId);
                     break;
                 case START_TIMEOUT:
                     if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = START_TIMEOUT, isTurningOn=" + isTurningOn + ", isTurningOff=" + isTurningOff);
