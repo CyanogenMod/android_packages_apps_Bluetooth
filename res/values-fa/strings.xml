@@ -26,14 +26,14 @@
     <string name="unknown_device" msgid="9221903979877041009">"دستگاه ناشناس"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"ناشناس"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"حالت هواپیما"</string>
-    <string name="airplane_error_msg" msgid="8698965595254137230">"در حالت هواپیما نمی توانید از بلوتوث استفاده کنید."</string>
+    <string name="airplane_error_msg" msgid="8698965595254137230">"در حالت هواپیما نمی‌توانید از بلوتوث استفاده کنید."</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"برای استفاده از خدمات بلوتوث، باید ابتدا بلوتوث را روشن کنید."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"اکنون بلوتوث روشن شود؟"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"لغو"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"روشن کردن"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"انتقال فایل"</string>
-    <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" می خواهد <xliff:g id="FILE">%2$s</xliff:g> را به شما ارسال کند. (<xliff:g id="SIZE">%3$s</xliff:g>). "\n\n" فایل را می پذیرید؟"</string>
+    <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" می‌خواهد <xliff:g id="FILE">%2$s</xliff:g> را به شما ارسال کند. (<xliff:g id="SIZE">%3$s</xliff:g>). "\n\n" فایل را می‌پذیرید؟"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"عدم پذیرش"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"پذیرش"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"تائید"</string>
@@ -61,7 +61,7 @@
     <string name="download_fail_line3" msgid="3451040656154861722">"دلیل: <xliff:g id="REASON">%1$s</xliff:g>"</string>
     <string name="download_fail_ok" msgid="1521733664438320300">"تأیید"</string>
     <string name="download_succ_line5" msgid="4509944688281573595">"فایل دریافت شد"</string>
-    <string name="download_succ_ok" msgid="7053688246357050216">"باز کردن"</string>
+    <string name="download_succ_ok" msgid="7053688246357050216">"باز شود"</string>
     <string name="upload_line1" msgid="2055952074059709052">"به: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="upload_line3" msgid="4920689672457037437">"نوع فایل: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
     <string name="upload_line5" msgid="7759322537674229752">"در حال ارسال فایل..."</string>
@@ -78,16 +78,16 @@
     <string name="not_exist_file_desc" msgid="4059531573790529229">"فایل موجود نیست. "\n</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"لطفاً منتظر بمانید…"</string>
     <string name="enabling_progress_content" msgid="4601542238119927904">"روشن کردن بلوتوث..."</string>
-    <string name="bt_toast_1" msgid="972182708034353383">"فایل دریافت می شود: پیشرفت دریافت را در پانل اعلان ها بررسی کنید."</string>
+    <string name="bt_toast_1" msgid="972182708034353383">"فایل دریافت می‌شود: پیشرفت دریافت را در پانل اعلان‌ها بررسی کنید."</string>
     <string name="bt_toast_2" msgid="8602553334099066582">"فایل را نمی‌توان دریافت کرد."</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"دریافت فایل از \"<xliff:g id="SENDER">%1$s</xliff:g>\" متوقف شد"</string>
     <string name="bt_toast_4" msgid="4678812947604395649">"ارسال فایل به \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"ارسال <xliff:g id="NUMBER">%1$s</xliff:g> فایل به \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"ارسال فایل به \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" متوقف شد"</string>
-    <string name="bt_sm_2_1" product="nosdcard" msgid="352165168004521000">"برای ذخیره فایل از \"<xliff:g id="SENDER">%1$s</xliff:g>\" فضای کافی در حافظه USB موجود نیست"</string>
+    <string name="bt_sm_2_1" product="nosdcard" msgid="352165168004521000">"برای ذخیره فایل از \"<xliff:g id="SENDER">%1$s</xliff:g>\" فضای کافی در حافظهٔ USB موجود نیست"</string>
     <string name="bt_sm_2_1" product="default" msgid="1989018443456803630">"برای ذخیره فایل \"<xliff:g id="SENDER">%1$s</xliff:g>\" فضای کافی در کارت SD موجود نیست"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"فضای مورد نیاز: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
-    <string name="ErrorTooManyRequests" msgid="8578277541472944529">"درخواست های بسیاری در حال انجام می باشند. بعداً دوباره امتحان کنید."</string>
+    <string name="ErrorTooManyRequests" msgid="8578277541472944529">"درخواست های بسیاری در حال انجام هستند. بعداً دوباره امتحان کنید."</string>
     <string name="status_pending" msgid="2503691772030877944">"انتقال فایل هنوز شروع نشده است."</string>
     <string name="status_running" msgid="6562808920311008696">"انتقال فایل در حال انجام است."</string>
     <string name="status_success" msgid="239573225847565868">"انتقال فایل با موفقیت انجام شد."</string>
@@ -95,7 +95,7 @@
     <string name="status_forbidden" msgid="613956401054050725">"انتقال توسط دستگاه مقصد ممنوع شده است."</string>
     <string name="status_canceled" msgid="6664490318773098285">"انتقال توسط کاربر لغو شد."</string>
     <string name="status_file_error" msgid="3671917770630165299">"مشکل ذخیره."</string>
-    <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"حافظه USB وجود ندارد."</string>
+    <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"حافظهٔ USB وجود ندارد."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"هیچ کارت SD موجود نیست. برای ذخیره فایل های منتقل شده، یک کارت SD در گوشی قرار دهید."</string>
     <string name="status_connection_error" msgid="947681831523219891">"اتصال ناموفق بود."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"درخواست به درستی انجام نمی‌شود."</string>
@@ -106,7 +106,7 @@
     <string name="inbound_history_title" msgid="6940914942271327563">"انتقال های ورودی"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"انتقال های خروجی"</string>
     <string name="no_transfers" msgid="3482965619151865672">"سابقه انتقال خالی است."</string>
-    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"همه موارد از لیست پاک می شوند."</string>
+    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"همه موارد از لیست پاک می‌شوند."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"اشتراک بلوتوث: فایل های ارسال شده"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"اشتراک بلوتوث: فایل های دریافت شده"</string>
     <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> موفق، <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> ناموفق."</string>
