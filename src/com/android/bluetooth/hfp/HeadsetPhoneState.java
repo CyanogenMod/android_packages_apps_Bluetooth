@@ -10,7 +10,6 @@ import android.telephony.ServiceState;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import com.android.internal.telephony.Call;
 
 // Note:
 // All methods in this class are not thread safe, donot call them from
