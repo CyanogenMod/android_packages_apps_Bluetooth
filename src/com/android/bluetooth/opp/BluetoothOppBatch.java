@@ -60,6 +60,7 @@ import com.google.android.collect.Lists;
  */
 // test submit patch01
 // test submit patch02
+// test submit patch03
 public class BluetoothOppBatch {
     private static final String TAG = "BtOppBatch";
     private static final boolean V = Constants.VERBOSE;
