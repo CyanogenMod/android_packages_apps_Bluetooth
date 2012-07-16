@@ -36,7 +36,7 @@
     <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" می‌خواهد <xliff:g id="FILE">%2$s</xliff:g> را به شما ارسال کند. (<xliff:g id="SIZE">%3$s</xliff:g>). "\n\n" فایل را می‌پذیرید؟"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"عدم پذیرش"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"پذیرش"</string>
-    <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"تائید"</string>
+    <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"تأیید"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"هنگام پذیرش یک فایل ورودی از \"<xliff:g id="SENDER">%1$s</xliff:g>\" وقفه زمانی پیش آمد"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"اشتراک بلوتوث: فایل ورودی"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"آیا می‌خواهید این فایل را دریافت کنید؟"</string>
@@ -87,7 +87,7 @@
     <string name="bt_sm_2_1" product="nosdcard" msgid="352165168004521000">"برای ذخیره فایل از \"<xliff:g id="SENDER">%1$s</xliff:g>\" فضای کافی در حافظهٔ USB موجود نیست"</string>
     <string name="bt_sm_2_1" product="default" msgid="1989018443456803630">"برای ذخیره فایل \"<xliff:g id="SENDER">%1$s</xliff:g>\" فضای کافی در کارت SD موجود نیست"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"فضای مورد نیاز: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
-    <string name="ErrorTooManyRequests" msgid="8578277541472944529">"درخواست های بسیاری در حال انجام هستند. بعداً دوباره امتحان کنید."</string>
+    <string name="ErrorTooManyRequests" msgid="8578277541472944529">"درخواست‌های بسیاری در حال انجام هستند. بعداً دوباره امتحان کنید."</string>
     <string name="status_pending" msgid="2503691772030877944">"انتقال فایل هنوز شروع نشده است."</string>
     <string name="status_running" msgid="6562808920311008696">"انتقال فایل در حال انجام است."</string>
     <string name="status_success" msgid="239573225847565868">"انتقال فایل با موفقیت انجام شد."</string>
@@ -96,7 +96,7 @@
     <string name="status_canceled" msgid="6664490318773098285">"انتقال توسط کاربر لغو شد."</string>
     <string name="status_file_error" msgid="3671917770630165299">"مشکل ذخیره."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"حافظهٔ USB وجود ندارد."</string>
-    <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"هیچ کارت SD موجود نیست. برای ذخیره فایل های منتقل شده، یک کارت SD در گوشی قرار دهید."</string>
+    <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"هیچ کارت SD موجود نیست. برای ذخیره فایل‌های منتقل شده، یک کارت SD در گوشی قرار دهید."</string>
     <string name="status_connection_error" msgid="947681831523219891">"اتصال ناموفق بود."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"درخواست به درستی انجام نمی‌شود."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"خطای ناشناخته."</string>
@@ -107,8 +107,8 @@
     <string name="outbound_history_title" msgid="4279418703178140526">"انتقال های خروجی"</string>
     <string name="no_transfers" msgid="3482965619151865672">"سابقه انتقال خالی است."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"همه موارد از لیست پاک می‌شوند."</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"اشتراک بلوتوث: فایل های ارسال شده"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"اشتراک بلوتوث: فایل های دریافت شده"</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"اشتراک بلوتوث: فایل‌های ارسال شده"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"اشتراک بلوتوث: فایل‌های دریافت شده"</string>
     <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> موفق، <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> ناموفق."</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"پاک کردن لیست"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"باز کردن"</string>
