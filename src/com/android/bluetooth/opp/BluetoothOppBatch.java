@@ -58,7 +58,7 @@ import com.google.android.collect.Lists;
  * 8. Cancel receiving a single file
  * 9. Cancel receiving a file (implies cancel the transfer, no additional files will be received)
  */
-
+// test submit patch01
 public class BluetoothOppBatch {
     private static final String TAG = "BtOppBatch";
     private static final boolean V = Constants.VERBOSE;
