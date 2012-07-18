@@ -360,13 +360,14 @@ public class PanService extends ProfileService {
         Log.d(TAG, "handlePanDeviceStateChange preState: " + prevState + " state: " + state);
         if (prevState == state) return;
         if (remote_role == BluetoothPan.LOCAL_PANU_ROLE) {
-            Log.d(TAG, "handlePanDeviceStateChange LOCAL_NAP_ROLE:REMOTE_PANU_ROLE");
             if (state == BluetoothProfile.STATE_CONNECTED) {
-                if(!mTetherOn) {
-                    Log.d(TAG, "handlePanDeviceStateChange bluetooth tethering is off, drop the connection");
+                if((!mTetherOn)||(local_role == BluetoothPan.LOCAL_PANU_ROLE)){
+                    Log.d(TAG,"handlePanDeviceStateChange BT tethering is off/Local role is PANU "+
+                              "drop the connection");
                     disconnectPanNative(Utils.getByteAddress(device));
                     return;
                 }
+                Log.d(TAG, "handlePanDeviceStateChange LOCAL_NAP_ROLE:REMOTE_PANU_ROLE");
                 ifaceAddr = enableTethering(iface);
                 if (ifaceAddr == null) Log.e(TAG, "Error seting up tether interface");
 
