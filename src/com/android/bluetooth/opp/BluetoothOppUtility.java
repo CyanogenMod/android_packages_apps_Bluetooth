@@ -49,8 +49,10 @@ import android.database.Cursor;
 import android.util.Log;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This class has some utilities for Opp application;
@@ -59,6 +61,9 @@ public class BluetoothOppUtility {
     private static final String TAG = "BluetoothOppUtility";
     private static final boolean D = Constants.DEBUG;
     private static final boolean V = Constants.VERBOSE;
+
+    private static final ConcurrentHashMap<Uri, BluetoothOppSendFileInfo> sSendFileMap
+            = new ConcurrentHashMap<Uri, BluetoothOppSendFileInfo>();
 
     public static BluetoothOppTransferInfo queryRecord(Context context, Uri uri) {
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
@@ -303,4 +308,25 @@ public class BluetoothOppUtility {
                 transInfo.mDeviceName);
     }
 
+    static void putSendFileInfo(Uri uri, BluetoothOppSendFileInfo sendFileInfo) {
+        if (D) Log.d(TAG, "putSendFileInfo: uri=" + uri + " sendFileInfo=" + sendFileInfo);
+        sSendFileMap.put(uri, sendFileInfo);
+    }
+
+    static BluetoothOppSendFileInfo getSendFileInfo(Uri uri) {
+        if (D) Log.d(TAG, "getSendFileInfo: uri=" + uri);
+        BluetoothOppSendFileInfo info = sSendFileMap.get(uri);
+        return (info != null) ? info : BluetoothOppSendFileInfo.SEND_FILE_INFO_ERROR;
+    }
+
+    static void closeSendFileInfo(Uri uri) {
+        if (D) Log.d(TAG, "closeSendFileInfo: uri=" + uri);
+        BluetoothOppSendFileInfo info = sSendFileMap.remove(uri);
+        if (info != null) {
+            try {
+                info.mInputStream.close();
+            } catch (IOException ignored) {
+            }
+        }
+    }
 }
