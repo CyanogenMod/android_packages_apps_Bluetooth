@@ -53,6 +53,7 @@
         <uses-library android:name="javax.obex" />
         <provider android:name=".opp.BluetoothOppProvider"
             android:authorities="com.android.bluetooth.opp"
+            android:exported="true"
             android:process="@string/process">
             <path-permission
                     android:path="/btopp"
