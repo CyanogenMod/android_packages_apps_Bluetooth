@@ -38,6 +38,7 @@ public class HidService extends ProfileService {
 
     private Map<BluetoothDevice, Integer> mInputDevices;
     private boolean mNativeAvailable;
+    private static HidService sHidService;
 
     private static final int MESSAGE_CONNECT = 1;
     private static final int MESSAGE_DISCONNECT = 2;
@@ -68,6 +69,7 @@ public class HidService extends ProfileService {
         mInputDevices = Collections.synchronizedMap(new HashMap<BluetoothDevice, Integer>());
         initializeNative();
         mNativeAvailable=true;
+        setHidService(this);
         return true;
     }
 
@@ -86,8 +88,44 @@ public class HidService extends ProfileService {
             mInputDevices.clear();
             mInputDevices = null;
         }
+        clearHidService();
         return true;
     }
+
+    public static synchronized HidService getHidService(){
+        if (sHidService != null && sHidService.isAvailable()) {
+            if (DBG) Log.d(TAG, "getHidService(): returning " + sHidService);
+            return sHidService;
+        }
+        if (DBG)  {
+            if (sHidService == null) {
+                Log.d(TAG, "getHidService(): service is NULL");
+            } else if (!(sHidService.isAvailable())) {
+                Log.d(TAG,"getHidService(): service is not available");
+            }
+        }
+        return null;
+    }
+
+    private static synchronized void setHidService(HidService instance) {
+        if (instance != null && instance.isAvailable()) {
+            if (DBG) Log.d(TAG, "setHidService(): set to: " + sHidService);
+            sHidService = instance;
+        } else {
+            if (DBG)  {
+                if (sHidService == null) {
+                    Log.d(TAG, "setHidService(): service not available");
+                } else if (!sHidService.isAvailable()) {
+                    Log.d(TAG,"setHidService(): service is cleaning up");
+                }
+            }
+        }
+    }
+
+    private static synchronized void clearHidService() {
+        sHidService = null;
+    }
+
 
     private final Handler mHandler = new Handler() {
 
@@ -359,7 +397,7 @@ public class HidService extends ProfileService {
         return inputDevices;
     }
 
-    boolean setPriority(BluetoothDevice device, int priority) {
+    public boolean setPriority(BluetoothDevice device, int priority) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH_ADMIN permission");
         Settings.Secure.putInt(getContentResolver(),
@@ -369,7 +407,7 @@ public class HidService extends ProfileService {
         return true;
     }
 
-    int getPriority(BluetoothDevice device) {
+    public  int getPriority(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH_ADMIN permission");
         int priority = Settings.Secure.getInt(getContentResolver(),

@@ -25,6 +25,7 @@ public class A2dpService extends ProfileService {
     private static final String TAG="A2dpService";
 
     private A2dpStateMachine mStateMachine;
+    private static A2dpService sAd2dpService;
 
     protected String getName() {
         return TAG;
@@ -37,6 +38,7 @@ public class A2dpService extends ProfileService {
     protected boolean start() {
         mStateMachine = new A2dpStateMachine(this,this);
         mStateMachine.start();
+        setA2dpService(this);
         return true;
     }
 
@@ -50,11 +52,47 @@ public class A2dpService extends ProfileService {
             mStateMachine.cleanup();
             mStateMachine=null;
         }
+        clearA2dpService();
         return true;
     }
 
     //API Methods
-    boolean connect(BluetoothDevice device) {
+
+    public static synchronized A2dpService getA2dpService(){
+        if (sAd2dpService != null && sAd2dpService.isAvailable()) {
+            if (DBG) Log.d(TAG, "getA2DPService(): returning " + sAd2dpService);
+            return sAd2dpService;
+        }
+        if (DBG)  {
+            if (sAd2dpService == null) {
+                Log.d(TAG, "getA2dpService(): service is NULL");
+            } else if (!(sAd2dpService.isAvailable())) {
+                Log.d(TAG,"getA2dpService(): service is not available");
+            }
+        }
+        return null;
+    }
+
+    private static synchronized void setA2dpService(A2dpService instance) {
+        if (instance != null && instance.isAvailable()) {
+            if (DBG) Log.d(TAG, "setA2dpService(): set to: " + sAd2dpService);
+            sAd2dpService = instance;
+        } else {
+            if (DBG)  {
+                if (sAd2dpService == null) {
+                    Log.d(TAG, "setA2dpService(): service not available");
+                } else if (!sAd2dpService.isAvailable()) {
+                    Log.d(TAG,"setA2dpService(): service is cleaning up");
+                }
+            }
+        }
+    }
+
+    private static synchronized void clearA2dpService() {
+        sAd2dpService = null;
+    }
+
+    public boolean connect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH ADMIN permission");
 
@@ -85,7 +123,7 @@ public class A2dpService extends ProfileService {
         return true;
     }
 
-    List<BluetoothDevice> getConnectedDevices() {
+    public List<BluetoothDevice> getConnectedDevices() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         return mStateMachine.getConnectedDevices();
     }
@@ -100,7 +138,7 @@ public class A2dpService extends ProfileService {
         return mStateMachine.getConnectionState(device);
     }
 
-    boolean setPriority(BluetoothDevice device, int priority) {
+    public boolean setPriority(BluetoothDevice device, int priority) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH_ADMIN permission");
         Settings.Secure.putInt(getContentResolver(),
@@ -110,7 +148,7 @@ public class A2dpService extends ProfileService {
         return true;
     }
 
-    int getPriority(BluetoothDevice device) {
+    public int getPriority(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH_ADMIN permission");
         int priority = Settings.Secure.getInt(getContentResolver(),

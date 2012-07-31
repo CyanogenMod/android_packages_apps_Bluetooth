@@ -5,7 +5,11 @@
 package com.android.bluetooth.btservice;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothDevice;
+import com.android.bluetooth.a2dp.A2dpService;
+import com.android.bluetooth.hid.HidService;
+import com.android.bluetooth.hfp.HeadsetService;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Message;
@@ -165,6 +169,16 @@ final class BondStateMachine extends StateMachine {
                             result = false;
                             transitionTo(mStableState);
                         }
+                        if (newState == BluetoothDevice.BOND_NONE)
+                        {
+                            // Set the profile Priorities to undefined
+                            clearProfilePriorty(dev);
+                        }
+                        else if (newState == BluetoothDevice.BOND_BONDED)
+                        {
+                           // Restore the profile priorty settings
+                           setProfilePriorty(dev);
+                        }
                     }
                     else if(!mDevices.contains(dev))
                         result=true;
@@ -262,6 +276,40 @@ final class BondStateMachine extends StateMachine {
             msg.arg1 = BluetoothDevice.BOND_NONE;
 
         sendMessage(msg);
+    }
+
+    private void setProfilePriorty (BluetoothDevice device){
+        HidService hidService = HidService.getHidService();
+        A2dpService a2dpService = A2dpService.getA2dpService();
+        HeadsetService headsetService = HeadsetService.getHeadsetService();
+
+        if ((hidService != null) &&
+            (hidService.getPriority(device) == BluetoothProfile.PRIORITY_UNDEFINED)){
+            hidService.setPriority(device,BluetoothProfile.PRIORITY_ON);
+        }
+
+        if ((a2dpService != null) &&
+            (a2dpService.getPriority(device) == BluetoothProfile.PRIORITY_UNDEFINED)){
+            a2dpService.setPriority(device,BluetoothProfile.PRIORITY_ON);
+        }
+
+        if ((headsetService != null) &&
+            (headsetService.getPriority(device) == BluetoothProfile.PRIORITY_UNDEFINED)){
+            headsetService.setPriority(device,BluetoothProfile.PRIORITY_ON);
+        }
+    }
+
+    private void clearProfilePriorty (BluetoothDevice device){
+        HidService hidService = HidService.getHidService();
+        A2dpService a2dpService = A2dpService.getA2dpService();
+        HeadsetService headsetService = HeadsetService.getHeadsetService();
+
+        if (hidService != null)
+            hidService.setPriority(device,BluetoothProfile.PRIORITY_UNDEFINED);
+        if(a2dpService != null)
+            a2dpService.setPriority(device,BluetoothProfile.PRIORITY_UNDEFINED);
+        if(headsetService != null)
+            headsetService.setPriority(device,BluetoothProfile.PRIORITY_UNDEFINED);
     }
 
     private void infoLog(String msg) {

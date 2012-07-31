@@ -329,7 +329,11 @@ final class HeadsetStateMachine extends StateMachine {
                     //reject the connection and stay in Disconnected state itself
                     disconnectHfpNative(getByteAddress(device));
                     // the other profile connection should be initiated
-                    broadcastConnectOtherProfilesIntent(device);
+                    AdapterService adapterService = AdapterService.getAdapterService();
+                    if ( adapterService != null) {
+                        adapterService.connectOtherProfile(device,
+                                                           AdapterService.PROFILE_CONN_REJECTED);
+                    }
                 }
                 break;
             case HeadsetHalConstants.CONNECTION_STATE_CONNECTED:
@@ -355,9 +359,12 @@ final class HeadsetStateMachine extends StateMachine {
                               " bondState=" + device.getBondState());
                     disconnectHfpNative(getByteAddress(device));
                     // the other profile connection should be initiated
-                    broadcastConnectOtherProfilesIntent(device);
+                    AdapterService adapterService = AdapterService.getAdapterService();
+                    if ( adapterService != null) {
+                        adapterService.connectOtherProfile(device,
+                                                           AdapterService.PROFILE_CONN_REJECTED);
+                    }
                 }
-
                 break;
             case HeadsetHalConstants.CONNECTION_STATE_DISCONNECTING:
                 Log.w(TAG, "Ignore HF DISCONNECTING event, device: " + device);
@@ -1235,15 +1242,6 @@ final class HeadsetStateMachine extends StateMachine {
         Intent intent = new Intent(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        mService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
-    }
-
-    private void broadcastConnectOtherProfilesIntent(BluetoothDevice device) {
-        // send other profile connect intent
-        if (DBG) log("Other Profile Connect intent sent " + device);
-
-        Intent intent = new Intent(BluetoothProfile.ACTION_CONNECT_OTHER_PROFILES);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         mService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
     }

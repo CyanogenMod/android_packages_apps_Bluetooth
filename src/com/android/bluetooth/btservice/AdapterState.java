@@ -125,6 +125,7 @@ final class AdapterState extends StateMachine {
         @Override
         public void enter() {
             infoLog("Entering On State");
+            mAdapterService.autoConnect();
         }
 
         @Override

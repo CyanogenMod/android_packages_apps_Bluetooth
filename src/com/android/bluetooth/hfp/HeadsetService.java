@@ -34,6 +34,7 @@ public class HeadsetService extends ProfileService {
     private static final boolean DBG = true;
     private static final String TAG = "HeadsetService";
     private HeadsetStateMachine mStateMachine;
+    private static HeadsetService sHeadsetService;
 
     protected String getName() {
         return TAG;
@@ -54,6 +55,7 @@ public class HeadsetService extends ProfileService {
         } catch (Exception e) {
             Log.w(TAG,"Unable to register headset receiver",e);
         }
+        setHeadsetService(this);
         return true;
     }
 
@@ -72,6 +74,7 @@ public class HeadsetService extends ProfileService {
             mStateMachine.cleanup();
             mStateMachine=null;
         }
+        clearHeadsetService();
         return true;
     }
 
@@ -252,7 +255,41 @@ public class HeadsetService extends ProfileService {
     };
 
     //API methods
-    boolean connect(BluetoothDevice device) {
+    public static synchronized HeadsetService getHeadsetService(){
+        if (sHeadsetService != null && sHeadsetService.isAvailable()) {
+            if (DBG) Log.d(TAG, "getHeadsetService(): returning " + sHeadsetService);
+            return sHeadsetService;
+        }
+        if (DBG)  {
+            if (sHeadsetService == null) {
+                Log.d(TAG, "getHeadsetService(): service is NULL");
+            } else if (!(sHeadsetService.isAvailable())) {
+                Log.d(TAG,"getHeadsetService(): service is not available");
+            }
+        }
+        return null;
+    }
+
+    private static synchronized void setHeadsetService(HeadsetService instance) {
+        if (instance != null && instance.isAvailable()) {
+            if (DBG) Log.d(TAG, "setHeadsetService(): set to: " + sHeadsetService);
+            sHeadsetService = instance;
+        } else {
+            if (DBG)  {
+                if (sHeadsetService == null) {
+                    Log.d(TAG, "setHeadsetService(): service not available");
+                } else if (!sHeadsetService.isAvailable()) {
+                    Log.d(TAG,"setHeadsetService(): service is cleaning up");
+                }
+            }
+        }
+    }
+
+    private static synchronized void clearHeadsetService() {
+        sHeadsetService = null;
+    }
+
+    public boolean connect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH ADMIN permission");
 
@@ -283,7 +320,7 @@ public class HeadsetService extends ProfileService {
         return true;
     }
 
-    List<BluetoothDevice> getConnectedDevices() {
+    public List<BluetoothDevice> getConnectedDevices() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         return mStateMachine.getConnectedDevices();
     }
@@ -298,7 +335,7 @@ public class HeadsetService extends ProfileService {
         return mStateMachine.getConnectionState(device);
     }
 
-    boolean setPriority(BluetoothDevice device, int priority) {
+    public boolean setPriority(BluetoothDevice device, int priority) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH_ADMIN permission");
         Settings.Secure.putInt(getContentResolver(),
@@ -308,7 +345,7 @@ public class HeadsetService extends ProfileService {
         return true;
     }
 
-    int getPriority(BluetoothDevice device) {
+    public int getPriority(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH_ADMIN permission");
         int priority = Settings.Secure.getInt(getContentResolver(),
