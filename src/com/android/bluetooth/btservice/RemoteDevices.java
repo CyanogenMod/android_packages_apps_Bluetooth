@@ -252,9 +252,11 @@ final class RemoteDevices {
                             debugLog("Remote Device name is: " + device.mName);
                             break;
                         case AbstractionLayer.BT_PROPERTY_REMOTE_FRIENDLY_NAME:
-                            // TODO(BT) is null device.mAlias a valid senario?
                             if (device.mAlias != null) {
                                 System.arraycopy(val, 0, device.mAlias, 0, val.length);
+                            }
+                            else {
+                                device.mAlias = new String(val);
                             }
                             break;
                         case AbstractionLayer.BT_PROPERTY_BDADDR:
