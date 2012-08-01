@@ -114,15 +114,12 @@ public class HealthService extends ProfileService {
         }
         if(mHealthChannels != null) {
             mHealthChannels.clear();
-            mHealthChannels = null;
         }
         if(mHealthDevices != null) {
             mHealthDevices.clear();
-            mHealthDevices = null;
         }
         if(mApps != null) {
             mApps.clear();
-            mApps = null;
         }
         return true;
     }

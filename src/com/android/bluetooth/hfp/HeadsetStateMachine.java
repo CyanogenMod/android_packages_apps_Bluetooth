@@ -192,6 +192,11 @@ final class HeadsetStateMachine extends StateMachine {
         setInitialState(mDisconnected);
     }
 
+
+    public void doQuit() {
+        quitNow();
+    }
+
     public void cleanup() {
         if (mPhoneProxy != null) {
             if (DBG) Log.d(TAG,"Unbinding service...");
@@ -207,18 +212,14 @@ final class HeadsetStateMachine extends StateMachine {
         if (mPhoneState != null) {
             mPhoneState.listenForPhoneState(false);
             mPhoneState.cleanup();
-            mPhoneState=null;
         }
         if (mPhonebook != null) {
             mPhonebook.cleanup();
-            mPhonebook = null;
         }
         if (mNativeAvailable) {
             cleanupNative();
             mNativeAvailable = false;
         }
-        mService = null;
-        mAdapter = null;
     }
 
     private class Disconnected extends State {

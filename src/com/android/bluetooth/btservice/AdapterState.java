@@ -80,6 +80,11 @@ final class AdapterState extends StateMachine {
         setInitialState(mOffState);
     }
 
+
+    public void doQuit() {
+        quitNow();
+    }
+
     public void cleanup() {
         if(mAdapterProperties != null)
             mAdapterProperties = null;
@@ -95,10 +100,6 @@ final class AdapterState extends StateMachine {
 
         @Override
         public boolean processMessage(Message msg) {
-            /* TODO(BT) if (msg.what == SM_QUIT_CMD) {
-                Log.d(TAG, "Received quit request...");
-                return false;
-                } */
 
             switch(msg.what) {
                case USER_TURN_ON:
@@ -129,6 +130,7 @@ final class AdapterState extends StateMachine {
 
         @Override
         public boolean processMessage(Message msg) {
+
             switch(msg.what) {
                case USER_TURN_OFF:
                    if (DBG) Log.d(TAG,"CURRENT_STATE=ON, MESSAGE = USER_TURN_OFF");
@@ -181,8 +183,10 @@ final class AdapterState extends StateMachine {
 
         @Override
         public boolean processMessage(Message msg) {
+
             boolean isTurningOn= isTurningOn();
             boolean isTurningOff = isTurningOff();
+
             switch (msg.what) {
                 case USER_TURN_ON:
                     if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = USER_TURN_ON"
@@ -323,4 +327,5 @@ final class AdapterState extends StateMachine {
     private void errorLog(String msg) {
         Log.e(TAG, msg);
     }
+
 }

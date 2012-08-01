@@ -113,9 +113,6 @@ public class AtPhonebook {
 
     public void cleanup() {
         mPhonebooks.clear();
-        mContentResolver = null;
-        mContext = null;
-        mStateMachine = null;
     }
 
     /** Returns the last dialled number, or null if no numbers have been called */
@@ -220,6 +217,8 @@ public class AtPhonebook {
                 }
                 int size = pbr.cursor.getCount();
                 atCommandResponse = "+CPBS: \"" + mCurrentPhonebook + "\"," + size + "," + getMaxPhoneBookSize(size);
+                pbr.cursor.close();
+                pbr.cursor = null;
                 atCommandResult = HeadsetHalConstants.AT_RESPONSE_OK;
                 break;
             case TYPE_TEST: // Test
@@ -282,6 +281,8 @@ public class AtPhonebook {
                     }
                     size = pbr.cursor.getCount();
                     log("handleCpbrCommand - size = "+size);
+                    pbr.cursor.close();
+                    pbr.cursor = null;
                 }
                 if (size == 0) {
                     /* Sending "+CPBR: (1-0)" can confused some carkits, send "1-1" * instead */
@@ -546,6 +547,10 @@ public class AtPhonebook {
             if (!pbr.cursor.moveToNext()) {
                 break;
             }
+        }
+        if(pbr != null && pbr.cursor != null) {
+            pbr.cursor.close();
+            pbr.cursor = null;
         }
         return atCommandResult;
     }

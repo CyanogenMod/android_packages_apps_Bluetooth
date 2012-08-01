@@ -105,14 +105,10 @@ public class PanService extends ProfileService {
                                                    BluetoothPan.LOCAL_PANU_ROLE, BluetoothPan.REMOTE_NAP_ROLE);
             }
             mPanDevices.clear();
-            mPanDevices = null;
         }
         if(mBluetoothIfaceAddresses != null) {
             mBluetoothIfaceAddresses.clear();
-            mBluetoothIfaceAddresses = null;
         }
-        if(mPanIfName != null)
-            mPanIfName = null;
         return true;
     }
 

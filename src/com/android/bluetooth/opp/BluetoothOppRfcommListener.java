@@ -53,10 +53,8 @@ public class BluetoothOppRfcommListener {
     private static final boolean V = Constants.VERBOSE;
 
     public static final int MSG_INCOMING_BTOPP_CONNECTION = 100;
-    private static final int JOIN_TIMEOUT_MS=2000;
 
     private volatile boolean mInterrupted;
-    private volatile boolean mFinish;
 
     private Thread mSocketAcceptThread;
 
@@ -123,11 +121,12 @@ public class BluetoothOppRfcommListener {
                                 Log.e(TAG, "Error create RfcommServerSocket " + e1);
                                 serverOK = false;
                             }
+
                             if (!serverOK) {
                                 synchronized (this) {
                                     try {
-                                        if (V) Log.v(TAG, "Wait 3 seconds");
-                                        Thread.sleep(3000);
+                                        if (V) Log.v(TAG, "Wait 300 ms");
+                                        Thread.sleep(300);
                                     } catch (InterruptedException e) {
                                         Log.e(TAG, "socketAcceptThread thread was interrupted (3)");
                                         mInterrupted = true;
@@ -169,6 +168,9 @@ public class BluetoothOppRfcommListener {
                                 }
                             } catch (IOException e) {
                                 Log.e(TAG, "Error accept connection " + e);
+                                try {
+                                    Thread.sleep(500);
+                                } catch (InterruptedException ie) {}
                             }
                         }
                         Log.i(TAG, "BluetoothSocket listen thread finished");

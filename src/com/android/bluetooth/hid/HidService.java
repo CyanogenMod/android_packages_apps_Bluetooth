@@ -84,7 +84,6 @@ public class HidService extends ProfileService {
 
         if(mInputDevices != null) {
             mInputDevices.clear();
-            mInputDevices = null;
         }
         return true;
     }
