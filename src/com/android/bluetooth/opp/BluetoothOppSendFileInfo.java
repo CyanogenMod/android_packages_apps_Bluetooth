@@ -40,8 +40,10 @@ import java.io.FileNotFoundException;
 import android.util.Log;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
 
 /**
@@ -133,14 +135,45 @@ public class BluetoothOppSendFileInfo {
             return new BluetoothOppSendFileInfo(null, null, 0, null,
                     BluetoothShare.STATUS_FILE_ERROR, dest);
         }
-        FileInputStream is;
-        try {
-            is = (FileInputStream)contentResolver.openInputStream(u);
-        } catch (FileNotFoundException e) {
-            return new BluetoothOppSendFileInfo(null, null, 0, null,
-                    BluetoothShare.STATUS_FILE_ERROR, dest);
+        FileInputStream is = null;
+        if (scheme.equals("content")) {
+            AssetFileDescriptor fd = null;
+            try {
+                // We've found that content providers don't always have the
+                // right size in _OpenableColumns.SIZE
+                // As a second source of getting the correct file length,
+                // get a file descriptor and get the stat length
+                fd = contentResolver.openAssetFileDescriptor(u, "r");
+                long statLength = fd.getLength();
+                if (length != statLength && statLength > 0) {
+                    Log.e(TAG, "Content provider length is wrong (" + Long.toString(length) +
+                            "), using stat length (" + Long.toString(statLength) + ")");
+                    length = statLength;
+                }
+                try {
+                    // This creates an auto-closing input-stream, so
+                    // the file descriptor will be closed whenever the InputStream
+                    // is closed.
+                    is = (FileInputStream)fd.createInputStream();
+                } catch (IOException e) {
+                    try {
+                        fd.close();
+                    } catch (IOException e2) {
+                        // Ignore
+                    }
+                }
+            } catch (FileNotFoundException e) {
+                // Ignore
+            }
         }
-
+        if (is == null) {
+            try {
+                is = (FileInputStream)contentResolver.openInputStream(u);
+            } catch (FileNotFoundException e) {
+                return new BluetoothOppSendFileInfo(null, null, 0, null,
+                        BluetoothShare.STATUS_FILE_ERROR, dest);
+            }
+        }
         // If we can not get file length from content provider, we can try to
         // get the length via the opened stream.
         if (length == 0) {
