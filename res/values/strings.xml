@@ -68,7 +68,7 @@
     <!-- Label for a confirm button.-->
     <string name="incoming_file_confirm_ok">Accept</string>
     <!-- Label for timeout OK button.-->
-    <string name="incoming_file_confirm_timeout_ok">Ok</string>
+    <string name="incoming_file_confirm_timeout_ok">OK</string>
     <!-- content for timeout-->
     <string name="incoming_file_confirm_timeout_content">There was a timeout while accepting an incoming file from \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022</string>
 
@@ -206,12 +206,12 @@
     <string name="transfer_clear_dlg_title">Clear</string>
 
      <!-- Do not translate. file name used for sharing. -->
-    <string name="bluetooth_share_file_name" translate="false">bluetooth_content_share</string>
+    <string name="bluetooth_share_file_name" translatable="false">bluetooth_content_share</string>
 
     <!-- Used to run Bluetooth.apk in another process if needed -->
     <!-- Do not translate. android:sharedUserId string of this application. -->
-    <string name="sharedUserId" translate="false"><xliff:g id="x"></xliff:g></string>
+    <string name="sharedUserId" translatable="false"><xliff:g id="x"></xliff:g></string>
     <!-- Do not translate. android:process of this application. -->
-    <string name="process" translate="false"><xliff:g id="x"></xliff:g></string>
+    <string name="process" translatable="false"><xliff:g id="x"></xliff:g></string>
 
 </resources>
