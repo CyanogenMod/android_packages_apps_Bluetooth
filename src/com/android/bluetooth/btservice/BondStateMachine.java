@@ -97,7 +97,7 @@ final class BondStateMachine extends StateMachine {
                 /* if incoming pairing, transition to pending state */
                 if (newState == BluetoothDevice.BOND_BONDING)
                 {
-                    sendIntent(dev, newState);
+                    sendIntent(dev, newState, 0);
                     transitionTo(mPendingCommandState);
                 }
                 else
@@ -149,7 +149,8 @@ final class BondStateMachine extends StateMachine {
                     break;
                 case BONDING_STATE_CHANGE:
                     int newState = msg.arg1;
-                    sendIntent(dev, newState);
+                    int reason = getUnbondReasonFromHALCode(msg.arg2);
+                    sendIntent(dev, newState, reason);
                     if(newState != BluetoothDevice.BOND_BONDING )
                     {
                         /* this is either none/bonded, remove and transition */
@@ -217,7 +218,8 @@ final class BondStateMachine extends StateMachine {
             infoLog("Bond address is:" + dev);
             byte[] addr = Utils.getBytesFromAddress(dev.getAddress());
             if (!mAdapterService.createBondNative(addr)) {
-                sendIntent(dev, BluetoothDevice.BOND_NONE);
+                sendIntent(dev, BluetoothDevice.BOND_NONE,
+                           BluetoothDevice.UNBOND_REASON_REMOVED);
                 return false;
             } else if (transition) {
                 transitionTo(mPendingCommandState);
@@ -227,7 +229,7 @@ final class BondStateMachine extends StateMachine {
         return false;
     }
 
-    private void sendIntent(BluetoothDevice device, int newState) {
+    private void sendIntent(BluetoothDevice device, int newState, int reason) {
         DeviceProperties devProp = mRemoteDevices.getDeviceProperties(device);
         int oldState = BluetoothDevice.BOND_NONE;
         if (devProp != null) {
@@ -240,6 +242,8 @@ final class BondStateMachine extends StateMachine {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothDevice.EXTRA_BOND_STATE, newState);
         intent.putExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE, oldState);
+        if (newState == BluetoothDevice.BOND_NONE)
+            intent.putExtra(BluetoothDevice.EXTRA_REASON, reason);
         mAdapterService.sendBroadcast(intent, AdapterService.BLUETOOTH_PERM);
         infoLog("Bond State Change Intent:" + device + " OldState: " + oldState
                 + " NewState: " + newState);
@@ -267,6 +271,7 @@ final class BondStateMachine extends StateMachine {
             msg.arg1 = BluetoothDevice.BOND_BONDING;
         else
             msg.arg1 = BluetoothDevice.BOND_NONE;
+        msg.arg2 = status;
 
         sendMessage(msg);
     }
@@ -313,4 +318,15 @@ final class BondStateMachine extends StateMachine {
         Log.e(TAG, msg);
     }
 
+    private int getUnbondReasonFromHALCode (int reason) {
+        if (reason == AbstractionLayer.BT_STATUS_SUCCESS)
+            return BluetoothDevice.BOND_SUCCESS;
+        else if (reason == AbstractionLayer.BT_STATUS_RMT_DEV_DOWN)
+            return BluetoothDevice.UNBOND_REASON_REMOTE_DEVICE_DOWN;
+        else if (reason == AbstractionLayer.BT_STATUS_AUTH_FAILURE)
+            return BluetoothDevice.UNBOND_REASON_AUTH_FAILED;
+
+        /* default */
+        return BluetoothDevice.UNBOND_REASON_REMOVED;
+    }
 }

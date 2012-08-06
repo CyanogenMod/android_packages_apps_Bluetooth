@@ -54,4 +54,14 @@ final public class AbstractionLayer {
     static final int BT_UUID_SIZE = 16; // bytes
 
     public static final int BT_STATUS_SUCCESS = 0;
+    public static final int BT_STATUS_FAIL = 1;
+    public static final int BT_STATUS_NOT_READY = 2;
+    public static final int BT_STATUS_NOMEM = 3;
+    public static final int BT_STATUS_BUSY = 4;
+    public static final int BT_STATUS_DONE = 5;
+    public static final int BT_STATUS_UNSUPPORTED = 6;
+    public static final int BT_STATUS_PARM_INVALID = 7;
+    public static final int BT_STATUS_UNHANDLED = 8;
+    public static final int BT_STATUS_AUTH_FAILURE = 9;
+    public static final int BT_STATUS_RMT_DEV_DOWN = 10;
 }
