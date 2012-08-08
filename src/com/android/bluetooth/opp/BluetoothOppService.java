@@ -333,43 +333,16 @@ public class BluetoothOppService extends Service {
         getContentResolver().unregisterContentObserver(mObserver);
         unregisterReceiver(mBluetoothReceiver);
         mSocketListener.stop();
-        _cleanup();
-    }
 
-    /* Cleanup all local references. Called during onDestroy */
-    private void _cleanup() {
         if(mBatchs != null) {
             mBatchs.clear();
-            mBatchs = null;
         }
         if(mShares != null) {
             mShares.clear();
-            mShares = null;
         }
-        if(mObserver != null)
-            mObserver = null;
-        if(mNotifier != null)
-            mNotifier = null;
         if(mHandler != null) {
             mHandler.removeCallbacksAndMessages(null);
-            mHandler = null;
         }
-        if(mSocketListener != null)
-            mSocketListener = null;
-        if(mPowerManager != null)
-            mPowerManager = null;
-        if(mPendingConnection != null)
-            mPendingConnection = null;
-        if(mTransfer != null) {
-            mTransfer.cleanup();
-            mTransfer = null;
-        }
-        if(mServerTransfer!= null) {
-            mServerTransfer.cleanup();
-            mServerTransfer = null;
-        }
-        if(mAdapter != null)
-            mAdapter = null;
     }
 
     /* suppose we auto accept an incoming OPUSH connection */
@@ -771,7 +744,6 @@ public class BluetoothOppService extends Service {
                         Log.e(TAG, "Unexpected error! batch id " + batch.mId
                                 + " doesn't match mTransfer id " + mTransfer.getBatchId());
                     }
-                    mTransfer.cleanup();
                     mTransfer = null;
                 } else {
                     if (mServerTransfer == null) {
@@ -783,7 +755,6 @@ public class BluetoothOppService extends Service {
                                 + " doesn't match mServerTransfer id "
                                 + mServerTransfer.getBatchId());
                     }
-                    mServerTransfer.cleanup();
                     mServerTransfer = null;
                 }
                 removeBatch(batch);

@@ -47,12 +47,11 @@ final class RemoteDevices {
 
 
     void cleanup() {
-        mSdpTracker.clear();
-        mSdpTracker = null;
-        mDevices.clear();
-        mDevices = null;
-        mAdapterService = null;
-        mAdapter= null;
+        if (mSdpTracker !=null)
+            mSdpTracker.clear();
+
+        if (mDevices != null)
+            mDevices.clear();
     }
 
     public Object Clone() throws CloneNotSupportedException {

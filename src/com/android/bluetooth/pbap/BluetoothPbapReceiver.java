@@ -61,7 +61,9 @@ public class BluetoothPbapReceiver extends BroadcastReceiver {
             in.putExtra(BluetoothAdapter.EXTRA_STATE, state);
             if (V) Log.v(TAG,"***********state = " + state);
             if ((state == BluetoothAdapter.STATE_TURNING_ON)
-                    || (state == BluetoothAdapter.STATE_TURNING_OFF)) {
+                    || (state == BluetoothAdapter.STATE_OFF)) {
+                //FIX: We turn on PBAP after BluetoothAdapter.STATE_ON,
+                //but we turn off PBAP right after BluetoothAdapter.STATE_TURNING_OFF
                 startService = false;
             }
         } else {

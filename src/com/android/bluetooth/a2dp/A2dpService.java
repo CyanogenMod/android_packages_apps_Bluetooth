@@ -43,14 +43,13 @@ public class A2dpService extends ProfileService {
     }
 
     protected boolean stop() {
-        // TODO(BT) mStateMachine.quit();
+        mStateMachine.doQuit();
         return true;
     }
 
     protected boolean cleanup() {
         if (mStateMachine!= null) {
             mStateMachine.cleanup();
-            mStateMachine=null;
         }
         clearA2dpService();
         return true;

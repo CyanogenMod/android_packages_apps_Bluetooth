@@ -236,7 +236,7 @@ public class BluetoothPbapService extends Service {
 
         boolean removeTimeoutMsg = true;
         if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-            if (state == BluetoothAdapter.STATE_OFF) {
+            if (state == BluetoothAdapter.STATE_TURNING_OFF) {
                 // Send any pending timeout now, as this service will be destroyed.
                 if (mSessionStatusHandler.hasMessages(USER_TIMEOUT)) {
                     Intent timeoutIntent =
@@ -340,8 +340,7 @@ public class BluetoothPbapService extends Service {
             try {
                 // It is mandatory for PSE to support initiation of bonding and
                 // encryption.
-                mServerSocket = mAdapter.listenUsingEncryptedRfcommWithServiceRecord(
-                                "OBEX Phonebook Access Server", BluetoothUuid.PBAP_PSE.getUuid());
+                mServerSocket = mAdapter.listenUsingEncryptedRfcommWithServiceRecord("OBEX Phonebook Access Server", BluetoothUuid.PBAP_PSE.getUuid());
 
             } catch (IOException e) {
                 Log.e(TAG, "Error create RfcommServerSocket " + e.toString());
@@ -350,8 +349,8 @@ public class BluetoothPbapService extends Service {
             if (!initSocketOK) {
                 synchronized (this) {
                     try {
-                        if (VERBOSE) Log.v(TAG, "wait 3 seconds");
-                        Thread.sleep(3000);
+                        if (VERBOSE) Log.v(TAG, "wait 300 ms");
+                        Thread.sleep(300);
                     } catch (InterruptedException e) {
                         Log.e(TAG, "socketAcceptThread thread was interrupted (3)");
                         mInterrupted = true;

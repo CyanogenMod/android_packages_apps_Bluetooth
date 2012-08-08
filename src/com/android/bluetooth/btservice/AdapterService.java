@@ -334,20 +334,17 @@ public class AdapterService extends Service {
         mCleaningUp = true;
 
         if (mAdapterStateMachine != null) {
-            // TODO(BT) mAdapterStateMachine.quit();
+            mAdapterStateMachine.doQuit();
             mAdapterStateMachine.cleanup();
-            mAdapterStateMachine = null;
         }
 
         if (mBondStateMachine != null) {
-            // TODO(BT) mBondStateMachine.quit();
+            mBondStateMachine.doQuit();
             mBondStateMachine.cleanup();
-            mBondStateMachine = null;
         }
 
         if (mRemoteDevices != null) {
             mRemoteDevices.cleanup();
-            mRemoteDevices = null;
         }
 
         if (mNativeAvailable) {
@@ -359,24 +356,21 @@ public class AdapterService extends Service {
 
         if (mAdapterProperties != null) {
             mAdapterProperties.cleanup();
-            mAdapterProperties = null;
         }
 
         if (mJniCallbacks != null) {
             mJniCallbacks.cleanup();
-            mJniCallbacks = null;
         }
 
         if (mProfileServicesState != null) {
             mProfileServicesState.clear();
-            mProfileServicesState= null;
         }
 
         clearAdapterService();
 
         if (mBinder != null) {
             mBinder.cleanup();
-            mBinder = null;
+            mBinder = null;  //Do not remove. Otherwise Binder leak!
         }
 
         if (mCallbacks !=null) {
