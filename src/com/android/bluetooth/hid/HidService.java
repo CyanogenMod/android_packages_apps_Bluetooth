@@ -26,6 +26,7 @@ import java.util.Map;
 import com.android.bluetooth.Utils;
 import android.content.pm.PackageManager;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.AdapterService;
 
 /**
  * Provides Bluetooth Hid Host profile, as a service in
@@ -39,6 +40,7 @@ public class HidService extends ProfileService {
     private Map<BluetoothDevice, Integer> mInputDevices;
     private boolean mNativeAvailable;
     private static HidService sHidService;
+    private BluetoothDevice mTargetDevice = null;
 
     private static final int MESSAGE_CONNECT = 1;
     private static final int MESSAGE_DISCONNECT = 2;
@@ -139,6 +141,7 @@ public class HidService extends ProfileService {
                         broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED);
                         break;
                     }
+                    mTargetDevice = device;
                 }
                     break;
                 case MESSAGE_DISCONNECT:
@@ -160,14 +163,21 @@ public class HidService extends ProfileService {
                         BluetoothInputDevice.STATE_DISCONNECTED :prevStateInteger;
                     if(DBG) Log.d(TAG, "MESSAGE_CONNECT_STATE_CHANGED newState:"+
                         convertHalState(halState)+", prevState:"+prevState);
-                     if(halState == CONN_STATE_CONNECTED &&
-                        prevState == BluetoothInputDevice.STATE_DISCONNECTED &&
-                        (BluetoothProfile.PRIORITY_OFF == getPriority(device) ||
-                        device.getBondState() == BluetoothDevice.BOND_NONE)) {
+                    if(halState == CONN_STATE_CONNECTED &&
+                       prevState == BluetoothInputDevice.STATE_DISCONNECTED &&
+                       (!okToConnect(device))) {
                         Log.d(TAG,"Incoming HID connection rejected");
                         disconnectHidNative(Utils.getByteAddress(device));
                     } else {
                         broadcastConnectionState(device, convertHalState(halState));
+                    }
+                    if (halState != CONN_STATE_CONNECTING) {
+                        mTargetDevice = null;
+                    }
+                    else {
+                        // CONN_STATE_CONNECTING is received only during
+                        // local initiated connection.
+                        mTargetDevice = device;
                     }
                 }
                     break;
@@ -573,6 +583,18 @@ public class HidService extends ProfileService {
         sendBroadcast(intent, BLUETOOTH_PERM);
     }
 
+    private boolean okToConnect(BluetoothDevice device) {
+        AdapterService adapterService = AdapterService.getAdapterService();
+        //check if it is inbound connection in Quiet mode, priority and Bond status
+        //to decide if its ok to allow this connection
+        if((adapterService == null)||
+           ((adapterService.isQuietModeEnabled()) &&(mTargetDevice == null)) ||
+           (BluetoothProfile.PRIORITY_OFF == getPriority(device)) ||
+           (device.getBondState() == BluetoothDevice.BOND_NONE))
+            return false;
+
+        return true;
+    }
     private static int convertHalState(int halState) {
         switch (halState) {
             case CONN_STATE_CONNECTED:

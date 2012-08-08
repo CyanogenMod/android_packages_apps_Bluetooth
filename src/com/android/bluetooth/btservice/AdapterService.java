@@ -123,6 +123,7 @@ public class AdapterService extends Service {
     private HashMap<String,Integer> mProfileServicesState = new HashMap<String,Integer>();
     private RemoteCallbackList<IBluetoothCallback> mCallbacks;//Only BluetoothManagerService should be registered
     private int mCurrentRequestId;
+    private boolean mQuietmode = false;
 
     public AdapterService() {
         super();
@@ -509,8 +510,9 @@ public class AdapterService extends Service {
         }
 
         public boolean enableNoAutoConnect() {
-            // TODO(BT)
-            return false;
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.enableNoAutoConnect();
         }
 
         public boolean disable() {
@@ -733,14 +735,23 @@ public class AdapterService extends Service {
     }
 
      boolean enable() {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                "Need BLUETOOTH ADMIN permission");
-        if (DBG) debugLog("enable() called...");
-        Message m =
-                mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_ON);
-        mAdapterStateMachine.sendMessage(m);
-        return true;
+        return enable (false);
     }
+
+      public boolean enableNoAutoConnect() {
+         return enable (true);
+     }
+
+     public synchronized boolean enable(boolean quietMode) {
+         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                 "Need BLUETOOTH ADMIN permission");
+         if (DBG)debugLog("Enable called with quiet mode status =  " + mQuietmode);
+         mQuietmode  = quietMode;
+         Message m =
+                 mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_ON);
+         mAdapterStateMachine.sendMessage(m);
+         return true;
+     }
 
      boolean disable() {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
@@ -851,13 +862,24 @@ public class AdapterService extends Service {
         return true;
     }
 
+      public boolean isQuietModeEnabled() {
+          if (DBG) debugLog("Quiet mode Enabled = " + mQuietmode);
+          return mQuietmode;
+     }
+
      public void autoConnect(){
         if (getState() != BluetoothAdapter.STATE_ON){
              errorLog("BT is not ON. Exiting autoConnect");
              return;
          }
-         autoConnectHeadset();
-         autoConnectA2dp();
+         if (isQuietModeEnabled() == false) {
+            if (DBG) debugLog( "Initiate auto connection on BT on...");
+             autoConnectHeadset();
+             autoConnectA2dp();
+         }
+         else {
+             if (DBG) debugLog( "BT is in Quiet mode. Not initiating  auto connections");
+         }
     }
 
      private void autoConnectHeadset(){
@@ -890,7 +912,8 @@ public class AdapterService extends Service {
     }
 
      public void connectOtherProfile(BluetoothDevice device, int firstProfileStatus){
-        if (mHandler.hasMessages(MESSAGE_CONNECT_OTHER_PROFILES) == false){
+        if ((mHandler.hasMessages(MESSAGE_CONNECT_OTHER_PROFILES) == false) &&
+            (isQuietModeEnabled()== false)){
             Message m = mHandler.obtainMessage(MESSAGE_CONNECT_OTHER_PROFILES);
             m.obj = device;
             m.arg1 = (int)firstProfileStatus;
