@@ -297,7 +297,6 @@ final class HeadsetStateMachine extends StateMachine {
         @Override
         public void exit() {
             log("Exit Disconnected: " + getCurrentMessage().what);
-            mPhoneState.listenForPhoneState(true);
         }
 
         // in Disconnected state
@@ -797,6 +796,11 @@ final class HeadsetStateMachine extends StateMachine {
         private void processSlcConnected() {
             if (mPhoneProxy != null) {
                 try {
+                    // start phone state listener here, instead of on disconnected exit()
+                    // On BT off, exitting SM sends a SM exit() call which incorrectly forces
+                    // a listenForPhoneState(true).
+                    // Additionally, no indicator updates should be sent prior to SLC setup
+                    mPhoneState.listenForPhoneState(true);
                     mPhoneProxy.queryPhoneState();
                 } catch (RemoteException e) {
                     Log.e(TAG, Log.getStackTraceString(new Throwable()));
