@@ -119,11 +119,7 @@ class HeadsetPhoneState {
     void setBatteryCharge(int batteryLevel) {
         if (mBatteryCharge != batteryLevel) {
             mBatteryCharge = batteryLevel;
-            HeadsetStateMachine sm = mStateMachine;
-            if (sm != null) {
-                sm.sendMessage(HeadsetStateMachine.DEVICE_STATE_CHANGED,
-                new HeadsetDeviceState(mService, mRoam, mSignal, mBatteryCharge));
-            }
+            sendDeviceStateChanged();
         }
     }
 
@@ -151,6 +147,18 @@ class HeadsetPhoneState {
         return (mNumActive >= 1);
     }
 
+    void sendDeviceStateChanged()
+    {
+        Log.d(TAG, "sendDeviceStateChanged. mService="+ mService +
+                   " mSignal="+mSignal +" mRoam="+mRoam +
+                   " mBatteryCharge=" + mBatteryCharge);
+        HeadsetStateMachine sm = mStateMachine;
+        if (sm != null) {
+            sm.sendMessage(HeadsetStateMachine.DEVICE_STATE_CHANGED,
+                new HeadsetDeviceState(mService, mRoam, mSignal, mBatteryCharge));
+        }
+    }
+
     private PhoneStateListener mPhoneStateListener = new PhoneStateListener() {
         @Override
         public void onServiceStateChanged(ServiceState serviceState) {
@@ -158,20 +166,21 @@ class HeadsetPhoneState {
             mService = (serviceState.getState() == ServiceState.STATE_IN_SERVICE) ?
                 HeadsetHalConstants.NETWORK_STATE_AVAILABLE :
                 HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE;
-            HeadsetStateMachine sm = mStateMachine;
-            if (sm != null) {
-                sm.sendMessage(HeadsetStateMachine.DEVICE_STATE_CHANGED,
-                new HeadsetDeviceState(mService, mRoam, mSignal, mBatteryCharge));
-            }
+            sendDeviceStateChanged();
         }
 
         @Override
         public void onSignalStrengthsChanged(SignalStrength signalStrength) {
+            int prevSignal = mSignal;
             if (signalStrength.isGsm()) {
                 mSignal = gsmAsuToSignal(signalStrength);
             } else {
                 mSignal = cdmaDbmEcioToSignal(signalStrength);
             }
+            // network signal strength is scaled to BT 1-5 levels.
+            // This results in a lot of duplicate messages, hence this check
+            if (prevSignal != mSignal)
+                sendDeviceStateChanged();
         }
 
         /* convert [0,31] ASU signal strength to the [0,5] expected by
