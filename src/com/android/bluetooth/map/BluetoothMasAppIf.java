@@ -34,8 +34,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -549,26 +547,7 @@ public class BluetoothMasAppIf {
             String sLocalPhoneNum = tm.getLine1Number();
             String sLocalPhoneName = "";
 
-            Method m;
-            try {
-                m = tm.getClass().getMethod("getLine1AlphaTag", new Class[] { });
-                sLocalPhoneName = (String) m.invoke(tm);
-            } catch (SecurityException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (NoSuchMethodException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IllegalArgumentException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+            sLocalPhoneName = tm.getLine1AlphaTag();
 
             if (TextUtils.isEmpty(sLocalPhoneNum)) {
                 sLocalPhoneNum = "0000000000";
