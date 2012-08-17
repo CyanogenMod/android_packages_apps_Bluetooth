@@ -31,8 +31,6 @@ package com.android.bluetooth.map;
 import com.android.bluetooth.R;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -323,64 +321,38 @@ public class BluetoothMasService extends Service {
         if (VERBOSE)
             Log.e(TAG, "Map Service initSocket");
 
-        boolean initSocketOK = true;
         final int CREATE_RETRY_TIME = 10;
 
         // It's possible that create will fail in some cases. retry for 10 times
-        for (int i = 0; i < CREATE_RETRY_TIME && !mInterrupted; i++) {
+        mInterrupted = false;
+        int i;
+        for (i = 0; i < CREATE_RETRY_TIME && !mInterrupted; i++) {
             try {
-                Method m = mAdapter.getClass().getMethod("listenUsingRfcommOn",
-                        new Class[] { int.class });
+                mServerSocket = mAdapter.listenUsingRfcommOn(PORT_NUM);
+
+                if (VERBOSE) Log.e(TAG, "Succeed to create listening socket on channel " + PORT_NUM);
+
+                return true;
+
+            } catch (IOException e) {
+                if (VERBOSE) Log.e(TAG, "Error creating RFCOMM socket, retry: " + (i + 1), e);
+            }
+
+            synchronized (this) {
                 try {
-                    mServerSocket = (BluetoothServerSocket) m.invoke(mAdapter,
-                            PORT_NUM);
-                } catch (IllegalArgumentException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    if (VERBOSE) Log.e(TAG, "wait 3 seconds");
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "socketAcceptThread thread was interrupted (3)");
+                    mInterrupted = true;
                 }
-
-            } catch (SecurityException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (NoSuchMethodException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-
-            if (!initSocketOK) {
-                synchronized (this) {
-                    try {
-                        if (VERBOSE)
-                            Log.e(TAG, "wait 3 seconds");
-                        Thread.sleep(3000);
-                    } catch (InterruptedException e) {
-                        Log
-                                .e(TAG,
-                                        "socketAcceptThread thread was interrupted (3)");
-                        mInterrupted = true;
-                    }
-                }
-            } else {
-                break;
             }
         }
 
-        if (initSocketOK) {
-            if (VERBOSE)
-                Log.e(TAG, "Succeed to create listening socket on channel "
-                        + PORT_NUM);
-
-        } else {
-            Log.e(TAG, "Error to create listening socket after "
-                    + CREATE_RETRY_TIME + " try");
-        }
-        return initSocketOK;
+        Log.e(TAG, "Error to create listening socket after "
+              + (i+1) + " try");
+        
+        return false;
     }
 
     private final void closeSocket(boolean server, boolean accept)
