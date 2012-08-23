@@ -118,9 +118,11 @@ static void volume_control_callback(bthf_volume_type_t type, int volume) {
 
 static void dial_call_callback(char *number) {
     CHECK_CALLBACK_ENV
+    jstring js_number = sCallbackEnv->NewStringUTF(number);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onDialCall,
-                                 sCallbackEnv->NewStringUTF(number));
+                                 js_number);
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+    sCallbackEnv->DeleteLocalRef(js_number);
 }
 
 static void dtmf_cmd_callback(char dtmf) {
@@ -169,9 +171,11 @@ static void at_clcc_callback() {
 
 static void unknown_at_callback(char *at_string) {
     CHECK_CALLBACK_ENV
+    jstring js_at_string = sCallbackEnv->NewStringUTF(at_string);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onUnknownAt,
-                                 sCallbackEnv->NewStringUTF(at_string));
+                                 js_at_string);
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+    sCallbackEnv->DeleteLocalRef(js_at_string);
 }
 
 static void key_pressed_callback() {
