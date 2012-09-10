@@ -56,7 +56,7 @@ public class BluetoothOppBtEnableActivity extends AlertActivity implements
 
         // Set up the "dialog"
         final AlertController.AlertParams p = mAlertParams;
-        p.mIconId = android.R.drawable.ic_dialog_alert;
+        p.mIconAttrId = android.R.attr.alertDialogIcon;
         p.mTitle = getString(R.string.bt_enable_title);
         p.mView = createView();
         p.mPositiveButtonText = getString(R.string.bt_enable_ok);
