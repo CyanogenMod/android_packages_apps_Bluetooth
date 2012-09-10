@@ -347,14 +347,6 @@ public class BluetoothPbapService extends Service {
                 initSocketOK = false;
             }
             if (!initSocketOK) {
-                // Need to break out of this loop if BT is being turned off.
-                if (mAdapter == null) break;
-                int state = mAdapter.getState();
-                if ((mAdapter.getState() != BluetoothAdapter.STATE_TURNING_ON) &&
-                     (mAdapter.getState() != BluetoothAdapter.STATE_ON)) {
-                    Log.w(TAG, "initServerSocket failed as BT is (being) turned off");
-                    break;
-                }
                 synchronized (this) {
                     try {
                         if (VERBOSE) Log.v(TAG, "wait 300 ms");
