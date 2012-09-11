@@ -51,6 +51,7 @@ static void control_state_callback(btpan_control_state_t state, bt_status_t erro
     jstring js_ifname = sCallbackEnv->NewStringUTF(ifname);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onControlStateChanged, (jint)state, (jint)error,
                                 (jint)local_role, js_ifname);
+    sCallbackEnv->DeleteLocalRef(js_ifname);
 }
 
 static void connection_state_callback(btpan_connection_state_t state, bt_status_t error, const bt_bdaddr_t *bd_addr,
