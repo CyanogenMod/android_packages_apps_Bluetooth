@@ -256,14 +256,13 @@ public class AdapterService extends Service {
         return mBinder;
     }
     public boolean onUnbind(Intent intent) {
-        if (DBG) debugLog("onUnbind");
+        if (DBG) debugLog("onUnbind, calling cleanup");
+        cleanup();
         return super.onUnbind(intent);
     }
 
     public void onDestroy() {
         debugLog("****onDestroy()********");
-        mHandler.removeMessages(MESSAGE_SHUTDOWN);
-        cleanup();
     }
 
     void processStart() {
@@ -384,8 +383,6 @@ public class AdapterService extends Service {
     private static final int MESSAGE_PROFILE_SERVICE_STATE_CHANGED =1;
     private static final int MESSAGE_PROFILE_CONNECTION_STATE_CHANGED=20;
     private static final int MESSAGE_CONNECT_OTHER_PROFILES = 30;
-    private static final int MESSAGE_SHUTDOWN= 100;
-    private static final int SHUTDOWN_TIMEOUT=2000;
     private static final int CONNECT_OTHER_PROFILES_TIMEOUT= 6000;
 
     private final Handler mHandler = new Handler() {
@@ -394,11 +391,6 @@ public class AdapterService extends Service {
             if (DBG) debugLog("Message: " + msg.what);
 
             switch (msg.what) {
-                case MESSAGE_SHUTDOWN: {
-                    if (DBG) Log.d(TAG,"***SHUTDOWN: TIMEOUT!!! Forcing shutdown...");
-                    stopSelf();
-                }
-                    break;
                 case MESSAGE_PROFILE_SERVICE_STATE_CHANGED: {
                     if(DBG) debugLog("MESSAGE_PROFILE_SERVICE_STATE_CHANGED");
                     processProfileServiceStateChanged((String) msg.obj, msg.arg1);
