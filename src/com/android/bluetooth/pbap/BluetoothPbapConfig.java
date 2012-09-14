@@ -25,7 +25,7 @@ import android.util.Log;
 
 public class BluetoothPbapConfig {
     private static boolean sUseProfileForOwnerVcard=true;
-    private static boolean sIncludePhotosInVcard = true;
+    private static boolean sIncludePhotosInVcard = false;
     public static void init(Context ctx) {
         Resources r = ctx.getResources();
         if (r != null) {
