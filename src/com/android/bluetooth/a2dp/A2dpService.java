@@ -36,8 +36,7 @@ public class A2dpService extends ProfileService {
     }
 
     protected boolean start() {
-        mStateMachine = new A2dpStateMachine(this,this);
-        mStateMachine.start();
+        mStateMachine = A2dpStateMachine.make(this, this);
         setA2dpService(this);
         return true;
     }

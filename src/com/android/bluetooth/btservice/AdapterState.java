@@ -70,7 +70,7 @@ final class AdapterState extends StateMachine {
         return isTurningOff;
     }
 
-    public AdapterState(AdapterService service,AdapterProperties adapterProperties) {
+    private AdapterState(AdapterService service, AdapterProperties adapterProperties) {
         super("BluetoothAdapterState:");
         addState(mOnState);
         addState(mOffState);
@@ -80,6 +80,12 @@ final class AdapterState extends StateMachine {
         setInitialState(mOffState);
     }
 
+    public static AdapterState make(AdapterService service, AdapterProperties adapterProperties) {
+        Log.d(TAG, "make");
+        AdapterState as = new AdapterState(service, adapterProperties);
+        as.start();
+        return as;
+    }
 
     public void doQuit() {
         quitNow();

@@ -51,7 +51,7 @@ final class BondStateMachine extends StateMachine {
     private PendingCommandState mPendingCommandState = new PendingCommandState();
     private StableState mStableState = new StableState();
 
-    public BondStateMachine(AdapterService service,
+    private BondStateMachine(AdapterService service,
             AdapterProperties prop, RemoteDevices remoteDevices) {
         super("BondStateMachine:");
         addState(mStableState);
@@ -63,6 +63,14 @@ final class BondStateMachine extends StateMachine {
         setInitialState(mStableState);
     }
 
+    public static BondStateMachine make(AdapterService service,
+            AdapterProperties prop, RemoteDevices remoteDevices) {
+        Log.d(TAG, "make");
+        BondStateMachine bsm = new BondStateMachine(service, prop, remoteDevices);
+        bsm.start();
+        return bsm;
+    }
+            
     public void doQuit() {
         quitNow();
     }

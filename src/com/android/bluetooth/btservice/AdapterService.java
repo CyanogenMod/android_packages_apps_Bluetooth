@@ -238,11 +238,10 @@ public class AdapterService extends Service {
         if (DBG) debugLog("onCreate");
         mBinder = new AdapterServiceBinder(this);
         mAdapterProperties = new AdapterProperties(this);
-        mAdapterStateMachine =  new AdapterState(this, mAdapterProperties);
+        mAdapterStateMachine =  AdapterState.make(this, mAdapterProperties);
         mJniCallbacks =  new JniCallbacks(mAdapterStateMachine, mAdapterProperties);
         initNative();
         mNativeAvailable=true;
-        mAdapterStateMachine.start();
         mCallbacks = new RemoteCallbackList<IBluetoothCallback>();
         //Load the name and address
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDADDR);
@@ -273,13 +272,12 @@ public class AdapterService extends Service {
             mProfileServicesState.put(supportedProfileServices[i].getName(),BluetoothAdapter.STATE_OFF);
         }
         mRemoteDevices = new RemoteDevices(this);
-        mBondStateMachine = new BondStateMachine(this, mAdapterProperties, mRemoteDevices);
         mAdapterProperties.init(mRemoteDevices);
-        mJniCallbacks.init(mBondStateMachine,mRemoteDevices);
 
-        //Start Bond State Machine
-        if (DBG) {debugLog("processStart(): Starting Bond State Machine");}
-        mBondStateMachine.start();
+        if (DBG) {debugLog("processStart(): Make Bond State Machine");}
+        mBondStateMachine = BondStateMachine.make(this, mAdapterProperties, mRemoteDevices);
+
+        mJniCallbacks.init(mBondStateMachine,mRemoteDevices);
 
         //FIXME: Set static instance here???
         setAdapterService(this);
