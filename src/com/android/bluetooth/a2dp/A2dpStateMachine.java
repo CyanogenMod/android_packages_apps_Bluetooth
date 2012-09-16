@@ -103,7 +103,7 @@ final class A2dpStateMachine extends StateMachine {
         classInitNative();
     }
 
-    A2dpStateMachine(A2dpService svc, Context context) {
+    private A2dpStateMachine(A2dpService svc, Context context) {
         super(TAG);
         mService = svc;
         mContext = context;
@@ -128,6 +128,13 @@ final class A2dpStateMachine extends StateMachine {
 
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
+    }
+
+    static A2dpStateMachine make(A2dpService svc, Context context) {
+        Log.d(TAG, "make");
+        A2dpStateMachine a2dpSm = new A2dpStateMachine(svc, context);
+        a2dpSm.start();
+        return a2dpSm;
     }
 
     public void doQuit() {
