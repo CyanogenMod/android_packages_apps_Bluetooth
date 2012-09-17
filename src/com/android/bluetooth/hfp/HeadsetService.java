@@ -45,8 +45,7 @@ public class HeadsetService extends ProfileService {
     }
 
     protected boolean start() {
-        mStateMachine = new HeadsetStateMachine(this);
-        mStateMachine.start();
+        mStateMachine = HeadsetStateMachine.make(this);
         IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         filter.addAction(AudioManager.VOLUME_CHANGED_ACTION);
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);

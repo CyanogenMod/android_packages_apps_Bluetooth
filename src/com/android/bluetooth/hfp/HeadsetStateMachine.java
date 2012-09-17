@@ -149,7 +149,7 @@ final class HeadsetStateMachine extends StateMachine {
         classInitNative();
     }
 
-    HeadsetStateMachine(HeadsetService context) {
+    private HeadsetStateMachine(HeadsetService context) {
         super(TAG);
         mService = context;
         mVoiceRecognitionStarted = false;
@@ -190,6 +190,13 @@ final class HeadsetStateMachine extends StateMachine {
         addState(mAudioOn);
 
         setInitialState(mDisconnected);
+    }
+
+    static HeadsetStateMachine make(HeadsetService context) {
+        Log.d(TAG, "make");
+        HeadsetStateMachine hssm = new HeadsetStateMachine(context);
+        hssm.start();
+        return hssm;
     }
 
 
