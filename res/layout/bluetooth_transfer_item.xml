@@ -27,7 +27,7 @@
         android:layout_height="@android:dimen/app_icon_size"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:scaleType="fitCenter"
+        android:scaleType="center"
     />
 
     <TextView android:id="@+id/transfer_title"

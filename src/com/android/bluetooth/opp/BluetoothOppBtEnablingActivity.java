@@ -82,7 +82,6 @@ public class BluetoothOppBtEnablingActivity extends AlertActivity {
 
         // Set up the "dialog"
         final AlertController.AlertParams p = mAlertParams;
-        p.mIconId = android.R.drawable.ic_dialog_info;
         p.mTitle = getString(R.string.enabling_progress_title);
         p.mView = createView();
         setupAlert();
