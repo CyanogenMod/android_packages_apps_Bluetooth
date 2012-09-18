@@ -211,7 +211,6 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
     private void setUpDialog() {
         // final AlertController.AlertParams p = mAlertParams;
         mPara = mAlertParams;
-        mPara.mIconId = android.R.drawable.ic_dialog_info;
         mPara.mTitle = getString(R.string.download_title);
 
         if ((mWhichDialog == DIALOG_RECEIVE_ONGOING) || (mWhichDialog == DIALOG_SEND_ONGOING)) {
