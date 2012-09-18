@@ -12,7 +12,6 @@ LOCAL_SRC_FILES:= \
 
 LOCAL_C_INCLUDES += \
     $(JNI_H_INCLUDE) \
-    vendor/broadcom/libbt-vendor/include
 
 LOCAL_SHARED_LIBRARIES := \
     libandroid_runtime \
