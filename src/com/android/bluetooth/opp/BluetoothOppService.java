@@ -543,9 +543,18 @@ public class BluetoothOppService extends Service {
     }
 
     private void insertShare(Cursor cursor, int arrayPos) {
+        String uriString = cursor.getString(cursor.getColumnIndexOrThrow(BluetoothShare.URI));
+        Uri uri;
+        if (uriString != null) {
+            uri = Uri.parse(uriString);
+            Log.d(TAG, "insertShare parsed URI: " + uri);
+        } else {
+            uri = null;
+            Log.e(TAG, "insertShare found null URI at cursor!");
+        }
         BluetoothOppShareInfo info = new BluetoothOppShareInfo(
                 cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID)),
-                cursor.getString(cursor.getColumnIndexOrThrow(BluetoothShare.URI)),
+                uri,
                 cursor.getString(cursor.getColumnIndexOrThrow(BluetoothShare.FILENAME_HINT)),
                 cursor.getString(cursor.getColumnIndexOrThrow(BluetoothShare._DATA)),
                 cursor.getString(cursor.getColumnIndexOrThrow(BluetoothShare.MIMETYPE)),
@@ -597,23 +606,12 @@ public class BluetoothOppService extends Service {
         if (info.isReadyToStart()) {
             if (info.mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
                 /* check if the file exists */
-                InputStream i;
-                try {
-                    i = getContentResolver().openInputStream(Uri.parse(info.mUri));
-                } catch (FileNotFoundException e) {
+                BluetoothOppSendFileInfo sendFileInfo = BluetoothOppUtility.getSendFileInfo(
+                        info.mUri);
+                if (sendFileInfo == null || sendFileInfo.mInputStream == null) {
                     Log.e(TAG, "Can't open file for OUTBOUND info " + info.mId);
                     Constants.updateShareStatus(this, info.mId, BluetoothShare.STATUS_BAD_REQUEST);
-                    return;
-                } catch (SecurityException e) {
-                    Log.e(TAG, "Exception:" + e.toString() + " for OUTBOUND info " + info.mId);
-                    Constants.updateShareStatus(this, info.mId, BluetoothShare.STATUS_BAD_REQUEST);
-                    return;
-                }
-
-                try {
-                    i.close();
-                } catch (IOException ex) {
-                    Log.e(TAG, "IO error when close file for OUTBOUND info " + info.mId);
+                    BluetoothOppUtility.closeSendFileInfo(info.mUri);
                     return;
                 }
             }
@@ -678,7 +676,12 @@ public class BluetoothOppService extends Service {
         int statusColumn = cursor.getColumnIndexOrThrow(BluetoothShare.STATUS);
 
         info.mId = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID));
-        info.mUri = stringFromCursor(info.mUri, cursor, BluetoothShare.URI);
+        if (info.mUri != null) {
+            info.mUri = Uri.parse(stringFromCursor(info.mUri.toString(), cursor,
+                    BluetoothShare.URI));
+        } else {
+            Log.d(TAG, "updateShare() called for ID " + info.mId + " with null URI");
+        }
         info.mHint = stringFromCursor(info.mHint, cursor, BluetoothShare.FILENAME_HINT);
         info.mFilename = stringFromCursor(info.mFilename, cursor, BluetoothShare._DATA);
         info.mMimetype = stringFromCursor(info.mMimetype, cursor, BluetoothShare.MIMETYPE);
