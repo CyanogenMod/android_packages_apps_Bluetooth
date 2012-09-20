@@ -385,18 +385,20 @@ public class BluetoothPbapService extends Service {
 
             if (mServerSocket != null) {
                 mServerSocket.close();
+                mServerSocket = null;
             }
         }
 
         if (accept == true) {
             if (mConnSocket != null) {
                 mConnSocket.close();
+                mConnSocket = null;
             }
         }
     }
 
     private final void closeService() {
-        if (VERBOSE) Log.v(TAG, "Pbap Service closeService");
+        if (VERBOSE) Log.v(TAG, "Pbap Service closeService in");
 
         try {
             closeSocket(true, true);
@@ -413,18 +415,17 @@ public class BluetoothPbapService extends Service {
                 Log.w(TAG, "mAcceptThread close error" + ex);
             }
         }
-        mServerSocket = null;
-        mConnSocket = null;
-
         if (mServerSession != null) {
             mServerSession.close();
             mServerSession = null;
         }
 
         mHasStarted = false;
-        if (stopSelfResult(mStartId)) {
+        if (mStartId != -1 && stopSelfResult(mStartId)) {
             if (VERBOSE) Log.v(TAG, "successfully stopped pbap service");
+            mStartId = -1;
         }
+        if (VERBOSE) Log.v(TAG, "Pbap Service closeService out");
     }
 
     private final void startObexServerSession() throws IOException {
