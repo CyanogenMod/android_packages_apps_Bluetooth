@@ -33,6 +33,8 @@ import com.android.bluetooth.btservice.ProfileService;
 public class HeadsetService extends ProfileService {
     private static final boolean DBG = true;
     private static final String TAG = "HeadsetService";
+    private static final String MODIFY_PHONE_STATE = android.Manifest.permission.MODIFY_PHONE_STATE;
+
     private HeadsetStateMachine mStateMachine;
     private static HeadsetService sHeadsetService;
 
@@ -452,6 +454,7 @@ public class HeadsetService extends ProfileService {
 
     private void phoneStateChanged(int numActive, int numHeld, int callState,
                                   String number, int type) {
+        enforceCallingOrSelfPermission(MODIFY_PHONE_STATE, null);
         Message msg = mStateMachine.obtainMessage(HeadsetStateMachine.CALL_STATE_CHANGED);
         msg.obj = new HeadsetCallState(numActive, numHeld, callState, number, type);
         msg.arg1 = 0; // false
@@ -459,11 +462,13 @@ public class HeadsetService extends ProfileService {
     }
 
     private void roamChanged(boolean roam) {
+        enforceCallingOrSelfPermission(MODIFY_PHONE_STATE, null);
         mStateMachine.sendMessage(HeadsetStateMachine.ROAM_CHANGED, roam);
     }
 
     private void clccResponse(int index, int direction, int status, int mode, boolean mpty,
                              String number, int type) {
+        enforceCallingOrSelfPermission(MODIFY_PHONE_STATE, null);
         mStateMachine.sendMessage(HeadsetStateMachine.SEND_CCLC_RESPONSE,
             new HeadsetClccResponse(index, direction, status, mode, mpty, number, type));
     }
