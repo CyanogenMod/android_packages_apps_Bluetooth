@@ -338,8 +338,8 @@ public class HeadsetService extends ProfileService {
     public boolean setPriority(BluetoothDevice device, int priority) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH_ADMIN permission");
-        Settings.Secure.putInt(getContentResolver(),
-            Settings.Secure.getBluetoothHeadsetPriorityKey(device.getAddress()),
+        Settings.Global.putInt(getContentResolver(),
+            Settings.Global.getBluetoothHeadsetPriorityKey(device.getAddress()),
             priority);
         if (DBG) Log.d(TAG, "Saved priority " + device + " = " + priority);
         return true;
@@ -348,8 +348,8 @@ public class HeadsetService extends ProfileService {
     public int getPriority(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH_ADMIN permission");
-        int priority = Settings.Secure.getInt(getContentResolver(),
-            Settings.Secure.getBluetoothHeadsetPriorityKey(device.getAddress()),
+        int priority = Settings.Global.getInt(getContentResolver(),
+            Settings.Global.getBluetoothHeadsetPriorityKey(device.getAddress()),
             BluetoothProfile.PRIORITY_UNDEFINED);
         return priority;
     }

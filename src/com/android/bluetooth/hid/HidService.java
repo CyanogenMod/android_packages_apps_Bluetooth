@@ -409,8 +409,8 @@ public class HidService extends ProfileService {
     public boolean setPriority(BluetoothDevice device, int priority) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH_ADMIN permission");
-        Settings.Secure.putInt(getContentResolver(),
-            Settings.Secure.getBluetoothInputDevicePriorityKey(device.getAddress()),
+        Settings.Global.putInt(getContentResolver(),
+            Settings.Global.getBluetoothInputDevicePriorityKey(device.getAddress()),
             priority);
         if (DBG) Log.d(TAG,"Saved priority " + device + " = " + priority);
         return true;
@@ -419,8 +419,8 @@ public class HidService extends ProfileService {
     public  int getPriority(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH_ADMIN permission");
-        int priority = Settings.Secure.getInt(getContentResolver(),
-            Settings.Secure.getBluetoothInputDevicePriorityKey(device.getAddress()),
+        int priority = Settings.Global.getInt(getContentResolver(),
+            Settings.Global.getBluetoothInputDevicePriorityKey(device.getAddress()),
             BluetoothProfile.PRIORITY_UNDEFINED);
         return priority;
     }
