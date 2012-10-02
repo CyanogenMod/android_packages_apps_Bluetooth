@@ -316,12 +316,6 @@ public class BluetoothPbapService extends Service {
     private void startRfcommSocketListener() {
         if (VERBOSE) Log.v(TAG, "Pbap Service startRfcommSocketListener");
 
-        if (mServerSocket == null) {
-            if (!initSocket()) {
-                closeService();
-                return;
-            }
-        }
         if (mAcceptThread == null) {
             mAcceptThread = new SocketAcceptThread();
             mAcceptThread.setName("BluetoothPbapAcceptThread");
@@ -340,7 +334,8 @@ public class BluetoothPbapService extends Service {
             try {
                 // It is mandatory for PSE to support initiation of bonding and
                 // encryption.
-                mServerSocket = mAdapter.listenUsingEncryptedRfcommWithServiceRecord("OBEX Phonebook Access Server", BluetoothUuid.PBAP_PSE.getUuid());
+                mServerSocket = mAdapter.listenUsingEncryptedRfcommWithServiceRecord
+                    ("OBEX Phonebook Access Server", BluetoothUuid.PBAP_PSE.getUuid());
 
             } catch (IOException e) {
                 Log.e(TAG, "Error create RfcommServerSocket " + e.toString());
@@ -521,6 +516,13 @@ public class BluetoothPbapService extends Service {
 
         @Override
         public void run() {
+            if (mServerSocket == null) {
+                if (!initSocket()) {
+                    closeService();
+                    return;
+                }
+            }
+
             while (!stopped) {
                 try {
                     if (VERBOSE) Log.v(TAG, "Accepting socket connection...");
