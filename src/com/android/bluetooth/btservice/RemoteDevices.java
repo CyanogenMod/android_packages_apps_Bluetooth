@@ -437,7 +437,7 @@ final class RemoteDevices {
     }
 
     private void debugLog(String msg) {
-        if (DBG) Log.e(TAG, msg);
+        if (DBG) Log.d(TAG, msg);
     }
 
     private void infoLog(String msg) {
