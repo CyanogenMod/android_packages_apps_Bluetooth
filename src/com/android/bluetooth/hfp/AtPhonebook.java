@@ -316,7 +316,8 @@ public class AtPhonebook {
                 String atCommand = (atString.split("="))[1];
                 String[] indices = atCommand.split(",");
                 for(int i = 0; i < indices.length; i++)
-                    indices[i] = indices[i].trim();
+                    //replace AT command separator ';' from the index if any
+                    indices[i] = indices[i].replace(';', ' ').trim();
                 try {
                     index1 = Integer.parseInt(indices[0]);
                     if (indices.length == 1)
@@ -325,7 +326,7 @@ public class AtPhonebook {
                         index2 = Integer.parseInt(indices[1]);
                 }
                 catch (Exception e) {
-                    log("handleCpbrCommand - exception - invalid chars");
+                    log("handleCpbrCommand - exception - invalid chars: " + e.toString());
                     atCommandErrorCode = BluetoothCmeError.TEXT_HAS_INVALID_CHARS;
                     mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
                     break;
