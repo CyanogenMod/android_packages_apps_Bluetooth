@@ -54,7 +54,7 @@ import java.util.Set;
 
 final class HeadsetStateMachine extends StateMachine {
     private static final String TAG = "HeadsetStateMachine";
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
     //For Debugging only
     private static int sRefCount=0;
 
@@ -240,11 +240,9 @@ final class HeadsetStateMachine extends StateMachine {
         @Override
         public boolean processMessage(Message message) {
             log("Disconnected process message: " + message.what);
-            if (DBG) {
-                if (mCurrentDevice != null || mTargetDevice != null || mIncomingDevice != null) {
-                    log("ERROR: current, target, or mIncomingDevice not null in Disconnected");
-                    return NOT_HANDLED;
-                }
+            if (mCurrentDevice != null || mTargetDevice != null || mIncomingDevice != null) {
+                Log.e(TAG, "ERROR: current, target, or mIncomingDevice not null in Disconnected");
+                return NOT_HANDLED;
             }
 
             boolean retValue = HANDLED;
@@ -1225,7 +1223,7 @@ final class HeadsetStateMachine extends StateMachine {
 
     // This method does not check for error conditon (newState == prevState)
     private void broadcastConnectionState(BluetoothDevice device, int newState, int prevState) {
-        if (DBG) log("Connection state " + device + ": " + prevState + "->" + newState);
+        log("Connection state " + device + ": " + prevState + "->" + newState);
         if(prevState == BluetoothProfile.STATE_CONNECTED) {
             // Headset is disconnecting, stop Virtual call if active.
             terminateScoUsingVirtualVoiceCall();
@@ -1254,7 +1252,7 @@ final class HeadsetStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         mService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
-        if (DBG) log("Audio state " + device + ": " + prevState + "->" + newState);
+        log("Audio state " + device + ": " + prevState + "->" + newState);
     }
 
     private void configAudioParameters()

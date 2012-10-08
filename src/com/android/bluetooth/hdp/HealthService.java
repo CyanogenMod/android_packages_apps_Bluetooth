@@ -42,7 +42,7 @@ import com.android.bluetooth.btservice.ProfileService.IProfileServiceBinder;
  * @hide
  */
 public class HealthService extends ProfileService {
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
     private static final String TAG="HealthService";
 
     private List<HealthChannel> mHealthChannels;
@@ -560,7 +560,7 @@ public class HealthService extends ProfileService {
             BluetoothDevice device, int state, int prevState, ParcelFileDescriptor fd, int id) {
         broadcastHealthDeviceStateChange(device, state);
 
-        if (DBG) log("Health Device Callback: " + device + " State Change: " + prevState + "->" +
+        log("Health Device Callback: " + device + " State Change: " + prevState + "->" +
                      state);
 
         ParcelFileDescriptor dupedFd = null;

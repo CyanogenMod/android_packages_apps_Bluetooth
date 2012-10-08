@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.ArrayList;
 
 class AdapterProperties {
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
     private static final String TAG = "BluetoothAdapterProperties";
 
     private static final int BD_ADDR_LEN = 6; // 6 bytes
@@ -180,7 +180,7 @@ class AdapterProperties {
      */
     void setState(int mState) {
         synchronized (mObject) {
-            Log.d(TAG,"Setting state to " + mState);
+            debugLog("Setting state to " + mState);
             this.mState = mState;
         }
     }
@@ -190,7 +190,7 @@ class AdapterProperties {
      */
     int getState() {
         synchronized (mObject) {
-            Log.d(TAG,"State = " + mState);
+            debugLog("State = " + mState);
             return mState;
         }
     }
@@ -300,7 +300,7 @@ class AdapterProperties {
                         convertToAdapterState(prevState));
                 intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
                 mService.sendBroadcast(intent, mService.BLUETOOTH_PERM);
-                debugLog("CONNECTION_STATE_CHANGE: " + device + ": "
+                Log.d(TAG, "CONNECTION_STATE_CHANGE: " + device + ": "
                         + prevState + " -> " + state);
             }
         }

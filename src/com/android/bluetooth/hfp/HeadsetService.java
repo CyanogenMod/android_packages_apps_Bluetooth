@@ -31,7 +31,7 @@ import com.android.bluetooth.btservice.ProfileService;
  * @hide
  */
 public class HeadsetService extends ProfileService {
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
     private static final String TAG = "HeadsetService";
     private static final String MODIFY_PHONE_STATE = android.Manifest.permission.MODIFY_PHONE_STATE;
 
