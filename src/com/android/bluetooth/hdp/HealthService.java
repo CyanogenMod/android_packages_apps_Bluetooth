@@ -12,17 +12,20 @@ import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothHealth;
 import android.bluetooth.IBluetoothHealthCallback;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Looper;
-import android.os.Message;
 import android.os.IBinder;
 import android.os.IBinder.DeathRecipient;
+import android.os.Looper;
+import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
-import java.util.NoSuchElementException;
 import android.os.ServiceManager;
 import android.util.Log;
+import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.ProfileService.IProfileServiceBinder;
+import com.android.bluetooth.Utils;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,10 +34,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import com.android.bluetooth.Utils;
-import android.content.pm.PackageManager;
-import com.android.bluetooth.btservice.ProfileService;
-import com.android.bluetooth.btservice.ProfileService.IProfileServiceBinder;
+import java.util.NoSuchElementException;
+
 
 /**
  * Provides Bluetooth Health Device profile, as a service in
@@ -302,6 +303,11 @@ public class HealthService extends ProfileService {
         }
 
         private HealthService getService() {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG,"Health call not allowed for non-active user");
+                return null;
+            }
+
             if (mService  != null && mService.isAvailable()) {
                 return mService;
             }

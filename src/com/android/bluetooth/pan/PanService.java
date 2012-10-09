@@ -19,23 +19,23 @@ import android.net.ConnectivityManager;
 import android.net.InterfaceConfiguration;
 import android.net.LinkAddress;
 import android.net.NetworkUtils;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.INetworkManagementService;
-import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.provider.Settings;
 import android.util.Log;
-
+import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.Utils;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.android.bluetooth.Utils;
-import com.android.bluetooth.btservice.ProfileService;
+
 
 /**
  * Provides Bluetooth Pan Device profile, as a service in
@@ -167,6 +167,11 @@ public class PanService extends ProfileService {
             return true;
         }
         private PanService getService() {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG,"Pan call not allowed for non-active user");
+                return null;
+            }
+
             if (mService  != null && mService.isAvailable()) {
                 return mService;
             }
