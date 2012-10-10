@@ -1492,7 +1492,7 @@ final class HeadsetStateMachine extends StateMachine {
         if (enable == 1) {
             mAudioManager.setParameters(HEADSET_NREC + "=on");
         } else {
-            mAudioManager.setParameters(HEADSET_NREC + "off");
+            mAudioManager.setParameters(HEADSET_NREC + "=off");
         }
     }
 
