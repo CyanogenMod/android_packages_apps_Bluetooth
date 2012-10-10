@@ -57,7 +57,7 @@ import android.os.ServiceManager;
 
 public class AdapterService extends Service {
     private static final String TAG = "BluetoothAdapterService";
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
     private static final boolean TRACE_REF = true;
     //For Debugging only
     private static int sRefCount=0;

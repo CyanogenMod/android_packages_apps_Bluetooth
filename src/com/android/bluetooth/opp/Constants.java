@@ -231,7 +231,7 @@ public class Constants {
     /**
      * Verbose level logging
      */
-    public static final boolean VERBOSE = true;
+    public static final boolean VERBOSE = false;
 
     /** use TCP socket instead of Rfcomm Socket to develop */
     public static final boolean USE_TCP_DEBUG = false;
