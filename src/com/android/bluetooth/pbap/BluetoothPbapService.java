@@ -56,7 +56,7 @@ import android.os.ServiceManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
-
+import com.android.bluetooth.Utils;
 
 
 import com.android.bluetooth.R;
@@ -721,12 +721,22 @@ public class BluetoothPbapService extends Service {
         public int getState() {
             if (DEBUG) Log.d(TAG, "getState " + mState);
 
+            if (!Utils.checkCaller()) {
+                Log.w(TAG,"getState(): not allowed for non-active user");
+                return BluetoothPbap.STATE_DISCONNECTED;
+            }
+
             enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
             return mState;
         }
 
         public BluetoothDevice getClient() {
             if (DEBUG) Log.d(TAG, "getClient" + mRemoteDevice);
+
+            if (!Utils.checkCaller()) {
+                Log.w(TAG,"getClient(): not allowed for non-active user");
+                return null;
+            }
 
             enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
             if (mState == BluetoothPbap.STATE_DISCONNECTED) {
@@ -736,11 +746,21 @@ public class BluetoothPbapService extends Service {
         }
 
         public boolean isConnected(BluetoothDevice device) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG,"isConnected(): not allowed for non-active user");
+                return false;
+            }
+
             enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
             return mState == BluetoothPbap.STATE_CONNECTED && mRemoteDevice.equals(device);
         }
 
         public boolean connect(BluetoothDevice device) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG,"connect(): not allowed for non-active user");
+                return false;
+            }
+
             enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                     "Need BLUETOOTH_ADMIN permission");
             return false;
@@ -748,6 +768,11 @@ public class BluetoothPbapService extends Service {
 
         public void disconnect() {
             if (DEBUG) Log.d(TAG, "disconnect");
+
+            if (!Utils.checkCaller()) {
+                Log.w(TAG,"disconnect(): not allowed for non-active user");
+                return;
+            }
 
             enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                     "Need BLUETOOTH_ADMIN permission");

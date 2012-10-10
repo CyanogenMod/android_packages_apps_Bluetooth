@@ -10,6 +10,7 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothInputDevice;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Handler;
@@ -18,15 +19,15 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.provider.Settings;
 import android.util.Log;
+import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.Utils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.android.bluetooth.Utils;
-import android.content.pm.PackageManager;
-import com.android.bluetooth.btservice.ProfileService;
-import com.android.bluetooth.btservice.AdapterService;
+
 
 /**
  * Provides Bluetooth Hid Host profile, as a service in
@@ -274,6 +275,11 @@ public class HidService extends ProfileService {
         }
 
         private HidService getService() {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG,"InputDevice call not allowed for non-active user");
+                return null;
+            }
+
             if (mService  != null && mService.isAvailable()) {
                 return mService;
             }
