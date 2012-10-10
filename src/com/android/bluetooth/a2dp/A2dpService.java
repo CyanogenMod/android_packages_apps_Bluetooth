@@ -10,11 +10,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.provider.Settings;
 import android.util.Log;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Iterator;
-import java.util.Map;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.Utils;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Provides Bluetooth A2DP profile, as a service in the Bluetooth application.
@@ -168,7 +169,12 @@ public class A2dpService extends ProfileService {
         private A2dpService mService;
 
         private A2dpService getService() {
-            if (mService  != null && mService.isAvailable()) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG,"A2dp call not allowed for non-active user");
+                return null;
+            }
+
+            if (mService != null && mService.isAvailable()) {
                 return mService;
             }
             return null;

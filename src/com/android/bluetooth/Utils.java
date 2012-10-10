@@ -4,9 +4,12 @@
 
 package com.android.bluetooth;
 
+import android.app.ActivityManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.os.Binder;
 import android.os.ParcelUuid;
+import android.os.UserHandle;
 import android.util.Log;
 
 import java.io.IOException;
@@ -161,5 +164,25 @@ final public class Utils {
                 Log.d(TAG,"Error closing stream",t);
             }
         }
+    }
+
+    public static boolean checkCaller() {
+        boolean ok;
+        // Get the caller's user id then clear the calling identity
+        // which will be restored in the finally clause.
+        int callingUser = UserHandle.getCallingUserId();
+        long ident = Binder.clearCallingIdentity();
+
+        try {
+            // With calling identity cleared the current user is the foreground user.
+            int foregroundUser = ActivityManager.getCurrentUser();
+            ok = (foregroundUser == callingUser);
+        } catch (Exception ex) {
+            Log.e(TAG,"checkIfCallerIsSelfOrForegroundUser: Exception ex=" + ex);
+            ok = false;
+        } finally {
+            Binder.restoreCallingIdentity(ident);
+        }
+        return ok;
     }
 }
