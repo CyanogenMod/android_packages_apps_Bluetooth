@@ -289,7 +289,7 @@ public class BluetoothOppTransferHistory extends Activity implements
         } else {
             Intent in = new Intent(this, BluetoothOppTransferActivity.class);
             in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            in.setData(contentUri);
+            in.setDataAndNormalize(contentUri);
             this.startActivity(in);
         }
     }

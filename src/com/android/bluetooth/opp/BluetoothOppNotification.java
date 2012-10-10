@@ -330,7 +330,7 @@ class BluetoothOppNotification {
 
             Intent intent = new Intent(Constants.ACTION_LIST);
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
-            intent.setData(Uri.parse(BluetoothShare.CONTENT_URI + "/" + item.id));
+            intent.setDataAndNormalize(Uri.parse(BluetoothShare.CONTENT_URI + "/" + item.id));
 
             b.setContentIntent(PendingIntent.getBroadcast(mContext, 0, intent, 0));
             mNotificationMgr.notify(item.id, b.getNotification());
@@ -491,7 +491,7 @@ class BluetoothOppNotification {
 
             Intent intent = new Intent(Constants.ACTION_INCOMING_FILE_CONFIRM);
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
-            intent.setData(contentUri);
+            intent.setDataAndNormalize(contentUri);
 
             n.when = timeStamp;
             n.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(mContext, 0,
@@ -499,7 +499,7 @@ class BluetoothOppNotification {
 
             intent = new Intent(Constants.ACTION_HIDE);
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
-            intent.setData(contentUri);
+            intent.setDataAndNormalize(contentUri);
             n.deleteIntent = PendingIntent.getBroadcast(mContext, 0, intent, 0);
 
             mNotificationMgr.notify(id, n);

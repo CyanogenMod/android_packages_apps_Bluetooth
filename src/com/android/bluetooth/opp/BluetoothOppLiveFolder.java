@@ -68,7 +68,7 @@ public class BluetoothOppLiveFolder extends Activity {
     private static Intent createLiveFolder(Context context, Uri uri, String name, int icon) {
         final Intent intent = new Intent();
 
-        intent.setData(uri);
+        intent.setDataAndNormalize(uri);
         intent.putExtra(LiveFolders.EXTRA_LIVE_FOLDER_BASE_INTENT, new Intent(
                 Constants.ACTION_OPEN, BluetoothShare.CONTENT_URI));
         intent.putExtra(LiveFolders.EXTRA_LIVE_FOLDER_NAME, name);
