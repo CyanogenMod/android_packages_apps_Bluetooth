@@ -47,7 +47,7 @@ import java.util.Set;
 
 final class A2dpStateMachine extends StateMachine {
     private static final String TAG = "A2dpStateMachine";
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
 
     static final int CONNECT = 1;
     static final int DISCONNECT = 2;
@@ -154,11 +154,9 @@ final class A2dpStateMachine extends StateMachine {
         @Override
         public boolean processMessage(Message message) {
             log("Disconnected process message: " + message.what);
-            if (DBG) {
-                if (mCurrentDevice != null || mTargetDevice != null  || mIncomingDevice != null) {
-                    log("ERROR: current, target, or mIncomingDevice not null in Disconnected");
-                    return NOT_HANDLED;
-                }
+            if (mCurrentDevice != null || mTargetDevice != null  || mIncomingDevice != null) {
+                Log.e(TAG, "ERROR: current, target, or mIncomingDevice not null in Disconnected");
+                return NOT_HANDLED;
             }
 
             boolean retValue = HANDLED;
@@ -415,9 +413,7 @@ final class A2dpStateMachine extends StateMachine {
                     // The stack is connecting to target device or
                     // there is an incoming connection from the target device at the same time
                     // we already broadcasted the intent, doing nothing here
-                    if (DBG) {
-                        log("Stack and target device are connecting");
-                    }
+                    log("Stack and target device are connecting");
                 }
                 else if (mIncomingDevice != null && mIncomingDevice.equals(device)) {
                     Log.e(TAG, "Another connecting event on the incoming device");
@@ -461,11 +457,9 @@ final class A2dpStateMachine extends StateMachine {
         @Override
         public boolean processMessage(Message message) {
             log("Connected process message: " + message.what);
-            if (DBG) {
-                if (mCurrentDevice == null) {
-                    log("ERROR: mCurrentDevice is null in Connected");
-                    return NOT_HANDLED;
-                }
+            if (mCurrentDevice == null) {
+                Log.e(TAG, "ERROR: mCurrentDevice is null in Connected");
+                return NOT_HANDLED;
             }
 
             boolean retValue = HANDLED;
@@ -690,7 +684,7 @@ final class A2dpStateMachine extends StateMachine {
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
         mContext.sendBroadcast(intent, A2dpService.BLUETOOTH_PERM);
 
-        if (DBG) log("A2DP Playing state : device: " + device + " State:" + prevState + "->" + state);
+        log("A2DP Playing state : device: " + device + " State:" + prevState + "->" + state);
     }
 
     private byte[] getByteAddress(BluetoothDevice device) {
@@ -715,9 +709,7 @@ final class A2dpStateMachine extends StateMachine {
     }
 
     private void log(String msg) {
-        if (DBG) {
-            Log.d(TAG, msg);
-        }
+        Log.d(TAG, msg);
     }
 
     private class StackEvent {
@@ -739,7 +731,7 @@ final class A2dpStateMachine extends StateMachine {
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
             intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
             mContext.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
-            if (DBG) log("Connection state " + device + ": " + prevState + "->" + state);
+            log("Connection state " + device + ": " + prevState + "->" + state);
             mService.notifyProfileConnectionStateChanged(device, BluetoothProfile.A2DP, state, prevState);
         }
 

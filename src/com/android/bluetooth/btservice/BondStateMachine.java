@@ -31,7 +31,7 @@ import java.util.ArrayList;
  */
 
 final class BondStateMachine extends StateMachine {
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
     private static final String TAG = "BluetoothBondStateMachine";
 
     static final int CREATE_BOND = 1;

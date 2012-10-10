@@ -35,7 +35,7 @@ import java.util.Map;
  * @hide
  */
 public class HidService extends ProfileService {
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
     private static final String TAG = "HidService";
 
     private Map<BluetoothDevice, Integer> mInputDevices;
@@ -561,7 +561,7 @@ public class HidService extends ProfileService {
         /* Notifying the connection state change of the profile before sending the intent for
            connection state change, as it was causing a race condition, with the UI not being
            updated with the correct connection state. */
-        if (DBG) log("Connection state " + device + ": " + prevState + "->" + newState);
+        log("Connection state " + device + ": " + prevState + "->" + newState);
         notifyProfileConnectionStateChanged(device, BluetoothProfile.INPUT_DEVICE,
                                             newState, prevState);
         Intent intent = new Intent(BluetoothInputDevice.ACTION_CONNECTION_STATE_CHANGED);

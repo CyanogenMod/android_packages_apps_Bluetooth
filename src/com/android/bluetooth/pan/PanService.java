@@ -44,7 +44,7 @@ import java.util.Map;
  */
 public class PanService extends ProfileService {
     private static final String TAG = "PanService";
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
 
     private static final String BLUETOOTH_IFACE_ADDR_START= "192.168.44.1";
     private static final int BLUETOOTH_MAX_PAN_CONNECTIONS = 5;
@@ -211,7 +211,7 @@ public class PanService extends ProfileService {
         public void setBluetoothTethering(boolean value) {
             PanService service = getService();
             if (service == null) return;
-            if(DBG) Log.d(TAG, "setBluetoothTethering: " + value +", mTetherOn: " + service.mTetherOn);
+            Log.d(TAG, "setBluetoothTethering: " + value +", mTetherOn: " + service.mTetherOn);
             service.setBluetoothTethering(value);
         }
 
@@ -421,7 +421,7 @@ public class PanService extends ProfileService {
         /* Notifying the connection state change of the profile before sending the intent for
            connection state change, as it was causing a race condition, with the UI not being
            updated with the correct connection state. */
-        if (DBG) Log.d(TAG, "Pan Device state : device: " + device + " State:" +
+        Log.d(TAG, "Pan Device state : device: " + device + " State:" +
                        prevState + "->" + state);
         notifyProfileConnectionStateChanged(device, BluetoothProfile.PAN, state, prevState);
         Intent intent = new Intent(BluetoothPan.ACTION_CONNECTION_STATE_CHANGED);
