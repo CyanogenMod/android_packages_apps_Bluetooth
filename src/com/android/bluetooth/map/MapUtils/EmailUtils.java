@@ -198,9 +198,9 @@ public class EmailUtils {
             }
             if (V){
                 Log.v(TAG, "Filter Read Status Value:"+appParams.FilterReadStatus);
-                Log.v(TAG, "Filter Read Status Condition Value:"+(appParams.FilterReadStatus & 0x10));
+                Log.v(TAG, "Filter Read Status Condition Value:"+(appParams.FilterReadStatus & 0x02));
             }
-            if ((appParams.FilterReadStatus & 0x10) != 0) {
+            if ((appParams.FilterReadStatus & 0x02) != 0) {
                 if (whereClauseEmail.length() != 0) {
                     whereClauseEmail += " AND ";
                 }
@@ -335,36 +335,40 @@ public class EmailUtils {
         }
 
         if ((appParams.ParameterMask & BIT_SENDER_NAME) != 0) {
-            if(senderName.contains("")){
-                String[] senderStr = senderName.split("");
-                if(senderStr !=null && senderStr.length > 0){
-                    if (V){
-                        Log.v(TAG, " ::Sender name split String 0:: " + senderStr[0]
-                                + "::Sender name split String 1:: " + senderStr[1]);
+            if(senderName != null) {
+                if(senderName.contains("")){
+                    String[] senderStr = senderName.split("");
+                    if(senderStr !=null && senderStr.length > 0){
+                        if (V){
+                            Log.v(TAG, " ::Sender name split String 0:: " + senderStr[0]
+                                    + "::Sender name split String 1:: " + senderStr[1]);
+                        }
+                        emailMsg.setSender_name(senderStr[1].trim());
                     }
-                    emailMsg.setSender_name(senderStr[1].trim());
                 }
-            }
-            else{
-                emailMsg.setSender_name(senderName.trim());
+                else{
+                    emailMsg.setSender_name(senderName.trim());
+                }
             }
        }
 
         if ((appParams.ParameterMask & BIT_SENDER_ADDRESSING) != 0) {
-            if(senderAddressing.contains("")){
-                String[] senderAddrStr = senderAddressing.split("");
-                if(senderAddrStr !=null && senderAddrStr.length > 0){
-                    if (V){
-                        Log.v(TAG, " ::Sender Addressing split String 0:: " + senderAddrStr[0]
-                                + "::Sender Addressing split String 1:: " + senderAddrStr[1]);
+            if(senderAddressing != null) {
+                if(senderAddressing.contains("")){
+                    String[] senderAddrStr = senderAddressing.split("");
+                    if(senderAddrStr !=null && senderAddrStr.length > 0){
+                        if (V){
+                            Log.v(TAG, " ::Sender Addressing split String 0:: " + senderAddrStr[0]
+                                    + "::Sender Addressing split String 1:: " + senderAddrStr[1]);
+                        }
+                        emailMsg.setSender_addressing(senderAddrStr[0].trim());
                     }
-                    emailMsg.setSender_addressing(senderAddrStr[0].trim());
+                }
+                else{
+                    emailMsg.setSender_addressing(senderAddressing.trim());
                 }
             }
-            else{
-                emailMsg.setSender_addressing(senderAddressing.trim());
-            }
-       }
+        }
 
         if ((appParams.ParameterMask & BIT_RECIPIENT_NAME) != 0) {
             String multiRecepients = "";

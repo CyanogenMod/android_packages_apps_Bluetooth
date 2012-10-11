@@ -201,6 +201,7 @@ public class BluetoothMnsEmail extends MnsClient {
                         if (V) Log.v(TAG, box.toString());
                     } while (crBox.moveToNext());
                 }
+                crBox.close();
             }
         }
 
