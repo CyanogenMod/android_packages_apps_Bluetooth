@@ -1002,32 +1002,30 @@ public class MapUtils {
         if (V) Log.v(TAG, "Email: " + recipient.mEmail);
 
         String vcardOrig = fetchOriginatorVcardEmail(bmsg);
-        if (vcardOrig.length() > 0) {
-            RecipientVCard originator = parseVCard(vcardOrig);
+        RecipientVCard originator = parseVCard(vcardOrig);
+        if (originator.mEmail.length() == 0) {
+            long accountId = -1;
+            accountId = EmailUtils.getAccountId(mMasId);
+            if ((accountId != -1) && (context != null)) {
+                originator.mEmail = EmailUtils.getEmailAccountIdEmail
+                (context,EmailUtils.RECORD_ID + "=" + accountId);
+                Log.v(TAG, "Orig Email inserted by MSE as: " + originator.mEmail);
+                originator.mFormattedName = EmailUtils.getEmailAccountDisplayName
+                (context,EmailUtils.RECORD_ID + "=" + accountId);
+                Log.v(TAG, "Orig F-Name inserted by MSE as: " + originator.mFormattedName);
+            }
             if (originator.mEmail.length() == 0) {
-                long accountId = -1;
-                accountId = EmailUtils.getAccountId(mMasId);
-                if ((accountId != -1) && (context != null)) {
-                    originator.mEmail = EmailUtils.getEmailAccountIdEmail
-                    (context,EmailUtils.RECORD_ID + "=" + accountId);
-                    Log.v(TAG, "Orig Email inserted by MSE as: " + originator.mEmail);
-                    originator.mFormattedName = EmailUtils.getEmailAccountDisplayName
-                    (context,EmailUtils.RECORD_ID + "=" + accountId);
-                    Log.v(TAG, "Orig F-Name inserted by MSE as: " + originator.mFormattedName);
-                }
-                if (originator.mEmail.length() == 0) {
-                    throw new BadRequestException("No Email in originator vCard");
-                }
+                throw new BadRequestException("No Email in originator vCard");
             }
-            bMsgObj.setOriginatorVcard_email(originator.mEmail);
-            if (V) Log.v(TAG, "Orig Email: " + originator.mEmail);
-            if (originator.mFormattedName.length() > 0) {
-                if (V) Log.v(TAG, "Orig Formatted Name: " + originator.mFormattedName);
-                bMsgObj.setOriginatorVcard_name(originator.mFormattedName);
-            } else {
-                if (V) Log.v(TAG, "Orig Name: " + originator.mName);
-                bMsgObj.setOriginatorVcard_name(originator.mName);
-            }
+        }
+        bMsgObj.setOriginatorVcard_email(originator.mEmail);
+        if (V) Log.v(TAG, "Orig Email: " + originator.mEmail);
+        if (originator.mFormattedName.length() > 0) {
+            if (V) Log.v(TAG, "Orig Formatted Name: " + originator.mFormattedName);
+            bMsgObj.setOriginatorVcard_name(originator.mFormattedName);
+        } else {
+            if (V) Log.v(TAG, "Orig Name: " + originator.mName);
+            bMsgObj.setOriginatorVcard_name(originator.mName);
         }
 
         if (V){
@@ -1876,6 +1874,10 @@ public class MapUtils {
     static RecipientVCard parseVCard(String vCard) throws BadRequestException {
         if (V) Log.v(TAG, "parseVCard(" + vCard + ")");
         RecipientVCard recipient = new RecipientVCard();
+
+        if (vCard.length() == 0) {
+            return recipient;
+        }
 
         try {
             ByteArrayInputStream is = null;

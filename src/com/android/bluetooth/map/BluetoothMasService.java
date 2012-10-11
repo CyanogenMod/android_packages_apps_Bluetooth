@@ -301,6 +301,9 @@ public class BluetoothMasService extends Service {
                 closeService();
             } else {
                 removeTimeoutMsg = false;
+                if (state == BluetoothAdapter.STATE_ON) {
+                    updateEmailAccount();
+                }
             }
         } else if (action.equals(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY)) {
             if (intent.getIntExtra(BluetoothDevice.EXTRA_CONNECTION_ACCESS_RESULT,
