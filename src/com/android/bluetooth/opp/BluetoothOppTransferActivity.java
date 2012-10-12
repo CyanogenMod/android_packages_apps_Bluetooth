@@ -223,14 +223,14 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
             mPara.mPositiveButtonText = getString(R.string.download_succ_ok);
             mPara.mPositiveButtonListener = this;
         } else if (mWhichDialog == DIALOG_RECEIVE_COMPLETE_FAIL) {
-            mPara.mIconId = android.R.drawable.ic_dialog_alert;
+            mPara.mIconAttrId = android.R.attr.alertDialogIcon;
             mPara.mPositiveButtonText = getString(R.string.download_fail_ok);
             mPara.mPositiveButtonListener = this;
         } else if (mWhichDialog == DIALOG_SEND_COMPLETE_SUCCESS) {
             mPara.mPositiveButtonText = getString(R.string.upload_succ_ok);
             mPara.mPositiveButtonListener = this;
         } else if (mWhichDialog == DIALOG_SEND_COMPLETE_FAIL) {
-            mPara.mIconId = android.R.drawable.ic_dialog_alert;
+            mPara.mIconAttrId = android.R.attr.alertDialogIcon;
             mPara.mPositiveButtonText = getString(R.string.upload_fail_ok);
             mPara.mPositiveButtonListener = this;
             mPara.mNegativeButtonText = getString(R.string.upload_fail_cancel);
@@ -458,7 +458,7 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
             mAlert.getButton(DialogInterface.BUTTON_POSITIVE).setText(
                     getString(R.string.download_succ_ok));
         } else if (mWhichDialog == DIALOG_RECEIVE_COMPLETE_FAIL) {
-            mAlert.setIcon(android.R.drawable.ic_dialog_alert);
+            mAlert.setIcon(mAlert.getIconAttributeResId(android.R.attr.alertDialogIcon));
             mAlert.getButton(DialogInterface.BUTTON_NEGATIVE).setVisibility(View.GONE);
             mAlert.getButton(DialogInterface.BUTTON_POSITIVE).setText(
                     getString(R.string.download_fail_ok));
@@ -467,7 +467,7 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
             mAlert.getButton(DialogInterface.BUTTON_POSITIVE).setText(
                     getString(R.string.upload_succ_ok));
         } else if (mWhichDialog == DIALOG_SEND_COMPLETE_FAIL) {
-            mAlert.setIcon(android.R.drawable.ic_dialog_alert);
+            mAlert.setIcon(mAlert.getIconAttributeResId(android.R.attr.alertDialogIcon));
             mAlert.getButton(DialogInterface.BUTTON_POSITIVE).setText(
                     getString(R.string.upload_fail_ok));
             mAlert.getButton(DialogInterface.BUTTON_NEGATIVE).setText(

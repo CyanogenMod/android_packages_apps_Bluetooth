@@ -61,7 +61,7 @@ public class BluetoothOppBtErrorActivity extends AlertActivity implements
 
         // Set up the "dialog"
         final AlertController.AlertParams p = mAlertParams;
-        p.mIconId = android.R.drawable.ic_dialog_alert;
+        p.mIconAttrId = android.R.attr.alertDialogIcon;
         p.mTitle = mErrorTitle;
         p.mView = createView();
         p.mPositiveButtonText = getString(R.string.bt_error_btn_ok);
