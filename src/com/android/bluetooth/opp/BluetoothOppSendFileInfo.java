@@ -36,6 +36,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.provider.OpenableColumns;
 import android.util.Log;
@@ -108,9 +109,15 @@ public class BluetoothOppSendFileInfo {
         // bluetooth
         if ("content".equals(scheme)) {
             contentType = contentResolver.getType(uri);
-            Cursor metadataCursor = contentResolver.query(uri, new String[] {
-                    OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE
-            }, null, null, null);
+            Cursor metadataCursor;
+            try {
+                metadataCursor = contentResolver.query(uri, new String[] {
+                        OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE
+                }, null, null, null);
+            } catch (SQLiteException e) {
+                // some content providers don't support the DISPLAY_NAME or SIZE columns
+                metadataCursor = null;
+            }
             if (metadataCursor != null) {
                 try {
                     if (metadataCursor.moveToFirst()) {
@@ -121,6 +128,10 @@ public class BluetoothOppSendFileInfo {
                 } finally {
                     metadataCursor.close();
                 }
+            }
+            if (fileName == null) {
+                // use last segment of URI if DISPLAY_NAME query fails
+                fileName = uri.getLastPathSegment();
             }
         } else if ("file".equals(scheme)) {
             fileName = uri.getLastPathSegment();
