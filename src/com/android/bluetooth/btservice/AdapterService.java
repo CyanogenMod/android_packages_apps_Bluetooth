@@ -483,24 +483,14 @@ public class AdapterService extends Service {
             return null;
         }
         public boolean isEnabled() {
-            if ((Binder.getCallingUid() != Process.SYSTEM_UID) &&
-                (!Utils.checkCaller())) {
-                Log.w(TAG,"isEnabled(): not allowed for non-active user and non system user");
-                return false;
-	    }
-
+            // don't check caller, may be called from system UI
             AdapterService service = getService();
             if (service == null) return false;
             return service.isEnabled();
         }
 
         public int getState() {
-            if ((Binder.getCallingUid() != Process.SYSTEM_UID) &&
-                (!Utils.checkCaller())) {
-                Log.w(TAG,"getState(): not allowed for non-active user and non system user");
-                return BluetoothAdapter.STATE_OFF;
-            }
-
+            // don't check caller, may be called from system UI
             AdapterService service = getService();
             if (service == null) return  BluetoothAdapter.STATE_OFF;
             return service.getState();
@@ -665,22 +655,14 @@ public class AdapterService extends Service {
         }
 
         public BluetoothDevice[] getBondedDevices() {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG,"getBondedDevices: not allowed for non-active user");
-                return new BluetoothDevice[0];
-            }
-
+            // don't check caller, may be called from system UI
             AdapterService service = getService();
             if (service == null) return new BluetoothDevice[0];
             return service.getBondedDevices();
         }
 
         public int getAdapterConnectionState() {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG,"getAdapterConnectionState: not allowed for non-active user");
-                return BluetoothAdapter.STATE_DISCONNECTED;
-            }
-
+            // don't check caller, may be called from system UI
             AdapterService service = getService();
             if (service == null) return BluetoothAdapter.STATE_DISCONNECTED;
             return service.getAdapterConnectionState();
@@ -731,11 +713,7 @@ public class AdapterService extends Service {
         }
 
         public int getBondState(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG,"getBondState(): not allowed for non-active user");
-                return BluetoothDevice.BOND_NONE;
-            }
-
+            // don't check caller, may be called from system UI
             AdapterService service = getService();
             if (service == null) return BluetoothDevice.BOND_NONE;
             return service.getBondState(device);
