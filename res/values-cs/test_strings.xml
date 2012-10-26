@@ -5,7 +5,7 @@
     <string name="app_name" msgid="1203877025577761792">"Sdílení Bluetooth"</string>
     <string name="insert_record" msgid="1450997173838378132">"Vložit záznam"</string>
     <string name="update_record" msgid="2480425402384910635">"Potvrdit záznam"</string>
-    <string name="ack_record" msgid="6716152390978472184">"Záznam ACK"</string>
+    <string name="ack_record" msgid="6716152390978472184">"Přijmout záznam"</string>
     <string name="deleteAll_record" msgid="4383349788485210582">"Smazat všechny záznamy"</string>
     <string name="ok_button" msgid="6519033415223065454">"OK"</string>
     <string name="delete_record" msgid="4645040331967533724">"Smazat záznam"</string>
