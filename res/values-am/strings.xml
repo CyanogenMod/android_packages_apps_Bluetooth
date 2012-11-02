@@ -18,7 +18,7 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"አውርድ አደራጅን ድረስ።"</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"የብሉቱዝ አጋራ አስተዳዳሪውን ለመድረስ እና ፋይሎች እንዲያስተላልፉ ለመጠቀም ለመተግበሪያው ይፈቅዳል።"</string>
-    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"የብሉቱዝ መሳሪያ መዳረሻን በተወዳጆች ዝርዝር አስገባ።"</string>
+    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"የብሉቱዝ መሳሪያ መዳረሻን በተወዳጆች ዝርዝር ያስገቡ።"</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"መተግበሪያው አንድን የብሉቱዝ መሳሪያ በጊዜያዊነት በተወዳጆች ዝርዝር እንዲያስገባ ይፈቅድለታል፣ ይህም መሳሪያው ወደዚህኛው መሳሪያ ፋይሎችን ያለተጠቃሚው ማረጋገጫ ለመላክ ያስችለዋል።"</string>
     <string name="permlab_handoverStatus" msgid="7316032998801933554">"የBT ርክክብ ስርጭቶችን ተቀበል።"</string>
     <string name="permdesc_handoverStatus" msgid="4752738070064786310">"ከብሉቱዝ የርክክብ ሁኔታ መረጃ ለመቀበል ያስችላል።"</string>
@@ -39,8 +39,8 @@
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"እሺ"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"ከ \"<xliff:g id="SENDER">%1$s</xliff:g>\" ገቢ መልዕክት ፋይል እየተቀበለ ሳለ ጊዜ አልቆ ነበር።"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"የብሉቱዝ መጋሪያ፡ ገቢ ፋይል"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"ይህን ፋይል መቀበል ትፈልጋለህ?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"ከሌላ መሣሪያ የሚገባ ፋይል አለ፣ ይህን ፋይል ለመቀበል መፈለግህን አረጋግጥ።"</string>
+    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"ይህን ፋይል መቀበል ይፈልጋሉ?"</string>
+    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"ከሌላ መሣሪያ የሚገባ ፋይል አለ፣ ይህን ፋይል ለመቀበል መፈለግዎን ያረጋግጡ።"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"ብሉቱዝ ማጋሪያ፡ <xliff:g id="FILE">%1$s</xliff:g> እየተቀበለ"</string>
     <string name="notification_received" msgid="3324588019186687985">"ብሉቱዝ ማጋሪያ፡ <xliff:g id="FILE">%1$s</xliff:g> ደርሷል"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"ብሉቱዝ ማጋሪያ፡ ፋይል<xliff:g id="FILE">%1$s</xliff:g> አልደረሰም"</string>
@@ -78,7 +78,7 @@
     <string name="not_exist_file_desc" msgid="4059531573790529229">"ፋይል የለም:: "\n</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"እባክዎ ይጠብቁ…"</string>
     <string name="enabling_progress_content" msgid="4601542238119927904">"ብሉቱዝ በማብራት ላይ..."</string>
-    <string name="bt_toast_1" msgid="972182708034353383">"ፋይሉ ይደርሳል።በማሳወቂያ ውስን ቦታ ውስጥ ሂደቱን ተመልከት።"</string>
+    <string name="bt_toast_1" msgid="972182708034353383">"ፋይሉ ይደርሳል።በማሳወቂያ ውስን ቦታ ውስጥ ሂደቱን ይመልከቱ።"</string>
     <string name="bt_toast_2" msgid="8602553334099066582">"ፋይሉን መቀበል አይቻልም::"</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"ከ\"<xliff:g id="SENDER">%1$s</xliff:g>\" ፋይል መቀበል አቁሟል"</string>
     <string name="bt_toast_4" msgid="4678812947604395649">"ፋይል ወደ \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" በመላክ ላይ"</string>
@@ -91,7 +91,7 @@
     <string name="status_pending" msgid="2503691772030877944">"የፋይል ዝውውር ገና አልተጀመረም::"</string>
     <string name="status_running" msgid="6562808920311008696">"የፋይል ዝውውር በመካሄድ ላይ ነው::"</string>
     <string name="status_success" msgid="239573225847565868">"የፋይል ዝውውሩ በተሳካ ሁኔታ ተጠናቋል::"</string>
-    <string name="status_not_accept" msgid="1695082417193780738">"ይዘት አይደገፍም::"</string>
+    <string name="status_not_accept" msgid="1695082417193780738">"ይዘቱ አይደገፍም።"</string>
     <string name="status_forbidden" msgid="613956401054050725">"ይህ ዝውውር በታለመው መሣሪያ የተከለከለ ነው።"</string>
     <string name="status_canceled" msgid="6664490318773098285">"ዝውውር በተጠቃሚ ተትቷል::"</string>
     <string name="status_file_error" msgid="3671917770630165299">"የማከማቻ ጉዳይ"</string>
