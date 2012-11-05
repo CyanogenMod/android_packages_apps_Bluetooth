@@ -416,7 +416,11 @@ public class BluetoothMns {
             File fileR = new File(mContext.getFilesDir() + "/" + FILENAME);
             if (fileR.exists() == true) {
                 Log.d(TAG, " Sending event report file ");
-                mSession.sendEvent(fileR, (byte) 0);
+                if (mSession != null) {
+                  mSession.sendEvent(fileR, (byte) 0);
+                } else {
+                  Log.d(TAG, " Unable to send report file: mSession == null");
+                }
             } else {
                 Log.d(TAG, " ERROR IN CREATING SEND EVENT OBJ FILE");
             }
