@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <!--  Copyright (C) 2007 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,7 +77,7 @@
     <string name="not_exist_file" msgid="3489434189599716133">"Žádný soubor"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"Soubor neexistuje."\n</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Čekejte prosím\u2026"</string>
-    <string name="enabling_progress_content" msgid="4601542238119927904">"Zapínání Bluetooth\U2026"</string>
+    <string name="enabling_progress_content" msgid="4601542238119927904">"Zapínání Bluetooth\u2026"</string>
     <string name="bt_toast_1" msgid="972182708034353383">"Proběhne přijímání souboru. Průběh je zobrazen na oznamovacím panelu."</string>
     <string name="bt_toast_2" msgid="8602553334099066582">"Soubor nelze přijmout."</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"Příjem souboru od \u201e<xliff:g id="SENDER">%1$s</xliff:g>\u201c byl zastaven"</string>
