@@ -17,14 +17,14 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Downloadbeheer tonen"</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"Hiermee krijgt een applicatie toegang tot de beheerfunctie voor delen via Bluetooth om deze functie te gebruiken voor het overdragen van bestanden."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"Hiermee krijgt een applicatie toegang tot de beheerfunctie voor delen via bluetooth om deze functie te gebruiken voor het overdragen van bestanden."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Onbekend apparaat"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Onbekend"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Vliegtuigmodus"</string>
-    <string name="airplane_error_msg" msgid="8031842956782631624">"U kunt Bluetooth niet gebruiken als de vliegtuigmodus van de telefoon ingeschakeld is."</string>
+    <string name="airplane_error_msg" msgid="8031842956782631624">"U kunt bluetooth niet gebruiken in vliegtuigmodus."</string>
     <string name="bt_enable_title" msgid="2371250311764527124">"Bluetooth"</string>
-    <string name="bt_enable_line1" msgid="7203551583048149">"Als u Bluetooth-services wilt gebruiken, moet u eerst Bluetooth inschakelen."</string>
+    <string name="bt_enable_line1" msgid="7203551583048149">"Voor bluetoothservices moet u eerst bluetooth inschakelen."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Bluetooth nu inschakelen?"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"Annuleren"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"Inschakelen"</string>
@@ -34,14 +34,14 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Accepteren"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="860272542827665475">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Er is een time-out opgetreden bij het accepteren van een inkomend bestand van \'<xliff:g id="SENDER">%1$s</xliff:g>\'"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Delen via Bluetooth: inkomend bestand"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Delen via bluetooth: inkomend bestand"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="85804056450169291">"Bevestig dat u dit bestand wilt ontvangen"</string>
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"Er is een inkomend bestand van een ander apparaat beschikbaar. Als u dit bestand wilt ontvangen, moet u dit bevestigen."</string>
-    <string name="notification_receiving" msgid="4674648179652543984">"Delen via Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> ontvangen"</string>
-    <string name="notification_received" msgid="3324588019186687985">"Delen via Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> ontvangen"</string>
-    <string name="notification_sending" msgid="3035748958534983833">"Delen via Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> verzenden"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"Delen via Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> verzonden"</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"Delen via Bluetooth: bestand <xliff:g id="FILE">%1$s</xliff:g> niet verzonden"</string>
+    <string name="notification_receiving" msgid="4674648179652543984">"Delen via bluetooth: <xliff:g id="FILE">%1$s</xliff:g> ontvangen"</string>
+    <string name="notification_received" msgid="3324588019186687985">"Delen via bluetooth: <xliff:g id="FILE">%1$s</xliff:g> ontvangen"</string>
+    <string name="notification_sending" msgid="3035748958534983833">"Delen via bluetooth: <xliff:g id="FILE">%1$s</xliff:g> verzenden"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"Delen via bluetooth: <xliff:g id="FILE">%1$s</xliff:g> verzonden"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"Delen via bluetooth: bestand <xliff:g id="FILE">%1$s</xliff:g> niet verzonden"</string>
     <string name="download_title" msgid="3353228219772092586">"Bestandsoverdracht"</string>
     <string name="download_line1" msgid="4926604799202134144">"Van: \'<xliff:g id="SENDER">%1$s</xliff:g>\'"</string>
     <string name="download_line2" msgid="5876973543019417712">"Bestand: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -94,7 +94,7 @@
     <string name="status_connection_error" msgid="7695388111375688873">"Verbindingsfout"</string>
     <string name="status_protocol_error" msgid="8898902951085043597">"Het verzoek kan niet correct worden verwerkt"</string>
     <string name="status_unknown_error" msgid="7441602228720350817">"Onbekende fout"</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Ontvangen via Bluetooth"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"Ontvangen via bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ontvangen voltooid."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> verzonden voltooid."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Inkomende overdrachten"</string>
