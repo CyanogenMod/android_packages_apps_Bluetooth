@@ -60,6 +60,7 @@
 
     <!-- For PBAP Owner Vcard Info -->
     <uses-permission android:name="android.permission.READ_PROFILE"/>
+    <uses-permission android:name="android.permission.MMS_PUSH"></uses-permission>
     <application
         android:name=".btservice.AdapterApp"
         android:icon="@drawable/bt_share"

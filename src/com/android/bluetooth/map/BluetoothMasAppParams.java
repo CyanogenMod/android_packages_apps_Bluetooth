@@ -28,7 +28,6 @@
 
 package com.android.bluetooth.map;
 
-
 public final class BluetoothMasAppParams {
 
     public int MaxListCount;

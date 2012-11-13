@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2008-2009, Motorola, Inc.
  * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +33,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import javax.obex.*;
+import javax.obex.Authenticator;
+import javax.obex.PasswordAuthentication;
 
 /**
  * BluetoothMapAuthenticator is a used by BluetoothObexServer for obex
@@ -95,8 +97,7 @@ public class BluetoothMapAuthenticator implements Authenticator {
 
     // TODO: Reserved for future use only, in case PSE challenge PCE
     public byte[] onAuthenticationResponse(final byte[] userName) {
-        byte[] b = null;
-        return b;
+        return null;
     }
 }
 

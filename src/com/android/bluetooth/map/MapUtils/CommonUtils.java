@@ -28,29 +28,64 @@
 
 package com.android.bluetooth.map.MapUtils;
 
-import java.util.HashSet;
-import java.util.Set;
+import android.content.Context;
+import android.text.format.Time;
+import android.util.Log;
+import android.util.TimeFormatException;
+
+import com.android.bluetooth.map.BluetoothMasAppParams;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.content.Context;
+import javax.obex.ResponseCodes;
 
 public class CommonUtils {
+    public static final String TAG = "CommonUtils";
 
-        public final String TAG = "CommonUtils";
+    public static final ArrayList<String> FIXED_FOLDERS;
 
-        public String getFullPath(String child, Context context, List<String> folderList, String CurrentPath) {
+    static {
+        FIXED_FOLDERS = new ArrayList<String>();
+        FIXED_FOLDERS.add("inbox");
+        FIXED_FOLDERS.add("sent");
+        FIXED_FOLDERS.add("deleted");
+        FIXED_FOLDERS.add("outbox");
+        FIXED_FOLDERS.add("draft");
+    }
 
+    public static class BluetoothMasPushMsgRsp {
+        public int response;
+        public String msgHandle;
+    }
+
+    public static class BluetoothMasMessageListingRsp {
+        public File file = null;
+        public int msgListingSize = 0;
+        public byte newMessage = 0;
+        public int rsp = ResponseCodes.OBEX_HTTP_OK;
+    }
+
+    public static class BluetoothMasMessageRsp {
+        public byte fractionDeliver = 0;
+        public File file = null;
+        public int rsp = ResponseCodes.OBEX_HTTP_OK;
+    }
+
+    public static class BluetoothMsgListRsp {
+        public int messageListingSize = 0;
+        public BluetoothMasMessageListingRsp rsp;
+        public List<MsgListingConsts> msgList = new ArrayList<MsgListingConsts>();
+    }
+
+    public static String getFullPath(String child, Context context, List<String> folderList, String CurrentPath) {
         String tempPath = null;
-        List<String> completeFolderList = new ArrayList<String>();
-        EmailUtils eu = new EmailUtils();
-        completeFolderList = eu.folderListEmail(folderList, context);
-
         if (child != null) {
             if (CurrentPath == null) {
                 if (child.equals("telecom")) {
                     // Telecom is fine
-                    tempPath = new String("telecom");
+                    tempPath = "telecom";
                 }
             }
             else if (CurrentPath.equals("telecom")) {
@@ -59,7 +94,7 @@ public class CommonUtils {
                 }
             }
             else if (CurrentPath.equals("telecom/msg")) {
-                for (String folder : completeFolderList) { //TODO NEED TO LOOK INTO THIS
+                for (String folder : folderList) { //TODO NEED TO LOOK INTO THIS
                     if(child.toUpperCase().contains("GMAIL")){
                         if (folder.equalsIgnoreCase(child)
                                 || folder.toUpperCase().contains(child.toUpperCase())) {
@@ -80,4 +115,42 @@ public class CommonUtils {
         return tempPath;
     }
 
+    public static int validateFilterPeriods(BluetoothMasAppParams appParams) {
+        int filterPeriodValid = -1;
+        String periodStr = "";
+        /* Filter Period Begin */
+        if ((appParams.FilterPeriodBegin != null)
+                && (appParams.FilterPeriodBegin.length() > 0)) {
+            Time time = new Time();
+            try {
+                time.parse(appParams.FilterPeriodBegin.trim());
+                if (periodStr.length() != 0) {
+                        periodStr += " AND ";
+                }
+                periodStr += "date >= " + time.toMillis(false);
+            } catch (TimeFormatException e) {
+                Log.d(TAG, "Bad formatted FilterPeriodBegin "
+                        + appParams.FilterPeriodBegin);
+                filterPeriodValid = 0;
+            }
+        }
+
+        /* Filter Period End */
+        if ((appParams.FilterPeriodEnd != null)
+                && (appParams.FilterPeriodEnd.length() > 0 )) {
+            Time time = new Time();
+            try {
+                time.parse(appParams.FilterPeriodEnd.trim());
+                if (periodStr.length() != 0) {
+                        periodStr += " AND ";
+                }
+                periodStr += "date < " + time.toMillis(false);
+            } catch (TimeFormatException e) {
+                Log.d(TAG, "Bad formatted FilterPeriodEnd "
+                        + appParams.FilterPeriodEnd);
+                filterPeriodValid = 0;
+            }
+        }
+        return filterPeriodValid;
+    }
 }
