@@ -28,27 +28,21 @@
 
 package com.android.bluetooth.map.MapUtils;
 
-import java.util.List;
-import java.util.Set;
-
+import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.provider.ContactsContract.Contacts;
-import android.provider.ContactsContract.PhoneLookup;
-import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.text.format.Time;
 import android.util.Log;
 import android.util.TimeFormatException;
 
 import com.android.bluetooth.map.BluetoothMasAppParams;
 
-
+import java.util.ArrayList;
 
 public class SmsMmsUtils {
-
-        public final String TAG = "SmsMmsUtils";
-        public static final int BIT_SUBJECT = 0x1;
+    public static final String TAG = "SmsMmsUtils";
+    public static final int BIT_SUBJECT = 0x1;
     public static final int BIT_DATETIME = 0x2;
     public static final int BIT_SENDER_NAME = 0x4;
     public static final int BIT_SENDER_ADDRESSING = 0x8;
@@ -68,17 +62,17 @@ public class SmsMmsUtils {
     public static final int BIT_PROTECTED = 0x4000;
     public static final int BIT_REPLYTO_ADDRESSING = 0x8000;
 
-        private final String Inbox = "inbox";
-    private final String Outbox = "outbox";
-    private final String Sent = "sent";
-    private final String Deleted = "deleted";
-    private final String Draft = "draft";
-    private final String Drafts = "drafts";
-    private final String Undelivered = "undelivered";
-    private final String Failed = "failed";
-    private final String Queued = "queued";
+    public static final String INBOX = "inbox";
+    public static final String OUTBOX = "outbox";
+    public static final String SENT = "sent";
+    public static final String DELETED = "deleted";
+    public static final String DRAFT = "draft";
+    public static final String DRAFTS = "drafts";
+    public static final String UNDELIVERED = "undelivered";
+    public static final String FAILED = "failed";
+    public static final String QUEUED = "queued";
 
-    private final int DELETED_THREAD_ID = -1;
+    public static final int DELETED_THREAD_ID = -1;
 
     static final int PHONELOOKUP_ID_COLUMN_INDEX = 0;
     static final int PHONELOOKUP_LOOKUP_KEY_COLUMN_INDEX = 1;
@@ -86,62 +80,90 @@ public class SmsMmsUtils {
 
     static final int EMAIL_DATA_COLUMN_INDEX = 0;
 
-    private List<VcardContent> list;
-
-    private class VcardContent {
+    public static class VcardContent {
         public String name = "";
         public String tel = "";
         public String email = "";
     }
 
-    public List<String> folderListSmsMms(List<String> folderList) {
-        folderList.add(Inbox);
-        folderList.add(Outbox);
-        folderList.add(Sent);
-        folderList.add(Deleted);
-        folderList.add(Draft);
+    public static final ArrayList<String> FORLDER_LIST_SMS_MMS;
+    public static final ArrayList<String> FORLDER_LIST_SMS_MMS_MNS;
 
-        return folderList;
+    static {
+        FORLDER_LIST_SMS_MMS = new ArrayList<String>();
+        FORLDER_LIST_SMS_MMS.add(INBOX);
+        FORLDER_LIST_SMS_MMS.add(OUTBOX);
+        FORLDER_LIST_SMS_MMS.add(SENT);
+        FORLDER_LIST_SMS_MMS.add(DELETED);
+        FORLDER_LIST_SMS_MMS.add(DRAFT);
 
+        FORLDER_LIST_SMS_MMS_MNS = new ArrayList<String>();
+        FORLDER_LIST_SMS_MMS_MNS.add(INBOX);
+        FORLDER_LIST_SMS_MMS_MNS.add(OUTBOX);
+        FORLDER_LIST_SMS_MMS_MNS.add(SENT);
+        FORLDER_LIST_SMS_MMS_MNS.add(DRAFT);
+        FORLDER_LIST_SMS_MMS_MNS.add(FAILED);
+        FORLDER_LIST_SMS_MMS_MNS.add(QUEUED);
     }
-    public String getWhereIsQueryForType(String folder) {
 
+    public static int getFolderTypeMms(String folder) {
+        int folderType = -5 ;
+
+        if (INBOX.equalsIgnoreCase(folder)) {
+            folderType = 1;
+        }
+        else if (OUTBOX.equalsIgnoreCase(folder)) {
+            folderType = 4;
+        }
+        else if (SENT.equalsIgnoreCase(folder)) {
+            folderType = 2;
+        }
+        else if (DRAFT.equalsIgnoreCase(folder) || DRAFTS.equalsIgnoreCase(folder)) {
+            folderType = 3;
+        }
+        else if (DELETED.equalsIgnoreCase(folder)) {
+            folderType = -1;
+        }
+        return folderType;
+    }
+
+    public static String getWhereIsQueryForType(String folder) {
         String query = null;
 
-        if (folder.equalsIgnoreCase(Inbox)) {
+        if (INBOX.equalsIgnoreCase(folder)) {
             query = "type = 1 AND thread_id <> " + DELETED_THREAD_ID;
         }
-        else if (folder.equalsIgnoreCase(Outbox)) {
+        else if (OUTBOX.equalsIgnoreCase(folder)) {
             query = "(type = 4 OR type = 5 OR type = 6) AND thread_id <> " + DELETED_THREAD_ID;
         }
-        else if (folder.equalsIgnoreCase(Sent)) {
+        else if (SENT.equalsIgnoreCase(folder)) {
             query = "type = 2 AND thread_id <> " + DELETED_THREAD_ID;
         }
-        else if (folder.equalsIgnoreCase(Draft)) {
+        else if (DRAFT.equalsIgnoreCase(folder)) {
             query = "type = 3 AND thread_id <> " + DELETED_THREAD_ID;
         }
-        else if (folder.equalsIgnoreCase(Deleted)) {
+        else if (DELETED.equalsIgnoreCase(folder)) {
             query = "thread_id = " + DELETED_THREAD_ID;
         }
         else{
-                query = "type = -1";
+            query = "type = -1";
         }
         return query;
-
     }
-    public String getConditionStringSms(String folderName, BluetoothMasAppParams appParams) {
-         String whereClause = getWhereIsQueryForType(folderName);
+
+    public static String getConditionStringSms(String folderName, BluetoothMasAppParams appParams) {
+        String whereClause = getWhereIsQueryForType(folderName);
 
          /* Filter readstatus: 0 no filtering, 0x01 get unread, 0x10 get read */
-         if (appParams.FilterReadStatus != 0) {
+        if (appParams.FilterReadStatus != 0) {
              if ((appParams.FilterReadStatus & 0x1) != 0) {
-                 if (whereClause != "") {
+                 if (whereClause.length() != 0) {
                      whereClause += " AND ";
                  }
                  whereClause += " read=0 ";
              }
              if ((appParams.FilterReadStatus & 0x02) != 0) {
-                 if (whereClause != "") {
+                 if (whereClause.length() != 0) {
                      whereClause += " AND ";
                  }
                  whereClause += " read=1 ";
@@ -154,8 +176,8 @@ public class SmsMmsUtils {
                  && (appParams.FilterPeriodBegin.length() > 0)) {
              Time time = new Time();
              try {
-                 time.parse(appParams.FilterPeriodBegin);
-                 if (whereClause != "") {
+                 time.parse(appParams.FilterPeriodBegin.trim());
+                 if (whereClause.length() != 0) {
                      whereClause += " AND ";
                  }
                  whereClause += "date >= " + time.toMillis(false);
@@ -170,8 +192,8 @@ public class SmsMmsUtils {
                  && (appParams.FilterPeriodEnd.length() > 0 )) {
              Time time = new Time();
              try {
-                 time.parse(appParams.FilterPeriodEnd);
-                 if (whereClause != "") {
+                 time.parse(appParams.FilterPeriodEnd.trim());
+                 if (whereClause.length() != 0) {
                      whereClause += " AND ";
                  }
                  whereClause += "date < " + time.toMillis(false);
@@ -181,7 +203,35 @@ public class SmsMmsUtils {
              }
          }
          return whereClause;
-
     }
 
+    public static final Uri SMS_URI = Uri.parse("content://sms");
+    public static final Uri MMS_URI = Uri.parse("content://mms");
+    public static final String[] THREAD_ID_COLUMN = new String[]{"thread_id"};
+
+    /**
+     * Obtain the number of MMS messages
+     */
+    public static int getNumMmsMsgs(Context context, String name) {
+        int msgCount = 0;
+
+        if (DELETED.equalsIgnoreCase(name)) {
+            Uri uri = Uri.parse("content://mms/");
+            ContentResolver cr = context.getContentResolver();
+            Cursor cursor = cr.query(uri, null, "thread_id = " + DELETED_THREAD_ID, null, null);
+            if(cursor != null){
+                msgCount = cursor.getCount();
+                cursor.close();
+            }
+        } else {
+            Uri uri = Uri.parse("content://mms/" + name);
+            ContentResolver cr = context.getContentResolver();
+            Cursor cursor = cr.query(uri, null, "thread_id <> " + DELETED_THREAD_ID, null, null);
+            if(cursor != null){
+                msgCount = cursor.getCount();
+                cursor.close();
+            }
+        }
+        return msgCount;
+    }
 }
