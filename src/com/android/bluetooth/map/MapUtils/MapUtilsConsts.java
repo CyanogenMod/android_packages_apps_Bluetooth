@@ -38,4 +38,16 @@ public final class MapUtilsConsts {
     public static final String BEGIN_BENV = "BEGIN:BENV";
     public static final String END_BBENV = "END:BENV";
 
+    public static final String Telecom = "telecom";
+    public static final String Msg = "msg";
+
+    public static final String Inbox = "inbox";
+    public static final String Outbox = "outbox";
+    public static final String Sent = "sent";
+    public static final String Deleted = "deleted";
+    public static final String Draft = "draft";
+    public static final String Drafts = "drafts";
+    public static final String Undelivered = "undelivered";
+    public static final String Failed = "failed";
+    public static final String Queued = "queued";
 }
