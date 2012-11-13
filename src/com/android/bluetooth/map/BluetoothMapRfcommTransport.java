@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2008-2009, Motorola, Inc.
  * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +29,15 @@
 
 package com.android.bluetooth.map;
 
+import android.bluetooth.BluetoothSocket;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-
-import javax.obex.*;
-
-import android.bluetooth.BluetoothSocket;
+import javax.obex.ObexTransport;
 
 public class BluetoothMapRfcommTransport implements ObexTransport {
     private BluetoothSocket mSocket = null;

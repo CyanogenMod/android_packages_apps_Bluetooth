@@ -1,4 +1,5 @@
  /*
+ * Copyright (c) 2008-2009, Motorola, Inc.
  * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +29,8 @@
 
 package com.android.bluetooth.map;
 
-
-import com.android.bluetooth.R;
-
 import android.app.Activity;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -52,6 +51,10 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+
+import com.android.bluetooth.R;
+
+import static com.android.bluetooth.map.BluetoothMasService.EXTRA_BLUETOOTH_DEVICE;
 
 /**
  * MapActivity shows two dialogues: One for accepting incoming map request and
@@ -127,18 +130,31 @@ public class BluetoothMasTestActivity extends Activity implements
     private void showMapDialog(int id) {
     }
 
+    private String getRemoteDeviceName() {
+        String remoteDeviceName = null;
+        Intent intent = getIntent();
+        if (intent.hasExtra(EXTRA_BLUETOOTH_DEVICE)) {
+            BluetoothDevice device = intent.getParcelableExtra(EXTRA_BLUETOOTH_DEVICE);
+            if (device != null) {
+                remoteDeviceName = device.getName();
+            }
+        }
+
+        return (remoteDeviceName != null) ? remoteDeviceName : getString(R.string.defaultname);
+    }
+
     private String createDisplayText(final int id) {
-        String mRemoteName = BluetoothMasService.getRemoteDeviceName();
+        String mRemoteName = getRemoteDeviceName();
         return null;
     }
 
     private View createView(final int id) {
         switch (id) {
             case DIALOG_YES_NO_CONNECT:
-                mView = getLayoutInflater().inflate(R.layout.access, null);
+                //mView = getLayoutInflater().inflate(R.layout.access, null);
                 messageView = (TextView)mView.findViewById(R.id.message);
                 messageView.setText(createDisplayText(id));
-                mAlwaysAllowed = (CheckBox)mView.findViewById(R.id.alwaysallowed);
+                //mAlwaysAllowed = (CheckBox)mView.findViewById(R.id.alwaysallowed);
                 mAlwaysAllowed.setChecked(true);
                 mAlwaysAllowed.setOnCheckedChangeListener(new OnCheckedChangeListener() {
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
