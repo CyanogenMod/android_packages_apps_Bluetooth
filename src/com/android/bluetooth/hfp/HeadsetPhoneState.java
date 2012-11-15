@@ -239,8 +239,10 @@ class HeadsetPhoneState {
             cdmaIconLevel = (levelDbm < levelEcio) ? levelDbm : levelEcio;
 
             if (mServiceState != null &&
-                  (mServiceState.getRadioTechnology() == ServiceState.RIL_RADIO_TECHNOLOGY_EVDO_0 ||
-                   mServiceState.getRadioTechnology() == ServiceState.RIL_RADIO_TECHNOLOGY_EVDO_A)) {
+                  (mServiceState.getRilVoiceRadioTechnology() ==
+                      ServiceState.RIL_RADIO_TECHNOLOGY_EVDO_0 ||
+                   mServiceState.getRilVoiceRadioTechnology() ==
+                       ServiceState.RIL_RADIO_TECHNOLOGY_EVDO_A)) {
                   int evdoEcio = signalStrength.getEvdoEcio();
                   int evdoSnr = signalStrength.getEvdoSnr();
                   int levelEvdoEcio = 0;
