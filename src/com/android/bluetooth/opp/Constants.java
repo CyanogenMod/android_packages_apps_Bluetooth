@@ -227,7 +227,7 @@ public class Constants {
     /**
      * Debug level logging
      */
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
 
     /**
      * Verbose level logging

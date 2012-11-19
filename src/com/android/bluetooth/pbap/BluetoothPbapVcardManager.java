@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008-2009, Motorola, Inc.
+ * Copyright (C) 2009-2012, Broadcom Corporation
  *
  * All rights reserved.
  *
@@ -61,6 +62,8 @@ import javax.obex.ServerOperation;
 import javax.obex.Operation;
 import javax.obex.ResponseCodes;
 
+import com.android.bluetooth.Utils;
+
 public class BluetoothPbapVcardManager {
     private static final String TAG = "BluetoothPbapVcardManager";
 
@@ -104,7 +107,37 @@ public class BluetoothPbapVcardManager {
         mResolver = mContext.getContentResolver();
     }
 
-    public final String getOwnerPhoneNumberVcard(final boolean vcardType21) {
+    /**
+     * Create an owner vcard from the configured profile
+     * @param vcardType21
+     * @return
+     */
+    private final String getOwnerPhoneNumberVcardFromProfile(final boolean vcardType21, final byte[] filter) {
+        // Currently only support Generic Vcard 2.1 and 3.0
+        int vcardType;
+        if (vcardType21) {
+            vcardType = VCardConfig.VCARD_TYPE_V21_GENERIC;
+        } else {
+            vcardType = VCardConfig.VCARD_TYPE_V30_GENERIC;
+        }
+
+        if (!BluetoothPbapConfig.includePhotosInVcard()) {
+            vcardType |= VCardConfig.FLAG_REFRAIN_IMAGE_EXPORT;
+        }
+
+        return BluetoothPbapUtils.createProfileVCard(mContext, vcardType,filter);
+    }
+
+    public final String getOwnerPhoneNumberVcard(final boolean vcardType21, final byte[] filter) {
+        //Owner vCard enhancement: Use "ME" profile if configured
+        if (BluetoothPbapConfig.useProfileForOwnerVcard()) {
+            String vcard = getOwnerPhoneNumberVcardFromProfile(vcardType21, filter);
+            if (vcard != null && vcard.length() != 0) {
+                return vcard;
+            }
+        }
+        //End enhancement
+
         BluetoothPbapCallLogComposer composer = new BluetoothPbapCallLogComposer(mContext);
         String name = BluetoothPbapService.getLocalPhoneName();
         String number = BluetoothPbapService.getLocalPhoneNum();
@@ -123,7 +156,7 @@ public class BluetoothPbapVcardManager {
                 size = getCallHistorySize(type);
                 break;
         }
-        if (V) Log.v(TAG, "getPhonebookSzie size = " + size + " type = " + type);
+        if (V) Log.v(TAG, "getPhonebookSize size = " + size + " type = " + type);
         return size;
     }
 
@@ -203,7 +236,16 @@ public class BluetoothPbapVcardManager {
 
     public final ArrayList<String> getPhonebookNameList(final int orderByWhat) {
         ArrayList<String> nameList = new ArrayList<String>();
-        nameList.add(BluetoothPbapService.getLocalPhoneName());
+        //Owner vCard enhancement. Use "ME" profile if configured
+        String ownerName = null;
+        if (BluetoothPbapConfig.useProfileForOwnerVcard()) {
+            ownerName = BluetoothPbapUtils.getProfileName(mContext);
+        }
+        if (ownerName == null || ownerName.length()==0) {
+            ownerName = BluetoothPbapService.getLocalPhoneName();
+        }
+        nameList.add(ownerName);
+        //End enhancement
 
         final Uri myUri = Contacts.CONTENT_URI;
         Cursor contactCursor = null;
@@ -443,9 +485,15 @@ public class BluetoothPbapVcardManager {
                 } else {
                     vcardType = VCardConfig.VCARD_TYPE_V30_GENERIC;
                 }
-                vcardType |= VCardConfig.FLAG_REFRAIN_IMAGE_EXPORT;
 
-                composer = new VCardComposer(mContext, vcardType, true);
+                if (!BluetoothPbapConfig.includePhotosInVcard()) {
+                    vcardType |= VCardConfig.FLAG_REFRAIN_IMAGE_EXPORT;
+                }
+
+                //Enhancement: customize Vcard based on preferences/settings and input from caller
+                composer = BluetoothPbapUtils.createFilteredVCardComposer(mContext, vcardType,null);
+                //End enhancement
+
                 // BT does want PAUSE/WAIT conversion while it doesn't want the other formatting
                 // done by vCard library by default.
                 composer.setPhoneNumberTranslationCallback(
@@ -479,6 +527,11 @@ public class BluetoothPbapVcardManager {
                                 + composer.getErrorReason());
                         return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
                     }
+                    if (V) {
+                        Log.v(TAG, "Vcard Entry:");
+                        Log.v(TAG,vcard);
+                    }
+
                     if (!buffer.onEntryCreated(vcard)) {
                         // onEntryCreate() already emits error.
                         return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
@@ -517,6 +570,11 @@ public class BluetoothPbapVcardManager {
                                 + composer.getErrorReason());
                         return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
                     }
+                    if (V) {
+                        Log.v(TAG, "Vcard Entry:");
+                        Log.v(TAG,vcard);
+                    }
+
                     buffer.onEntryCreated(vcard);
                 }
             } finally {

@@ -151,7 +151,7 @@ public class BluetoothOppLauncherActivity extends Activity {
                         Constants.THIS_PACKAGE_NAME);
                 in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_CLASS,
                         BluetoothOppReceiver.class.getName());
-
+                if (V) {Log.d(TAG,"Launching " +BluetoothDevicePicker.ACTION_LAUNCH );}
                 this.startActivity(in1);
             }
         } else if (action.equals(Constants.ACTION_OPEN)) {

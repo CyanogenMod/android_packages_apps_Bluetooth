@@ -76,8 +76,6 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
     private static final int RFCOMM_CONNECTED = 11;
 
-    private static final int SDP_RESULT = 12;
-
     private static final int SOCKET_ERROR_RETRY = 13;
 
     private static final int CONNECT_WAIT_TIMEOUT = 45000;
@@ -137,32 +135,10 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case SDP_RESULT:
-                    if (V) Log.v(TAG, "SDP request returned " + msg.arg1 + " (" +
-                            (System.currentTimeMillis() - mTimestamp + " ms)"));
-                    if (!((BluetoothDevice)msg.obj).equals(mBatch.mDestination)) {
-                        return;
-                    }
-                    try {
-                        mContext.unregisterReceiver(mReceiver);
-                    } catch (IllegalArgumentException e) {
-                        // ignore
-                    }
-                    if (msg.arg1 > 0) {
-                        mConnectThread = new
-                            SocketConnectThread(mBatch.mDestination, msg.arg1, false);
-                        mConnectThread.start();
-                    } else {
-                        /* SDP query fail case */
-                        Log.e(TAG, "SDP query failed!");
-                        markBatchFailed(BluetoothShare.STATUS_CONNECTION_ERROR);
-                        mBatch.mStatus = Constants.BATCH_STATUS_FAILED;
-                    }
-
-                    break;
                 case SOCKET_ERROR_RETRY:
                     mConnectThread = new
-                        SocketConnectThread((BluetoothDevice)msg.obj, msg.arg1, true);
+                        SocketConnectThread((BluetoothDevice)msg.obj, true);
+
                     mConnectThread.start();
                     break;
                 case RFCOMM_ERROR:
@@ -326,7 +302,11 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             }
         }
 
-        BluetoothOppShareInfo info = mBatch.getPendingShare();
+        BluetoothOppShareInfo info = null;
+        if (mBatch == null) {
+            return;
+        }
+        info = mBatch.getPendingShare();
         while (info != null) {
             if (info.mStatus < 200) {
                 info.mStatus = failReason;
@@ -335,9 +315,9 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 updateValues.put(BluetoothShare.STATUS, info.mStatus);
                 /* Update un-processed outbound transfer to show some info */
                 if (info.mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
-                    BluetoothOppSendFileInfo fileInfo = null;
-                    fileInfo = BluetoothOppSendFileInfo.generateFileInfo(mContext, info.mUri,
-                            info.mMimetype, info.mDestination);
+                    BluetoothOppSendFileInfo fileInfo
+                            = BluetoothOppUtility.getSendFileInfo(info.mUri);
+                    BluetoothOppUtility.closeSendFileInfo(info.mUri);
                     if (fileInfo.mFileName != null) {
                         updateValues.put(BluetoothShare.FILENAME_HINT, fileInfo.mFileName);
                         updateValues.put(BluetoothShare.TOTAL_BYTES, fileInfo.mLength);
@@ -510,78 +490,10 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             mConnectThread = new SocketConnectThread("localhost", Constants.TCP_DEBUG_PORT, 0);
             mConnectThread.start();
         } else {
-            int channel = BluetoothOppPreference.getInstance(mContext).getChannel(
-                    mBatch.mDestination, OPUSH_UUID16);
-            if (channel != -1) {
-                if (D) Log.d(TAG, "Get OPUSH channel " + channel + " from cache for " +
-                        mBatch.mDestination);
-                mTimestamp = System.currentTimeMillis();
-                mSessionHandler.obtainMessage(SDP_RESULT, channel, -1, mBatch.mDestination)
-                        .sendToTarget();
-            } else {
-                doOpushSdp();
-            }
+            mConnectThread = new SocketConnectThread(mBatch.mDestination,false);
+            mConnectThread.start();
         }
     }
-
-    private void doOpushSdp() {
-        if (V) Log.v(TAG, "Do Opush SDP request for address " + mBatch.mDestination);
-
-        mTimestamp = System.currentTimeMillis();
-
-        int channel;
-        channel = mBatch.mDestination.getServiceChannel(BluetoothUuid.ObexObjectPush);
-        if (channel != -1) {
-            if (D) Log.d(TAG, "Get OPUSH channel " + channel + " from SDP for "
-                    + mBatch.mDestination);
-
-            mSessionHandler.obtainMessage(SDP_RESULT, channel, -1, mBatch.mDestination)
-                    .sendToTarget();
-            return;
-
-        } else {
-            if (V) Log.v(TAG, "Remote Service channel not in cache");
-
-            if (!mBatch.mDestination.fetchUuidsWithSdp()) {
-                Log.e(TAG, "Start SDP query failed");
-            } else {
-                // we expect framework send us Intent ACTION_UUID. otherwise we will fail
-                if (V) Log.v(TAG, "Start new SDP, wait for result");
-                IntentFilter intentFilter = new IntentFilter(BluetoothDevice.ACTION_UUID);
-                mContext.registerReceiver(mReceiver, intentFilter);
-                return;
-            }
-        }
-        Message msg = mSessionHandler.obtainMessage(SDP_RESULT, channel, -1, mBatch.mDestination);
-        mSessionHandler.sendMessageDelayed(msg, 2000);
-    }
-
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(BluetoothDevice.ACTION_UUID)) {
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if (V) Log.v(TAG, "ACTION_UUID for device " + device);
-                if (device.equals(mBatch.mDestination)) {
-                    int channel = -1;
-                    Parcelable[] uuid = intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID);
-                    if (uuid != null) {
-                        ParcelUuid[] uuids = new ParcelUuid[uuid.length];
-                        for (int i = 0; i < uuid.length; i++) {
-                            uuids[i] = (ParcelUuid)uuid[i];
-                        }
-                        if (BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.ObexObjectPush)) {
-                            if (V) Log.v(TAG, "SDP get OPP result for device " + device);
-                            channel = mBatch.mDestination
-                                    .getServiceChannel(BluetoothUuid.ObexObjectPush);
-                        }
-                    }
-                    mSessionHandler.obtainMessage(SDP_RESULT, channel, -1, mBatch.mDestination)
-                            .sendToTarget();
-                }
-            }
-        }
-    };
 
     private SocketConnectThread mConnectThread;
 
@@ -616,6 +528,17 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             this.device = device;
             this.host = null;
             this.channel = channel;
+            isConnected = false;
+            mRetry = retry;
+        }
+
+        /* create a Rfcomm Socket */
+        public SocketConnectThread(BluetoothDevice device, boolean
+                retry) {
+            super("Socket Connect Thread");
+            this.device = device;
+            this.host = null;
+            this.channel = -1;
             isConnected = false;
             mRetry = retry;
         }
@@ -694,9 +617,9 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 /* Use BluetoothSocket to connect */
 
                 try {
-                    btSocket = device.createInsecureRfcommSocket(channel);
+                    btSocket = device.createInsecureRfcommSocketToServiceRecord(BluetoothUuid.ObexObjectPush.getUuid());
                 } catch (IOException e1) {
-                    Log.e(TAG, "Rfcomm socket create error");
+                    Log.e(TAG, "Rfcomm socket create error",e1);
                     markConnectionFailed(btSocket);
                     return;
                 }
@@ -708,15 +631,13 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                     BluetoothOppRfcommTransport transport;
                     transport = new BluetoothOppRfcommTransport(btSocket);
 
-                    BluetoothOppPreference.getInstance(mContext).setChannel(device, OPUSH_UUID16,
-                            channel);
                     BluetoothOppPreference.getInstance(mContext).setName(device, device.getName());
 
                     if (V) Log.v(TAG, "Send transport message " + transport.toString());
 
                     mSessionHandler.obtainMessage(RFCOMM_CONNECTED, transport).sendToTarget();
                 } catch (IOException e) {
-                    Log.e(TAG, "Rfcomm socket connect exception");
+                    Log.e(TAG, "Rfcomm socket connect exception",e);
                     // If the devices were paired before, but unpaired on the
                     // remote end, it will return an error for the auth request
                     // for the socket connection. Link keys will get exchanged
@@ -724,12 +645,9 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                     // inform this socket asking it to retry apart from a blind
                     // delayed retry.
                     if (!mRetry && e.getMessage().equals(SOCKET_LINK_KEY_ERROR)) {
-                        Message msg = mSessionHandler.obtainMessage(SOCKET_ERROR_RETRY,
-                                channel, -1, device);
+                        Message msg = mSessionHandler.obtainMessage(SOCKET_ERROR_RETRY,-1,-1,device);
                         mSessionHandler.sendMessageDelayed(msg, 1500);
                     } else {
-                        BluetoothOppPreference.getInstance(mContext)
-                                .removeChannel(device, OPUSH_UUID16);
                         markConnectionFailed(btSocket);
                     }
                 }
@@ -758,6 +676,10 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
     /* update a trivial field of a share to notify Provider the batch status change */
     private void tickShareStatus(BluetoothOppShareInfo share) {
+        if (share == null) {
+            Log.d(TAG,"Share is null");
+            return;
+        }
         Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + share.mId);
         ContentValues updateValues = new ContentValues();
         updateValues.put(BluetoothShare.DIRECTION, share.mDirection);

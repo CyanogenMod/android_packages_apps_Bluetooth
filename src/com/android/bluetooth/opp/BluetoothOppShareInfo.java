@@ -32,6 +32,8 @@
 
 package com.android.bluetooth.opp;
 
+import android.net.Uri;
+
 /**
  * This class stores information about a single OBEX share, e.g. one object
  * send/receive to a destination address.
@@ -40,7 +42,7 @@ public class BluetoothOppShareInfo {
 
     public int mId;
 
-    public String mUri;
+    public Uri mUri;
 
     public String mHint;
 
@@ -66,7 +68,7 @@ public class BluetoothOppShareInfo {
 
     public boolean mMediaScanned;
 
-    public BluetoothOppShareInfo(int id, String uri, String hint, String filename, String mimetype,
+    public BluetoothOppShareInfo(int id, Uri uri, String hint, String filename, String mimetype,
             int direction, String destination, int visibility, int confirm, int status,
             int totalBytes, int currentBytes, int timestamp, boolean mediaScanned) {
         mId = id;

@@ -26,7 +26,7 @@
     <string name="unknown_device" msgid="9221903979877041009">"Unknown device"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Unknown"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Aeroplane mode"</string>
-    <string name="airplane_error_msg" msgid="8698965595254137230">"You can\'t use Bluetooth in Airplane mode."</string>
+    <string name="airplane_error_msg" msgid="8698965595254137230">"You can\'t use Bluetooth in Aeroplane mode."</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"To use Bluetooth services, you must first turn on Bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Turn on Bluetooth now?"</string>
