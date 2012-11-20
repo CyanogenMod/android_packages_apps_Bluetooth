@@ -56,8 +56,8 @@ import android.net.Uri;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.PhoneLookup;
 import android.provider.ContactsContract.CommonDataKinds.Email;
-import android.telephony.SmsManager;
-import android.telephony.SmsMessage;
+/*import android.telephony.SmsManager;
+import android.telephony.SmsMessage;*/
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.text.format.Time;
@@ -1282,8 +1282,9 @@ public class BluetoothMasAppIf {
         String strAddress = new String(strbufAddress);
 
         // Use getSubmitPdu only to obtain the encoded msg and encoded address
-        byte[] msg = SmsMessage.getSubmitPdu(null, strAddress, smsBody, false).encodedMessage;
-
+        // FIXME API NO LONGEREXIST
+       // byte[] msg = SmsMessage.getSubmitPdu(null, strAddress, smsBody, false).encodedMessage;
+        byte[] msg = new byte[] {0, 0, 0};
         int addLength = Integer.valueOf(msg[2]);
         if ( addLength %2 != 0){
             addLength++;
@@ -1852,6 +1853,8 @@ public class BluetoothMasAppIf {
                         Log.d(TAG, "Sms Sent");
                         moveToFolder(SmsHandle, Sent);
                         break;
+                            //fixme: missing apis
+                            /*
                     case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
                         Log.d(TAG, "Generic Failure");
                         moveToFolder(SmsHandle, Failed);
@@ -1867,7 +1870,7 @@ public class BluetoothMasAppIf {
                     case SmsManager.RESULT_ERROR_RADIO_OFF:
                         Log.d(TAG, "RADIO OFF");
                         moveToFolder(SmsHandle, Queued);
-                        break;
+                        break;*/
                     }
                     context.unregisterReceiver(this);
                 }
@@ -1899,9 +1902,9 @@ public class BluetoothMasAppIf {
                 SmsHandle = addToSmsFolder("outbox", PhoneAddress, SmsText);
                 rsp.msgHandle = SmsHandle;
             }
+            // fixme missing apis
 
-
-            SmsManager sms = SmsManager.getDefault();
+         /*   SmsManager sms = SmsManager.getDefault();
 
             Log.d(TAG, " Trying to send SMS ");
             Log.d(TAG, " Text " + SmsText + " address " + PhoneAddress);
@@ -1913,7 +1916,7 @@ public class BluetoothMasAppIf {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
 
-            }
+            }*/
         }
         else if(type!=null && type.equalsIgnoreCase("EMAIL")){
             Log.d(TAG, " Before fromBmessageemail method:: "+readStr);
