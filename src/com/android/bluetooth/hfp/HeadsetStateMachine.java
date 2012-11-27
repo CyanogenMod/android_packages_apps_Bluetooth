@@ -33,6 +33,7 @@
 package com.android.bluetooth.hfp;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
@@ -1267,6 +1268,30 @@ final class HeadsetStateMachine extends StateMachine {
         log("Audio state " + device + ": " + prevState + "->" + newState);
     }
 
+    /*
+     * Put the AT command, company ID, arguments, and device in an Intent and broadcast it.
+     */
+    private void broadcastVendorSpecificEventIntent(String command,
+                                                    int companyId,
+                                                    int commandType,
+                                                    Object[] arguments,
+                                                    BluetoothDevice device) {
+        log("broadcastVendorSpecificEventIntent(" + command + ")");
+        Intent intent =
+                new Intent(BluetoothHeadset.ACTION_VENDOR_SPECIFIC_HEADSET_EVENT);
+        intent.putExtra(BluetoothHeadset.EXTRA_VENDOR_SPECIFIC_HEADSET_EVENT_CMD, command);
+        intent.putExtra(BluetoothHeadset.EXTRA_VENDOR_SPECIFIC_HEADSET_EVENT_CMD_TYPE,
+                        commandType);
+        // assert: all elements of args are Serializable
+        intent.putExtra(BluetoothHeadset.EXTRA_VENDOR_SPECIFIC_HEADSET_EVENT_ARGS, arguments);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+
+        intent.addCategory(BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_COMPANY_ID_CATEGORY
+            + "." + Integer.toString(companyId));
+
+        mService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
+    }
+
     private void configAudioParameters()
     {
         // Reset NREC on connect event. Headset will override later
@@ -1645,6 +1670,65 @@ final class HeadsetStateMachine extends StateMachine {
         }
     }
 
+    /**
+     * Find a character ch, ignoring quoted sections.
+     * Return input.length() if not found.
+     */
+    static private int findChar(char ch, String input, int fromIndex) {
+        for (int i = fromIndex; i < input.length(); i++) {
+            char c = input.charAt(i);
+            if (c == '"') {
+                i = input.indexOf('"', i + 1);
+                if (i == -1) {
+                    return input.length();
+                }
+            } else if (c == ch) {
+                return i;
+            }
+        }
+        return input.length();
+    }
+
+    /**
+     * Break an argument string into individual arguments (comma delimited).
+     * Integer arguments are turned into Integer objects. Otherwise a String
+     * object is used.
+     */
+    static private Object[] generateArgs(String input) {
+        int i = 0;
+        int j;
+        ArrayList<Object> out = new ArrayList<Object>();
+        while (i <= input.length()) {
+            j = findChar(',', input, i);
+
+            String arg = input.substring(i, j);
+            try {
+                out.add(new Integer(arg));
+            } catch (NumberFormatException e) {
+                out.add(arg);
+            }
+
+            i = j + 1; // move past comma
+        }
+        return out.toArray();
+    }
+
+    private void processAtXevent(String atString) {
+        log("processAtXevent - atString = "+ atString);
+        if (atString.startsWith("=") && !atString.startsWith("=?")) {
+            Object[] args = generateArgs(atString.substring(1));
+            broadcastVendorSpecificEventIntent("+XEVENT",
+                                               BluetoothAssignedNumbers.PLANTRONICS,
+                                               BluetoothHeadset.AT_CMD_TYPE_SET,
+                                               args,
+                                               mCurrentDevice);
+        }
+        else {
+            Log.e(TAG, "processAtXevent: command type error");
+            atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
+        }
+    }
+
     private void processUnknownAt(String atString) {
         // TODO (BT)
         log("processUnknownAt - atString = "+ atString);
@@ -1656,6 +1740,8 @@ final class HeadsetStateMachine extends StateMachine {
             processAtCpbs(atCommand.substring(5), commandType);
         else if (atCommand.startsWith("+CPBR"))
             processAtCpbr(atCommand.substring(5), commandType, mCurrentDevice);
+        else if (atCommand.startsWith("+XEVENT"))
+            processAtXevent(atCommand.substring(7));
         else
             atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
     }
