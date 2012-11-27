@@ -975,21 +975,21 @@ public class BluetoothPbapVcardManager {
 
         public String applyFilter ( String vCard, boolean vCardType21){
             String attr [] = vCard.split(System.getProperty("line.separator"));
+            String filteredVcard = "";
 
             //FN is not the mandatory field in 2.1 vCard
             if(((!fn) && (vCardType21)) && (vCard.contains("FN"))) {
                 for (int i=0; i < attr.length; i++) {
                     if(attr[i].startsWith("FN")){
-                        vCard = vCard.replace(attr[i] + "\n", "");
+                        attr[i] = "";
                         /** Remove multiline Content, if any */
                         /** End traversal before END:VCARD */
                         for (int j = i+1; j < attr.length - 1; j++) {
                             if (checkValidFilter(attr[j])) {
-                                /** Start of another attribute, break */
                                 break;
                             } else {
                                 /** Continuation of above attribute, remove */
-                                vCard = vCard.replace(attr[j] + "\n", "");
+                                attr[j] = "";
                             }
                         }
                     }
@@ -1000,16 +1000,15 @@ public class BluetoothPbapVcardManager {
             if((!bday) && (vCard.contains("BDAY"))) {
                 for (int i=0; i < attr.length; i++) {
                     if(attr[i].startsWith("BDAY")){
-                        vCard = vCard.replace(attr[i] + "\n", "");
+                        attr[i] = "";
                         /** Remove multiline Content, if any */
                         /** End traversal before END:VCARD */
                         for (int j = i+1; j < attr.length - 1; j++) {
                             if (checkValidFilter(attr[j])) {
-                                /** Start of another attribute, break */
                                 break;
                             } else {
                                 /** Continuation of above attribute, remove */
-                                vCard = vCard.replace(attr[j] + "\n", "");
+                                attr[j] = "";
                             }
                         }
                     }
@@ -1019,16 +1018,15 @@ public class BluetoothPbapVcardManager {
             if((!adr) && (vCard.contains("ADR"))) {
                 for (int i=0; i < attr.length; i++) {
                     if(attr[i].startsWith("ADR")){
-                        vCard = vCard.replace(attr[i] + "\n", "");
+                        attr[i] = "";
                         /** Remove multiline Content, if any */
                         /** End traversal before END:VCARD */
                         for (int j = i+1; j < attr.length - 1; j++) {
                             if (checkValidFilter(attr[j])) {
-                                /** Start of another attribute, break */
                                 break;
                             } else {
                                 /** Continuation of above attribute, remove */
-                                vCard = vCard.replace(attr[j] + "\n", "");
+                                attr[j] = "";
                             }
                         }
                     }
@@ -1038,16 +1036,15 @@ public class BluetoothPbapVcardManager {
             if((!email) && (vCard.contains("EMAIL"))) {
                 for (int i=0; i < attr.length; i++) {
                     if(attr[i].startsWith("EMAIL")){
-                        vCard = vCard.replace(attr[i] + "\n", "");
+                        attr[i] = "";
                         /** Remove multiline Content, if any */
                         /** End traversal before END:VCARD */
                         for (int j = i+1; j < attr.length - 1; j++) {
                             if (checkValidFilter(attr[j])) {
-                                /** Start of another attribute, break */
                                 break;
                             } else {
                                 /** Continuation of above attribute, remove */
-                                vCard = vCard.replace(attr[j] + "\n", "");
+                                attr[j] = "";
                             }
                         }
                     }
@@ -1057,16 +1054,15 @@ public class BluetoothPbapVcardManager {
             if((!title) && (vCard.contains("TITLE"))) {
                 for (int i=0; i < attr.length; i++) {
                     if(attr[i].startsWith("TITLE")){
-                        vCard = vCard.replace(attr[i] + "\n", "");
+                        attr[i] = "";
                         /** Remove multiline Content, if any */
                         /** End traversal before END:VCARD */
                         for (int j = i+1; j < attr.length - 1; j++) {
                             if (checkValidFilter(attr[j])) {
-                                /** Start of another attribute, break */
                                 break;
                             } else {
                                 /** Continuation of above attribute, remove */
-                                vCard = vCard.replace(attr[j] + "\n", "");
+                                attr[j] = "";
                             }
                         }
                     }
@@ -1076,16 +1072,15 @@ public class BluetoothPbapVcardManager {
             if((!org) && (vCard.contains("ORG"))) {
                 for (int i=0; i < attr.length; i++) {
                     if(attr[i].startsWith("ORG")){
-                        vCard = vCard.replace(attr[i] + "\n", "");
+                        attr[i] = "";
                         /** Remove multiline Content, if any */
                         /** End traversal before END:VCARD */
                         for (int j = i+1; j < attr.length - 1; j++) {
                             if (checkValidFilter(attr[j])) {
-                                /** Start of another attribute, break */
                                 break;
                             } else {
                                 /** Continuation of above attribute, remove */
-                                vCard = vCard.replace(attr[j] + "\n", "");
+                                attr[j] = "";
                             }
                         }
                     }
@@ -1095,16 +1090,15 @@ public class BluetoothPbapVcardManager {
             if((!notes) && (vCard.contains("NOTE"))) {
                 for (int i=0; i < attr.length; i++) {
                     if(attr[i].startsWith("NOTE")){
-                        vCard = vCard.replace(attr[i] + "\n", "");
+                        attr[i] = "";
                         /** Remove multiline Content, if any */
                         /** End traversal before END:VCARD */
                         for (int j = i+1; j < attr.length - 1; j++) {
                             if (checkValidFilter(attr[j])) {
-                                /** Start of another attribute, break */
                                 break;
                             } else {
                                 /** Continuation of above attribute, remove */
-                                vCard = vCard.replace(attr[j] + "\n", "");
+                                attr[j] = "";
                             }
                         }
                     }
@@ -1117,16 +1111,15 @@ public class BluetoothPbapVcardManager {
             if(((!nickname) || (vCardType21)) && (vCard.contains("NICKNAME"))) {
                 for (int i=0; i < attr.length; i++) {
                     if(attr[i].startsWith("NICKNAME")){
-                        vCard = vCard.replace(attr[i] + "\n", "");
+                        attr[i] = "";
                         /** Remove multiline Content, if any */
                         /** End traversal before END:VCARD */
                         for (int j = i+1; j < attr.length - 1; j++) {
                             if (checkValidFilter(attr[j])) {
-                                /** Start of another attribute, break */
                                 break;
                             } else {
                                 /** Continuation of above attribute, remove */
-                                vCard = vCard.replace(attr[j] + "\n", "");
+                                attr[j] = "";
                             }
                         }
                     }
@@ -1136,16 +1129,15 @@ public class BluetoothPbapVcardManager {
             if((!url) && (vCard.contains("URL"))) {
                 for (int i=0; i < attr.length; i++) {
                     if(attr[i].startsWith("URL")){
-                        vCard = vCard.replace(attr[i] + "\n", "");
+                        attr[i] = "";
                         /** Remove multiline Content, if any */
                         /** End traversal before END:VCARD */
                         for (int j = i+1; j < attr.length - 1; j++) {
                             if (checkValidFilter(attr[j])) {
-                                /** Start of another attribute, break */
                                 break;
                             } else {
                                 /** Continuation of above attribute, remove */
-                                vCard = vCard.replace(attr[j] + "\n", "");
+                                attr[j] = "";
                             }
                         }
                     }
@@ -1170,7 +1162,15 @@ public class BluetoothPbapVcardManager {
                 }
             }
 
-            return vCard;
+            Log.v(TAG, "Tokens after applying filter: ");
+
+            for (int i=0; i < attr.length; i++) {
+                if(!attr[i].equals("")){
+                    filteredVcard = filteredVcard.concat(attr[i] + "\n");
+                }
+            }
+
+            return filteredVcard;
         }
     }
 }
