@@ -680,7 +680,7 @@ public class BluetoothOppService extends Service {
             info.mUri = Uri.parse(stringFromCursor(info.mUri.toString(), cursor,
                     BluetoothShare.URI));
         } else {
-            Log.d(TAG, "updateShare() called for ID " + info.mId + " with null URI");
+            Log.w(TAG, "updateShare() called for ID " + info.mId + " with null URI");
         }
         info.mHint = stringFromCursor(info.mHint, cursor, BluetoothShare.FILENAME_HINT);
         info.mFilename = stringFromCursor(info.mFilename, cursor, BluetoothShare._DATA);

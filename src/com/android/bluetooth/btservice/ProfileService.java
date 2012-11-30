@@ -77,7 +77,7 @@ public abstract class ProfileService extends Service {
                     refCount = refCount+1;
                 }
                 sReferenceCount.put(mName, refCount);
-                log("REFCOUNT: CREATED. INSTANCE_COUNT=" +refCount);
+                if (DBG) log("REFCOUNT: CREATED. INSTANCE_COUNT=" +refCount);
             }
         }
     }
@@ -99,14 +99,14 @@ public abstract class ProfileService extends Service {
 
     @Override
     public void onCreate() {
-        log("onCreate");
+        if (DBG) log("onCreate");
         super.onCreate();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mBinder = initBinder();
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
-        log("onStartCommand()");
+        if (DBG) log("onStartCommand()");
         if (mStartError || mAdapter == null) {
             Log.w(mName, "Stopping profile service: device does not have BT");
             doStop(intent);
@@ -138,22 +138,22 @@ public abstract class ProfileService extends Service {
     }
 
     public IBinder onBind(Intent intent) {
-        log("onBind");
+        if (DBG) log("onBind");
         return mBinder;
     }
 
     public boolean onUnbind(Intent intent) {
-        log("onUnbind");
+        if (DBG) log("onUnbind");
         return super.onUnbind(intent);
     }
 
     @Override
     public void onDestroy() {
-        log("Destroying service.");
+        if (DBG) log("Destroying service.");
         if (mCleaningUp) {
-            log("Cleanup already started... Skipping cleanup()...");
+            if (DBG) log("Cleanup already started... Skipping cleanup()...");
         } else {
-            log("cleanup()");
+            if (DBG) log("cleanup()");
             mCleaningUp = true;
             cleanup();
             if (mBinder != null) {
@@ -170,7 +170,7 @@ public abstract class ProfileService extends Service {
         if (mAdapter == null) {
             Log.e(mName, "Error starting profile. BluetoothAdapter is null");
         } else {
-            log("start()");
+            if (DBG) log("start()");
             mStartError = !start();
             if (!mStartError) {
                 notifyProfileServiceStateChanged(BluetoothAdapter.STATE_ON);
@@ -182,7 +182,7 @@ public abstract class ProfileService extends Service {
 
     private void doStop(Intent intent) {
         if (stop()) {
-            log("stop()");
+            if (DBG) log("stop()");
             notifyProfileServiceStateChanged(BluetoothAdapter.STATE_OFF);
             stopSelf();
         } else {
