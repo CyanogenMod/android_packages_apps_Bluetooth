@@ -1722,6 +1722,7 @@ final class HeadsetStateMachine extends StateMachine {
                                                BluetoothHeadset.AT_CMD_TYPE_SET,
                                                args,
                                                mCurrentDevice);
+            atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK, 0);
         }
         else {
             Log.e(TAG, "processAtXevent: command type error");
