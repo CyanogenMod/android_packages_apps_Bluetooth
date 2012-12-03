@@ -179,7 +179,7 @@ public class HidService extends ProfileService {
                     if(halState == CONN_STATE_CONNECTED &&
                        prevState == BluetoothInputDevice.STATE_DISCONNECTED &&
                        (!okToConnect(device))) {
-                        Log.d(TAG,"Incoming HID connection rejected");
+                        if (DBG) Log.d(TAG,"Incoming HID connection rejected");
                         disconnectHidNative(Utils.getByteAddress(device));
                     } else {
                         broadcastConnectionState(device, convertHalState(halState));
