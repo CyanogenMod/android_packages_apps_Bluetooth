@@ -547,7 +547,7 @@ class AdapterProperties {
     }
 
     private void infoLog(String msg) {
-        Log.i(TAG, msg);
+        if (DBG) Log.i(TAG, msg);
     }
 
     private void debugLog(String msg) {
