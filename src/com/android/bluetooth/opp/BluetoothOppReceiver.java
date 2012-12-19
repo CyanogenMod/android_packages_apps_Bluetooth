@@ -116,7 +116,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             Uri uri = intent.getData();
             Intent in = new Intent(context, BluetoothOppIncomingFileConfirmActivity.class);
             in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            in.setData(uri);
+            in.setDataAndNormalize(uri);
             context.startActivity(in);
 
             NotificationManager notMgr = (NotificationManager)context
@@ -157,7 +157,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             } else {
                 Intent in = new Intent(context, BluetoothOppTransferActivity.class);
                 in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                in.setData(uri);
+                in.setDataAndNormalize(uri);
                 context.startActivity(in);
             }
 

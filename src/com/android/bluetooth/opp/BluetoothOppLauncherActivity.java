@@ -169,7 +169,7 @@ public class BluetoothOppLauncherActivity extends Activity {
             Intent intent1 = new Intent();
             intent1.setAction(action);
             intent1.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
-            intent1.setData(uri);
+            intent1.setDataAndNormalize(uri);
             this.sendBroadcast(intent1);
             finish();
         } else {
