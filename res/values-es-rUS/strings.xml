@@ -25,7 +25,7 @@
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Dispositivo desconocido"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Desconocido"</string>
-    <string name="airplane_error_title" msgid="2683839635115739939">"Modo de avión"</string>
+    <string name="airplane_error_title" msgid="2683839635115739939">"Modo avión"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"No puedes usar Bluetooth en Modo avión."</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Para acceder a nuestros servicios de Bluetooth, primero debes activar el Bluetooth."</string>
@@ -100,12 +100,12 @@
     <string name="status_connection_error" msgid="947681831523219891">"Conexión incorrecta"</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"No se puede procesar la solicitud correctamente."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Error desconocido"</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth recibido"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"Recibidos por Bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"Se recibieron <xliff:g id="FILE_SIZE">%1$s</xliff:g> completos."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> enviados por completo."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Transferencias de entrada"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Transferencias de salida"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"El historial de transferencia está vacío."</string>
+    <string name="no_transfers" msgid="3482965619151865672">"El historial de transferencias está vacío."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Se borrarán todos los elementos de la lista."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Compartir con Bluetooth: Archivos enviados"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Compartir con Bluetooth: Archivos recibidos"</string>
