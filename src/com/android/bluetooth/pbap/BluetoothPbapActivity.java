@@ -128,7 +128,6 @@ public class BluetoothPbapActivity extends AlertActivity implements
         final AlertController.AlertParams p = mAlertParams;
         switch (id) {
             case DIALOG_YES_NO_AUTH:
-                p.mIconId = android.R.drawable.ic_dialog_info;
                 p.mTitle = getString(R.string.pbap_session_key_dialog_header);
                 p.mView = createView(DIALOG_YES_NO_AUTH);
                 p.mPositiveButtonText = getString(android.R.string.ok);
