@@ -1,0 +1,10 @@
+Change-Id: Ie7f60fef58f755788cd61aea8acbd9051f914214
+Code-Review+2: Steve Kondik <shade@chemlab.org>
+Verified+1: Steve Kondik <shade@chemlab.org>
+Code-Review+1: john c craig <johnccraig80@gmail.com>
+Code-Review+1: Dave Kessler <activethrasher00@gmail.com>
+Submitted-by: Steve Kondik <shade@chemlab.org>
+Submitted-at: Sun, 20 Jan 2013 20:47:44 -0800
+Reviewed-on: http://review.cyanogenmod.org/29952
+Project: CyanogenMod/android_packages_apps_Bluetooth
+Branch: refs/heads/cm-10.1
