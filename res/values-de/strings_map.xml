@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ressources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="map_acceptance_dialog_title">%1$s erbittet Zugriff auf Ihre Telefonordner. %2$s? den Zugriff erlauben?</string>
+    <string name="map_acceptance_dialog_header">Telefonordnerzugriff</string>
+    <string name="map_session_key_dialog_title">Sitzungsschlüssel für %1$s eingeben</strig>
+    <string name="map_session_key_dialog_header">Bluetooth-Sitzungsschlüssel erforderlich</string>
+    <string name="map_acceptance_timeout_message">Eine Zeitüberschreitung für den Zugriff auf %1$s ist aufgetreten</string>
+    <string name="map_authentication_timeout_message">Eine Zeitüberschreitung ist bei der Eingabe des Sitzungsschlüssel für %1$s aufgetreten</string>
+    <string name="map_notif_ticker">Obex-Authentifizierungsanfrage</string>
+    <string name="map_notif_title">MAP-Sitzungsschlüsselanfrage</string>
+    <string name="map_notif_message">%1$s Root-Zugriff auf Ordner erlauben</string>
+    <string name="map_alert_conn_failed_message">Bluetooth MAP Verbindung fehlgeschlagen.</string>
+</resources>
