@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2008-2009, Motorola, Inc.
  * Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +29,13 @@
 
 package com.android.bluetooth.map;
 
-import java.util.HashMap;
-
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.util.Log;
+
+import java.util.HashMap;
 
 /**
  * This class cache Bluetooth device name and channel locally. Its a temp

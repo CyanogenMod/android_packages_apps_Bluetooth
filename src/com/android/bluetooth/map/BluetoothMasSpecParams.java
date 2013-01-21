@@ -28,7 +28,6 @@
 
 package com.android.bluetooth.map;
 
-
 public final class BluetoothMasSpecParams {
 
     public static final int MAS_TAG_MAX_LIST_COUNT            = 0x01;
@@ -125,8 +124,5 @@ public final class BluetoothMasSpecParams {
     public static final int MAS_TAG_STATUS_INDICATOR_MAX_VAL      = 0x01;
     public static final int MAS_TAG_STATUS_VALUE_MIN_VAL          = 0x00;
     public static final int MAS_TAG_STATUS_VALUE_MAX_VAL          = 0x01;
-
-
-
 };
 
