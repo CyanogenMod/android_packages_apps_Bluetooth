@@ -30,15 +30,15 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="map_acceptance_dialog_title">%1$s would like to access your phone folders. Give access to %2$s?</string>
-    <string name="map_acceptance_dialog_header">Phone Folder Access</string>
-    <string name="map_session_key_dialog_title">Type session key for %1$s</string>
-    <string name="map_session_key_dialog_header">Bluetooth session key required</string>
-    <string name="map_acceptance_timeout_message">There was time out to accept connection with %1$s</string>
-    <string name="map_authentication_timeout_message">There was time out to input session key with %1$s</string>
-    <string name="map_notif_ticker">Obex authentication request</string>
+    <string name="map_acceptance_dialog_header">Phone folder access</string>
+    <string name="map_session_key_dialog_title" translatable="false">@string/pbap_session_key_dialog_title</string>
+    <string name="map_session_key_dialog_header" translatable="false">@string/pbap_session_key_dialog_header</string>
+    <string name="map_acceptance_timeout_message" translatable="false">@string/pbap_acceptance_timeout_message</string>
+    <string name="map_authentication_timeout_message" translatable="false">@string/pbap_authentication_timeout_message</string>
+    <string name="map_notif_ticker" translatable="false">@string/auth_notif_ticker</string>
     <!-- Notification title when a Bluetooth device wants to pair with us -->
-    <string name="map_notif_title">Session Key Request for MAP</string>
+    <string name="map_notif_title">Session key request for MAP</string>
     <!-- Notification message when a Bluetooth device wants to pair with us -->
     <string name="map_notif_message">Allow root folder access by %1$s</string>
-    <string name="map_alert_conn_failed_message">Bluetooth MAP connection failed.</string>
+    <string name="map_alert_conn_failed_message">Bluetooth MAP connection failed</string>
 </resources>
