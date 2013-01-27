@@ -31,11 +31,6 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="map_acceptance_dialog_title">%1$s 想访问您的设备文件夹. 给予 %2$s 访问权限?</string>
     <string name="map_acceptance_dialog_header">设备文件夹访问</string>
-    <string name="map_session_key_dialog_title">键入 %1$s 的会话密钥</string>
-    <string name="map_session_key_dialog_header">需要蓝牙会话密钥</string>
-    <string name="map_acceptance_timeout_message">来自 %1$s 的连接请求超时</string>
-    <string name="map_authentication_timeout_message">%1$s 的会话密钥输入超时</string>
-    <string name="map_notif_ticker">OBEX 认证请求</string>
     <!-- Notification title when a Bluetooth device wants to pair with us -->
     <string name="map_notif_title">用于 MAP 的会话密钥请求</string>
     <!-- Notification message when a Bluetooth device wants to pair with us -->

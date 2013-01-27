@@ -31,11 +31,6 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="map_acceptance_dialog_title">%1$s vorrebbe accedere alle cartelle di questo dispositivo. Consentire l\'accesso a %2$s?</string>
     <string name="map_acceptance_dialog_header">Accesso cartelle</string>
-    <string name="map_session_key_dialog_title">Inserire la chiave di sessione per %1$s</string>
-    <string name="map_session_key_dialog_header">E\' richiesta la chiave di sessione</string>
-    <string name="map_acceptance_timeout_message">Tempo scaduto per la connessione con %1$s</string>
-    <string name="map_authentication_timeout_message">Tempo scaduto per l\'inserimento della chiave di sessione con %1$s</string>
-    <string name="map_notif_ticker">Richiesta di autenticazione obex</string>
     <string name="map_notif_title">Richiesta di chiave di sessione</string>
     <string name="map_notif_message">Consentire accesso alla cartella radice da %1$s</string>
     <string name="map_alert_conn_failed_message">Connessione bluetooth MAP fallita.</string>
