@@ -1957,10 +1957,10 @@ final class HeadsetStateMachine extends StateMachine {
         return ret;
     }
 
-
-    private void log(String msg) {
+    @Override
+    protected void log(String msg) {
         if (DBG) {
-            Log.d(TAG, msg);
+            super.log(msg);
         }
     }
 
