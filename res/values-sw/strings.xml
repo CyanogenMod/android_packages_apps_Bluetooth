@@ -16,7 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Fikia kidhibiti cha vipakuzi"</string>
+    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Fikia kidhibiti cha vipakuliwa."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Huruhusu programu kufikia kidhibiti cha BluetoothShare na kukitumia kuhamisha faili."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Ruhusu ufikiaji kifaa cha bluetooth."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Huruhusu programu kuorodhesha kwa muda kifaa cha Bluetooth kwenye orodha ya vifaa maalum, ikiruhusu kifaa hicho kutuma faili kwa kifaa hiki bila uthibitishaji wa mtumiaji."</string>
