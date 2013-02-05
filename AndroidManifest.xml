@@ -219,6 +219,14 @@
         </receiver>
         <service
             android:process="@string/process"
+            android:name = ".gatt.GattService"
+            android:enabled="@bool/profile_supported_gatt">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothGatt" />
+            </intent-filter>
+        </service>
+        <service
+            android:process="@string/process"
             android:name = ".hfp.HeadsetService"
             android:enabled="@bool/profile_supported_hs_hfp">
             <intent-filter>

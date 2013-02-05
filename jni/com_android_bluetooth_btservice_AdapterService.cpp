@@ -443,6 +443,13 @@ static void callback_thread_event(bt_cb_thread_evt event) {
     }
 }
 
+static void dut_mode_recv_callback (uint16_t opcode, uint8_t *buf, uint8_t len) {
+
+}
+static void le_test_mode_recv_callback (bt_status_t status, uint16_t packet_count) {
+
+    ALOGV("%s: status:%d packet_count:%d ", __FUNCTION__, status, packet_count);
+}
 bt_callbacks_t sBluetoothCallbacks = {
     sizeof(sBluetoothCallbacks),
     adapter_state_change_callback,
@@ -455,6 +462,9 @@ bt_callbacks_t sBluetoothCallbacks = {
     bond_state_changed_callback,
     acl_state_changed_callback,
     callback_thread_event,
+    dut_mode_recv_callback,
+
+    le_test_mode_recv_callback
 };
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
@@ -924,7 +934,7 @@ static JNINativeMethod sMethods[] = {
     {"getRemoteServicesNative", "([B)Z", (void*) getRemoteServicesNative},
     {"connectSocketNative", "([BI[BII)I", (void*) connectSocketNative},
     {"createSocketChannelNative", "(ILjava/lang/String;[BII)I",
-     (void*) createSocketChannelNative},
+     (void*) createSocketChannelNative}
 };
 
 int register_com_android_bluetooth_btservice_AdapterService(JNIEnv* env)
@@ -982,5 +992,9 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
       return JNI_ERR;
    }
 
+   if ((status = android::register_com_android_bluetooth_gatt(e)) < 0) {
+       ALOGE("jni gatt registration failure: %d", status);
+      return JNI_ERR;
+   }
    return JNI_VERSION_1_6;
 }

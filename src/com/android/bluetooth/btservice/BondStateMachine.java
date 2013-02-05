@@ -347,6 +347,10 @@ final class BondStateMachine extends StateMachine {
             return BluetoothDevice.UNBOND_REASON_REMOTE_DEVICE_DOWN;
         else if (reason == AbstractionLayer.BT_STATUS_AUTH_FAILURE)
             return BluetoothDevice.UNBOND_REASON_AUTH_FAILED;
+        else if (reason == AbstractionLayer.BT_STATUS_AUTH_REJECTED)
+            return BluetoothDevice.UNBOND_REASON_AUTH_REJECTED;
+        else if (reason == AbstractionLayer.BT_STATUS_AUTH_TIMEOUT)
+            return BluetoothDevice.UNBOND_REASON_AUTH_TIMEOUT;
 
         /* default */
         return BluetoothDevice.UNBOND_REASON_REMOVED;
