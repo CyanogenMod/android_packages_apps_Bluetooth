@@ -445,7 +445,8 @@ class AdapterProperties {
                         intent = new Intent(BluetoothAdapter.ACTION_LOCAL_NAME_CHANGED);
                         intent.putExtra(BluetoothAdapter.EXTRA_LOCAL_NAME, mName);
                         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-                        mService.sendBroadcast(intent, mService.BLUETOOTH_PERM);
+                        mService.sendBroadcastAsUser(intent, UserHandle.ALL,
+                                 mService.BLUETOOTH_PERM);
                         debugLog("Name is: " + mName);
                         break;
                     case AbstractionLayer.BT_PROPERTY_BDADDR:
@@ -546,7 +547,7 @@ class AdapterProperties {
     }
 
     private void infoLog(String msg) {
-        Log.i(TAG, msg);
+        if (DBG) Log.i(TAG, msg);
     }
 
     private void debugLog(String msg) {
