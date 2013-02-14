@@ -889,7 +889,7 @@ public class AdapterService extends Service {
             return  BluetoothAdapter.STATE_OFF;
         }
         else {
-            debugLog("getState(): mAdapterProperties: " + mAdapterProperties);
+            if (DBG) debugLog("getState(): mAdapterProperties: " + mAdapterProperties);
             return mAdapterProperties.getState();
         }
     }
