@@ -36,7 +36,8 @@ import com.android.internal.util.StateMachine;
  */
 
 final class AdapterState extends StateMachine {
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
+    private static final boolean VDBG = false;
     private static final String TAG = "BluetoothAdapterState";
 
     static final int USER_TURN_ON = 1;
@@ -72,13 +73,13 @@ final class AdapterState extends StateMachine {
 
     public boolean isTurningOn() {
         boolean isTurningOn=  mPendingCommandState.isTurningOn();
-        if (DBG) Log.d(TAG,"isTurningOn()=" + isTurningOn);
+        if (VDBG) Log.d(TAG,"isTurningOn()=" + isTurningOn);
         return isTurningOn;
     }
 
     public boolean isTurningOff() {
         boolean isTurningOff= mPendingCommandState.isTurningOff();
-        if (DBG) Log.d(TAG,"isTurningOff()=" + isTurningOff);
+        if (VDBG) Log.d(TAG,"isTurningOff()=" + isTurningOff);
         return isTurningOff;
     }
 

@@ -33,7 +33,8 @@ import java.util.HashMap;
 import java.util.ArrayList;
 
 class AdapterProperties {
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
+    private static final boolean VDBG = false;
     private static final String TAG = "BluetoothAdapterProperties";
 
     private static final int BD_ADDR_LEN = 6; // 6 bytes
@@ -203,7 +204,7 @@ class AdapterProperties {
      */
     int getState() {
         synchronized (mObject) {
-            debugLog("State = " + mState);
+            if (VDBG) debugLog("State = " + mState);
             return mState;
         }
     }
