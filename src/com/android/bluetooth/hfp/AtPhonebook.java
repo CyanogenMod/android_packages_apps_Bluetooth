@@ -204,15 +204,11 @@ public class AtPhonebook {
                 if ("SM".equals(mCurrentPhonebook)) {
                     atCommandResponse = "+CPBS: \"SM\",0," + getMaxPhoneBookSize(0);
                     atCommandResult = HeadsetHalConstants.AT_RESPONSE_OK;
-                    if (atCommandResponse != null)
-                        mStateMachine.atResponseStringNative(atCommandResponse);
-                    mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
                     break;
                 }
                 PhonebookResult pbr = getPhonebookResult(mCurrentPhonebook, true);
                 if (pbr == null) {
                     atCommandErrorCode = BluetoothCmeError.OPERATION_NOT_SUPPORTED;
-                    mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
                     break;
                 }
                 int size = pbr.cursor.getCount();
@@ -231,7 +227,7 @@ public class AtPhonebook {
                 String[] args = atString.split("=");
                 // Select phonebook memory
                 if (args.length < 2 || !(args[1] instanceof String)) {
-                    mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
+                    atCommandErrorCode = BluetoothCmeError.OPERATION_NOT_SUPPORTED;
                     break;
                 }
                 String pb = ((String)args[1]).trim();
@@ -240,7 +236,6 @@ public class AtPhonebook {
                 if (getPhonebookResult(pb, false) == null && !"SM".equals(pb)) {
                    if (DBG) log("Dont know phonebook: '" + pb + "'");
                    atCommandErrorCode = BluetoothCmeError.OPERATION_NOT_ALLOWED;
-                   mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
                    break;
                 }
                 mCurrentPhonebook = pb;
