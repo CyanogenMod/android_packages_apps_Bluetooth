@@ -128,7 +128,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
     /**
      * Called from BluetoothOppTransfer to start the "Transfer"
      */
-    public void start(Handler handler) {
+    public void start(Handler handler, int numShares) {
         if (D) Log.d(TAG, "Start!");
         mCallback = handler;
 
@@ -286,6 +286,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             values.put(BluetoothShare.USER_CONFIRMATION,
                     BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED);
             needConfirm = false;
+
         }
 
         Uri contentUri = mContext.getContentResolver().insert(BluetoothShare.CONTENT_URI, values);
@@ -539,15 +540,38 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
         if (D) Log.d(TAG, "onConnect");
         if (V) Constants.logHeader(request);
+        Long objectCount = null;
         try {
             byte[] uuid = (byte[])request.getHeader(HeaderSet.TARGET);
             if (V) Log.v(TAG, "onConnect(): uuid =" + Arrays.toString(uuid));
             if(uuid != null) {
                  return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
             }
+
+            objectCount = (Long) request.getHeader(HeaderSet.COUNT);
         } catch (IOException e) {
             Log.e(TAG, e.toString());
             return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+        }
+        String destination;
+        if (mTransport instanceof BluetoothOppRfcommTransport) {
+            destination = ((BluetoothOppRfcommTransport)mTransport).getRemoteAddress();
+        } else {
+            destination = "FF:FF:FF:00:00:00";
+        }
+        boolean isHandover = BluetoothOppManager.getInstance(mContext).
+                isWhitelisted(destination);
+        if (isHandover) {
+            // Notify the handover requester file transfer has started
+            Intent intent = new Intent(Constants.ACTION_HANDOVER_STARTED);
+            if (objectCount != null) {
+                intent.putExtra(Constants.EXTRA_BT_OPP_OBJECT_COUNT, objectCount.intValue());
+            } else {
+                intent.putExtra(Constants.EXTRA_BT_OPP_OBJECT_COUNT,
+                        Constants.COUNT_HEADER_UNAVAILABLE);
+            }
+            intent.putExtra(Constants.EXTRA_BT_OPP_ADDRESS, destination);
+            mContext.sendBroadcast(intent, Constants.HANDOVER_STATUS_PERMISSION);
         }
         mTimestamp = System.currentTimeMillis();
         return ResponseCodes.OBEX_HTTP_OK;

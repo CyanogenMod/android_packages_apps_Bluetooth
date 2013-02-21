@@ -83,10 +83,10 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
         mTransport = transport;
     }
 
-    public void start(Handler handler) {
+    public void start(Handler handler, int numShares) {
         if (D) Log.d(TAG, "Start!");
         mCallback = handler;
-        mThread = new ClientThread(mContext, mTransport);
+        mThread = new ClientThread(mContext, mTransport, numShares);
         mThread.start();
     }
 
@@ -140,13 +140,15 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
         private boolean mConnected = false;
 
-        public ClientThread(Context context, ObexTransport transport) {
+        private int mNumShares;
+
+        public ClientThread(Context context, ObexTransport transport, int initialNumShares) {
             super("BtOpp ClientThread");
             mContext1 = context;
             mTransport1 = transport;
             waitingForShare = true;
             mWaitingForRemote = false;
-
+            mNumShares = initialNumShares;
             PowerManager pm = (PowerManager)mContext1.getSystemService(Context.POWER_SERVICE);
             wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
         }
@@ -171,7 +173,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                 mInterrupted = true;
             }
             if (!mInterrupted) {
-                connect();
+                connect(mNumShares);
             }
 
             while (!mInterrupted) {
@@ -229,7 +231,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             }
         }
 
-        private void connect() {
+        private void connect(int numShares) {
             if (D) Log.d(TAG, "Create ClientSession with transport " + mTransport1.toString());
             try {
                 mCs = new ClientSession(mTransport1);
@@ -240,6 +242,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             if (mConnected) {
                 mConnected = false;
                 HeaderSet hs = new HeaderSet();
+                hs.setHeader(HeaderSet.COUNT, (long) numShares);
                 synchronized (this) {
                     mWaitingForRemote = true;
                 }

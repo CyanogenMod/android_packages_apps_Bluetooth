@@ -66,7 +66,7 @@ public interface BluetoothOppObexSession {
 
     int SESSION_TIMEOUT = 50000;
 
-    void start(Handler sessionHandler);
+    void start(Handler sessionHandler, int numShares);
 
     void stop();
 

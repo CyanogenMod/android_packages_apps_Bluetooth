@@ -88,6 +88,10 @@ public class Constants {
     public static final String ACTION_HANDOVER_SEND_MULTIPLE =
             "android.btopp.intent.action.HANDOVER_SEND_MULTIPLE";
 
+    /** the intent that is used for indicating an incoming transfer*/
+    public static final String ACTION_HANDOVER_STARTED =
+            "android.btopp.intent.action.BT_OPP_HANDOVER_STARTED";
+
     /** intent action used to indicate the progress of a handover transfer */
     public static final String ACTION_BT_OPP_TRANSFER_PROGRESS =
             "android.btopp.intent.action.BT_OPP_TRANSFER_PROGRESS";
@@ -104,6 +108,10 @@ public class Constants {
     public static final String EXTRA_BT_OPP_ADDRESS =
             "android.btopp.intent.extra.BT_OPP_ADDRESS";
 
+    public static final String EXTRA_BT_OPP_OBJECT_COUNT =
+            "android.btopp.intent.extra.BT_OPP_OBJECT_COUNT";
+
+    public static final int COUNT_HEADER_UNAVAILABLE = -1;
     public static final int HANDOVER_TRANSFER_STATUS_SUCCESS = 0;
 
     public static final int HANDOVER_TRANSFER_STATUS_FAILURE = 1;

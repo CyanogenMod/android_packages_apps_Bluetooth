@@ -453,7 +453,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             if (V) Log.v(TAG, "Transfer has Server session" + mSession.toString());
         }
 
-        mSession.start(mSessionHandler);
+        mSession.start(mSessionHandler, mBatch.getNumShares());
         processCurrentShare();
     }
 
