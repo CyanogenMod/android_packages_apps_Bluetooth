@@ -54,7 +54,7 @@ const bt_interface_t* getBluetoothInterface() {
 }
 
 JNIEnv* getCallbackEnv() {
-   return callbackEnv;
+    return callbackEnv;
 }
 
 void checkAndClearExceptionFromCallback(JNIEnv* env,
@@ -92,25 +92,25 @@ static int get_properties(int num_properties, bt_property_t *properties, jintArr
     jbyteArray propVal;
     for (int i = 0; i < num_properties; i++) {
 
-       /* The higher layers expect rssi as a short int value, while the value is sent as a byte
-        * to jni. Converting rssi value to the expected format.*/
-       if (properties[i].type == BT_PROPERTY_REMOTE_RSSI)
-       {
-           jbyte rssi = *((jbyte *) properties[i].val);
-           short rssiValue = rssi;
-           properties[i].len = sizeof(rssiValue);
-           properties[i].val = &rssiValue;
-       }
+        /* The higher layers expect rssi as a short int value, while the value is sent as a byte
+         * to jni. Converting rssi value to the expected format.*/
+        if (properties[i].type == BT_PROPERTY_REMOTE_RSSI)
+        {
+            jbyte rssi = *((jbyte *) properties[i].val);
+            short rssiValue = rssi;
+            properties[i].len = sizeof(rssiValue);
+            properties[i].val = &rssiValue;
+        }
 
-       propVal = callbackEnv->NewByteArray(properties[i].len);
-       if (propVal == NULL) goto Fail;
+        propVal = callbackEnv->NewByteArray(properties[i].len);
+        if (propVal == NULL) goto Fail;
 
-       callbackEnv->SetByteArrayRegion(propVal, 0, properties[i].len,
-                                            (jbyte*)properties[i].val);
-       callbackEnv->SetObjectArrayElement(*props, i, propVal);
-       // Delete reference to propVal
-       callbackEnv->DeleteLocalRef(propVal);
-       callbackEnv->SetIntArrayRegion(*types, i, 1, (jint *)&properties[i].type);
+        callbackEnv->SetByteArrayRegion(propVal, 0, properties[i].len,
+                                             (jbyte*)properties[i].val);
+        callbackEnv->SetObjectArrayElement(*props, i, propVal);
+        // Delete reference to propVal
+        callbackEnv->DeleteLocalRef(propVal);
+        callbackEnv->SetIntArrayRegion(*types, i, 1, (jint *)&properties[i].type);
     }
     return 0;
 Fail:
@@ -428,8 +428,7 @@ static void callback_thread_event(bt_cb_thread_evt event) {
     if (event  == ASSOCIATE_JVM) {
         JavaVMAttachArgs args;
         char name[] = "BT Service Callback Thread";
-        //TODO(BT)
-        //args.version = nat->envVer;
+        args.version = JNI_VERSION_1_6;
         args.name = name;
         args.group = NULL;
         vm->AttachCurrentThread(&callbackEnv, &args);
@@ -602,7 +601,7 @@ static jboolean createBondNative(JNIEnv* env, jobject obj, jbyteArray address) {
     }
 
     int ret = sBluetoothInterface->create_bond((bt_bdaddr_t *)addr);
-    env->ReleaseByteArrayElements(address, addr, NULL);
+    env->ReleaseByteArrayElements(address, addr, 0);
     result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 
     return result;
@@ -622,7 +621,7 @@ static jboolean removeBondNative(JNIEnv* env, jobject obj, jbyteArray address) {
     }
 
     int ret = sBluetoothInterface->remove_bond((bt_bdaddr_t *)addr);
-    env->ReleaseByteArrayElements(address, addr, NULL);
+    env->ReleaseByteArrayElements(address, addr, 0);
     result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 
     return result;
@@ -642,7 +641,7 @@ static jboolean cancelBondNative(JNIEnv* env, jobject obj, jbyteArray address) {
     }
 
     int ret = sBluetoothInterface->cancel_bond((bt_bdaddr_t *)addr);
-    env->ReleaseByteArrayElements(address, addr, NULL);
+    env->ReleaseByteArrayElements(address, addr, 0);
     result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 
     return result;
@@ -666,15 +665,15 @@ static jboolean pinReplyNative(JNIEnv *env, jobject obj, jbyteArray address, jbo
         pinPtr = env->GetByteArrayElements(pinArray, NULL);
         if (pinPtr == NULL) {
            jniThrowIOException(env, EINVAL);
-           env->ReleaseByteArrayElements(address, addr, NULL);
+           env->ReleaseByteArrayElements(address, addr, 0);
            return result;
         }
     }
 
     int ret = sBluetoothInterface->pin_reply((bt_bdaddr_t*)addr, accept, len,
                                               (bt_pin_code_t *) pinPtr);
-    env->ReleaseByteArrayElements(address, addr, NULL);
-    env->ReleaseByteArrayElements(pinArray, pinPtr, NULL);
+    env->ReleaseByteArrayElements(address, addr, 0);
+    env->ReleaseByteArrayElements(pinArray, pinPtr, 0);
     result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 
     return result;
@@ -696,7 +695,7 @@ static jboolean sspReplyNative(JNIEnv *env, jobject obj, jbyteArray address,
 
     int ret = sBluetoothInterface->ssp_reply((bt_bdaddr_t *)addr,
          (bt_ssp_variant_t) type, accept, passkey);
-    env->ReleaseByteArrayElements(address, addr, NULL);
+    env->ReleaseByteArrayElements(address, addr, 0);
     result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 
     return result;
@@ -716,7 +715,7 @@ static jboolean setAdapterPropertyNative(JNIEnv *env, jobject obj, jint type, jb
     prop.val = val;
 
     int ret = sBluetoothInterface->set_adapter_property(&prop);
-    env->ReleaseByteArrayElements(value, val, NULL);
+    env->ReleaseByteArrayElements(value, val, 0);
     result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 
     return result;
@@ -761,7 +760,7 @@ static jboolean getDevicePropertyNative(JNIEnv *env, jobject obj, jbyteArray add
 
     int ret = sBluetoothInterface->get_remote_device_property((bt_bdaddr_t *)addr,
                                                               (bt_property_type_t) type);
-    env->ReleaseByteArrayElements(address, addr, NULL);
+    env->ReleaseByteArrayElements(address, addr, 0);
     result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 
     return result;
@@ -783,7 +782,7 @@ static jboolean setDevicePropertyNative(JNIEnv *env, jobject obj, jbyteArray add
 
     addr = env->GetByteArrayElements(address, NULL);
     if (addr == NULL) {
-        env->ReleaseByteArrayElements(value, val, NULL);
+        env->ReleaseByteArrayElements(value, val, 0);
         jniThrowIOException(env, EINVAL);
         return result;
     }
@@ -795,8 +794,8 @@ static jboolean setDevicePropertyNative(JNIEnv *env, jobject obj, jbyteArray add
     prop.val = val;
 
     int ret = sBluetoothInterface->set_remote_device_property((bt_bdaddr_t *)addr, &prop);
-    env->ReleaseByteArrayElements(value, val, NULL);
-    env->ReleaseByteArrayElements(address, addr, NULL);
+    env->ReleaseByteArrayElements(value, val, 0);
+    env->ReleaseByteArrayElements(address, addr, 0);
 
     result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 
@@ -817,7 +816,7 @@ static jboolean getRemoteServicesNative(JNIEnv *env, jobject obj, jbyteArray add
     }
 
     int ret = sBluetoothInterface->get_remote_services((bt_bdaddr_t *)addr);
-    env->ReleaseByteArrayElements(address, addr, NULL);
+    env->ReleaseByteArrayElements(address, addr, 0);
     result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
     return result;
 }
@@ -828,7 +827,7 @@ static int connectSocketNative(JNIEnv *env, jobject object, jbyteArray address, 
     int socket_fd;
     bt_status_t status;
 
-    if (!sBluetoothSocketInterface) return NULL;
+    if (!sBluetoothSocketInterface) return -1;
 
     addr = env->GetByteArrayElements(address, NULL);
     if (!addr) {
@@ -865,13 +864,13 @@ Fail:
 }
 
 static int createSocketChannelNative(JNIEnv *env, jobject object, jint type,
-                                         jstring name_str, jbyteArray uuidObj, jint channel, jint flag) {
+                                     jstring name_str, jbyteArray uuidObj, jint channel, jint flag) {
     const char *service_name;
     jbyte *uuid = NULL;
     int socket_fd;
     bt_status_t status;
 
-    if (!sBluetoothSocketInterface) return NULL;
+    if (!sBluetoothSocketInterface) return -1;
 
     service_name = env->GetStringUTFChars(name_str, NULL);
 
@@ -903,7 +902,7 @@ Fail:
 }
 
 static JNINativeMethod sMethods[] = {
-     /* name, signature, funcPtr */
+    /* name, signature, funcPtr */
     {"classInitNative", "()V", (void *) classInitNative},
     {"initNative", "()Z", (void *) initNative},
     {"cleanupNative", "()V", (void*) cleanupNative},
@@ -941,46 +940,46 @@ int register_com_android_bluetooth_btservice_AdapterService(JNIEnv* env)
  */
 jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 {
-   JNIEnv *e;
-   int status;
+    JNIEnv *e;
+    int status;
 
-   ALOGV("Bluetooth Adapter Service : loading JNI\n");
+    ALOGV("Bluetooth Adapter Service : loading JNI\n");
 
-   // Check JNI version
-   if(jvm->GetEnv((void **)&e, JNI_VERSION_1_6)) {
-       ALOGE("JNI version mismatch error");
-      return JNI_ERR;
-   }
+    // Check JNI version
+    if (jvm->GetEnv((void **)&e, JNI_VERSION_1_6)) {
+        ALOGE("JNI version mismatch error");
+        return JNI_ERR;
+    }
 
-   if ((status = android::register_com_android_bluetooth_btservice_AdapterService(e)) < 0) {
-       ALOGE("jni adapter service registration failure, status: %d", status);
-      return JNI_ERR;
-   }
+    if ((status = android::register_com_android_bluetooth_btservice_AdapterService(e)) < 0) {
+        ALOGE("jni adapter service registration failure, status: %d", status);
+        return JNI_ERR;
+    }
 
-   if ((status = android::register_com_android_bluetooth_hfp(e)) < 0) {
-       ALOGE("jni hfp registration failure, status: %d", status);
-      return JNI_ERR;
-   }
+    if ((status = android::register_com_android_bluetooth_hfp(e)) < 0) {
+        ALOGE("jni hfp registration failure, status: %d", status);
+        return JNI_ERR;
+    }
 
-   if ((status = android::register_com_android_bluetooth_a2dp(e)) < 0) {
-       ALOGE("jni a2dp registration failure: %d", status);
-      return JNI_ERR;
-   }
+    if ((status = android::register_com_android_bluetooth_a2dp(e)) < 0) {
+        ALOGE("jni a2dp registration failure: %d", status);
+        return JNI_ERR;
+    }
 
-   if ((status = android::register_com_android_bluetooth_hid(e)) < 0) {
-       ALOGE("jni hid registration failure: %d", status);
-       return JNI_ERR;
-   }
+    if ((status = android::register_com_android_bluetooth_hid(e)) < 0) {
+        ALOGE("jni hid registration failure: %d", status);
+        return JNI_ERR;
+    }
 
-   if ((status = android::register_com_android_bluetooth_hdp(e)) < 0) {
-       ALOGE("jni hdp registration failure: %d", status);
-      return JNI_ERR;
-   }
+    if ((status = android::register_com_android_bluetooth_hdp(e)) < 0) {
+        ALOGE("jni hdp registration failure: %d", status);
+        return JNI_ERR;
+    }
 
-   if ((status = android::register_com_android_bluetooth_pan(e)) < 0) {
-       ALOGE("jni pan registration failure: %d", status);
-      return JNI_ERR;
-   }
+    if ((status = android::register_com_android_bluetooth_pan(e)) < 0) {
+        ALOGE("jni pan registration failure: %d", status);
+        return JNI_ERR;
+    }
 
-   return JNI_VERSION_1_6;
+    return JNI_VERSION_1_6;
 }
