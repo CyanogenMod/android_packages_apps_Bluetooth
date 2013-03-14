@@ -15,9 +15,9 @@
  */
 
 
-#define ALOG_TAG "BtGatt.JNI"
+#define LOG_TAG "BtGatt.JNI"
 
-#define ALOG_NDEBUG 0
+#define LOG_NDEBUG 0
 
 #define CHECK_CALLBACK_ENV                                                      \
    if (!checkCallbackThread()) {                                                \
