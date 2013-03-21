@@ -39,6 +39,7 @@ public class A2dpService extends ProfileService {
     private static final String TAG="A2dpService";
 
     private A2dpStateMachine mStateMachine;
+    private Avrcp mAvrcp;
     private static A2dpService sAd2dpService;
 
     protected String getName() {
@@ -51,18 +52,24 @@ public class A2dpService extends ProfileService {
 
     protected boolean start() {
         mStateMachine = A2dpStateMachine.make(this, this);
+        mAvrcp = Avrcp.make(this);
         setA2dpService(this);
         return true;
     }
 
     protected boolean stop() {
         mStateMachine.doQuit();
+        mAvrcp.doQuit();
         return true;
     }
 
     protected boolean cleanup() {
         if (mStateMachine!= null) {
             mStateMachine.cleanup();
+        }
+        if (mAvrcp != null) {
+            mAvrcp.cleanup();
+            mAvrcp = null;
         }
         clearA2dpService();
         return true;
