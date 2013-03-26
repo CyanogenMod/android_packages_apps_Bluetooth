@@ -226,14 +226,15 @@ static jboolean getPlayStatusRspNative(JNIEnv *env, jobject object, jint playSta
             env->DeleteLocalRef(text);
             break;
         }
+
+        pAttrs[i].attr_id = attr[i];
         if (strlen(textStr) >= BTRC_MAX_ATTR_STR_LEN) {
             ALOGE("get_element_attr_rsp: string length exceed maximum");
-            env->ReleaseStringUTFChars(text, textStr);
-            env->DeleteLocalRef(text);
-            break;
+            strncpy((char *)pAttrs[i].text, textStr, BTRC_MAX_ATTR_STR_LEN-1);
+            pAttrs[i].text[BTRC_MAX_ATTR_STR_LEN-1] = 0;
+        } else {
+            strcpy((char *)pAttrs[i].text, textStr);
         }
-        pAttrs[i].attr_id = attr[i];
-        strcpy((char *)pAttrs[i].text, textStr);
         env->ReleaseStringUTFChars(text, textStr);
         env->DeleteLocalRef(text);
     }
