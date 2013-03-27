@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2012 The Android Open Source Project
+ * Copyright (C) 2013 The Linux Foundation. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +27,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.util.Log;
-
+import android.os.PowerManager;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 
@@ -45,6 +46,9 @@ final class RemoteDevices {
     private static ArrayList<BluetoothDevice> mSdpTracker;
     private static ArrayList<BluetoothDevice> mSdpMasTracker;
 
+    /* The WakeLock is used for bringing up the LCD during a pairing request
+     * from remote device when Android is in Suspend state.*/
+    private PowerManager.WakeLock mWakeLock;
     private Object mObject = new Object();
 
     private static final int UUID_INTENT_DELAY = 6000;
@@ -55,12 +59,18 @@ final class RemoteDevices {
 
     private HashMap<BluetoothDevice, DeviceProperties> mDevices;
 
-    RemoteDevices(AdapterService service) {
+    RemoteDevices(PowerManager pm, AdapterService service) {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mAdapterService = service;
         mSdpTracker = new ArrayList<BluetoothDevice>();
         mSdpMasTracker = new ArrayList<BluetoothDevice>();
         mDevices = new HashMap<BluetoothDevice, DeviceProperties>();
+
+        //WakeLock instantiation in RemoteDevices class
+        mWakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP
+                       | PowerManager.ON_AFTER_RELEASE, TAG);
+        mWakeLock.setReferenceCounted(false);
+
     }
 
 
@@ -270,12 +280,16 @@ final class RemoteDevices {
     }
 
     private void sendDisplayPinIntent(byte[] address, int pin) {
+        // Acquire wakelock during PIN code request to bring up LCD display
+        mWakeLock.acquire();
         Intent intent = new Intent(BluetoothDevice.ACTION_PAIRING_REQUEST);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, getDevice(address));
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_KEY, pin);
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT,
                     BluetoothDevice.PAIRING_VARIANT_DISPLAY_PIN);
-        mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
+        mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
+        // Release wakelock to allow the LCD to go off after the PIN popup notification.
+        mWakeLock.release();
     }
 
     void devicePropertyChangedCallback(byte[] address, int[] types, byte[][] values) {
@@ -405,11 +419,15 @@ final class RemoteDevices {
         }
         infoLog("pinRequestCallback: " + address + " name:" + name + " cod:" +
                 cod);
+        // Acquire wakelock during PIN code request to bring up LCD display
+        mWakeLock.acquire();
         Intent intent = new Intent(BluetoothDevice.ACTION_PAIRING_REQUEST);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, getDevice(address));
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT,
                 BluetoothDevice.PAIRING_VARIANT_PIN);
-        mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
+        mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
+        // Release wakelock to allow the LCD to go off after the PIN popup notification.
+        mWakeLock.release();
         return;
     }
 
@@ -445,13 +463,19 @@ final class RemoteDevices {
            addDeviceProperties(address);
            device = getDevice(address);
         }
+        // Acquire wakelock during PIN code request to bring up LCD display
+        mWakeLock.acquire();
+
         Intent intent = new Intent(BluetoothDevice.ACTION_PAIRING_REQUEST);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         if (displayPasskey) {
             intent.putExtra(BluetoothDevice.EXTRA_PAIRING_KEY, passkey);
         }
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, variant);
-        mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
+        mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
+        // Release wakelock to allow the LCD to go off after the PIN popup notification.
+        mWakeLock.release();
+
     }
 
     void aclStateChangeCallback(int status, byte[] address, int newState) {
