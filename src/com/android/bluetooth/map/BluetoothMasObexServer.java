@@ -185,15 +185,17 @@ public class BluetoothMasObexServer extends ServerRequestHandler {
 
         private final int getUint16BigEndian(byte b1, byte b2) {
             int retVal;
-            retVal = (int) ((0x0000FF00 & (int) (b1 << 0x8)) | (0x000000FF & (int) b2));
+            retVal = (((int) b1 & 0xFF) << 8) |
+                     ((int) b2 & 0xFF);
             return retVal;
         }
 
         private final long getUint32BigEndian(byte b1, byte b2, byte b3, byte b4) {
             long retVal;
-            retVal = (long) ((0xFF000000 & (long) (b1 << 0x24))
-                    | (0x00FF0000 & (long) (b2 << 0x16))
-                    | (0x0000FF00 & (long) (b3 << 0x8)) | (0x000000FF & (long) b4));
+            retVal = (((long) b1 & 0xFF) << 24) |
+                     (((long) b2 & 0xFF) << 16) |
+                     (((long) b3 & 0xFF) << 8) |
+                      ((long) b4 & 0xFF);
             return retVal;
         }
 
