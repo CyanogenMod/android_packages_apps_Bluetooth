@@ -28,7 +28,7 @@
     <string name="airplane_error_title" msgid="2683839635115739939">"Režim V lietadle"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"Technológiu Bluetooth nemôžete používať v režime V lietadle."</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
-    <string name="bt_enable_line1" msgid="7203551583048149">"Komu používať služby Bluetooth, musíte najskôr rozhranie Bluetooth zapnúť."</string>
+    <string name="bt_enable_line1" msgid="7203551583048149">"Ak chcete používať služby Bluetooth, musíte najskôr rozhranie Bluetooth zapnúť."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Zapnúť Bluetooth?"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"Zrušiť"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"Zapnúť"</string>
