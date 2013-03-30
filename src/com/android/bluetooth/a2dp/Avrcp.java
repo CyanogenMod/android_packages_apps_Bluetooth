@@ -137,6 +137,13 @@ final class Avrcp {
             }
         }
 
+        public void setPlaybackState(int generationId, int state, long stateChangeTimeMs) {
+            Handler handler = mLocalHandler.get();
+            if (handler != null) {
+                handler.obtainMessage(MSG_UPDATE_STATE, generationId, state).sendToTarget();
+            }
+        }
+
         @Override
         public void setMetadata(int generationId, Bundle metadata) {
             Handler handler = mLocalHandler.get();
