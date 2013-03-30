@@ -129,7 +129,6 @@ final class Avrcp {
             mLocalHandler = new WeakReference<Handler>(handler);
         }
 
-        @Override
         public void setPlaybackState(int generationId, int state, long stateChangeTimeMs,
                 long currentPosMs, float speed) {
             Handler handler = mLocalHandler.get();
