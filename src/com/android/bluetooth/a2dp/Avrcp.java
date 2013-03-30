@@ -130,11 +130,9 @@ final class Avrcp {
         }
 
         @Override
-        public void setPlaybackState(int generationId, int state, long stateChangeTimeMs,
-                long currentPosMs, float speed) {
+        public void setPlaybackState(int generationId, int state, long stateChangeTimeMs) {
             Handler handler = mLocalHandler.get();
             if (handler != null) {
-                // TODO handle current playback position and playback speed
                 handler.obtainMessage(MSG_UPDATE_STATE, generationId, state).sendToTarget();
             }
         }
