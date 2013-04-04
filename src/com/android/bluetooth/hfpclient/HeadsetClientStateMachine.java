@@ -703,7 +703,6 @@ final class HeadsetClientStateMachine extends StateMachine {
 
         if (mQueryCallsSupported) {
             sendMessage(QUERY_CURRENT_CALLS);
-            return;
         }
 
         BluetoothHeadsetClientCall c = null;
@@ -958,9 +957,6 @@ final class HeadsetClientStateMachine extends StateMachine {
                 }
                 break;
             case BluetoothHeadsetClientCall.CALL_STATE_HELD_BY_RESPONSE_AND_HOLD:
-                if (flag != BluetoothHeadsetClient.CALL_ACCEPT_NONE) {
-                    return;
-                }
                 action = HeadsetClientHalConstants.CALL_ACTION_BTRH_1;
                 break;
             case BluetoothHeadsetClientCall.CALL_STATE_ALERTING:
@@ -1476,7 +1472,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                     // Send AT+NREC to remote if supported by audio
                     if (HeadsetClientHalConstants.HANDSFREECLIENT_NREC_SUPPORTED) {
                         sendATCmdNative(HeadsetClientHalConstants.HANDSFREECLIENT_AT_CMD_NREC,
-                            1 , 0, null);
+                            1 , 0, "");
                     }
                     transitionTo(mConnected);
 
@@ -1623,7 +1619,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                     }
                     break;
                 case REDIAL:
-                    if (dialNative(null)) {
+                    if (dialNative("")) {
                         addQueuedAction(REDIAL);
                     } else {
                         Log.e(TAG, "ERROR: Cannot redial");

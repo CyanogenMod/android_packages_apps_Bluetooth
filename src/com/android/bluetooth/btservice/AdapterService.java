@@ -81,7 +81,8 @@ public class AdapterService extends Service {
     private static final boolean TRACE_REF = true;
     private static final int MIN_ADVT_INSTANCES_FOR_MA = 5;
     private static final int MIN_OFFLOADED_FILTERS = 10;
-    private static final int MIN_OFFLOADED_SCAN_STORAGE_BYTES = 1024;
+    private static final int MIN_OFFLOADED_SCAN_STORAGE_BYTES = 2048;
+    private static final String delayConnectTimeoutDevice[] = {"00:23:3D"}; // volkswagen carkit
     //For Debugging only
     private static int sRefCount=0;
 
@@ -102,6 +103,10 @@ public class AdapterService extends Service {
     private static final String ACTION_ALARM_WAKEUP =
         "com.android.bluetooth.btservice.action.ALARM_WAKEUP";
 
+    static final ParcelUuid[] A2DP_SOURCE_SINK_UUIDS = {
+        BluetoothUuid.AudioSource,
+        BluetoothUuid.AudioSink
+    };
     static final String BLUETOOTH_ADMIN_PERM =
         android.Manifest.permission.BLUETOOTH_ADMIN;
     public static final String BLUETOOTH_PRIVILEGED =
@@ -495,11 +500,14 @@ public class AdapterService extends Service {
         System.exit(0);
     }
 
-    private static final int MESSAGE_PROFILE_SERVICE_STATE_CHANGED =1;
-    private static final int MESSAGE_PROFILE_CONNECTION_STATE_CHANGED=20;
+    private static final int MESSAGE_PROFILE_SERVICE_STATE_CHANGED = 1;
+    private static final int MESSAGE_PROFILE_CONNECTION_STATE_CHANGED = 20;
     private static final int MESSAGE_CONNECT_OTHER_PROFILES = 30;
     private static final int MESSAGE_PROFILE_INIT_PRIORITIES=40;
     private static final int CONNECT_OTHER_PROFILES_TIMEOUT= 6000;
+    private static final int CONNECT_OTHER_PROFILES_TIMEOUT_DEYALED = 10000;
+    private static final int MESSAGE_AUTO_CONNECT_PROFILES = 50;
+    private static final int AUTO_CONNECT_PROFILES_TIMEOUT = 500;
 
     private final Handler mHandler = new Handler() {
         @Override
@@ -532,6 +540,11 @@ public class AdapterService extends Service {
                     processConnectOtherProfiles((BluetoothDevice) msg.obj,msg.arg1);
                 }
                     break;
+                case MESSAGE_AUTO_CONNECT_PROFILES: {
+                    if (DBG) debugLog( "MESSAGE_AUTO_CONNECT_PROFILES");
+                    autoConnectProfilesDelayed();
+                    break;
+                }
             }
         }
     };
@@ -1344,19 +1357,30 @@ public class AdapterService extends Service {
           return mQuietmode;
      }
 
-     public void autoConnect(){
+    // Delaying Auto Connect to make sure that all clients
+    // are up and running, specially BluetoothHeadset.
+    public void autoConnect() {
+        if (DBG) debugLog( "delay auto connect by 500 ms");
+        if ((mHandler.hasMessages(MESSAGE_AUTO_CONNECT_PROFILES) == false) &&
+            (isQuietModeEnabled()== false)) {
+            Message m = mHandler.obtainMessage(MESSAGE_AUTO_CONNECT_PROFILES);
+            mHandler.sendMessageDelayed(m,AUTO_CONNECT_PROFILES_TIMEOUT);
+        }
+    }
+
+    private void autoConnectProfilesDelayed(){
         if (getState() != BluetoothAdapter.STATE_ON){
-             errorLog("autoConnect() - BT is not ON. Exiting autoConnect");
-             return;
-         }
-         if (isQuietModeEnabled() == false) {
-             debugLog( "autoConnect() - Initiate auto connection on BT on...");
-             autoConnectHeadset();
-             autoConnectA2dp();
-         }
-         else {
-             debugLog( "autoConnect() - BT is in quiet mode. Not initiating auto connections");
-         }
+            errorLog("BT is not ON. Exiting autoConnect");
+            return;
+        }
+        if (isQuietModeEnabled() == false) {
+            if (DBG) debugLog( "Initiate auto connection on BT on...");
+            autoConnectHeadset();
+            autoConnectA2dp();
+        }
+        else {
+            if (DBG) debugLog( "BT is in Quiet mode. Not initiating  auto connections");
+        }
     }
 
      private void autoConnectHeadset(){
@@ -1389,12 +1413,31 @@ public class AdapterService extends Service {
     }
 
      public void connectOtherProfile(BluetoothDevice device, int firstProfileStatus){
-        if ((mHandler.hasMessages(MESSAGE_CONNECT_OTHER_PROFILES) == false) &&
-            (isQuietModeEnabled()== false)){
+        String deviceAddress = device.getAddress();
+        boolean isConnectionTimeoutDelayed = false;
+
+        for (int i = 0; i < delayConnectTimeoutDevice.length;i++) {
+            if (deviceAddress.indexOf(delayConnectTimeoutDevice[i]) == 0) {
+                isConnectionTimeoutDelayed = true;
+            }
+        }
+        if (mHandler.hasMessages(MESSAGE_CONNECT_OTHER_PROFILES) == false) {
+            ParcelUuid[] featureUuids = device.getUuids();
+            // Some Carkits disconnect just after pairing,Initiate SDP for missing UUID's support
+            if ((!(BluetoothUuid.containsAnyUuid(featureUuids, A2DP_SOURCE_SINK_UUIDS))) ||
+                    (!(BluetoothUuid.isUuidPresent(featureUuids, BluetoothUuid.Handsfree)))) {
+                Log.v(TAG,"Initiate SDP for Missing UUID's support in remote");
+                device.fetchUuidsWithSdp();
+            }
             Message m = mHandler.obtainMessage(MESSAGE_CONNECT_OTHER_PROFILES);
             m.obj = device;
             m.arg1 = (int)firstProfileStatus;
-            mHandler.sendMessageDelayed(m,CONNECT_OTHER_PROFILES_TIMEOUT);
+            if (isConnectionTimeoutDelayed) {
+                mHandler.sendMessageDelayed(m,CONNECT_OTHER_PROFILES_TIMEOUT_DEYALED);
+            }
+            else {
+                mHandler.sendMessageDelayed(m,CONNECT_OTHER_PROFILES_TIMEOUT);
+            }
         }
     }
 
@@ -1409,6 +1452,8 @@ public class AdapterService extends Service {
         if ((hsService == null) ||(a2dpService == null )){
             return;
         }
+        boolean hsConnected = false;
+        boolean a2dpConnected =  false;
         List<BluetoothDevice> a2dpConnDevList= a2dpService.getConnectedDevices();
         List<BluetoothDevice> hfConnDevList= hsService.getConnectedDevices();
         // Check if the device is in disconnected state and if so return
@@ -1420,12 +1465,36 @@ public class AdapterService extends Service {
             (PROFILE_CONN_CONNECTED  == firstProfileStatus)){
             return;
         }
+        if(!a2dpConnDevList.isEmpty()) {
+            for (BluetoothDevice a2dpDevice : a2dpConnDevList)
+            {
+                if(a2dpDevice.equals(device))
+                {
+                    a2dpConnected = true;
+                }
+            }
+        }
+        if(!hfConnDevList.isEmpty()) {
+            for (BluetoothDevice hsDevice : hfConnDevList)
+            {
+                if(hsDevice.equals(device))
+                {
+                    hsConnected = true;
+                }
+            }
+        }
+       // This change makes sure that we try to re-connect
+       // the profile if its connection failed and priority
+       // for desired profile is ON.
+
         if((hfConnDevList.isEmpty()) &&
-            (hsService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)){
+            (hsService.getPriority(device) >= BluetoothProfile.PRIORITY_ON) &&
+            (a2dpConnected || (a2dpService.getPriority(device) == BluetoothProfile.PRIORITY_OFF))) {
             hsService.connect(device);
         }
         else if((a2dpConnDevList.isEmpty()) &&
-            (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)){
+            (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_ON) &&
+            (hsConnected || (hsService.getPriority(device) == BluetoothProfile.PRIORITY_OFF))) {
             a2dpService.connect(device);
         }
     }

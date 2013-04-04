@@ -92,6 +92,7 @@ public final class Avrcp {
     private boolean mVolCmdInProgress;
     private int mAbsVolRetryTimes;
     private int mSkipAmount;
+    private int keyPressState;
 
     /* BTRC features */
     public static final int BTRC_FEAT_METADATA = 0x01;
@@ -158,6 +159,7 @@ public final class Avrcp {
         mLastDirection = 0;
         mVolCmdInProgress = false;
         mAbsVolRetryTimes = 0;
+        keyPressState = KEY_STATE_RELEASE; //Key release state
 
         mContext = context;
 
@@ -193,6 +195,7 @@ public final class Avrcp {
             looper.quit();
         }
         mAudioManager.unregisterRemoteController(mRemoteController);
+        keyPressState = KEY_STATE_RELEASE; //Key release state
     }
 
     public void cleanup() {
@@ -649,13 +652,23 @@ public final class Avrcp {
     }
 
     private void fastForward(int keyState) {
-        Message msg = mHandler.obtainMessage(MESSAGE_FAST_FORWARD, keyState, 0);
-        mHandler.sendMessage(msg);
+        if ((keyState == keyPressState) && (keyState == KEY_STATE_RELEASE)) {
+            Log.e(TAG, "Ignore key release event");
+        } else {
+            Message msg = mHandler.obtainMessage(MESSAGE_FAST_FORWARD, keyState, 0);
+            mHandler.sendMessage(msg);
+            keyPressState = keyState;
+        }
     }
 
     private void rewind(int keyState) {
-        Message msg = mHandler.obtainMessage(MESSAGE_REWIND, keyState, 0);
-        mHandler.sendMessage(msg);
+        if ((keyState == keyPressState) && (keyState == KEY_STATE_RELEASE)) {
+            Log.e(TAG, "Ignore key release event");
+        } else {
+            Message msg = mHandler.obtainMessage(MESSAGE_REWIND, keyState, 0);
+            mHandler.sendMessage(msg);
+            keyPressState = keyState;
+        }
     }
 
     private void changePositionBy(long amount) {
@@ -673,9 +686,17 @@ public final class Avrcp {
 
     private void sendTrackChangedRsp() {
         byte[] track = new byte[TRACK_ID_SIZE];
+        long TrackNumberRsp = -1L;
+
+        if(DEBUG) Log.v(TAG,"mCurrentPlayState" + mCurrentPlayState );
+        /*As per spec 6.7.2 Register Notification
+          If no track is currently selected, then return
+         0xFFFFFFFFFFFFFFFF in the interim response */
+        if (mCurrentPlayState == RemoteControlClient.PLAYSTATE_PLAYING)
+            TrackNumberRsp = mTrackNumber ;
         /* track is stored in big endian format */
         for (int i = 0; i < TRACK_ID_SIZE; ++i) {
-            track[i] = (byte) (mTrackNumber >> (56 - 8 * i));
+            track[i] = (byte) (TrackNumberRsp >> (56 - 8 * i));
         }
         registerNotificationRspTrackChangeNative(mTrackChangedNT, track);
     }
