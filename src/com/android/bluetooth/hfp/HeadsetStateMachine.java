@@ -213,6 +213,7 @@ final class HeadsetStateMachine extends StateMachine {
         addState(mAudioOn);
 
         setInitialState(mDisconnected);
+        mPhoneState.listenForPhoneState(true);
     }
 
     static HeadsetStateMachine make(HeadsetService context) {
@@ -1029,6 +1030,14 @@ final class HeadsetStateMachine extends StateMachine {
         public void onServiceConnected(ComponentName className, IBinder service) {
             if (DBG) Log.d(TAG, "Proxy object connected");
             mPhoneProxy = IBluetoothHeadsetPhone.Stub.asInterface(service);
+            if (mPhoneProxy != null) {
+                try {
+                    log("Try to query the phonestate on bind");
+                    mPhoneProxy.queryPhoneState();
+                } catch (RemoteException e) {
+                    Log.e(TAG, Log.getStackTraceString(new Throwable()));
+                }
+            } else Log.e(TAG, " phone proxy null for query phone state");
         }
 
         public void onServiceDisconnected(ComponentName className) {
