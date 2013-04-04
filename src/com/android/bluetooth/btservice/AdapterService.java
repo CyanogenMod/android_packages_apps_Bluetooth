@@ -742,6 +742,17 @@ public class AdapterService extends Service {
             return service.getRemoteName(device);
         }
 
+        public int getRemoteType(BluetoothDevice device) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG,"getRemoteType(): not allowed for non-active user");
+                return BluetoothDevice.DEVICE_TYPE_UNKNOWN;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return BluetoothDevice.DEVICE_TYPE_UNKNOWN;
+            return service.getRemoteType(device);
+        }
+
         public String getRemoteAlias(BluetoothDevice device) {
             if (!Utils.checkCaller()) {
                 Log.w(TAG,"getRemoteAlias(): not allowed for non-active user");
@@ -1197,6 +1208,13 @@ public class AdapterService extends Service {
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp == null) return null;
         return deviceProp.getName();
+    }
+
+     int getRemoteType(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp == null) return BluetoothDevice.DEVICE_TYPE_UNKNOWN;
+        return deviceProp.getDeviceType();
     }
 
      String getRemoteAlias(BluetoothDevice device) {
