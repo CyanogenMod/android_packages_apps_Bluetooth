@@ -156,7 +156,6 @@ final class RemoteDevices {
         }
 
         /**
-         *
          * @return mDeviceType
          */
         int getDeviceType() {
@@ -290,6 +289,8 @@ final class RemoteDevices {
                             sendUuidIntent(bdDevice);
                             break;
                         case AbstractionLayer.BT_PROPERTY_TYPE_OF_DEVICE:
+                            // The device type from hal layer, defined in bluetooth.h,
+                            // matches the type defined in BluetoothDevice.java
                             device.mDeviceType = Utils.byteArrayToInt(val);
                             break;
                         case AbstractionLayer.BT_PROPERTY_REMOTE_RSSI:
