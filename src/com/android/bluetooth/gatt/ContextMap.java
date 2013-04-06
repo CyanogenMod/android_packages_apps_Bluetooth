@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.android.bluetooth.gatt;
 
-     package com.android.bluetooth.gatt;
-
-
+import android.os.IBinder;
+import android.os.IBinder.DeathRecipient;
+import android.os.IInterface;
+import android.os.RemoteException;
 import android.util.Log;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.HashSet;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
 
@@ -61,12 +64,42 @@ import java.util.UUID;
         /** Application callbacks */
         T callback;
 
+        /** Death receipient */
+        private IBinder.DeathRecipient mDeathRecipient;
+
         /**
          * Creates a new app context.
          */
         App(UUID uuid, T callback) {
             this.uuid = uuid;
             this.callback = callback;
+        }
+
+        /**
+         * Link death recipient
+         */
+        void linkToDeath(IBinder.DeathRecipient deathRecipient) {
+            try {
+                IBinder binder = ((IInterface)callback).asBinder();
+                binder.linkToDeath(deathRecipient, 0);
+                mDeathRecipient = deathRecipient;
+            } catch (RemoteException e) {
+                Log.e(TAG, "Unable to link deathRecipient for app id " + id);
+            }
+        }
+
+        /**
+         * Unlink death recipient
+         */
+        void unlinkToDeath() {
+            if (mDeathRecipient != null) {
+                try {
+                    IBinder binder = ((IInterface)callback).asBinder();
+                    binder.unlinkToDeath(mDeathRecipient,0);
+                } catch (NoSuchElementException e) {
+                    Log.e(TAG, "Unable to unlink deathRecipient for app id " + id);
+                }
+            }
         }
     }
 
@@ -80,19 +113,24 @@ import java.util.UUID;
      * Add an entry to the application context list.
      */
     void add(UUID uuid, T callback) {
-        mApps.add(new App(uuid, callback));
+        synchronized (mApps) {
+            mApps.add(new App(uuid, callback));
+        }
     }
 
     /**
      * Remove the context for a given application ID.
      */
     void remove(int id) {
-        Iterator<App> i = mApps.iterator();
-        while(i.hasNext()) {
-            App entry = i.next();
-            if (entry.id == id) {
-                i.remove();
-                break;
+        synchronized (mApps) {
+            Iterator<App> i = mApps.iterator();
+            while(i.hasNext()) {
+                App entry = i.next();
+                if (entry.id == id) {
+                    entry.unlinkToDeath();
+                    i.remove();
+                    break;
+                }
             }
         }
     }
@@ -101,9 +139,11 @@ import java.util.UUID;
      * Add a new connection for a given application ID.
      */
     void addConnection(int id, int connId, String address) {
-        App entry = getById(id);
-        if (entry != null){
-            mConnections.add(new Connection(connId, address, id));
+        synchronized (mConnections) {
+            App entry = getById(id);
+            if (entry != null){
+                mConnections.add(new Connection(connId, address, id));
+            }
         }
     }
 
@@ -111,12 +151,14 @@ import java.util.UUID;
      * Remove a connection with the given ID.
      */
     void removeConnection(int id, int connId) {
-        Iterator<Connection> i = mConnections.iterator();
-        while(i.hasNext()) {
-            Connection connection = i.next();
-            if (connection.connId == connId) {
-                i.remove();
-                break;
+        synchronized (mConnections) {
+            Iterator<Connection> i = mConnections.iterator();
+            while(i.hasNext()) {
+                Connection connection = i.next();
+                if (connection.connId == connId) {
+                    i.remove();
+                    break;
+                }
             }
         }
     }
@@ -217,8 +259,18 @@ import java.util.UUID;
      * Erases all application context entries.
      */
     void clear() {
-        mApps.clear();
-        mConnections.clear();
+        synchronized (mApps) {
+            Iterator<App> i = mApps.iterator();
+            while(i.hasNext()) {
+                App entry = i.next();
+                entry.unlinkToDeath();
+                i.remove();
+            }
+        }
+
+        synchronized (mConnections) {
+            mConnections.clear();
+        }
     }
 
     /**

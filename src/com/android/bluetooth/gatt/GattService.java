@@ -20,7 +20,12 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.IBluetoothGatt;
+import android.bluetooth.IBluetoothGattCallback;
+import android.bluetooth.IBluetoothGattServerCallback;
 import android.content.Intent;
+import android.os.IBinder;
+import android.os.IBinder.DeathRecipient;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.util.Log;
@@ -36,9 +41,6 @@ import java.util.UUID;
 
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ProfileService.IProfileServiceBinder;
-import android.bluetooth.IBluetoothGatt;
-import android.bluetooth.IBluetoothGattCallback;
-import android.bluetooth.IBluetoothGattServerCallback;
 
 /**
  * Provides Bluetooth Gatt profile, as a service in
@@ -178,6 +180,37 @@ public class GattService extends ProfileService {
             return Service.START_NOT_STICKY;
         }
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    /**
+     * DeathReceipient handlers used to unregister applications that
+     * disconnect ungracefully (ie. crash or forced close).
+     */
+
+    class ClientDeathRecipient implements IBinder.DeathRecipient {
+        int mAppIf;
+
+        public ClientDeathRecipient(int appIf) {
+            mAppIf = appIf;
+        }
+
+        public void binderDied() {
+            if (DBG) Log.d(TAG, "Binder is dead - unregistering client (" + mAppIf + ")!");
+            unregisterClient(mAppIf);
+        }
+    }
+
+    class ServerDeathRecipient implements IBinder.DeathRecipient {
+        int mAppIf;
+
+        public ServerDeathRecipient(int appIf) {
+            mAppIf = appIf;
+        }
+
+        public void binderDied() {
+            if (DBG) Log.d(TAG, "Binder is dead - unregistering server (" + mAppIf + ")!");
+            unregisterServer(mAppIf);
+        }
     }
 
     /**
@@ -494,6 +527,7 @@ public class GattService extends ProfileService {
         ClientMap.App app = mClientMap.getByUuid(uuid);
         if (app != null) {
             app.id = clientIf;
+            app.linkToDeath(new ClientDeathRecipient(clientIf));
             app.callback.onClientRegistered(status, clientIf);
         }
     }
@@ -882,7 +916,7 @@ public class GattService extends ProfileService {
     }
 
     void clientConnect(int clientIf, String address, boolean isDirect) {
-        if (DBG) Log.d(TAG, "clientConnect() - address=" + address);
+        if (DBG) Log.d(TAG, "clientConnect() - address=" + address + ", isDirect=" + isDirect);
         gattClientConnectNative(clientIf, address, isDirect);
     }
 
@@ -1037,6 +1071,7 @@ public class GattService extends ProfileService {
         ServerMap.App app = mServerMap.getByUuid(uuid);
         if (app != null) {
             app.id = serverIf;
+            app.linkToDeath(new ServerDeathRecipient(serverIf));
             app.callback.onServerRegistered(status, serverIf);
         }
     }
