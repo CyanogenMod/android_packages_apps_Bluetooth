@@ -301,6 +301,23 @@ static jboolean registerNotificationRspTrackChangeNative(JNIEnv *env, jobject ob
     return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
+static jboolean registerNotificationRspPlayPosNative(JNIEnv *env, jobject object,
+                                                        jint type, jint playPos) {
+    bt_status_t status;
+    btrc_register_notification_t param;
+
+    ALOGI("%s: sBluetoothAvrcpInterface: %p", __FUNCTION__, sBluetoothAvrcpInterface);
+    if (!sBluetoothAvrcpInterface) return JNI_FALSE;
+
+    param.song_pos = (uint32_t)playPos;
+    if ((status = sBluetoothAvrcpInterface->register_notification_rsp(BTRC_EVT_PLAY_POS_CHANGED,
+                  (btrc_notification_type_t)type, &param)) != BT_STATUS_SUCCESS) {
+        ALOGE("Failed register_notification_rsp play position, status: %d", status);
+    }
+
+    return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+}
+
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
     {"initNative", "()V", (void *) initNative},
@@ -311,6 +328,8 @@ static JNINativeMethod sMethods[] = {
      (void *) registerNotificationRspPlayStatusNative},
     {"registerNotificationRspTrackChangeNative", "(I[B)Z",
      (void *) registerNotificationRspTrackChangeNative},
+    {"registerNotificationRspPlayPosNative", "(II)Z",
+     (void *) registerNotificationRspPlayPosNative},
 };
 
 int register_com_android_bluetooth_avrcp(JNIEnv* env)

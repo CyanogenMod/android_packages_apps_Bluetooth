@@ -18,6 +18,7 @@ package com.android.bluetooth.a2dp;
 
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.IRemoteControlDisplay;
@@ -31,15 +32,13 @@ import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
-import android.content.Intent;
-import android.os.Message;
 import android.os.RemoteException;
 import android.os.ServiceManager;
-import android.os.ParcelUuid;
+import android.os.SystemClock;
 import android.util.Log;
-import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.Utils;
 import com.android.internal.util.IState;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -67,9 +66,18 @@ final class Avrcp {
     private int mPlayStatusChangedNT;
     private int mTrackChangedNT;
     private long mTrackNumber;
+    private long mCurrentPosMs;
+    private long mPlayStartTimeMs;
+    private long mSongLengthMs;
+    private long mPlaybackIntervalMs;
+    private int mPlayPosChangedNT;
+    private long mNextPosMs;
+    private long mPrevPosMs;
+
     private static final int MESSAGE_GET_PLAY_STATUS = 1;
     private static final int MESSAGE_GET_ELEM_ATTRS = 2;
     private static final int MESSAGE_REGISTER_NOTIFICATION = 3;
+    private static final int MESSAGE_PLAY_INTERVAL_TIMEOUT = 4;
     private static final int MSG_UPDATE_STATE = 100;
     private static final int MSG_SET_METADATA = 101;
     private static final int MSG_SET_TRANSPORT_CONTROLS = 102;
@@ -86,6 +94,11 @@ final class Avrcp {
         mPlayStatusChangedNT = NOTIFICATION_TYPE_CHANGED;
         mTrackChangedNT = NOTIFICATION_TYPE_CHANGED;
         mTrackNumber = 0L;
+        mCurrentPosMs = RemoteControlClient.PLAYBACK_POSITION_INVALID;
+        mPlayStartTimeMs = -1L;
+        mSongLengthMs = 0L;
+        mPlaybackIntervalMs = 0L;
+        mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
 
         mContext = context;
 
@@ -134,8 +147,8 @@ final class Avrcp {
                 long currentPosMs, float speed) {
             Handler handler = mLocalHandler.get();
             if (handler != null) {
-                // TODO handle current playback position and playback speed
-                handler.obtainMessage(MSG_UPDATE_STATE, generationId, state).sendToTarget();
+                handler.obtainMessage(MSG_UPDATE_STATE, generationId, state,
+                                      new Long(currentPosMs)).sendToTarget();
             }
         }
 
@@ -190,7 +203,9 @@ final class Avrcp {
         public void handleMessage(Message msg) {
             switch (msg.what) {
             case MSG_UPDATE_STATE:
-                if (mClientGeneration == msg.arg1) updatePlayPauseState(msg.arg2);
+                if (mClientGeneration == msg.arg1) {
+                    updatePlayPauseState(msg.arg2, ((Long)msg.obj).longValue());
+                }
                 break;
 
             case MSG_SET_METADATA:
@@ -213,7 +228,8 @@ final class Avrcp {
 
             case MESSAGE_GET_PLAY_STATUS:
                 if (DEBUG) Log.v(TAG, "MESSAGE_GET_PLAY_STATUS");
-                getPlayStatusRspNative(convertPlayStateToPlayStatus(mCurrentPlayState), -1, -1);
+                getPlayStatusRspNative(convertPlayStateToPlayStatus(mCurrentPlayState),
+                                       (int)mSongLengthMs, (int)getPlayPosition());
                 break;
 
             case MESSAGE_GET_ELEM_ATTRS:
@@ -238,20 +254,43 @@ final class Avrcp {
                 processRegisterNotification(msg.arg1, msg.arg2);
                 break;
 
+            case MESSAGE_PLAY_INTERVAL_TIMEOUT:
+                if (DEBUG) Log.v(TAG, "MESSAGE_PLAY_INTERVAL_TIMEOUT");
+                mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
+                registerNotificationRspPlayPosNative(mPlayPosChangedNT, (int)getPlayPosition());
+                break;
+
             }
         }
     }
 
-    private void updatePlayPauseState(int state) {
+    private void updatePlayPauseState(int state, long currentPosMs) {
         if (DEBUG) Log.v(TAG,
-                "updatePlayPauseState(), old=" + mCurrentPlayState + ", state=" + state);
-        if (state == mCurrentPlayState) {
-            return;
-        }
-
+                "updatePlayPauseState, old=" + mCurrentPlayState + ", state=" + state);
+        boolean oldPosValid = (mCurrentPosMs != RemoteControlClient.PLAYBACK_POSITION_INVALID);
+        boolean newPosValid = (currentPosMs != RemoteControlClient.PLAYBACK_POSITION_INVALID);
         int oldPlayStatus = convertPlayStateToPlayStatus(mCurrentPlayState);
         int newPlayStatus = convertPlayStateToPlayStatus(state);
         mCurrentPlayState = state;
+        mCurrentPosMs = currentPosMs;
+        if (state == RemoteControlClient.PLAYSTATE_PLAYING) {
+            mPlayStartTimeMs = SystemClock.elapsedRealtime();
+        }
+
+        mHandler.removeMessages(MESSAGE_PLAY_INTERVAL_TIMEOUT);
+        /* need send play position changed notification when play status is changed */
+        if ((mPlayPosChangedNT == NOTIFICATION_TYPE_INTERIM) &&
+            ((oldPlayStatus != newPlayStatus) || (oldPosValid != newPosValid) ||
+             (newPosValid && ((mCurrentPosMs >= mNextPosMs) || (mCurrentPosMs <= mPrevPosMs))))) {
+            mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
+            registerNotificationRspPlayPosNative(mPlayPosChangedNT, (int)getPlayPosition());
+        }
+        if ((mPlayPosChangedNT == NOTIFICATION_TYPE_INTERIM) && newPosValid &&
+            (state == RemoteControlClient.PLAYSTATE_PLAYING)) {
+            Message msg = mHandler.obtainMessage(MESSAGE_PLAY_INTERVAL_TIMEOUT);
+            mHandler.sendMessageDelayed(msg, mNextPosMs - mCurrentPosMs);
+        }
+
         if ((mPlayStatusChangedNT == NOTIFICATION_TYPE_INTERIM) && (oldPlayStatus != newPlayStatus)) {
             mPlayStatusChangedNT = NOTIFICATION_TYPE_CHANGED;
             registerNotificationRspPlayStatusNative(mPlayStatusChangedNT, newPlayStatus);
@@ -283,6 +322,10 @@ final class Avrcp {
         return data.getString(Integer.toString(id));
     }
 
+    private long getMdLong(Bundle data, int id) {
+        return data.getLong(Integer.toString(id));
+    }
+
     private void updateMetadata(Bundle data) {
         String oldMetadata = mMetadata.toString();
         mMetadata.artist = getMdString(data, MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST);
@@ -294,8 +337,25 @@ final class Avrcp {
                 mTrackChangedNT = NOTIFICATION_TYPE_CHANGED;
                 sendTrackChangedRsp();
             }
+
+            if (mCurrentPosMs != RemoteControlClient.PLAYBACK_POSITION_INVALID) {
+                mCurrentPosMs = 0L;
+                if (mCurrentPlayState == RemoteControlClient.PLAYSTATE_PLAYING) {
+                    mPlayStartTimeMs = SystemClock.elapsedRealtime();
+                }
+            }
+            /* need send play position changed notification when track is changed */
+            if (mPlayPosChangedNT == NOTIFICATION_TYPE_INTERIM) {
+                mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
+                registerNotificationRspPlayPosNative(mPlayPosChangedNT,
+                                                     (int)getPlayPosition());
+                mHandler.removeMessages(MESSAGE_PLAY_INTERVAL_TIMEOUT);
+            }
         }
         if (DEBUG) Log.v(TAG, "mMetadata=" + mMetadata.toString());
+
+        mSongLengthMs = getMdLong(data, MediaMetadataRetriever.METADATA_KEY_DURATION);
+        if (DEBUG) Log.v(TAG, "duration=" + mSongLengthMs);
     }
 
     private void getPlayStatus() {
@@ -331,6 +391,21 @@ final class Avrcp {
                 sendTrackChangedRsp();
                 break;
 
+            case EVT_PLAY_POS_CHANGED:
+                long songPosition = getPlayPosition();
+                mPlayPosChangedNT = NOTIFICATION_TYPE_INTERIM;
+                mPlaybackIntervalMs = (long)param * 1000L;
+                if (mCurrentPosMs != RemoteControlClient.PLAYBACK_POSITION_INVALID) {
+                    mNextPosMs = songPosition + mPlaybackIntervalMs;
+                    mPrevPosMs = songPosition - mPlaybackIntervalMs;
+                    if (mCurrentPlayState == RemoteControlClient.PLAYSTATE_PLAYING) {
+                        Message msg = mHandler.obtainMessage(MESSAGE_PLAY_INTERVAL_TIMEOUT);
+                        mHandler.sendMessageDelayed(msg, mPlaybackIntervalMs);
+                    }
+                }
+                registerNotificationRspPlayPosNative(mPlayPosChangedNT, (int)songPosition);
+                break;
+
         }
     }
 
@@ -340,6 +415,20 @@ final class Avrcp {
             track[i] = (byte) (mTrackNumber >> (8 * i));
         }
         registerNotificationRspTrackChangeNative(mTrackChangedNT, track);
+    }
+
+    private long getPlayPosition() {
+        long songPosition = -1L;
+        if (mCurrentPosMs != RemoteControlClient.PLAYBACK_POSITION_INVALID) {
+            if (mCurrentPlayState == RemoteControlClient.PLAYSTATE_PLAYING) {
+                songPosition = SystemClock.elapsedRealtime() -
+                               mPlayStartTimeMs + mCurrentPosMs;
+            } else {
+                songPosition = mCurrentPosMs;
+            }
+        }
+        if (DEBUG) Log.v(TAG, "position=" + songPosition);
+        return songPosition;
     }
 
     private String getAttributeString(int attrId) {
@@ -355,6 +444,12 @@ final class Avrcp {
 
             case MEDIA_ATTR_ALBUM:
                 attrStr = mMetadata.albumTitle;
+                break;
+
+            case MEDIA_ATTR_PLAYING_TIME:
+                if (mSongLengthMs != 0L) {
+                    attrStr = Long.toString(mSongLengthMs);
+                }
                 break;
 
         }
@@ -443,4 +538,5 @@ final class Avrcp {
     private native boolean getElementAttrRspNative(byte numAttr, int[] attrIds, String[] textArray);
     private native boolean registerNotificationRspPlayStatusNative(int type, int playStatus);
     private native boolean registerNotificationRspTrackChangeNative(int type, byte[] track);
+    private native boolean registerNotificationRspPlayPosNative(int type, int playPos);
 }
