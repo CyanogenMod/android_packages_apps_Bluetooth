@@ -454,7 +454,7 @@ void btgatts_register_app_cb(int status, int server_if, bt_uuid_t *uuid)
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
-void btgatts_connection_cb(int conn_id, int connected, bt_bdaddr_t *bda)
+void btgatts_connection_cb(int conn_id, int server_if, int connected, bt_bdaddr_t *bda)
 {
     CHECK_CALLBACK_ENV
 
@@ -465,7 +465,7 @@ void btgatts_connection_cb(int conn_id, int connected, bt_bdaddr_t *bda)
 
     jstring address = sCallbackEnv->NewStringUTF(c_address);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onClientConnected,
-                                 address, connected, conn_id);
+                                 address, connected, conn_id, server_if);
     sCallbackEnv->DeleteLocalRef(address);
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
@@ -657,7 +657,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
      // Server callbacks
 
     method_onServerRegistered = env->GetMethodID(clazz, "onServerRegistered", "(IIJJ)V");
-    method_onClientConnected = env->GetMethodID(clazz, "onClientConnected", "(Ljava/lang/String;ZI)V");
+    method_onClientConnected = env->GetMethodID(clazz, "onClientConnected", "(Ljava/lang/String;ZII)V");
     method_onServiceAdded = env->GetMethodID(clazz, "onServiceAdded", "(IIIIJJI)V");
     method_onIncludedServiceAdded = env->GetMethodID(clazz, "onIncludedServiceAdded", "(IIII)V");
     method_onCharacteristicAdded  = env->GetMethodID(clazz, "onCharacteristicAdded", "(IIJJII)V");
