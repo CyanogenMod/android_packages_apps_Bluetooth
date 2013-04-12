@@ -93,7 +93,7 @@ final class Avrcp {
         mCurrentPlayState = RemoteControlClient.PLAYSTATE_NONE; // until we get a callback
         mPlayStatusChangedNT = NOTIFICATION_TYPE_CHANGED;
         mTrackChangedNT = NOTIFICATION_TYPE_CHANGED;
-        mTrackNumber = 0L;
+        mTrackNumber = -1L;
         mCurrentPosMs = RemoteControlClient.PLAYBACK_POSITION_INVALID;
         mPlayStartTimeMs = -1L;
         mSongLengthMs = 0L;
@@ -411,8 +411,9 @@ final class Avrcp {
 
     private void sendTrackChangedRsp() {
         byte[] track = new byte[TRACK_ID_SIZE];
+        /* track is stored in big endian format */
         for (int i = 0; i < TRACK_ID_SIZE; ++i) {
-            track[i] = (byte) (mTrackNumber >> (8 * i));
+            track[i] = (byte) (mTrackNumber >> (56 - 8 * i));
         }
         registerNotificationRspTrackChangeNative(mTrackChangedNT, track);
     }
@@ -469,6 +470,7 @@ final class Avrcp {
                 break;
 
             case RemoteControlClient.PLAYSTATE_STOPPED:
+            case RemoteControlClient.PLAYSTATE_NONE:
                 playStatus = PLAYSTATUS_STOPPED;
                 break;
 
@@ -487,7 +489,6 @@ final class Avrcp {
                 break;
 
             case RemoteControlClient.PLAYSTATE_ERROR:
-            case RemoteControlClient.PLAYSTATE_NONE:
                 playStatus = PLAYSTATUS_ERROR;
                 break;
 
