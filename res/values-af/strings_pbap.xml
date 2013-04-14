@@ -12,4 +12,5 @@
     <string name="unknownName" msgid="2841414754740600042">"Onbekende naam"</string>
     <string name="localPhoneName" msgid="2349001318925409159">"My naam"</string>
     <string name="defaultnumber" msgid="8520116145890867338">"000000"</string>
+    <string name="alwaysallowed">Altyd toegelaat?</string>
 </resources>
