@@ -322,7 +322,7 @@ public class BluetoothOppUtility {
     static void closeSendFileInfo(Uri uri) {
         if (D) Log.d(TAG, "closeSendFileInfo: uri=" + uri);
         BluetoothOppSendFileInfo info = sSendFileMap.remove(uri);
-        if (info != null) {
+        if (info != null && info.mInputStream != null) {
             try {
                 info.mInputStream.close();
             } catch (IOException ignored) {
