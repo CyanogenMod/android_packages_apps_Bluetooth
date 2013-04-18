@@ -1141,22 +1141,22 @@ public class GattService extends ProfileService {
         mHandleMap.deleteService(serverIf, srvcHandle);
     }
 
-    void onClientConnected(String address, boolean connected, int connId)
+    void onClientConnected(String address, boolean connected, int connId, int serverIf)
             throws RemoteException {
 
         if (DBG) Log.d(TAG, "onConnected() connId=" + connId
             + ", address=" + address + ", connected=" + connected);
 
-        Iterator<ServerMap.App> i = mServerMap.mApps.iterator();
-        while(i.hasNext()) {
-            ServerMap.App entry = i.next();
-            if (connected) {
-                mServerMap.addConnection(entry.id, connId, address);
-            } else {
-                mServerMap.removeConnection(entry.id, connId);
-            }
-            entry.callback.onServerConnectionState((byte)0, entry.id, connected, address);
+        ServerMap.App app = mServerMap.getById(serverIf);
+        if (app == null) return;
+
+        if (connected) {
+            mServerMap.addConnection(serverIf, connId, address);
+        } else {
+            mServerMap.removeConnection(serverIf, connId);
         }
+
+        app.callback.onServerConnectionState((byte)0, serverIf, connected, address);
     }
 
     void onAttributeRead(String address, int connId, int transId,
