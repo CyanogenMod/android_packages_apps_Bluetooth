@@ -114,6 +114,8 @@ final class Avrcp {
         mHandler = new AvrcpMessageHandler(looper);
         mRemoteControlDisplay = new IRemoteControlDisplayWeak(mHandler);
         mAudioManager.registerRemoteControlDisplay(mRemoteControlDisplay);
+        mAudioManager.remoteControlDisplayWantsPlaybackPositionSync(
+                      mRemoteControlDisplay, true);
     }
 
     static Avrcp make(Context context) {
