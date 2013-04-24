@@ -214,6 +214,7 @@ public class Constants {
         "text/x-vcard",
         "text/plain",
         "text/html",
+        "application/vnd.android.package-archive",
         "application/zip",
         "application/vnd.ms-excel",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
