@@ -258,7 +258,7 @@ final class AdapterState extends StateMachine {
                      Log.w(TAG,"Timeout will setting scan mode..Continuing with disable...");
                      //Fall through
                 case BEGIN_DISABLE: {
-                    if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = BEGIN_DISABLE" + isTurningOn + ", isTurningOff=" + isTurningOff);
+                    if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = BEGIN_DISABLE, isTurningOn=" + isTurningOn + ", isTurningOff=" + isTurningOff);
                     removeMessages(SET_SCAN_MODE_TIMEOUT);
                     sendMessageDelayed(DISABLE_TIMEOUT, DISABLE_TIMEOUT_DELAY);
                     boolean ret = mAdapterService.disableNative();
@@ -273,6 +273,15 @@ final class AdapterState extends StateMachine {
                     break;
                 case DISABLED:
                     if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = DISABLED, isTurningOn=" + isTurningOn + ", isTurningOff=" + isTurningOff);
+                    if (isTurningOn) {
+                        removeMessages(ENABLE_TIMEOUT);
+                        errorLog("Error enabling Bluetooth - hardware init failed");
+                        mPendingCommandState.setTurningOn(false);
+                        transitionTo(mOffState);
+                        mAdapterService.stopProfileServices();
+                        notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
+                        break;
+                    }
                     removeMessages(DISABLE_TIMEOUT);
                     sendMessageDelayed(STOP_TIMEOUT, STOP_TIMEOUT_DELAY);
                     if (mAdapterService.stopProfileServices()) {
