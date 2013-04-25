@@ -822,6 +822,8 @@ public class GattService extends ProfileService {
      *************************************************************************/
 
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         final int DEVICE_TYPE_BREDR = 0x1;
 
         Map<BluetoothDevice, Integer> deviceStates = new HashMap<BluetoothDevice,
@@ -865,6 +867,8 @@ public class GattService extends ProfileService {
     }
 
     void startScan(int appIf, boolean isServer) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+
         if (DBG) Log.d(TAG, "startScan() - queue=" + mScanQueue.size());
 
         if (getScanClient(appIf, isServer) == null) {
@@ -876,6 +880,8 @@ public class GattService extends ProfileService {
     }
 
     void startScanWithUuids(int appIf, boolean isServer, UUID[] uuids) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+
         if (DBG) Log.d(TAG, "startScanWithUuids() - queue=" + mScanQueue.size());
 
         if (getScanClient(appIf, isServer) == null) {
@@ -887,8 +893,9 @@ public class GattService extends ProfileService {
     }
 
     void stopScan(int appIf, boolean isServer) {
-        if (DBG) Log.d(TAG, "stopScan() - queue=" + mScanQueue.size());
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH_ADMIN permission");
 
+        if (DBG) Log.d(TAG, "stopScan() - queue=" + mScanQueue.size());
         removeScanClient(appIf, isServer);
 
         if (mScanQueue.isEmpty()) {
@@ -902,6 +909,8 @@ public class GattService extends ProfileService {
      *************************************************************************/
 
     void registerClient(UUID uuid, IBluetoothGattCallback callback) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "registerClient() - UUID=" + uuid);
         mClientMap.add(uuid, callback);
         gattClientRegisterAppNative(uuid.getLeastSignificantBits(),
@@ -909,6 +918,8 @@ public class GattService extends ProfileService {
     }
 
     void unregisterClient(int clientIf) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "unregisterClient() - clientIf=" + clientIf);
         removeScanClient(clientIf, false);
         mClientMap.remove(clientIf);
@@ -916,11 +927,15 @@ public class GattService extends ProfileService {
     }
 
     void clientConnect(int clientIf, String address, boolean isDirect) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "clientConnect() - address=" + address + ", isDirect=" + isDirect);
         gattClientConnectNative(clientIf, address, isDirect);
     }
 
     void clientDisconnect(int clientIf, String address) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         Integer connId = mClientMap.connIdByAddress(clientIf, address);
         if (DBG) Log.d(TAG, "clientDisconnect() - address=" + address + ", connId=" + connId);
 
@@ -928,6 +943,8 @@ public class GattService extends ProfileService {
     }
 
     List<String> getConnectedDevices() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         Set<String> connectedDevAddress = new HashSet<String>();
         connectedDevAddress.addAll(mClientMap.getConnectedDevices());
         connectedDevAddress.addAll(mServerMap.getConnectedDevices());
@@ -936,11 +953,15 @@ public class GattService extends ProfileService {
     }
 
     void refreshDevice(int clientIf, String address) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "refreshDevice() - address=" + address);
         gattClientRefreshNative(clientIf, address);
     }
 
     void discoverServices(int clientIf, String address) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         Integer connId = mClientMap.connIdByAddress(clientIf, address);
         if (DBG) Log.d(TAG, "discoverServices() - address=" + address + ", connId=" + connId);
 
@@ -953,6 +974,8 @@ public class GattService extends ProfileService {
     void readCharacteristic(int clientIf, String address, int srvcType,
                             int srvcInstanceId, UUID srvcUuid,
                             int charInstanceId, UUID charUuid, int authReq) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "readCharacteristic() - address=" + address);
 
         Integer connId = mClientMap.connIdByAddress(clientIf, address);
@@ -970,6 +993,8 @@ public class GattService extends ProfileService {
                              int srvcInstanceId, UUID srvcUuid,
                              int charInstanceId, UUID charUuid, int writeType,
                              int authReq, byte[] value) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "writeCharacteristic() - address=" + address);
 
         if (mReliableQueue.contains(address)) writeType = 3; // Prepared write
@@ -989,6 +1014,8 @@ public class GattService extends ProfileService {
                             int srvcInstanceId, UUID srvcUuid,
                             int charInstanceId, UUID charUuid,
                             UUID descrUuid, int authReq) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "readDescriptor() - address=" + address);
 
         Integer connId = mClientMap.connIdByAddress(clientIf, address);
@@ -1008,6 +1035,8 @@ public class GattService extends ProfileService {
                             int charInstanceId, UUID charUuid,
                             UUID descrUuid, int writeType,
                             int authReq, byte[] value) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "writeDescriptor() - address=" + address);
 
         Integer connId = mClientMap.connIdByAddress(clientIf, address);
@@ -1023,11 +1052,15 @@ public class GattService extends ProfileService {
     }
 
     void beginReliableWrite(int clientIf, String address) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "beginReliableWrite() - address=" + address);
         mReliableQueue.add(address);
     }
 
     void endReliableWrite(int clientIf, String address, boolean execute) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "endReliableWrite() - address=" + address
                                 + " execute: " + execute);
         mReliableQueue.remove(address);
@@ -1040,6 +1073,8 @@ public class GattService extends ProfileService {
                 int srvcInstanceId, UUID srvcUuid,
                 int charInstanceId, UUID charUuid,
                 boolean enable) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "registerForNotification() - address=" + address + " enable: " + enable);
 
         Integer connId = mClientMap.connIdByAddress(clientIf, address);
@@ -1055,6 +1090,8 @@ public class GattService extends ProfileService {
     }
 
     void readRemoteRssi(int clientIf, String address) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "readRemoteRssi() - address=" + address);
         gattClientReadRemoteRssiNative(clientIf, address);
     }
@@ -1278,6 +1315,8 @@ public class GattService extends ProfileService {
      *************************************************************************/
 
     void registerServer(UUID uuid, IBluetoothGattServerCallback callback) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "registerServer() - UUID=" + uuid);
         mServerMap.add(uuid, callback);
         gattServerRegisterAppNative(uuid.getLeastSignificantBits(),
@@ -1285,6 +1324,8 @@ public class GattService extends ProfileService {
     }
 
     void unregisterServer(int serverIf) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "unregisterServer() - serverIf=" + serverIf);
 
         deleteServices(serverIf);
@@ -1294,11 +1335,15 @@ public class GattService extends ProfileService {
     }
 
     void serverConnect(int serverIf, String address, boolean isDirect) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "serverConnect() - address=" + address);
         gattServerConnectNative(serverIf, address, isDirect);
     }
 
     void serverDisconnect(int serverIf, String address) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         Integer connId = mServerMap.connIdByAddress(serverIf, address);
         if (DBG) Log.d(TAG, "serverDisconnect() - address=" + address + ", connId=" + connId);
 
@@ -1307,6 +1352,8 @@ public class GattService extends ProfileService {
 
     void beginServiceDeclaration(int serverIf, int srvcType, int srvcInstanceId,
                                  int minHandles, UUID srvcUuid) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "beginServiceDeclaration() - uuid=" + srvcUuid);
         ServiceDeclaration serviceDeclaration = addDeclaration();
         serviceDeclaration.addService(srvcUuid, srvcType, srvcInstanceId, minHandles);
@@ -1314,22 +1361,30 @@ public class GattService extends ProfileService {
 
     void addIncludedService(int serverIf, int srvcType, int srvcInstanceId,
                             UUID srvcUuid) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "addIncludedService() - uuid=" + srvcUuid);
         getActiveDeclaration().addIncludedService(srvcUuid, srvcType, srvcInstanceId);
     }
 
     void addCharacteristic(int serverIf, UUID charUuid, int properties,
                            int permissions) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "addCharacteristic() - uuid=" + charUuid);
         getActiveDeclaration().addCharacteristic(charUuid, properties, permissions);
     }
 
     void addDescriptor(int serverIf, UUID descUuid, int permissions) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "addDescriptor() - uuid=" + descUuid);
         getActiveDeclaration().addDescriptor(descUuid, permissions);
     }
 
     void endServiceDeclaration(int serverIf) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "endServiceDeclaration()");
 
         if (getActiveDeclaration() == getPendingDeclaration()) {
@@ -1343,6 +1398,8 @@ public class GattService extends ProfileService {
 
     void removeService(int serverIf, int srvcType,
                   int srvcInstanceId, UUID srvcUuid) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "removeService() - uuid=" + srvcUuid);
 
         int srvcHandle = mHandleMap.getServiceHandle(srvcUuid, srvcType, srvcInstanceId);
@@ -1351,12 +1408,16 @@ public class GattService extends ProfileService {
     }
 
     void clearServices(int serverIf) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "clearServices()");
         deleteServices(serverIf);
     }
 
     void sendResponse(int serverIf, String address, int requestId,
                       int status, int offset, byte[] value) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "sendResponse() - address=" + address);
 
         int handle = 0;
@@ -1373,6 +1434,8 @@ public class GattService extends ProfileService {
                                  int srvcInstanceId, UUID srvcUuid,
                                  int charInstanceId, UUID charUuid,
                                  boolean confirm, byte[] value) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
         if (DBG) Log.d(TAG, "sendNotification() - address=" + address);
 
         int srvcHandle = mHandleMap.getServiceHandle(srvcUuid, srvcType, srvcInstanceId);
