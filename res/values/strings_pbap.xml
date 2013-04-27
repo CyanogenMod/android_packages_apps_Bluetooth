@@ -9,7 +9,6 @@
     <string name="auth_notif_title">Session Key</string>
     <!-- Notification message when a Bluetooth device wants to pair with us -->
     <string name="auth_notif_message">Type session key for %1$s</string>
-    <string name="alwaysallowed">Always allowed?</string>
     <string name="defaultname">Carkit</string>
     <string name="unknownName">Unknown name</string>
     <string name="localPhoneName">My name</string>
