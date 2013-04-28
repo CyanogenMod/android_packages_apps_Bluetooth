@@ -8,7 +8,6 @@
     <string name="auth_notif_ticker" msgid="1575825798053163744">"Richiesta di autenticazione Obex"</string>
     <string name="auth_notif_title" msgid="7599854855681573258">"Chiave sessione"</string>
     <string name="auth_notif_message" msgid="6667218116427605038">"Digita la chiave di sessione per %1$s"</string>
-    <string name="alwaysallowed">Consenti sempre?</string>
     <string name="defaultname" msgid="4821590500649090078">"Kit auto"</string>
     <string name="unknownName" msgid="2841414754740600042">"Nome sconosciuto"</string>
     <string name="localPhoneName" msgid="2349001318925409159">"Il mio nome"</string>
