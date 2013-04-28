@@ -7,7 +7,6 @@
     <string name="pbap_authentication_timeout_message" msgid="4166979525521902687">"Időtúllépés történt a(z) %1$s munkamenetkulcsának bevitele során"</string>
     <string name="auth_notif_ticker" msgid="1575825798053163744">"Obex azonosítási kérelem"</string>
     <string name="auth_notif_title" msgid="7599854855681573258">"Munkamenetkulcs"</string>
-    <string name="alwaysallowed">Mindig engedélyezi?</string>
     <string name="auth_notif_message" msgid="6667218116427605038">"Írja be a munkamenetkulcsot a(z) %1$s eszközhöz"</string>
     <string name="defaultname" msgid="4821590500649090078">"Autós készlet"</string>
     <string name="unknownName" msgid="2841414754740600042">"Ismeretlen név"</string>

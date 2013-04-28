@@ -9,7 +9,6 @@
     <string name="auth_notif_title">Istuntoavain</string>
     <!-- Notification message when a Bluetooth device wants to pair with us -->
     <string name="auth_notif_message">Kirjoita istuntoavain kohteelle %1$s</string>
-    <string name="alwaysallowed">Sallitaanko aina?</string>
     <string name="defaultname">Autosarja</string>
     <string name="unknownName">Tuntematon nimi</string>
     <string name="localPhoneName">Oma nimeni</string>
