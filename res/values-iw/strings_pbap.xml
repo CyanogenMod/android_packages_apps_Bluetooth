@@ -12,9 +12,4 @@
     <string name="unknownName" msgid="2841414754740600042">"שם לא ידוע"</string>
     <string name="localPhoneName" msgid="2349001318925409159">"השם שלי"</string>
     <string name="defaultnumber" msgid="8520116145890867338">"000000"</string>
-
-    <!-- **** CYANOGENMOD ADDITIONS START **** -->
-    <string name="alwaysallowed">לאפשר תמיד?</string>
-    <!-- **** CYANOGENMOD ADDITIONS END **** -->
-
 </resources>

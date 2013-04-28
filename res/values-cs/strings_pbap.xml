@@ -8,7 +8,6 @@
     <string name="auth_notif_ticker" msgid="1575825798053163744">"Požadavek ověření Obex"</string>
     <string name="auth_notif_title" msgid="7599854855681573258">"Klíč relace"</string>
     <string name="auth_notif_message" msgid="6667218116427605038">"Zadejte klíč relace pro zařízení %1$s"</string>
-    <string name="alwaysallowed">"Povolit vždy?"</string>
     <string name="defaultname" msgid="4821590500649090078">"Sada handsfree do auta"</string>
     <string name="unknownName" msgid="2841414754740600042">"Neznámý název"</string>
     <string name="localPhoneName" msgid="2349001318925409159">"Mé jméno"</string>
