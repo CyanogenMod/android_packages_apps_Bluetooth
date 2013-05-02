@@ -88,11 +88,10 @@ final class HeadsetStateMachine extends StateMachine {
     static final int CALL_STATE_CHANGED = 9;
     static final int INTENT_BATTERY_CHANGED = 10;
     static final int DEVICE_STATE_CHANGED = 11;
-    static final int ROAM_CHANGED = 12;
-    static final int SEND_CCLC_RESPONSE = 13;
+    static final int SEND_CCLC_RESPONSE = 12;
 
-    static final int VIRTUAL_CALL_START = 14;
-    static final int VIRTUAL_CALL_STOP = 15;
+    static final int VIRTUAL_CALL_START = 13;
+    static final int VIRTUAL_CALL_STOP = 14;
 
     private static final int STACK_EVENT = 101;
     private static final int DIALING_OUT_TIMEOUT = 102;
@@ -285,9 +284,6 @@ final class HeadsetStateMachine extends StateMachine {
                 case INTENT_BATTERY_CHANGED:
                     processIntentBatteryChanged((Intent) message.obj);
                     break;
-                case ROAM_CHANGED:
-                    processRoamChanged((Boolean) message.obj);
-                    break;
                 case CALL_STATE_CHANGED:
                     processCallState((HeadsetCallState) message.obj,
                         ((message.arg1 == 1)?true:false));
@@ -415,9 +411,6 @@ final class HeadsetStateMachine extends StateMachine {
                     break;
                 case INTENT_BATTERY_CHANGED:
                     processIntentBatteryChanged((Intent) message.obj);
-                    break;
-                case ROAM_CHANGED:
-                    processRoamChanged((Boolean) message.obj);
                     break;
                 case CALL_STATE_CHANGED:
                     processCallState((HeadsetCallState) message.obj,
@@ -649,9 +642,6 @@ final class HeadsetStateMachine extends StateMachine {
                 case INTENT_BATTERY_CHANGED:
                     processIntentBatteryChanged((Intent) message.obj);
                     break;
-                case ROAM_CHANGED:
-                    processRoamChanged((Boolean) message.obj);
-                    break;
                 case DEVICE_STATE_CHANGED:
                     processDeviceStateChanged((HeadsetDeviceState) message.obj);
                     break;
@@ -865,9 +855,6 @@ final class HeadsetStateMachine extends StateMachine {
                     break;
                 case INTENT_BATTERY_CHANGED:
                     processIntentBatteryChanged((Intent) message.obj);
-                    break;
-                case ROAM_CHANGED:
-                    processRoamChanged((Boolean) message.obj);
                     break;
                 case DEVICE_STATE_CHANGED:
                     processDeviceStateChanged((HeadsetDeviceState) message.obj);
@@ -1889,11 +1876,6 @@ final class HeadsetStateMachine extends StateMachine {
         }
         batteryLevel = batteryLevel * 5 / scale;
         mPhoneState.setBatteryCharge(batteryLevel);
-    }
-
-    private void processRoamChanged(boolean roam) {
-        mPhoneState.setRoam(roam ? HeadsetHalConstants.SERVICE_TYPE_ROAMING :
-                            HeadsetHalConstants.SERVICE_TYPE_HOME);
     }
 
     private void processDeviceStateChanged(HeadsetDeviceState deviceState) {

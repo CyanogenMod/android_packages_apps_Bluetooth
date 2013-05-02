@@ -257,12 +257,6 @@ public class HeadsetService extends ProfileService {
             service.phoneStateChanged(numActive, numHeld, callState, number, type);
         }
 
-        public void roamChanged(boolean roam) {
-            HeadsetService service = getService();
-            if (service == null) return;
-            service.roamChanged(roam);
-        }
-
         public void clccResponse(int index, int direction, int status, int mode, boolean mpty,
                                  String number, int type) {
             HeadsetService service = getService();
@@ -476,11 +470,6 @@ public class HeadsetService extends ProfileService {
         msg.obj = new HeadsetCallState(numActive, numHeld, callState, number, type);
         msg.arg1 = 0; // false
         mStateMachine.sendMessage(msg);
-    }
-
-    private void roamChanged(boolean roam) {
-        enforceCallingOrSelfPermission(MODIFY_PHONE_STATE, null);
-        mStateMachine.sendMessage(HeadsetStateMachine.ROAM_CHANGED, roam);
     }
 
     private void clccResponse(int index, int direction, int status, int mode, boolean mpty,

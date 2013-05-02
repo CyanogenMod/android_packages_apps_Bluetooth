@@ -178,6 +178,8 @@ class HeadsetPhoneState {
             mService = (serviceState.getState() == ServiceState.STATE_IN_SERVICE) ?
                 HeadsetHalConstants.NETWORK_STATE_AVAILABLE :
                 HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE;
+            setRoam(serviceState.getRoaming() ? HeadsetHalConstants.SERVICE_TYPE_ROAMING
+                                              : HeadsetHalConstants.SERVICE_TYPE_HOME);
             sendDeviceStateChanged();
         }
 
