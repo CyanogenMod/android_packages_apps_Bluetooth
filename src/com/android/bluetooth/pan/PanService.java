@@ -441,7 +441,7 @@ public class PanService extends ProfileService {
                     ifaceAddr = null;
                 }
             }
-        } else {
+        } else if (mTetherAc != null) {
             // PANU Role = reverse Tether
             Log.d(TAG, "handlePanDeviceStateChange LOCAL_PANU_ROLE:REMOTE_NAP_ROLE state = " +
                     state + ", prevState = " + prevState);
