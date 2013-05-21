@@ -119,7 +119,12 @@ final class AdapterState extends StateMachine {
 
         @Override
         public boolean processMessage(Message msg) {
-
+            AdapterService adapterService = mAdapterService;
+            if (adapterService == null) {
+                Log.e(TAG,"receive message at OffState after cleanup:" +
+                          msg.what);
+                return false;
+            }
             switch(msg.what) {
                case USER_TURN_ON:
                    if (DBG) Log.d(TAG,"CURRENT_STATE=OFF, MESSAGE = USER_TURN_ON");
@@ -127,7 +132,7 @@ final class AdapterState extends StateMachine {
                    mPendingCommandState.setTurningOn(true);
                    transitionTo(mPendingCommandState);
                    sendMessageDelayed(START_TIMEOUT, START_TIMEOUT_DELAY);
-                   mAdapterService.processStart();
+                   adapterService.processStart();
                    break;
                case USER_TURN_OFF:
                    if (DBG) Log.d(TAG,"CURRENT_STATE=OFF, MESSAGE = USER_TURN_OFF");
@@ -145,11 +150,22 @@ final class AdapterState extends StateMachine {
         @Override
         public void enter() {
             infoLog("Entering On State");
-            mAdapterService.autoConnect();
+            AdapterService adapterService = mAdapterService;
+            if (adapterService == null) {
+                Log.e(TAG,"enter OnState after cleanup");
+                return;
+            }
+            adapterService.autoConnect();
         }
 
         @Override
         public boolean processMessage(Message msg) {
+            AdapterProperties adapterProperties = mAdapterProperties;
+            if (adapterProperties == null) {
+                Log.e(TAG,"receive message at OnState after cleanup:" +
+                          msg.what);
+                return false;
+            }
 
             switch(msg.what) {
                case USER_TURN_OFF:
@@ -162,7 +178,7 @@ final class AdapterState extends StateMachine {
                    // setScanMode to SCAN_MODE_NONE
                    Message m = obtainMessage(SET_SCAN_MODE_TIMEOUT);
                    sendMessageDelayed(m, PROPERTY_OP_DELAY);
-                   mAdapterProperties.onBluetoothDisable();
+                   adapterProperties.onBluetoothDisable();
                    break;
 
                case USER_TURN_ON:
@@ -207,6 +223,14 @@ final class AdapterState extends StateMachine {
             boolean isTurningOn= isTurningOn();
             boolean isTurningOff = isTurningOff();
 
+            AdapterService adapterService = mAdapterService;
+            AdapterProperties adapterProperties = mAdapterProperties;
+            if ((adapterService == null) || (adapterProperties == null)) {
+                Log.e(TAG,"receive message at Pending State after cleanup:" +
+                          msg.what);
+                return false;
+            }
+
             switch (msg.what) {
                 case USER_TURN_ON:
                     if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = USER_TURN_ON"
@@ -234,7 +258,7 @@ final class AdapterState extends StateMachine {
                     removeMessages(START_TIMEOUT);
 
                     //Enable
-                    boolean ret = mAdapterService.enableNative();
+                    boolean ret = adapterService.enableNative();
                     if (!ret) {
                         Log.e(TAG, "Error while turning Bluetooth On");
                         notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
@@ -248,7 +272,7 @@ final class AdapterState extends StateMachine {
                 case ENABLED_READY:
                     if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = ENABLE_READY, isTurningOn=" + isTurningOn + ", isTurningOff=" + isTurningOff);
                     removeMessages(ENABLE_TIMEOUT);
-                    mAdapterProperties.onBluetoothReady();
+                    adapterProperties.onBluetoothReady();
                     mPendingCommandState.setTurningOn(false);
                     transitionTo(mOnState);
                     notifyAdapterStateChange(BluetoothAdapter.STATE_ON);
@@ -261,7 +285,7 @@ final class AdapterState extends StateMachine {
                     if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = BEGIN_DISABLE, isTurningOn=" + isTurningOn + ", isTurningOff=" + isTurningOff);
                     removeMessages(SET_SCAN_MODE_TIMEOUT);
                     sendMessageDelayed(DISABLE_TIMEOUT, DISABLE_TIMEOUT_DELAY);
-                    boolean ret = mAdapterService.disableNative();
+                    boolean ret = adapterService.disableNative();
                     if (!ret) {
                         removeMessages(DISABLE_TIMEOUT);
                         Log.e(TAG, "Error while turning Bluetooth Off");
@@ -278,13 +302,13 @@ final class AdapterState extends StateMachine {
                         errorLog("Error enabling Bluetooth - hardware init failed");
                         mPendingCommandState.setTurningOn(false);
                         transitionTo(mOffState);
-                        mAdapterService.stopProfileServices();
+                        adapterService.stopProfileServices();
                         notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
                         break;
                     }
                     removeMessages(DISABLE_TIMEOUT);
                     sendMessageDelayed(STOP_TIMEOUT, STOP_TIMEOUT_DELAY);
-                    if (mAdapterService.stopProfileServices()) {
+                    if (adapterService.stopProfileServices()) {
                         Log.d(TAG,"Stopping profile services that were post enabled");
                         break;
                     }
@@ -332,10 +356,17 @@ final class AdapterState extends StateMachine {
 
 
     private void notifyAdapterStateChange(int newState) {
-        int oldState = mAdapterProperties.getState();
-        mAdapterProperties.setState(newState);
+        AdapterService adapterService = mAdapterService;
+        AdapterProperties adapterProperties = mAdapterProperties;
+        if ((adapterService == null) || (adapterProperties == null)) {
+            Log.e(TAG,"notifyAdapterStateChange after cleanup:" + newState);
+            return;
+        }
+
+        int oldState = adapterProperties.getState();
+        adapterProperties.setState(newState);
         infoLog("Bluetooth adapter state changed: " + oldState + "-> " + newState);
-        mAdapterService.updateAdapterState(oldState, newState);
+        adapterService.updateAdapterState(oldState, newState);
     }
 
     void stateChangeCallback(int status) {
