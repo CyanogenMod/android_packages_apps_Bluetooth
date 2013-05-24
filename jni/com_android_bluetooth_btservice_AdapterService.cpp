@@ -91,17 +91,6 @@ static int get_properties(int num_properties, bt_property_t *properties, jintArr
                         jobjectArray *props) {
     jbyteArray propVal;
     for (int i = 0; i < num_properties; i++) {
-
-        /* The higher layers expect rssi as a short int value, while the value is sent as a byte
-         * to jni. Converting rssi value to the expected format.*/
-        if (properties[i].type == BT_PROPERTY_REMOTE_RSSI)
-        {
-            jbyte rssi = *((jbyte *) properties[i].val);
-            short rssiValue = rssi;
-            properties[i].len = sizeof(rssiValue);
-            properties[i].val = &rssiValue;
-        }
-
         propVal = callbackEnv->NewByteArray(properties[i].len);
         if (propVal == NULL) goto Fail;
 

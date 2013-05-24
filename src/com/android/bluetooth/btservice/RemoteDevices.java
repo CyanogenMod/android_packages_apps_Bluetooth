@@ -294,7 +294,8 @@ final class RemoteDevices {
                             device.mDeviceType = Utils.byteArrayToInt(val);
                             break;
                         case AbstractionLayer.BT_PROPERTY_REMOTE_RSSI:
-                            device.mRssi = Utils.byteArrayToShort(val);
+                            // RSSI from hal is in one byte
+                            device.mRssi = val[0];
                             break;
                     }
                 }
