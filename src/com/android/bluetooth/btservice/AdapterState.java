@@ -345,6 +345,7 @@ final class AdapterState extends StateMachine {
                     errorLog("Error disabling Bluetooth");
                     mPendingCommandState.setTurningOff(false);
                     transitionTo(mOnState);
+                    notifyAdapterStateChange(BluetoothAdapter.STATE_ON);
                     break;
                 default:
                     if (DBG) Log.d(TAG,"ERROR: UNEXPECTED MESSAGE: CURRENT_STATE=PENDING, MESSAGE = " + msg.what );
