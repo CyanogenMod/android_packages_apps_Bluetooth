@@ -37,6 +37,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.bluetooth.BluetoothUuid;
 import android.content.Context;
 import android.content.Intent;
 import android.database.ContentObserver;
@@ -183,11 +184,13 @@ public class BluetoothMasService extends Service {
     public static class MasInstanceInfo {
         int mSupportedMessageTypes;
         Class<? extends MnsClient> mMnsClientClass;
+        String mName;
         int mRfcommPort;
 
-        public MasInstanceInfo(int smt, Class<? extends MnsClient> _class, int port) {
+        public MasInstanceInfo(int smt, Class<? extends MnsClient> _class, String name, int port) {
             mSupportedMessageTypes = smt;
             mMnsClientClass = _class;
+            mName = name;
             mRfcommPort = port;
         }
     }
@@ -201,8 +204,8 @@ public class BluetoothMasService extends Service {
     // SDP records supported message types and port number
     // Please refer sdptool.c, BluetoothService.java, & init.qcom.rc
     static {
-        MAS_INS_INFO[0] = new MasInstanceInfo(MESSAGE_TYPE_SMS_MMS, BluetoothMnsSmsMms.class, 16);
-        MAS_INS_INFO[1] = new MasInstanceInfo(MESSAGE_TYPE_EMAIL, BluetoothMnsEmail.class, 17);
+        MAS_INS_INFO[0] = new MasInstanceInfo(MESSAGE_TYPE_SMS_MMS, BluetoothMnsSmsMms.class, "SMS/MMS", 16);
+        MAS_INS_INFO[1] = new MasInstanceInfo(MESSAGE_TYPE_EMAIL, BluetoothMnsEmail.class, "E-Mail", 17);
     }
 
     private ContentObserver mEmailAccountObserver;
@@ -497,7 +500,8 @@ public class BluetoothMasService extends Service {
         public BluetoothMasObexConnectionManager() {
             for (int i = 0; i < MAX_INSTANCES; i ++) {
                 mConnections.add(new BluetoothMasObexConnection(
-                        MAS_INS_INFO[i].mSupportedMessageTypes, i, MAS_INS_INFO[i].mRfcommPort));
+                        MAS_INS_INFO[i].mSupportedMessageTypes, i,
+                        MAS_INS_INFO[i].mName, MAS_INS_INFO[i].mRfcommPort));
             }
         }
 
@@ -631,13 +635,15 @@ public class BluetoothMasService extends Service {
         private BluetoothMasObexServer mMapServer = null;
 
         private int mSupportedMessageTypes;
+        private String mName;
         private int mPortNum;
         private int mMasId;
         boolean mWaitingForConfirmation = false;
 
-        public BluetoothMasObexConnection(int supportedMessageTypes, int masId, int portNumber) {
+        public BluetoothMasObexConnection(int supportedMessageTypes, int masId, String name, int portNumber) {
                 mSupportedMessageTypes = supportedMessageTypes;
                 mMasId = masId;
+                mName = name;
                 mPortNum = portNumber;
         }
 
@@ -662,7 +668,9 @@ public class BluetoothMasService extends Service {
             // It's possible that create will fail in some cases. retry for 10 times
             for (int i = 0; i < CREATE_RETRY_TIME && !mInterrupted; i++) {
                 try {
-                    mServerSocket = mAdapter.listenUsingRfcommOn(mPortNum);
+                    mServerSocket = mAdapter.listenUsingRfcommWithServiceRecordOn(
+                            "OBEX Message Access " + mName + " Server",
+                            mPortNum, BluetoothUuid.MessageAccessServer.getUuid());
                     initSocketOK = true;
                 } catch (IOException e) {
                     Log.e(TAG, "Error create RfcommServerSocket " + e.toString());
