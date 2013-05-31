@@ -2279,14 +2279,8 @@ public class BluetoothMasAppSmsMms extends BluetoothMasAppIf {
             Log.v(TAG, " Text " + smsText + " address " + address);
         }
 
-        try {
-            Intent sendIntentSms = new Intent("com.android.mms.transaction.SEND_MESSAGE");
-            sendIntentSms.putExtra(android.content.Intent.EXTRA_PHONE_NUMBER, address);
-            sendIntentSms.putExtra(android.content.Intent.EXTRA_TEXT, smsText);
-            mContext.sendBroadcast(sendIntentSms);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        mContext.sendBroadcast(new Intent("android.intent.action.SEND_MESSAGE"));
+
         return rsp;
     }
 
