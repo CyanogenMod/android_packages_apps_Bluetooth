@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2012-2013 The CyanogenMod Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+ -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="map_acceptance_dialog_title">%1$s vorrebbe accedere alle cartelle del telefono. Consentire l\'accesso a %2$s?</string>
+    <string name="map_acceptance_dialog_header">Accesso cartelle dispositivo</string>
+    <string name="map_notif_title">Chiave di sessione richiesta per il MAP</string>
+    <string name="map_notif_message">Consentire l\'accesso alla cartella radice a %1$s</string>
+    <string name="map_alert_conn_failed_message">Connessione bluetooth MAP fallita</string>
+</resources>
