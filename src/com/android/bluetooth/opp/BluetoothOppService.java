@@ -53,6 +53,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
+import java.io.File;
 import android.util.Log;
 import android.os.Process;
 
@@ -933,6 +934,36 @@ public class BluetoothOppService extends Service {
         delNum = contentResolver.delete(BluetoothShare.CONTENT_URI,
                 WHERE_INVISIBLE_COMPLETE_INBOUND_FAILED, null);
         if (V) Log.v(TAG, "Deleted complete inbound failed shares, number = " + delNum);
+
+        final String WHERE_INBOUND_INTERRUPTED_ON_POWER_OFF = BluetoothShare.DIRECTION + "="
+                + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + "="
+                + BluetoothShare.STATUS_RUNNING;
+
+        Cursor cursorToFile = contentResolver.query(BluetoothShare.CONTENT_URI,
+                                  new String[] { BluetoothShare._DATA },
+                                  WHERE_INBOUND_INTERRUPTED_ON_POWER_OFF, null, null);
+
+        // remove the share and the respective file which was interrupted by battery
+        // removal in the local device
+        if (cursorToFile != null) {
+            if (cursorToFile.moveToFirst()) {
+                String fileName = cursorToFile.getString(0);
+                Log.v(TAG, "File to be deleted: " + fileName);
+                File fileToDelete = new File(fileName);
+                if (fileToDelete != null) fileToDelete.delete();
+                delNum = contentResolver.delete(BluetoothShare.CONTENT_URI,
+                             WHERE_INBOUND_INTERRUPTED_ON_POWER_OFF, null);
+                if (V) Log.v(TAG, "Delete aborted inbound share, number = " + delNum);
+            }
+        }
+
+        // on boot : remove unconfirmed inbound shares.
+        final String WHERE_CONFIRMATION_PENDING_INBOUND = BluetoothShare.DIRECTION + "="
+                + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.USER_CONFIRMATION
+                + "=" + BluetoothShare.USER_CONFIRMATION_PENDING;
+        delNum = contentResolver.delete(BluetoothShare.CONTENT_URI,
+                 WHERE_CONFIRMATION_PENDING_INBOUND, null);
+        if (V) Log.v(TAG, "Deleted unconfirmed incoming shares, number = " + delNum);
 
         // Only keep the inbound and successful shares for LiverFolder use
         // Keep the latest 1000 to easy db query
