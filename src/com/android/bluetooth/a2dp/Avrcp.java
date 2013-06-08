@@ -94,7 +94,7 @@ final class Avrcp {
         mPlayStatusChangedNT = NOTIFICATION_TYPE_CHANGED;
         mTrackChangedNT = NOTIFICATION_TYPE_CHANGED;
         mTrackNumber = -1L;
-        mCurrentPosMs = RemoteControlClient.PLAYBACK_POSITION_INVALID;
+        mCurrentPosMs = 0L;
         mPlayStartTimeMs = -1L;
         mSongLengthMs = 0L;
         mPlaybackIntervalMs = 0L;
@@ -269,28 +269,39 @@ final class Avrcp {
     private void updatePlayPauseState(int state, long currentPosMs) {
         if (DEBUG) Log.v(TAG,
                 "updatePlayPauseState, old=" + mCurrentPlayState + ", state=" + state);
-        boolean oldPosValid = (mCurrentPosMs != RemoteControlClient.PLAYBACK_POSITION_INVALID);
-        boolean newPosValid = (currentPosMs != RemoteControlClient.PLAYBACK_POSITION_INVALID);
+        boolean oldPosValid = (mCurrentPosMs !=
+                               RemoteControlClient.PLAYBACK_POSITION_ALWAYS_UNKNOWN);
         int oldPlayStatus = convertPlayStateToPlayStatus(mCurrentPlayState);
         int newPlayStatus = convertPlayStateToPlayStatus(state);
+
+        if ((mCurrentPlayState == RemoteControlClient.PLAYSTATE_PLAYING) &&
+            (mCurrentPlayState != state) && oldPosValid) {
+            mCurrentPosMs = getPlayPosition();
+        }
+
         mCurrentPlayState = state;
-        mCurrentPosMs = currentPosMs;
+        if (currentPosMs != RemoteControlClient.PLAYBACK_POSITION_INVALID) {
+            mCurrentPosMs = currentPosMs;
+        }
         if (state == RemoteControlClient.PLAYSTATE_PLAYING) {
             mPlayStartTimeMs = SystemClock.elapsedRealtime();
         }
 
+        boolean newPosValid = (mCurrentPosMs !=
+                               RemoteControlClient.PLAYBACK_POSITION_ALWAYS_UNKNOWN);
+        long playPosition = getPlayPosition();
         mHandler.removeMessages(MESSAGE_PLAY_INTERVAL_TIMEOUT);
         /* need send play position changed notification when play status is changed */
         if ((mPlayPosChangedNT == NOTIFICATION_TYPE_INTERIM) &&
             ((oldPlayStatus != newPlayStatus) || (oldPosValid != newPosValid) ||
-             (newPosValid && ((mCurrentPosMs >= mNextPosMs) || (mCurrentPosMs <= mPrevPosMs))))) {
+             (newPosValid && ((playPosition >= mNextPosMs) || (playPosition <= mPrevPosMs))))) {
             mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
-            registerNotificationRspPlayPosNative(mPlayPosChangedNT, (int)getPlayPosition());
+            registerNotificationRspPlayPosNative(mPlayPosChangedNT, (int)playPosition);
         }
         if ((mPlayPosChangedNT == NOTIFICATION_TYPE_INTERIM) && newPosValid &&
             (state == RemoteControlClient.PLAYSTATE_PLAYING)) {
             Message msg = mHandler.obtainMessage(MESSAGE_PLAY_INTERVAL_TIMEOUT);
-            mHandler.sendMessageDelayed(msg, mNextPosMs - mCurrentPosMs);
+            mHandler.sendMessageDelayed(msg, mNextPosMs - playPosition);
         }
 
         if ((mPlayStatusChangedNT == NOTIFICATION_TYPE_INTERIM) && (oldPlayStatus != newPlayStatus)) {
@@ -340,7 +351,7 @@ final class Avrcp {
                 sendTrackChangedRsp();
             }
 
-            if (mCurrentPosMs != RemoteControlClient.PLAYBACK_POSITION_INVALID) {
+            if (mCurrentPosMs != RemoteControlClient.PLAYBACK_POSITION_ALWAYS_UNKNOWN) {
                 mCurrentPosMs = 0L;
                 if (mCurrentPlayState == RemoteControlClient.PLAYSTATE_PLAYING) {
                     mPlayStartTimeMs = SystemClock.elapsedRealtime();
@@ -397,7 +408,7 @@ final class Avrcp {
                 long songPosition = getPlayPosition();
                 mPlayPosChangedNT = NOTIFICATION_TYPE_INTERIM;
                 mPlaybackIntervalMs = (long)param * 1000L;
-                if (mCurrentPosMs != RemoteControlClient.PLAYBACK_POSITION_INVALID) {
+                if (mCurrentPosMs != RemoteControlClient.PLAYBACK_POSITION_ALWAYS_UNKNOWN) {
                     mNextPosMs = songPosition + mPlaybackIntervalMs;
                     mPrevPosMs = songPosition - mPlaybackIntervalMs;
                     if (mCurrentPlayState == RemoteControlClient.PLAYSTATE_PLAYING) {
@@ -422,7 +433,7 @@ final class Avrcp {
 
     private long getPlayPosition() {
         long songPosition = -1L;
-        if (mCurrentPosMs != RemoteControlClient.PLAYBACK_POSITION_INVALID) {
+        if (mCurrentPosMs != RemoteControlClient.PLAYBACK_POSITION_ALWAYS_UNKNOWN) {
             if (mCurrentPlayState == RemoteControlClient.PLAYSTATE_PLAYING) {
                 songPosition = SystemClock.elapsedRealtime() -
                                mPlayStartTimeMs + mCurrentPosMs;
