@@ -16,7 +16,6 @@
 package com.android.bluetooth.pbap;
 
 import com.android.bluetooth.R;
-import com.android.internal.telephony.CallerInfo;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -60,7 +59,7 @@ public class BluetoothPbapCallLogComposer {
     /** The projection to use when querying the call log table */
     private static final String[] sCallLogProjection = new String[] {
             Calls.NUMBER, Calls.DATE, Calls.TYPE, Calls.CACHED_NAME, Calls.CACHED_NUMBER_TYPE,
-            Calls.CACHED_NUMBER_LABEL
+            Calls.CACHED_NUMBER_LABEL, Calls.NUMBER_PRESENTATION
     };
     private static final int NUMBER_COLUMN_INDEX = 0;
     private static final int DATE_COLUMN_INDEX = 1;
@@ -68,6 +67,7 @@ public class BluetoothPbapCallLogComposer {
     private static final int CALLER_NAME_COLUMN_INDEX = 3;
     private static final int CALLER_NUMBERTYPE_COLUMN_INDEX = 4;
     private static final int CALLER_NUMBERLABEL_COLUMN_INDEX = 5;
+    private static final int NUMBER_PRESENTATION_COLUMN_INDEX = 6;
 
     // Property for call log entry
     private static final String VCARD_PROPERTY_X_TIMESTAMP = "X-IRMC-CALL-DATETIME";
@@ -139,24 +139,22 @@ public class BluetoothPbapCallLogComposer {
                 VCardConfig.FLAG_REFRAIN_PHONE_NUMBER_FORMATTING;
         final VCardBuilder builder = new VCardBuilder(vcardType);
         String name = mCursor.getString(CALLER_NAME_COLUMN_INDEX);
+        String number = mCursor.getString(NUMBER_COLUMN_INDEX);
+        final int numberPresentation = mCursor.getInt(NUMBER_PRESENTATION_COLUMN_INDEX);
         if (TextUtils.isEmpty(name)) {
             name = "";
         }
-        if (CallerInfo.UNKNOWN_NUMBER.equals(name) || CallerInfo.PRIVATE_NUMBER.equals(name) ||
-                CallerInfo.PAYPHONE_NUMBER.equals(name)) {
+        if (numberPresentation != Calls.PRESENTATION_ALLOWED) {
             // setting name to "" as FN/N must be empty fields in this case.
             name = "";
+            // TODO: there are really 3 possible strings that could be set here:
+            // "unknown", "private", and "payphone".
+            number = mContext.getString(R.string.unknownNumber);
         }
         final boolean needCharset = !(VCardUtils.containsOnlyPrintableAscii(name));
         builder.appendLine(VCardConstants.PROPERTY_FN, name, needCharset, false);
         builder.appendLine(VCardConstants.PROPERTY_N, name, needCharset, false);
 
-        String number = mCursor.getString(NUMBER_COLUMN_INDEX);
-        if (CallerInfo.UNKNOWN_NUMBER.equals(number) ||
-                CallerInfo.PRIVATE_NUMBER.equals(number) ||
-                CallerInfo.PAYPHONE_NUMBER.equals(number)) {
-            number = mContext.getString(R.string.unknownNumber);
-        }
         final int type = mCursor.getInt(CALLER_NUMBERTYPE_COLUMN_INDEX);
         String label = mCursor.getString(CALLER_NUMBERLABEL_COLUMN_INDEX);
         if (TextUtils.isEmpty(label)) {

@@ -51,7 +51,6 @@ import android.util.Log;
 import com.android.bluetooth.R;
 import com.android.vcard.VCardComposer;
 import com.android.vcard.VCardConfig;
-import com.android.internal.telephony.CallerInfo;
 import com.android.vcard.VCardPhoneNumberTranslationCallback;
 
 import java.io.IOException;
@@ -200,10 +199,11 @@ public class BluetoothPbapVcardManager {
         final Uri myUri = CallLog.Calls.CONTENT_URI;
         String selection = BluetoothPbapObexServer.createSelectionPara(type);
         String[] projection = new String[] {
-                Calls.NUMBER, Calls.CACHED_NAME
+                Calls.NUMBER, Calls.CACHED_NAME, Calls.NUMBER_PRESENTATION
         };
         final int CALLS_NUMBER_COLUMN_INDEX = 0;
         final int CALLS_NAME_COLUMN_INDEX = 1;
+        final int CALLS_NUMBER_PRESENTATION_COLUMN_INDEX = 2;
 
         Cursor callCursor = null;
         ArrayList<String> list = new ArrayList<String>();
@@ -216,11 +216,12 @@ public class BluetoothPbapVcardManager {
                     String name = callCursor.getString(CALLS_NAME_COLUMN_INDEX);
                     if (TextUtils.isEmpty(name)) {
                         // name not found, use number instead
-                        name = callCursor.getString(CALLS_NUMBER_COLUMN_INDEX);
-                        if (CallerInfo.UNKNOWN_NUMBER.equals(name) ||
-                                CallerInfo.PRIVATE_NUMBER.equals(name) ||
-                                CallerInfo.PAYPHONE_NUMBER.equals(name)) {
+                        final int numberPresentation = callCursor.getInt(
+                                CALLS_NUMBER_PRESENTATION_COLUMN_INDEX);
+                        if (numberPresentation != Calls.PRESENTATION_ALLOWED) {
                             name = mContext.getString(R.string.unknownNumber);
+                        } else {
+                            name = callCursor.getString(CALLS_NUMBER_COLUMN_INDEX);
                         }
                     }
                     list.add(name);
