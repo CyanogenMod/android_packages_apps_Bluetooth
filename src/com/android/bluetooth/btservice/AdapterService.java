@@ -872,6 +872,18 @@ public class AdapterService extends Service {
             return service.createSocketChannel(type, serviceName, uuid, port, flag);
         }
 
+        public boolean configHciSnoopLog(boolean enable) {
+            if ((Binder.getCallingUid() != Process.SYSTEM_UID) &&
+                (!Utils.checkCaller())) {
+                Log.w(TAG,"configHciSnoopLog(): not allowed for non-active user");
+                return false;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.configHciSnoopLog(enable);
+        }
+
         public void registerCallback(IBluetoothCallback cb) {
             AdapterService service = getService();
             if (service == null) return ;
@@ -1322,6 +1334,11 @@ public class AdapterService extends Service {
         return ParcelFileDescriptor.adoptFd(fd);
     }
 
+    boolean configHciSnoopLog(boolean enable) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return configHciSnoopLogNative(enable);
+    }
+
      void registerCallback(IBluetoothCallback cb) {
          mCallbacks.register(cb);
       }
@@ -1395,6 +1412,8 @@ public class AdapterService extends Service {
                                            byte[] uuid, int port, int flag);
     private native int createSocketChannelNative(int type, String serviceName,
                                                  byte[] uuid, int port, int flag);
+
+    /*package*/ native boolean configHciSnoopLogNative(boolean enable);
 
     protected void finalize() {
         cleanup();
