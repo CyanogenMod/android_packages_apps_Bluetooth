@@ -1,4 +1,7 @@
 /*
+ * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Not a Contribution.
+ *
  * Copyright (C) 2012 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -301,6 +304,23 @@ static void initializeNative(JNIEnv *env, jobject object) {
     mCallbacksObj = env->NewGlobalRef(object);
 }
 
+static void initializeFeaturesNative(JNIEnv *env, jobject object, jint feature_bitmask) {
+    const bt_interface_t* btInf;
+    bt_status_t status;
+
+    if ( (btInf = getBluetoothInterface()) == NULL) {
+        ALOGE("Bluetooth module is not loaded");
+        return;
+    }
+    if (!sBluetoothHfpInterface) return ;
+    if (feature_bitmask)
+        if ((status = sBluetoothHfpInterface->init_features(feature_bitmask))
+            != BT_STATUS_SUCCESS){
+            ALOGE("Failed sending feature bitmask, status: %d", status);
+        }
+    return;
+}
+
 static void cleanupNative(JNIEnv *env, jobject object) {
     const bt_interface_t* btInf;
     bt_status_t status;
@@ -542,6 +562,7 @@ static jboolean phoneStateChangeNative(JNIEnv *env, jobject object, jint num_act
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
     {"initializeNative", "()V", (void *) initializeNative},
+    {"initializeFeaturesNative", "(I)V", (void *) initializeFeaturesNative},
     {"cleanupNative", "()V", (void *) cleanupNative},
     {"connectHfpNative", "([B)Z", (void *) connectHfpNative},
     {"disconnectHfpNative", "([B)Z", (void *) disconnectHfpNative},
