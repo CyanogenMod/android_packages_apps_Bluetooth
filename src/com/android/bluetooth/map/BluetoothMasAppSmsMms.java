@@ -86,6 +86,11 @@ public class BluetoothMasAppSmsMms extends BluetoothMasAppIf {
     private static final String SMS_GSM = "SMS_GSM";
     private static final String SMS_CDMA = "SMS_CDMA";
     private static final String MMS = "MMS";
+    // OMA-TS-MMS-ENC defined many types in X-Mms-Message-Type.
+    // Only m-send-req (128) m-retrieve-conf (132), m-notification-ind (130)
+    // are interested by user
+    private static final String INTERESTED_MESSAGE_TYPE_CLAUSE =
+                "(m_type = 128 OR m_type = 132 OR m_type = 130)";
 
     public BluetoothMasAppSmsMms(Context context, Handler handler, BluetoothMns mnsClient,
             int masId, String remoteDeviceName) {
@@ -217,8 +222,8 @@ public class BluetoothMasAppSmsMms extends BluetoothMasAppIf {
                     bmlr.rsp = bmlrMms.rsp;
                 }
                 if (validFilter != true) {
-                    if (V) Log.v(TAG, "Invalid filter in msgListingSpecific");
-                    rsp.rsp = ResponseCodes.OBEX_HTTP_BAD_REQUEST;
+                    if (V) Log.v(TAG, "Invalid message filter, returning empty-list");
+                    rsp.rsp = ResponseCodes.OBEX_HTTP_OK;
                     bmlr.rsp = rsp;
                     return bmlr;
                 }
@@ -817,7 +822,8 @@ public class BluetoothMasAppSmsMms extends BluetoothMasAppIf {
         if ( name.equalsIgnoreCase(DELETED)){
             Uri uri = Uri.parse("content://mms/");
             ContentResolver cr = mContext.getContentResolver();
-            Cursor cursor = cr.query(uri, null, "thread_id = " + DELETED_THREAD_ID, null, null);
+            Cursor cursor = cr.query(uri, null, "thread_id = " + DELETED_THREAD_ID
+                    + " AND " + INTERESTED_MESSAGE_TYPE_CLAUSE, null, null);
             if(cursor != null){
                 msgCount = cursor.getCount();
                 cursor.close();
@@ -825,7 +831,8 @@ public class BluetoothMasAppSmsMms extends BluetoothMasAppIf {
         } else {
             Uri uri = Uri.parse("content://mms/" + name);
             ContentResolver cr = mContext.getContentResolver();
-            Cursor cursor = cr.query(uri, null, "thread_id <> " + DELETED_THREAD_ID, null, null);
+            Cursor cursor = cr.query(uri, null, "thread_id <> " + DELETED_THREAD_ID
+                    + " AND " + INTERESTED_MESSAGE_TYPE_CLAUSE, null, null);
             if(cursor != null){
                 msgCount = cursor.getCount();
                 cursor.close();
@@ -880,12 +887,14 @@ public class BluetoothMasAppSmsMms extends BluetoothMasAppIf {
      */
     private String bldMmsWhereClause(BluetoothMasAppParams appParams, int foldertype) {
         String whereClause = "";
-        if ( foldertype != 0) {
+        if ( foldertype != -1) {
             // Inbox, Outbox, Sent, Draft folders
-            whereClause = "msg_box=" + foldertype + " AND thread_id <> " + DELETED_THREAD_ID;
+            whereClause = "msg_box=" + foldertype + " AND thread_id <> " + DELETED_THREAD_ID
+                    + " AND " + INTERESTED_MESSAGE_TYPE_CLAUSE;
         } else {
             // Deleted folder
-            whereClause =  "thread_id = " + DELETED_THREAD_ID;
+            whereClause =  "thread_id = " + DELETED_THREAD_ID + " AND "
+                    + INTERESTED_MESSAGE_TYPE_CLAUSE;
         }
 
         /* Filter readstatus: 0 no filtering, 0x01 get unread, 0x10 get read */
@@ -896,7 +905,7 @@ public class BluetoothMasAppSmsMms extends BluetoothMasAppIf {
                 }
                 whereClause += " read=0 ";
             }
-            if ((appParams.FilterReadStatus & 0x10) != 0) {
+            if ((appParams.FilterReadStatus & 0x02) != 0) {
                 if (whereClause.length() != 0) {
                     whereClause += " AND ";
                 }
@@ -2010,14 +2019,14 @@ public class BluetoothMasAppSmsMms extends BluetoothMasAppIf {
                             filterString) == true) {
                         if (V){
                                 Log.v(TAG,
-                                    "+++ ALLOWED +++++++++ "
+                                    " ALLOWED : "
                                     + cursor.getString(addressInd)
                                     + " - " + cursor.getPosition());
                         }
                     } else {
                         if (V){
                                 Log.v(TAG,
-                                    "+++ DENIED +++++++++ "
+                                    " DENIED : "
                                     + cursor.getString(addressInd)
                                     + " - " + cursor.getPosition());
                         }
@@ -2066,6 +2075,32 @@ public class BluetoothMasAppSmsMms extends BluetoothMasAppIf {
     private BluetoothMsgListRsp msgListMms(List<MsgListingConsts> msgList, String name,
             BluetoothMasMessageListingRsp rsp, BluetoothMasAppParams appParams) {
         BluetoothMsgListRsp bmlr = new BluetoothMsgListRsp();
+        String filterString = null;
+
+        String oname = getOwnerName();
+        if (oname == null) {
+            oname = "";
+        }
+
+        String onumber = getOwnerNumber();
+        if (onumber == null) {
+            onumber = "";
+        }
+
+        Log.v(TAG, "oname = " + oname + "onumber = " + onumber);
+
+        String regExpOrig = null;
+        String regExpRecipient = null;
+
+        if (appParams.FilterOriginator != null) {
+            regExpOrig = appParams.FilterOriginator.replace("*", ".*[0-9A-Za-z].*");
+        }
+
+        if (appParams.FilterRecipient != null) {
+            regExpRecipient = appParams.FilterRecipient.replace("*", ".*[0-9A-Za-z].*");
+        }
+
+        Log.v(TAG, " regExpOrig = " + regExpOrig + " regExpRecipient = " + regExpRecipient);
 
         if (getNumMmsMsgs(name) != 0) {
             List<Integer> list = getMmsMsgMIDs(bldMmsWhereClause(
@@ -2078,6 +2113,64 @@ public class BluetoothMasAppSmsMms extends BluetoothMasAppIf {
                 if (V){
                         Log.v(TAG, "\n MMS message subject ==> "
                             + getMmsMsgSubject(msgId));
+                }
+                if (isOutgoingMMSMessage(msgId) == false) {
+                    if ((appParams.FilterRecipient != null)
+                        && (appParams.FilterRecipient.length() != 0)
+                        && !(oname.matches(".*"+regExpRecipient+".*"))
+                        && !(onumber.matches(".*"+regExpRecipient+".*"))) {
+                            continue;
+                        }
+                    if ((appParams.FilterOriginator != null)
+                        && (appParams.FilterOriginator.length() != 0)) {
+                        filterString = appParams.FilterOriginator.trim();
+                        if (V){
+                            Log.v(TAG, " appParams.FilterOriginator"
+                                + appParams.FilterOriginator);
+                        }
+                    }
+                }
+
+                if (isOutgoingMMSMessage(msgId) == true) {
+                    if ((appParams.FilterOriginator != null)
+                        && (appParams.FilterOriginator.length() != 0)
+                        && !(oname.matches(".*"+regExpOrig+".*"))
+                        && !(onumber.matches(".*"+regExpOrig+".*"))) {
+                        continue;
+                    }
+
+                    if ((appParams.FilterRecipient != null)
+                        && (appParams.FilterRecipient.length() != 0)) {
+                        filterString = appParams.FilterRecipient.trim();
+                        if (V){
+                            Log.v(TAG, " appParams.FilterRecipient"
+                                + appParams.FilterRecipient);
+                        }
+                    }
+                }
+
+                if (filterString != null) {
+                    if (V){
+                        Log.v(TAG, " filterString = " + filterString);
+                    }
+                    String ContactName = null;
+                    String ContactNum = null;
+
+                    ContactName = getContactName(getMmsMsgAddress(msgId));
+                    ContactNum = getMmsMsgAddress(msgId);
+
+                    if (ContactName.matches(filterString) || ContactNum.matches(filterString)) {
+                        if (V){
+                            Log.v(TAG, " ALLOWED : "
+                                + ContactName + " - " + ContactNum );
+                        }
+                    } else {
+                        if (V){
+                            Log.v(TAG, " DENIED : "
+                                + ContactName + " - " + ContactNum );
+                        }
+                        continue;
+                    }
                 }
 
                 String datetime = getMmsMsgDate(msgId);
