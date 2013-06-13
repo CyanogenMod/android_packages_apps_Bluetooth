@@ -488,6 +488,22 @@ static void initializeNative(JNIEnv *env, jobject object, jint max_hf_clients) {
     mCallbacksObj = env->NewGlobalRef(object);
 }
 
+static void initializeFeaturesNative(JNIEnv *env, jobject object, jint feature_bitmask) {
+    const bt_interface_t* btInf;
+    bt_status_t status;
+
+    if ( (btInf = getBluetoothInterface()) == NULL) {
+        ALOGE("Bluetooth module is not loaded");
+        return;
+    }
+    if (!sBluetoothHfpInterface) return ;
+    if (feature_bitmask)
+        if ((status = sBluetoothHfpInterface->init_features(feature_bitmask))
+            != BT_STATUS_SUCCESS){
+            ALOGE("Failed sending feature bitmask, status: %d", status);
+        }
+    return;
+}
 
 static void cleanupNative(JNIEnv *env, jobject object) {
     const bt_interface_t* btInf;
@@ -843,6 +859,7 @@ static jint getRemoteFeaturesNative(JNIEnv *env, jobject object, jbyteArray addr
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
     {"initializeNative", "(I)V", (void *) initializeNative},
+    {"initializeFeaturesNative", "(I)V", (void *) initializeFeaturesNative},
     {"cleanupNative", "()V", (void *) cleanupNative},
     {"connectHfpNative", "([B)Z", (void *) connectHfpNative},
     {"disconnectHfpNative", "([B)Z", (void *) disconnectHfpNative},

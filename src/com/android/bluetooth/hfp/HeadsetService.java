@@ -421,7 +421,7 @@ public class HeadsetService extends ProfileService {
         int connectionState = mStateMachine.getConnectionState(device);
         if ((connectionState != BluetoothProfile.STATE_CONNECTED &&
             connectionState != BluetoothProfile.STATE_CONNECTING)  ||
-            !mStateMachine.isBluetoothVoiceDialingEnabled()) {
+            !mStateMachine.isBluetoothVoiceDialingEnabled(device)) {
             return false;
         }
         mStateMachine.sendMessage(HeadsetStateMachine.VOICE_RECOGNITION_START);
