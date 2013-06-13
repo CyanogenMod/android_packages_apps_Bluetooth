@@ -1,4 +1,6 @@
-/*
+/* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Not a Contribution.
+ *
  * Copyright (C) 2012 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -103,6 +105,29 @@ final class HeadsetStateMachine extends StateMachine {
     private static final int DIALING_OUT_TIMEOUT_VALUE = 10000;
     private static final int START_VR_TIMEOUT_VALUE = 5000;
 
+    /* Constants from Bluetooth Specification Hands-Free profile version 1.6 */
+    private static final int BRSF_AG_THREE_WAY_CALLING = 1 << 0;
+    private static final int BRSF_AG_EC_NR = 1 << 1;
+    private static final int BRSF_AG_VOICE_RECOG = 1 << 2;
+    private static final int BRSF_AG_IN_BAND_RING = 1 << 3;
+    private static final int BRSF_AG_VOICE_TAG_NUMBE = 1 << 4;
+    private static final int BRSF_AG_REJECT_CALL = 1 << 5;
+    private static final int BRSF_AG_ENHANCED_CALL_STATUS = 1 <<  6;
+    private static final int BRSF_AG_ENHANCED_CALL_CONTROL = 1 << 7;
+    private static final int BRSF_AG_ENHANCED_ERR_RESULT_CODES = 1 << 8;
+    private static final int BRSF_AG_CODEC_NEGOTIATION = 1 << 9;
+
+    private static final int BRSF_HF_EC_NR = 1 << 0;
+    private static final int BRSF_HF_CW_THREE_WAY_CALLING = 1 << 1;
+    private static final int BRSF_HF_CLIP = 1 << 2;
+    private static final int BRSF_HF_VOICE_REG_ACT = 1 << 3;
+    private static final int BRSF_HF_REMOTE_VOL_CONTROL = 1 << 4;
+    private static final int BRSF_HF_ENHANCED_CALL_STATUS = 1 <<  5;
+    private static final int BRSF_HF_ENHANCED_CALL_CONTROL = 1 << 6;
+    private static final int BRSF_HF_CODEC_NEGOTIATION = 1 << 7;
+
+    private int mLocalBrsf = 0;
+
     private static final ParcelUuid[] HEADSET_UUIDS = {
         BluetoothUuid.HSP,
         BluetoothUuid.Handsfree,
@@ -187,6 +212,11 @@ final class HeadsetStateMachine extends StateMachine {
         initializeNative();
         mNativeAvailable=true;
 
+        mLocalBrsf = BRSF_AG_THREE_WAY_CALLING |
+                     BRSF_AG_EC_NR |
+                     BRSF_AG_REJECT_CALL |
+                     BRSF_AG_ENHANCED_CALL_STATUS;
+
         mDisconnected = new Disconnected();
         mPending = new Pending();
         mConnected = new Connected();
@@ -196,7 +226,11 @@ final class HeadsetStateMachine extends StateMachine {
             sVoiceCommandIntent = new Intent(Intent.ACTION_VOICE_COMMAND);
             sVoiceCommandIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         }
-
+        if (context.getPackageManager().resolveActivity(sVoiceCommandIntent,0) != null
+            && BluetoothHeadset.isBluetoothVoiceDialingEnabled(context)) {
+            mLocalBrsf |= BRSF_AG_VOICE_RECOG;
+        }
+        initializeFeaturesNative(mLocalBrsf);
         addState(mDisconnected);
         addState(mPending);
         addState(mConnected);
@@ -2039,6 +2073,7 @@ final class HeadsetStateMachine extends StateMachine {
 
     private native static void classInitNative();
     private native void initializeNative();
+    private native void initializeFeaturesNative(int feature_bitmask);
     private native void cleanupNative();
     private native boolean connectHfpNative(byte[] address);
     private native boolean disconnectHfpNative(byte[] address);
