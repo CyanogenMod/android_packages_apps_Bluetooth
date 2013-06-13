@@ -591,6 +591,7 @@ final class HeadsetStateMachine extends StateMachine {
                     if (mConnectedDevicesList.contains(device)) {
 
                         synchronized (HeadsetStateMachine.this) {
+                            processWBSEvent(0, device); /* disable WBS audio parameters */
                             mConnectedDevicesList.remove(device);
                             mHeadsetAudioParam.remove(device);
                             mHeadsetBrsf.remove(device);
@@ -604,8 +605,6 @@ final class HeadsetStateMachine extends StateMachine {
                         synchronized (HeadsetStateMachine.this) {
                             mCurrentDevice = null;
                         }
-
-                        processWBSEvent(0, device); /* disable WBS audio parameters */
 
                         if (mTargetDevice != null) {
                             if (!connectHfpNative(getByteAddress(mTargetDevice))) {
@@ -1572,6 +1571,7 @@ final class HeadsetStateMachine extends StateMachine {
                         }
 
                         synchronized (HeadsetStateMachine.this) {
+                            processWBSEvent(0, device); /* disable WBS audio parameters */
                             mConnectedDevicesList.remove(device);
                             mHeadsetAudioParam.remove(device);
                             mHeadsetBrsf.remove(device);
@@ -1579,7 +1579,6 @@ final class HeadsetStateMachine extends StateMachine {
                                            " is removed in AudioOn state");
                             broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED,
                                                      BluetoothProfile.STATE_CONNECTED);
-                            processWBSEvent(0, device); /* disable WBS audio parameters */
                             if (mConnectedDevicesList.size() == 0) {
                                 transitionTo(mDisconnected);
                             }
@@ -2583,6 +2582,7 @@ final class HeadsetStateMachine extends StateMachine {
         // Reset NREC on connect event. Headset will override later
         HashMap<String, Integer> AudioParamConfig = new HashMap<String, Integer>();
         AudioParamConfig.put("NREC", 1);
+        AudioParamConfig.put("codec", NBS_CODEC);
         mHeadsetAudioParam.put(device, AudioParamConfig);
         mAudioManager.setParameters(HEADSET_NAME + "=" + getCurrentDeviceName(device) + ";" +
                                     HEADSET_NREC + "=on");
@@ -2595,13 +2595,22 @@ final class HeadsetStateMachine extends StateMachine {
         // 1. update nrec value
         // 2. update headset name
         int mNrec = 0;
+        int mCodec = 0;
         HashMap<String, Integer> AudioParam = mHeadsetAudioParam.get(device);
         if (AudioParam != null && !AudioParam.isEmpty()) {
+            mCodec = AudioParam.get("codec");
             mNrec = AudioParam.get("NREC");
         } else {
             Log.e(TAG,"setAudioParameters: AudioParam not found");
         }
 
+        if (mCodec != WBS_CODEC) {
+            Log.d(TAG, "Use NBS PCM samples:" + device);
+            mAudioManager.setParameters(HEADSET_WBS + "=off");
+        } else {
+            Log.d(TAG, "Use WBS PCM samples:" + device);
+            mAudioManager.setParameters(HEADSET_WBS + "=on");
+        }
         if (mNrec == 1) {
             Log.d(TAG, "Set NREC: 1 for device:" + device);
             mAudioManager.setParameters(HEADSET_NREC + "=on");
@@ -2930,6 +2939,8 @@ final class HeadsetStateMachine extends StateMachine {
     // 2 - WBS on
     // 1 - NBS on
     private void processWBSEvent(int enable, BluetoothDevice device) {
+        HashMap<String, Integer> AudioParamCodec = mHeadsetAudioParam.get(device);
+        AudioParamCodec.put("codec", enable);
         if (enable == 2) {
             Log.d(TAG, "AudioManager.setParameters bt_wbs=on for " +
                         device.getName() + " - " + device.getAddress());
