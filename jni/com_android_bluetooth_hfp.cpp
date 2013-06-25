@@ -52,6 +52,8 @@ static jmethodID method_onAtCops;
 static jmethodID method_onAtClcc;
 static jmethodID method_onUnknownAt;
 static jmethodID method_onKeyPressed;
+static jmethodID method_onCodecNegotiated;
+
 
 static const bthf_interface_t *sBluetoothHfpInterface = NULL;
 static jobject mCallbacksObj = NULL;
@@ -199,6 +201,12 @@ static void key_pressed_callback() {
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
+static void codec_negotiated_callback(int codec_type) {
+    CHECK_CALLBACK_ENV
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onCodecNegotiated, (jint)codec_type);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+}
+
 static bthf_callbacks_t sBluetoothHfpCallbacks = {
     sizeof(sBluetoothHfpCallbacks),
     connection_state_callback,
@@ -216,7 +224,8 @@ static bthf_callbacks_t sBluetoothHfpCallbacks = {
     at_cops_callback,
     at_clcc_callback,
     unknown_at_callback,
-    key_pressed_callback
+    key_pressed_callback,
+    codec_negotiated_callback
 };
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
@@ -243,6 +252,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onAtClcc = env->GetMethodID(clazz, "onAtClcc", "()V");
     method_onUnknownAt = env->GetMethodID(clazz, "onUnknownAt", "(Ljava/lang/String;)V");
     method_onKeyPressed = env->GetMethodID(clazz, "onKeyPressed", "()V");
+    method_onCodecNegotiated = env->GetMethodID(clazz, "onCodecNegotiated", "(I)V");
 
     /*
     if ( (btInf = getBluetoothInterface()) == NULL) {
