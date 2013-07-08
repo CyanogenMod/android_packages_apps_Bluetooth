@@ -324,7 +324,7 @@ final class RemoteDevices {
         mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_PERM);
     }
 
-    void pinRequestCallback(byte[] address, byte[] name, int cod) {
+    void pinRequestCallback(byte[] address, byte[] name, int cod, boolean secure) {
         //TODO(BT): Get wakelock and update name and cod
         BluetoothDevice bdDevice = getDevice(address);
         if (bdDevice == null) {
@@ -349,11 +349,12 @@ final class RemoteDevices {
             return;
         }
         infoLog("pinRequestCallback: " + address + " name:" + name + " cod:" +
-                cod);
+                cod + "secure" + secure );
         Intent intent = new Intent(BluetoothDevice.ACTION_PAIRING_REQUEST);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, getDevice(address));
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT,
                 BluetoothDevice.PAIRING_VARIANT_PIN);
+        intent.putExtra(BluetoothDevice.EXTRA_SECURE_PAIRING, secure);
         mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
         return;
     }
