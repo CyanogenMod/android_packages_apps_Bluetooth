@@ -44,14 +44,14 @@
 #define UUID_PARAMS(uuid_ptr) \
     uuid_lsb(uuid_ptr),  uuid_msb(uuid_ptr)
 
-#define CHAR_ID_PARAMS(char_ptr) \
-    char_ptr->inst_id, \
-    UUID_PARAMS((&char_ptr->uuid))
+#define GATT_ID_PARAMS(attr_ptr) \
+    attr_ptr->inst_id, \
+    UUID_PARAMS((&attr_ptr->uuid))
 
 #define SRVC_ID_PARAMS(srvc_ptr) \
     (srvc_ptr->is_primary ? \
     BTGATT_SERVICE_TYPE_PRIMARY : BTGATT_SERVICE_TYPE_SECONDARY), \
-    CHAR_ID_PARAMS((&srvc_ptr->id))
+    GATT_ID_PARAMS((&srvc_ptr->id))
 
 
 static void set_uuid(uint8_t* uuid, jlong uuid_msb, jlong uuid_lsb)
@@ -273,24 +273,24 @@ void btgattc_search_result_cb(int conn_id, btgatt_srvc_id_t *srvc_id)
 }
 
 void btgattc_get_characteristic_cb(int conn_id, int status,
-                btgatt_srvc_id_t *srvc_id, btgatt_char_id_t *char_id,
+                btgatt_srvc_id_t *srvc_id, btgatt_gatt_id_t *char_id,
                 int char_prop)
 {
     CHECK_CALLBACK_ENV
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetCharacteristic
-        , conn_id, status, SRVC_ID_PARAMS(srvc_id), CHAR_ID_PARAMS(char_id)
+        , conn_id, status, SRVC_ID_PARAMS(srvc_id), GATT_ID_PARAMS(char_id)
         , char_prop);
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_get_descriptor_cb(int conn_id, int status,
-                btgatt_srvc_id_t *srvc_id, btgatt_char_id_t *char_id,
-                bt_uuid_t *descr_id)
+                btgatt_srvc_id_t *srvc_id, btgatt_gatt_id_t *char_id,
+                btgatt_gatt_id_t *descr_id)
 {
     CHECK_CALLBACK_ENV
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetDescriptor
-        , conn_id, status, SRVC_ID_PARAMS(srvc_id), CHAR_ID_PARAMS(char_id)
-        , UUID_PARAMS(descr_id));
+        , conn_id, status, SRVC_ID_PARAMS(srvc_id), GATT_ID_PARAMS(char_id)
+        , GATT_ID_PARAMS(descr_id));
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
@@ -304,11 +304,11 @@ void btgattc_get_included_service_cb(int conn_id, int status,
 }
 
 void btgattc_register_for_notification_cb(int conn_id, int registered, int status,
-                                          btgatt_srvc_id_t *srvc_id, btgatt_char_id_t *char_id)
+                                          btgatt_srvc_id_t *srvc_id, btgatt_gatt_id_t *char_id)
 {
     CHECK_CALLBACK_ENV
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onRegisterForNotifications
-        , conn_id, status, registered, SRVC_ID_PARAMS(srvc_id), CHAR_ID_PARAMS(char_id));
+        , conn_id, status, registered, SRVC_ID_PARAMS(srvc_id), GATT_ID_PARAMS(char_id));
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
@@ -327,7 +327,7 @@ void btgattc_notify_cb(int conn_id, btgatt_notify_params_t *p_data)
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onNotify
         , conn_id, address, SRVC_ID_PARAMS((&p_data->srvc_id))
-        , CHAR_ID_PARAMS((&p_data->char_id)), p_data->is_notify, jb);
+        , GATT_ID_PARAMS((&p_data->char_id)), p_data->is_notify, jb);
 
     sCallbackEnv->DeleteLocalRef(address);
     sCallbackEnv->DeleteLocalRef(jb);
@@ -352,7 +352,7 @@ void btgattc_read_characteristic_cb(int conn_id, int status, btgatt_read_params_
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onReadCharacteristic
         , conn_id, status, SRVC_ID_PARAMS((&p_data->srvc_id))
-        , CHAR_ID_PARAMS((&p_data->char_id)), p_data->value_type, jb);
+        , GATT_ID_PARAMS((&p_data->char_id)), p_data->value_type, jb);
     sCallbackEnv->DeleteLocalRef(jb);
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
@@ -362,7 +362,7 @@ void btgattc_write_characteristic_cb(int conn_id, int status, btgatt_write_param
     CHECK_CALLBACK_ENV
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onWriteCharacteristic
         , conn_id, status, SRVC_ID_PARAMS((&p_data->srvc_id))
-        , CHAR_ID_PARAMS((&p_data->char_id)));
+        , GATT_ID_PARAMS((&p_data->char_id)));
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
@@ -390,7 +390,7 @@ void btgattc_read_descriptor_cb(int conn_id, int status, btgatt_read_params_t *p
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onReadDescriptor
         , conn_id, status, SRVC_ID_PARAMS((&p_data->srvc_id))
-        , CHAR_ID_PARAMS((&p_data->char_id)), UUID_PARAMS((&p_data->descr_id))
+        , GATT_ID_PARAMS((&p_data->char_id)), GATT_ID_PARAMS((&p_data->descr_id))
         , p_data->value_type, jb);
 
     sCallbackEnv->DeleteLocalRef(jb);
@@ -402,7 +402,8 @@ void btgattc_write_descriptor_cb(int conn_id, int status, btgatt_write_params_t 
     CHECK_CALLBACK_ENV
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onWriteDescriptor
         , conn_id, status, SRVC_ID_PARAMS((&p_data->srvc_id))
-        , CHAR_ID_PARAMS((&p_data->char_id)), UUID_PARAMS((&p_data->descr_id)));
+        , GATT_ID_PARAMS((&p_data->char_id))
+        , GATT_ID_PARAMS((&p_data->descr_id)));
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
@@ -645,11 +646,11 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onExecuteCompleted = env->GetMethodID(clazz, "onExecuteCompleted",  "(II)V");
     method_onSearchCompleted = env->GetMethodID(clazz, "onSearchCompleted",  "(II)V");
     method_onSearchResult = env->GetMethodID(clazz, "onSearchResult", "(IIIJJ)V");
-    method_onReadDescriptor = env->GetMethodID(clazz, "onReadDescriptor", "(IIIIJJIJJJJI[B)V");
-    method_onWriteDescriptor = env->GetMethodID(clazz, "onWriteDescriptor", "(IIIIJJIJJJJ)V");
+    method_onReadDescriptor = env->GetMethodID(clazz, "onReadDescriptor", "(IIIIJJIJJIJJI[B)V");
+    method_onWriteDescriptor = env->GetMethodID(clazz, "onWriteDescriptor", "(IIIIJJIJJIJJ)V");
     method_onNotify = env->GetMethodID(clazz, "onNotify", "(ILjava/lang/String;IIJJIJJZ[B)V");
     method_onGetCharacteristic = env->GetMethodID(clazz, "onGetCharacteristic", "(IIIIJJIJJI)V");
-    method_onGetDescriptor = env->GetMethodID(clazz, "onGetDescriptor", "(IIIIJJIJJJJ)V");
+    method_onGetDescriptor = env->GetMethodID(clazz, "onGetDescriptor", "(IIIIJJIJJIJJ)V");
     method_onGetIncludedService = env->GetMethodID(clazz, "onGetIncludedService", "(IIIIJJIIJJ)V");
     method_onRegisterForNotifications = env->GetMethodID(clazz, "onRegisterForNotifications", "(IIIIIJJIJJ)V");
     method_onReadRemoteRssi = env->GetMethodID(clazz, "onReadRemoteRssi", "(ILjava/lang/String;II)V");
@@ -816,7 +817,7 @@ static void gattClientGetCharacteristicNative(JNIEnv* env, jobject object,
 
     set_uuid(srvc_id.id.uuid.uu, service_id_uuid_msb, service_id_uuid_lsb);
 
-    btgatt_char_id_t char_id;
+    btgatt_gatt_id_t char_id;
     char_id.inst_id = (uint8_t) char_id_inst_id;
     set_uuid(char_id.uuid.uu, char_id_uuid_msb, char_id_uuid_lsb);
 
@@ -834,6 +835,7 @@ static void gattClientGetDescriptorNative(JNIEnv* env, jobject object,
     jlong service_id_uuid_lsb, jlong service_id_uuid_msb,
     jint  char_id_inst_id,
     jlong char_id_uuid_lsb, jlong char_id_uuid_msb,
+    jint descr_id_inst_id,
     jlong descr_id_uuid_lsb, jlong descr_id_uuid_msb)
 {
     if (!sGattIf) return;
@@ -843,12 +845,13 @@ static void gattClientGetDescriptorNative(JNIEnv* env, jobject object,
     srvc_id.is_primary = (service_type == BTGATT_SERVICE_TYPE_PRIMARY ? 1 : 0);
     set_uuid(srvc_id.id.uuid.uu, service_id_uuid_msb, service_id_uuid_lsb);
 
-    btgatt_char_id_t char_id;
+    btgatt_gatt_id_t char_id;
     char_id.inst_id = (uint8_t) char_id_inst_id;
     set_uuid(char_id.uuid.uu, char_id_uuid_msb, char_id_uuid_lsb);
 
-    bt_uuid_t descr_id;
-    set_uuid(descr_id.uu, descr_id_uuid_msb, descr_id_uuid_lsb);
+    btgatt_gatt_id_t descr_id;
+    descr_id.inst_id = (uint8_t) descr_id_inst_id;
+    set_uuid(descr_id.uuid.uu, descr_id_uuid_msb, descr_id_uuid_lsb);
 
     if (descr_id_uuid_lsb == 0)
     {
@@ -898,7 +901,7 @@ static void gattClientReadCharacteristicNative(JNIEnv* env, jobject object,
     srvc_id.is_primary = (service_type == BTGATT_SERVICE_TYPE_PRIMARY ? 1 : 0);
     set_uuid(srvc_id.id.uuid.uu, service_id_uuid_msb, service_id_uuid_lsb);
 
-    btgatt_char_id_t char_id;
+    btgatt_gatt_id_t char_id;
     char_id.inst_id = (uint8_t) char_id_inst_id;
     set_uuid(char_id.uuid.uu, char_id_uuid_msb, char_id_uuid_lsb);
 
@@ -910,6 +913,7 @@ static void gattClientReadDescriptorNative(JNIEnv* env, jobject object,
     jlong service_id_uuid_lsb, jlong service_id_uuid_msb,
     jint  char_id_inst_id,
     jlong char_id_uuid_lsb, jlong char_id_uuid_msb,
+    jint descr_id_inst_id,
     jlong descr_id_uuid_lsb, jlong descr_id_uuid_msb,
     jint authReq)
 {
@@ -920,12 +924,13 @@ static void gattClientReadDescriptorNative(JNIEnv* env, jobject object,
     srvc_id.is_primary = (service_type == BTGATT_SERVICE_TYPE_PRIMARY ? 1 : 0);
     set_uuid(srvc_id.id.uuid.uu, service_id_uuid_msb, service_id_uuid_lsb);
 
-    btgatt_char_id_t char_id;
+    btgatt_gatt_id_t char_id;
     char_id.inst_id = (uint8_t) char_id_inst_id;
     set_uuid(char_id.uuid.uu, char_id_uuid_msb, char_id_uuid_lsb);
 
-    bt_uuid_t descr_id;
-    set_uuid(descr_id.uu, descr_id_uuid_msb, descr_id_uuid_lsb);
+    btgatt_gatt_id_t descr_id;
+    descr_id.inst_id = (uint8_t) descr_id_inst_id;
+    set_uuid(descr_id.uuid.uu, descr_id_uuid_msb, descr_id_uuid_lsb);
 
     sGattIf->client->read_descriptor(conn_id, &srvc_id, &char_id, &descr_id, authReq);
 }
@@ -944,7 +949,7 @@ static void gattClientWriteCharacteristicNative(JNIEnv* env, jobject object,
     srvc_id.is_primary = (service_type == BTGATT_SERVICE_TYPE_PRIMARY ? 1 : 0);
     set_uuid(srvc_id.id.uuid.uu, service_id_uuid_msb, service_id_uuid_lsb);
 
-    btgatt_char_id_t char_id;
+    btgatt_gatt_id_t char_id;
     char_id.inst_id = (uint8_t) char_id_inst_id;
     set_uuid(char_id.uuid.uu, char_id_uuid_msb, char_id_uuid_lsb);
 
@@ -969,6 +974,7 @@ static void gattClientWriteDescriptorNative(JNIEnv* env, jobject object,
     jlong service_id_uuid_lsb, jlong service_id_uuid_msb,
     jint char_id_inst_id,
     jlong char_id_uuid_lsb, jlong char_id_uuid_msb,
+    jint descr_id_inst_id,
     jlong descr_id_uuid_lsb, jlong descr_id_uuid_msb,
     jint write_type, jint auth_req, jbyteArray value)
 {
@@ -979,12 +985,13 @@ static void gattClientWriteDescriptorNative(JNIEnv* env, jobject object,
     srvc_id.is_primary = (service_type == BTGATT_SERVICE_TYPE_PRIMARY ? 1 : 0);
     set_uuid(srvc_id.id.uuid.uu, service_id_uuid_msb, service_id_uuid_lsb);
 
-    btgatt_char_id_t char_id;
+    btgatt_gatt_id_t char_id;
     char_id.inst_id = (uint8_t) char_id_inst_id;
     set_uuid(char_id.uuid.uu, char_id_uuid_msb, char_id_uuid_lsb);
 
-    bt_uuid_t descr_id;
-    set_uuid(descr_id.uu, descr_id_uuid_msb, descr_id_uuid_lsb);
+    btgatt_gatt_id_t descr_id;
+    descr_id.inst_id = (uint8_t) descr_id_inst_id;
+    set_uuid(descr_id.uuid.uu, descr_id_uuid_msb, descr_id_uuid_lsb);
 
     uint16_t len = (uint16_t) env->GetArrayLength(value);
     jbyte *p_value = env->GetByteArrayElements(value, NULL);
@@ -1010,7 +1017,7 @@ static void gattClientRegisterForNotificationsNative(JNIEnv* env, jobject object
     srvc_id.is_primary = (service_type == BTGATT_SERVICE_TYPE_PRIMARY ? 1 : 0);
     set_uuid(srvc_id.id.uuid.uu, service_id_uuid_msb, service_id_uuid_lsb);
 
-    btgatt_char_id_t char_id;
+    btgatt_gatt_id_t char_id;
     char_id.inst_id = (uint8_t) char_id_inst_id;
     set_uuid(char_id.uuid.uu, char_id_uuid_msb, char_id_uuid_lsb);
 
@@ -1239,12 +1246,12 @@ static JNINativeMethod sMethods[] = {
     {"gattClientRefreshNative", "(ILjava/lang/String;)V", (void *) gattClientRefreshNative},
     {"gattClientSearchServiceNative", "(IZJJ)V", (void *) gattClientSearchServiceNative},
     {"gattClientGetCharacteristicNative", "(IIIJJIJJ)V", (void *) gattClientGetCharacteristicNative},
-    {"gattClientGetDescriptorNative", "(IIIJJIJJJJ)V", (void *) gattClientGetDescriptorNative},
+    {"gattClientGetDescriptorNative", "(IIIJJIJJIJJ)V", (void *) gattClientGetDescriptorNative},
     {"gattClientGetIncludedServiceNative", "(IIIJJIIJJ)V", (void *) gattClientGetIncludedServiceNative},
     {"gattClientReadCharacteristicNative", "(IIIJJIJJI)V", (void *) gattClientReadCharacteristicNative},
-    {"gattClientReadDescriptorNative", "(IIIJJIJJJJI)V", (void *) gattClientReadDescriptorNative},
+    {"gattClientReadDescriptorNative", "(IIIJJIJJIJJI)V", (void *) gattClientReadDescriptorNative},
     {"gattClientWriteCharacteristicNative", "(IIIJJIJJII[B)V", (void *) gattClientWriteCharacteristicNative},
-    {"gattClientWriteDescriptorNative", "(IIIJJIJJJJII[B)V", (void *) gattClientWriteDescriptorNative},
+    {"gattClientWriteDescriptorNative", "(IIIJJIJJIJJII[B)V", (void *) gattClientWriteDescriptorNative},
     {"gattClientExecuteWriteNative", "(IZ)V", (void *) gattClientExecuteWriteNative},
     {"gattClientRegisterForNotificationsNative", "(ILjava/lang/String;IIJJIJJZ)V", (void *) gattClientRegisterForNotificationsNative},
     {"gattClientReadRemoteRssiNative", "(ILjava/lang/String;)V", (void *) gattClientReadRemoteRssiNative},
