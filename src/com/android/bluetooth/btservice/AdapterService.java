@@ -1120,6 +1120,8 @@ public class AdapterService extends Service {
         if ((hsService == null) ||(a2dpService == null )){
             return;
         }
+        boolean hsConnected = false;
+        boolean a2dpConnected =  false;
         List<BluetoothDevice> a2dpConnDevList= a2dpService.getConnectedDevices();
         List<BluetoothDevice> hfConnDevList= hsService.getConnectedDevices();
         // Check if the device is in disconnected state and if so return
@@ -1131,11 +1133,30 @@ public class AdapterService extends Service {
             (PROFILE_CONN_CONNECTED  == firstProfileStatus)){
             return;
         }
-        if((hfConnDevList.isEmpty()) &&
+        if(!a2dpConnDevList.isEmpty()) {
+            for (BluetoothDevice a2dpDevice : a2dpConnDevList)
+            {
+                if(a2dpDevice.equals(device))
+                {
+                    a2dpConnected = true;
+                }
+            }
+        }
+        if(!hfConnDevList.isEmpty()) {
+            for (BluetoothDevice hsDevice : hfConnDevList)
+            {
+                if(hsDevice.equals(device))
+                {
+                    hsConnected = true;
+                }
+            }
+        }
+
+        if((hfConnDevList.isEmpty()) && a2dpConnected &&
             (hsService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)){
             hsService.connect(device);
         }
-        else if((a2dpConnDevList.isEmpty()) &&
+        else if((a2dpConnDevList.isEmpty()) && hsConnected &&
             (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)){
             a2dpService.connect(device);
         }
