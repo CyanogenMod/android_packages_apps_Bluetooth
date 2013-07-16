@@ -25,6 +25,7 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothCallback;
 import android.bluetooth.IBluetoothManager;
@@ -161,9 +162,50 @@ public class AdapterService extends Service {
         mHandler.sendMessage(m);
     }
 
+    public void initProfilePriorities(BluetoothDevice device, ParcelUuid[] mUuids) {
+        if(mUuids == null) return;
+        Message m = mHandler.obtainMessage(MESSAGE_PROFILE_INIT_PRIORITIES);
+        m.obj = device;
+        m.arg1 = mUuids.length;
+        Bundle b = new Bundle(1);
+        for(int i=0; i<mUuids.length; i++) {
+            b.putParcelable("uuids" + i, mUuids[i]);
+        }
+        m.setData(b);
+        mHandler.sendMessage(m);
+    }
+
+    private void processInitProfilePriorities (BluetoothDevice device, ParcelUuid[] uuids){
+        HidService hidService = HidService.getHidService();
+        A2dpService a2dpService = A2dpService.getA2dpService();
+        HeadsetService headsetService = HeadsetService.getHeadsetService();
+
+        // Set profile priorities only for the profiles discovered on the remote device.
+        // This avoids needless auto-connect attempts to profiles non-existent on the remote device
+        if ((hidService != null) &&
+            (BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.Hid)) &&
+            (hidService.getPriority(device) == BluetoothProfile.PRIORITY_UNDEFINED)){
+            hidService.setPriority(device,BluetoothProfile.PRIORITY_ON);
+        }
+
+        if ((a2dpService != null) &&
+            (BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.AudioSink) ||
+                    (BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.AdvAudioDist)) &&
+            (a2dpService.getPriority(device) == BluetoothProfile.PRIORITY_UNDEFINED))){
+            a2dpService.setPriority(device,BluetoothProfile.PRIORITY_ON);
+        }
+
+        if ((headsetService != null) &&
+            ((BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.HSP) ||
+                    BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.Handsfree)) &&
+            (headsetService.getPriority(device) == BluetoothProfile.PRIORITY_UNDEFINED))){
+            headsetService.setPriority(device,BluetoothProfile.PRIORITY_ON);
+        }
+    }
+
     private void processProfileStateChanged(BluetoothDevice device, int profileId, int newState, int prevState) {
         if (((profileId == BluetoothProfile.A2DP) ||(profileId == BluetoothProfile.HEADSET)) &&
-            (newState == BluetoothProfile.STATE_CONNECTED)){
+             (newState == BluetoothProfile.STATE_CONNECTED)){
             if (DBG) debugLog( "Profile connected. Schedule missing profile connection if any");
             connectOtherProfile(device, PROFILE_CONN_CONNECTED);
             setProfileAutoConnectionPriority(device, profileId);
@@ -399,6 +441,7 @@ public class AdapterService extends Service {
     private static final int MESSAGE_PROFILE_SERVICE_STATE_CHANGED =1;
     private static final int MESSAGE_PROFILE_CONNECTION_STATE_CHANGED=20;
     private static final int MESSAGE_CONNECT_OTHER_PROFILES = 30;
+    private static final int MESSAGE_PROFILE_INIT_PRIORITIES=40;
     private static final int CONNECT_OTHER_PROFILES_TIMEOUT= 6000;
 
     private final Handler mHandler = new Handler() {
@@ -415,6 +458,16 @@ public class AdapterService extends Service {
                 case MESSAGE_PROFILE_CONNECTION_STATE_CHANGED: {
                     if (DBG) debugLog( "MESSAGE_PROFILE_CONNECTION_STATE_CHANGED");
                     processProfileStateChanged((BluetoothDevice) msg.obj, msg.arg1,msg.arg2, msg.getData().getInt("prevState",BluetoothAdapter.ERROR));
+                }
+                    break;
+                case MESSAGE_PROFILE_INIT_PRIORITIES: {
+                    if (DBG) debugLog( "MESSAGE_PROFILE_INIT_PRIORITIES");
+                    ParcelUuid[] mUuids = new ParcelUuid[msg.arg1];
+                    for(int i=0; i<mUuids.length; i++) {
+                        mUuids[i] = msg.getData().getParcelable("uuids" + i);
+                    }
+                    processInitProfilePriorities((BluetoothDevice) msg.obj,
+                            mUuids);
                 }
                     break;
                 case MESSAGE_CONNECT_OTHER_PROFILES: {
@@ -1133,6 +1186,7 @@ public class AdapterService extends Service {
         }
         HeadsetService  hsService = HeadsetService.getHeadsetService();
         A2dpService a2dpService = A2dpService.getA2dpService();
+
         // if any of the profile service is  null, second profile connection not required
         if ((hsService == null) ||(a2dpService == null )){
             return;
