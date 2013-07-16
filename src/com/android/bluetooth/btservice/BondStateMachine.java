@@ -191,8 +191,11 @@ final class BondStateMachine extends StateMachine {
                         }
                         else if (newState == BluetoothDevice.BOND_BONDED)
                         {
+                           // Do not set profile priority
+                           // Profile priority should be set after SDP completion
+
                            // Restore the profile priorty settings
-                           setProfilePriorty(dev);
+                           //setProfilePriorty(dev);
                         }
                     }
                     else if(!mDevices.contains(dev))
