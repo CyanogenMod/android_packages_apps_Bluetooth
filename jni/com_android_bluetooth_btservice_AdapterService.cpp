@@ -904,6 +904,20 @@ Fail:
     return -1;
 }
 
+static jboolean configHciSnoopLogNative(JNIEnv* env, jobject obj, jboolean enable) {
+    ALOGV("%s:",__FUNCTION__);
+
+    jboolean result = JNI_FALSE;
+
+    if (!sBluetoothInterface) return result;
+
+    int ret = sBluetoothInterface->config_hci_snoop_log(enable);
+
+    result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+
+    return result;
+}
+
 static JNINativeMethod sMethods[] = {
     /* name, signature, funcPtr */
     {"classInitNative", "()V", (void *) classInitNative},
@@ -926,7 +940,8 @@ static JNINativeMethod sMethods[] = {
     {"getRemoteServicesNative", "([B)Z", (void*) getRemoteServicesNative},
     {"connectSocketNative", "([BI[BII)I", (void*) connectSocketNative},
     {"createSocketChannelNative", "(ILjava/lang/String;[BII)I",
-     (void*) createSocketChannelNative}
+     (void*) createSocketChannelNative},
+    {"configHciSnoopLogNative", "(Z)Z", (void*) configHciSnoopLogNative}
 };
 
 int register_com_android_bluetooth_btservice_AdapterService(JNIEnv* env)
