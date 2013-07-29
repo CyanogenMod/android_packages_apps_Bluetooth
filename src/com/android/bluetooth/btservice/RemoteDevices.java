@@ -446,6 +446,12 @@ final class RemoteDevices {
             intent = new Intent(BluetoothDevice.ACTION_ACL_CONNECTED);
             debugLog("aclStateChangeCallback: State:Connected to Device:" + device);
         } else {
+            if (device.getBondState() == BluetoothDevice.BOND_BONDING) {
+                /*Broadcasting PAIRING_CANCEL intent as well in this case*/
+                intent = new Intent(BluetoothDevice.ACTION_PAIRING_CANCEL);
+                intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+                mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
+            }
             intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
             debugLog("aclStateChangeCallback: State:DisConnected to Device:" + device);
         }
