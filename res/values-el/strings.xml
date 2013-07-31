@@ -33,7 +33,7 @@
     <string name="bt_enable_cancel" msgid="1988832367505151727">"Ακύρωση"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"Ενεργοποίηση"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"Μεταφορά αρχείου"</string>
-    <string name="incoming_file_confirm_content" msgid="6673812334377911289">"Ο αποστολέας \"<xliff:g id="SENDER">%1$s</xliff:g>\" θέλει να σας στείλει το <xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>). "\n\n" Αποδοχή του αρχείου;"</string>
+    <string name="incoming_file_confirm_content" msgid="6673812334377911289">"Ο αποστολέας \"<xliff:g id="SENDER">%1$s</xliff:g>\" θέλει να σας στείλει το <xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>). \n\n Αποδοχή του αρχείου;"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Απόρριψη"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Αποδοχή"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
@@ -73,9 +73,9 @@
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Κλείσιμο"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"ΟΚ"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Άγνωστο αρχείο"</string>
-    <string name="unknown_file_desc" msgid="480434281415453287">"Δεν υπάρχει καμία εφαρμογή για τη διαχείριση αυτού του τύπου αρχείου. "\n</string>
+    <string name="unknown_file_desc" msgid="480434281415453287">"Δεν υπάρχει καμία εφαρμογή για τη διαχείριση αυτού του τύπου αρχείου. \n"</string>
     <string name="not_exist_file" msgid="3489434189599716133">"Κανένα αρχείο"</string>
-    <string name="not_exist_file_desc" msgid="4059531573790529229">"Το αρχείο δεν υπάρχει. "\n</string>
+    <string name="not_exist_file_desc" msgid="4059531573790529229">"Το αρχείο δεν υπάρχει. \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Περιμένετε..."</string>
     <string name="enabling_progress_content" msgid="4601542238119927904">"Ενεργοποίηση Bluetooth…"</string>
     <string name="bt_toast_1" msgid="972182708034353383">"Θα γίνει λήψη του αρχείου. Ελέγξτε την πρόοδο στο πλαίσιο \"Ειδοποιήσεις\"."</string>

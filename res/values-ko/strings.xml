@@ -33,7 +33,7 @@
     <string name="bt_enable_cancel" msgid="1988832367505151727">"취소"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"사용"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"파일 전송"</string>
-    <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\'<xliff:g id="SENDER">%1$s</xliff:g>\'님이 <xliff:g id="FILE">%2$s</xliff:g>(<xliff:g id="SIZE">%3$s</xliff:g>)을(를) 보내려고 합니다. "\n\n" 파일을 수락하시겠습니까?"</string>
+    <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\'<xliff:g id="SENDER">%1$s</xliff:g>\'님이 <xliff:g id="FILE">%2$s</xliff:g>(<xliff:g id="SIZE">%3$s</xliff:g>)을(를) 보내려고 합니다. \n\n 파일을 수락하시겠습니까?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"거부"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"수락"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"확인"</string>
@@ -73,9 +73,9 @@
     <string name="upload_fail_cancel" msgid="9118496285835687125">"닫기"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"확인"</string>
     <string name="unknown_file" msgid="6092727753965095366">"알 수 없는 파일"</string>
-    <string name="unknown_file_desc" msgid="480434281415453287">"이러한 형식의 파일을 처리할 앱이 없습니다. "\n</string>
+    <string name="unknown_file_desc" msgid="480434281415453287">"이러한 형식의 파일을 처리할 앱이 없습니다. \n"</string>
     <string name="not_exist_file" msgid="3489434189599716133">"파일 없음"</string>
-    <string name="not_exist_file_desc" msgid="4059531573790529229">"파일이 없습니다. "\n</string>
+    <string name="not_exist_file_desc" msgid="4059531573790529229">"파일이 없습니다. \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"잠시 기다려 주세요."</string>
     <string name="enabling_progress_content" msgid="4601542238119927904">"블루투스 켜는 중..."</string>
     <string name="bt_toast_1" msgid="972182708034353383">"파일이 수신됩니다. 알림 패널에서 진행률을 확인하세요."</string>
