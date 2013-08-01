@@ -51,7 +51,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import android.os.SystemProperties;
+
 
 /**
  * Provides Bluetooth Pan Device profile, as a service in
@@ -320,22 +320,17 @@ public class PanService extends ProfileService {
     }
      boolean isTetheringOn() {
         // TODO(BT) have a variable marking the on/off state
-        mTetherOn = SystemProperties.getBoolean("bluetooth.mTetherOn", false);
-        if(DBG) Log.d(TAG, "isTetheringOn : " + mTetherOn);
         return mTetherOn;
     }
 
     void setBluetoothTethering(boolean value) {
-
+        if(DBG) Log.d(TAG, "setBluetoothTethering: " + value +", mTetherOn: " + mTetherOn);
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-        if (DBG) Log.d(TAG, "setBluetoothTethering: " + value +", mTetherOn: " + mTetherOn);
-
-        if (mTetherOn != value) {
+        if(mTetherOn != value) {
             //drop any existing panu or pan-nap connection when changing the tethering state
             mTetherOn = value;
-            SystemProperties.set("bluetooth.mTetherOn", mTetherOn?"true":"false");
             List<BluetoothDevice> DevList = getConnectedDevices();
-            for (BluetoothDevice dev : DevList)
+            for(BluetoothDevice dev : DevList)
                 disconnect(dev);
         }
     }
