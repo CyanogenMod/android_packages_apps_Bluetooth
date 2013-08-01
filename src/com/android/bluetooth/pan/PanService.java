@@ -320,23 +320,20 @@ public class PanService extends ProfileService {
     }
      boolean isTetheringOn() {
         // TODO(BT) have a variable marking the on/off state
-        if (SystemProperties.getBoolean("bluetooth.mTetherOn", false) == true) {
-             if(DBG) Log.d(TAG, "isTetheringOn : " + SystemProperties.getBoolean("bluetooth.mTetherOn", false));
-             return true;
-        }
-        return false;
+        mTetherOn = SystemProperties.getBoolean("bluetooth.mTetherOn", false);
+        if(DBG) Log.d(TAG, "isTetheringOn : " + mTetherOn);
+        return mTetherOn;
     }
 
     void setBluetoothTethering(boolean value) {
 
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-        mTetherOn = SystemProperties.getBoolean("bluetooth.mTetherOn", false) ;
         if (DBG) Log.d(TAG, "setBluetoothTethering: " + value +", mTetherOn: " + mTetherOn);
 
-        if (SystemProperties.getBoolean("bluetooth.mTetherOn", false) != value){
+        if (mTetherOn != value) {
             //drop any existing panu or pan-nap connection when changing the tethering state
-            SystemProperties.set("bluetooth.mTetherOn", value?"true":"false");
-
+            mTetherOn = value;
+            SystemProperties.set("bluetooth.mTetherOn", mTetherOn?"true":"false");
             List<BluetoothDevice> DevList = getConnectedDevices();
             for (BluetoothDevice dev : DevList)
                 disconnect(dev);
