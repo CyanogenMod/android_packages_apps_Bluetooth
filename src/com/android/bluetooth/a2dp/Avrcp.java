@@ -341,7 +341,10 @@ final class Avrcp {
 
     private void updateMetadata(Bundle data) {
         String oldMetadata = mMetadata.toString();
-        mMetadata.artist = getMdString(data, MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST);
+        mMetadata.artist = getMdString(data, MediaMetadataRetriever.METADATA_KEY_ARTIST);
+        if (mMetadata.artist == null || mMetadata.equals("")) {
+            mMetadata.artist = getMdString(data, MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST);
+        }
         mMetadata.trackTitle = getMdString(data, MediaMetadataRetriever.METADATA_KEY_TITLE);
         mMetadata.albumTitle = getMdString(data, MediaMetadataRetriever.METADATA_KEY_ALBUM);
         if (!oldMetadata.equals(mMetadata.toString())) {
