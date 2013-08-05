@@ -178,8 +178,9 @@ final class HeadsetStateMachine extends StateMachine {
         mPhoneState = new HeadsetPhoneState(context, this);
         mAudioState = BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (!context.bindService(new Intent(IBluetoothHeadsetPhone.class.getName()),
-                                 mConnection, 0)) {
+        Intent intent = new Intent(IBluetoothHeadsetPhone.class.getName());
+        intent.setComponent(intent.resolveSystemService(context.getPackageManager(), 0));
+        if (intent.getComponent() == null || !context.bindService(intent, mConnection, 0)) {
             Log.e(TAG, "Could not bind to Bluetooth Headset Phone Service");
         }
 
