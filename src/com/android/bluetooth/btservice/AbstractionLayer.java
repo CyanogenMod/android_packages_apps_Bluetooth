@@ -47,6 +47,7 @@ final public class AbstractionLayer {
 
     static final int BT_PROPERTY_REMOTE_VERSION_INFO = 0x0C;
     static final int BT_PROPERTY_LOCAL_LE_FEATURES = 0x0D;
+    static final int BT_PROPERTY_REMOTE_TRUST_VALUE = 0xFD;
 
     static final int BT_PROPERTY_REMOTE_DI_RECORD = 0xFE;
 
