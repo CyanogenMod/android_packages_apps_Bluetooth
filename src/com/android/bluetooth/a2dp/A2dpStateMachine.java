@@ -30,6 +30,7 @@ package com.android.bluetooth.a2dp;
 
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
@@ -635,6 +636,10 @@ final class A2dpStateMachine extends StateMachine {
         AdapterService adapterService = AdapterService.getAdapterService();
         int priority = mService.getPriority(device);
         boolean ret = false;
+        BluetoothClass remoteclass = device.getBluetoothClass();
+        if (!remoteclass.doesClassMatch(BluetoothClass.PROFILE_A2DP)) {
+            return false;
+        }
         //check if this is an incoming connection in Quiet mode.
         if((adapterService == null) ||
            ((adapterService.isQuietModeEnabled() == true) &&
