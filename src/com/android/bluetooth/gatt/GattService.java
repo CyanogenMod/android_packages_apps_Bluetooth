@@ -286,6 +286,12 @@ public class GattService extends ProfileService {
             service.clientDisconnect(clientIf, address);
         }
 
+        public void clientListen(int clientIf, boolean start) {
+            GattService service = getService();
+            if (service == null) return;
+            service.clientListen(clientIf, start);
+        }
+
         public void refreshDevice(int clientIf, String address) {
             GattService service = getService();
             if (service == null) return;
@@ -471,6 +477,14 @@ public class GattService extends ProfileService {
                 srvcId.getUuid(), charInstanceId, charId.getUuid(), confirm, value);
         }
 
+        public void setAdvData(int serverIf, boolean setScanRsp, boolean inclName,
+                                boolean inclTxPower, int minInterval, int maxInterval,
+                                int appearance, byte[] manufacturerData) {
+            GattService service = getService();
+            if (service == null) return;
+            service.setAdvData(serverIf, setScanRsp, inclName, inclTxPower,
+                minInterval, maxInterval, appearance, manufacturerData);
+        }
     };
 
     /**************************************************************************
@@ -820,6 +834,16 @@ public class GattService extends ProfileService {
         }
     }
 
+    void onClientListen(int status, int clientIf)
+            throws RemoteException {
+        if (DBG) Log.d(TAG, "onClientListen() status=" + status);
+
+        ClientMap.App app = mClientMap.getById(clientIf);
+        if (app == null) return;
+
+        app.callback.onListen(status);
+    }
+
     /**************************************************************************
      * GATT Service functions - Shared CLIENT/SERVER
      *************************************************************************/
@@ -943,6 +967,11 @@ public class GattService extends ProfileService {
         if (DBG) Log.d(TAG, "clientDisconnect() - address=" + address + ", connId=" + connId);
 
         gattClientDisconnectNative(clientIf, address, connId != null ? connId : 0);
+    }
+
+    void clientListen(int clientIf, boolean start) {
+        if (DBG) Log.d(TAG, "clientListen() - start=" + start);
+        gattClientListenNative(clientIf, start);
     }
 
     List<String> getConnectedDevices() {
@@ -1102,6 +1131,15 @@ public class GattService extends ProfileService {
 
         if (DBG) Log.d(TAG, "readRemoteRssi() - address=" + address);
         gattClientReadRemoteRssiNative(clientIf, address);
+    }
+
+    void setAdvData(int serverIf, boolean setScanRsp, boolean inclName,
+                boolean inclTxPower, int minInterval, int maxInterval,
+                int appearance, byte[] manufacturerData) {
+        if (DBG) Log.d(TAG, "setAdvData() - setScanRsp=" + setScanRsp);
+        if (minInterval == 0) maxInterval = 0;
+        gattSetAdvDataNative(serverIf, setScanRsp, inclName, inclTxPower,
+            minInterval, maxInterval, appearance, manufacturerData);
     }
 
     /**************************************************************************
@@ -1733,6 +1771,12 @@ public class GattService extends ProfileService {
 
     private native void gattClientReadRemoteRssiNative(int clientIf,
             String address);
+
+    private native void gattClientListenNative(int client_if, boolean start);
+
+    private native void gattSetAdvDataNative(int serverIf, boolean setScanRsp, boolean inclName,
+            boolean inclTxPower, int minInterval, int maxInterval,
+            int appearance, byte[] manufacturerData);
 
     private native void gattServerRegisterAppNative(long app_uuid_lsb,
                                                     long app_uuid_msb);
