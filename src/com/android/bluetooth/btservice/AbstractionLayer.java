@@ -44,6 +44,7 @@ final public class AbstractionLayer {
 
     static final int BT_PROPERTY_REMOTE_FRIENDLY_NAME = 0x0A;
     static final int BT_PROPERTY_REMOTE_RSSI = 0x0B;
+    static final int BT_PROPERTY_REMOTE_TRUST_VALUE = 0x0C;
 
     static final int BT_DEVICE_TYPE_BREDR = 0x01;
     static final int BT_DEVICE_TYPE_BLE = 0x02;
