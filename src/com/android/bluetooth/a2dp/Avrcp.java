@@ -16,6 +16,9 @@
 
 package com.android.bluetooth.a2dp;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -73,16 +76,32 @@ final class Avrcp {
     private int mPlayPosChangedNT;
     private long mNextPosMs;
     private long mPrevPosMs;
+    private long mSkipStartTime;
+    private Timer mTimer;
+
+    /* AVRC IDs from avrc_defs.h */
+    private static final int AVRC_ID_REWIND = 0x48;
+    private static final int AVRC_ID_FAST_FOR = 0x49;
 
     private static final int MESSAGE_GET_PLAY_STATUS = 1;
     private static final int MESSAGE_GET_ELEM_ATTRS = 2;
     private static final int MESSAGE_REGISTER_NOTIFICATION = 3;
     private static final int MESSAGE_PLAY_INTERVAL_TIMEOUT = 4;
+    private static final int MESSAGE_FAST_FORWARD = 5;
+    private static final int MESSAGE_REWIND = 6;
+    private static final int MESSAGE_FF_REW_TIMEOUT = 7;
     private static final int MSG_UPDATE_STATE = 100;
     private static final int MSG_SET_METADATA = 101;
     private static final int MSG_SET_TRANSPORT_CONTROLS = 102;
     private static final int MSG_SET_ARTWORK = 103;
     private static final int MSG_SET_GENERATION_ID = 104;
+
+    private static final int BUTTON_TIMEOUT_TIME = 2000;
+    private static final int BASE_SKIP_AMOUNT = 2000;
+    private static final int KEY_STATE_PRESS = 1;
+    private static final int KEY_STATE_RELEASE = 0;
+    private static final int SKIP_PERIOD = 400;
+    private static final int SKIP_DOUBLE_INTERVAL = 3000;
 
     static {
         classInitNative();
@@ -99,6 +118,7 @@ final class Avrcp {
         mSongLengthMs = 0L;
         mPlaybackIntervalMs = 0L;
         mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
+        mTimer = null;
 
         mContext = context;
 
@@ -262,6 +282,45 @@ final class Avrcp {
                 registerNotificationRspPlayPosNative(mPlayPosChangedNT, (int)getPlayPosition());
                 break;
 
+            case MESSAGE_FAST_FORWARD:
+            case MESSAGE_REWIND:
+                final int skipAmount;
+                if (msg.what == MESSAGE_FAST_FORWARD) {
+                    if (DEBUG) Log.v(TAG, "MESSAGE_FAST_FORWARD");
+                    skipAmount = BASE_SKIP_AMOUNT;
+                } else {
+                    if (DEBUG) Log.v(TAG, "MESSAGE_REWIND");
+                    skipAmount = -BASE_SKIP_AMOUNT;
+                }
+
+                removeMessages(MESSAGE_FF_REW_TIMEOUT);
+                if (msg.arg1 == KEY_STATE_PRESS) {
+                    if (mTimer == null) {
+                        /** Begin fast forwarding */
+                        mSkipStartTime = SystemClock.elapsedRealtime();
+                        TimerTask task = new TimerTask() {
+                            @Override
+                            public void run() {
+                                changePositionBy(skipAmount*getSkipMultiplier());
+                            }
+                        };
+                        mTimer = new Timer();
+                        mTimer.schedule(task, 0, SKIP_PERIOD);
+                    }
+                    sendMessageDelayed(obtainMessage(MESSAGE_FF_REW_TIMEOUT), BUTTON_TIMEOUT_TIME);
+                } else if (msg.arg1 == KEY_STATE_RELEASE && mTimer != null) {
+                    mTimer.cancel();
+                    mTimer = null;
+                }
+                break;
+
+            case MESSAGE_FF_REW_TIMEOUT:
+                if (DEBUG) Log.v(TAG, "MESSAGE_FF_REW_TIMEOUT: FF/REW response timed out");
+                if (mTimer != null) {
+                    mTimer.cancel();
+                    mTimer = null;
+                }
+                break;
             }
         }
     }
@@ -420,6 +479,40 @@ final class Avrcp {
                 break;
 
         }
+    }
+
+    private void handlePassthroughCmd(int id, int keyState) {
+        switch (id) {
+            case AVRC_ID_REWIND:
+                rewind(keyState);
+                break;
+            case AVRC_ID_FAST_FOR:
+                fastForward(keyState);
+                break;
+        }
+    }
+
+    private void fastForward(int keyState) {
+        Message msg = mHandler.obtainMessage(MESSAGE_FAST_FORWARD, keyState, 0);
+        mHandler.sendMessage(msg);
+    }
+
+    private void rewind(int keyState) {
+        Message msg = mHandler.obtainMessage(MESSAGE_REWIND, keyState, 0);
+        mHandler.sendMessage(msg);
+    }
+
+    private void changePositionBy(long amount) {
+        long currentPosMs = getPlayPosition();
+        if (currentPosMs == -1L) return;
+        long newPosMs = Math.max(0L, currentPosMs + amount);
+        mAudioManager.setRemoteControlClientPlaybackPosition(mClientGeneration,
+                newPosMs);
+    }
+
+    private int getSkipMultiplier() {
+        long currentTime = SystemClock.elapsedRealtime();
+        return (int) Math.pow(2, (currentTime - mSkipStartTime)/SKIP_DOUBLE_INTERVAL);
     }
 
     private void sendTrackChangedRsp() {

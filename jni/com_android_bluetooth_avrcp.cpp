@@ -29,6 +29,7 @@ namespace android {
 static jmethodID method_getPlayStatus;
 static jmethodID method_getElementAttr;
 static jmethodID method_registerNotification;
+static jmethodID method_handlePassthroughCmd;
 
 static const btrc_interface_t *sBluetoothAvrcpInterface = NULL;
 static jobject mCallbacksObj = NULL;
@@ -92,6 +93,19 @@ static void btavrcp_register_notification_callback(btrc_event_id_t event_id, uin
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
+static void btavrcp_passthrough_command_callback(int id, int pressed) {
+    ALOGI("%s", __FUNCTION__);
+
+    if (!checkCallbackThread()) {
+        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
+        return;
+    }
+
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_handlePassthroughCmd, (jint)id,
+                                                                             (jint)pressed);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+}
+
 static btrc_callbacks_t sBluetoothAvrcpCallbacks = {
     sizeof(sBluetoothAvrcpCallbacks),
     btavrcp_get_play_status_callback,
@@ -102,7 +116,8 @@ static btrc_callbacks_t sBluetoothAvrcpCallbacks = {
     NULL,
     NULL,
     btavrcp_get_element_attr_callback,
-    btavrcp_register_notification_callback
+    btavrcp_register_notification_callback,
+    btavrcp_passthrough_command_callback
 };
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
@@ -114,6 +129,9 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
     method_registerNotification =
         env->GetMethodID(clazz, "registerNotification", "(II)V");
+
+    method_handlePassthroughCmd =
+        env->GetMethodID(clazz, "handlePassthroughCmd", "(II)V");
 
     ALOGI("%s: succeeds", __FUNCTION__);
 }
