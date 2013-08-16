@@ -511,15 +511,12 @@ class AdapterProperties {
         // When BT is being turned on, all adapter properties will be sent in 1
         // callback. At this stage, set the scan mode.
         synchronized (mObject) {
-            if (getState() == BluetoothAdapter.STATE_TURNING_ON &&
-                    mScanMode == BluetoothAdapter.SCAN_MODE_NONE) {
+            if (getState() == BluetoothAdapter.STATE_TURNING_ON) {
                     /* mDiscoverableTimeout is part of the
                        adapterPropertyChangedCallback received before
                        onBluetoothReady */
                     if (mDiscoverableTimeout != 0)
                       setScanMode(AbstractionLayer.BT_SCAN_MODE_CONNECTABLE);
-                    else /* if timeout == never (0) at startup */
-                      setScanMode(AbstractionLayer.BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE);
                     /* though not always required, this keeps NV up-to date on first-boot after flash */
                     setDiscoverableTimeout(mDiscoverableTimeout);
             }
@@ -536,9 +533,6 @@ class AdapterProperties {
         //continue with disable sequence
         debugLog("onBluetoothDisable()");
         mBluetoothDisabling = true;
-        if (getState() == BluetoothAdapter.STATE_TURNING_OFF) {
-            setScanMode(AbstractionLayer.BT_SCAN_MODE_NONE);
-        }
     }
     void discoveryStateChangeCallback(int state) {
         infoLog("Callback:discoveryStateChangeCallback with state:" + state);
