@@ -93,6 +93,7 @@ public class AdapterService extends Service {
     static final String BLUETOOTH_ADMIN_PERM =
         android.Manifest.permission.BLUETOOTH_ADMIN;
     static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
+    static final String RECEIVE_MAP_PERM = android.Manifest.permission.RECEIVE_BLUETOOTH_MAP;
 
     private static final int ADAPTER_SERVICE_TYPE=Service.START_STICKY;
 
@@ -900,6 +901,17 @@ public class AdapterService extends Service {
             return service.fetchRemoteUuids(device);
         }
 
+        public boolean fetchRemoteMasInstances(BluetoothDevice device) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG,"fetchMasInstances(): not allowed for non-active user");
+                return false;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.fetchRemoteMasInstances(device);
+        }
+
         public boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode) {
             if (!Utils.checkCaller()) {
                 Log.w(TAG, "setPin() - Not allowed for non-active user");
@@ -1367,6 +1379,12 @@ public class AdapterService extends Service {
         return true;
     }
 
+      boolean fetchRemoteMasInstances(BluetoothDevice device) {
+         enforceCallingOrSelfPermission(RECEIVE_MAP_PERM, "Need RECEIVE BLUETOOTH MAP permission");
+         mRemoteDevices.fetchMasInstances(device);
+         return true;
+     }
+
      boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH ADMIN permission");
@@ -1607,6 +1625,7 @@ public class AdapterService extends Service {
             accept, int passkey);
 
     /*package*/ native boolean getRemoteServicesNative(byte[] address);
+    /*package*/ native boolean getRemoteMasInstancesNative(byte[] address);
 
     // TODO(BT) move this to ../btsock dir
     private native int connectSocketNative(byte[] address, int type,
