@@ -323,3 +323,13 @@ class HeadsetClccResponse {
         mType = type;
     }
 }
+
+class HeadsetVendorSpecificResultCode {
+    String mCommand;
+    String mArg;
+
+    public HeadsetVendorSpecificResultCode(String command, String arg) {
+        mCommand = command;
+        mArg = arg;
+    }
+}
