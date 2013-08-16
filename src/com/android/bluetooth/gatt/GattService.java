@@ -196,6 +196,7 @@ public class GattService extends ProfileService {
 
         public void binderDied() {
             if (DBG) Log.d(TAG, "Binder is dead - unregistering client (" + mAppIf + ")!");
+            stopScan(mAppIf, false);
             unregisterClient(mAppIf);
         }
     }
@@ -948,7 +949,6 @@ public class GattService extends ProfileService {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         if (DBG) Log.d(TAG, "unregisterClient() - clientIf=" + clientIf);
-        removeScanClient(clientIf, false);
         mClientMap.remove(clientIf);
         gattClientUnregisterAppNative(clientIf);
     }
