@@ -428,9 +428,17 @@ final class Avrcp {
 
     private void sendTrackChangedRsp() {
         byte[] track = new byte[TRACK_ID_SIZE];
+        long TrackNumberRsp = -1L;
+
+        if(DEBUG) Log.v(TAG,"mCurrentPlayState" + mCurrentPlayState );
+        /*As per spec 6.7.2 Register Notification
+          If no track is currently selected, then return
+         0xFFFFFFFFFFFFFFFF in the interim response */
+        if (mCurrentPlayState == RemoteControlClient.PLAYSTATE_PLAYING)
+            TrackNumberRsp = mTrackNumber ;
         /* track is stored in big endian format */
         for (int i = 0; i < TRACK_ID_SIZE; ++i) {
-            track[i] = (byte) (mTrackNumber >> (56 - 8 * i));
+            track[i] = (byte) (TrackNumberRsp >> (56 - 8 * i));
         }
         registerNotificationRspTrackChangeNative(mTrackChangedNT, track);
     }
