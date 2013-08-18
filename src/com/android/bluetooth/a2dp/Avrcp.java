@@ -55,7 +55,7 @@ import java.util.Set;
  * support metadata, play status and event notification
  */
 final class Avrcp {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private static final String TAG = "Avrcp";
 
     private Context mContext;
@@ -78,18 +78,44 @@ final class Avrcp {
     private long mPrevPosMs;
     private long mSkipStartTime;
     private Timer mTimer;
+    private int mFeatures;
+    private int mAbsoluteVolume;
+    private int mLastSetVolume;
+    private int mLastDirection;
+    private int mVolumeStep;
+    private boolean mVolCmdInProgress;
+    private int mAbsVolRetryTimes;
 
     /* AVRC IDs from avrc_defs.h */
     private static final int AVRC_ID_REWIND = 0x48;
     private static final int AVRC_ID_FAST_FOR = 0x49;
 
-    private static final int MESSAGE_GET_PLAY_STATUS = 1;
-    private static final int MESSAGE_GET_ELEM_ATTRS = 2;
-    private static final int MESSAGE_REGISTER_NOTIFICATION = 3;
-    private static final int MESSAGE_PLAY_INTERVAL_TIMEOUT = 4;
-    private static final int MESSAGE_FAST_FORWARD = 5;
-    private static final int MESSAGE_REWIND = 6;
-    private static final int MESSAGE_FF_REW_TIMEOUT = 7;
+    /* BTRC features */
+    public static final int BTRC_FEAT_METADATA = 0x01;
+    public static final int BTRC_FEAT_ABSOLUTE_VOLUME = 0x02;
+    public static final int BTRC_FEAT_BROWSE = 0x04;
+
+    /* AVRC response codes, from avrc_defs */
+    private static final int AVRC_RSP_NOT_IMPL = 8;
+    private static final int AVRC_RSP_ACCEPT = 9;
+    private static final int AVRC_RSP_REJ = 10;
+    private static final int AVRC_RSP_IN_TRANS = 11;
+    private static final int AVRC_RSP_IMPL_STBL = 12;
+    private static final int AVRC_RSP_CHANGED = 13;
+    private static final int AVRC_RSP_INTERIM = 15;
+
+    private static final int MESSAGE_GET_RC_FEATURES = 1;
+    private static final int MESSAGE_GET_PLAY_STATUS = 2;
+    private static final int MESSAGE_GET_ELEM_ATTRS = 3;
+    private static final int MESSAGE_REGISTER_NOTIFICATION = 4;
+    private static final int MESSAGE_PLAY_INTERVAL_TIMEOUT = 5;
+    private static final int MESSAGE_VOLUME_CHANGED = 6;
+    private static final int MESSAGE_ADJUST_VOLUME = 7;
+    private static final int MESSAGE_SET_ABSOLUTE_VOLUME = 8;
+    private static final int MESSAGE_ABS_VOL_TIMEOUT = 9;
+    private static final int MESSAGE_FAST_FORWARD = 10;
+    private static final int MESSAGE_REWIND = 11;
+    private static final int MESSAGE_FF_REW_TIMEOUT = 12;
     private static final int MSG_UPDATE_STATE = 100;
     private static final int MSG_SET_METADATA = 101;
     private static final int MSG_SET_TRANSPORT_CONTROLS = 102;
@@ -102,6 +128,11 @@ final class Avrcp {
     private static final int KEY_STATE_RELEASE = 0;
     private static final int SKIP_PERIOD = 400;
     private static final int SKIP_DOUBLE_INTERVAL = 3000;
+    private static final int CMD_TIMEOUT_DELAY = 2000;
+    private static final int MAX_ERROR_RETRY_TIMES = 3;
+    private static final int AUDIO_STREAM_MAX_VOL = 150;
+    private static final int AVRCP_MAX_VOL = 127;
+    private static final int AVRCP_BASE_VOLUME_STEP = 1;
 
     static {
         classInitNative();
@@ -119,6 +150,13 @@ final class Avrcp {
         mPlaybackIntervalMs = 0L;
         mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
         mTimer = null;
+        mFeatures = 0;
+        mAbsoluteVolume = -1;
+        mLastSetVolume = -1;
+        mLastDirection = 0;
+        mVolumeStep = AVRCP_BASE_VOLUME_STEP;
+        mVolCmdInProgress = false;
+        mAbsVolRetryTimes = 0;
 
         mContext = context;
 
@@ -248,6 +286,14 @@ final class Avrcp {
                 mClientGeneration = msg.arg1;
                 break;
 
+            case MESSAGE_GET_RC_FEATURES:
+                String address = (String) msg.obj;
+                if (DEBUG) Log.v(TAG, "MESSAGE_GET_RC_FEATURES: address="+address+
+                                                             ", features="+msg.arg1);
+                mFeatures = msg.arg1;
+                mAudioManager.avrcpSupportsAbsoluteVolume(address, isAbsoluteVolumeSupported());
+                break;
+
             case MESSAGE_GET_PLAY_STATUS:
                 if (DEBUG) Log.v(TAG, "MESSAGE_GET_PLAY_STATUS");
                 getPlayStatusRspNative(convertPlayStateToPlayStatus(mCurrentPlayState),
@@ -280,6 +326,87 @@ final class Avrcp {
                 if (DEBUG) Log.v(TAG, "MESSAGE_PLAY_INTERVAL_TIMEOUT");
                 mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
                 registerNotificationRspPlayPosNative(mPlayPosChangedNT, (int)getPlayPosition());
+                break;
+
+            case MESSAGE_VOLUME_CHANGED:
+                if (DEBUG) Log.v(TAG, "MESSAGE_VOLUME_CHANGED: volume=" + msg.arg1 +
+                                                              " ctype=" + msg.arg2);
+
+                if (msg.arg2 == AVRC_RSP_ACCEPT || msg.arg2 == AVRC_RSP_REJ) {
+                    if (mVolCmdInProgress == false) {
+                        Log.e(TAG, "Unsolicited response, ignored");
+                        break;
+                    }
+                    removeMessages(MESSAGE_ABS_VOL_TIMEOUT);
+                    mVolCmdInProgress = false;
+                    mAbsVolRetryTimes = 0;
+                }
+                // to deal with granularity in the TG
+                if (msg.arg2 == AVRC_RSP_ACCEPT && mAbsoluteVolume == msg.arg1) {
+                    if ((mAbsoluteVolume == AVRCP_MAX_VOL && mLastDirection == -1)
+                     || (mAbsoluteVolume == 0 && mLastDirection == 1)
+                     || (mAbsoluteVolume != AVRCP_MAX_VOL && mAbsoluteVolume != 0)) {
+                        mVolumeStep += 1;
+                        adjustVolumeImmediate(mLastDirection);
+                    }
+                } else if (mAbsoluteVolume != msg.arg1 && (msg.arg2 == AVRC_RSP_ACCEPT ||
+                                                           msg.arg2 == AVRC_RSP_CHANGED ||
+                                                           msg.arg2 == AVRC_RSP_INTERIM)) {
+                    notifyVolumeChanged(mAbsoluteVolume, msg.arg1);
+                    mAbsoluteVolume = msg.arg1;
+                } else if (msg.arg2 == AVRC_RSP_REJ) {
+                    Log.e(TAG, "setAbsoluteVolume call rejected");
+                }
+                break;
+
+            case MESSAGE_ADJUST_VOLUME:
+                if (DEBUG) Log.d(TAG, "MESSAGE_ADJUST_VOLUME: direction=" + msg.arg1);
+                if (mVolCmdInProgress) {
+                    if (DEBUG) Log.w(TAG, "There is already a volume command in progress.");
+                    break;
+                }
+                // Wait on verification on volume from device, before changing the volume.
+                if (mAbsoluteVolume != -1 && (msg.arg1 == -1 || msg.arg1 == 1)) {
+                    int setVol = Math.min(AVRCP_MAX_VOL,
+                                 Math.max(0, mAbsoluteVolume + msg.arg1*mVolumeStep));
+                    if (setVolumeNative(setVol)) {
+                        sendMessageDelayed(obtainMessage(MESSAGE_ABS_VOL_TIMEOUT),
+                                           CMD_TIMEOUT_DELAY);
+                        mVolCmdInProgress = true;
+                        mLastDirection = msg.arg1;
+                        mLastSetVolume = setVol;
+                    }
+                } else {
+                    Log.e(TAG, "Unknown direction in MESSAGE_ADJUST_VOLUME");
+                }
+                break;
+
+            case MESSAGE_SET_ABSOLUTE_VOLUME:
+                if (DEBUG) Log.v(TAG, "MESSAGE_SET_ABSOLUTE_VOLUME");
+                if (mVolCmdInProgress) {
+                    if (DEBUG) Log.w(TAG, "There is already a volume command in progress.");
+                    break;
+                }
+                if (setVolumeNative(msg.arg1)) {
+                    sendMessageDelayed(obtainMessage(MESSAGE_ABS_VOL_TIMEOUT), CMD_TIMEOUT_DELAY);
+                    mVolCmdInProgress = true;
+                    mLastSetVolume = msg.arg1;
+                }
+                break;
+
+            case MESSAGE_ABS_VOL_TIMEOUT:
+                if (DEBUG) Log.v(TAG, "MESSAGE_ABS_VOL_TIMEOUT: Volume change cmd timed out.");
+                mVolCmdInProgress = false;
+                if (mAbsVolRetryTimes >= MAX_ERROR_RETRY_TIMES) {
+                    mAbsVolRetryTimes = 0;
+                } else {
+                    mAbsVolRetryTimes += 1;
+                    if (setVolumeNative(mLastSetVolume)) {
+                        sendMessageDelayed(obtainMessage(MESSAGE_ABS_VOL_TIMEOUT),
+                                           CMD_TIMEOUT_DELAY);
+                        mVolCmdInProgress = true;
+                    }
+                }
                 break;
 
             case MESSAGE_FAST_FORWARD:
@@ -428,6 +555,12 @@ final class Avrcp {
 
         mSongLengthMs = getMdLong(data, MediaMetadataRetriever.METADATA_KEY_DURATION);
         if (DEBUG) Log.v(TAG, "duration=" + mSongLengthMs);
+    }
+
+    private void getRcFeatures(byte[] address, int features) {
+        Message msg = mHandler.obtainMessage(MESSAGE_GET_RC_FEATURES, features, 0,
+                                             Utils.getAddressStringFromByte(address));
+        mHandler.sendMessage(msg);
     }
 
     private void getPlayStatus() {
@@ -602,6 +735,64 @@ final class Avrcp {
         return playStatus;
     }
 
+    /**
+     * This is called from AudioService. It will return whether this device supports abs volume.
+     * NOT USED AT THE MOMENT.
+     */
+    public boolean isAbsoluteVolumeSupported() {
+        return ((mFeatures & BTRC_FEAT_ABSOLUTE_VOLUME) != 0);
+    }
+
+    /**
+     * We get this call from AudioService. This will send a message to our handler object,
+     * requesting our handler to call setVolumeNative()
+     */
+    public void adjustVolume(int direction) {
+        Message msg = mHandler.obtainMessage(MESSAGE_ADJUST_VOLUME, direction, 0);
+        mHandler.sendMessage(msg);
+    }
+
+    private void adjustVolumeImmediate(int direction) {
+        Message msg = mHandler.obtainMessage(MESSAGE_ADJUST_VOLUME, direction, 0);
+        mHandler.sendMessageAtFrontOfQueue(msg);
+    }
+
+    public void setAbsoluteVolume(int volume) {
+        int avrcpVolume = convertToAvrcpVolume(volume);
+        avrcpVolume = Math.min(AVRCP_MAX_VOL, Math.max(0, avrcpVolume));
+        mHandler.removeMessages(MESSAGE_ADJUST_VOLUME);
+        Message msg = mHandler.obtainMessage(MESSAGE_SET_ABSOLUTE_VOLUME, avrcpVolume, 0);
+        mHandler.sendMessage(msg);
+
+    }
+
+    /* Called in the native layer as a btrc_callback to return the volume set on the carkit in the
+     * case when the volume is change locally on the carkit. This notification is not called when
+     * the volume is changed from the phone.
+     *
+     * This method will send a message to our handler to change the local stored volume and notify
+     * AudioService to update the UI
+     */
+    private void volumeChangeCallback(int volume, int ctype) {
+        Message msg = mHandler.obtainMessage(MESSAGE_VOLUME_CHANGED, volume, ctype);
+        mHandler.sendMessage(msg);
+    }
+
+    private void notifyVolumeChanged(int oldVolume, int volume) {
+        oldVolume = convertToAudioStreamVolume(oldVolume);
+        volume = convertToAudioStreamVolume(volume);
+        mAudioManager.avrcpUpdateVolume(oldVolume, volume);
+    }
+
+    private int convertToAudioStreamVolume(int volume) {
+        // Rescale volume to match AudioSystem's volume
+        return (int) Math.ceil((double) volume*AUDIO_STREAM_MAX_VOL/AVRCP_MAX_VOL);
+    }
+
+    private int convertToAvrcpVolume(int volume) {
+        return (int) Math.ceil((double) volume*AVRCP_MAX_VOL/AUDIO_STREAM_MAX_VOL);
+    }
+
     // Do not modify without updating the HAL bt_rc.h files.
 
     // match up with btrc_play_status_t enum of bt_rc.h
@@ -646,4 +837,5 @@ final class Avrcp {
     private native boolean registerNotificationRspPlayStatusNative(int type, int playStatus);
     private native boolean registerNotificationRspTrackChangeNative(int type, byte[] track);
     private native boolean registerNotificationRspPlayPosNative(int type, int playPos);
+    private native boolean setVolumeNative(int volume);
 }

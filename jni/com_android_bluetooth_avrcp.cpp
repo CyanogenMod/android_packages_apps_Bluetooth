@@ -26,9 +26,11 @@
 #include <string.h>
 
 namespace android {
+static jmethodID method_getRcFeatures;
 static jmethodID method_getPlayStatus;
 static jmethodID method_getElementAttr;
 static jmethodID method_registerNotification;
+static jmethodID method_volumeChangeCallback;
 static jmethodID method_handlePassthroughCmd;
 
 static const btrc_interface_t *sBluetoothAvrcpInterface = NULL;
@@ -45,6 +47,26 @@ static bool checkCallbackThread() {
     JNIEnv* env = AndroidRuntime::getJNIEnv();
     if (sCallbackEnv != env || sCallbackEnv == NULL) return false;
     return true;
+}
+
+static void btavrcp_remote_features_callback(bt_bdaddr_t* bd_addr, btrc_remote_features_t features) {
+    ALOGI("%s", __FUNCTION__);
+    jbyteArray addr;
+
+    if (!checkCallbackThread()) {
+        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
+        return;
+    }
+    addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+    if (!addr) {
+        ALOGE("Fail to new jbyteArray bd addr for connection state");
+        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+        return;
+    }
+
+    sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_getRcFeatures, addr, (jint)features);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static void btavrcp_get_play_status_callback() {
@@ -93,6 +115,19 @@ static void btavrcp_register_notification_callback(btrc_event_id_t event_id, uin
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
+static void btavrcp_volume_change_callback(uint8_t volume, uint8_t ctype) {
+    ALOGI("%s", __FUNCTION__);
+
+    if (!checkCallbackThread()) {
+        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
+        return;
+    }
+
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_volumeChangeCallback, (jint)volume,
+                                                                             (jint)ctype);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+}
+
 static void btavrcp_passthrough_command_callback(int id, int pressed) {
     ALOGI("%s", __FUNCTION__);
 
@@ -108,6 +143,7 @@ static void btavrcp_passthrough_command_callback(int id, int pressed) {
 
 static btrc_callbacks_t sBluetoothAvrcpCallbacks = {
     sizeof(sBluetoothAvrcpCallbacks),
+    btavrcp_remote_features_callback,
     btavrcp_get_play_status_callback,
     NULL,
     NULL,
@@ -117,10 +153,13 @@ static btrc_callbacks_t sBluetoothAvrcpCallbacks = {
     NULL,
     btavrcp_get_element_attr_callback,
     btavrcp_register_notification_callback,
+    btavrcp_volume_change_callback,
     btavrcp_passthrough_command_callback
 };
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
+    method_getRcFeatures =
+        env->GetMethodID(clazz, "getRcFeatures", "([BI)V");
     method_getPlayStatus =
         env->GetMethodID(clazz, "getPlayStatus", "()V");
 
@@ -129,6 +168,9 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
     method_registerNotification =
         env->GetMethodID(clazz, "registerNotification", "(II)V");
+
+    method_volumeChangeCallback =
+        env->GetMethodID(clazz, "volumeChangeCallback", "(II)V");
 
     method_handlePassthroughCmd =
         env->GetMethodID(clazz, "handlePassthroughCmd", "(II)V");
@@ -336,6 +378,22 @@ static jboolean registerNotificationRspPlayPosNative(JNIEnv *env, jobject object
     return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
+static jboolean setVolumeNative(JNIEnv *env, jobject object, jint volume) {
+    bt_status_t status;
+
+    //TODO: delete test code
+    ALOGI("%s: jint: %d, uint8_t: %u", __FUNCTION__, volume, (uint8_t) volume);
+
+    ALOGI("%s: sBluetoothAvrcpInterface: %p", __FUNCTION__, sBluetoothAvrcpInterface);
+    if (!sBluetoothAvrcpInterface) return JNI_FALSE;
+
+    if ((status = sBluetoothAvrcpInterface->set_volume((uint8_t)volume)) != BT_STATUS_SUCCESS) {
+        ALOGE("Failed set_volume, status: %d", status);
+    }
+
+    return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+}
+
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
     {"initNative", "()V", (void *) initNative},
@@ -348,6 +406,8 @@ static JNINativeMethod sMethods[] = {
      (void *) registerNotificationRspTrackChangeNative},
     {"registerNotificationRspPlayPosNative", "(II)Z",
      (void *) registerNotificationRspPlayPosNative},
+    {"setVolumeNative", "(I)Z",
+     (void *) setVolumeNative}
 };
 
 int register_com_android_bluetooth_avrcp(JNIEnv* env)
