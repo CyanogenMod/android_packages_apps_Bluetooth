@@ -26,6 +26,7 @@ import com.android.bluetooth.R;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.hdp.HealthService;
 import com.android.bluetooth.hfp.HeadsetService;
+import com.android.bluetooth.hfpclient.HandsfreeClientService;
 import com.android.bluetooth.hid.HidService;
 import com.android.bluetooth.pan.PanService;
 import com.android.bluetooth.gatt.GattService;
@@ -46,7 +47,8 @@ public class Config {
         HealthService.class,
         PanService.class,
         GattService.class,
-        BluetoothMapService.class
+        BluetoothMapService.class,
+        HandsfreeClientService.class
     };
     /**
      * Resource flag to indicate whether profile is supported or not.
@@ -58,7 +60,8 @@ public class Config {
         R.bool.profile_supported_hdp,
         R.bool.profile_supported_pan,
         R.bool.profile_supported_gatt,
-        R.bool.profile_supported_map
+        R.bool.profile_supported_map,
+        R.bool.profile_supported_hfpclient
     };
 
     private static Class[] SUPPORTED_PROFILES = new Class[0];
