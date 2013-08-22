@@ -37,9 +37,6 @@ import javax.obex.ObexTransport;
 import javax.obex.ResponseCodes;
 
 /**
- *
- * @author Casper Bonde, Henrik Ejersbo and Kim Schulz
- *
  * The Message Notification Service class runs its own message handler thread,
  * to avoid executing long operations on the MAP service Thread.
  * This handler context is passed to the content observers,
@@ -49,8 +46,8 @@ import javax.obex.ResponseCodes;
 public class BluetoothMnsObexClient extends Thread{
 
     private static final String TAG = "BluetoothMnsObexClient";
-    private static final boolean D = true;
-    private static final boolean V = true;
+    private static final boolean D = false;
+    private static final boolean V = false;
 
     public final static int MSG_SESSION_ERROR = 1;
     public final static int MSG_CONNECT_TIMEOUT = 2;
@@ -69,7 +66,7 @@ public class BluetoothMnsObexClient extends Thread{
     private Looper mLooper = null;
     // Used by the MAS to forward notification registrations
     public static final int MSG_MNS_NOTIFICATION_REGISTRATION = 1;
-    public static final int MSG_MNS_SHUTDOWN = 2;
+
 
     public static final ParcelUuid BluetoothUuid_ObexMns =
             ParcelUuid.fromString("00001133-0000-1000-8000-00805F9B34FB");
@@ -109,10 +106,6 @@ public class BluetoothMnsObexClient extends Thread{
                 case MSG_MNS_NOTIFICATION_REGISTRATION:
                     handleRegistration(msg.arg1 /*masId*/, msg.arg2 /*status*/);
                     break;
-                case MSG_MNS_SHUTDOWN:
-                    if(mObserverRegistered)
-                        mObserver.unregisterObserver();
-                    break;
                 default:
                     break;
                 }
@@ -131,7 +124,6 @@ public class BluetoothMnsObexClient extends Thread{
                 mClientSession.disconnect(null);
                 if (D) Log.d(TAG, "OBEX session disconnected");
             }
-            mClientSession = null;
         } catch (IOException e) {
             Log.w(TAG, "OBEX session disconnect error " + e.getMessage());
         }
@@ -139,6 +131,7 @@ public class BluetoothMnsObexClient extends Thread{
             if (mClientSession != null) {
                 if (D) Log.d(TAG, "OBEX session close mClientSession");
                 mClientSession.close();
+                mClientSession = null;
                 if (D) Log.d(TAG, "OBEX session closed");
             }
         } catch (IOException e) {
@@ -148,6 +141,8 @@ public class BluetoothMnsObexClient extends Thread{
             try {
                 if (D) Log.d(TAG, "Close Obex Transport");
                 mTransport.close();
+                mTransport = null;
+                mConnected = false;
                 if (D) Log.d(TAG, "Obex Transport Closed");
             } catch (IOException e) {
                 Log.e(TAG, "mTransport.close error: " + e.getMessage());
@@ -166,8 +161,10 @@ public class BluetoothMnsObexClient extends Thread{
         try {
             join();
         } catch (InterruptedException e) {
-            if(V) Log.w(TAG, e);
+            if(V) Log.w(TAG, "got interrupted. Probably a connection shutdown");
         }
+        mHandler = null;
+        mObserver = null;
     }
 
     private HeaderSet hsConnect = null;
@@ -185,7 +182,6 @@ public class BluetoothMnsObexClient extends Thread{
             if(mObserverRegistered == true) {
                 mObserver.unregisterObserver();
                 mObserverRegistered = false;
-                disconnect();
             }
         } else if(notificationStatus == BluetoothMapAppParams.NOTIFICATION_STATUS_YES) {
             /* Connect if we do not have a connection, and start the content observers providing
@@ -307,7 +303,7 @@ public class BluetoothMnsObexClient extends Thread{
                     outputStream.close();
                 } else {
                     error = true;
-                    // TBD - Is Output stream close needed here
+                    outputStream.close();
                     putOperation.abort();
                     Log.i(TAG, "SendEvent interrupted");
                 }

@@ -46,7 +46,7 @@ import com.android.internal.telephony.gsm.SmsMessage.SubmitPdu;
 public class BluetoothMapSmsPdu {
 
     private static final String TAG = "BluetoothMapSmsPdu";
-    private static final boolean V = true;
+    private static final boolean V = false;
     private static int INVALID_VALUE = -1;
     public static int SMS_TYPE_GSM = 1;
     public static int SMS_TYPE_CDMA = 2;
@@ -247,7 +247,6 @@ public class BluetoothMapSmsPdu {
                 data[offset+2] = (byte) tmp;
 
 //            }
-                //TODO: Error handling.
                 /* TODO: Do we need to change anything in the user data? Not sure if the user data is
                  *        just encoded using GSM encoding, or it is an actual GSM submit PDU embedded
                  *        in the user data?
@@ -258,16 +257,16 @@ public class BluetoothMapSmsPdu {
         private static final byte TP_MIT_DELIVER       = 0x00; // bit 0 and 1
         private static final byte TP_MMS_NO_MORE       = 0x04; // bit 2
         private static final byte TP_RP_NO_REPLY_PATH  = 0x00; // bit 7
-        private static final byte TP_UDHI_MASK         = 0x20; // bit 6
+        private static final byte TP_UDHI_MASK         = 0x40; // bit 6
         private static final byte TP_SRI_NO_REPORT     = 0x00; // bit 5
 
         private int gsmSubmitGetTpPidOffset() {
-            /* calculate the offset to TP_PID and return the TP_PID byte.
+            /* calculate the offset to TP_PID.
              * The TP-DA has variable length, and the length excludes the 2 byte length and type headers.
              * The TP-DA is two bytes within the PDU */
-            int offset = 2 + (data[2] & 0xff) + 2; //
-            if((offset > data.length) || (offset > (2 + 12))) // max length of TP_DA is 12 bytes + two byte offset
-                throw new IllegalArgumentException("wrongly formatted gsm submit PDU");
+            int offset = 2 + ((data[2]+1) & 0xff)/2 + 2; // data[2] is the number of semi-octets in the phone number (ceil result)
+            if((offset > data.length) || (offset > (2 + 12))) // max length of TP_DA is 12 bytes + two byte offset.
+                throw new IllegalArgumentException("wrongly formatted gsm submit PDU. offset = " + offset);
             return offset;
         }
 
@@ -304,37 +303,54 @@ public class BluetoothMapSmsPdu {
 
             pdu.skip(gsmSubmitGetTpUdlOffset());
             int userDataLength = pdu.read();
-            int userDataHeaderLength = pdu.read();
+            if(gsmSubmitHasUserDataHeader() == true) {
+                int userDataHeaderLength = pdu.read();
 
-            // This part is only needed to extract the language info, hence only needed for 7 bit encoding
-            if(encoding == SmsConstants.ENCODING_7BIT)
-            {
-                byte[] udh = new byte[userDataHeaderLength];
-                try {
-                    pdu.read(udh);
-                } catch (IOException e) {
-                    Log.w(TAG, "unable to read userDataHeader", e);
+                // This part is only needed to extract the language info, hence only needed for 7 bit encoding
+                if(encoding == SmsConstants.ENCODING_7BIT)
+                {
+                    byte[] udh = new byte[userDataHeaderLength];
+                    try {
+                        pdu.read(udh);
+                    } catch (IOException e) {
+                        Log.w(TAG, "unable to read userDataHeader", e);
+                    }
+                    SmsHeader userDataHeader = SmsHeader.fromByteArray(udh);
+                    languageTable = userDataHeader.languageTable;
+                    languageShiftTable = userDataHeader.languageShiftTable;
+
+                    int headerBits = (userDataHeaderLength + 1) * 8;
+                    int headerSeptets = headerBits / 7;
+                    headerSeptets += (headerBits % 7) > 0 ? 1 : 0;
+                    userDataSeptetPadding = (headerSeptets * 7) - headerBits;
+                    msgSeptetCount = userDataLength - headerSeptets;
                 }
-                SmsHeader userDataHeader = SmsHeader.fromByteArray(udh);
-                languageTable = userDataHeader.languageTable;
-                languageShiftTable = userDataHeader.languageShiftTable;
-
-                int headerBits = (userDataHeaderLength + 1) * 8;
-                int headerSeptets = headerBits / 7;
-                headerSeptets += (headerBits % 7) > 0 ? 1 : 0;
-                userDataSeptetPadding = (headerSeptets * 7) - headerBits;
-                msgSeptetCount = userDataLength - headerSeptets;
+                userDataMsgOffset = gsmSubmitGetTpUdOffset() + userDataHeaderLength + 1; // Add the byte containing the length
             }
-            userDataMsgOffset = gsmSubmitGetTpUdOffset() + userDataHeaderLength + 1; // Add the byte containing the length
+            else
+            {
+                userDataSeptetPadding = 0;
+                msgSeptetCount = userDataLength;
+                userDataMsgOffset = gsmSubmitGetTpUdOffset();
+            }
+            if(V) {
+                Log.v(TAG, "encoding:" + encoding);
+                Log.v(TAG, "msgSeptetCount:" + msgSeptetCount);
+                Log.v(TAG, "userDataSeptetPadding:" + userDataSeptetPadding);
+                Log.v(TAG, "languageShiftTable:" + languageShiftTable);
+                Log.v(TAG, "languageTable:" + languageTable);
+                Log.v(TAG, "userDataMsgOffset:" + userDataMsgOffset);
+            }
         }
 
         private void gsmWriteDate(ByteArrayOutputStream header, long time) throws UnsupportedEncodingException {
             SimpleDateFormat format = new SimpleDateFormat("yyMMddHHmmss");
             Date date = new Date(time);
             String timeStr = format.format(date); // Format to YYMMDDTHHMMSS UTC time
+            if(V) Log.v(TAG, "Generated time string: " + timeStr);
             byte[] timeChars = timeStr.getBytes("US-ASCII");
 
-            for(int i = 0, n = timeStr.length()/2; i < n; i++) {
+            for(int i = 0, n = timeStr.length(); i < n; i+=2) {
                 header.write((timeChars[i+1]-0x30) << 4 | (timeChars[i]-0x30)); // Offset from ascii char to decimal value
             }
 
@@ -379,8 +395,16 @@ public class BluetoothMapSmsPdu {
                 newPdu.write(TP_MIT_DELIVER | TP_MMS_NO_MORE | TP_RP_NO_REPLY_PATH | TP_SRI_NO_REPORT
                              | (data[0] & 0xff)  & TP_UDHI_MASK);
                 encodedAddress = PhoneNumberUtils.networkPortionToCalledPartyBCDWithLength(originator);
-                // Insert originator address into the header - this includes the length
-                newPdu.write(encodedAddress);
+                if(encodedAddress != null) {
+                    int padding = (encodedAddress[encodedAddress.length-1] & 0xf0) == 0xf0 ? 1 : 0;
+                    encodedAddress[0] = (byte)((encodedAddress[0]-1)*2 - padding); // Convert from octet length to semi octet length
+                    // Insert originator address into the header - this includes the length
+                    newPdu.write(encodedAddress);
+                } else {
+                    newPdu.write(0);    /* zero length */
+                    newPdu.write(0x81); /* International type */
+                }
+
                 newPdu.write(data[gsmSubmitGetTpPidOffset()]);
                 newPdu.write(data[gsmSubmitGetTpDcsOffset()]);
                 // Generate service center time stamp
@@ -391,7 +415,7 @@ public class BluetoothMapSmsPdu {
                 newPdu.write(data, gsmSubmitGetTpUdOffset(), data.length - gsmSubmitGetTpUdOffset());
             } catch (IOException e) {
                 Log.e(TAG, "", e);
-                throw new IllegalArgumentException("Failed to change type to deliver PDU."); // TODO: Is this the best way to handle this error? - which cannot occur...
+                throw new IllegalArgumentException("Failed to change type to deliver PDU.");
             }
             data = newPdu.toByteArray();
         }
@@ -476,53 +500,55 @@ public class BluetoothMapSmsPdu {
             newPdu = new SmsPdu(data, encoding, phoneType, languageTable);
             pdus.add(newPdu);
         }
+        else
+        {
+            /* This code is a reduced copy of the actual code used in the Android SMS sub system,
+             * hence the comments have been left untouched. */
+            for(int i = 0; i < msgCount; i++){
+                SmsHeader.ConcatRef concatRef = new SmsHeader.ConcatRef();
+                concatRef.refNumber = refNumber;
+                concatRef.seqNumber = i + 1;  // 1-based sequence
+                concatRef.msgCount = msgCount;
+                // We currently set this to true since our messaging app will never
+                // send more than 255 parts (it converts the message to MMS well before that).
+                // However, we should support 3rd party messaging apps that might need 16-bit
+                // references
+                // Note:  It's not sufficient to just flip this bit to true; it will have
+                // ripple effects (several calculations assume 8-bit ref).
+                concatRef.isEightBits = true;
+                SmsHeader smsHeader = new SmsHeader();
+                smsHeader.concatRef = concatRef;
 
-        /* This code is a reduced copy of the actual code used in the Android SMS sub system,
-         * hence the comments have been left untouched. */
-        for(int i = 0; i < msgCount; i++){
-            SmsHeader.ConcatRef concatRef = new SmsHeader.ConcatRef();
-            concatRef.refNumber = refNumber;
-            concatRef.seqNumber = i + 1;  // 1-based sequence
-            concatRef.msgCount = msgCount;
-            // TODO: We currently set this to true since our messaging app will never
-            // send more than 255 parts (it converts the message to MMS well before that).
-            // However, we should support 3rd party messaging apps that might need 16-bit
-            // references
-            // Note:  It's not sufficient to just flip this bit to true; it will have
-            // ripple effects (several calculations assume 8-bit ref).
-            concatRef.isEightBits = true;
-            SmsHeader smsHeader = new SmsHeader();
-            smsHeader.concatRef = concatRef;
-
-            /* Depending on the type, call either GSM or CDMA getSubmitPdu(). The encoding
-             * will be determined(again) by getSubmitPdu().
-             * All packets need to be encoded using the same encoding, as the bMessage
-             * only have one filed to describe the encoding for all messages in a concatenated
-             * SMS... */
-            if (encoding == SmsConstants.ENCODING_7BIT) {
-                smsHeader.languageTable = languageTable;
-                smsHeader.languageShiftTable = languageShiftTable;
-            }
-
-            if(phoneType == SMS_TYPE_GSM){
-                data = com.android.internal.telephony.gsm.SmsMessage.getSubmitPdu(null, destinationAddress,
-                        smsFragments.get(i), false, SmsHeader.toByteArray(smsHeader),
-                        encoding, languageTable, languageShiftTable).encodedMessage;
-            } else { // SMS_TYPE_CDMA
-                UserData uData = new UserData();
-                uData.payloadStr = smsFragments.get(i);
-                uData.userDataHeader = smsHeader;
+                /* Depending on the type, call either GSM or CDMA getSubmitPdu(). The encoding
+                 * will be determined(again) by getSubmitPdu().
+                 * All packets need to be encoded using the same encoding, as the bMessage
+                 * only have one filed to describe the encoding for all messages in a concatenated
+                 * SMS... */
                 if (encoding == SmsConstants.ENCODING_7BIT) {
-                    uData.msgEncoding = UserData.ENCODING_GSM_7BIT_ALPHABET;
-                } else { // assume UTF-16
-                    uData.msgEncoding = UserData.ENCODING_UNICODE_16;
+                    smsHeader.languageTable = languageTable;
+                    smsHeader.languageShiftTable = languageShiftTable;
                 }
-                uData.msgEncodingSet = true;
-                data = com.android.internal.telephony.cdma.SmsMessage.getSubmitPdu(destinationAddress,
-                        uData, false).encodedMessage;
+
+                if(phoneType == SMS_TYPE_GSM){
+                    data = com.android.internal.telephony.gsm.SmsMessage.getSubmitPdu(null, destinationAddress,
+                            smsFragments.get(i), false, SmsHeader.toByteArray(smsHeader),
+                            encoding, languageTable, languageShiftTable).encodedMessage;
+                } else { // SMS_TYPE_CDMA
+                    UserData uData = new UserData();
+                    uData.payloadStr = smsFragments.get(i);
+                    uData.userDataHeader = smsHeader;
+                    if (encoding == SmsConstants.ENCODING_7BIT) {
+                        uData.msgEncoding = UserData.ENCODING_GSM_7BIT_ALPHABET;
+                    } else { // assume UTF-16
+                        uData.msgEncoding = UserData.ENCODING_UNICODE_16;
+                    }
+                    uData.msgEncodingSet = true;
+                    data = com.android.internal.telephony.cdma.SmsMessage.getSubmitPdu(destinationAddress,
+                            uData, false).encodedMessage;
+                }
+                newPdu = new SmsPdu(data, encoding, phoneType, languageTable);
+                pdus.add(newPdu);
             }
-            newPdu = new SmsPdu(data, encoding, phoneType, languageTable);
-            pdus.add(newPdu);
         }
 
         return pdus;
@@ -589,7 +615,7 @@ public class BluetoothMapSmsPdu {
         /* The format of a native GSM SMS is: <sc-address><pdu> where sc-address is:
          * <length-byte><type-byte><number-bytes> */
         int addressLength = data[0] & 0xff; // Treat the byte value as an unsigned value
-        if(addressLength >= data.length) // TODO: We could verify that the address-length is no longer than 11 bytes
+        if(addressLength >= data.length) // We could verify that the address-length is no longer than 11 bytes
             throw new IllegalArgumentException("Length of address exeeds the length of the PDU data.");
         int pduLength = data.length-(1+addressLength);
         byte[] newData = new byte[pduLength];
@@ -683,14 +709,13 @@ public class BluetoothMapSmsPdu {
         /* TODO: This is NOT good design - to have the pdu class being depending on these two function calls.
          *        - move the encoding extraction into the pdu class */
         pdu.setEncoding(encodingType);
-        if(pdu.gsmSubmitHasUserDataHeader()) {
-            pdu.gsmDecodeUserDataHeader();
-        }
+        pdu.gsmDecodeUserDataHeader();
 
         try {
             switch (encodingType) {
             case  SmsConstants.ENCODING_UNKNOWN:
             case  SmsConstants.ENCODING_8BIT:
+                Log.w(TAG, "Unknown encoding type: " + encodingType);
                 messageBody = null;
                 break;
 
@@ -698,16 +723,18 @@ public class BluetoothMapSmsPdu {
                 messageBody = GsmAlphabet.gsm7BitPackedToString(pdu.getData(), pdu.getUserDataMsgOffset(),
                                 pdu.getMsgSeptetCount(), pdu.getUserDataSeptetPadding(), pdu.getLanguageTable(),
                                 pdu.getLanguageShiftTable());
+                Log.i(TAG, "Decoded as 7BIT: " + messageBody);
 
                 break;
 
             case  SmsConstants.ENCODING_16BIT:
                 messageBody = new String(pdu.getData(), pdu.getUserDataMsgOffset(), pdu.getUserDataMsgSize(), "utf-16");
+                Log.i(TAG, "Decoded as 16BIT: " + messageBody);
                 break;
 
             case SmsConstants.ENCODING_KSC5601:
                 messageBody = new String(pdu.getData(), pdu.getUserDataMsgOffset(), pdu.getUserDataMsgSize(), "KSC5601");
-
+                Log.i(TAG, "Decoded as KSC5601: " + messageBody);
                 break;
             }
         } catch (UnsupportedEncodingException e) {

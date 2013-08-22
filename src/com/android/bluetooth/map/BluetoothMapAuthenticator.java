@@ -64,7 +64,7 @@ public class BluetoothMapAuthenticator implements Authenticator {
                 try {
                     wait();
                 } catch (InterruptedException e) {
-                    Log.e(TAG, "Interrupted while waiting on isChalled");
+                    Log.e(TAG, "Interrupted while waiting on isChallenged");
                 }
             }
         }

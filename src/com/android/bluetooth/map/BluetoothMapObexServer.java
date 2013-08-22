@@ -44,11 +44,11 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
 
     // 128 bit UUID for MAP
     private static final byte[] MAP_TARGET = new byte[] {
-                 (byte)0xBB, (byte)0x58, (byte)0x2B, (byte)0x40,
-                 (byte)0x42, (byte)0x0C, (byte)0x11, (byte)0xDB,
-                 (byte)0xB0, (byte)0xDE, (byte)0x08, (byte)0x00,
-                 (byte)0x20, (byte)0x0C, (byte)0x9A, (byte)0x66
-                 };
+             (byte)0xBB, (byte)0x58, (byte)0x2B, (byte)0x40,
+             (byte)0x42, (byte)0x0C, (byte)0x11, (byte)0xDB,
+             (byte)0xB0, (byte)0xDE, (byte)0x08, (byte)0x00,
+             (byte)0x20, (byte)0x0C, (byte)0x9A, (byte)0x66
+             };
 
     /* Message types */
     private static final String TYPE_GET_FOLDER_LISTING  = "x-obex/folder-listing";
@@ -56,7 +56,6 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
     private static final String TYPE_MESSAGE             = "x-bt/message";
     private static final String TYPE_SET_MESSAGE_STATUS  = "x-bt/messageStatus";
     private static final String TYPE_SET_NOTIFICATION_REGISTRATION = "x-bt/MAP-NotificationRegistration";
-    private static final String TYPE_SEND_EVENT          = "x-bt/MAP-event-report";
     private static final String TYPE_MESSAGE_UPDATE      = "x-bt/MAP-messageUpdate";
 
     private BluetoothMapFolderElement mCurrentFolder;
@@ -134,6 +133,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
 
         if (V) Log.v(TAG, "onConnect(): uuid is ok, will send out " +
                 "MSG_SESSION_ESTABLISHED msg.");
+
 
         Message msg = Message.obtain(mCallback);
         msg.what = BluetoothMapService.MSG_SESSION_ESTABLISHED;
@@ -239,10 +239,9 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 if(D) Log.d(TAG, "Push message only allowed to outbox and draft. folderName: " + folderName);
                 return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
             }
-            /* TODO:
-             *  - Read out the message - OK
-             *  - Decode into a bMessage - OK
-             *  - push to draft or send.
+            /*  - Read out the message
+             *  - Decode into a bMessage
+             *  - send it.
              */
             InputStream bMsgStream;
             BluetoothMapbMessage message;
@@ -264,6 +263,8 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             if (D) Log.d(TAG, "handleStr: " + handleStr + " message.getType(): " + message.getType());
             replyHeaders.setHeader(HeaderSet.NAME, handleStr);
             op.sendHeaders(replyHeaders);
+
+            bMsgStream.close();
         } catch (IllegalArgumentException e) {
             if(D) Log.w(TAG, "Wrongly formatted bMessage received", e);
             return ResponseCodes.OBEX_HTTP_PRECON_FAILED;
@@ -278,6 +279,9 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
     private int setMessageStatus(String msgHandle, BluetoothMapAppParams appParams) {
         int indicator = appParams.getStatusIndicator();
         int value = appParams.getStatusValue();
+        long handle;
+        BluetoothMapUtils.TYPE msgType;
+
         if(indicator == BluetoothMapAppParams.INVALID_VALUE_PARAMETER ||
            value == BluetoothMapAppParams.INVALID_VALUE_PARAMETER ||
            msgHandle == null) {
@@ -288,8 +292,14 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             return ResponseCodes.OBEX_HTTP_UNAVAILABLE; // Should not happen.
         }
 
-        long handle = BluetoothMapUtils.getCpHandle(msgHandle);
-        BluetoothMapUtils.TYPE msgType = BluetoothMapUtils.getMsgTypeFromHandle(msgHandle);
+        try {
+            handle = BluetoothMapUtils.getCpHandle(msgHandle);
+            msgType = BluetoothMapUtils.getMsgTypeFromHandle(msgHandle);
+        } catch (NumberFormatException e) {
+            Log.w(TAG, "Wrongly formatted message handle: " + msgHandle);
+            return ResponseCodes.OBEX_HTTP_PRECON_FAILED;
+        }
+
         if( indicator == BluetoothMapAppParams.STATUS_INDICATOR_DELETED) {
             if (!observer.setMessageStatusDeleted(handle, msgType, value)) {
                 return ResponseCodes.OBEX_HTTP_UNAVAILABLE;
@@ -398,10 +408,9 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 return sendMessageListingRsp(op, appParams, name); // Block until all packets have been send.
             }
             else if (type.equals(TYPE_MESSAGE)){
-                if (V && appParams != null) {
-                    Log.d(TAG,"TYPE_MESSAGE (GET): Attachment = " + appParams.getAttachment() +
-                              ", Charset = " + appParams.getCharset() +
-                              ", FractionRequest = " + appParams.getFractionRequest());
+                if(V && appParams != null) {
+                    Log.d(TAG,"TYPE_MESSAGE (GET): Attachment = " + appParams.getAttachment() + ", Charset = " + appParams.getCharset() +
+                        ", FractionRequest = " + appParams.getFractionRequest());
                 }
                 return sendGetMessageRsp(op, name, appParams); // Block until all packets have been send.
             }
@@ -433,19 +442,20 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         OutputStream outStream = null;
         byte[] outBytes = null;
         int maxChunkSize, bytesToWrite, bytesWritten = 0, listSize;
+        boolean hasUnread = false;
         HeaderSet replyHeaders = new HeaderSet();
         BluetoothMapAppParams outAppParams = new BluetoothMapAppParams();
         BluetoothMapMessageListing outList;
-        if (folderName == null) {
+        if(folderName == null) {
             folderName = mCurrentFolder.getName();
         }
-        if (appParams == null){
+        if(appParams == null){
             appParams = new BluetoothMapAppParams();
             appParams.setMaxListCount(1024);
             appParams.setStartOffset(0);
         }
 
-        // TODO: Check to see if we only need to send the size - hence no need to encode.
+        // Check to see if we only need to send the size - hence no need to encode.
         try {
             // Open the OBEX body stream
             outStream = op.openOutputStream();
@@ -460,27 +470,28 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 outList = mOutContent.msgListing(folderName, appParams);
                 // Generate the byte stream
                 outAppParams.setMessageListingSize(outList.getCount());
-//                if(outList.getCount() != 0) {
-                    outBytes = outList.encode();
-//                } else {
-//                    op.noBodyHeader();
-                    // TODO: Remove after test
-                    //Log.w(TAG,"sendMessageListingRsp: Empty list - sending OBEX_HTTP_BAD_REQUEST");
-                    //return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
-//                }
+                outBytes = outList.encode();
+                hasUnread = outList.hasUnread();
             }
             else {
                 listSize = mOutContent.msgListingSize(folderName, appParams);
+                hasUnread = mOutContent.msgListingHasUnread(folderName, appParams);
                 outAppParams.setMessageListingSize(listSize);
                 op.noBodyHeader();
             }
 
             // Build the application parameter header
-            outAppParams.setNewMessage(0); // TODO: set depending on new messages
+
+            // let the peer know if there are unread messages in the list
+            if(hasUnread)
+            {
+                outAppParams.setNewMessage(1);
+            }else{
+                outAppParams.setNewMessage(0);
+            }
+
             outAppParams.setMseTime(Calendar.getInstance().getTime().getTime());
-
             replyHeaders.setHeader(HeaderSet.APPLICATION_PARAMETER, outAppParams.EncodeParams());
-
             op.sendHeaders(replyHeaders);
 
         } catch (IOException e) {
@@ -489,13 +500,10 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         } catch (IllegalArgumentException e) {
             Log.w(TAG,"sendMessageListingRsp: IllegalArgumentException - sending OBEX_HTTP_BAD_REQUEST", e);
             return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
-        } catch (Exception e){
-            Log.w(TAG, "Exception:", e);
-            // TODO: REMOVE AFTER TEST!!
         }
 
         maxChunkSize = op.getMaxPacketSize(); // This must be called after setting the headers.
-        if (outBytes != null) {
+        if(outBytes != null) {
             try {
                 while (bytesWritten < outBytes.length && sIsAborted == false) {
                     bytesToWrite = Math.min(maxChunkSize, outBytes.length - bytesWritten);
@@ -505,11 +513,8 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             } catch (IOException e) {
                 if(V) Log.w(TAG,e);
                 // We were probably aborted or disconnected
-            } catch (Exception e){
-                if(V) Log.w(TAG,e);
-                // TODO: REMOVE AFTER TEST!!
             } finally {
-                if (outStream != null) {
+                if(outStream != null) {
                     try {
                         outStream.close();
                     } catch (IOException e) {
@@ -517,7 +522,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                     }
                 }
             }
-            if (bytesWritten != outBytes.length)
+            if(bytesWritten != outBytes.length)
                 return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
         } else {
             try {
@@ -618,26 +623,26 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
     }
 
     /**
-     * Generate and send the Folder listing response based on an application
-     * parameter header. This function call will block until complete or aborted
-     * by the peer. Fragmentation of packets larger than the obex packet size
-     * will be handled by this function.
+     * Generate and send the get message response based on an application
+     * parameter header and a handle.
      *
      * @param op
      *            The OBEX operation.
      * @param appParams
      *            The application parameter header
+     * @param handle
+     *            The handle of the requested message
      * @return {@link ResponseCodes.OBEX_HTTP_OK} on success or
      *         {@link ResponseCodes.OBEX_HTTP_BAD_REQUEST} on error.
      */
-    private int sendGetMessageRsp(Operation op, String name, BluetoothMapAppParams appParams){
+    private int sendGetMessageRsp(Operation op, String handle, BluetoothMapAppParams appParams){
         OutputStream outStream ;
         byte[] outBytes;
         int maxChunkSize, bytesToWrite, bytesWritten = 0;
         long msgHandle;
 
         try {
-            outBytes = mOutContent.getMessage(name, appParams.getCharset());
+            outBytes = mOutContent.getMessage(handle, appParams);
             outStream = op.openOutputStream();
 
         } catch (IOException e) {
@@ -678,7 +683,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
     }
 
 
-    public static final void logHeader(HeaderSet hs) {
+    private static final void logHeader(HeaderSet hs) {
         Log.v(TAG, "Dumping HeaderSet " + hs.toString());
         try {
             Log.v(TAG, "CONNECTION_ID : " + hs.getHeader(HeaderSet.CONNECTION_ID));
