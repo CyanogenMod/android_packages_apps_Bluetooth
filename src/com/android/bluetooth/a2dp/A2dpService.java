@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.a2dp;
 
+import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothA2dp;
@@ -115,6 +116,13 @@ public class A2dpService extends ProfileService {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH ADMIN permission");
 
+        BluetoothClass remoteclass = device.getBluetoothClass();
+        if (DBG) {
+            Log.d(TAG,"getRemoteClass " + remoteclass.toString());
+        }
+        if (!remoteclass.doesClassMatch(BluetoothClass.PROFILE_A2DP)) {
+            return false;
+        }
         if (getPriority(device) == BluetoothProfile.PRIORITY_OFF) {
             return false;
         }
