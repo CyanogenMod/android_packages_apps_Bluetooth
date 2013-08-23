@@ -70,6 +70,7 @@ public class HidService extends ProfileService {
     private static final int MESSAGE_GET_IDLE_TIME = 13;
     private static final int MESSAGE_ON_GET_IDLE_TIME = 14;
     private static final int MESSAGE_SET_IDLE_TIME = 15;
+    private static final int MESSAGE_SET_PRIORITY = 16;
 
     static {
         classInitNative();
@@ -296,6 +297,15 @@ public class HidService extends ProfileService {
                     }
                 }
                 break;
+                case MESSAGE_SET_PRIORITY:
+                {
+                    BluetoothDevice device = (BluetoothDevice) msg.obj;
+                    int priority = msg.arg1;
+                    if (!setPriorityNative(Utils.getByteAddress(device), priority)) {
+                        Log.e(TAG, "Error: set priority native returns false");
+                    }
+                }
+                break;
             }
         }
     };
@@ -471,6 +481,10 @@ public class HidService extends ProfileService {
             Settings.Global.getBluetoothInputDevicePriorityKey(device.getAddress()),
             priority);
         if (DBG) Log.d(TAG,"Saved priority " + device + " = " + priority);
+        Message msg = mHandler.obtainMessage(MESSAGE_SET_PRIORITY,device);
+        msg.obj = device;
+        msg.arg1 = priority;
+        mHandler.sendMessage(msg);
         return true;
     }
 
@@ -733,4 +747,5 @@ public class HidService extends ProfileService {
     private native boolean sendDataNative(byte[] btAddress, String report);
     private native boolean setIdleTimeNative(byte[] btAddress, byte idleTime);
     private native boolean getIdleTimeNative(byte[] btAddress);
+    private native boolean setPriorityNative(byte[] btAddress, int priority);
 }
