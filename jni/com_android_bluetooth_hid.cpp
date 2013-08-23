@@ -566,6 +566,29 @@ static jboolean setIdleTimeNative(JNIEnv *env, jobject object, jbyteArray addres
     return ret;
 }
 
+static jboolean setPriorityNative(JNIEnv *env, jobject object, jbyteArray address, jint priority) {
+    bt_status_t status;
+    jbyte *addr;
+    jboolean ret = JNI_TRUE;
+    if (!sBluetoothHidInterface) return JNI_FALSE;
+
+    addr = env->GetByteArrayElements(address, NULL);
+    if (!addr) {
+        ALOGE("Bluetooth device address null");
+        return JNI_FALSE;
+    }
+
+    if ( (status = sBluetoothHidInterface->set_priority((bt_bdaddr_t *) addr, priority)) !=
+         BT_STATUS_SUCCESS) {
+        ALOGE("Failed set priority, status: %d", status);
+        ret = JNI_FALSE;
+    }
+    env->ReleaseByteArrayElements(address, addr, 0);
+
+    return ret;
+}
+
+
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
     {"initializeNative", "()V", (void *) initializeNative},
@@ -580,6 +603,7 @@ static JNINativeMethod sMethods[] = {
     {"sendDataNative", "([BLjava/lang/String;)Z", (void *) sendDataNative},
     {"getIdleTimeNative", "([B)Z", (void *) getIdleTimeNative},
     {"setIdleTimeNative", "([BB)Z", (void *) setIdleTimeNative},
+    {"setPriorityNative", "([BI)Z", (void *) setPriorityNative},
 };
 
 int register_com_android_bluetooth_hid(JNIEnv* env)
