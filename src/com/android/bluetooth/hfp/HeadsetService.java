@@ -263,6 +263,16 @@ public class HeadsetService extends ProfileService {
             if (service == null) return;
             service.clccResponse(index, direction, status, mode, mpty, number, type);
         }
+
+        public boolean sendVendorSpecificResultCode(BluetoothDevice device,
+                                                    String command,
+                                                    String arg) {
+            HeadsetService service = getService();
+            if (service == null) {
+                return false;
+            }
+            return service.sendVendorSpecificResultCode(device, command, arg);
+        }
     };
 
     //API methods
@@ -477,6 +487,24 @@ public class HeadsetService extends ProfileService {
         enforceCallingOrSelfPermission(MODIFY_PHONE_STATE, null);
         mStateMachine.sendMessage(HeadsetStateMachine.SEND_CCLC_RESPONSE,
             new HeadsetClccResponse(index, direction, status, mode, mpty, number, type));
+    }
+
+    private boolean sendVendorSpecificResultCode(BluetoothDevice device,
+                                                 String command,
+                                                 String arg) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        int connectionState = mStateMachine.getConnectionState(device);
+        if (connectionState != BluetoothProfile.STATE_CONNECTED) {
+            return false;
+        }
+        // Currently we support only "+ANDROID".
+        if (!command.equals(BluetoothHeadset.VENDOR_RESULT_CODE_COMMAND_ANDROID)) {
+            Log.w(TAG, "Disallowed unsolicited result code command: " + command);
+            return false;
+        }
+        mStateMachine.sendMessage(HeadsetStateMachine.SEND_VENDOR_SPECIFIC_RESULT_CODE,
+                new HeadsetVendorSpecificResultCode(command, arg));
+        return true;
     }
 
 }
