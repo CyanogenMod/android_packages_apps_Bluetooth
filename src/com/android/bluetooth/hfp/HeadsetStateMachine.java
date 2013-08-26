@@ -62,7 +62,9 @@ import com.android.internal.util.IState;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 final class HeadsetStateMachine extends StateMachine {
@@ -89,9 +91,10 @@ final class HeadsetStateMachine extends StateMachine {
     static final int INTENT_BATTERY_CHANGED = 10;
     static final int DEVICE_STATE_CHANGED = 11;
     static final int SEND_CCLC_RESPONSE = 12;
+    static final int SEND_VENDOR_SPECIFIC_RESULT_CODE = 13;
 
-    static final int VIRTUAL_CALL_START = 13;
-    static final int VIRTUAL_CALL_STOP = 14;
+    static final int VIRTUAL_CALL_START = 14;
+    static final int VIRTUAL_CALL_STOP = 15;
 
     private static final int STACK_EVENT = 101;
     private static final int DIALING_OUT_TIMEOUT = 102;
@@ -101,6 +104,9 @@ final class HeadsetStateMachine extends StateMachine {
 
     private static final int DIALING_OUT_TIMEOUT_VALUE = 10000;
     private static final int START_VR_TIMEOUT_VALUE = 5000;
+
+    // Keys are AT commands, and values are the company IDs.
+    private static final Map<String, Integer> VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID;
 
     private static final ParcelUuid[] HEADSET_UUIDS = {
         BluetoothUuid.HSP,
@@ -159,6 +165,10 @@ final class HeadsetStateMachine extends StateMachine {
 
     static {
         classInitNative();
+
+        VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID = new HashMap<String, Integer>();
+        VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID.put("+XEVENT", BluetoothAssignedNumbers.PLANTRONICS);
+        VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID.put("+ANDROID", BluetoothAssignedNumbers.GOOGLE);
     }
 
     private HeadsetStateMachine(HeadsetService context) {
@@ -649,6 +659,10 @@ final class HeadsetStateMachine extends StateMachine {
                 case SEND_CCLC_RESPONSE:
                     processSendClccResponse((HeadsetClccResponse) message.obj);
                     break;
+                case SEND_VENDOR_SPECIFIC_RESULT_CODE:
+                    processSendVendorSpecificResultCode(
+                            (HeadsetVendorSpecificResultCode) message.obj);
+                    break;
                 case DIALING_OUT_TIMEOUT:
                     if (mDialingOut) {
                         mDialingOut= false;
@@ -862,6 +876,10 @@ final class HeadsetStateMachine extends StateMachine {
                     break;
                 case SEND_CCLC_RESPONSE:
                     processSendClccResponse((HeadsetClccResponse) message.obj);
+                    break;
+                case SEND_VENDOR_SPECIFIC_RESULT_CODE:
+                    processSendVendorSpecificResultCode(
+                            (HeadsetVendorSpecificResultCode) message.obj);
                     break;
 
                 case VIRTUAL_CALL_START:
@@ -1701,21 +1719,40 @@ final class HeadsetStateMachine extends StateMachine {
         return out.toArray();
     }
 
-    private void processAtXevent(String atString) {
-        log("processAtXevent - atString = "+ atString);
-        if (atString.startsWith("=") && !atString.startsWith("=?")) {
-            Object[] args = generateArgs(atString.substring(1));
-            broadcastVendorSpecificEventIntent("+XEVENT",
-                                               BluetoothAssignedNumbers.PLANTRONICS,
-                                               BluetoothHeadset.AT_CMD_TYPE_SET,
-                                               args,
-                                               mCurrentDevice);
-            atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK, 0);
+    /**
+     * @return {@code true} if the given string is a valid vendor-specific AT command.
+     */
+    private boolean processVendorSpecificAt(String atString) {
+        log("processVendorSpecificAt - atString = " + atString);
+
+        // Currently we accept only SET type commands.
+        int indexOfEqual = atString.indexOf("=");
+        if (indexOfEqual == -1) {
+            Log.e(TAG, "processVendorSpecificAt: command type error in " + atString);
+            return false;
         }
-        else {
-            Log.e(TAG, "processAtXevent: command type error");
-            atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
+
+        String command = atString.substring(0, indexOfEqual);
+        Integer companyId = VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID.get(command);
+        if (companyId == null) {
+            Log.e(TAG, "processVendorSpecificAt: unsupported command: " + atString);
+            return false;
         }
+
+        String arg = atString.substring(indexOfEqual + 1);
+        if (arg.startsWith("?")) {
+            Log.e(TAG, "processVendorSpecificAt: command type error in " + atString);
+            return false;
+        }
+
+        Object[] args = generateArgs(arg);
+        broadcastVendorSpecificEventIntent(command,
+                                           companyId,
+                                           BluetoothHeadset.AT_CMD_TYPE_SET,
+                                           args,
+                                           mCurrentDevice);
+        atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK, 0);
+        return true;
     }
 
     private void processUnknownAt(String atString) {
@@ -1729,9 +1766,7 @@ final class HeadsetStateMachine extends StateMachine {
             processAtCpbs(atCommand.substring(5), commandType);
         else if (atCommand.startsWith("+CPBR"))
             processAtCpbr(atCommand.substring(5), commandType, mCurrentDevice);
-        else if (atCommand.startsWith("+XEVENT"))
-            processAtXevent(atCommand.substring(7));
-        else
+        else if (!processVendorSpecificAt(atCommand))
             atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
     }
 
@@ -1887,6 +1922,14 @@ final class HeadsetStateMachine extends StateMachine {
     private void processSendClccResponse(HeadsetClccResponse clcc) {
         clccResponseNative(clcc.mIndex, clcc.mDirection, clcc.mStatus, clcc.mMode, clcc.mMpty,
                            clcc.mNumber, clcc.mType);
+    }
+
+    private void processSendVendorSpecificResultCode(HeadsetVendorSpecificResultCode resultCode) {
+        String stringToSend = resultCode.mCommand + ": ";
+        if (resultCode.mArg != null) {
+            stringToSend += resultCode.mArg;
+        }
+        atResponseStringNative(stringToSend);
     }
 
     private String getCurrentDeviceName() {
