@@ -69,7 +69,7 @@ import android.os.ServiceManager;
 
 public class AdapterService extends Service {
     private static final String TAG = "BluetoothAdapterService";
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
     private static final boolean TRACE_REF = true;
     //For Debugging only
     private static int sRefCount=0;
@@ -313,6 +313,7 @@ public class AdapterService extends Service {
 
     boolean stopProfileServices() {
         Class[] supportedProfileServices = Config.getSupportedProfiles();
+        Log.d(TAG,"mProfilesStarted : " + mProfilesStarted + " supportedProfileServices.length : "+ supportedProfileServices.length);
         if (mProfilesStarted && supportedProfileServices.length>0) {
             setProfileServiceState(supportedProfileServices,BluetoothAdapter.STATE_OFF);
             return true;
