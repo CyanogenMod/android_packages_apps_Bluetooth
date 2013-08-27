@@ -393,6 +393,8 @@ public class AdapterService extends Service {
 
     boolean stopProfileServices() {
         Class[] supportedProfileServices = Config.getSupportedProfiles();
+        Log.d(TAG,"mProfilesStarted : " + mProfilesStarted + " supportedProfileServices.length : " +
+            supportedProfileServices.length);
         if (mProfilesStarted && supportedProfileServices.length>0) {
             setProfileServiceState(supportedProfileServices,BluetoothAdapter.STATE_OFF);
             return true;

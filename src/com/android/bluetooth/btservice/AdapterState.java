@@ -339,6 +339,7 @@ final class AdapterState extends StateMachine {
                     errorLog("Error stopping Bluetooth profiles");
                     mPendingCommandState.setTurningOff(false);
                     transitionTo(mOffState);
+                    notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
                     break;
                 case DISABLE_TIMEOUT:
                     if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = DISABLE_TIMEOUT, isTurningOn=" + isTurningOn + ", isTurningOff=" + isTurningOff);
