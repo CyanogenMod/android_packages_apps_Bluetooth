@@ -38,7 +38,7 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Acceptaţi"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"A fost atins timpul limită pentru acceptarea unui fişier primit de la „<xliff:g id="SENDER">%1$s</xliff:g>”"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Distribuire prin Bluetooth: se primeşte fişierul"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth: se primeşte fişierul"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Doriţi să primiţi acest fişier?"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Un fişier de la alt dispozitiv se află în curs de primire. Confirmaţi dacă doriţi primirea acestuia."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Distribuire prin Bluetooth: se primeşte <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -108,7 +108,7 @@
     <string name="no_transfers" msgid="3482965619151865672">"Istoricul de transferuri este gol."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Toate elementele din listă vor fi eliminate."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Distribuire prin Bluetooth: fişiere trimise"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"Distribuire prin Bluetooth: fişiere primite"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth: fișiere primite"</string>
     <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> reuşite, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> eşuate."</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Ștergeţi lista"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Deschideţi"</string>
