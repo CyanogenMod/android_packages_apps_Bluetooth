@@ -195,6 +195,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                     * Handle session completed status Set batch status to
                     * finished
                     */
+                    cleanUp();
                     BluetoothOppShareInfo info1 = (BluetoothOppShareInfo)msg.obj;
                     if (V) Log.v(TAG, "receive MSG_SESSION_COMPLETE for batch " + mBatch.mId);
                     mBatch.mStatus = Constants.BATCH_STATUS_FINISHED;
@@ -207,11 +208,19 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 case BluetoothOppObexSession.MSG_SESSION_ERROR:
                     /* Handle the error state of an Obex session */
                     if (V) Log.v(TAG, "receive MSG_SESSION_ERROR for batch " + mBatch.mId);
+                    cleanUp();
+                    try {
                     BluetoothOppShareInfo info2 = (BluetoothOppShareInfo)msg.obj;
-                    mSession.stop();
+                    if (mSession != null) {
+                        mSession.stop();
+                    }
                     mBatch.mStatus = Constants.BATCH_STATUS_FAILED;
                     markBatchFailed(info2.mStatus);
                     tickShareStatus(mCurrentShare);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Exception while handling MSG_SESSION_ERROR");
+                        e.printStackTrace();
+                    }
                     break;
 
                 case BluetoothOppObexSession.MSG_SHARE_INTERRUPTED:
@@ -400,6 +409,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
      */
     public void stop() {
         if (V) Log.v(TAG, "stop");
+        cleanUp();
         if (mConnectThread != null) {
             try {
                 mConnectThread.interrupt();
@@ -460,7 +470,51 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
         mSession.start(mSessionHandler, mBatch.getNumShares());
         processCurrentShare();
+
+        /* OBEX channel need to be monitored for unexpected ACL disconnection
+         * such as Remote Battery removal
+         */
+        synchronized (this) {
+            try {
+                IntentFilter filter = new IntentFilter();
+                filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                mContext.registerReceiver(mBluetoothReceiver, filter);
+                if (V) Log.v(TAG, "Registered mBluetoothReceiver");
+            } catch (IllegalArgumentException e) {
+            }
+        }
     }
+
+    private BroadcastReceiver mBluetoothReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (device == null) {
+                    Log.e(TAG, "Receive ACTION_ACL_DISCONNECTED, device null");
+                    return;
+                }
+                try {
+                    if (V) Log.v(TAG, "ACTION_ACL_DISCONNECTED for device " + device
+                        + "- OPP device: " + mBatch.mDestination);
+                    if (V) Log.v(TAG, "mCurrentShare.mConfirm == " + mCurrentShare.mConfirm);
+                    if ((device.equals(mBatch.mDestination)) &&
+                            (mCurrentShare.mConfirm == BluetoothShare.USER_CONFIRMATION_PENDING)) {
+                        if (V) Log.v(TAG, "ACTION_ACL_DISCONNECTED to be processed for batch: "
+                            + mBatch.mId);
+                        //Remove the timeout message triggered earlier during Obex Put
+                        mSessionHandler.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
+                        // Now reuse the same message to clean up the session.
+                        mSessionHandler.sendMessage(mSessionHandler.obtainMessage
+                            (BluetoothOppObexSession.MSG_CONNECT_TIMEOUT));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    };
 
     private void processCurrentShare() {
         /* This transfer need user confirm */
@@ -471,6 +525,19 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         }
     }
 
+    private void cleanUp() {
+       synchronized (this) {
+           try {
+               if (mBluetoothReceiver != null){
+                  mContext.unregisterReceiver(mBluetoothReceiver);
+                   mBluetoothReceiver = null;
+               }
+           } catch (Exception e) {
+               Log.e(TAG, "Exception:unregisterReceiver");
+               e.printStackTrace();
+           }
+       }
+    }
     /**
      * Set transfer confirmed status. It should only be called for inbound
      * transfer
