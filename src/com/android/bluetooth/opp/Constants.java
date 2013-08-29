@@ -275,6 +275,8 @@ public class Constants {
 
     public static String filename_SEQUENCE_SEPARATOR = "-";
 
+    public static boolean ZERO_LENGTH_FILE = false;
+
     public static void updateShareStatus(Context context, int id, int status) {
         Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + id);
         ContentValues updateValues = new ContentValues();
