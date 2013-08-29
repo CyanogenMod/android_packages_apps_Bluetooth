@@ -761,6 +761,8 @@ public class BluetoothPbapVcardManager {
                         vcard = vcardfilter.applyFilter(vcard, vcardType21);
                         Log.v (TAG , "vCard on applying filter: " + vcard);
                     }
+                    vcard = StripTelephoneNumber(vcard);
+
                     if (vcard == null) {
                         Log.e(TAG, "Failed to read a contact. Error reason: "
                                 + composer.getErrorReason());
@@ -830,6 +832,27 @@ public class BluetoothPbapVcardManager {
                     + (System.currentTimeMillis() - timestamp) + " ms");
 
         return ResponseCodes.OBEX_HTTP_OK;
+    }
+
+    public String StripTelephoneNumber (String vCard){
+        String attr [] = vCard.split(System.getProperty("line.separator"));
+        String Vcard = "";
+            for (int i=0; i < attr.length; i++) {
+                if(attr[i].startsWith("TEL")) {
+                    attr[i] = attr[i].replace("(", "");
+                    attr[i] = attr[i].replace(")", "");
+                    attr[i] = attr[i].replace("-", "");
+                    attr[i] = attr[i].replace(" ", "");
+                }
+            }
+
+            for (int i=0; i < attr.length; i++) {
+                if(!attr[i].equals("")){
+                    Vcard = Vcard.concat(attr[i] + "\n");
+                }
+            }
+        Log.v(TAG, "Vcard with stripped telephone no.: " + Vcard);
+        return Vcard;
     }
 
     /**
