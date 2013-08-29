@@ -364,7 +364,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             if (V) Log.v(TAG, "Client thread processShareInfo() " + mInfo.mId);
 
             BluetoothOppSendFileInfo fileInfo = BluetoothOppUtility.getSendFileInfo(mInfo.mUri);
-            if (fileInfo.mFileName == null || fileInfo.mLength == 0) {
+            if (fileInfo.mFileName == null) {
                 if (V) Log.v(TAG, "BluetoothOppSendFileInfo get invalid file");
                     Constants.updateShareStatus(mContext1, mInfo.mId, fileInfo.mStatus);
 
