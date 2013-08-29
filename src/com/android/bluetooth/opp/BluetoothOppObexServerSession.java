@@ -265,7 +265,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             length = (Long)request.getHeader(HeaderSet.LENGTH);
             mimeType = (String)request.getHeader(HeaderSet.TYPE);
 
-            if (length == 0) {
+             if (length == null ||  length == 0) {
                 if (D) Log.w(TAG, "length is 0, reject the transfer");
                 pre_reject = true;
                 obexResponse = ResponseCodes.OBEX_HTTP_LENGTH_REQUIRED;
