@@ -443,6 +443,9 @@ public class BluetoothOppManager {
                     contentType = mTypeOfMultipleFiles;
                 }
 
+                BluetoothOppSendFileInfo fileInfo = BluetoothOppSendFileInfo.generateFileInfo(
+                                                        mContext, fileUri, contentType);
+                values.put(BluetoothShare.FILENAME_HINT, fileInfo.mFileName);
                 values.put(BluetoothShare.MIMETYPE, contentType);
                 values.put(BluetoothShare.DESTINATION, mRemoteDevice.getAddress());
                 values.put(BluetoothShare.TIMESTAMP, ts);
