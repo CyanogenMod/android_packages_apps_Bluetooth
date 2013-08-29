@@ -316,7 +316,7 @@ class BluetoothOppNotification {
             Notification.Builder b = new Notification.Builder(mContext);
             b.setContentTitle(item.description);
             b.setContentInfo(
-                    BluetoothOppUtility.formatProgressText(item.totalTotal, item.totalCurrent));
+                BluetoothOppUtility.formatProgressText(mContext, item.totalTotal, item.totalCurrent));
             b.setProgress(item.totalTotal, item.totalCurrent, item.totalTotal == -1);
             b.setWhen(item.timeStamp);
             if (item.direction == BluetoothShare.DIRECTION_OUTBOUND) {

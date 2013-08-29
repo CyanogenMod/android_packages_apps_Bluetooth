@@ -78,6 +78,7 @@
     <string name="not_exist_file_desc" msgid="4059531573790529229">"Dosya mevcut değil. \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Lütfen bekleyin..."</string>
     <string name="enabling_progress_content" msgid="4601542238119927904">"Bluetooth açılıyor..."</string>
+    <string name="format_progress_text">%%%1$d</string>
     <string name="bt_toast_1" msgid="972182708034353383">"Dosya alınacak. İlerlemeyi Bildirimler panelinden izleyebilirsiniz."</string>
     <string name="bt_toast_2" msgid="8602553334099066582">"Dosya alınamıyor."</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" kaynağından dosya alımı durduruldu"</string>
