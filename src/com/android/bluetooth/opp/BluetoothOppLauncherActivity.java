@@ -50,6 +50,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.provider.Settings;
+import android.widget.Toast;
 
 import android.util.Patterns;
 import java.util.regex.Matcher;
@@ -75,7 +76,21 @@ public class BluetoothOppLauncherActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         Intent intent = getIntent();
-        String action = intent.getAction();
+        String action = (intent == null) ? null : intent.getAction();
+        if (action == null) {
+            Log.e(TAG, "Unexpected error! action is null");
+            finish();
+            return;
+        }
+        boolean airplane = (android.provider.Settings.System.getInt
+                    (this.getContentResolver(), android.provider.Settings.System.AIRPLANE_MODE_ON, 0) != 0);
+        boolean needPrompt = getResources().getBoolean(R.bool.config_airplane_invalid);
+       if (airplane && needPrompt) {
+             Toast.makeText(this,R.string.bluetooth_in_airplane_mode,
+                     Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         if (action.equals(Intent.ACTION_SEND) || action.equals(Intent.ACTION_SEND_MULTIPLE)) {
             //Check if Bluetooth is available in the beginning instead of at the end

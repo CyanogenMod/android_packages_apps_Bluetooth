@@ -117,6 +117,11 @@ public class BluetoothOppSendFileInfo {
             } catch (SQLiteException e) {
                 // some content providers don't support the DISPLAY_NAME or SIZE columns
                 metadataCursor = null;
+            } catch (SecurityException e) {
+                metadataCursor = null;
+                fileName = uri.getLastPathSegment();
+                Log.e(TAG, "generateFileInfo: " + e);
+                return new BluetoothOppSendFileInfo(fileName, contentType, length, null, 0);
             }
             if (metadataCursor != null) {
                 try {

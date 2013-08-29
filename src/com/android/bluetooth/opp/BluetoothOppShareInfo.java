@@ -60,9 +60,9 @@ public class BluetoothOppShareInfo {
 
     public int mStatus;
 
-    public int mTotalBytes;
+    public long mTotalBytes;
 
-    public int mCurrentBytes;
+    public long mCurrentBytes;
 
     public long mTimestamp;
 
@@ -70,7 +70,7 @@ public class BluetoothOppShareInfo {
 
     public BluetoothOppShareInfo(int id, Uri uri, String hint, String filename, String mimetype,
             int direction, String destination, int visibility, int confirm, int status,
-            int totalBytes, int currentBytes, int timestamp, boolean mediaScanned) {
+            long totalBytes, long currentBytes, long timestamp, boolean mediaScanned) {
         mId = id;
         mUri = uri;
         mHint = hint;
