@@ -507,7 +507,26 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                             if (V) timestamp = System.currentTimeMillis();
 
                             readLength = a.read(buffer, 0, outputBufferSize);
+                            int writtenLength = 0;
+                            while (writtenLength != readLength) {
+                                try {
                             outputStream.write(buffer, 0, readLength);
+                                    writtenLength = readLength;
+                                } catch (IOException e) {
+                                    if (e.toString().contains("Try again")) {
+                                        Log.v(TAG, "Try Again Exception");
+                                        try {
+                                            Thread.sleep(10);
+                                        } catch (InterruptedException slpe) {
+                                            Log.v(TAG, "Interrupted while Try Again" + slpe.toString());
+                                        }
+                                        continue;
+                                    } else {
+                                        Log.v(TAG, "Not Try Again Exception: Throw" + e.toString());
+                                        throw e;
+                                    }
+                                }
+                            }
 
                             /* check remote abort */
                             responseCode = putOperation.getResponseCode();
