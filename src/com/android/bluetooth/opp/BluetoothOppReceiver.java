@@ -90,6 +90,13 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                     }
                 }
             }
+        } else if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
+            if (V) Log.v(TAG, "Received ACTION_ACL_DISCONNECTED");
+            // Don't forward intent unless device has bluetooth and bluetooth is enabled.
+            BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+            if (adapter != null && adapter.isEnabled()) {
+                context.startService(new Intent(context, BluetoothOppService.class));
+            }
         } else if (action.equals(BluetoothDevicePicker.ACTION_DEVICE_SELECTED)) {
             BluetoothOppManager mOppManager = BluetoothOppManager.getInstance(context);
 
