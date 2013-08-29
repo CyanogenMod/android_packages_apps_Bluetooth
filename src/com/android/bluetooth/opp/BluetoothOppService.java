@@ -938,6 +938,7 @@ public class BluetoothOppService extends Service {
                              WHERE_INBOUND_INTERRUPTED_ON_POWER_OFF, null);
                 if (V) Log.v(TAG, "Delete aborted inbound share, number = " + delNum);
             }
+            cursorToFile.close();
         }
 
         // on boot : remove unconfirmed inbound shares.
