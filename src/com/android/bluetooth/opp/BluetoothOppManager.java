@@ -106,6 +106,8 @@ public class BluetoothOppManager {
 
     public boolean mMultipleFlag;
 
+    public boolean zero_length_file = false;
+
     private int mfileNumInBatch;
 
     private int mInsertShareThreadNum = 0;

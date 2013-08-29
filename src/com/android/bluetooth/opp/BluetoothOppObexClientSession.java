@@ -576,6 +576,13 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                         if (responseCode != -1) {
                             if (V) Log.v(TAG, "Get response code " + responseCode);
                             if (responseCode != ResponseCodes.OBEX_HTTP_OK) {
+                               if ((fileInfo.mLength == 0) &&
+                                  (responseCode == ResponseCodes.OBEX_HTTP_LENGTH_REQUIRED)) {
+                                  /* Set if the file length is zero and it's rejected by remote */
+                                  BluetoothOppManager.getInstance(mContext1).zero_length_file = true;
+                                  /* To mark transfer status as failed in the notification */
+                                  status = BluetoothShare.STATUS_FORBIDDEN;
+                               } else {
                                 Log.i(TAG, "Response error code is " + responseCode);
                                 status = BluetoothShare.STATUS_UNHANDLED_OBEX_CODE;
                                 if (responseCode == ResponseCodes.OBEX_HTTP_UNSUPPORTED_TYPE) {
@@ -586,6 +593,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                                     status = BluetoothShare.STATUS_FORBIDDEN;
                                 }
                             }
+                            }
                         } else {
                             // responseCode is -1, which means connection error
                             status = BluetoothShare.STATUS_CONNECTION_ERROR;
@@ -593,6 +601,14 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     }
 
                     Constants.updateShareStatus(mContext1, mInfo.mId, status);
+
+                    if (BluetoothOppManager.getInstance(mContext1).zero_length_file) {
+                      /* Mark the status as success when a zero length file is rejected
+                       * by the remote device. It allows us to continue the transfer if
+                       * we have a batch and the file(s) are yet be sent in the row.
+                       */
+                      status = BluetoothShare.STATUS_SUCCESS;
+                    }
 
                     if (inputStream != null) {
                         inputStream.close();
