@@ -213,6 +213,7 @@ public class Constants {
         "text/x-vcard",
         "text/plain",
         "text/html",
+        "text/comma-separated-values",
         "application/zip",
         "application/vnd.ms-excel",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
