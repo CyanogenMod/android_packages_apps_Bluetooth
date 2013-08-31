@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008-2009, Motorola, Inc.
+ * Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * All rights reserved.
  *
@@ -273,6 +274,12 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                     toastMsg = context.getString(R.string.download_fail_line1);
                 }
             }
+
+            if (Constants.ZERO_LENGTH_FILE) {
+               toastMsg = context.getString(R.string.empty_file_notification_sent, transInfo.mFileName);
+               Constants.ZERO_LENGTH_FILE = false;
+            }
+
             if (V) Log.v(TAG, "Toast msg == " + toastMsg);
             if (toastMsg != null) {
                 Toast.makeText(context, toastMsg, Toast.LENGTH_SHORT).show();
