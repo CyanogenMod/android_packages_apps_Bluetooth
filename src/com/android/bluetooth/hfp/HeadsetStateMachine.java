@@ -1637,6 +1637,7 @@ final class HeadsetStateMachine extends StateMachine {
                         phoneNumber = "";
                     }
                     clccResponseNative(1, 0, 0, 0, false, phoneNumber, type);
+                    clccResponseNative(0, 0, 0, 0, false, "", 0);
                 }
                 else if (!mPhoneProxy.listCurrentCalls()) {
                     clccResponseNative(0, 0, 0, 0, false, "", 0);
