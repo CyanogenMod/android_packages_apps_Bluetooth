@@ -272,7 +272,7 @@ final class A2dpStateMachine extends StateMachine {
                 }
                 break;
             case CONNECTION_STATE_DISCONNECTING:
-                logw("Ignore HF DISCONNECTING event, device: " + device);
+                logw("Ignore A2dp DISCONNECTING event, device: " + device);
                 break;
             default:
                 loge("Incorrect state: " + state);
@@ -364,6 +364,14 @@ final class A2dpStateMachine extends StateMachine {
                         // outgoing connection failed
                         broadcastConnectionState(mTargetDevice, BluetoothProfile.STATE_DISCONNECTED,
                                                  BluetoothProfile.STATE_CONNECTING);
+                        // check if there is some incoming connection request
+                        if (mIncomingDevice != null) {
+                            logi("disconnect for outgoing in pending state");
+                            synchronized (A2dpStateMachine.this) {
+                                mTargetDevice = null;
+                            }
+                            break;
+                        }
                         synchronized (A2dpStateMachine.this) {
                             mTargetDevice = null;
                             transitionTo(mDisconnected);
@@ -404,10 +412,18 @@ final class A2dpStateMachine extends StateMachine {
                 } else if (mIncomingDevice != null && mIncomingDevice.equals(device)) {
                     broadcastConnectionState(mIncomingDevice, BluetoothProfile.STATE_CONNECTED,
                                              BluetoothProfile.STATE_CONNECTING);
-                    synchronized (A2dpStateMachine.this) {
-                        mCurrentDevice = mIncomingDevice;
-                        mIncomingDevice = null;
-                        transitionTo(mConnected);
+                    // check for a2dp connection allowed for this device in race condition
+                    if (okToConnect(mIncomingDevice)) {
+                        logi("Ready to connect incoming Connection from pending state");
+                        synchronized (A2dpStateMachine.this) {
+                            mCurrentDevice = mIncomingDevice;
+                            mIncomingDevice = null;
+                            transitionTo(mConnected);
+                        }
+                    } else {
+                        // A2dp connection unchecked for this device
+                        loge("Incoming A2DP rejected from pending state");
+                        disconnectA2dpNative(getByteAddress(device));
                     }
                 } else {
                     loge("Unknown device Connected: " + device);
@@ -437,7 +453,10 @@ final class A2dpStateMachine extends StateMachine {
                 } else {
                     // We get an incoming connecting request while Pending
                     // TODO(BT) is stack handing this case? let's ignore it for now
-                    log("Incoming connection while pending, ignore");
+                    log("Incoming connection while pending, accept it");
+                    broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
+                                             BluetoothProfile.STATE_DISCONNECTED);
+                    mIncomingDevice = device;
                 }
                 break;
             case CONNECTION_STATE_DISCONNECTING:
@@ -552,6 +571,13 @@ final class A2dpStateMachine extends StateMachine {
                             mCurrentDevice = null;
                             transitionTo(mDisconnected);
                         }
+                    } else if (mTargetDevice != null && mTargetDevice.equals(device)) {
+                        broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED,
+                                                 BluetoothProfile.STATE_CONNECTING);
+                        synchronized (A2dpStateMachine.this) {
+                            mTargetDevice = null;
+                        }
+                        logi("Disconnected from mTargetDevice in connected state device: " + device);
                     } else {
                         loge("Disconnected from unknown device: " + device);
                     }
