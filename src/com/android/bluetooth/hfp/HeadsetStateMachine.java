@@ -850,10 +850,9 @@ final class HeadsetStateMachine extends StateMachine {
                 // fall through
                 case DISCONNECT_AUDIO:
                     if (disconnectAudioNative(getByteAddress(mCurrentDevice))) {
-                        mAudioState = BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
-                        mAudioManager.setBluetoothScoOn(false);
-                        broadcastAudioState(mCurrentDevice, BluetoothHeadset.STATE_AUDIO_DISCONNECTED,
-                                            BluetoothHeadset.STATE_AUDIO_CONNECTED);
+                        log("Disconnecting SCO audio");
+                    } else {
+                        Log.e(TAG, "disconnectAudioNative failed");
                     }
                     break;
                 case VOICE_RECOGNITION_START:
