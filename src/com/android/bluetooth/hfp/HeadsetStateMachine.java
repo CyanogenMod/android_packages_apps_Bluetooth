@@ -912,6 +912,21 @@ final class HeadsetStateMachine extends StateMachine {
 
             boolean retValue = HANDLED;
             switch(message.what) {
+                case CONNECT:
+                {
+                    BluetoothDevice device = (BluetoothDevice) message.obj;
+                    if (mCurrentDevice.equals(device)) {
+                        break;
+                    }
+                    deferMessage(obtainMessage(DISCONNECT, mCurrentDevice));
+                    deferMessage(obtainMessage(CONNECT, message.obj));
+                    if (disconnectAudioNative(getByteAddress(mCurrentDevice))) {
+                        log("Disconnecting SCO audio");
+                    } else {
+                        Log.e(TAG, "disconnectAudioNative failed");
+                    }
+                }
+                break;
                 case DISCONNECT:
                 {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
