@@ -148,12 +148,12 @@ public class BluetoothOppRfcommListener {
                             try {
                                 if (V) Log.v(TAG, "Accepting connection...");
                                 if (mBtServerSocket == null) {
-
+                                    
                                 }
                                 BluetoothServerSocket sSocket = mBtServerSocket;
                                 if (sSocket ==null) {
                                     mInterrupted = true;
-
+                                    
                                 } else {
                                     clientSocket = sSocket.accept();
                                     if (V) Log.v(TAG, "Accepted connection from "

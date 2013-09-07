@@ -11,9 +11,6 @@ LOCAL_CERTIFICATE := platform
 
 LOCAL_JNI_SHARED_LIBRARIES := libbluetooth_jni
 LOCAL_JAVA_LIBRARIES := javax.obex
-
-LOCAL_JAVA_LIBRARIES += telephony-common mms-common
-
 LOCAL_STATIC_JAVA_LIBRARIES := com.android.vcard
 
 LOCAL_REQUIRED_MODULES := libbluetooth_jni bluetooth.default
