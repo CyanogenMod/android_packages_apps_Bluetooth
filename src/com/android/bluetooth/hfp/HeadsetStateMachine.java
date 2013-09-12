@@ -680,6 +680,9 @@ final class HeadsetStateMachine extends StateMachine {
                         broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED,
                                        BluetoothProfile.STATE_CONNECTING);
                         break;
+                    } else {
+                            broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_DISCONNECTING,
+                                       BluetoothProfile.STATE_CONNECTED);
                     }
 
                     synchronized (HeadsetStateMachine.this) {
@@ -698,7 +701,7 @@ final class HeadsetStateMachine extends StateMachine {
                                    BluetoothProfile.STATE_CONNECTED);
                     if (!disconnectHfpNative(getByteAddress(device))) {
                         broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTED,
-                                       BluetoothProfile.STATE_DISCONNECTED);
+                                       BluetoothProfile.STATE_DISCONNECTING);
                         break;
                     }
                     transitionTo(mPending);
