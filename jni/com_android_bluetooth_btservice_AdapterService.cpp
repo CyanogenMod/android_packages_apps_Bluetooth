@@ -21,6 +21,7 @@
 #include "utils/misc.h"
 #include "cutils/properties.h"
 #include "android_runtime/AndroidRuntime.h"
+#include "android_runtime/Log.h"
 
 #include <string.h>
 #include <pthread.h>
