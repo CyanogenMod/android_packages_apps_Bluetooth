@@ -226,6 +226,7 @@
             <intent-filter>
                 <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>
                 <action android:name="android.bluetooth.device.action.CONNECTION_ACCESS_REPLY" />
+                <action android:name="android.bluetooth.device.action.ACL_DISCONNECTED" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
