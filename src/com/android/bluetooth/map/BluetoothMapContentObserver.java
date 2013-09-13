@@ -64,8 +64,8 @@ import com.google.android.mms.pdu.PduHeaders;
 public class BluetoothMapContentObserver {
     private static final String TAG = "BluetoothMapContentObserver";
 
-    private static final boolean D = true;
-    private static final boolean V = true;
+    private static final boolean D = false;
+    private static final boolean V = false;
 
     private Context mContext;
     private ContentResolver mResolver;
@@ -195,7 +195,7 @@ public class BluetoothMapContentObserver {
                 xmlEvtReport.setOutput(sw);
                 xmlEvtReport.startDocument(null, null);
                 xmlEvtReport.text("\n");
-                xmlEvtReport.startTag("", "Map-event-report");
+                xmlEvtReport.startTag("", "MAP-event-report");
                 xmlEvtReport.attribute("", "version", "1.0");
 
                 xmlEvtReport.startTag("", "event");
@@ -210,7 +210,7 @@ public class BluetoothMapContentObserver {
                 xmlEvtReport.attribute("", "msg_type", msgType.name());
                 xmlEvtReport.endTag("", "event");
 
-                xmlEvtReport.endTag("", "Map-event-report");
+                xmlEvtReport.endTag("", "MAP-event-report");
                 xmlEvtReport.endDocument();
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
@@ -254,6 +254,7 @@ public class BluetoothMapContentObserver {
     public void unregisterObserver() {
         if (V) Log.d(TAG, "unregisterObserver");
         mResolver.unregisterContentObserver(mObserver);
+        mMnsClient = null;
     }
 
     private void sendEvent(Event evt) {
@@ -771,6 +772,7 @@ public class BluetoothMapContentObserver {
 
         values.put("read", 0);
         values.put("seen", 0);
+        values.put("sub", msg.getSubject());
         values.put("sub_cs", 106);
         values.put("ct_t", "application/vnd.wap.multipart.related");
         values.put("exp", 604800);
@@ -782,6 +784,11 @@ public class BluetoothMapContentObserver {
         values.put("tr_id", "T"+ Long.toHexString(System.currentTimeMillis()));
         values.put("d_rpt", PduHeaders.VALUE_NO);
         values.put("locked", 0);
+        if(msg.getTextOnly() == true)
+            values.put("text_only", true);
+
+        values.put("m_size", msg.getSize());
+
      // Get thread id
         Set<String> recipients = new HashSet<String>();
         recipients.addAll(Arrays.asList(to_address));
@@ -802,51 +809,64 @@ public class BluetoothMapContentObserver {
             Log.v(TAG, " NEW URI " + uri.toString());
         }
         try {
+            if(V) Log.v(TAG, "Adding " + msg.getMimeParts().size() + " parts to the data base.");
         for(MimePart part : msg.getMimeParts()) {
+            int count = 0;
+            count++;
             values.clear();
             if(part.contentType != null &&  part.contentType.toUpperCase().contains("TEXT")) {
-                values.put("seq", 0);
                 values.put("ct", "text/plain");
-                values.put("name", "null");
                 values.put("chset", 106);
-                values.put("cd", "null");
-                values.put("fn", part.partName);
-                values.put("name", part.partName);
-                values.put("cid", "<smil>");
-                values.put("cl", part.partName);
-                values.put("ctt_s", "null");
-                values.put("ctt_t", "null");
-                values.put("_data", "null");
+                if(part.partName != null) {
+                    values.put("fn", part.partName);
+                    values.put("name", part.partName);
+                } else if(part.contentId == null && part.contentLocation == null) {
+                    /* We must set at least one part identifier */
+                    values.put("fn", "text_" + count +".txt");
+                    values.put("name", "text_" + count +".txt");
+                }
+                if(part.contentId != null) {
+                    values.put("cid", part.contentId);
+                }
+                if(part.contentLocation != null)
+                    values.put("cl", part.contentLocation);
+                if(part.contentDisposition != null)
+                    values.put("cd", part.contentDisposition);
                 values.put("text", new String(part.data, "UTF-8"));
                 uri = Uri.parse("content://mms/" + handle + "/part");
                 uri = cr.insert(uri, values);
+                if(V) Log.v(TAG, "Added TEXT part");
 
             } else if (part.contentType != null &&  part.contentType.toUpperCase().contains("SMIL")){
 
                 values.put("seq", -1);
                 values.put("ct", "application/smil");
-                values.put("cid", "<smil>");
-                values.put("cl", "smil.xml");
+                if(part.contentId != null)
+                    values.put("cid", part.contentId);
+                if(part.contentLocation != null)
+                    values.put("cl", part.contentLocation);
+                if(part.contentDisposition != null)
+                    values.put("cd", part.contentDisposition);
                 values.put("fn", "smil.xml");
                 values.put("name", "smil.xml");
                 values.put("text", new String(part.data, "UTF-8"));
 
                 uri = Uri.parse("content://mms/" + handle + "/part");
                 uri = cr.insert(uri, values);
+                if(V) Log.v(TAG, "Added SMIL part");
 
             }else /*VIDEO/AUDIO/IMAGE*/ {
-                writeMmsDataPart(handle, part.contentType, part.partName, part.data);
+                writeMmsDataPart(handle, part, count);
+                if(V) Log.v(TAG, "Added OTHER part");
             }
             if (uri != null && V){
                 Log.v(TAG, "Added part with content-type: "+ part.contentType + " to Uri: " + uri.toString());
             }
         }
         } catch (UnsupportedEncodingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Log.w(TAG, e);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Log.w(TAG, e);
         }
 
         values.clear();
@@ -876,27 +896,32 @@ public class BluetoothMapContentObserver {
     }
 
 
-    private void writeMmsDataPart(long handle, String contentType, String name, byte[] data) throws IOException{
+    private void writeMmsDataPart(long handle, MimePart part, int count) throws IOException{
         ContentValues values = new ContentValues();
         values.put("mid", handle);
-        values.put("ct", contentType);
-        values.put("cid", "<smil>");
-        values.put("cl", name);
-        values.put("fn", name);
-        values.put("name", name);
+        if(part.contentType != null)
+            values.put("ct", part.contentType);
+        if(part.contentId != null)
+            values.put("cid", part.contentId);
+        if(part.contentLocation != null)
+            values.put("cl", part.contentLocation);
+        if(part.contentDisposition != null)
+            values.put("cd", part.contentDisposition);
+        if(part.partName != null) {
+            values.put("fn", part.partName);
+            values.put("name", part.partName);
+        } else if(part.contentId == null && part.contentLocation == null) {
+            /* We must set at least one part identifier */
+            values.put("fn", "part_" + count + ".dat");
+            values.put("name", "part_" + count + ".dat");
+        }
         Uri partUri = Uri.parse("content://mms/" + handle + "/part");
         Uri res = mResolver.insert(partUri, values);
 
         // Add data to part
         OutputStream os = mResolver.openOutputStream(res);
-        ByteArrayInputStream is = new ByteArrayInputStream(data);
-        byte[] buffer = new byte[256];
-        for (int len=0; (len=is.read(buffer)) != -1;)
-        {
-            os.write(buffer, 0, len);
-        }
+        os.write(part.data);
         os.close();
-        is.close();
     }
 
 

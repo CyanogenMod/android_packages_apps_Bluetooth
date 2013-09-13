@@ -104,8 +104,12 @@ public class HeadsetService extends ProfileService {
                 }
             }
             else if (action.equals(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY)) {
-                Log.v(TAG, "HeadsetService -  Received BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY");
-                mStateMachine.handleAccessPermissionResult(intent);
+                int requestType = intent.getIntExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
+                                               BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
+                if (requestType == BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS) {
+                    Log.v(TAG, "Received BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY");
+                    mStateMachine.handleAccessPermissionResult(intent);
+                }
             }
         }
     };

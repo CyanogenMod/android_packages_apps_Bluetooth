@@ -242,6 +242,8 @@ public class BluetoothPbapService extends Service {
                     Intent timeoutIntent =
                         new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
                     timeoutIntent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
+                    timeoutIntent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
+                                     BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
                     sendBroadcast(timeoutIntent, BLUETOOTH_ADMIN_PERM);
                 }
                 // Release all resources
@@ -250,7 +252,11 @@ public class BluetoothPbapService extends Service {
                 removeTimeoutMsg = false;
             }
         } else if (action.equals(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY)) {
-            if (!isWaitingAuthorization) {
+            int requestType = intent.getIntExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
+                                           BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
+
+            if ((!isWaitingAuthorization) ||
+                (requestType != BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS)) {
                 // this reply is not for us
                 return;
             }
@@ -628,6 +634,8 @@ public class BluetoothPbapService extends Service {
                 case USER_TIMEOUT:
                     Intent intent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
                     intent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
+                    intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
+                                    BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
                     sendBroadcast(intent);
                     isWaitingAuthorization = false;
                     stopObexServerSession();

@@ -15,20 +15,26 @@
 package com.android.bluetooth.map;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
+import android.os.Environment;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
+
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 
 public abstract class BluetoothMapbMessage {
 
     protected static String TAG = "BluetoothMapbMessage";
-    protected static final boolean D = true;
-    protected static final boolean V = true;
+    protected static final boolean D = false;
+    protected static final boolean V = false;
     private static final String VERSION = "VERSION:1.0";
 
     public static int INVALID_VALUE = -1;
@@ -155,17 +161,17 @@ public abstract class BluetoothMapbMessage {
         {
             sb.append("BEGIN:VCARD").append("\r\n");
             sb.append("VERSION:").append(version).append("\r\n");
-            if (version.equals("3.0") && formattedName != null)
+            if(version.equals("3.0") && formattedName != null)
             {
                 sb.append("FN:").append(formattedName).append("\r\n");
             }
             if (name != null)
                 sb.append("N:").append(name).append("\r\n");
-            for (String phoneNumber : phoneNumbers)
+            for(String phoneNumber : phoneNumbers)
             {
                 sb.append("TEL:").append(phoneNumber).append("\r\n");
             }
-            for (String emailAddress : emailAddresses)
+            for(String emailAddress : emailAddresses)
             {
                 sb.append("EMAIL:").append(emailAddress).append("\r\n");
             }
@@ -297,10 +303,11 @@ public abstract class BluetoothMapbMessage {
          * @return the next line
          */
         public String getLineEnforce() {
-            String line = getLine();
-            if (line == null)
-                throw new IllegalArgumentException("Bmessage too short");
-            return line;
+        String line = getLine();
+        if (line == null)
+            throw new IllegalArgumentException("Bmessage too short");
+
+        return line;
         }
 
 
@@ -315,8 +322,9 @@ public abstract class BluetoothMapbMessage {
          */
         public void expect(String subString) throws IllegalArgumentException{
             String line = getLine();
-            if (!line.contains(subString))
-                // TODO: Should this be case insensitive? (Either use toUpper() or matches())
+            if(line == null || subString == null){
+                throw new IllegalArgumentException("Line or substring is null");
+            }else if(!line.toUpperCase().contains(subString.toUpperCase()))
                 throw new IllegalArgumentException("Expected \"" + subString + "\" in: \"" + line + "\"");
         }
 
@@ -329,9 +337,9 @@ public abstract class BluetoothMapbMessage {
          */
         public void expect(String subString, String subString2) throws IllegalArgumentException{
             String line = getLine();
-            if(!line.contains(subString)) // TODO: Should this be case insensitive? (Either use toUpper() or matches())
+            if(!line.toUpperCase().contains(subString.toUpperCase()))
                 throw new IllegalArgumentException("Expected \"" + subString + "\" in: \"" + line + "\"");
-            if(!line.contains(subString2)) // TODO: Should this be case insensitive? (Either use toUpper() or matches())
+            if(!line.toUpperCase().contains(subString2.toUpperCase()))
                 throw new IllegalArgumentException("Expected \"" + subString + "\" in: \"" + line + "\"");
         }
 
@@ -346,7 +354,7 @@ public abstract class BluetoothMapbMessage {
             try {
                 int bytesRead;
                 int offset=0;
-                while ((bytesRead = mInStream.read(data, offset, length-offset)) != length) {
+                while ((bytesRead = mInStream.read(data, offset, length-offset)) != (length - offset)) {
                     if(bytesRead == -1)
                         return null;
                     offset += bytesRead;
@@ -359,20 +367,84 @@ public abstract class BluetoothMapbMessage {
         }
     };
 
-    public BluetoothMapbMessage() {
+    public BluetoothMapbMessage(){
 
     }
 
     public static BluetoothMapbMessage parse(InputStream bMsgStream, int appParamCharset) throws IllegalArgumentException{
-        BMsgReader reader = new BMsgReader(bMsgStream);
+        BMsgReader reader;
         String line = "";
         BluetoothMapbMessage newBMsg = null;
-        reader.expect("BEGIN:BMSG");
-        reader.expect("VERSION","1.0");
         boolean status = false;
         boolean statusFound = false;
         TYPE type = null;
         String folder = null;
+
+        /* This section is used for debug. It will write the incoming message to a file on the SD-card,
+         * hence should only be used for test/debug.
+         * If an error occurs, it will result in a OBEX_HTTP_PRECON_FAILED to be send to the client,
+         * even though the message might be formatted correctly, hence only enable this code for test. */
+        if(V) {
+            /* Read the entire stream into a file on the SD card*/
+            File sdCard = Environment.getExternalStorageDirectory();
+            File dir = new File (sdCard.getAbsolutePath() + "/bluetooth/log/");
+            dir.mkdirs();
+            File file = new File(dir, "receivedBMessage.txt");
+            FileOutputStream outStream = null;
+            boolean failed = false;
+            int writtenLen = 0;
+
+            try {
+                outStream = new FileOutputStream(file, false); /* overwrite if it does already exist */
+
+                byte[] buffer = new byte[4*1024];
+                int len = 0;
+                while ((len = bMsgStream.read(buffer)) > 0) {
+                    outStream.write(buffer, 0, len);
+                    writtenLen += len;
+                }
+            } catch (FileNotFoundException e) {
+                Log.e(TAG,"Unable to create output stream",e);
+            } catch (IOException e) {
+                Log.e(TAG,"Failed to copy the received message",e);
+                if(writtenLen != 0)
+                    failed = true; /* We failed to write the complete file, hence the received message is lost... */
+            } finally {
+                if(outStream != null)
+                    try {
+                        outStream.close();
+                    } catch (IOException e) {
+                    }
+            }
+
+            /* Return if we corrupted the incoming bMessage. */
+            if(failed) {
+                throw new IllegalArgumentException(); /* terminate this function with an error. */
+            }
+
+            if (outStream == null) {
+                /* We failed to create the the log-file, just continue using the original bMsgStream. */
+            } else {
+                /* overwrite the bMsgStream using the file written to the SD-Card */
+                try {
+                    bMsgStream.close();
+                } catch (IOException e) {
+                    /* Ignore if we cannot close the stream. */
+                }
+                /* Open the file and overwrite bMsgStream to read from the file */
+                try {
+                    bMsgStream = new FileInputStream(file);
+                } catch (FileNotFoundException e) {
+                    Log.e(TAG,"Failed to open the bMessage file", e);
+                    throw new IllegalArgumentException(); /* terminate this function with an error. */
+                }
+            }
+            Log.i(TAG, "The incoming bMessage have been dumped to " + file.getAbsolutePath());
+        } /* End of if(V) log-section */
+
+        reader = new BMsgReader(bMsgStream);
+        reader.expect("BEGIN:BMSG");
+        reader.expect("VERSION","1.0");
 
         line = reader.getLineEnforce();
         // Parse the properties - which end with either a VCARD or a BENV
@@ -420,9 +492,8 @@ public abstract class BluetoothMapbMessage {
                 String[] arg = line.split(":");
                 if (arg != null && arg.length == 2) {
                     folder = arg[1].trim();
-                } else {
-                    throw new IllegalArgumentException("Missing value for 'FOLDER':" + line);
                 }
+                // This can be empty for push message - hence ignore if there is no value
             }
             line = reader.getLineEnforce();
         }
@@ -431,7 +502,7 @@ public abstract class BluetoothMapbMessage {
         newBMsg.setType(type);
         newBMsg.appParamCharset = appParamCharset;
         if(folder != null)
-            newBMsg.setFolder(folder);
+            newBMsg.setCompleteFolder(folder);
         if(statusFound)
             newBMsg.setStatus(status);
 
@@ -449,6 +520,13 @@ public abstract class BluetoothMapbMessage {
         /* TODO: Do we need to validate the END:* tags? They are only needed if someone puts additional info
          *        below the END:MSG - in which case we don't handle it.
          */
+
+        try {
+            bMsgStream.close();
+        } catch (IOException e) {
+            /* Ignore if we cannot close the stream. */
+        }
+
         return newBMsg;
     }
 
@@ -563,7 +641,7 @@ public abstract class BluetoothMapbMessage {
                 String messages[] = data.split("\r\nEND:MSG\r\n");
                 parseMsgInit();
                 for(int i = 0; i < messages.length; i++) {
-                    messages[i] = messages[i].replaceFirst("^BEGIN:MGS\r\n", "");
+                    messages[i] = messages[i].replaceFirst("^BEGIN:MSG\r\n", "");
                     messages[i] = messages[i].replaceAll("\r\n([/]*)/END\\:MSG", "\r\n$1END:MSG");
                     messages[i] = messages[i].trim();
                     parseMsgPart(messages[i]);
@@ -604,9 +682,18 @@ public abstract class BluetoothMapbMessage {
         return type;
     }
 
+    public void setCompleteFolder(String folder) {
+        this.folder = folder;
+    }
+
     public void setFolder(String folder) {
         this.folder = "telecom/msg/" + folder;
     }
+
+    public String getFolder() {
+        return folder;
+    }
+
 
     public void setEncoding(String encoding) {
         this.encoding = encoding;
@@ -704,8 +791,16 @@ public abstract class BluetoothMapbMessage {
         if(D) Log.d(TAG,"Decoding binary data: START:" + data + ":END");
         for(int i = 0, j = 0, n = out.length; i < n; i++)
         {
-            value = data.substring(j++, j++); // same as data.substring(2*i, 2*i+1)
-            out[i] = Byte.valueOf(value, 16);
+            value = data.substring(j++, ++j); // same as data.substring(2*i, 2*i+1+1) - substring() uses end-1 for last index
+            out[i] = (byte)(Integer.valueOf(value, 16) & 0xff);
+        }
+        if(D) {
+            StringBuilder sb = new StringBuilder(out.length);
+            for(int i = 0, n = out.length; i < n; i++)
+            {
+                sb.append(String.format("%02X",out[i] & 0xff));
+            }
+            Log.d(TAG,"Decoded binary data: START:" + sb.toString() + ":END");
         }
         return out;
     }
@@ -718,7 +813,10 @@ public abstract class BluetoothMapbMessage {
         sb.append(VERSION).append("\r\n");
         sb.append("STATUS:").append(status).append("\r\n");
         sb.append("TYPE:").append(type.name()).append("\r\n");
-        sb.append("FOLDER:").append(folder).append("\r\n");
+        if(folder.length() > 512)
+            sb.append("FOLDER:").append(folder.substring(folder.length()-512, folder.length())).append("\r\n");
+        else
+            sb.append("FOLDER:").append(folder).append("\r\n");
         if(originator != null){
             for(vCard element : originator)
                 element.encode(sb);

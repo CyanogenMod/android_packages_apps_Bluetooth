@@ -17,6 +17,8 @@ package com.android.bluetooth.map;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
+import android.util.Log;
+
 import com.android.bluetooth.map.BluetoothMapSmsPdu.SmsPdu;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 
@@ -45,7 +47,16 @@ public class BluetoothMapbMessageSms extends BluetoothMapbMessage {
     @Override
     public void parseMsgPart(String msgPart) {
         if(appParamCharset == BluetoothMapAppParams.CHARSET_NATIVE) {
-            smsBody += BluetoothMapSmsPdu.decodePdu(decodeBinary(msgPart),
+            if(D) Log.d(TAG, "Decoding \"" + msgPart + "\" as native PDU");
+            byte[] msgBytes = decodeBinary(msgPart);
+            if(msgBytes.length > 0 &&
+                    msgBytes[0] < msgBytes.length-1 &&
+                    (msgBytes[msgBytes[0]+1] & 0x03) != 0x01) {
+                if(D) Log.d(TAG, "Only submit PDUs are supported");
+                throw new IllegalArgumentException("Only submit PDUs are supported");
+            }
+
+            smsBody += BluetoothMapSmsPdu.decodePdu(msgBytes,
                     type == TYPE.SMS_CDMA ? BluetoothMapSmsPdu.SMS_TYPE_CDMA
                                           : BluetoothMapSmsPdu.SMS_TYPE_GSM);
         } else {
@@ -67,7 +78,7 @@ public class BluetoothMapbMessageSms extends BluetoothMapbMessage {
         if(smsBody != null) {
             String tmpBody = smsBody.replaceAll("END:MSG", "/END\\:MSG"); // Replace any occurrences of END:MSG with \END:MSG
             bodyFragments.add(tmpBody.getBytes("UTF-8"));
-        }else if (smsBodyPdus.size() > 0) {
+        }else if (smsBodyPdus != null && smsBodyPdus.size() > 0) {
             for (SmsPdu pdu : smsBodyPdus) {
                 // This cannot(must not) contain END:MSG
                 bodyFragments.add(encodeBinary(pdu.getData(),pdu.getScAddress()).getBytes("UTF-8"));
