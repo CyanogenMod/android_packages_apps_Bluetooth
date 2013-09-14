@@ -54,7 +54,7 @@ public class BluetoothMapAppParams {
     private static final int NEW_MESSAGE              = 0x0D;
     private static final int NEW_MESSAGE_LEN          = 0x01; //, 0x0000, 0x0001),
     private static final int NOTIFICATION_STATUS      = 0x0E;
-    private static final int NOTIFICATION_STATUS_LEN  = 0x02; //, 0x0000, 0xFFFF),
+    private static final int NOTIFICATION_STATUS_LEN  = 0x01; //, 0x0000, 0xFFFF),
     private static final int MAS_INSTANCE_ID          = 0x0F;
     private static final int MAS_INSTANCE_ID_LEN      = 0x01; //, 0x0000, 0x00FF),
     private static final int PARAMETER_MASK           = 0x10;
@@ -183,15 +183,29 @@ public class BluetoothMapAppParams {
                 setStartOffset(appParamBuf.getShort(i) & 0xffff); // Make it unsigned
                 break;
             case FILTER_MESSAGE_TYPE:
-                setFilterMessageType(appParams[i] & 0x0f);
+                if (tagLength != FILTER_MESSAGE_TYPE_LEN) {
+                    Log.w(TAG, "FILTER_MESSAGE_TYPE: Wrong length received: " + tagLength + " expected: "
+                            + FILTER_MESSAGE_TYPE_LEN);
+                    break;
+                }
+                    setFilterMessageType(appParams[i] & 0x0f);
                 break;
             case FILTER_PERIOD_BEGIN:
-                setFilterPeriodBegin(new String(appParams, i, tagLength));
+                if(tagLength != 0) {
+                    setFilterPeriodBegin(new String(appParams, i, tagLength));
+                }
                 break;
             case FILTER_PERIOD_END:
-                setFilterPeriodEnd(new String(appParams, i, tagLength));
+                if(tagLength != 0) {
+                    setFilterPeriodEnd(new String(appParams, i, tagLength));
+                }
                 break;
             case FILTER_READ_STATUS:
+                if (tagLength != FILTER_READ_STATUS_LEN) {
+                     Log.w(TAG, "FILTER_READ_STATUS: Wrong length received: " + tagLength + " expected: "
+                             + FILTER_READ_STATUS_LEN);
+                     break;
+                 }
                 setFilterReadStatus(appParams[i] & 0x03); // Lower two bits
                 break;
             case FILTER_RECIPIENT:
@@ -201,51 +215,131 @@ public class BluetoothMapAppParams {
                 setFilterOriginator(new String(appParams, i, tagLength));
                 break;
             case FILTER_PRIORITY:
+                if (tagLength != FILTER_PRIORITY_LEN) {
+                     Log.w(TAG, "FILTER_PRIORITY: Wrong length received: " + tagLength + " expected: "
+                             + FILTER_PRIORITY_LEN);
+                     break;
+                }
                 setFilterPriority(appParams[i] & 0x03); // Lower two bits
                 break;
             case ATTACHMENT:
+                if (tagLength != ATTACHMENT_LEN) {
+                     Log.w(TAG, "ATTACHMENT: Wrong length received: " + tagLength + " expected: "
+                             + ATTACHMENT_LEN);
+                     break;
+                }
                 setAttachment(appParams[i] & 0x01); // Lower bit
                 break;
             case TRANSPARENT:
+                if (tagLength != TRANSPARENT_LEN) {
+                     Log.w(TAG, "TRANSPARENT: Wrong length received: " + tagLength + " expected: "
+                             + TRANSPARENT_LEN);
+                     break;
+                }
                 setTransparent(appParams[i] & 0x01); // Lower bit
                 break;
             case RETRY:
+                if (tagLength != RETRY_LEN) {
+                     Log.w(TAG, "RETRY: Wrong length received: " + tagLength + " expected: "
+                             + RETRY_LEN);
+                     break;
+                }
                 setRetry(appParams[i] & 0x01); // Lower bit
                 break;
             case NEW_MESSAGE:
+                if (tagLength != NEW_MESSAGE_LEN) {
+                     Log.w(TAG, "NEW_MESSAGE: Wrong length received: " + tagLength + " expected: "
+                             + NEW_MESSAGE_LEN);
+                     break;
+                }
                 setNewMessage(appParams[i] & 0x01); // Lower bit
                 break;
             case NOTIFICATION_STATUS:
+                if (tagLength != NOTIFICATION_STATUS_LEN) {
+                     Log.w(TAG, "NOTIFICATION_STATUS: Wrong length received: " + tagLength + " expected: "
+                             + NOTIFICATION_STATUS_LEN);
+                     break;
+                }
                 setNotificationStatus(appParams[i] & 0x01); // Lower bit
                 break;
             case MAS_INSTANCE_ID:
+                if (tagLength != MAS_INSTANCE_ID_LEN) {
+                    Log.w(TAG, "MAS_INSTANCE_ID: Wrong length received: " + tagLength + " expected: "
+                            + MAS_INSTANCE_ID_LEN);
+                    break;
+                }
                 setMasInstanceId(appParams[i] & 0xff);
                 break;
             case PARAMETER_MASK:
+                if (tagLength != PARAMETER_MASK_LEN) {
+                    Log.w(TAG, "PARAMETER_MASK: Wrong length received: " + tagLength + " expected: "
+                            + PARAMETER_MASK_LEN);
+                    break;
+                }
                 setParameterMask(appParamBuf.getInt(i) & 0xffffffffL); // Make it unsigned
                 break;
             case FOLDER_LISTING_SIZE:
+                if (tagLength != FOLDER_LISTING_SIZE_LEN) {
+                    Log.w(TAG, "FOLDER_LISTING_SIZE: Wrong length received: " + tagLength + " expected: "
+                            + FOLDER_LISTING_SIZE_LEN);
+                    break;
+                }
                 setFolderListingSize(appParamBuf.getShort(i) & 0xffff); // Make it unsigned
                 break;
             case MESSAGE_LISTING_SIZE:
+                if (tagLength != MESSAGE_LISTING_SIZE_LEN) {
+                    Log.w(TAG, "MESSAGE_LISTING_SIZE: Wrong length received: " + tagLength + " expected: "
+                            + MESSAGE_LISTING_SIZE_LEN);
+                    break;
+                }
                 setMessageListingSize(appParamBuf.getShort(i) & 0xffff); // Make it unsigned
                 break;
             case SUBJECT_LENGTH:
+                if (tagLength != SUBJECT_LENGTH_LEN) {
+                    Log.w(TAG, "SUBJECT_LENGTH: Wrong length received: " + tagLength + " expected: "
+                            + SUBJECT_LENGTH_LEN);
+                    break;
+                }
                 setSubjectLength(appParams[i] & 0xff);
                 break;
             case CHARSET:
+                if (tagLength != CHARSET_LEN) {
+                    Log.w(TAG, "CHARSET: Wrong length received: " + tagLength + " expected: "
+                            + CHARSET_LEN);
+                    break;
+                }
                 setCharset(appParams[i] & 0x01); // Lower bit
                 break;
             case FRACTION_REQUEST:
+                if (tagLength != FRACTION_REQUEST_LEN) {
+                    Log.w(TAG, "FRACTION_REQUEST: Wrong length received: " + tagLength + " expected: "
+                            + FRACTION_REQUEST_LEN);
+                    break;
+                }
                 setFractionRequest(appParams[i] & 0x01); // Lower bit
                 break;
             case FRACTION_DELIVER:
+                if (tagLength != FRACTION_DELIVER_LEN) {
+                    Log.w(TAG, "FRACTION_DELIVER: Wrong length received: " + tagLength + " expected: "
+                            + FRACTION_DELIVER_LEN);
+                    break;
+                }
                 setFractionDeliver(appParams[i] & 0x01); // Lower bit
                 break;
             case STATUS_INDICATOR:
+                if (tagLength != STATUS_INDICATOR_LEN) {
+                    Log.w(TAG, "STATUS_INDICATOR: Wrong length received: " + tagLength + " expected: "
+                            + STATUS_INDICATOR_LEN);
+                    break;
+                }
                 setStatusIndicator(appParams[i] & 0x01); // Lower bit
                 break;
             case STATUS_VALUE:
+                if (tagLength != STATUS_VALUE_LEN) {
+                    Log.w(TAG, "STATUS_VALUER: Wrong length received: " + tagLength + " expected: "
+                            + STATUS_VALUE_LEN);
+                    break;
+                }
                 setStatusValue(appParams[i] & 0x01); // Lower bit
                 break;
             case MSE_TIME:

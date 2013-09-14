@@ -32,10 +32,11 @@ public class BluetoothMapMessageListingElement
     implements Comparable<BluetoothMapMessageListingElement> {
 
     private static final String TAG = "BluetoothMapMessageListingElement";
-    private static final boolean D = true;
-    private static final boolean V = true;
+    private static final boolean D = false;
+    private static final boolean V = false;
 
-    private long handle = 0;
+    private long cpHandle = 0; /* The content provider handle - without type information */
+    private String mapHandle = null; /* The map hex-string handle with type information */
     private String subject = null;
     private long dateTime = 0;
     private String senderName = null;
@@ -52,13 +53,14 @@ public class BluetoothMapMessageListingElement
     private String read = null;
     private String sent = null;
     private String protect = null;
-
+    private boolean reportRead;
     public long getHandle() {
-        return handle;
+        return cpHandle;
     }
 
-    public void setHandle(long handle) {
-        this.handle = handle;
+    public void setHandle(long handle, TYPE type) {
+        this.cpHandle = handle;
+        this.mapHandle = BluetoothMapUtils.getMapHandle(cpHandle, type);
     }
 
     public long getDateTime() {
@@ -181,8 +183,9 @@ public class BluetoothMapMessageListingElement
         return read;
     }
 
-    public void setRead(String read) {
+    public void setRead(String read, boolean reportRead) {
         this.read = read;
+        this.reportRead = reportRead;
     }
 
     public String getSent() {
@@ -213,43 +216,46 @@ public class BluetoothMapMessageListingElement
 
     /* Encode the MapMessageListingElement into the StringBuilder reference.
      * */
-    public void encode(XmlSerializer xmlMsgElement) throws IllegalArgumentException,
-                         IllegalStateException, IOException
+    public void encode(XmlSerializer xmlMsgElement) throws IllegalArgumentException, IllegalStateException, IOException
     {
-        // contruct the XML tag for a single msg in the msglisting
-        xmlMsgElement.startTag("", "msg");
-        xmlMsgElement.attribute("", "handle", BluetoothMapUtils.getMapHandle(handle, type));
-        xmlMsgElement.attribute("", "subject", subject);
-        xmlMsgElement.attribute("", "datetime", this.getDateTimeString());
-        if (senderName != null)
-            xmlMsgElement.attribute("", "sender_name", senderName);
-        if (senderAddressing != null)
-            xmlMsgElement.attribute("", "sender_addressing", senderAddressing);
-        if (replytoAddressing != null)
-            xmlMsgElement.attribute("", "replyto_addressing",replytoAddressing);
-        if (recipientName != null)
-            xmlMsgElement.attribute("", "recipient_name",recipientName);
-        if (recipientAddressing != null)
-            xmlMsgElement.attribute("", "recipient_addressing", recipientAddressing);
-        if (type != null)
-            xmlMsgElement.attribute("", "type", type.name());
-        if (size != -1)
-            xmlMsgElement.attribute("", "size", Integer.toString(size));
-        if (text != null)
-            xmlMsgElement.attribute("", "text", text);
-        if (receptionStatus != null)
-            xmlMsgElement.attribute("", "reception_status", receptionStatus);
-        if (attachmentSize != -1)
-            xmlMsgElement.attribute("", "attachment_size", Integer.toString(attachmentSize));
-        if (priority != null)
-            xmlMsgElement.attribute("", "priority", priority);
-        if (read != null)
-            xmlMsgElement.attribute("", "read", read);
-        if (sent != null)
-            xmlMsgElement.attribute("", "sent", sent);
-        if (protect != null)
-            xmlMsgElement.attribute("", "protect", protect);
-        xmlMsgElement.endTag("", "msg");
+
+            // contruct the XML tag for a single msg in the msglisting
+            xmlMsgElement.startTag("", "msg");
+            xmlMsgElement.attribute("", "handle", mapHandle);
+            if(subject != null)
+                xmlMsgElement.attribute("", "subject", subject);
+            if(dateTime != 0)
+                xmlMsgElement.attribute("", "datetime", this.getDateTimeString());
+            if(senderName != null)
+                xmlMsgElement.attribute("", "sender_name", senderName);
+            if(senderAddressing != null)
+                xmlMsgElement.attribute("", "sender_addressing", senderAddressing);
+            if(replytoAddressing != null)
+                xmlMsgElement.attribute("", "replyto_addressing",replytoAddressing);
+            if(recipientName != null)
+                xmlMsgElement.attribute("", "recipient_name",recipientName);
+            if(recipientAddressing != null)
+                xmlMsgElement.attribute("", "recipient_addressing", recipientAddressing);
+            if(type != null)
+                xmlMsgElement.attribute("", "type", type.name());
+            if(size != -1)
+                xmlMsgElement.attribute("", "size", Integer.toString(size));
+            if(text != null)
+                xmlMsgElement.attribute("", "text", text);
+            if(receptionStatus != null)
+                xmlMsgElement.attribute("", "reception_status", receptionStatus);
+            if(attachmentSize != -1)
+                xmlMsgElement.attribute("", "attachment_size", Integer.toString(attachmentSize));
+            if(priority != null)
+                xmlMsgElement.attribute("", "priority", priority);
+            if(read != null && reportRead)
+                xmlMsgElement.attribute("", "read", read);
+            if(sent != null)
+                xmlMsgElement.attribute("", "sent", sent);
+            if(protect != null)
+                xmlMsgElement.attribute("", "protect", protect);
+            xmlMsgElement.endTag("", "msg");
+
     }
 }
 
