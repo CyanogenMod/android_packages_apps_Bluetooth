@@ -52,11 +52,11 @@
     <uses-permission android:name="com.android.gallery3d.permission.GALLERY_PROVIDER"/>
     <uses-permission android:name="android.permission.MMS_SEND_OUTBOX_MSG"/>
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.WRITE_SMS" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <!-- For PBAP Owner Vcard Info -->
     <uses-permission android:name="android.permission.READ_PROFILE"/>
@@ -227,15 +227,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
-        <activity android:name=".map.BluetoothMapActivity"
-            android:process="@string/process"
-            android:excludeFromRecents="true"
-            android:theme="@*android:style/Theme.Holo.Dialog.Alert"
-            android:enabled="@bool/profile_supported_map">
-            <intent-filter>
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
         <service
             android:process="@string/process"
             android:name=".map.BluetoothMapService"
@@ -244,17 +235,6 @@
                 <action android:name="android.bluetooth.IBluetoothMap" />
             </intent-filter>
         </service>
-        <receiver
-            android:process="@string/process"
-            android:exported="true"
-            android:name=".map.BluetoothMapReceiver"
-            android:enabled="@bool/profile_supported_map">
-            <intent-filter>
-                <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>
-                <action android:name="android.bluetooth.device.action.CONNECTION_ACCESS_REPLY" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </receiver>
         <service
             android:process="@string/process"
             android:name = ".gatt.GattService"

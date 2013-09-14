@@ -27,7 +27,7 @@ import android.util.Log;
 import android.util.Xml;
 
 public class BluetoothMapMessageListing {
-
+    private boolean hasUnread = false;
     private static final String TAG = "BluetoothMapMessageListing";
     private List<BluetoothMapMessageListingElement> list;
 
@@ -36,6 +36,11 @@ public class BluetoothMapMessageListing {
     }
     public void add(BluetoothMapMessageListingElement element) {
         list.add(element);
+        /* update info regarding whether the list contains unread messages */
+        if (element.getRead().equalsIgnoreCase("no"))
+        {
+            hasUnread = true;
+        }
     }
 
     /**
@@ -43,8 +48,22 @@ public class BluetoothMapMessageListing {
      * @return the number of elements in the list.
      */
     public int getCount() {
-        return list.size();
+        if(list != null)
+        {
+            return list.size();
+        }
+        return 0;
     }
+
+    /**
+     * does the list contain any unread messages
+     * @return true if unread messages have been added to the list, else false
+     */
+    public boolean hasUnread()
+    {
+        return hasUnread;
+    }
+
     /**
      * Encode the list of BluetoothMapMessageListingElement(s) into a UTF-8
      * formatted XML-string in a trimmed byte array
