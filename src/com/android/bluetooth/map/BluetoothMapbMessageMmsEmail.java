@@ -230,7 +230,7 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
     public boolean getTextOnly() {
         return textOnly;
     }
-    public void setIncludeAttachemnts(boolean includeAttachments) {
+    public void setIncludeAttachments(boolean includeAttachments) {
         this.includeAttachments = includeAttachments;
     }
     public boolean getIncludeAttachments() {
