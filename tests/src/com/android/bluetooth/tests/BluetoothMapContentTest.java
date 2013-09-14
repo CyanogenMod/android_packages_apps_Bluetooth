@@ -31,7 +31,7 @@ public class BluetoothMapContentTest extends AndroidTestCase {
         MessageColumns.DISPLAY_NAME, MessageColumns.TIMESTAMP,
         MessageColumns.SUBJECT, MessageColumns.FLAG_READ,
         MessageColumns.FLAG_ATTACHMENT, MessageColumns.FLAGS,
-        SyncColumns.SERVER_ID, MessageColumns.CLIENT_ID,
+        SyncColumns.SERVER_ID, MessageColumns.DRAFT_INFO,
         MessageColumns.MESSAGE_ID, MessageColumns.MAILBOX_KEY,
         MessageColumns.ACCOUNT_KEY, MessageColumns.FROM_LIST,
         MessageColumns.TO_LIST, MessageColumns.CC_LIST,
@@ -57,7 +57,7 @@ public class BluetoothMapContentTest extends AndroidTestCase {
             "\n   " + MessageColumns.FLAG_ATTACHMENT + " : " + c.getInt(c.getColumnIndex(MessageColumns.FLAG_ATTACHMENT)) +
             "\n   " + MessageColumns.FLAGS + " : " + c.getInt(c.getColumnIndex(MessageColumns.FLAGS)) +
             "\n   " + SyncColumns.SERVER_ID + " : " + c.getInt(c.getColumnIndex(SyncColumns.SERVER_ID)) +
-            "\n   " + MessageColumns.CLIENT_ID + " : " + c.getInt(c.getColumnIndex(MessageColumns.CLIENT_ID)) +
+            "\n   " + MessageColumns.DRAFT_INFO + " : " + c.getInt(c.getColumnIndex(MessageColumns.DRAFT_INFO)) +
             "\n   " + MessageColumns.MESSAGE_ID + " : " + c.getInt(c.getColumnIndex(MessageColumns.MESSAGE_ID)) +
             "\n   " + MessageColumns.MAILBOX_KEY + " : " + c.getInt(c.getColumnIndex(MessageColumns.MAILBOX_KEY)) +
             "\n   " + MessageColumns.ACCOUNT_KEY + " : " + c.getInt(c.getColumnIndex(MessageColumns.ACCOUNT_KEY)) +

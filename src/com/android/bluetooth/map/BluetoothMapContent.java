@@ -1627,7 +1627,7 @@ public class BluetoothMapContent {
             message.setContentType(c.getString(c.getColumnIndex(Mms.CONTENT_TYPE)));
             message.setDate(c.getLong(c.getColumnIndex(Mms.DATE)) * 1000L);
             message.setTextOnly(c.getInt(c.getColumnIndex(Mms.TEXT_ONLY)) == 0 ? false : true); // - TODO: Do we need this - yes, if we have only text, we should not make this a multipart message
-            message.setIncludeAttachemnts(appParams.getAttachment() == 0 ? false : true);
+            message.setIncludeAttachments(appParams.getAttachment() == 0 ? false : true);
             // c.getLong(c.getColumnIndex(Mms.DATE_SENT)); - this is never used
             // c.getInt(c.getColumnIndex(Mms.STATUS)); - don't know what this is
 
