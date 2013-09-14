@@ -28,8 +28,8 @@
     <string name="airplane_error_title" msgid="2683839635115739939">"Modo de avião"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"Não pode utilizar o Bluetooth em modo de Avião."</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
-    <string name="bt_enable_line1" msgid="7203551583048149">"Para utilizar os serviços Bluetooth, tem de activar primeiro o Bluetooth."</string>
-    <string name="bt_enable_line2" msgid="4341936569415937994">"Activar o Bluetooth agora?"</string>
+    <string name="bt_enable_line1" msgid="7203551583048149">"Para utilizar os serviços Bluetooth, tem de ativar primeiro o Bluetooth."</string>
+    <string name="bt_enable_line2" msgid="4341936569415937994">"Ativar o Bluetooth agora?"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"Cancelar"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"Ativar"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"Transferência do ficheiro"</string>
