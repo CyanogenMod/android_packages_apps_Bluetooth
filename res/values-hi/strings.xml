@@ -17,9 +17,9 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"डाउनलोड प्रबंधक में पहुंच प्राप्त करें."</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"एप्लिकेशन को BluetoothShare प्रबंधक में पहुंच प्राप्त करने और फ़ाइलों को स्थानांतरित करने के लिए उसका उपयोग करने देता है."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"एप्स को BluetoothShare प्रबंधक में पहुंच प्राप्त करने और फ़ाइलों को स्थानांतरित करने के लिए उसका उपयोग करने देता है."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"श्वेतसूची bluetooth उपकरण पहुंच."</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"एप्‍लिकेशन को Bluetooth उपकरण को इस उपकरण पर फ़ाइल भेजने की‍ अनुमति देकर, उपयोगकर्ता की पुष्टि के बिना अस्‍थायी रूप से श्वेतसूची में शामिल करने देता है."</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"एप्‍स को Bluetooth उपकरण को इस उपकरण पर फ़ाइल भेजने की‍ अनुमति देकर, उपयोगकर्ता की पुष्टि के बिना अस्‍थायी रूप से श्वेतसूची में शामिल करने देता है."</string>
     <string name="permlab_handoverStatus" msgid="7316032998801933554">"BT हस्तांतरण के स्थानांतरण प्रसारण प्राप्त करें."</string>
     <string name="permdesc_handoverStatus" msgid="4752738070064786310">"Bluetooth से हस्तांतरण के स्थानांतरण की स्थिति को प्राप्त करने देता है."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
@@ -36,7 +36,7 @@
     <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" द्वारा आपको <xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>) भेजी जा रही है. \n\n फ़ाइल स्वीकार करनी है?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"अस्वीकारें"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"स्वीकारें"</string>
-    <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ठीक"</string>
+    <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ठीक है"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" से आने वाली फ़ाइल स्वीकार करते समय समयबाह्य हुआ."</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth शेयर: आने वाली फ़ाइल"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"क्या आप यह फ़ाइल प्राप्त करना चाहते हैं?"</string>
@@ -59,21 +59,21 @@
     <string name="download_fail_line1" msgid="3846450148862894552">"फ़ाइल प्राप्त नहीं हुई"</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"फ़ाइल: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_fail_line3" msgid="3451040656154861722">"कारण: <xliff:g id="REASON">%1$s</xliff:g>"</string>
-    <string name="download_fail_ok" msgid="1521733664438320300">"ठीक"</string>
+    <string name="download_fail_ok" msgid="1521733664438320300">"ठीक है"</string>
     <string name="download_succ_line5" msgid="4509944688281573595">"फ़ाइल प्राप्त की गई"</string>
     <string name="download_succ_ok" msgid="7053688246357050216">"खोलें"</string>
     <string name="upload_line1" msgid="2055952074059709052">"प्रति: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="upload_line3" msgid="4920689672457037437">"फ़ाइल प्रकार: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
     <string name="upload_line5" msgid="7759322537674229752">"फ़ाइल भेज रहा है…"</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"फ़ाइल भेजी गई"</string>
-    <string name="upload_succ_ok" msgid="7705428476405478828">"ठीक"</string>
+    <string name="upload_succ_ok" msgid="7705428476405478828">"ठीक है"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"फ़ाइल \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" को नहीं भेजी गई थी."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"फ़ाइल: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="upload_fail_ok" msgid="5807702461606714296">"पुन: प्रयास करें"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"बंद करें"</string>
-    <string name="bt_error_btn_ok" msgid="5965151173011534240">"ठीक"</string>
+    <string name="bt_error_btn_ok" msgid="5965151173011534240">"ठीक है"</string>
     <string name="unknown_file" msgid="6092727753965095366">"अज्ञात फ़ाइल"</string>
-    <string name="unknown_file_desc" msgid="480434281415453287">"इस प्रकार की फ़ाइल प्रबंधित करने के लिए कोई एप्‍लिकेशन नहीं है. \n"</string>
+    <string name="unknown_file_desc" msgid="480434281415453287">"इस प्रकार की फ़ाइल प्रबंधित करने के लिए कोई एप्‍स नहीं है. \n"</string>
     <string name="not_exist_file" msgid="3489434189599716133">"कोई फ़ाइल नहीं"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"फ़ाइल मौजूद नहीं है. \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"कृपया प्रतीक्षा करें..."</string>
