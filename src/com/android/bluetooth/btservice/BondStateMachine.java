@@ -83,7 +83,7 @@ final class BondStateMachine extends StateMachine {
         bsm.start();
         return bsm;
     }
-            
+
     public void doQuit() {
         quitNow();
     }
@@ -152,6 +152,7 @@ final class BondStateMachine extends StateMachine {
 
             BluetoothDevice dev = (BluetoothDevice)msg.obj;
             boolean result = false;
+            boolean retry_attempt = true;
             if (mDevices.contains(dev) &&
                     msg.what != CANCEL_BOND && msg.what != BONDING_STATE_CHANGE) {
                 deferMessage(msg);
@@ -171,6 +172,30 @@ final class BondStateMachine extends StateMachine {
                 case BONDING_STATE_CHANGE:
                     int newState = msg.arg1;
                     int reason = getUnbondReasonFromHALCode(msg.arg2);
+                    boolean res = false;
+                    DeviceProperties devProp = mRemoteDevices.getDeviceProperties(dev);
+                    if(msg.arg2 == AbstractionLayer.BT_STATUS_RMT_DEV_DOWN) {
+                        if(retry_attempt && (devProp.retry_count < 1)) {
+                             Log.v(TAG, "retry bonding for dev:" + dev );
+                             try {
+                                 Log.v(TAG, "wait 600 ms");
+                                 Thread.sleep(600);
+                             } catch (InterruptedException e) {
+                                 Log.e(TAG, "wait thread was interrupted ");
+                             }
+                             devProp.setBondState(BluetoothDevice.BOND_NONE);
+                             res = createBond(dev, true);
+                             if(res) {
+                                 retry_attempt = false;
+                                 devProp.retry_count++;
+                                 Log.v(TAG," pairing retry count =" + devProp.retry_count);
+                                 result = false;
+                                 break;
+                             }
+                             devProp.setBondState(BluetoothDevice.BOND_BONDING);
+                        }
+                    }
+
                     sendIntent(dev, newState, reason);
                     if(newState != BluetoothDevice.BOND_BONDING )
                     {
@@ -183,16 +208,19 @@ final class BondStateMachine extends StateMachine {
                             // from pairing with a device that we just unpaired
                             result = false;
                             transitionTo(mStableState);
+                            devProp.retry_count = 0;
                         }
                         if (newState == BluetoothDevice.BOND_NONE)
                         {
                             // Set the profile Priorities to undefined
                             clearProfilePriorty(dev);
+                            retry_attempt = false;
                         }
                         else if (newState == BluetoothDevice.BOND_BONDED)
                         {
                            // Restore the profile priorty settings
                            setProfilePriorty(dev);
+                           retry_attempt = false;
                         }
                     }
                     else if(!mDevices.contains(dev))
@@ -239,6 +267,7 @@ final class BondStateMachine extends StateMachine {
             infoLog("Bond address is:" + dev);
             byte[] addr = Utils.getBytesFromAddress(dev.getAddress());
             if (!mAdapterService.createBondNative(addr)) {
+                Log.v(TAG, "createBond native failed ");
                 sendIntent(dev, BluetoothDevice.BOND_NONE,
                            BluetoothDevice.UNBOND_REASON_REMOVED);
                 return false;
