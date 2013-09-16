@@ -87,7 +87,8 @@ public class BluetoothPbapVcardComposer extends VCardComposer
                     // so use those when exporting phone numbers via vCard.
                     String numberWithControlSequence = rawValue
                             .replace(PhoneNumberUtils.PAUSE, 'p')
-                            .replace(PhoneNumberUtils.WAIT, 'w');
+                            .replace(PhoneNumberUtils.WAIT, 'w')
+                            .replaceAll("\\s","");
                     return numberWithControlSequence;
                 }
             };
