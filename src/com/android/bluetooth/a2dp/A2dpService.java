@@ -18,9 +18,11 @@ package com.android.bluetooth.a2dp;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothA2dp;
 import android.content.Context;
 import android.content.Intent;
+import android.os.ParcelUuid;
 import android.provider.Settings;
 import android.util.Log;
 import com.android.bluetooth.btservice.ProfileService;
@@ -41,6 +43,13 @@ public class A2dpService extends ProfileService {
     private A2dpStateMachine mStateMachine;
     private Avrcp mAvrcp;
     private static A2dpService sAd2dpService;
+    static final ParcelUuid[] A2DP_SOURCE_UUID = {
+        BluetoothUuid.AudioSource
+    };
+    static final ParcelUuid[] A2DP_SOURCE_SINK_UUIDS = {
+        BluetoothUuid.AudioSource,
+        BluetoothUuid.AudioSink
+    };
 
     protected String getName() {
         return TAG;
@@ -116,6 +125,12 @@ public class A2dpService extends ProfileService {
                                        "Need BLUETOOTH ADMIN permission");
 
         if (getPriority(device) == BluetoothProfile.PRIORITY_OFF) {
+            return false;
+        }
+        ParcelUuid[] featureUuids = device.getUuids();
+        if ((BluetoothUuid.containsAnyUuid(featureUuids, A2DP_SOURCE_UUID)) &&
+            !(BluetoothUuid.containsAllUuids(featureUuids ,A2DP_SOURCE_SINK_UUIDS))) {
+            Log.e(TAG,"Remote does not have A2dp Sink UUID");
             return false;
         }
 
