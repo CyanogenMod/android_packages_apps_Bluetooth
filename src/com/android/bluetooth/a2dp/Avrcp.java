@@ -82,7 +82,8 @@ final class Avrcp {
     private int mAbsoluteVolume;
     private int mLastSetVolume;
     private int mLastDirection;
-    private int mVolumeStep;
+    private final int mVolumeStep;
+    private final int mAudioStreamMax;
     private boolean mVolCmdInProgress;
     private int mAbsVolRetryTimes;
 
@@ -130,7 +131,6 @@ final class Avrcp {
     private static final int SKIP_DOUBLE_INTERVAL = 3000;
     private static final int CMD_TIMEOUT_DELAY = 2000;
     private static final int MAX_ERROR_RETRY_TIMES = 3;
-    private static final int AUDIO_STREAM_MAX_VOL = 150;
     private static final int AVRCP_MAX_VOL = 127;
     private static final int AVRCP_BASE_VOLUME_STEP = 1;
 
@@ -154,7 +154,6 @@ final class Avrcp {
         mAbsoluteVolume = -1;
         mLastSetVolume = -1;
         mLastDirection = 0;
-        mVolumeStep = AVRCP_BASE_VOLUME_STEP;
         mVolCmdInProgress = false;
         mAbsVolRetryTimes = 0;
 
@@ -163,6 +162,8 @@ final class Avrcp {
         initNative();
 
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        mAudioStreamMax = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        mVolumeStep = Math.max(AVRCP_BASE_VOLUME_STEP, AVRCP_MAX_VOL/mAudioStreamMax);
     }
 
     private void start() {
@@ -341,18 +342,10 @@ final class Avrcp {
                     mVolCmdInProgress = false;
                     mAbsVolRetryTimes = 0;
                 }
-                // to deal with granularity in the TG
-                if (msg.arg2 == AVRC_RSP_ACCEPT && mAbsoluteVolume == msg.arg1) {
-                    if ((mAbsoluteVolume == AVRCP_MAX_VOL && mLastDirection == -1)
-                     || (mAbsoluteVolume == 0 && mLastDirection == 1)
-                     || (mAbsoluteVolume != AVRCP_MAX_VOL && mAbsoluteVolume != 0)) {
-                        mVolumeStep += 1;
-                        adjustVolumeImmediate(mLastDirection);
-                    }
-                } else if (mAbsoluteVolume != msg.arg1 && (msg.arg2 == AVRC_RSP_ACCEPT ||
-                                                           msg.arg2 == AVRC_RSP_CHANGED ||
-                                                           msg.arg2 == AVRC_RSP_INTERIM)) {
-                    notifyVolumeChanged(mAbsoluteVolume, msg.arg1);
+                if (mAbsoluteVolume != msg.arg1 && (msg.arg2 == AVRC_RSP_ACCEPT ||
+                                                    msg.arg2 == AVRC_RSP_CHANGED ||
+                                                    msg.arg2 == AVRC_RSP_INTERIM)) {
+                    notifyVolumeChanged(msg.arg1);
                     mAbsoluteVolume = msg.arg1;
                 } else if (msg.arg2 == AVRC_RSP_REJ) {
                     Log.e(TAG, "setAbsoluteVolume call rejected");
@@ -752,11 +745,6 @@ final class Avrcp {
         mHandler.sendMessage(msg);
     }
 
-    private void adjustVolumeImmediate(int direction) {
-        Message msg = mHandler.obtainMessage(MESSAGE_ADJUST_VOLUME, direction, 0);
-        mHandler.sendMessageAtFrontOfQueue(msg);
-    }
-
     public void setAbsoluteVolume(int volume) {
         int avrcpVolume = convertToAvrcpVolume(volume);
         avrcpVolume = Math.min(AVRCP_MAX_VOL, Math.max(0, avrcpVolume));
@@ -778,19 +766,19 @@ final class Avrcp {
         mHandler.sendMessage(msg);
     }
 
-    private void notifyVolumeChanged(int oldVolume, int volume) {
-        oldVolume = convertToAudioStreamVolume(oldVolume);
+    private void notifyVolumeChanged(int volume) {
         volume = convertToAudioStreamVolume(volume);
-        mAudioManager.avrcpUpdateVolume(oldVolume, volume);
+        mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume,
+                      AudioManager.FLAG_SHOW_UI | AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
     }
 
     private int convertToAudioStreamVolume(int volume) {
         // Rescale volume to match AudioSystem's volume
-        return (int) Math.ceil((double) volume*AUDIO_STREAM_MAX_VOL/AVRCP_MAX_VOL);
+        return (int) Math.ceil((double) volume*mAudioStreamMax/AVRCP_MAX_VOL);
     }
 
     private int convertToAvrcpVolume(int volume) {
-        return (int) Math.ceil((double) volume*AVRCP_MAX_VOL/AUDIO_STREAM_MAX_VOL);
+        return (int) Math.ceil((double) volume*AVRCP_MAX_VOL/mAudioStreamMax);
     }
 
     // Do not modify without updating the HAL bt_rc.h files.
