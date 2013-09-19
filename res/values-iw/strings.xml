@@ -17,9 +17,9 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"גישה למנהל ההורדות."</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"מאפשר ליישום לגשת למנהל BluetoothShare ולהשתמש בו להעברת קבצים."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"מאפשר לאפליקציה לגשת למנהל BluetoothShare ולהשתמש בו להעברת קבצים."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"הכנס מכשיר Bluetooth לרשימה הלבנה."</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"מאפשר ליישום להכניס מכשיר Bluetooth באופן זמני לרשימה הלבנה, ובכך לאפשר למכשיר לשלוח קבצים למכשיר זה ללא אישור משתמש."</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"מאפשר לאפליקציה להכניס מכשיר Bluetooth באופן זמני לרשימה הלבנה, ובכך לאפשר למכשיר לשלוח קבצים למכשיר זה ללא אישור משתמש."</string>
     <string name="permlab_handoverStatus" msgid="7316032998801933554">"קבל שידורי העברת מסירה של Bluetooth."</string>
     <string name="permdesc_handoverStatus" msgid="4752738070064786310">"מאפשר קבלת מידע סטטוס של העברת מסירה מ-Bluetooth."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
@@ -73,7 +73,7 @@
     <string name="upload_fail_cancel" msgid="9118496285835687125">"סגור"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"אישור"</string>
     <string name="unknown_file" msgid="6092727753965095366">"קובץ לא ידוע"</string>
-    <string name="unknown_file_desc" msgid="480434281415453287">"אין יישום המתאים לטיפול בקבצים מסוג זה. \n"</string>
+    <string name="unknown_file_desc" msgid="480434281415453287">"אין אפליקציה המתאימה לטיפול בקבצים מסוג זה. \n"</string>
     <string name="not_exist_file" msgid="3489434189599716133">"אין קובץ"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"הקובץ לא קיים. \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"המתן..."</string>
