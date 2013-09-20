@@ -1159,8 +1159,8 @@ public class BluetoothMapContentObserver {
                 Sms.moveMessageToFolder(mContext, msgInfo.uri,
                     Sms.MESSAGE_TYPE_FAILED, 0);
             } while (c.moveToNext());
-            c.close();
         }
+        if (c != null) c.close();
     }
 
     private void removeDeletedMessages() {
