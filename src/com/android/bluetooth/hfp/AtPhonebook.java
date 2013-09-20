@@ -492,7 +492,7 @@ public class AtPhonebook {
             String number = pbr.cursor.getString(pbr.numberColumn);
             String name = null;
             int type = -1;
-            if (pbr.nameColumn == -1) {
+            if (pbr.nameColumn == -1 && number != null && number.length() > 0) {
                 // try caller id lookup
                 // TODO: This code is horribly inefficient. I saw it
                 // take 7 seconds to process 100 missed calls.
