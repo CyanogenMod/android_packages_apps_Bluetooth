@@ -111,6 +111,10 @@ public class PanService extends ProfileService {
                 Context.CONNECTIVITY_SERVICE);
         cm.supplyMessenger(ConnectivityManager.TYPE_BLUETOOTH, new Messenger(mHandler));
 
+        // Set mTetherOn based on the last saved tethering preference while starting the Pan service
+        SharedPreferences tetherSetting = getSharedPreferences(PAN_PREFERENCE_FILE, 0);
+        mTetherOn = tetherSetting.getBoolean(PAN_TETHER_SETTING, false);
+
         return true;
     }
 
@@ -322,9 +326,6 @@ public class PanService extends ProfileService {
         return (getPanLocalRoleNative() & BluetoothPan.LOCAL_PANU_ROLE) != 0;
     }
      boolean isTetheringOn() {
-        // TODO(BT) have a variable marking the on/off state
-        SharedPreferences tethsetting = getSharedPreferences(PAN_PREFERENCE_FILE, 0);
-        mTetherOn = tethsetting.getBoolean(PAN_TETHER_SETTING, false);
         return mTetherOn;
     }
 
@@ -332,10 +333,11 @@ public class PanService extends ProfileService {
         if(DBG) Log.d(TAG, "setBluetoothTethering: " + value +", mTetherOn: " + mTetherOn);
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
 
-        SharedPreferences tethsetting = getSharedPreferences(PAN_PREFERENCE_FILE, 0);
         if(mTetherOn != value) {
 
-            SharedPreferences.Editor editor = tethsetting.edit();
+            SharedPreferences tetherSetting = getSharedPreferences(PAN_PREFERENCE_FILE, 0);
+            SharedPreferences.Editor editor = tetherSetting.edit();
+
             editor.putBoolean(PAN_TETHER_SETTING, value);
 
             // Commit the edit!

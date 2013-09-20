@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008-2009, Motorola, Inc.
+ * Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * All rights reserved.
  *
@@ -89,6 +90,13 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                     }
                 }
             }
+        } else if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
+            if (V) Log.v(TAG, "Received ACTION_ACL_DISCONNECTED");
+            // Don't forward intent unless device has bluetooth and bluetooth is enabled.
+            BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+            if (adapter != null && adapter.isEnabled()) {
+                context.startService(new Intent(context, BluetoothOppService.class));
+            }
         } else if (action.equals(BluetoothDevicePicker.ACTION_DEVICE_SELECTED)) {
             BluetoothOppManager mOppManager = BluetoothOppManager.getInstance(context);
 
@@ -100,7 +108,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             mOppManager.startTransfer(remoteDevice);
 
             // Display toast message
-            String deviceName = mOppManager.getDeviceName(remoteDevice);
+            String deviceName = remoteDevice.getName();
             String toastMsg;
             int batchSize = mOppManager.getBatchSize();
             if (mOppManager.mMultipleFlag) {
@@ -273,6 +281,12 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                     toastMsg = context.getString(R.string.download_fail_line1);
                 }
             }
+
+            if (Constants.ZERO_LENGTH_FILE) {
+               toastMsg = context.getString(R.string.empty_file_notification_sent, transInfo.mFileName);
+               Constants.ZERO_LENGTH_FILE = false;
+            }
+
             if (V) Log.v(TAG, "Toast msg == " + toastMsg);
             if (toastMsg != null) {
                 Toast.makeText(context, toastMsg, Toast.LENGTH_SHORT).show();

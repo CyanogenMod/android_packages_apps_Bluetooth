@@ -34,6 +34,7 @@
  */
 package com.android.bluetooth.hfp;
 
+import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothDevice;
@@ -105,6 +106,8 @@ final class HeadsetStateMachine extends StateMachine {
 
     static final int VIRTUAL_CALL_START = 14;
     static final int VIRTUAL_CALL_STOP = 15;
+    static final int UPDATE_A2DP_PLAY_STATE = 16;
+    static final int UPDATE_A2DP_CONN_STATE = 17;
 
     private static final int STACK_EVENT = 101;
     private static final int DIALING_OUT_TIMEOUT = 102;
@@ -176,6 +179,11 @@ final class HeadsetStateMachine extends StateMachine {
     private IBluetoothHeadsetPhone mPhoneProxy;
     private boolean mNativeAvailable;
 
+    private boolean mA2dpSuspend;
+    private int mA2dpPlayState;
+    private int mA2dpState;
+    private boolean mPendingCiev;
+
     // mCurrentDevice is the device connected before the state changes
     // mTargetDevice is the device to be connected
     // mIncomingDevice is the device connecting to us, valid only in Pending state
@@ -237,7 +245,6 @@ final class HeadsetStateMachine extends StateMachine {
                                  mConnection, 0)) {
             Log.e(TAG, "Could not bind to Bluetooth Headset Phone Service");
         }
-
         initializeNative();
         mNativeAvailable=true;
 
@@ -365,6 +372,12 @@ final class HeadsetStateMachine extends StateMachine {
                 case CALL_STATE_CHANGED:
                     processCallState((HeadsetCallState) message.obj,
                         ((message.arg1 == 1)?true:false));
+                    break;
+                case UPDATE_A2DP_PLAY_STATE:
+                    processIntentA2dpPlayStateChanged((Intent) message.obj);
+                    break;
+                case UPDATE_A2DP_CONN_STATE:
+                    processIntentA2dpStateChanged((Intent) message.obj);
                     break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
@@ -744,6 +757,12 @@ final class HeadsetStateMachine extends StateMachine {
                 case VIRTUAL_CALL_STOP:
                     terminateScoUsingVirtualVoiceCall();
                     break;
+                case UPDATE_A2DP_PLAY_STATE:
+                    processIntentA2dpPlayStateChanged((Intent) message.obj);
+                    break;
+                case UPDATE_A2DP_CONN_STATE:
+                    processIntentA2dpStateChanged((Intent) message.obj);
+                    break;
                 case START_VR_TIMEOUT:
                     if (mWaitingForVoiceRecognition) {
                         mWaitingForVoiceRecognition = false;
@@ -881,6 +900,16 @@ final class HeadsetStateMachine extends StateMachine {
                     mPhoneState.listenForPhoneState(true);
                     mPhoneProxy.queryPhoneState();
                     mCodec = CODEC_NONE;
+                    mA2dpSuspend = false;/*Reset at SLC*/
+                    mPendingCiev = false;
+                    if ((isInCall()) && (mA2dpState == BluetoothProfile.STATE_CONNECTED)) {
+                        if (DBG) {
+                             log("Headset connected while we are in some call state");
+                             log("Make A2dpSuspended=true here");
+                         }
+                        mAudioManager.setParameters("A2dpSuspended=true");
+                        mA2dpSuspend = true;
+                    }
                 } catch (RemoteException e) {
                     Log.e(TAG, Log.getStackTraceString(new Throwable()));
                 }
@@ -921,10 +950,9 @@ final class HeadsetStateMachine extends StateMachine {
                 // fall through
                 case DISCONNECT_AUDIO:
                     if (disconnectAudioNative(getByteAddress(mCurrentDevice))) {
-                        mAudioState = BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
-                        mAudioManager.setBluetoothScoOn(false);
-                        broadcastAudioState(mCurrentDevice, BluetoothHeadset.STATE_AUDIO_DISCONNECTED,
-                                            BluetoothHeadset.STATE_AUDIO_CONNECTED);
+                        log("Disconnecting SCO audio");
+                    } else {
+                        Log.e(TAG, "disconnectAudioNative failed");
                     }
                     break;
                 case VOICE_RECOGNITION_START:
@@ -958,7 +986,12 @@ final class HeadsetStateMachine extends StateMachine {
                 case VIRTUAL_CALL_STOP:
                     terminateScoUsingVirtualVoiceCall();
                     break;
-
+                case UPDATE_A2DP_PLAY_STATE:
+                    processIntentA2dpPlayStateChanged((Intent) message.obj);
+                    break;
+                case UPDATE_A2DP_CONN_STATE:
+                    processIntentA2dpStateChanged((Intent) message.obj);
+                    break;
                 case DIALING_OUT_TIMEOUT:
                     if (mDialingOut) {
                         mDialingOut= false;
@@ -1071,6 +1104,13 @@ final class HeadsetStateMachine extends StateMachine {
                     if (mAudioState != BluetoothHeadset.STATE_AUDIO_DISCONNECTED) {
                         mAudioState = BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
                         mAudioManager.setBluetoothScoOn(false);
+                        if (mA2dpSuspend) {
+                            if ((!isInCall()) && (mPhoneState.getNumber().isEmpty())) {
+                                log("Audio is closed,Set A2dpSuspended=false");
+                                mAudioManager.setParameters("A2dpSuspended=false");
+                                mA2dpSuspend = false;
+                            }
+                        }
                         broadcastAudioState(device, BluetoothHeadset.STATE_AUDIO_DISCONNECTED,
                                             BluetoothHeadset.STATE_AUDIO_CONNECTED);
                     }
@@ -1459,6 +1499,16 @@ final class HeadsetStateMachine extends StateMachine {
             Log.e(TAG, "initiateScoUsingVirtualVoiceCall: Call in progress.");
             return false;
         }
+        setVirtualCallInProgress(true);
+        if (mA2dpState == BluetoothProfile.STATE_CONNECTED) {
+            mAudioManager.setParameters("A2dpSuspended=true");
+            mA2dpSuspend = true;
+            if (mA2dpPlayState == BluetoothA2dp.STATE_PLAYING) {
+                log("suspending A2DP stream for SCO");
+                mPendingCiev = true;
+                return true;
+            }
+        }
 
         // 2. Send virtual phone state changed to initialize SCO
         processCallState(new HeadsetCallState(0, 0,
@@ -1467,7 +1517,6 @@ final class HeadsetStateMachine extends StateMachine {
             HeadsetHalConstants.CALL_STATE_ALERTING, "", 0), true);
         processCallState(new HeadsetCallState(1, 0,
             HeadsetHalConstants.CALL_STATE_IDLE, "", 0), true);
-        setVirtualCallInProgress(true);
         // Done
         if (DBG) log("initiateScoUsingVirtualVoiceCall: Done");
         return true;
@@ -1486,9 +1535,82 @@ final class HeadsetStateMachine extends StateMachine {
         processCallState(new HeadsetCallState(0, 0,
             HeadsetHalConstants.CALL_STATE_IDLE, "", 0), true);
         setVirtualCallInProgress(false);
+        // Virtual call is Ended set A2dpSuspended to false
+        if (mA2dpSuspend) {
+            mAudioManager.setParameters("A2dpSuspended=false");
+            mA2dpSuspend = false;
+        }
+
         // Done
         if (DBG) log("terminateScoUsingVirtualVoiceCall: Done");
         return true;
+    }
+
+    /* Check for a2dp state change.mA2dpSuspend is set if we had suspended stream and process only in
+       that condition A2dp state could be in playing soon after connection if Headset got
+       connected while in call and music was played before that (Special case
+       to handle RINGER VOLUME zero + music + call) */
+    private void processIntentA2dpStateChanged(Intent intent) {
+
+        int state = intent.getIntExtra(BluetoothProfile.EXTRA_STATE,
+                           BluetoothProfile.STATE_DISCONNECTED);
+        int oldState = intent.getIntExtra(BluetoothProfile.
+                       EXTRA_PREVIOUS_STATE,BluetoothProfile.STATE_DISCONNECTED);
+        if (DBG) {
+            Log.v(TAG, "A2dp State Changed: Current State: " + state +
+                  "Prev State: " + oldState + "A2pSuspend: " + mA2dpSuspend);
+        }
+        mA2dpState = state;
+    }
+
+    private void processIntentA2dpPlayStateChanged(Intent intent) {
+
+        int currState = intent.getIntExtra(BluetoothProfile.EXTRA_STATE,
+                                   BluetoothA2dp.STATE_NOT_PLAYING);
+        int prevState = intent.getIntExtra(
+                                   BluetoothProfile.EXTRA_PREVIOUS_STATE,
+                                   BluetoothA2dp.STATE_NOT_PLAYING);
+        if (DBG) {
+            Log.v(TAG, "A2dp Play State Changed: Current State: " + currState +
+                  "Prev State: " + prevState + "A2pSuspend: " + mA2dpSuspend);
+        }
+        mA2dpPlayState = currState;
+
+        if (prevState == BluetoothA2dp.STATE_PLAYING) {
+            if (mA2dpSuspend && mPendingCiev) {
+                if (isVirtualCallInProgress()) {
+                    //Send virtual phone state changed to initialize SCO
+                    processCallState(new HeadsetCallState(0, 0,
+                          HeadsetHalConstants.CALL_STATE_DIALING, "", 0),
+                          true);
+                    processCallState(new HeadsetCallState(0, 0,
+                          HeadsetHalConstants.CALL_STATE_ALERTING, "", 0),
+                          true);
+                    processCallState(new HeadsetCallState(1, 0,
+                          HeadsetHalConstants.CALL_STATE_IDLE, "", 0),
+                          true);
+                } else {
+                    //send incomming phone status to remote device
+                    log("A2dp is suspended, updating phone status if any");
+                    phoneStateChangeNative( mPhoneState.getNumActiveCall(),
+                                            mPhoneState.getNumHeldCall(),mPhoneState.getCallState(),
+                                            mPhoneState.getNumber(),mPhoneState.getType());
+                }
+                mPendingCiev = false;
+            }
+        }
+        else if (prevState == BluetoothA2dp.STATE_NOT_PLAYING) {
+             Log.v(TAG,"A2dp Started " + currState);
+            if ((isInCall() || isVirtualCallInProgress()) && isConnected()) {
+                if(mA2dpSuspend)
+                    Log.e(TAG,"A2dp started while in call, ERROR");
+                else {
+                    log("Suspend A2dp");
+                    mA2dpSuspend = true;
+                    mAudioManager.setParameters("A2dpSuspended=true");
+                }
+            }
+        }
     }
 
     private void processAnswerCall() {
@@ -1599,6 +1721,8 @@ final class HeadsetStateMachine extends StateMachine {
         mPhoneState.setNumActiveCall(callState.mNumActive);
         mPhoneState.setNumHeldCall(callState.mNumHeld);
         mPhoneState.setCallState(callState.mCallState);
+        mPhoneState.setNumber(callState.mNumber);
+        mPhoneState.setType(callState.mType);
         if (mDialingOut && callState.mCallState ==
             HeadsetHalConstants.CALL_STATE_DIALING) {
                 atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK, 0);
@@ -1613,9 +1737,41 @@ final class HeadsetStateMachine extends StateMachine {
             before sending phoneStateChangeNative to BTIF */
             terminateScoUsingVirtualVoiceCall();
         }
+        processA2dpState(callState);
+    }
+
+    /* This function makes sure that we send a2dp suspend before updating on Incomming call status.
+       There may problem with some headsets if send ring and a2dp is not suspended,
+       so here we suspend stream if active before updating remote.We resume streaming once
+       callstate is idle and there are no active or held calls. */
+
+    private void processA2dpState(HeadsetCallState callState) {
+        if (DBG) {
+            log("mA2dpPlayState " + mA2dpPlayState + " mA2dpSuspend  " + mA2dpSuspend );
+        }
+        if ((isInCall()) && (isConnected()) &&
+            (mA2dpState == BluetoothProfile.STATE_CONNECTED) && (!mA2dpSuspend)) {
+            mAudioManager.setParameters("A2dpSuspended=true");
+            mA2dpSuspend = true;
+            if (mA2dpPlayState == BluetoothA2dp.STATE_PLAYING) {
+                log("suspending A2DP stream for Call");
+                mPendingCiev = true;
+                return ;
+            }
+        }
         if (getCurrentState() != mDisconnected) {
+            if (DBG) {
+                log("No A2dp playing to suspend");
+            }
             phoneStateChangeNative(callState.mNumActive, callState.mNumHeld,
                 callState.mCallState, callState.mNumber, callState.mType);
+        }
+        if (mA2dpSuspend && (!isAudioOn())) {
+            if ((!isInCall()) && (callState.mNumber.isEmpty())) {
+                log("Set A2dpSuspended=false to reset the a2dp state to standby");
+                mAudioManager.setParameters("A2dpSuspended=false");
+                mA2dpSuspend = false;
+            }
         }
     }
 
@@ -1719,6 +1875,7 @@ final class HeadsetStateMachine extends StateMachine {
                         phoneNumber = "";
                     }
                     clccResponseNative(1, 0, 0, 0, false, phoneNumber, type);
+                    clccResponseNative(0, 0, 0, 0, false, "", 0);
                 }
                 else if (!mPhoneProxy.listCurrentCalls()) {
                     clccResponseNative(0, 0, 0, 0, false, "", 0);

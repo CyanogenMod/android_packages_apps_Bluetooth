@@ -245,15 +245,12 @@ public class BluetoothOppUtility {
     /**
      * Helper function to build the progress text.
      */
-    public static String formatProgressText(long totalBytes, long currentBytes) {
+    public static String formatProgressText(Context context, long totalBytes, long currentBytes) {
         if (totalBytes <= 0) {
-            return "0%";
+            return context.getString(R.string.format_progress_text,0);
         }
         long progress = currentBytes * 100 / totalBytes;
-        StringBuilder sb = new StringBuilder();
-        sb.append(progress);
-        sb.append('%');
-        return sb.toString();
+        return context.getString(R.string.format_progress_text, progress);
     }
 
     /**
