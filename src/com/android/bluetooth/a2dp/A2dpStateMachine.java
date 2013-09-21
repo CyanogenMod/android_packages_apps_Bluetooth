@@ -494,6 +494,9 @@ final class A2dpStateMachine extends StateMachine {
                         broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED,
                                        BluetoothProfile.STATE_CONNECTING);
                         break;
+                    } else {
+                        broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_DISCONNECTING,
+                                       BluetoothProfile.STATE_CONNECTED);
                     }
 
                     synchronized (A2dpStateMachine.this) {
@@ -512,7 +515,7 @@ final class A2dpStateMachine extends StateMachine {
                                    BluetoothProfile.STATE_CONNECTED);
                     if (!disconnectA2dpNative(getByteAddress(device))) {
                         broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTED,
-                                       BluetoothProfile.STATE_DISCONNECTED);
+                                       BluetoothProfile.STATE_DISCONNECTING);
                         break;
                     }
                     transitionTo(mPending);
