@@ -29,9 +29,4 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="map_acceptance_dialog_title">%1$s quiere acceder a las carpetas del dispositivo. ¿Permitir el acceso a %2$s?</string>
-    <string name="map_acceptance_dialog_header">Acceso a carpetas del dispositivo</string>
-    <string name="map_notif_title">Clave de sesión requerida para MAP</string>
-    <string name="map_notif_message">Permitir el acceso de %1$s a la carpeta raíz</string>
-    <string name="map_alert_conn_failed_message">Falló la conexión MAP Bluetooth</string>
 </resources>

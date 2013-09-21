@@ -29,12 +29,7 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="map_acceptance_dialog_title">%1$s 想访问您的设备文件夹. 给予 %2$s 访问权限?</string>
-    <string name="map_acceptance_dialog_header">设备文件夹访问</string>
     <!-- Notification title when a Bluetooth device wants to pair with us -->
-    <string name="map_notif_title">用于 MAP 的会话密钥请求</string>
     <!-- Notification message when a Bluetooth device wants to pair with us -->
-    <string name="map_notif_message">允许 %1$s 访问 Root 文件夹</string>
-    <string name="map_alert_conn_failed_message">蓝牙 MAP 连接失败</string>
 </resources>
 

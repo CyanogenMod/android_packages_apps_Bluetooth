@@ -14,9 +14,4 @@
      limitations under the License.
  -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="map_acceptance_dialog_title">%1$s vorrebbe accedere alle cartelle del telefono. Consentire l\'accesso a %2$s?</string>
-    <string name="map_acceptance_dialog_header">Accesso cartelle dispositivo</string>
-    <string name="map_notif_title">Chiave di sessione richiesta per il MAP</string>
-    <string name="map_notif_message">Consentire l\'accesso alla cartella radice a %1$s</string>
-    <string name="map_alert_conn_failed_message">Connessione bluetooth MAP fallita</string>
 </resources>

@@ -29,11 +29,6 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="map_acceptance_dialog_title">%1$s haluaa k\u00E4ytt\u00E4\u00E4 puhelimesi kansioita. Annetaanko laitteelle %2$s lupa?</string>
-    <string name="map_acceptance_dialog_header">Puhelimen kansioiden k\u00E4ytt\u00E4minen</string>
     <!-- Notification title when a Bluetooth device wants to pair with us -->
-    <string name="map_notif_title">MAP pyyt\u00E4\u00E4 istuntoavainta</string>
     <!-- Notification message when a Bluetooth device wants to pair with us -->
-    <string name="map_notif_message">Salli juurikansion k\u00E4ytt\u00E4minen laitteelle %1$s</string>
-    <string name="map_alert_conn_failed_message">Bluetooth MAP -yhteys ep\u00E4onnistui</string>
 </resources>

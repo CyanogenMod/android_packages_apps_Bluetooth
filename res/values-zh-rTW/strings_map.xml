@@ -29,9 +29,4 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="map_acceptance_dialog_title">%1$s 想訪問你的手機資料夾。授予 %2$s 存取?</string>
-    <string name="map_acceptance_dialog_header">存取手機資料夾</string>
-    <string name="map_notif_title">訊息存取設定檔(MAP)階段金鑰請求</string>
-    <string name="map_notif_message">允許 %1$s 訪問根資料夾</string>
-    <string name="map_alert_conn_failed_message">藍牙訊息存取設定檔(MAP)連接失敗</string>
 </resources>

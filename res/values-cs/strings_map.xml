@@ -29,9 +29,4 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="map_acceptance_dialog_title">Zařízení \u201e%1$s\u201c požaduje přístup k souborům v tomto telefonu. Povolit přístup k \u201e%2$s\u201c?</string>
-    <string name="map_acceptance_dialog_header">Přístup k souborům telefonu</string>
-    <string name="map_notif_title">Klíč relace pro MAP</string>
-    <string name="map_notif_message">Povolit přístup ke kořenové složce pro \u201e%1$s\u201c</string>
-    <string name="map_alert_conn_failed_message">Bluetooth MAP spojení selhalo.</string>
 </resources>

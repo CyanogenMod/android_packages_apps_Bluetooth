@@ -30,9 +30,4 @@
 -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="map_acceptance_dialog_title">%1$s erbittet Zugriff auf Ihre Nachrichten.\n\nZugriff erlauben?</string>
-    <string name="map_acceptance_dialog_header">Nachrichten</string>
-    <string name="map_notif_title">MAP-Sitzungsschlüsselanfrage</string>
-    <string name="map_notif_message">%1$s den Zugriff auf Ihre Nachrichten erlauben</string>
-    <string name="map_alert_conn_failed_message">Bluetooth-MAP-Verbindung fehlgeschlagen.</string>
 </resources>

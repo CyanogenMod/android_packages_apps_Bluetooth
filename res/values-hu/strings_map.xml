@@ -29,11 +29,6 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="map_acceptance_dialog_title">%1$s szeretne hozzáférni a készülék mappáihoz. Engedélyezi ezt %2$s részére?</string>
-    <string name="map_acceptance_dialog_header">A készülék mappáinak elérése</string>
     <!-- Notification title when a Bluetooth device wants to pair with us -->
-    <string name="map_notif_title">MAP jelszó kérés</string>
     <!-- Notification message when a Bluetooth device wants to pair with us -->
-    <string name="map_notif_message">A gyökérkönyvtár elérhető %1$s számára</string>
-    <string name="map_alert_conn_failed_message">Bluetooth MAP kapcsolódási hiba.</string>
 </resources>

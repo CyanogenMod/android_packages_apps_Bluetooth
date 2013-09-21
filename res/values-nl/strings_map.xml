@@ -29,9 +29,4 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="map_acceptance_dialog_title">%1$s wil toegang tot uw mappen. Toegang geven aan %2$s?</string>
-    <string name="map_acceptance_dialog_header">Maptoegang</string>
-    <string name="map_notif_title">Aanvraag sessiesleutel voor MAP</string>
-    <string name="map_notif_message">Toegang toestaan tot hoofdmap voor %1$s</string>
-    <string name="map_alert_conn_failed_message">Bluetooth-MAP-verbinding mislukt</string>
 </resources>

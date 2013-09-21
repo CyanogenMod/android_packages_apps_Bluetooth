@@ -29,11 +29,6 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="map_acceptance_dialog_title">%1$s רוצה לגשת לתיקיות הטלפון שלך. לאפשר גישה ל-%2$s?</string>
-    <string name="map_acceptance_dialog_header">גישה לתיקיות הטלפון</string>
     <!-- Notification title when a Bluetooth device wants to pair with us -->
-    <string name="map_notif_title">בקשת קוד הפעלה עבור MAP</string>
     <!-- Notification message when a Bluetooth device wants to pair with us -->
-    <string name="map_notif_message">אפשר ל-%1$s לגשת לתיקיית השורש</string>
-    <string name="map_alert_conn_failed_message">חיבור Bluetooth MAP נכשל.</string>
 </resources>

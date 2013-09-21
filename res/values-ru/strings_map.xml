@@ -29,9 +29,4 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="map_acceptance_dialog_title">%1$s хочет получить доступ к папкам на вашем устройстве. Разрешить доступ %2$s?</string>
-    <string name="map_acceptance_dialog_header">Доступ к папкам</string>
-    <string name="map_notif_title">Запрос ключа сеанса для MAP</string>
-    <string name="map_notif_message">Разрешить %1$s доступ к корневой папке</string>
-    <string name="map_alert_conn_failed_message">Соединение Bluetooth MAP не удалось</string>
 </resources>

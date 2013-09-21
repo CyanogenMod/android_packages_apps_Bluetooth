@@ -29,9 +29,4 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="map_acceptance_dialog_title">%1$s vil gerne tilgå dine telefonmapper. Giv adgang til %2$s?</string>
-    <string name="map_acceptance_dialog_header">Adgang til telefonmapper</string>
-    <string name="map_notif_title">Sessionsnøgleforespørgsel til MAP</string>
-    <string name="map_notif_message">Tillad adgang til rodmappe til %1$s</string>
-    <string name="map_alert_conn_failed_message">Bluetooth MAP-forbindelse mislykkedes</string>
 </resources>

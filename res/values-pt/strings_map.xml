@@ -29,9 +29,4 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="map_acceptance_dialog_title">%1$s gostaria de acessar as pastas do seu telefone. Conceder acesso a %2$s?</string>
-    <string name="map_acceptance_dialog_header">Acesso às pastas do telefone</string>
-    <string name="map_notif_title">Requisição da chave de sessão para MAP</string>
-    <string name="map_notif_message">Permitir acesso à pasta raiz a %1$s</string>
-    <string name="map_alert_conn_failed_message">Falha na conexão Bluetooth MAP.</string>
 </resources>

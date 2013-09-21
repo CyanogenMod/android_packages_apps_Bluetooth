@@ -29,9 +29,4 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="map_acceptance_dialog_title">Zariadenie %1$s by chcelo pristupovať k priečinkom vo vašom telefóne. Umožniť prístup k %2$s?</string>
-    <string name="map_acceptance_dialog_header">Prístup k priečinkom telefónu</string>
-    <string name="map_notif_title">Požiadavka na kľúč relácie pre MAP</string>
-    <string name="map_notif_message">Umožniť prístup ku koreňovému priečinku pre %1$s</string>
-    <string name="map_alert_conn_failed_message">Pripojenie Bluetooth MAP zlyhalo</string>
 </resources>
