@@ -126,9 +126,11 @@ final class RemoteDevices {
         private String mAlias;
         private int mBondState;
         private boolean mTrustValue;
+        int retry_count;
 
         DeviceProperties() {
             mBondState = BluetoothDevice.BOND_NONE;
+            retry_count = 0;
         }
 
         /**
