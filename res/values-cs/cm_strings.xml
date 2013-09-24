@@ -14,5 +14,6 @@
      limitations under the License.
  -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="empty_file_notification_sent">Sdílení Bleutooth: Příjemce odmítl soubor o nulové délce: <xliff:g id="file">%1$s</xliff:g></string>
     <string name="alwaysallowed">"Povolit vždy?"</string>
 </resources>
