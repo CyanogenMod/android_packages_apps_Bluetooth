@@ -60,6 +60,8 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
 
     private BluetoothMapFolderElement mCurrentFolder;
 
+    private BluetoothMnsObexClient mMnsClient;
+
     private Handler mCallback = null;
 
     private Context mContext;
@@ -68,12 +70,13 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
 
     BluetoothMapContent mOutContent;
 
-    public BluetoothMapObexServer(Handler callback, Context context) {
+    public BluetoothMapObexServer(Handler callback, Context context,
+                                  BluetoothMnsObexClient mns) {
         super();
         mCallback = callback;
         mContext = context;
         mOutContent = new BluetoothMapContent(mContext);
-
+        mMnsClient = mns;
         buildFolderStructure(); /* Build the default folder structure, and set
                                    mCurrentFolder to root folder */
     }
@@ -213,13 +216,14 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
 
     private int setNotificationRegistration(BluetoothMapAppParams appParams) {
         // Forward the request to the MNS thread as a message - including the MAS instance ID.
-        Handler mns = BluetoothMnsObexClient.getMessageHandler();
+        Handler mns = mMnsClient.getMessageHandler();
         if(mns != null) {
             Message msg = Message.obtain(mns);
             msg.what = BluetoothMnsObexClient.MSG_MNS_NOTIFICATION_REGISTRATION;
             msg.arg1 = 0; // TODO: Add correct MAS ID, as specified in the SDP record.
             msg.arg2 = appParams.getNotificationStatus();
             msg.sendToTarget();
+            if(D) Log.d(TAG,"MSG_MNS_NOTIFICATION_REGISTRATION");
             return ResponseCodes.OBEX_HTTP_OK;
         } else {
             return ResponseCodes.OBEX_HTTP_UNAVAILABLE; // This should not happen.
@@ -248,7 +252,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             bMsgStream = op.openInputStream();
             message = BluetoothMapbMessage.parse(bMsgStream, appParams.getCharset()); // Decode the messageBody
             // Send message
-            BluetoothMapContentObserver observer = BluetoothMnsObexClient.getContentObserver();
+            BluetoothMapContentObserver observer = mMnsClient.getContentObserver();
             if (observer == null) {
                 return ResponseCodes.OBEX_HTTP_UNAVAILABLE; // Should not happen.
             }
@@ -287,7 +291,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
            msgHandle == null) {
             return ResponseCodes.OBEX_HTTP_PRECON_FAILED;
         }
-        BluetoothMapContentObserver observer = BluetoothMnsObexClient.getContentObserver();
+        BluetoothMapContentObserver observer = mMnsClient.getContentObserver();
         if (observer == null) {
             return ResponseCodes.OBEX_HTTP_UNAVAILABLE; // Should not happen.
         }
