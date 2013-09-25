@@ -509,8 +509,10 @@ public class AtPhonebook {
                 }
                 if (DBG && name == null) log("Caller ID lookup failed for " + number);
 
-            } else {
+            } else if (pbr.nameColumn != -1) {
                 name = pbr.cursor.getString(pbr.nameColumn);
+            } else {
+                log("processCpbrCommand: empty name and number");
             }
             if (name == null) name = "";
             name = name.trim();
