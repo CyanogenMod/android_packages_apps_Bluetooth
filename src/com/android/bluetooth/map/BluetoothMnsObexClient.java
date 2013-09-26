@@ -18,6 +18,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
@@ -43,27 +44,23 @@ import javax.obex.ResponseCodes;
  * hence all call-backs (and thereby transmission of data) is executed
  * from this thread.
  */
-public class BluetoothMnsObexClient extends Thread{
+public class BluetoothMnsObexClient {
 
     private static final String TAG = "BluetoothMnsObexClient";
     private static final boolean D = false;
     private static final boolean V = false;
 
-    public final static int MSG_SESSION_ERROR = 1;
-    public final static int MSG_CONNECT_TIMEOUT = 2;
-
     private ObexTransport mTransport;
     private Context mContext;
-    public static Handler mHandler = null;
+    public Handler mHandler = null;
     private volatile boolean mWaitingForRemote;
     private static final String TYPE_EVENT = "x-bt/MAP-event-report";
     private ClientSession mClientSession;
     private boolean mConnected = false;
     BluetoothDevice mRemoteDevice;
-    private static BluetoothMapContentObserver mObserver;
+    private BluetoothMapContentObserver mObserver;
     private boolean mObserverRegistered = false;
 
-    private Looper mLooper = null;
     // Used by the MAS to forward notification registrations
     public static final int MSG_MNS_NOTIFICATION_REGISTRATION = 1;
 
@@ -76,42 +73,39 @@ public class BluetoothMnsObexClient extends Thread{
         if (remoteDevice == null) {
             throw new NullPointerException("Obex transport is null");
         }
+        HandlerThread thread = new HandlerThread("BluetoothMnsObexClient");
+        thread.start();
+        Looper looper = thread.getLooper();
+        mHandler = new MnsObexClientHandler(looper);
         mContext = context;
         mRemoteDevice = remoteDevice;
+        mObserver = new BluetoothMapContentObserver(mContext);
+        mObserver.init();
     }
 
-    public static Handler getMessageHandler() {
-        // TODO: if mHandle is null, we should wait for it to be created.
+    public Handler getMessageHandler() {
         return mHandler;
     }
 
-    public static BluetoothMapContentObserver getContentObserver() {
+    public BluetoothMapContentObserver getContentObserver() {
         return mObserver;
     }
 
-    @Override
-    public void run() {
-        Looper.prepare();
-        mLooper = Looper.myLooper();
+    private final class MnsObexClientHandler extends Handler {
+        private MnsObexClientHandler(Looper looper) {
+            super(looper);
+        }
 
-
-        /* Create the context observer from within the thread to ensure the "content changed"
-         * events are handled in this thread. */
-        mObserver = new BluetoothMapContentObserver(mContext);
-        mObserver.init();
-
-        mHandler = new Handler() {
-            public void handleMessage(Message msg) {
-                switch (msg.what) {
-                case MSG_MNS_NOTIFICATION_REGISTRATION:
-                    handleRegistration(msg.arg1 /*masId*/, msg.arg2 /*status*/);
-                    break;
-                default:
-                    break;
-                }
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+            case MSG_MNS_NOTIFICATION_REGISTRATION:
+                handleRegistration(msg.arg1 /*masId*/, msg.arg2 /*status*/);
+                break;
+            default:
+                break;
             }
-        };
-        Looper.loop();
+        }
     }
 
     public boolean isConnected() {
@@ -152,19 +146,19 @@ public class BluetoothMnsObexClient extends Thread{
             mObserver.unregisterObserver();
             mObserverRegistered = false;
         }
-
-        mObserver.deinit();
-        // Shut down the thread
-        if(mLooper != null)
-            mLooper.quit();
-        interrupt();
-        try {
-            join();
-        } catch (InterruptedException e) {
-            if(V) Log.w(TAG, "got interrupted. Probably a connection shutdown");
+        if (mObserver != null) {
+            mObserver.deinit();
+            mObserver = null;
         }
-        mHandler = null;
-        mObserver = null;
+        if (mHandler != null) {
+            // Shut down the thread
+            mHandler.removeCallbacksAndMessages(null);
+            Looper looper = mHandler.getLooper();
+            if (looper != null) {
+                looper.quit();
+            }
+            mHandler = null;
+        }
     }
 
     private HeaderSet hsConnect = null;
@@ -172,7 +166,8 @@ public class BluetoothMnsObexClient extends Thread{
     public void handleRegistration(int masId, int notificationStatus){
         Log.d(TAG, "handleRegistration( " + masId + ", " + notificationStatus + ")");
 
-        if(isConnected() == false) {
+        if((isConnected() == false) &&
+           (notificationStatus == BluetoothMapAppParams.NOTIFICATION_STATUS_YES)) {
             Log.d(TAG, "handleRegistration: connect");
             connect();
         }
