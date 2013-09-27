@@ -1188,13 +1188,18 @@ public class AdapterService extends Service {
                 }
             }
         }
+       // This change makes sure that we try to re-connect
+       // the profile if its connection failed and priority
+       // for desired profile is ON.
 
-        if((hfConnDevList.isEmpty()) && a2dpConnected &&
-            (hsService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)){
+        if((hfConnDevList.isEmpty()) &&
+            (hsService.getPriority(device) >= BluetoothProfile.PRIORITY_ON) &&
+            (a2dpConnected || (a2dpService.getPriority(device) == BluetoothProfile.PRIORITY_OFF))) {
             hsService.connect(device);
         }
-        else if((a2dpConnDevList.isEmpty()) && hsConnected &&
-            (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)){
+        else if((a2dpConnDevList.isEmpty()) &&
+            (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_ON) &&
+            (hsConnected || (hsService.getPriority(device) == BluetoothProfile.PRIORITY_OFF))) {
             a2dpService.connect(device);
         }
     }
