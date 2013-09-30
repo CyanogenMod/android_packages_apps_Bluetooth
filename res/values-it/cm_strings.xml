@@ -14,5 +14,6 @@
      limitations under the License.
  -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="empty_file_notification_sent">Condivisione bluetooth: il dispositivo remoto ha rifiutato il file di 0 byte <xliff:g id="file">%1$s</xliff:g></string>
     <string name="alwaysallowed">Consentire sempre?</string>
 </resources>
