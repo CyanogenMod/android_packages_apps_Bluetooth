@@ -14,5 +14,6 @@
      limitations under the License.
  -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="empty_file_notification_sent">Файл не передан: принимающее устройство отклонило пустой файл <xliff:g id="file">%1$s</xliff:g></string>
     <string name="alwaysallowed">Всегда разрешать</string>
 </resources>
