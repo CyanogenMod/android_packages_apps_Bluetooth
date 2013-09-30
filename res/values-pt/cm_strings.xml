@@ -15,4 +15,5 @@
  -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="alwaysallowed">Sempre permitido?</string>
+    <string name="empty_file_notification_sent">Compartilhamento bluetooth: Dispositivo remoto rejeito arquivo com tamanho zero <xliff:g id="file">%1$s</xliff:g></string>
 </resources>
