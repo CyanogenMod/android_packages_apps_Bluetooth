@@ -238,37 +238,43 @@ public class BluetoothMapService extends ProfileService {
     private final void closeService() {
         if (DEBUG) Log.d(TAG, "MAP Service closeService in");
 
-         // exit initSocket early
-         mInterrupted = true;
-         closeServerSocket();
+        // exit initSocket early
+        mInterrupted = true;
+        closeServerSocket();
 
-         if (mAcceptThread != null) {
-             try {
-                 mAcceptThread.shutdown();
-                 mAcceptThread.join();
-                 mAcceptThread = null;
-             } catch (InterruptedException ex) {
-                 Log.w(TAG, "mAcceptThread close error" + ex);
-             }
-         }
+        if (mAcceptThread != null) {
+            try {
+                mAcceptThread.shutdown();
+                mAcceptThread.join();
+                mAcceptThread = null;
+            } catch (InterruptedException ex) {
+                Log.w(TAG, "mAcceptThread close error" + ex);
+            }
+        }
 
-         if (mWakeLock != null) {
-             mWakeLock.release();
-             mWakeLock = null;
-         }
+        if (mWakeLock != null) {
+            mWakeLock.release();
+            mWakeLock = null;
+        }
 
-         if (mServerSession != null) {
-             mServerSession.close();
-             mServerSession = null;
-         }
+        if (mServerSession != null) {
+            mServerSession.close();
+            mServerSession = null;
+        }
 
-         if (mBluetoothMnsObexClient != null) {
-             mBluetoothMnsObexClient.disconnect();
-             mBluetoothMnsObexClient = null;
-         }
+        if (mBluetoothMnsObexClient != null) {
+            mBluetoothMnsObexClient.disconnect();
+            mBluetoothMnsObexClient = null;
+        }
 
-         closeConnectionSocket();
-         if (VERBOSE) Log.v(TAG, "MAP Service closeService out");
+        closeConnectionSocket();
+
+        if (mSessionStatusHandler != null) {
+            mSessionStatusHandler.removeCallbacksAndMessages(null);
+        }
+        isWaitingAuthorization = false;
+
+        if (VERBOSE) Log.v(TAG, "MAP Service closeService out");
     }
 
     private final void startObexServerSession() throws IOException {
@@ -283,8 +289,9 @@ public class BluetoothMapService extends ProfileService {
             mWakeLock.acquire();
         }
 
-
-        mMapServer = new BluetoothMapObexServer(mSessionStatusHandler, this);
+        mBluetoothMnsObexClient = new BluetoothMnsObexClient(this, mRemoteDevice);
+        mMapServer = new BluetoothMapObexServer(mSessionStatusHandler, this,
+                                                mBluetoothMnsObexClient);
         synchronized (this) {
             // We need to get authentication now that obex server is up
             mAuth = new BluetoothMapAuthenticator(mSessionStatusHandler);
@@ -294,8 +301,6 @@ public class BluetoothMapService extends ProfileService {
         // setup RFCOMM transport
         BluetoothMapRfcommTransport transport = new BluetoothMapRfcommTransport(mConnSocket);
         mServerSession = new ServerSession(transport, mMapServer, mAuth);
-        mBluetoothMnsObexClient = new BluetoothMnsObexClient(this, mRemoteDevice);
-        mBluetoothMnsObexClient.start(); // Initiate the MNS message loop.
         setState(BluetoothMap.STATE_CONNECTED);
         if (VERBOSE) {
             Log.v(TAG, "startObexServerSession() success!");
@@ -615,10 +620,6 @@ public class BluetoothMapService extends ProfileService {
 
         setState(BluetoothMap.STATE_DISCONNECTED, BluetoothMap.RESULT_CANCELED);
         closeService();
-        if(mSessionStatusHandler != null) {
-            mSessionStatusHandler.removeCallbacksAndMessages(null);
-        }
-        isWaitingAuthorization = false;
         return true;
     }
 
@@ -626,10 +627,6 @@ public class BluetoothMapService extends ProfileService {
         if (DEBUG) Log.d(TAG, "cleanup()");
         setState(BluetoothMap.STATE_DISCONNECTED, BluetoothMap.RESULT_CANCELED);
         closeService();
-        if(mSessionStatusHandler != null) {
-            mSessionStatusHandler.removeCallbacksAndMessages(null);
-        }
-        isWaitingAuthorization = false;
         return true;
     }
 
@@ -647,7 +644,6 @@ public class BluetoothMapService extends ProfileService {
                     if (DEBUG) Log.d(TAG, "STATE_TURNING_OFF");
                     // Release all resources
                     closeService();
-                    isWaitingAuthorization = false;
                 } else if (state == BluetoothAdapter.STATE_ON) {
                     if (DEBUG) Log.d(TAG, "STATE_ON");
                     mInterrupted = false;
