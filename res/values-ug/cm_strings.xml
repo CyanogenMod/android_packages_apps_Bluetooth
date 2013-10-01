@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  Copyright (C) 2007 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+ -->
+ <resources xmlns:android="http://schemas.android.com/apk/res/android" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"ئاق تىزىمدىكى كۆكچىش ئۈسكۈنە زىيارىتى."</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"كۆكچىش ئۈسكۈنىسىنى زىيارەت ھوقۇقى ئاق تىزىملىكىگە كىرگۈزۈشكە يول قويىدۇ، شۇ ئارقىلىق ئىشلەتكۈچىنىڭ جەزملىشى بولمىغان ئەھۋالدا ھۆججەتنى بۇ ئۈسكۈنىگە يوللايدۇ."</string>
+    <string name="permlab_handoverStatus" msgid="7316032998801933554">"كۆكچىش كىرىشتۈرۈپ ئۇزاتقان تارقىتىشنى قوبۇل قىلىدۇ."</string>
+    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"كۆكچىش ئارقىلىق كىرىشتۈرۈپ ئۇزىتىش ھالەت ئۇچۇرىنى قوبۇل قىلىشقا يول قويىدۇ."</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"كۆكچىش ھەمبەھىر: <xliff:g id="FILE">%1$s</xliff:g> ھۆججەتنى قوبۇللىمىدى"</string>
+    <string name="notification_sent_complete" msgid="302943281067557969">"100% تامام"</string>
+ </resources>
