@@ -74,8 +74,10 @@ public class AdapterService extends Service {
     //For Debugging only
     private static int sRefCount=0;
 
-    public static final String ACTION_LOAD_ADAPTER_PROPERTIES="com.android.bluetooth.btservice.action.LOAD_ADAPTER_PROPERTIES";
-    public static final String ACTION_SERVICE_STATE_CHANGED="com.android.bluetooth.btservice.action.STATE_CHANGED";
+    public static final String ACTION_LOAD_ADAPTER_PROPERTIES =
+        "com.android.bluetooth.btservice.action.LOAD_ADAPTER_PROPERTIES";
+    public static final String ACTION_SERVICE_STATE_CHANGED =
+        "com.android.bluetooth.btservice.action.STATE_CHANGED";
     public static final String EXTRA_ACTION="action";
     public static final int PROFILE_CONN_CONNECTED  = 1;
     public static final int PROFILE_CONN_REJECTED  = 2;
@@ -83,6 +85,8 @@ public class AdapterService extends Service {
     static final String BLUETOOTH_ADMIN_PERM =
         android.Manifest.permission.BLUETOOTH_ADMIN;
     static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
+    static final String BLUETOOTH_PRIVILEGED_PERM =
+        android.Manifest.permission.BLUETOOTH_PRIVILEGED;
 
     private static final int ADAPTER_SERVICE_TYPE=Service.START_STICKY;
 
@@ -927,7 +931,7 @@ public class AdapterService extends Service {
 
      public synchronized boolean enable(boolean quietMode) {
          enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                 "Need BLUETOOTH ADMIN permission");
+                                        "Need BLUETOOTH ADMIN permission");
          if (DBG)debugLog("Enable called with quiet mode status =  " + mQuietmode);
          mQuietmode  = quietMode;
          Message m =
@@ -938,7 +942,7 @@ public class AdapterService extends Service {
 
      boolean disable() {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                "Need BLUETOOTH ADMIN permission");
+                                       "Need BLUETOOTH ADMIN permission");
 
         if (DBG) debugLog("disable() called...");
         Message m =
@@ -963,7 +967,7 @@ public class AdapterService extends Service {
 
      String getName() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM,
-                "Need BLUETOOTH permission");
+                                       "Need BLUETOOTH permission");
 
         try {
             return mAdapterProperties.getName();
@@ -975,7 +979,7 @@ public class AdapterService extends Service {
 
      boolean setName(String name) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                "Need BLUETOOTH ADMIN permission");
+                                       "Need BLUETOOTH ADMIN permission");
 
         return mAdapterProperties.setName(name);
     }
@@ -1009,14 +1013,14 @@ public class AdapterService extends Service {
 
      boolean startDiscovery() {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                "Need BLUETOOTH ADMIN permission");
+                                       "Need BLUETOOTH ADMIN permission");
 
         return startDiscoveryNative();
     }
 
      boolean cancelDiscovery() {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                "Need BLUETOOTH ADMIN permission");
+                                       "Need BLUETOOTH ADMIN permission");
 
         return cancelDiscoveryNative();
     }
@@ -1046,8 +1050,8 @@ public class AdapterService extends Service {
     }
 
      boolean createBond(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-            "Need BLUETOOTH ADMIN permission");
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED_PERM,
+            "Need BLUETOOTH PRIVILEGED permission");
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp != null && deviceProp.getBondState() != BluetoothDevice.BOND_NONE) {
             return false;
@@ -1266,7 +1270,8 @@ public class AdapterService extends Service {
     }
 
      boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED_PERM,
+                                       "Need BLUETOOTH PRIVILEGED permission");
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDING) {
             return false;
@@ -1289,7 +1294,8 @@ public class AdapterService extends Service {
     }
 
      boolean setPairingConfirmation(BluetoothDevice device, boolean accept) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED_PERM,
+                                       "Need BLUETOOTH PRIVILEGED permission");
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDING) {
             return false;
