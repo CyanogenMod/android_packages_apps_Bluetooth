@@ -829,6 +829,27 @@ public class BluetoothPbapVcardManager {
         return ResponseCodes.OBEX_HTTP_OK;
     }
 
+    public String StripTelephoneNumber (String vCard){
+        String attr [] = vCard.split(System.getProperty("line.separator"));
+        String Vcard = "";
+            for (int i=0; i < attr.length; i++) {
+                if(attr[i].startsWith("TEL")) {
+                    attr[i] = attr[i].replace("(", "");
+                    attr[i] = attr[i].replace(")", "");
+                    attr[i] = attr[i].replace("-", "");
+                    attr[i] = attr[i].replace(" ", "");
+                }
+            }
+
+            for (int i=0; i < attr.length; i++) {
+                if(!attr[i].equals("")){
+                    Vcard = Vcard.concat(attr[i] + "\n");
+                }
+            }
+        Log.v(TAG, "Vcard with stripped telephone no.: " + Vcard);
+        return Vcard;
+    }
+
     /**
      * Handler to emit vCards to PCE.
      */
