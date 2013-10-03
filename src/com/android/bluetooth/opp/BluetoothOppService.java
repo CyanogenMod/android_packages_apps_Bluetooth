@@ -219,8 +219,20 @@ public class BluetoothOppService extends Service {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case STOP_LISTENER:
-                    mSocketListener.stop();
+                    if(mSocketListener != null){
+                        mSocketListener.stop();
+                    }
                     mListenStarted = false;
+                    //Stop Active INBOUND Transfer
+                    if(mServerTransfer != null){
+                       mServerTransfer.onBatchCanceled();
+                       mServerTransfer =null;
+                    }
+                    //Stop Active OUTBOUND Transfer
+                    if(mTransfer != null){
+                       mTransfer.onBatchCanceled();
+                       mTransfer =null;
+                    }
                     synchronized (BluetoothOppService.this) {
                         if (mUpdateThread == null) {
                             stopSelf();
