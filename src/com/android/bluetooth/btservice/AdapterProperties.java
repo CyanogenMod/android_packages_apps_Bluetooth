@@ -248,6 +248,10 @@ class AdapterProperties {
                     mBondedDevices.add(device);
                 }
             } else if (state == BluetoothDevice.BOND_NONE) {
+                // Setting remote trust to false
+                boolean result = mService.setRemoteTrust(device, false);
+                debugLog("setRemoteTrust() result=" + result);
+
                 // remove device from list
                 if (mBondedDevices.remove(device))
                     debugLog("Removing bonded device:" +  device);
