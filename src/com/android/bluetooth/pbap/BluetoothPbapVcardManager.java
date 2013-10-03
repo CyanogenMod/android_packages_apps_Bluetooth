@@ -294,6 +294,7 @@ public class BluetoothPbapVcardManager {
 
     public final ArrayList<String> getContactNamesByNumber(final String phoneNumber) {
         ArrayList<String> nameList = new ArrayList<String>();
+        ArrayList<String> tempNameList = new ArrayList<String>();
 
         Cursor contactCursor = null;
         Uri uri = null;
@@ -318,7 +319,7 @@ public class BluetoothPbapVcardManager {
                         name = mContext.getString(android.R.string.unknownName);
                     }
                     if (V) Log.v(TAG, "got name " + name + " by number " + phoneNumber + " @" + id);
-                    nameList.add(name + "," + id);
+                    tempNameList.add(name + "," + id);
                 }
             }
         } catch (CursorWindowAllocationException e) {
@@ -329,6 +330,13 @@ public class BluetoothPbapVcardManager {
                 contactCursor = null;
             }
         }
+        int tempListSize = tempNameList.size();
+        for (int index = 0; index < tempListSize; index++) {
+            String object = tempNameList.get(index);
+            if (!nameList.contains(object))
+                nameList.add(object);
+        }
+
         return nameList;
     }
 
