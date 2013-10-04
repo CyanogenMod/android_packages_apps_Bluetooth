@@ -100,7 +100,7 @@
     <string name="status_connection_error" msgid="947681831523219891">"ການເຊື່ອມຕໍ່ບໍ່ສຳເລັດຜົນ"</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"ການຮ້ອງຂໍບໍ່ສາມາດຖືກຈັດການໄດ້ຢ່າງຖືກຕ້ອງ."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"ຄວາມຜິດພາດທີ່ບໍ່ຮູ້ຈັກ."</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth ໄດ້​ຮັບແລ້ວ"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"ໄຟລ໌ທີ່ໄດ້ຮັບແລ້ວຈາກ Bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ໄດ້ຮັບຮຽບຮ້ອຍແລ້ວ."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ຖືກສົ່ງສຳເລັດແລ້ວ."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"ການໂອນເຂົ້າ"</string>
