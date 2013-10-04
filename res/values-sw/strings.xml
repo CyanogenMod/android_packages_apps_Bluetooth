@@ -42,10 +42,10 @@
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Je, unataka kupokea faili hii?"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Faili zinazoingia kutoka kwa kifaa kingine. Thibitisha kuwa unataka kupokea faili hii."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Kushiriki kwa bluetooth: Inapokea <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received" msgid="3324588019186687985">"Kushiriki kwa bluetooth: Ilipokea<xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received" msgid="3324588019186687985">"Kushiriki kwa bluetooth: Imepokea <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Kushiriki kwa Bluetooth: Faili <xliff:g id="FILE">%1$s</xliff:g> haijapokewa"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Kushiriki kwa bluetooth: Inatuma <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"Kushiriki kwa bluetooth: <xliff:g id="FILE">%1$s</xliff:g> Iliyotumwa"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"Kushiriki kwa bluetooth: Imetuma <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"Imekamilika 100%"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Kushiriki kwa bluetooth: Faili <xliff:g id="FILE">%1$s</xliff:g> haijatumwa"</string>
     <string name="download_title" msgid="3353228219772092586">"Uhamishaji faili"</string>
