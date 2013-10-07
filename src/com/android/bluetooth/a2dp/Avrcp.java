@@ -252,6 +252,11 @@ final class Avrcp {
                     clientGeneration, (clearing ? 1 : 0), mediaIntent).sendToTarget();
             }
         }
+
+        @Override
+        public void setEnabled(boolean enabled) {
+            // no-op: this RemoteControlDisplay is not subject to being disabled.
+        }
     }
 
     /** Handles Avrcp messages. */
