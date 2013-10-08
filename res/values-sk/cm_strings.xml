@@ -14,5 +14,6 @@
      limitations under the License.
  -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="empty_file_notification_sent">Zdieľanie cez Bluetooth: Prázdny súbor <xliff:g id="file">%1$s</xliff:g> bol odmietnutý</string>
     <string name="alwaysallowed">Vždy umožniť?</string>
 </resources>
