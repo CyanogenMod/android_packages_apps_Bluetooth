@@ -32,6 +32,8 @@ static jmethodID method_getElementAttr;
 static jmethodID method_registerNotification;
 static jmethodID method_volumeChangeCallback;
 static jmethodID method_handlePassthroughCmd;
+static jmethodID method_getFolderItems;
+static jmethodID method_setAddressedPlayer;
 
 static const btrc_interface_t *sBluetoothAvrcpInterface = NULL;
 static jobject mCallbacksObj = NULL;
@@ -128,6 +130,27 @@ static void btavrcp_volume_change_callback(uint8_t volume, uint8_t ctype) {
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
+
+static void btavrcp_get_folder_items_callback(btrc_browse_folderitem_t scope , btrc_getfolderitem_t *param) {
+    jint start = param->start_item;
+    jint end = param->end_item;
+    jint size = param->size;
+
+    ALOGI("%s", __FUNCTION__);
+    ALOGI("scope: %d", scope);
+    ALOGI("start entry: %d", start);
+    ALOGI("end entry: %d", end);
+    ALOGI("size: %d", size);
+
+    if (!checkCallbackThread()) {
+        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
+        return;
+    }
+
+   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_getFolderItems, (jbyte)scope,
+                                        start, end, size);
+   checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+}
 static void btavrcp_passthrough_command_callback(int id, int pressed) {
     ALOGI("%s", __FUNCTION__);
 
@@ -141,6 +164,19 @@ static void btavrcp_passthrough_command_callback(int id, int pressed) {
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
+static void btavrcp_set_addressed_player_callback(uint32_t player_id) {
+    ALOGI("%s", __FUNCTION__);
+    ALOGI("player id: %d", player_id);
+
+    if (!checkCallbackThread()) {
+        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
+        return;
+    }
+
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_setAddressedPlayer, (jint)player_id);
+
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+}
 static btrc_callbacks_t sBluetoothAvrcpCallbacks = {
     sizeof(sBluetoothAvrcpCallbacks),
     btavrcp_remote_features_callback,
@@ -154,7 +190,9 @@ static btrc_callbacks_t sBluetoothAvrcpCallbacks = {
     btavrcp_get_element_attr_callback,
     btavrcp_register_notification_callback,
     btavrcp_volume_change_callback,
-    btavrcp_passthrough_command_callback
+    btavrcp_passthrough_command_callback,
+    btavrcp_get_folder_items_callback,
+    btavrcp_set_addressed_player_callback
 };
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
@@ -174,6 +212,14 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
     method_handlePassthroughCmd =
         env->GetMethodID(clazz, "handlePassthroughCmd", "(II)V");
+
+    //setAddressedPlayer: attributes to pass: Player ID
+    method_setAddressedPlayer =
+        env->GetMethodID(clazz, "setAddressedPlayer", "(I)V");
+
+    //getFolderItems: attributes to pass: Scope, Start, End, Attr Cnt
+    method_getFolderItems =
+        env->GetMethodID(clazz, "getFolderItems", "(BIII)V");
 
     ALOGI("%s: succeeds", __FUNCTION__);
 }
@@ -394,6 +440,140 @@ static jboolean setVolumeNative(JNIEnv *env, jobject object, jint volume) {
     return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
+static jboolean registerNotificationRspAddressedPlayerChangedNative (JNIEnv *env,
+                                                            jobject object, jint type, jint playerId) {
+    bt_status_t status;
+    btrc_register_notification_t param;
+
+    ALOGI("%s: sBluetoothAvrcpInterface: %p", __FUNCTION__, sBluetoothAvrcpInterface);
+    ALOGI("playerId: %d", playerId);
+    if (!sBluetoothAvrcpInterface) return JNI_FALSE;
+
+    param.player_id = (uint16_t)playerId;
+    if ((status = sBluetoothAvrcpInterface->register_notification_rsp(BTRC_EVT_ADDRESSED_PLAYER_CHANGED,
+                  (btrc_notification_type_t)type, &param)) != BT_STATUS_SUCCESS) {
+        ALOGE("Failed registerNotificationRspAddressedPlayerChangedNative, status: %d", status);
+    }
+
+    return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+
+}
+
+static jboolean registerNotificationRspAvailablePlayersChangedNative (JNIEnv *env,
+                                                                            jobject object, jint type) {
+    bt_status_t status;
+    btrc_register_notification_t param;
+
+    ALOGI("%s: sBluetoothAvrcpInterface: %p", __FUNCTION__, sBluetoothAvrcpInterface);
+    if (!sBluetoothAvrcpInterface) return JNI_FALSE;
+    if ((status = sBluetoothAvrcpInterface->register_notification_rsp(BTRC_EVT_AVAILABLE_PLAYERS_CHANGED,
+                  (btrc_notification_type_t)type, &param)) != BT_STATUS_SUCCESS) {
+        ALOGE("Failed registerNotificationRspAvailablePlayersChangedNative, status: %d", status);
+    }
+
+    return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+}
+
+// FolderItems are populated as byte stream from the apps
+static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statusCode, jint uidCounter,
+                                             jint itemCount, jbooleanArray folderItems, jintArray folderItemLengths) {
+    bt_status_t status;
+    uint8_t *folderElements;
+    int32_t *folderElementLengths;
+    int32_t count = 0;
+    int32_t countElementLength = 0;
+    int32_t countTotalBytes = 0;
+    int32_t countTemp = 0;
+    int32_t checkLength = 0;
+    btrc_folder_list_entries_t param;
+
+    ALOGI("%s: sBluetoothAvrcpInterface: %p", __FUNCTION__, sBluetoothAvrcpInterface);
+    if (!sBluetoothAvrcpInterface) return JNI_FALSE;
+
+    folderElements = env->GetBooleanArrayElements(folderItems, NULL);
+    if (!folderElements) {
+        jniThrowIOException(env, EINVAL);
+        return JNI_FALSE;
+    }
+
+    folderElementLengths = env->GetIntArrayElements(folderItemLengths, NULL);
+    if (!folderElementLengths) {
+        jniThrowIOException(env, EINVAL);
+        return JNI_FALSE;
+    }
+
+    param.status = statusCode;
+    param.uid_counter = uidCounter;
+    param.item_count = itemCount;
+    ALOGI("status: %d, item count: %d", param.status, param.item_count);
+    param.p_item_list = new btrc_folder_list_item_t[itemCount];
+    ALOGI("Intermediate List entries:");
+    for (; count < itemCount; count++) {
+        param.p_item_list[count].item_type = folderElements[countTotalBytes]; countTotalBytes++;
+        param.p_item_list[count].player.player_id = (uint16_t)(folderElements[countTotalBytes] & 0x00ff); countTotalBytes++;
+        param.p_item_list[count].player.player_id += (uint16_t)((folderElements[countTotalBytes] << 8) & 0xff00); countTotalBytes++;
+        param.p_item_list[count].player.major_type = folderElements[countTotalBytes]; countTotalBytes++;
+        param.p_item_list[count].player.sub_type = (uint32_t)(folderElements[countTotalBytes] & 0x000000ff); countTotalBytes++;
+        param.p_item_list[count].player.sub_type += (uint32_t)((folderElements[countTotalBytes] << 8) & 0x0000ff00); countTotalBytes++;
+        param.p_item_list[count].player.sub_type += (uint32_t)((folderElements[countTotalBytes] << 16) & 0x00ff0000); countTotalBytes++;
+        param.p_item_list[count].player.sub_type += (uint32_t)((folderElements[countTotalBytes] << 24) & 0xff000000); countTotalBytes++;
+        param.p_item_list[count].player.play_status = folderElements[countTotalBytes]; countTotalBytes++;
+        for (countTemp = 0; countTemp < 16; countTemp ++) {
+            param.p_item_list[count].player.features[countTemp] = folderElements[countTotalBytes]; countTotalBytes++;
+        }
+        param.p_item_list[count].player.name.charset_id = (uint16_t)(folderElements[countTotalBytes] & 0x00ff); countTotalBytes++;
+        param.p_item_list[count].player.name.charset_id += (uint16_t)((folderElements[countTotalBytes] << 8) & 0xff00); countTotalBytes++;
+        param.p_item_list[count].player.name.str_len = (uint16_t)(folderElements[countTotalBytes] & 0x00ff); countTotalBytes++;
+        param.p_item_list[count].player.name.str_len += (uint16_t)((folderElements[countTotalBytes] << 8) & 0xff00); countTotalBytes++;
+        param.p_item_list[count].player.name.p_str = new uint8_t[param.p_item_list[count].player.name.str_len];
+        for (countTemp = 0; countTemp < param.p_item_list[count].player.name.str_len; countTemp ++) {
+            param.p_item_list[count].player.name.p_str[countTemp] = folderElements[countTotalBytes]; countTotalBytes++;
+        }
+        /*To check if byte feeding went well*/
+        checkLength += folderElementLengths[count];
+        if (checkLength != countTotalBytes) {
+            ALOGE("Error Populating Intermediate Folder Entry");
+            ALOGE("checkLength = %u countTotalBytes = %u", checkLength, countTotalBytes);
+        }
+        ALOGI("entry: %u", count);
+        ALOGI("item type: %u", param.p_item_list[count].item_type);
+        ALOGI("player id: %u", param.p_item_list[count].player.player_id);
+        ALOGI("major type: %u", param.p_item_list[count].player.major_type);
+        ALOGI("sub type: %u", param.p_item_list[count].player.sub_type);
+        ALOGI("play status: %u", param.p_item_list[count].player.play_status);
+        ALOGI("features: ");
+        for (countTemp = 0; countTemp < 16; countTemp ++)
+            ALOGI("%u", param.p_item_list[count].player.features[countTemp]);
+        ALOGI("charset id: %u", param.p_item_list[count].player.name.charset_id);
+        ALOGI("name len: %u", param.p_item_list[count].player.name.str_len);
+        ALOGI("name: ");
+        for (countTemp = 0; countTemp < param.p_item_list[count].player.name.str_len; countTemp ++) {
+            ALOGI("%u", param.p_item_list[count].player.name.p_str[countTemp]);
+        }
+    }
+
+    if ((status = sBluetoothAvrcpInterface->get_folder_items_rsp(&param)) != BT_STATUS_SUCCESS) {
+        ALOGE("Failed getFolderItemsRspNative, status: %u", status);
+    }
+
+    env->ReleaseBooleanArrayElements(folderItems, folderElements, 0);
+    env->ReleaseIntArrayElements(folderItemLengths, folderElementLengths, 0);
+
+    return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+}
+
+static jboolean setAdressedPlayerRspNative(JNIEnv *env, jobject object, jbyte statusCode) {
+    bt_status_t status;
+
+    ALOGI("%s: sBluetoothAvrcpInterface: %p", __FUNCTION__, sBluetoothAvrcpInterface);
+    if (!sBluetoothAvrcpInterface) return JNI_FALSE;
+
+    if ((status = sBluetoothAvrcpInterface->set_addressed_player_rsp((btrc_status_t)statusCode)) != BT_STATUS_SUCCESS) {
+        ALOGE("Failed setAdressedPlayerRspNative, status: %d", status);
+    }
+
+    return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+}
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
     {"initNative", "()V", (void *) initNative},
@@ -407,7 +587,15 @@ static JNINativeMethod sMethods[] = {
     {"registerNotificationRspPlayPosNative", "(II)Z",
      (void *) registerNotificationRspPlayPosNative},
     {"setVolumeNative", "(I)Z",
-     (void *) setVolumeNative}
+     (void *) setVolumeNative},
+    {"setAdressedPlayerRspNative", "(B)Z",
+     (void *) setAdressedPlayerRspNative},
+    {"getFolderItemsRspNative", "(BII[B[I)Z",
+     (void *) getFolderItemsRspNative},
+    {"registerNotificationRspAddressedPlayerChangedNative", "(II)Z",
+     (void *) registerNotificationRspAddressedPlayerChangedNative},
+    {"registerNotificationRspAvailablePlayersChangedNative", "(I)Z",
+     (void *) registerNotificationRspAvailablePlayersChangedNative},
 };
 
 int register_com_android_bluetooth_avrcp(JNIEnv* env)

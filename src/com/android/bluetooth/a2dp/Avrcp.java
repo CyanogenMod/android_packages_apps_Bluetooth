@@ -22,6 +22,8 @@ import java.util.TimerTask;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.BroadcastReceiver;
 import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.IRemoteControlDisplay;
@@ -49,6 +51,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.Iterator;
 
 /**
  * support Bluetooth AVRCP profile.
@@ -117,11 +120,20 @@ final class Avrcp {
     private static final int MESSAGE_FAST_FORWARD = 10;
     private static final int MESSAGE_REWIND = 11;
     private static final int MESSAGE_FF_REW_TIMEOUT = 12;
+    private int mAddressedPlayerChangedNT;
+    private int mAvailablePlayersChangedNT;
+    private int mAddressedPlayerId;
+
     private static final int MSG_UPDATE_STATE = 100;
     private static final int MSG_SET_METADATA = 101;
     private static final int MSG_SET_TRANSPORT_CONTROLS = 102;
     private static final int MSG_SET_ARTWORK = 103;
     private static final int MSG_SET_GENERATION_ID = 104;
+    private static final int MSG_UPDATE_AVAILABLE_PLAYERS = 201;
+    private static final int MSG_UPDATE_ADDRESSED_PLAYER = 202;
+    private static final int MSG_UPDATE_RCC_CHANGE = 203;
+    private MediaPlayerInfo mediaPlayerInfo1;
+    private MediaPlayerInfo mediaPlayerInfo2;
 
     private static final int BUTTON_TIMEOUT_TIME = 2000;
     private static final int BASE_SKIP_AMOUNT = 2000;
@@ -139,15 +151,19 @@ final class Avrcp {
     }
 
     private Avrcp(Context context) {
+        if (DEBUG) Log.v(TAG, "Avrcp");
         mMetadata = new Metadata();
         mCurrentPlayState = RemoteControlClient.PLAYSTATE_NONE; // until we get a callback
         mPlayStatusChangedNT = NOTIFICATION_TYPE_CHANGED;
         mTrackChangedNT = NOTIFICATION_TYPE_CHANGED;
+        mAddressedPlayerChangedNT = NOTIFICATION_TYPE_CHANGED;
+        mAvailablePlayersChangedNT = NOTIFICATION_TYPE_CHANGED;
         mTrackNumber = -1L;
         mCurrentPosMs = 0L;
         mPlayStartTimeMs = -1L;
         mSongLengthMs = 0L;
         mPlaybackIntervalMs = 0L;
+        mAddressedPlayerId = 0; //  0 signifies bad entry
         mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
         mTimer = null;
         mFeatures = 0;
@@ -167,6 +183,7 @@ final class Avrcp {
     }
 
     private void start() {
+        if (DEBUG) Log.v(TAG, "start");
         HandlerThread thread = new HandlerThread("BluetoothAvrcpHandler");
         thread.start();
         Looper looper = thread.getLooper();
@@ -175,8 +192,78 @@ final class Avrcp {
         mAudioManager.registerRemoteControlDisplay(mRemoteControlDisplay);
         mAudioManager.remoteControlDisplayWantsPlaybackPositionSync(
                       mRemoteControlDisplay, true);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(AudioManager.RCC_CHANGED_ACTION);
+        mContext.registerReceiver(mIntentReceiver, intentFilter);
+        registerMediaPlayers();
     }
 
+    private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(AudioManager.RCC_CHANGED_ACTION)) {
+                Log.v(TAG, "received RCC_CHANGED_ACTION");
+                int isRCCFocussed = 0;
+                int isRCCAvailable = 0;
+                String callingPackageName = intent.getStringExtra(AudioManager.EXTRA_CALLING_PACKAGE_NAME);
+                boolean isFocussed = intent.getBooleanExtra(AudioManager.EXTRA_FOCUS_CHANGED_VALUE,false);
+                boolean isAvailable = intent.getBooleanExtra(AudioManager.EXTRA_AVAILABLITY_CHANGED_VALUE, false);
+                if (isFocussed)
+                    isRCCFocussed = 1;
+                if (isAvailable)
+                    isRCCAvailable = 1;
+                Log.v(TAG, "focus: " + isFocussed + " , availability: " + isAvailable);
+                if (mHandler != null) {
+                    mHandler.obtainMessage(MSG_UPDATE_RCC_CHANGE, isRCCFocussed, isRCCAvailable, callingPackageName).sendToTarget();
+                }
+            }
+        }
+    };
+
+    /* This method is used for create entries of existing media players on RCD start
+       * Later when media players become avaialable corresponding entries
+       * are marked accordingly and similarly when media players changes focus
+       * the corresponding fields are modified */
+    private void registerMediaPlayers () {
+        if (DEBUG) Log.v(TAG, "++registerMediaPlayers++");
+        int[] featureMasks = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        byte[] playerName1 = {0x4d, 0x75, 0x73, 0x69, 0x63}/*Music*/;
+        byte[] playerName2 = {0x4d, 0x75, 0x73, 0x69, 0x63, 0x32}/*Music2*/;
+
+        featureMasks[FEATURE_MASK_PLAY_OFFSET] = featureMasks[FEATURE_MASK_PLAY_OFFSET] | FEATURE_MASK_PLAY_MASK;
+        featureMasks[FEATURE_MASK_PAUSE_OFFSET] = featureMasks[FEATURE_MASK_PAUSE_OFFSET] | FEATURE_MASK_PAUSE_MASK;
+        featureMasks[FEATURE_MASK_STOP_OFFSET] = featureMasks[FEATURE_MASK_STOP_OFFSET] | FEATURE_MASK_STOP_MASK;
+        featureMasks[FEATURE_MASK_PAGE_UP_OFFSET] = featureMasks[FEATURE_MASK_PAGE_UP_OFFSET] | FEATURE_MASK_PAGE_UP_MASK;
+        featureMasks[FEATURE_MASK_PAGE_DOWN_OFFSET] = featureMasks[FEATURE_MASK_PAGE_DOWN_OFFSET] | FEATURE_MASK_PAGE_DOWN_MASK;
+        featureMasks[FEATURE_MASK_REWIND_OFFSET] = featureMasks[FEATURE_MASK_REWIND_OFFSET] | FEATURE_MASK_REWIND_MASK;
+        featureMasks[FEATURE_MASK_FAST_FWD_OFFSET] = featureMasks[FEATURE_MASK_FAST_FWD_OFFSET] | FEATURE_MASK_FAST_FWD_MASK;
+        featureMasks[FEATURE_MASK_VENDOR_OFFSET] = featureMasks[FEATURE_MASK_VENDOR_OFFSET] | FEATURE_MASK_VENDOR_MASK;
+        featureMasks[FEATURE_MASK_ADV_CTRL_OFFSET] = featureMasks[FEATURE_MASK_ADV_CTRL_OFFSET] | FEATURE_MASK_ADV_CTRL_MASK;
+
+        mediaPlayerInfo1 = new MediaPlayerInfo ((short)0x0001,
+                    MAJOR_TYPE_AUDIO,
+                    SUB_TYPE_NONE,
+                    (byte)RemoteControlClient.PLAYSTATE_PAUSED,
+                    CHAR_SET_UTF8,
+                    (short)0x05,
+                    playerName1,
+                    "com.android.music",
+                    featureMasks);
+
+        mediaPlayerInfo2 = new MediaPlayerInfo ((short)0x0002,
+                    MAJOR_TYPE_AUDIO,
+                    SUB_TYPE_NONE,
+                    (byte)RemoteControlClient.PLAYSTATE_PAUSED,
+                    CHAR_SET_UTF8,
+                    (short)0x06,
+                    playerName2,
+                    "com.google.android.music",
+                    featureMasks);
+
+        mMediaPlayers.add(mediaPlayerInfo1);
+        mMediaPlayers.add(mediaPlayerInfo2);
+    }
     static Avrcp make(Context context) {
         if (DEBUG) Log.v(TAG, "make");
         Avrcp ar = new Avrcp(context);
@@ -185,15 +272,19 @@ final class Avrcp {
     }
 
     public void doQuit() {
+        if (DEBUG) Log.v(TAG, "doQuit");
         mHandler.removeCallbacksAndMessages(null);
         Looper looper = mHandler.getLooper();
         if (looper != null) {
             looper.quit();
         }
         mAudioManager.unregisterRemoteControlDisplay(mRemoteControlDisplay);
+        mContext.unregisterReceiver(mIntentReceiver);
+        mMediaPlayers.clear();
     }
 
     public void cleanup() {
+        if (DEBUG) Log.v(TAG, "cleanup");
         cleanupNative();
     }
 
@@ -276,6 +367,14 @@ final class Avrcp {
 
             case MSG_SET_METADATA:
                 if (mClientGeneration == msg.arg1) updateMetadata((Bundle) msg.obj);
+                break;
+
+            case MSG_UPDATE_AVAILABLE_PLAYERS:
+                updateAvailableMediaPlayers();
+                break;
+
+            case MSG_UPDATE_ADDRESSED_PLAYER:
+                updateAddressedMediaPlayer(msg.arg1);
                 break;
 
             case MSG_SET_TRANSPORT_CONTROLS:
@@ -446,15 +545,35 @@ final class Avrcp {
                     mTimer = null;
                 }
                 break;
+            case MSG_UPDATE_RCC_CHANGE:
+                Log.v(TAG, "MSG_UPDATE_RCC_CHANGE");
+                String callingPackageName = (String)msg.obj;
+                int isFocussed = msg.arg1;
+                int isAvailable = msg.arg2;
+                processRCCStateChange(callingPackageName, isFocussed, isAvailable);
+                break;
             }
         }
     }
 
     private void updatePlayPauseState(int state, long currentPosMs) {
-        if (DEBUG) Log.v(TAG,
-                "updatePlayPauseState, old=" + mCurrentPlayState + ", state=" + state);
+        if (DEBUG) Log.v(TAG,"updatePlayPauseState");
         boolean oldPosValid = (mCurrentPosMs !=
                                RemoteControlClient.PLAYBACK_POSITION_ALWAYS_UNKNOWN);
+        if (state == RemoteControlClient.PLAYSTATE_PLAYING) { // may be change in player
+            if (mMediaPlayers.size() > 0) {
+                final Iterator<MediaPlayerInfo> rccIterator = mMediaPlayers.iterator();
+                while (rccIterator.hasNext()) {
+                    final MediaPlayerInfo di = rccIterator.next();
+                    if (di.GetPlayerFocus()) { // may be change in player, update with player specific state
+                        if (DEBUG) Log.v(TAG, "reset " + di.getPlayerPackageName() + " playbackState as: " + di.GetPlayState());
+                        mCurrentPlayState = di.GetPlayState();
+                        break;
+                    }
+                }
+            }
+        }
+        if (DEBUG) Log.v(TAG, "old state = " + mCurrentPlayState + ", new state= " + state);
         int oldPlayStatus = convertPlayStateToPlayStatus(mCurrentPlayState);
         int newPlayStatus = convertPlayStateToPlayStatus(state);
 
@@ -464,6 +583,29 @@ final class Avrcp {
         }
 
         mCurrentPlayState = state;
+
+        if (mMediaPlayers.size() > 0) {
+            final Iterator<MediaPlayerInfo> rccIterator = mMediaPlayers.iterator();
+            while (rccIterator.hasNext()) {
+                final MediaPlayerInfo di = rccIterator.next();
+                if (state == RemoteControlClient.PLAYSTATE_PLAYING) {
+                    if (di.GetPlayerFocus()) { // may be change in player, update player specific variables
+                        if (DEBUG) Log.v(TAG, "update " + di.getPlayerPackageName() + " playbackState as: " + mCurrentPlayState);
+                        di.SetPlayState((byte)mCurrentPlayState);
+                    } else { // reset the other players state as paused (default state)
+                        if (DEBUG) Log.v(TAG, "update " + di.getPlayerPackageName() + " playbackState as: Paused");
+                        di.SetPlayState((byte)RemoteControlClient.PLAYSTATE_PAUSED);
+                    }
+                } else {
+                    if (di.GetPlayerFocus()) {
+                        if (DEBUG) Log.v(TAG, "update " + di.getPlayerPackageName() + " playbackState as: " + mCurrentPlayState);
+                        di.SetPlayState((byte)mCurrentPlayState);
+                        break;
+                    }
+                }
+            }
+        }
+
         if (currentPosMs != RemoteControlClient.PLAYBACK_POSITION_INVALID) {
             mCurrentPosMs = currentPosMs;
         }
@@ -498,6 +640,53 @@ final class Avrcp {
         mTransportControlFlags = transportControlFlags;
     }
 
+    private void updateAvailableMediaPlayers() {
+        if (DEBUG) Log.v(TAG, "updateAvailableMediaPlayers");
+        if (mAvailablePlayersChangedNT == NOTIFICATION_TYPE_INTERIM) {
+            mAvailablePlayersChangedNT = NOTIFICATION_TYPE_CHANGED;
+            if (DEBUG) Log.v(TAG, "send AvailableMediaPlayers to stack");
+            registerNotificationRspAvailablePlayersChangedNative(mAvailablePlayersChangedNT);
+        }
+    }
+    private void updateAddressedMediaPlayer(int playerId) {
+        if (DEBUG) Log.v(TAG, "updateAddressedMediaPlayer");
+        if ((mAddressedPlayerChangedNT == NOTIFICATION_TYPE_INTERIM) && (mAddressedPlayerId != playerId)) {
+            if (DEBUG) Log.v(TAG, "send AddressedMediaPlayer to stack: playerId" + playerId);
+            mAddressedPlayerId = playerId;
+            mAddressedPlayerChangedNT = NOTIFICATION_TYPE_CHANGED;
+            registerNotificationRspAddressedPlayerChangedNative(mAddressedPlayerChangedNT, mAddressedPlayerId);
+            resetAndSendPlayerStatusReject();
+        } else {
+            mAddressedPlayerId = playerId;
+        }
+    }
+
+    private void resetAndSendPlayerStatusReject() {
+        if (DEBUG) Log.v(TAG, "resetAndSendPlayerStatusReject");
+
+        if (mPlayStatusChangedNT == NOTIFICATION_TYPE_INTERIM) {
+            if (DEBUG) Log.v(TAG, "send Play Status reject to stack");
+            mPlayStatusChangedNT = NOTIFICATION_TYPE_REJECT;
+            registerNotificationRspPlayStatusNative(mPlayStatusChangedNT, PLAYSTATUS_STOPPED);
+        }
+        if (mPlayPosChangedNT == NOTIFICATION_TYPE_INTERIM) {
+            if (DEBUG) Log.v(TAG, "send Play Position reject to stack");
+            mPlayPosChangedNT = NOTIFICATION_TYPE_REJECT;
+            registerNotificationRspPlayPosNative(mPlayPosChangedNT, -1);
+            mHandler.removeMessages(MESSAGE_PLAY_INTERVAL_TIMEOUT);
+        }
+        if (mTrackChangedNT == NOTIFICATION_TYPE_INTERIM) {
+            if (DEBUG) Log.v(TAG, "send Track Changed reject to stack");
+            mTrackChangedNT = NOTIFICATION_TYPE_REJECT;
+            byte[] track = new byte[TRACK_ID_SIZE];
+            /* track is stored in big endian format */
+            for (int i = 0; i < TRACK_ID_SIZE; ++i) {
+                track[i] = (byte) (mTrackNumber >> (56 - 8 * i));
+            }
+            registerNotificationRspTrackChangeNative(mTrackChangedNT, track);
+        }
+    }
+
     class Metadata {
         private String artist;
         private String trackTitle;
@@ -523,13 +712,53 @@ final class Avrcp {
         return data.getLong(Integer.toString(id));
     }
 
+    private void updateTrackNumber() {
+        if (DEBUG) Log.v(TAG, "updateTrackNumber");
+        if (mMediaPlayers.size() > 0) {
+            final Iterator<MediaPlayerInfo> rccIterator = mMediaPlayers.iterator();
+            while (rccIterator.hasNext()) {
+                final MediaPlayerInfo di = rccIterator.next();
+                if (di.GetPlayerFocus()) {
+                    if (DEBUG) Log.v(TAG, "incrementing TrackNumber:" + mTrackNumber + "by 1");
+                    mTrackNumber = di.GetTrackNumber();
+                    mTrackNumber ++;
+                    di.SetTrackNumber(mTrackNumber);
+                    break;
+                }
+            }
+        }
+    }
     private void updateMetadata(Bundle data) {
+        if (DEBUG) Log.v(TAG, "updateMetadata");
+        if (mMediaPlayers.size() > 0) {
+            final Iterator<MediaPlayerInfo> rccIterator = mMediaPlayers.iterator();
+            while (rccIterator.hasNext()) {
+                final MediaPlayerInfo di = rccIterator.next();
+                if (di.GetPlayerFocus()) {
+                    if (DEBUG) Log.v(TAG, "resetting current MetaData");
+                    mMetadata = di.GetMetadata();
+                    break;
+                }
+            }
+        }
         String oldMetadata = mMetadata.toString();
         mMetadata.artist = getMdString(data, MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST);
         mMetadata.trackTitle = getMdString(data, MediaMetadataRetriever.METADATA_KEY_TITLE);
         mMetadata.albumTitle = getMdString(data, MediaMetadataRetriever.METADATA_KEY_ALBUM);
+
+        if (mMediaPlayers.size() > 0) {
+            final Iterator<MediaPlayerInfo> rccIterator = mMediaPlayers.iterator();
+            while (rccIterator.hasNext()) {
+                final MediaPlayerInfo di = rccIterator.next();
+                if (di.GetPlayerFocus()) {
+                    if (DEBUG) Log.v(TAG, "updating List MetaData");
+                    di.SetMetadata(mMetadata);
+                    break;
+                }
+            }
+        }
         if (!oldMetadata.equals(mMetadata.toString())) {
-            mTrackNumber++;
+            updateTrackNumber();
             if (mTrackChangedNT == NOTIFICATION_TYPE_INTERIM) {
                 mTrackChangedNT = NOTIFICATION_TYPE_CHANGED;
                 sendTrackChangedRsp();
@@ -576,11 +805,118 @@ final class Avrcp {
         mHandler.sendMessage(msg);
     }
 
+    private void setAddressedPlayer(int playerId) {
+        if (DEBUG) Log.v(TAG, "setAddressedPlayer");
+        String packageName = null;
+        if (mMediaPlayers.size() > 0) {
+            final Iterator<MediaPlayerInfo> rccIterator = mMediaPlayers.iterator();
+            while (rccIterator.hasNext()) {
+                final MediaPlayerInfo di = rccIterator.next();
+                if (di.RetrievePlayerId() == playerId) {
+                    packageName = di.RetrievePlayerPackageName();
+                }
+            }
+        }
+        if(packageName != null) {
+            String newPackageName = packageName.replace("com.android", "org.codeaurora");
+            Intent mediaIntent = new Intent(newPackageName + ".setaddressedplayer");
+            mediaIntent.setPackage(packageName);
+            mContext.sendBroadcast(mediaIntent); // This needs to be caught in respective media players
+            if (DEBUG) Log.v(TAG, "Intent Broadcasted: " + newPackageName + ".setaddressedplayer");
+            setAdressedPlayerRspNative ((byte)0x04);
+        }else {
+            if (DEBUG) Log.v(TAG, "Error: No such media player available, hence can not be addressed");
+            setAdressedPlayerRspNative ((byte)0x011);
+        }
+    }
+    private void getFolderItems(byte scope, int start, int end, int attrCnt) {
+        if (DEBUG) Log.v(TAG, "getFolderItems");
+        if (scope == 0x00) { // populate mediaplayer item list here
+            byte[] folderItems = new byte[attrCnt]; // this value needs to be configured as per the Max pckt size received in request frame from stack
+            int[] folderItemLengths = new int[32]; // need to check if we can configure this dynamically
+            int availableMediaPlayers = 0;
+            int count = 0;
+            int positionItemStart = 0;
+            if (mMediaPlayers.size() > 0) {
+                final Iterator<MediaPlayerInfo> rccIterator = mMediaPlayers.iterator();
+                while (rccIterator.hasNext()) {
+                    final MediaPlayerInfo di = rccIterator.next();
+                    if (di.GetPlayerAvailablility()) {
+                        byte[] playerEntry = di.RetrievePlayerItemEntry();
+                        int length = di.RetrievePlayerEntryLength();
+                        folderItemLengths[availableMediaPlayers ++] = length;
+                        for (count = 0; count < length; count ++) {
+                            folderItems[positionItemStart + count] = playerEntry[count];
+                        }
+                        positionItemStart += length; // move start to next item start
+                    }
+                }
+            }
+            if (DEBUG) Log.v(TAG, "Number of available MediaPlayers = " + availableMediaPlayers);
+            getFolderItemsRspNative ((byte)0x04, 0x1357, availableMediaPlayers, folderItems, folderItemLengths);
+        }
+    }
     private void registerNotification(int eventId, int param) {
         Message msg = mHandler.obtainMessage(MESSAGE_REGISTER_NOTIFICATION, eventId, param);
         mHandler.sendMessage(msg);
     }
+    private void processRCCStateChange(String callingPackageName, int isFocussed, int isAvailable) {
+        if (DEBUG) Log.v(TAG, "processRCCStateChange");
+        boolean available = false;
+        boolean focussed = false;
+        boolean isResetFocusRequired = false;
 
+        if (isFocussed == 1)
+            focussed = true;
+        if (isAvailable == 1)
+            available = true;
+
+        if (focussed)
+            isResetFocusRequired = true; // need to reset other player's focus.
+
+        if (mMediaPlayers.size() > 0) {
+            final Iterator<MediaPlayerInfo> rccIterator = mMediaPlayers.iterator();
+            while (rccIterator.hasNext()) {
+                final MediaPlayerInfo di = rccIterator.next();
+                if (di.RetrievePlayerPackageName().equals(callingPackageName)) {
+                    if (di.GetPlayerAvailablility() != available) {
+                        di.SetPlayerAvailablility(available);
+                        if (DEBUG) Log.v(TAG, "setting " + callingPackageName + " availability: " + available);
+                        if (mHandler != null) {
+                            if (DEBUG) Log.v(TAG, "Send MSG_UPDATE_AVAILABLE_PLAYERS");
+                            mHandler.obtainMessage(MSG_UPDATE_AVAILABLE_PLAYERS, 0, 0, 0).sendToTarget();
+                        }
+                    }
+                    if (di.GetPlayerFocus() != focussed) {
+                        di.SetPlayerFocus(focussed);
+                        if (DEBUG) Log.v(TAG, "setting " + callingPackageName + " focus: " + focussed);
+                        if(isResetFocusRequired) { // this ensures we got this message for fous on.
+                            if (mHandler != null) {
+                                if (DEBUG) Log.v(TAG, "Send MSG_UPDATE_ADDRESSED_PLAYER");
+                                mHandler.obtainMessage(MSG_UPDATE_ADDRESSED_PLAYER, di.RetrievePlayerId(), 0, 0).sendToTarget();
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        if (DEBUG) Log.v(TAG, "isResetFocusRequired: " + isResetFocusRequired);
+
+        if (isResetFocusRequired) {
+            if (mMediaPlayers.size() > 1) { // this is applicable only if list contains more than one media players
+                final Iterator<MediaPlayerInfo> rccIterator = mMediaPlayers.iterator();
+                while (rccIterator.hasNext()) {
+                    final MediaPlayerInfo di = rccIterator.next();
+                    if (!(di.RetrievePlayerPackageName().equals(callingPackageName))) {
+                        if (DEBUG) Log.v(TAG, "setting " + callingPackageName + " focus: false");
+                        di.SetPlayerFocus(false); // reset focus for all other players
+                    }
+                }
+            }
+        }
+    }
     private void processRegisterNotification(int eventId, int param) {
         switch (eventId) {
             case EVT_PLAY_STATUS_CHANGED:
@@ -609,6 +945,21 @@ final class Avrcp {
                 registerNotificationRspPlayPosNative(mPlayPosChangedNT, (int)songPosition);
                 break;
 
+            case EVT_ADDRESSED_PLAYER_CHANGED:
+                if (DEBUG) Log.v(TAG, "Process EVT_ADDRESSED_PLAYER_CHANGED Interim: Player ID: " + mAddressedPlayerId);
+                mAddressedPlayerChangedNT = NOTIFICATION_TYPE_INTERIM;
+                registerNotificationRspAddressedPlayerChangedNative(mAddressedPlayerChangedNT, mAddressedPlayerId);
+                break;
+
+            case EVT_AVAILABLE_PLAYERS_CHANGED:
+                if (DEBUG) Log.v(TAG, "Process EVT_AVAILABLE_PLAYERS_CHANGED Interim");
+                mAvailablePlayersChangedNT = NOTIFICATION_TYPE_INTERIM;
+                registerNotificationRspAvailablePlayersChangedNative(mAvailablePlayersChangedNT);
+                break;
+
+            default:
+                Log.v(TAG, "processRegisterNotification: Unhandled Type: " + eventId);
+                break;
         }
     }
 
@@ -797,12 +1148,12 @@ final class Avrcp {
     // Do not modify without updating the HAL bt_rc.h files.
 
     // match up with btrc_play_status_t enum of bt_rc.h
-    final static int PLAYSTATUS_STOPPED = 0;
-    final static int PLAYSTATUS_PLAYING = 1;
-    final static int PLAYSTATUS_PAUSED = 2;
-    final static int PLAYSTATUS_FWD_SEEK = 3;
-    final static int PLAYSTATUS_REV_SEEK = 4;
-    final static int PLAYSTATUS_ERROR = 255;
+    final static byte PLAYSTATUS_STOPPED = 0;
+    final static byte PLAYSTATUS_PLAYING = 1;
+    final static byte PLAYSTATUS_PAUSED = 2;
+    final static byte PLAYSTATUS_FWD_SEEK = 3;
+    final static byte PLAYSTATUS_REV_SEEK = 4;
+    final static short PLAYSTATUS_ERROR = 255;
 
     // match up with btrc_media_attr_t enum of bt_rc.h
     final static int MEDIA_ATTR_TITLE = 1;
@@ -823,13 +1174,315 @@ final class Avrcp {
     final static int EVT_SYSTEM_STATUS_CHANGED = 7;
     final static int EVT_APP_SETTINGS_CHANGED = 8;
 
+    final static int EVT_AVAILABLE_PLAYERS_CHANGED = 10; //0x0a
+    final static int EVT_ADDRESSED_PLAYER_CHANGED = 11; //0x0b
     // match up with btrc_notification_type_t enum of bt_rc.h
     final static int NOTIFICATION_TYPE_INTERIM = 0;
     final static int NOTIFICATION_TYPE_CHANGED = 1;
+    final static int NOTIFICATION_TYPE_REJECT = 2;
 
     // match up with BTRC_UID_SIZE of bt_rc.h
     final static int TRACK_ID_SIZE = 8;
 
+    final static byte ITEM_PLAYER = 0x01;
+
+    final static int SCOPE_PLAYER_LIST = 0x00;
+
+    final static int FOLDER_ITEM_COUNT_NONE = 0xFF;
+
+    final static short CHAR_SET_UTF8 = 0x006A;
+
+    // major player type
+    final static byte MAJOR_TYPE_AUDIO = 0x01;  /* Audio */
+    final static byte MAJOR_TYPE_VIDEO = 0x02;  /* Video */
+    final static byte MAJOR_TYPE_BC_AUDIO = 0x04;  /* Broadcasting Audio */
+    final static byte MAJOR_TYPE_BC_VIDEO = 0x08;  /* Broadcasting Video */
+    final static short MAJOR_TYPE_INVALID = 0xF0;
+
+    // player sub type
+    final static int SUB_TYPE_NONE = 0x0000;
+    final static int SUB_TYPE_AUDIO_BOOK = 0x0001;  /* Audio Book */
+    final static int SUB_TYPE_PODCAST = 0x0002;  /* Podcast */
+    final static int SUB_TYPE_INVALID = 0x00FC;
+
+    // supported feature-mask
+    final static int FEATURE_MASK_SELECT_BIT_NO = 0;
+    final static int FEATURE_MASK_SELECT_MASK = 0x01;
+    final static int FEATURE_MASK_SELECT_OFFSET = 0;
+
+    final static int FEATURE_MASK_UP_BIT_NO = 1;
+    final static int FEATURE_MASK_UP_MASK = 0x02;
+    final static int FEATURE_MASK_UP_OFFSET = 0;
+
+    final static int FEATURE_MASK_DOWN_BIT_NO = 2;
+    final static int FEATURE_MASK_DOWN_MASK = 0x04;
+    final static int FEATURE_MASK_DOWN_OFFSET = 0;
+
+    final static int FEATURE_MASK_LEFT_BIT_NO = 3;
+    final static int FEATURE_MASK_LEFT_MASK = 0x08;
+    final static int FEATURE_MASK_LEFT_OFFSET = 0;
+
+    final static int FEATURE_MASK_RIGHT_BIT_NO = 4;
+    final static int FEATURE_MASK_RIGHT_MASK = 0x10;
+    final static int FEATURE_MASK_RIGHT_OFFSET = 0;
+
+    final static int FEATURE_MASK_RIGHTUP_BIT_NO = 5;
+    final static int FEATURE_MASK_RIGHTUP_MASK = 0x20;
+    final static int FEATURE_MASK_RIGHTUP_OFFSET = 0;
+
+    final static int FEATURE_MASK_RIGHTDOWN_BIT_NO = 6;
+    final static int FEATURE_MASK_RIGHTDOWN_MASK = 0x40;
+    final static int FEATURE_MASK_RIGHTDOWN_OFFSET = 0;
+
+    final static int FEATURE_MASK_LEFTUP_BIT_NO = 7;
+    final static int FEATURE_MASK_LEFTUP_MASK = 0x80;
+    final static int FEATURE_MASK_LEFTUP_OFFSET = 0;
+
+    final static int FEATURE_MASK_LEFTDOWN_BIT_NO = 8;
+    final static int FEATURE_MASK_LEFTDOWN_MASK = 0x01;
+    final static int FEATURE_MASK_LEFTDOWN_OFFSET = 1;
+
+    final static int FEATURE_MASK_ROOT_MENU_BIT_NO = 9;
+    final static int FEATURE_MASK_ROOT_MENU_MASK = 0x02;
+    final static int FEATURE_MASK_ROOT_MENU_OFFSET = 1;
+
+    final static int FEATURE_MASK_SETUP_MENU_BIT_NO = 10;
+    final static int FEATURE_MASK_SETUP_MENU_MASK = 0x04;
+    final static int FEATURE_MASK_SETUP_MENU_OFFSET = 1;
+
+    final static int FEATURE_MASK_CONTENTS_MENU_BIT_NO = 11;
+    final static int FEATURE_MASK_CONTENTS_MENU_MASK = 0x08;
+    final static int FEATURE_MASK_CONTENTS_MENU_OFFSET = 1;
+
+    final static int FEATURE_MASK_FAVORITE_MENU_BIT_NO = 12;
+    final static int FEATURE_MASK_FAVORITE_MENU_MASK = 0x10;
+    final static int FEATURE_MASK_FAVORITE_MENU_OFFSET = 1;
+
+    final static int FEATURE_MASK_EXIT_BIT_NO = 13;
+    final static int FEATURE_MASK_EXIT_MASK = 0x20;
+    final static int FEATURE_MASK_EXIT_OFFSET = 1;
+
+    final static int FEATURE_MASK_0_BIT_NO = 14;
+    final static int FEATURE_MASK_0_MASK = 0x40;
+    final static int FEATURE_MASK_0_OFFSET = 1;
+
+    final static int FEATURE_MASK_1_BIT_NO = 15;
+    final static int FEATURE_MASK_1_MASK = 0x80;
+    final static int FEATURE_MASK_1_OFFSET = 1;
+
+    final static int FEATURE_MASK_2_BIT_NO = 16;
+    final static int FEATURE_MASK_2_MASK = 0x01;
+    final static int FEATURE_MASK_2_OFFSET = 2;
+
+    final static int FEATURE_MASK_3_BIT_NO = 17;
+    final static int FEATURE_MASK_3_MASK = 0x02;
+    final static int FEATURE_MASK_3_OFFSET = 2;
+
+    final static int FEATURE_MASK_4_BIT_NO = 18;
+    final static int FEATURE_MASK_4_MASK = 0x04;
+    final static int FEATURE_MASK_4_OFFSET = 2;
+
+    final static int FEATURE_MASK_5_BIT_NO = 19;
+    final static int FEATURE_MASK_5_MASK = 0x08;
+    final static int FEATURE_MASK_5_OFFSET = 2;
+
+    final static int FEATURE_MASK_6_BIT_NO = 20;
+    final static int FEATURE_MASK_6_MASK = 0x10;
+    final static int FEATURE_MASK_6_OFFSET = 2;
+
+    final static int FEATURE_MASK_7_BIT_NO = 21;
+    final static int FEATURE_MASK_7_MASK = 0x20;
+    final static int FEATURE_MASK_7_OFFSET = 2;
+
+    final static int FEATURE_MASK_8_BIT_NO = 22;
+    final static int FEATURE_MASK_8_MASK = 0x40;
+    final static int FEATURE_MASK_8_OFFSET = 2;
+
+    final static int FEATURE_MASK_9_BIT_NO = 23;
+    final static int FEATURE_MASK_9_MASK = 0x80;
+    final static int FEATURE_MASK_9_OFFSET = 2;
+
+    final static int FEATURE_MASK_DOT_BIT_NO = 24;
+    final static int FEATURE_MASK_DOT_MASK = 0x01;
+    final static int FEATURE_MASK_DOT_OFFSET = 3;
+
+    final static int FEATURE_MASK_ENTER_BIT_NO = 25;
+    final static int FEATURE_MASK_ENTER_MASK = 0x02;
+    final static int FEATURE_MASK_ENTER_OFFSET = 3;
+
+    final static int FEATURE_MASK_CLEAR_BIT_NO = 26;
+    final static int FEATURE_MASK_CLEAR_MASK = 0x04;
+    final static int FEATURE_MASK_CLEAR_OFFSET = 3;
+
+    final static int FEATURE_MASK_CHNL_UP_BIT_NO = 27;
+    final static int FEATURE_MASK_CHNL_UP_MASK = 0x08;
+    final static int FEATURE_MASK_CHNL_UP_OFFSET = 3;
+
+    final static int FEATURE_MASK_CHNL_DOWN_BIT_NO = 28;
+    final static int FEATURE_MASK_CHNL_DOWN_MASK = 0x10;
+    final static int FEATURE_MASK_CHNL_DOWN_OFFSET = 3;
+
+    final static int FEATURE_MASK_PREV_CHNL_BIT_NO = 29;
+    final static int FEATURE_MASK_PREV_CHNL_MASK = 0x20;
+    final static int FEATURE_MASK_PREV_CHNL_OFFSET = 3;
+
+    final static int FEATURE_MASK_SOUND_SEL_BIT_NO = 30;
+    final static int FEATURE_MASK_SOUND_SEL_MASK = 0x40;
+    final static int FEATURE_MASK_SOUND_SEL_OFFSET = 3;
+
+    final static int FEATURE_MASK_INPUT_SEL_BIT_NO = 31;
+    final static int FEATURE_MASK_INPUT_SEL_MASK = 0x80;
+    final static int FEATURE_MASK_INPUT_SEL_OFFSET = 3;
+
+    final static int FEATURE_MASK_DISP_INFO_BIT_NO = 32;
+    final static int FEATURE_MASK_DISP_INFO_MASK = 0x01;
+    final static int FEATURE_MASK_DISP_INFO_OFFSET = 4;
+
+    final static int FEATURE_MASK_HELP_BIT_NO = 33;
+    final static int FEATURE_MASK_HELP_MASK = 0x02;
+    final static int FEATURE_MASK_HELP_OFFSET = 4;
+
+    final static int FEATURE_MASK_PAGE_UP_BIT_NO = 34;
+    final static int FEATURE_MASK_PAGE_UP_MASK = 0x04;
+    final static int FEATURE_MASK_PAGE_UP_OFFSET = 4;
+
+    final static int FEATURE_MASK_PAGE_DOWN_BIT_NO = 35;
+    final static int FEATURE_MASK_PAGE_DOWN_MASK = 0x08;
+    final static int FEATURE_MASK_PAGE_DOWN_OFFSET = 4;
+
+    final static int FEATURE_MASK_POWER_BIT_NO = 36;
+    final static int FEATURE_MASK_POWER_MASK = 0x10;
+    final static int FEATURE_MASK_POWER_OFFSET = 4;
+
+    final static int FEATURE_MASK_VOL_UP_BIT_NO = 37;
+    final static int FEATURE_MASK_VOL_UP_MASK = 0x20;
+    final static int FEATURE_MASK_VOL_UP_OFFSET = 4;
+
+    final static int FEATURE_MASK_VOL_DOWN_BIT_NO = 38;
+    final static int FEATURE_MASK_VOL_DOWN_MASK = 0x40;
+    final static int FEATURE_MASK_VOL_DOWN_OFFSET = 4;
+
+    final static int FEATURE_MASK_MUTE_BIT_NO = 39;
+    final static int FEATURE_MASK_MUTE_MASK = 0x80;
+    final static int FEATURE_MASK_MUTE_OFFSET = 4;
+
+    final static int FEATURE_MASK_PLAY_BIT_NO = 40;
+    final static int FEATURE_MASK_PLAY_MASK = 0x01;
+    final static int FEATURE_MASK_PLAY_OFFSET = 5;
+
+    final static int FEATURE_MASK_STOP_BIT_NO = 41;
+    final static int FEATURE_MASK_STOP_MASK = 0x02;
+    final static int FEATURE_MASK_STOP_OFFSET = 5;
+
+    final static int FEATURE_MASK_PAUSE_BIT_NO = 42;
+    final static int FEATURE_MASK_PAUSE_MASK = 0x04;
+    final static int FEATURE_MASK_PAUSE_OFFSET = 5;
+
+    final static int FEATURE_MASK_RECORD_BIT_NO = 43;
+    final static int FEATURE_MASK_RECORD_MASK = 0x08;
+    final static int FEATURE_MASK_RECORD_OFFSET = 5;
+
+    final static int FEATURE_MASK_REWIND_BIT_NO = 44;
+    final static int FEATURE_MASK_REWIND_MASK = 0x10;
+    final static int FEATURE_MASK_REWIND_OFFSET = 5;
+
+    final static int FEATURE_MASK_FAST_FWD_BIT_NO = 45;
+    final static int FEATURE_MASK_FAST_FWD_MASK = 0x20;
+    final static int FEATURE_MASK_FAST_FWD_OFFSET = 5;
+
+    final static int FEATURE_MASK_EJECT_BIT_NO = 46;
+    final static int FEATURE_MASK_EJECT_MASK = 0x40;
+    final static int FEATURE_MASK_EJECT_OFFSET = 5;
+
+    final static int FEATURE_MASK_FORWARD_BIT_NO = 47;
+    final static int FEATURE_MASK_FORWARD_MASK = 0x80;
+    final static int FEATURE_MASK_FORWARD_OFFSET = 5;
+
+    final static int FEATURE_MASK_BACKWARD_BIT_NO = 48;
+    final static int FEATURE_MASK_BACKWARD_MASK = 0x01;
+    final static int FEATURE_MASK_BACKWARD_OFFSET = 6;
+
+    final static int FEATURE_MASK_ANGLE_BIT_NO = 49;
+    final static int FEATURE_MASK_ANGLE_MASK = 0x02;
+    final static int FEATURE_MASK_ANGLE_OFFSET = 6;
+
+    final static int FEATURE_MASK_SUBPICTURE_BIT_NO = 50;
+    final static int FEATURE_MASK_SUBPICTURE_MASK = 0x04;
+    final static int FEATURE_MASK_SUBPICTURE_OFFSET = 6;
+
+    final static int FEATURE_MASK_F1_BIT_NO = 51;
+    final static int FEATURE_MASK_F1_MASK = 0x08;
+    final static int FEATURE_MASK_F1_OFFSET = 6;
+
+    final static int FEATURE_MASK_F2_BIT_NO = 52;
+    final static int FEATURE_MASK_F2_MASK = 0x10;
+    final static int FEATURE_MASK_F2_OFFSET = 6;
+
+    final static int FEATURE_MASK_F3_BIT_NO = 53;
+    final static int FEATURE_MASK_F3_MASK = 0x20;
+    final static int FEATURE_MASK_F3_OFFSET = 6;
+
+    final static int FEATURE_MASK_F4_BIT_NO = 54;
+    final static int FEATURE_MASK_F4_MASK = 0x40;
+    final static int FEATURE_MASK_F4_OFFSET = 6;
+
+    final static int FEATURE_MASK_F5_BIT_NO = 55;
+    final static int FEATURE_MASK_F5_MASK = 0x80;
+    final static int FEATURE_MASK_F5_OFFSET = 6;
+
+    final static int FEATURE_MASK_VENDOR_BIT_NO = 56;
+    final static int FEATURE_MASK_VENDOR_MASK = 0x01;
+    final static int FEATURE_MASK_VENDOR_OFFSET = 7;
+
+    final static int FEATURE_MASK_GROUP_NAVI_BIT_NO = 57;
+    final static int FEATURE_MASK_GROUP_NAVI_MASK = 0x02;
+    final static int FEATURE_MASK_GROUP_NAVI_OFFSET = 7;
+
+    final static int FEATURE_MASK_ADV_CTRL_BIT_NO = 58;
+    final static int FEATURE_MASK_ADV_CTRL_MASK = 0x04;
+    final static int FEATURE_MASK_ADV_CTRL_OFFSET = 7;
+
+    final static int FEATURE_MASK_BROWSE_BIT_NO = 59;
+    final static int FEATURE_MASK_BROWSE_MASK = 0x08;
+    final static int FEATURE_MASK_BROWSE_OFFSET = 7;
+
+    final static int FEATURE_MASK_SEARCH_BIT_NO = 60;
+    final static int FEATURE_MASK_SEARCH_MASK = 0x10;
+    final static int FEATURE_MASK_SEARCH_OFFSET = 7;
+
+    final static int FEATURE_MASK_ADD2NOWPLAY_BIT_NO = 61;
+    final static int FEATURE_MASK_ADD2NOWPLAY_MASK = 0x20;
+    final static int FEATURE_MASK_ADD2NOWPLAY_OFFSET = 7;
+
+    final static int FEATURE_MASK_UID_UNIQUE_BIT_NO = 62;
+    final static int FEATURE_MASK_UID_UNIQUE_MASK = 0x40;
+    final static int FEATURE_MASK_UID_UNIQUE_OFFSET = 7;
+
+    final static int FEATURE_MASK_BR_WH_ADDR_BIT_NO = 63;
+    final static int FEATURE_MASK_BR_WH_ADDR_MASK = 0x80;
+    final static int FEATURE_MASK_BR_WH_ADDR_OFFSET = 7;
+
+    final static int FEATURE_MASK_SEARCH_WH_ADDR_BIT_NO = 64;
+    final static int FEATURE_MASK_SEARCH_WH_ADDR_MASK = 0x01;
+    final static int FEATURE_MASK_SEARCH_WH_ADDR_OFFSET = 8;
+
+    final static int FEATURE_MASK_NOW_PLAY_BIT_NO = 65;
+    final static int FEATURE_MASK_NOW_PLAY_MASK = 0x02;
+    final static int FEATURE_MASK_NOW_PLAY_OFFSET = 8;
+
+    final static int FEATURE_MASK_UID_PERSIST_BIT_NO = 66;
+    final static int FEATURE_MASK_UID_PERSIST_MASK = 0x04;
+    final static int FEATURE_MASK_UID_PERSIST_OFFSET = 8;
+
+    final static short FEATURE_BITMASK_FIELD_LENGTH = 16;
+    final static short PLAYER_ID_FIELD_LENGTH = 2;
+    final static short MAJOR_PLAYER_TYPE_FIELD_LENGTH = 1;
+    final static short PLAYER_SUBTYPE_FIELD_LENGTH = 4;
+    final static short PLAY_STATUS_FIELD_LENGTH = 1;
+    final static short CHARSET_ID_FIELD_LENGTH = 2;
+    final static short DISPLAYABLE_NAME_LENGTH_FIELD_LENGTH = 2;
+    final static short ITEM_TYPE_LENGTH = 1;
+    final static short ITEM_LENGTH_LENGTH = 2;
     private native static void classInitNative();
     private native void initNative();
     private native void cleanupNative();
@@ -839,4 +1492,193 @@ final class Avrcp {
     private native boolean registerNotificationRspTrackChangeNative(int type, byte[] track);
     private native boolean registerNotificationRspPlayPosNative(int type, int playPos);
     private native boolean setVolumeNative(int volume);
+    private native boolean registerNotificationRspAddressedPlayerChangedNative(int type, int playerId);
+    private native boolean registerNotificationRspAvailablePlayersChangedNative (int type);
+    private native boolean setAdressedPlayerRspNative(byte statusCode);
+    private native boolean getFolderItemsRspNative(byte statusCode, int uidCounter, int itemCount, byte[] folderItems, int[] folderItemLengths);
+
+    /**
+      * A class to encapsulate all the information about a media player.
+      * static record will be maintained for all applicable media players
+      * only the isavailable and isFocussed field will be changed as and when applicable
+      */
+    private class MediaPlayerInfo {
+        private short mPlayerId;
+        private byte mMajorPlayerType;
+        private int mPlayerSubType;
+        private byte mPlayState;
+        private short mCharsetId;
+        private short mDisplayableNameLength;
+        private byte[] mDisplayableName;
+        private String mPlayerPackageName;
+        private boolean mIsAvailable;
+        private boolean mIsFocussed;
+        private byte mItemType;
+        private Metadata mMetadata;
+        private long mTrackNumber;
+
+        // need to have the featuremask elements as int instead of byte, else MSB would be lost. Later need to take only
+        // 8 applicable bits from LSB.
+        private int[] mFeatureMask;
+        private short mItemLength;
+        private short mEntryLength;
+        public MediaPlayerInfo(short playerId, byte majorPlayerType,
+                    int playerSubType, byte playState, short charsetId,
+                    short displayableNameLength, byte[] displayableName,
+                    String playerPackageName, int[] featureMask ) {
+            mPlayerId = playerId;
+            mMajorPlayerType = majorPlayerType;
+            mPlayerSubType = playerSubType;
+            mPlayState = playState;
+            mCharsetId = charsetId;
+            mDisplayableNameLength = displayableNameLength;
+            mPlayerPackageName = playerPackageName;
+            mIsAvailable = false; // by default it is false, its toggled whenever applicable
+            mIsFocussed = false; // by default it is false, its toggled whenever applicable
+            mItemType = ITEM_PLAYER;
+            mFeatureMask = new int[FEATURE_BITMASK_FIELD_LENGTH];
+            mMetadata = new Metadata();
+            mTrackNumber = -1L;
+            for (int count = 0; count < FEATURE_BITMASK_FIELD_LENGTH; count ++) {
+                mFeatureMask[count] = featureMask[count];
+            }
+
+            mDisplayableName = new byte[mDisplayableNameLength];
+            for (int count = 0; count < mDisplayableNameLength; count ++) {
+                mDisplayableName[count] = displayableName[count];
+            }
+
+            mItemLength = (short)(mDisplayableNameLength + PLAYER_ID_FIELD_LENGTH +
+                MAJOR_PLAYER_TYPE_FIELD_LENGTH + PLAYER_SUBTYPE_FIELD_LENGTH +
+                PLAY_STATUS_FIELD_LENGTH + CHARSET_ID_FIELD_LENGTH +
+                DISPLAYABLE_NAME_LENGTH_FIELD_LENGTH + FEATURE_BITMASK_FIELD_LENGTH);
+            mEntryLength = (short)(mItemLength + /* ITEM_LENGTH_LENGTH +*/ ITEM_TYPE_LENGTH);
+            if (DEBUG) {
+                Log.v(TAG, "MediaPlayerInfo: mPlayerId=" + mPlayerId);
+                Log.v(TAG, "mMajorPlayerType=" + mMajorPlayerType + " mPlayerSubType=" + mPlayerSubType);
+                Log.v(TAG, "mPlayState=" + mPlayState + " mCharsetId=" + mCharsetId);
+                Log.v(TAG, "mPlayerPackageName=" + mPlayerPackageName + " mDisplayableNameLength=" + mDisplayableNameLength);
+                Log.v(TAG, "mItemLength=" + mItemLength + "mEntryLength=" + mEntryLength);
+                Log.v(TAG, "mFeatureMask=");
+                for (int count = 0; count < FEATURE_BITMASK_FIELD_LENGTH; count ++) {
+                    Log.v(TAG, "" + mFeatureMask[count]);
+                }
+                Log.v(TAG, "mDisplayableName=");
+                for (int count = 0; count < mDisplayableNameLength; count ++) {
+                    Log.v(TAG, "" + mDisplayableName[count]);
+                }
+            }
+        }
+
+        public String getPlayerPackageName() {
+            return mPlayerPackageName;
+        }
+
+        public Metadata GetMetadata() {
+            return mMetadata;
+        }
+
+        public void SetMetadata(Metadata metaData) {
+            mMetadata.albumTitle = metaData.albumTitle;
+            mMetadata.artist = metaData.artist;
+            mMetadata.trackTitle = metaData.trackTitle;
+        }
+        public byte GetPlayState() {
+            return mPlayState;
+        }
+
+        public void SetPlayState(byte playState) {
+            mPlayState = playState;
+        }
+
+        public long GetTrackNumber() {
+            return mTrackNumber;
+        }
+
+        public void SetTrackNumber(long trackNumber) {
+            mTrackNumber = trackNumber;
+        }
+
+        public void SetPlayerAvailablility(boolean isAvailable) {
+            mIsAvailable = isAvailable;
+        }
+
+        public void SetPlayerFocus(boolean isFocussed) {
+            mIsFocussed = isFocussed;
+        }
+
+        public boolean GetPlayerAvailablility() {
+            return mIsAvailable;
+        }
+
+        public boolean GetPlayerFocus() {
+            return mIsFocussed;
+        }
+
+        /*below apis are required while seraching for id by package name received from media players*/
+        public short RetrievePlayerId () {
+           return mPlayerId;
+        }
+
+        public String RetrievePlayerPackageName () {
+            return mPlayerPackageName;
+        }
+
+        public int RetrievePlayerEntryLength() {
+            return mEntryLength;
+        }
+
+        public byte[] RetrievePlayerItemEntry () {
+            byte[] playerEntry = new byte[mEntryLength];
+            int position =0;
+            int count;
+            playerEntry[position] = (byte)mItemType; position++;
+            playerEntry[position] = (byte)(mPlayerId & 0xff); position++;
+            playerEntry[position] = (byte)((mPlayerId >> 8) & 0xff); position++;
+            playerEntry[position] = (byte)mMajorPlayerType; position++;
+            for (count = 0; count < PLAYER_SUBTYPE_FIELD_LENGTH; count++) {
+                playerEntry[position] = (byte)((mPlayerSubType >> (8 * count)) & 0xff); position++;
+            }
+            playerEntry[position] = (byte)convertPlayStateToPlayStatus(mPlayState); position++;
+            for (count = 0; count < FEATURE_BITMASK_FIELD_LENGTH; count++) {
+                playerEntry[position] = (byte)mFeatureMask[count]; position++;
+            }
+            playerEntry[position] = (byte)(mCharsetId & 0xff); position++;
+            playerEntry[position] = (byte)((mCharsetId >> 8) & 0xff); position++;
+            playerEntry[position] = (byte)(mDisplayableNameLength & 0xff); position++;
+            playerEntry[position] = (byte)((mDisplayableNameLength >> 8) & 0xff); position++;
+            for (count = 0; count < mDisplayableNameLength; count++) {
+                playerEntry[position] = (byte)mDisplayableName[count]; position++;
+            }
+            if (position != mEntryLength) {
+                Log.e(TAG, "ERROR populating PlayerItemEntry: position:" +  position + "mEntryLength:" + mEntryLength);
+            }
+            if (DEBUG) {
+                Log.v(TAG, "MediaPlayerInfo: mPlayerId=" + mPlayerId);
+                Log.v(TAG, "mMajorPlayerType=" + mMajorPlayerType + " mPlayerSubType=" + mPlayerSubType);
+                Log.v(TAG, "mPlayState=" + mPlayState + " mCharsetId=" + mCharsetId);
+                Log.v(TAG, "mPlayerPackageName=" + mPlayerPackageName + " mDisplayableNameLength=" + mDisplayableNameLength);
+                Log.v(TAG, "mItemLength=" + mItemLength + "mEntryLength=" + mEntryLength);
+                Log.v(TAG, "mFeatureMask=");
+                for (count = 0; count < FEATURE_BITMASK_FIELD_LENGTH; count ++) {
+                    Log.v(TAG, "" + mFeatureMask[count]);
+                }
+                Log.v(TAG, "mDisplayableName=");
+                for (count = 0; count < mDisplayableNameLength; count ++) {
+                    Log.v(TAG, "" + mDisplayableName[count]);
+                }
+                Log.v(TAG, "playerEntry item is populated as below:=");
+                for (count = 0; count < position; count ++) {
+                    Log.v(TAG, "" + playerEntry[count]);
+                }
+            }
+            return playerEntry;
+        }
+    }
+
+    /**
+      * The media player instances
+      */
+    private ArrayList<MediaPlayerInfo> mMediaPlayers = new ArrayList<MediaPlayerInfo>(1);
+
 }
