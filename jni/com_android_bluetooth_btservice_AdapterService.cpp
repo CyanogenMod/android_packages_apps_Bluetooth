@@ -480,7 +480,11 @@ static bt_callbacks_t sBluetoothCallbacks = {
     dut_mode_recv_callback,
 
     le_test_mode_recv_callback,
-    energy_info_recv_callback
+    energy_info_recv_callback,
+    NULL,
+    NULL,
+    NULL,
+    NULL
 };
 
 // The callback to call when the wake alarm fires.
@@ -1409,6 +1413,10 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
     }
     if ((status = android::register_android_hardware_wipower(e)) < 0) {
         ALOGE("jni wipower service registration failure, status: %d", status);
+        return JNI_ERR;
+    }
+    if ((status = android::register_com_android_bluetooth_btservice_QAdapterService(e)) < 0) {
+        ALOGE("jni Q adapter service failure: %d", status);
         return JNI_ERR;
     }
     return JNI_VERSION_1_6;
