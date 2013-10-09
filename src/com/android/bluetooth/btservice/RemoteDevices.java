@@ -412,6 +412,85 @@ final class RemoteDevices {
         mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_PERM);
     }
 
+    void pinRequestCallback(byte[] address, byte[] name, int cod, boolean secure) {
+        //TODO(BT): Get wakelock and update name and cod
+        BluetoothDevice bdDevice = getDevice(address);
+        if (bdDevice == null) {
+            addDeviceProperties(address);
+        }
+        BluetoothClass btClass = bdDevice.getBluetoothClass();
+        int btDeviceClass = btClass.getDeviceClass();
+        if (btDeviceClass == BluetoothClass.Device.PERIPHERAL_KEYBOARD ||
+            btDeviceClass == BluetoothClass.Device.PERIPHERAL_KEYBOARD_POINTING) {
+            // Its a keyboard. Follow the HID spec recommendation of creating the
+            // passkey and displaying it to the user. If the keyboard doesn't follow
+            // the spec recommendation, check if the keyboard has a fixed PIN zero
+            // and pair.
+            //TODO: Add sFixedPinZerosAutoPairKeyboard() and maintain list of devices that have fixed pin
+            /*if (mAdapterService.isFixedPinZerosAutoPairKeyboard(address)) {
+                               mAdapterService.setPin(address, BluetoothDevice.convertPinToBytes("0000"));
+                               return;
+                     }*/
+            // Generate a variable PIN. This is not truly random but good enough.
+            int pin = (int) Math.floor(Math.random() * 1000000);
+            sendDisplayPinIntent(address, pin);
+            return;
+        }
+        infoLog("pinRequestCallback: " + address + " name:" + name + " cod:" +
+                cod + "secure" + secure );
+        Intent intent = new Intent(BluetoothDevice.ACTION_PAIRING_REQUEST);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, getDevice(address));
+        intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT,
+                BluetoothDevice.PAIRING_VARIANT_PIN);
+        intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+        mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
+        intent.putExtra(BluetoothDevice.EXTRA_SECURE_PAIRING, secure);
+        mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
+        return;
+    }
+
+    void sspRequestCallback(byte[] address, byte[] name, int cod, int pairingVariant,
+            int passkey) {
+        //TODO(BT): Get wakelock and update name and cod
+        BluetoothDevice bdDevice = getDevice(address);
+        if (bdDevice == null) {
+            addDeviceProperties(address);
+        }
+
+        infoLog("sspRequestCallback: " + address + " name: " + name + " cod: " +
+                cod + " pairingVariant " + pairingVariant + " passkey: " + passkey);
+        int variant;
+        boolean displayPasskey = false;
+        if (pairingVariant == AbstractionLayer.BT_SSP_VARIANT_PASSKEY_CONFIRMATION) {
+            variant = BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION;
+            displayPasskey = true;
+        } else if (pairingVariant == AbstractionLayer.BT_SSP_VARIANT_CONSENT) {
+            variant = BluetoothDevice.PAIRING_VARIANT_CONSENT;
+        } else if (pairingVariant == AbstractionLayer.BT_SSP_VARIANT_PASSKEY_ENTRY) {
+            variant = BluetoothDevice.PAIRING_VARIANT_PASSKEY;
+        } else if (pairingVariant == AbstractionLayer.BT_SSP_VARIANT_PASSKEY_NOTIFICATION) {
+            variant = BluetoothDevice.PAIRING_VARIANT_DISPLAY_PASSKEY;
+            displayPasskey = true;
+        } else {
+            errorLog("SSP Pairing variant not present");
+            return;
+        }
+        BluetoothDevice device = getDevice(address);
+        if (device == null) {
+           warnLog("Device is not known for:" + Utils.getAddressStringFromByte(address));
+           addDeviceProperties(address);
+           device = getDevice(address);
+        }
+        Intent intent = new Intent(BluetoothDevice.ACTION_PAIRING_REQUEST);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        if (displayPasskey) {
+            intent.putExtra(BluetoothDevice.EXTRA_PAIRING_KEY, passkey);
+        }
+        intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, variant);
+        intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+        mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
+    }
+
     void aclStateChangeCallback(int status, byte[] address, int newState) {
         BluetoothDevice device = getDevice(address);
 
