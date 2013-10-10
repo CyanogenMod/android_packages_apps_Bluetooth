@@ -660,9 +660,12 @@ public class BluetoothMapContentObserver {
                     case MMS:
                     {
                         /* Send message if folder is outbox */
+                        /* to do, support MMS in the future */
+                        /*
                         if (folder.equals("outbox")) {
                            handle = sendMmsMessage(folder, phone, (BluetoothMapbMessageMmsEmail)msg);
                         }
+                        */
                         break;
                     }
                     case SMS_GSM: //fall-through
