@@ -825,6 +825,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         int size = mVcardManager.getPhonebookSize(appParamValue.needTag);
         int needSendBody = handleAppParaForResponse(appParamValue, size, reply, op);
         if (needSendBody != NEED_SEND_BODY) {
+            op.noEndofBody();
             return needSendBody;
         }
 
@@ -946,6 +947,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         int pbSize = mVcardManager.getPhonebookSize(appParamValue.needTag);
         int needSendBody = handleAppParaForResponse(appParamValue, pbSize, reply, op);
         if (needSendBody != NEED_SEND_BODY) {
+            op.noEndofBody();
             return needSendBody;
         }
 
