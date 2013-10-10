@@ -23,7 +23,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.BroadcastReceiver;
 import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.IRemoteControlDisplay;
@@ -41,6 +40,7 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.util.Log;
+import android.content.BroadcastReceiver;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
@@ -70,6 +70,7 @@ final class Avrcp {
     private int mTransportControlFlags;
     private int mCurrentPlayState;
     private int mPlayStatusChangedNT;
+    private int mPlayerStatusChangeNT;
     private int mTrackChangedNT;
     private long mTrackNumber;
     private long mCurrentPosMs;
@@ -89,6 +90,8 @@ final class Avrcp {
     private final int mAudioStreamMax;
     private boolean mVolCmdInProgress;
     private int mAbsVolRetryTimes;
+    private static final String BLUETOOTH_ADMIN_PERM = android.Manifest.permission.BLUETOOTH_ADMIN;
+    private static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
 
     /* AVRC IDs from avrc_defs.h */
     private static final int AVRC_ID_REWIND = 0x48;
@@ -145,6 +148,77 @@ final class Avrcp {
     private static final int MAX_ERROR_RETRY_TIMES = 3;
     private static final int AVRCP_MAX_VOL = 127;
     private static final int AVRCP_BASE_VOLUME_STEP = 1;
+    private final static int MESSAGE_PLAYERSETTINGS_TIMEOUT = 602;
+    //Intents for PlayerApplication Settings
+    private static final String PLAYERSETTINGS_REQUEST = "org.codeaurora.music.playersettingsrequest";
+    private static final String PLAYERSETTINGS_RESPONSE =
+       "org.codeaurora.music.playersettingsresponse";
+
+    private class PlayerSettings {
+        public byte attr;
+        public byte [] attrIds;
+        public String path;
+    };
+
+    private PlayerSettings mPlayerSettings = new PlayerSettings();
+    private class localPlayerSettings {
+        public byte eq_value = 0x01;
+        public byte repeat_value = 0x01;
+        public byte shuffle_value = 0x01;
+        public byte scan_value = 0x01;
+    };
+    private localPlayerSettings settingValues = new localPlayerSettings();
+    private static final String COMMAND = "command";
+    private static final String CMDGET = "get";
+    private static final String CMDSET = "set";
+    private static final String EXTRA_GET_COMMAND = "commandExtra";
+    private static final String EXTRA_GET_RESPONSE = "Response";
+
+    private static final int GET_ATTRIBUTE_IDS = 0;
+    private static final int GET_VALUE_IDS = 1;
+    private static final int GET_ATTRIBUTE_TEXT = 2;
+    private static final int GET_VALUE_TEXT     = 3;
+    private static final int GET_ATTRIBUTE_VALUES = 4;
+    private static final int NOTIFY_ATTRIBUTE_VALUES = 5;
+    private static final int SET_ATTRIBUTE_VALUES  = 6;
+    private static final int GET_INVALID = 0xff;
+
+    private static final String EXTRA_ATTRIBUTE_ID = "Attribute";
+    private static final String EXTRA_VALUE_STRING_ARRAY = "ValueStrings";
+    private static final String EXTRA_ATTRIB_VALUE_PAIRS = "AttribValuePairs";
+    private static final String EXTRA_ATTRIBUTE_STRING_ARRAY = "AttributeStrings";
+    private static final String EXTRA_VALUE_ID_ARRAY = "Values";
+    private static final String EXTRA_ATTIBUTE_ID_ARRAY = "Attributes";
+
+    public static final int VALUE_SHUFFLEMODE_OFF = 1;
+    public static final int VALUE_SHUFFLEMODE_ALL = 2;
+    public static final int VALUE_REPEATMODE_OFF = 1;
+    public static final int VALUE_REPEATMODE_SINGLE = 2;
+    public static final int VALUE_REPEATMODE_ALL = 3;
+    public static final int VALUE_INVALID = 0;
+
+    public static final int ATTRIBUTE_EQUALIZER = 1;
+    public static final int ATTRIBUTE_REPEATMODE = 2;
+    public static final int ATTRIBUTE_SHUFFLEMODE = 3;
+    public static final int ATTRIBUTE_SCANMODE = 4;
+    public static final int NUMPLAYER_ATTRIBUTE = 2;
+
+
+    private byte [] def_attrib = new byte [] {ATTRIBUTE_REPEATMODE, ATTRIBUTE_SHUFFLEMODE};
+    private byte [] value_repmode = new byte [] { VALUE_REPEATMODE_OFF,
+                                                  VALUE_REPEATMODE_SINGLE,
+                                                  VALUE_REPEATMODE_ALL };
+
+    private byte [] value_shufmode = new byte [] { VALUE_SHUFFLEMODE_OFF,
+                                                  VALUE_SHUFFLEMODE_ALL };
+    private byte [] value_default = new byte [] {0};
+    private final String UPDATE_ATTRIBUTES = "UpdateSupportedAttributes";
+    private final String UPDATE_VALUES = "UpdateSupportedValues";
+    private final String UPDATE_ATTRIB_VALUE = "UpdateCurrentValues";
+    private final String UPDATE_ATTRIB_TEXT = "UpdateAttributesText";
+    private final String UPDATE_VALUE_TEXT = "UpdateValuesText";
+    private ArrayList <Integer> mPendingCmds;
+    private IntentFilter mAvrcpIntentFilter;
 
     static {
         classInitNative();
@@ -156,6 +230,7 @@ final class Avrcp {
         mCurrentPlayState = RemoteControlClient.PLAYSTATE_NONE; // until we get a callback
         mPlayStatusChangedNT = NOTIFICATION_TYPE_CHANGED;
         mTrackChangedNT = NOTIFICATION_TYPE_CHANGED;
+        mPlayerStatusChangeNT = NOTIFICATION_TYPE_CHANGED;
         mAddressedPlayerChangedNT = NOTIFICATION_TYPE_CHANGED;
         mAvailablePlayersChangedNT = NOTIFICATION_TYPE_CHANGED;
         mTrackNumber = -1L;
@@ -196,6 +271,15 @@ final class Avrcp {
         intentFilter.addAction(AudioManager.RCC_CHANGED_ACTION);
         mContext.registerReceiver(mIntentReceiver, intentFilter);
         registerMediaPlayers();
+        mAvrcpIntentFilter = new IntentFilter();
+        mAvrcpIntentFilter.addAction(PLAYERSETTINGS_RESPONSE);
+        mPendingCmds = new ArrayList<Integer>();
+        try {
+            mContext.registerReceiver(mQAvrcpReceiver, mAvrcpIntentFilter);
+        }catch (Exception e) {
+            //Error
+            Log.w(TAG,"Unable to register Avrcp receiver",e);
+        }
     }
 
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
@@ -288,6 +372,69 @@ final class Avrcp {
         cleanupNative();
     }
 
+    //Listen for intents from MediaPlayer Service and update
+    // data structure
+    private final BroadcastReceiver mQAvrcpReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+             String action = intent.getAction();
+             if (action.equals(PLAYERSETTINGS_RESPONSE)) {
+                int getResponse = intent.getIntExtra(EXTRA_GET_RESPONSE,
+                                                      GET_INVALID);
+                byte [] data;
+                String [] text;
+                synchronized (mPendingCmds) {
+                    Integer val = new Integer(getResponse);
+                    if (mPendingCmds.contains(val)) {
+                        mHandler.removeMessages(MESSAGE_PLAYERSETTINGS_TIMEOUT);
+                        mPendingCmds.remove(val);
+                    }
+                }
+                if (DEBUG) Log.v(TAG,"getResponse" + getResponse);
+                switch (getResponse) {
+                    case GET_ATTRIBUTE_IDS:
+                        data = intent.getByteArrayExtra(EXTRA_ATTIBUTE_ID_ARRAY);
+                        byte numAttr = (byte) data.length;
+                        if (DEBUG) Log.v(TAG,"GET_ATTRIBUTE_IDS");
+                        getListPlayerappAttrRspNative(numAttr,data);
+                    break;
+                    case GET_VALUE_IDS:
+                        data = intent.getByteArrayExtra(EXTRA_VALUE_ID_ARRAY);
+                        numAttr = (byte) data.length;
+                        if (DEBUG) Log.v(TAG,"GET_VALUE_IDS" + numAttr);
+                        getPlayerAppValueRspNative(numAttr, data);
+                    break;
+                    case GET_ATTRIBUTE_VALUES:
+                    case NOTIFY_ATTRIBUTE_VALUES:
+                        data = intent.getByteArrayExtra(EXTRA_ATTRIB_VALUE_PAIRS);
+                        updateLocalPlayerSettings(data);
+                        numAttr = (byte) data.length;
+                        if (DEBUG) Log.v(TAG,"GET_ATTRIBUTE_VALUES" + numAttr);
+                        if (mPlayerStatusChangeNT == NOTIFICATION_TYPE_INTERIM && getResponse
+                                                                  == NOTIFY_ATTRIBUTE_VALUES) {
+                        mPlayerStatusChangeNT = NOTIFICATION_TYPE_CHANGED;
+                        sendPlayerAppChangedRsp(mPlayerStatusChangeNT);
+                        }
+                        else {
+                            SendCurrentPlayerValueRspNative(numAttr, data);
+                        }
+                    break;
+                    case GET_ATTRIBUTE_TEXT:
+                        text = intent.getStringArrayExtra(EXTRA_ATTRIBUTE_STRING_ARRAY);
+                        sendSettingsTextRspNative(mPlayerSettings.attrIds.length ,
+                                                         mPlayerSettings.attrIds, text.length,text);
+                        if (DEBUG) Log.v(TAG,"mPlayerSettings.attrIds" + mPlayerSettings.attrIds.length);
+                    break;
+                    case GET_VALUE_TEXT:
+                        text = intent.getStringArrayExtra(EXTRA_VALUE_STRING_ARRAY);
+                        sendValueTextRspNative(mPlayerSettings.attrIds.length ,
+                                               mPlayerSettings.attrIds, text.length , text);
+                    break;
+                }
+            }
+        }
+    };
+
     private static class IRemoteControlDisplayWeak extends IRemoteControlDisplay.Stub {
         private WeakReference<Handler> mLocalHandler;
         IRemoteControlDisplayWeak(Handler handler) {
@@ -359,6 +506,66 @@ final class Avrcp {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
+                    case MESSAGE_PLAYERSETTINGS_TIMEOUT:
+                    if (DEBUG) Log.v(TAG, "**MESSAGE_PLAYSTATUS_TIMEOUT");
+                    synchronized (mPendingCmds) {
+                    Integer val = new Integer(msg.arg1);
+                    if (!mPendingCmds.contains(val)) {
+                        break;
+                    }
+                    mPendingCmds.remove(val);
+                }
+                switch (msg.arg1) {
+                    case GET_ATTRIBUTE_IDS:
+                        getListPlayerappAttrRspNative((byte)def_attrib.length, def_attrib);
+                    break;
+                    case GET_VALUE_IDS:
+                        if (DEBUG) Log.v(TAG, "GET_VALUE_IDS");
+                        switch (mPlayerSettings.attr) {
+                            case ATTRIBUTE_REPEATMODE:
+                                getPlayerAppValueRspNative((byte)value_repmode.length, value_repmode);
+                            break;
+                            case ATTRIBUTE_SHUFFLEMODE:
+                                getPlayerAppValueRspNative((byte)value_shufmode.length, value_shufmode);
+                            break;
+                            default:
+                                getPlayerAppValueRspNative((byte)value_default.length, value_default);
+                            break;
+                        }
+                    break;
+                    case GET_ATTRIBUTE_VALUES:
+                        int j = 0;
+                        byte [] retVal = new byte [mPlayerSettings.attrIds.length*2];
+                        for (int i = 0; i < mPlayerSettings.attrIds.length; i++) {
+                            retVal[j++] = mPlayerSettings.attrIds[i];
+                            if (mPlayerSettings.attrIds[i] == ATTRIBUTE_REPEATMODE) {
+                                retVal[j++] = settingValues.repeat_value;
+                            } else if (mPlayerSettings.attrIds[i] == ATTRIBUTE_SHUFFLEMODE) {
+                                retVal[j++] = settingValues.shuffle_value;
+                             } else {
+                                retVal[j++] = 0x0;
+                             }
+                        }
+                        SendCurrentPlayerValueRspNative((byte)retVal.length, retVal);
+                    break;
+                    case SET_ATTRIBUTE_VALUES :
+                        SendSetPlayerAppRspNative();
+                    break;
+                    case GET_ATTRIBUTE_TEXT:
+                    case GET_VALUE_TEXT:
+                        String [] values = new String [mPlayerSettings.attrIds.length];
+                        String msgVal = (msg.what == GET_ATTRIBUTE_TEXT) ? UPDATE_ATTRIB_TEXT :
+                                                                                 UPDATE_VALUE_TEXT;
+                        for (int i = 0; i < mPlayerSettings.attrIds.length; i++) {
+                            values[i] = "";
+                        }
+                        sendSettingsTextRspNative(mPlayerSettings.attrIds.length ,
+                                                    mPlayerSettings.attrIds, values.length,values);
+                    break;
+                    default :
+                    break;
+                }
+                break;
             case MSG_UPDATE_STATE:
                 if (mClientGeneration == msg.arg1) {
                     updatePlayPauseState(msg.arg2, ((Long)msg.obj).longValue());
@@ -945,6 +1152,12 @@ final class Avrcp {
                 registerNotificationRspPlayPosNative(mPlayPosChangedNT, (int)songPosition);
                 break;
 
+
+            case EVT_APP_SETTINGS_CHANGED:
+                mPlayerStatusChangeNT = NOTIFICATION_TYPE_INTERIM;
+                sendPlayerAppChangedRsp(mPlayerStatusChangeNT);
+                break;
+
             case EVT_ADDRESSED_PLAYER_CHANGED:
                 if (DEBUG) Log.v(TAG, "Process EVT_ADDRESSED_PLAYER_CHANGED Interim: Player ID: " + mAddressedPlayerId);
                 mAddressedPlayerChangedNT = NOTIFICATION_TYPE_INTERIM;
@@ -1012,6 +1225,17 @@ final class Avrcp {
             track[i] = (byte) (TrackNumberRsp >> (56 - 8 * i));
         }
         registerNotificationRspTrackChangeNative(mTrackChangedNT, track);
+    }
+
+    private void sendPlayerAppChangedRsp(int rsptype) {
+        int j = 0;
+        byte i = NUMPLAYER_ATTRIBUTE*2;
+        byte [] retVal = new byte [i];
+        retVal[j++] = ATTRIBUTE_REPEATMODE;
+        retVal[j++] = settingValues.repeat_value;
+        retVal[j++] = ATTRIBUTE_SHUFFLEMODE;
+        retVal[j++] = settingValues.shuffle_value;
+        registerNotificationPlayerAppRspNative(rsptype, i, retVal);
     }
 
     private long getPlayPosition() {
@@ -1143,6 +1367,141 @@ final class Avrcp {
 
     private int convertToAvrcpVolume(int volume) {
         return (int) Math.ceil((double) volume*AVRCP_MAX_VOL/mAudioStreamMax);
+    }
+
+
+private void updateLocalPlayerSettings( byte[] data) {
+        for (int i = 0; i < data.length; i += 2) {
+            switch (data[i]) {
+                case ATTRIBUTE_EQUALIZER:
+                    settingValues.eq_value = data[i+1];
+                break;
+                case ATTRIBUTE_REPEATMODE:
+                    settingValues.repeat_value = data[i+1];
+                break;
+                case ATTRIBUTE_SHUFFLEMODE:
+                    settingValues.shuffle_value = data[i+1];
+                break;
+                case ATTRIBUTE_SCANMODE:
+                    settingValues.scan_value = data[i+1];
+                break;
+            }
+        }
+    }
+
+    //PDU ID 0x11
+    private void onListPlayerAttributeRequest() {
+        if (DEBUG) Log.v(TAG, "onListPlayerAttributeRequest");
+        Intent intent = new Intent(PLAYERSETTINGS_REQUEST);
+        intent.putExtra(COMMAND, CMDGET);
+        intent.putExtra(EXTRA_GET_COMMAND, GET_ATTRIBUTE_IDS);
+        mContext.sendBroadcast(intent, BLUETOOTH_PERM);
+
+        Message msg = mHandler.obtainMessage(MESSAGE_PLAYERSETTINGS_TIMEOUT ,GET_ATTRIBUTE_IDS );
+        mPendingCmds.add(new Integer(msg.arg1));
+        mHandler.sendMessageDelayed(msg, 130);
+    }
+
+    //PDU ID 0x12
+    private void onListPlayerAttributeValues (byte attr ) {
+        if (DEBUG) Log.v(TAG, "onListPlayerAttributeValues");
+        Intent intent = new Intent(PLAYERSETTINGS_REQUEST);
+        intent.putExtra(COMMAND, CMDGET);
+        intent.putExtra(EXTRA_GET_COMMAND, GET_VALUE_IDS);
+        intent.putExtra(EXTRA_ATTRIBUTE_ID, attr);
+        mContext.sendBroadcast(intent, BLUETOOTH_PERM);
+        mPlayerSettings.attr = attr;
+        Message msg = mHandler.obtainMessage();
+        msg.what = MESSAGE_PLAYERSETTINGS_TIMEOUT;
+        msg.arg1 = GET_VALUE_IDS;
+        mPendingCmds.add(new Integer(msg.arg1));
+        mHandler.sendMessageDelayed(msg, 130);
+    }
+
+
+    //PDU ID 0x13
+    private void onGetPlayerAttributeValues (byte attr ,int[] arr )
+    {
+        if (DEBUG) Log.v(TAG, "onGetPlayerAttributeValues" + attr );
+        int i ;
+        byte[] barray = new byte[attr];
+        for(i =0 ; i<attr ; ++i)
+            barray[i] = (byte)arr[i];
+        mPlayerSettings.attrIds = new byte [attr];
+        for ( i = 0; i < attr; i++)
+            mPlayerSettings.attrIds[i] = barray[i];
+        Intent intent = new Intent(PLAYERSETTINGS_REQUEST);
+        intent.putExtra(COMMAND, CMDGET);
+        intent.putExtra(EXTRA_GET_COMMAND, GET_ATTRIBUTE_VALUES);
+        intent.putExtra(EXTRA_ATTIBUTE_ID_ARRAY, barray);
+        mContext.sendBroadcast(intent, BLUETOOTH_PERM);
+        Message msg = mHandler.obtainMessage();
+        msg.what = MESSAGE_PLAYERSETTINGS_TIMEOUT;
+        msg.arg1 = GET_ATTRIBUTE_VALUES;
+        mPendingCmds.add(new Integer(msg.arg1));
+        mHandler.sendMessageDelayed(msg, 130);
+    }
+
+    //PDU 0x14
+    private void setPlayerAppSetting( byte num , byte [] attr_id , byte [] attr_val )
+    {
+        if (DEBUG) Log.v(TAG, "setPlayerAppSetting" + num );
+        byte[] array = new byte[num*2];
+        for ( int i = 0; i < num; i++)
+        {
+            array[i] = attr_id[i] ;
+            array[i+1] = attr_val[i];
+        }
+        Intent intent = new Intent(PLAYERSETTINGS_REQUEST);
+        intent.putExtra(COMMAND, CMDSET);
+        intent.putExtra(EXTRA_ATTRIB_VALUE_PAIRS, array);
+        mContext.sendBroadcast(intent, BLUETOOTH_PERM);
+        Message msg = mHandler.obtainMessage();
+        msg.what = MESSAGE_PLAYERSETTINGS_TIMEOUT;
+        msg.arg1 = SET_ATTRIBUTE_VALUES;
+        mPendingCmds.add(new Integer(msg.arg1));
+        mHandler.sendMessageDelayed(msg, 130);
+    }
+
+    //PDU 0x15
+    private void getplayerattribute_text(byte attr , byte [] attrIds)
+    {
+        if(DEBUG) Log.d(TAG, "getplayerattribute_text" + attr +"attrIDsNum" + attrIds.length);
+        Intent intent = new Intent(PLAYERSETTINGS_REQUEST);
+        Message msg = mHandler.obtainMessage();
+        intent.putExtra(COMMAND, CMDGET);
+        intent.putExtra(EXTRA_GET_COMMAND, GET_ATTRIBUTE_TEXT);
+        intent.putExtra(EXTRA_ATTIBUTE_ID_ARRAY, attrIds);
+        mPlayerSettings.attrIds = new byte [attr];
+        for (int i = 0; i < attr; i++)
+            mPlayerSettings.attrIds[i] = attrIds[i];
+        mContext.sendBroadcast(intent, BLUETOOTH_PERM);
+        msg.what = MESSAGE_PLAYERSETTINGS_TIMEOUT;
+        msg.arg1 = GET_ATTRIBUTE_TEXT;
+        mPendingCmds.add(new Integer(msg.arg1));
+        mHandler.sendMessageDelayed(msg, 130);
+   }
+
+    //PDU 0x15
+    private void getplayervalue_text(byte attr_id , byte num_value , byte [] value)
+    {
+        if(DEBUG) Log.d(TAG, "getplayervalue_text id" + attr_id +"num_value" + num_value
+                                                           +"value.lenght" + value.length);
+        Intent intent = new Intent(PLAYERSETTINGS_REQUEST);
+        Message msg = mHandler.obtainMessage();
+        intent.putExtra(COMMAND, CMDGET);
+        intent.putExtra(EXTRA_GET_COMMAND, GET_VALUE_TEXT);
+        intent.putExtra(EXTRA_ATTRIBUTE_ID, attr_id);
+        intent.putExtra(EXTRA_VALUE_ID_ARRAY, value);
+        mPlayerSettings.attrIds = new byte [num_value];
+
+        for (int i = 0; i < num_value; i++)
+            mPlayerSettings.attrIds[i] = value[i];
+        mContext.sendBroadcast(intent, BLUETOOTH_PERM);
+        msg.what = MESSAGE_PLAYERSETTINGS_TIMEOUT;
+        msg.arg1 = GET_VALUE_TEXT;
+        mPendingCmds.add(new Integer(msg.arg1));
+        mHandler.sendMessageDelayed(msg, 130);
     }
 
     // Do not modify without updating the HAL bt_rc.h files.
@@ -1496,6 +1855,13 @@ final class Avrcp {
     private native boolean registerNotificationRspAvailablePlayersChangedNative (int type);
     private native boolean setAdressedPlayerRspNative(byte statusCode);
     private native boolean getFolderItemsRspNative(byte statusCode, int uidCounter, int itemCount, byte[] folderItems, int[] folderItemLengths);
+    private native boolean getListPlayerappAttrRspNative(byte attr, byte[] attrIds);
+    private native boolean getPlayerAppValueRspNative(byte numberattr, byte[]values );
+    private native boolean SendCurrentPlayerValueRspNative(byte numberattr, byte[]attr );
+    private native boolean SendSetPlayerAppRspNative();
+    private native boolean sendSettingsTextRspNative(int num_attr, byte[] attr, int length, String[]text);
+    private native boolean sendValueTextRspNative(int num_attr, byte[] attr, int length, String[]text);
+    private native boolean registerNotificationPlayerAppRspNative(int type, byte numberattr, byte[]attr);
 
     /**
       * A class to encapsulate all the information about a media player.
