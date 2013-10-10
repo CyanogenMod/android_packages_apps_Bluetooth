@@ -662,9 +662,7 @@ public class BluetoothMapContentObserver {
                         /* Send message if folder is outbox */
                         /* to do, support MMS in the future */
                         /*
-                        if (folder.equals("outbox")) {
                            handle = sendMmsMessage(folder, phone, (BluetoothMapbMessageMmsEmail)msg);
-                        }
                         */
                         break;
                     }
@@ -720,22 +718,16 @@ public class BluetoothMapContentObserver {
          *else if folder !outbox:
          *1) push message to folder
          * */
-        if (folder != null && (folder.equalsIgnoreCase("outbox")||  folder.equalsIgnoreCase("drafts"))) {
-            long handle = pushMmsToFolder(Mms.MESSAGE_BOX_DRAFTS, to_address, msg);
-            /* if invalid handle (-1) then just return the handle - else continue sending (if folder is outbox) */
-            if (BluetoothMapAppParams.INVALID_VALUE_PARAMETER != handle && folder.equalsIgnoreCase("outbox")) {
-                moveDraftToOutbox(handle);
+        long handle = pushMmsToFolder(Mms.MESSAGE_BOX_DRAFTS, to_address, msg);
+        /* if invalid handle (-1) then just return the handle - else continue sending (if folder is outbox) */
+        if (BluetoothMapAppParams.INVALID_VALUE_PARAMETER != handle && folder.equalsIgnoreCase("outbox")) {
+            moveDraftToOutbox(handle);
 
-                Intent sendIntent = new Intent("android.intent.action.MMS_SEND_OUTBOX_MSG");
-                Log.d(TAG, "broadcasting intent: "+sendIntent.toString());
-                mContext.sendBroadcast(sendIntent);
-            }
-            return handle;
-        } else {
-            /* not allowed to push mms to anything but outbox/drafts */
-            throw  new IllegalArgumentException("Cannot push message to other folders than outbox/drafts");
+            Intent sendIntent = new Intent("android.intent.action.MMS_SEND_OUTBOX_MSG");
+            Log.d(TAG, "broadcasting intent: "+sendIntent.toString());
+            mContext.sendBroadcast(sendIntent);
         }
-
+        return handle;
     }
 
 

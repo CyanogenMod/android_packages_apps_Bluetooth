@@ -481,6 +481,7 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
                 {
                     if(contentTypeParts[j].contains("boundary")) {
                         boundary = contentTypeParts[j].split("boundary[\\s]*=", 2)[1].trim();
+                        boundary = boundary.replaceAll("\"", ""); // " is allowed around a boundary, but is not allowed as part of the boundary
                     }
                 }
             }
@@ -497,49 +498,53 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
     private void parseMmsMimePart(String partStr) {
         String[] parts = partStr.split("\r\n\r\n", 2); // Split the header from the body
         String body;
+        MimePart newPart = addMimePart();
+        String partEncoding = encoding; /* Use the overall encoding as default */
         if(parts.length != 2) {
             body = partStr;
         } else {
             body = parts[1];
-        }
-        String[] headers = parts[0].split("\r\n");
-        MimePart newPart = addMimePart();
-        String partEncoding = encoding; /* Use the overall encoding as default */
+            String[] headers = parts[0].split("\r\n");
 
-        for(String header : headers) {
-            if(header.length() == 0)
-                continue;
+            for(String header : headers) {
+                if(header.length() == 0)
+                    continue;
 
-            if(header.trim() == "" || header.trim().equals("--")) // Skip empty lines(the \r\n after the boundary tag) and endBoundary tags
-                continue;
-            String[] headerParts = header.split(":",2);
-            if(headerParts.length != 2)
-                throw new IllegalArgumentException("part-Header not formatted correctly: " + header);
-            String headerType = headerParts[0].toUpperCase();
-            String headerValue = headerParts[1].trim();
-            if(headerType.contains("CONTENT-TYPE")) {
-                // TODO: extract charset? Only UTF-8 is allowed for TEXT typed parts
-                newPart.contentType = headerValue;
-                Log.d(TAG, "*** CONTENT-TYPE: " + newPart.contentType);
-            }
-            else if(headerType.contains("CONTENT-LOCATION")) {
-                // This is used if the smil refers to a file name in its src=
-                newPart.contentLocation = headerValue;
-                newPart.partName = headerValue;
-            }
-            else if(headerType.contains("CONTENT-TRANSFER-ENCODING")) {
-                partEncoding = headerValue;
-            }
-            else if(headerType.contains("CONTENT-ID")) {
-                // This is used if the smil refers to a cid:<xxx> in it's src=
-                newPart.contentId = headerValue;
-            }
-            else if(headerType.contains("CONTENT-DISPOSITION")) {
-                // This is used if the smil refers to a cid:<xxx> in it's src=
-                newPart.contentDisposition = headerValue;
-            }
-            else {
-                if(D) Log.w(TAG,"Skipping unknown part-header: " + headerType + " (" + header + ")");
+                if(header.trim() == "" || header.trim().equals("--")) // Skip empty lines(the \r\n after the boundary tag) and endBoundary tags
+                    continue;
+                String[] headerParts = header.split(":",2);
+                if(headerParts.length != 2) {
+                    //throw new IllegalArgumentException("part-Header not formatted correctly: " + header);
+                    // If we find a part without headers, treat the entire content as body
+                    body = partStr;
+                    break;
+                }
+                String headerType = headerParts[0].toUpperCase();
+                String headerValue = headerParts[1].trim();
+                if(headerType.contains("CONTENT-TYPE")) {
+                    // TODO: extract charset? Only UTF-8 is allowed for TEXT typed parts
+                    newPart.contentType = headerValue;
+                    Log.d(TAG, "*** CONTENT-TYPE: " + newPart.contentType);
+                }
+                else if(headerType.contains("CONTENT-LOCATION")) {
+                    // This is used if the smil refers to a file name in its src=
+                    newPart.contentLocation = headerValue;
+                    newPart.partName = headerValue;
+                }
+                else if(headerType.contains("CONTENT-TRANSFER-ENCODING")) {
+                    partEncoding = headerValue;
+                }
+                else if(headerType.contains("CONTENT-ID")) {
+                    // This is used if the smil refers to a cid:<xxx> in it's src=
+                    newPart.contentId = headerValue;
+                }
+                else if(headerType.contains("CONTENT-DISPOSITION")) {
+                    // This is used if the smil refers to a cid:<xxx> in it's src=
+                    newPart.contentDisposition = headerValue;
+                }
+                else {
+                    if(D) Log.w(TAG,"Skipping unknown part-header: " + headerType + " (" + header + ")");
+                }
             }
         }
         // Now for the body
@@ -607,7 +612,7 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
         else
         {
             mimeParts = messageBody.split("--" + boundary);
-            for(int i = 0; i < mimeParts.length - 1; i++) {
+            for(int i = 1; i < mimeParts.length - 1; i++) {
                 String part = mimeParts[i];
                 if (part != null && (part.length() > 0))
                     parseMmsMimePart(part);
