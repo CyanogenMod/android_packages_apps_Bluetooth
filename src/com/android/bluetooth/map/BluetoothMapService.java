@@ -405,8 +405,9 @@ public class BluetoothMapService extends ProfileService {
                         intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                         BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
                         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-                        sendBroadcast(intent, BLUETOOTH_ADMIN_PERM);
+
                         isWaitingAuthorization = true;
+                        sendBroadcast(intent, BLUETOOTH_ADMIN_PERM);
 
                         if (DEBUG) Log.d(TAG, "waiting for authorization for connection from: "
                                 + sRemoteDeviceName);
