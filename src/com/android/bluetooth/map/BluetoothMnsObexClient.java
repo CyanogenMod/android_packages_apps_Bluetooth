@@ -173,11 +173,8 @@ public class BluetoothMnsObexClient {
         }
 
         if(notificationStatus == BluetoothMapAppParams.NOTIFICATION_STATUS_NO) {
-            // Unregister - should we disconnect, or keep the connection? - the spec. says nothing about this.
-            if(mObserverRegistered == true) {
-                mObserver.unregisterObserver();
-                mObserverRegistered = false;
-            }
+            Log.d(TAG, "handleRegistration: disconnect");
+            disconnect();
         } else if(notificationStatus == BluetoothMapAppParams.NOTIFICATION_STATUS_YES) {
             /* Connect if we do not have a connection, and start the content observers providing
              * this thread as Handler.
