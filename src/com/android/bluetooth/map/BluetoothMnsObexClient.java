@@ -113,6 +113,18 @@ public class BluetoothMnsObexClient {
     }
 
     public void disconnect() {
+        /* should shutdown handler thread first to make sure
+         * handleRegistration won't be called when disconnet
+         */
+        if (mHandler != null) {
+            // Shut down the thread
+            mHandler.removeCallbacksAndMessages(null);
+            Looper looper = mHandler.getLooper();
+            if (looper != null) {
+                looper.quit();
+            }
+            mHandler = null;
+        }
         try {
             if (mClientSession != null) {
                 mClientSession.disconnect(null);
@@ -149,15 +161,6 @@ public class BluetoothMnsObexClient {
         if (mObserver != null) {
             mObserver.deinit();
             mObserver = null;
-        }
-        if (mHandler != null) {
-            // Shut down the thread
-            mHandler.removeCallbacksAndMessages(null);
-            Looper looper = mHandler.getLooper();
-            if (looper != null) {
-                looper.quit();
-            }
-            mHandler = null;
         }
     }
 
