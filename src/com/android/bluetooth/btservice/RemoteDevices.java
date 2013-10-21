@@ -228,7 +228,7 @@ final class RemoteDevices {
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_KEY, pin);
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT,
                     BluetoothDevice.PAIRING_VARIANT_DISPLAY_PIN);
-        mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_PRIVILEGED_PERM);
+        mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
     }
 
     void devicePropertyChangedCallback(byte[] address, int[] types, byte[][] values) {
@@ -354,7 +354,7 @@ final class RemoteDevices {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, getDevice(address));
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT,
                 BluetoothDevice.PAIRING_VARIANT_PIN);
-        mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_PRIVILEGED_PERM);
+        mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
         return;
     }
 
@@ -396,7 +396,7 @@ final class RemoteDevices {
             intent.putExtra(BluetoothDevice.EXTRA_PAIRING_KEY, passkey);
         }
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, variant);
-        mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_PRIVILEGED_PERM);
+        mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
     }
 
     void aclStateChangeCallback(int status, byte[] address, int newState) {
