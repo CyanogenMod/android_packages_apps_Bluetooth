@@ -85,8 +85,6 @@ public class AdapterService extends Service {
     static final String BLUETOOTH_ADMIN_PERM =
         android.Manifest.permission.BLUETOOTH_ADMIN;
     static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
-    static final String BLUETOOTH_PRIVILEGED_PERM =
-        android.Manifest.permission.BLUETOOTH_PRIVILEGED;
 
     private static final int ADAPTER_SERVICE_TYPE=Service.START_STICKY;
 
@@ -1050,8 +1048,8 @@ public class AdapterService extends Service {
     }
 
      boolean createBond(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED_PERM,
-            "Need BLUETOOTH PRIVILEGED permission");
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+            "Need BLUETOOTH ADMIN permission");
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp != null && deviceProp.getBondState() != BluetoothDevice.BOND_NONE) {
             return false;
@@ -1270,8 +1268,8 @@ public class AdapterService extends Service {
     }
 
      boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED_PERM,
-                                       "Need BLUETOOTH PRIVILEGED permission");
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                                       "Need BLUETOOTH ADMIN permission");
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDING) {
             return false;
@@ -1294,8 +1292,8 @@ public class AdapterService extends Service {
     }
 
      boolean setPairingConfirmation(BluetoothDevice device, boolean accept) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED_PERM,
-                                       "Need BLUETOOTH PRIVILEGED permission");
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
+                                       "Need BLUETOOTH ADMIN permission");
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDING) {
             return false;
