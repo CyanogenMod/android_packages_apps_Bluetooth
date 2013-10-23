@@ -51,7 +51,6 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.telephony.TelephonyManager;
@@ -140,8 +139,6 @@ public class BluetoothPbapService extends Service {
     private static final int NOTIFICATION_ID_ACCESS = -1000001;
 
     private static final int NOTIFICATION_ID_AUTH = -1000002;
-
-    private PowerManager.WakeLock mWakeLock = null;
 
     private BluetoothAdapter mAdapter;
 
@@ -442,11 +439,6 @@ public class BluetoothPbapService extends Service {
             }
         }
 
-        if (mWakeLock != null) {
-            mWakeLock.release();
-            mWakeLock = null;
-        }
-
         if (mServerSession != null) {
             mServerSession.close();
             mServerSession = null;
@@ -465,14 +457,6 @@ public class BluetoothPbapService extends Service {
     private final void startObexServerSession() throws IOException {
         if (VERBOSE) Log.v(TAG, "Pbap Service startObexServerSession");
 
-        // acquire the wakeLock before start Obex transaction thread
-        if (mWakeLock == null) {
-            PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
-            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                    "StartingObexPbapTransaction");
-            mWakeLock.setReferenceCounted(false);
-            mWakeLock.acquire();
-        }
         TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
         if (tm != null) {
             sLocalPhoneNum = tm.getLine1Number();
@@ -498,12 +482,6 @@ public class BluetoothPbapService extends Service {
 
     private void stopObexServerSession() {
         if (VERBOSE) Log.v(TAG, "Pbap Service stopObexServerSession");
-
-        // Release the wake lock if obex transaction is over
-        if (mWakeLock != null) {
-            mWakeLock.release();
-            mWakeLock = null;
-        }
 
         if (mServerSession != null) {
             mServerSession.close();
