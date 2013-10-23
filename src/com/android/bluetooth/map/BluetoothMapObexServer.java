@@ -1,5 +1,6 @@
 /*
 * Copyright (C) 2013 Samsung System LSI
+* Copyright (C) 2013, The Linux Foundation. All rights reserved.
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
@@ -19,6 +20,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Calendar;
+import android.os.PowerManager;
 
 import javax.obex.HeaderSet;
 import javax.obex.Operation;
@@ -66,6 +68,8 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
 
     private Context mContext;
 
+    private PowerManager.WakeLock mWakeLock = null;
+
     public static boolean sIsAborted = false;
 
     BluetoothMapContent mOutContent;
@@ -99,6 +103,15 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
     @Override
     public int onConnect(final HeaderSet request, HeaderSet reply) {
         if (D) Log.d(TAG, "onConnect():");
+        acquireMapLock();
+        int retVal = onConnectInternal(request, reply);
+        if (V) Log.v(TAG, "BluetoothMapObexServer: exiting from onConnect");
+        releaseMapLock();
+        return retVal;
+    }
+
+    private int onConnectInternal(final HeaderSet request, HeaderSet reply) {
+        if (D) Log.d(TAG, "onConnectInternal():");
         if (V) logHeader(request);
         try {
             byte[] uuid = (byte[])request.getHeader(HeaderSet.TARGET);
@@ -148,6 +161,14 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
     @Override
     public void onDisconnect(final HeaderSet req, final HeaderSet resp) {
         if (D) Log.d(TAG, "onDisconnect(): enter");
+        acquireMapLock();
+        onDisconnectInternal(req, resp);
+        if (V) Log.v(TAG, "BluetoothMapObexServer: exiting from onDisconnect");
+        releaseMapLock();
+    }
+
+    private void onDisconnectInternal(final HeaderSet req, final HeaderSet resp) {
+        if (D) Log.d(TAG, "onDisconnectInternal(): enter");
         if (V) logHeader(req);
 
         resp.responseCode = ResponseCodes.OBEX_HTTP_OK;
@@ -168,7 +189,15 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
 
     @Override
     public int onPut(final Operation op) {
-        if (D) Log.d(TAG, "onPut(): enter");
+    if (D) Log.d(TAG, "onPut(): enter");
+        acquireMapLock();
+        int retVal = onPutInternal(op);
+        if (V) Log.v(TAG, "BluetoothMapObexServer: exiting from onPut");
+        releaseMapLock();
+        return retVal;
+    }
+    public int onPutInternal(final Operation op) {
+        if (D) Log.d(TAG, "onPutInternal(): enter");
         HeaderSet request = null;
         String type, name;
         byte[] appParamRaw;
@@ -319,6 +348,16 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
     @Override
     public int onSetPath(final HeaderSet request, final HeaderSet reply, final boolean backup,
             final boolean create) {
+        if (D) Log.d(TAG, "onSetPath():");
+        acquireMapLock();
+        int retVal = onSetPathInternal(request, reply, backup, create);
+        if (V) Log.v(TAG, "BluetoothMapObexServer: exiting from onSetPath");
+        releaseMapLock();
+        return retVal;
+    }
+
+    private int onSetPathInternal(final HeaderSet request, final HeaderSet reply, final boolean backup,
+            final boolean create) {
         String folderName;
         BluetoothMapFolderElement folder;
         try {
@@ -356,16 +395,27 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
 
     @Override
     public void onClose() {
+        if (V) Log.v(TAG, "BluetoothMapObexServer: onClose");
+        acquireMapLock();
         if (mCallback != null) {
             Message msg = Message.obtain(mCallback);
             msg.what = BluetoothMapService.MSG_SERVERSESSION_CLOSE;
             msg.sendToTarget();
             if (D) Log.d(TAG, "onClose(): msg MSG_SERVERSESSION_CLOSE sent out.");
         }
+        releaseMapLock();
     }
 
     @Override
     public int onGet(Operation op) {
+    if (V) Log.v(TAG, "BluetoothMapObexServer: onGet");
+        acquireMapLock();
+        int retVal = onGetInternal(op);
+        if (V) Log.v(TAG, "BluetoothMapObexServer: exiting from onGet");
+        releaseMapLock();
+        return retVal;
+    }
+    private int onGetInternal(Operation op) {
         sIsAborted = false;
         HeaderSet request;
         String type;
@@ -700,5 +750,33 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             Log.e(TAG, "dump HeaderSet error " + e);
         }
         Log.v(TAG, "NEW!!! Dumping HeaderSet END");
+    }
+
+    private void acquireMapLock() {
+        if (V) Log.v(TAG, "About to acquire Map:mWakeLock");
+        if (mWakeLock == null) {
+            PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MapPartialWakeLock");
+            mWakeLock.setReferenceCounted(false);
+            mWakeLock.acquire();
+            if (V) Log.v(TAG, "Map:mWakeLock acquired");
+        }
+        else
+        {
+            Log.e(TAG, "Map:mWakeLock already acquired");
+        }
+    }
+
+    private void releaseMapLock() {
+        if (V) Log.v(TAG, "About to release Map:mWakeLock");
+        if (mWakeLock != null) {
+            if (mWakeLock.isHeld()) {
+                mWakeLock.release();
+                if (V) Log.v(TAG, "Map:mWakeLock released");
+            } else {
+                if (V) Log.v(TAG, "Map:mWakeLock already released");
+            }
+            mWakeLock = null;
+        }
     }
 }

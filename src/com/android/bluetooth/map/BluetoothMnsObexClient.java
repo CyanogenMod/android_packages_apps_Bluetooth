@@ -1,5 +1,6 @@
 /*
 * Copyright (C) 2013 Samsung System LSI
+* Copyright (c) 2013, The Linux Foundation. All rights reserved.
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
@@ -23,6 +24,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.util.Log;
+import android.os.PowerManager;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -47,8 +49,8 @@ import javax.obex.ResponseCodes;
 public class BluetoothMnsObexClient {
 
     private static final String TAG = "BluetoothMnsObexClient";
-    private static final boolean D = false;
-    private static final boolean V = false;
+    private static final boolean D = true;
+    private static final boolean V = true;
 
     private ObexTransport mTransport;
     private Context mContext;
@@ -60,6 +62,7 @@ public class BluetoothMnsObexClient {
     BluetoothDevice mRemoteDevice;
     private BluetoothMapContentObserver mObserver;
     private boolean mObserverRegistered = false;
+    private PowerManager.WakeLock mWakeLock = null;
 
     // Used by the MAS to forward notification registrations
     public static final int MSG_MNS_NOTIFICATION_REGISTRATION = 1;
@@ -113,6 +116,8 @@ public class BluetoothMnsObexClient {
     }
 
     public void disconnect() {
+        if(D) Log.d(TAG, "BluetoothMnsObexClient: disconnect");
+        acquireMnsLock();
         try {
             if (mClientSession != null) {
                 mClientSession.disconnect(null);
@@ -159,6 +164,8 @@ public class BluetoothMnsObexClient {
             }
             mHandler = null;
         }
+        if(D) Log.d(TAG, "BluetoothMnsObexClient: exiting from disconnect");
+        releaseMnsLock();
     }
 
     private HeaderSet hsConnect = null;
@@ -188,6 +195,7 @@ public class BluetoothMnsObexClient {
 
     public void connect() {
         Log.d(TAG, "handleRegistration: connect 2");
+        acquireMnsLock();
 
         BluetoothSocket btSocket = null;
         try {
@@ -232,10 +240,14 @@ public class BluetoothMnsObexClient {
             synchronized (this) {
                 mWaitingForRemote = false;
         }
+        Log.d(TAG, "Exiting from connect");
+        releaseMnsLock();
     }
 
     public int sendEvent(byte[] eventBytes, int masInstanceId) {
 
+        Log.d(TAG, "BluetoothMnsObexClient: sendEvent");
+        acquireMnsLock();
         boolean error = false;
         int responseCode = -1;
         HeaderSet request;
@@ -324,11 +336,39 @@ public class BluetoothMnsObexClient {
                 Log.e(TAG, "Error when closing stream after send " + e.getMessage());
             }
         }
-
+        if(D) Log.d(TAG, "BluetoothMnsObexClient: Exiting sendEvent");
+        releaseMnsLock();
         return responseCode;
     }
 
     private void handleSendException(String exception) {
         Log.e(TAG, "Error when sending event: " + exception);
+    }
+
+    private void acquireMnsLock() {
+        if (V) Log.v(TAG, "About to acquire Mns:mWakeLock");
+        if (mWakeLock == null) {
+            PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MnsPartialWakeLock");
+            mWakeLock.setReferenceCounted(false);
+            mWakeLock.acquire();
+            if (V) Log.v(TAG, "Mns:mWakeLock acquired");
+        }
+        else {
+            Log.e(TAG, "Mns:mWakeLock already acquired");
+        }
+    }
+
+    private void releaseMnsLock() {
+        if (V) Log.v(TAG, "About to release Mns:mWakeLock");
+        if (mWakeLock != null) {
+            if (mWakeLock.isHeld()) {
+                mWakeLock.release();
+                if (V) Log.v(TAG, "Mns:mWakeLock released");
+            } else {
+                if (V) Log.v(TAG, "Mns:mWakeLock already released");
+            }
+            mWakeLock = null;
+        }
     }
 }

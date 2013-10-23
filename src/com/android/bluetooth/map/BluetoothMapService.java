@@ -1,5 +1,6 @@
 /*
 * Copyright (C) 2013 Samsung System LSI
+* Copyright (C) 2013, The Linux Foundation. All rights reserved.
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
@@ -66,7 +67,7 @@ public class BluetoothMapService extends ProfileService {
 
     public static final boolean DEBUG = true;
 
-    public static final boolean VERBOSE = false;
+    public static final boolean VERBOSE = true;
 
     /**
      * Intent indicating incoming obex authentication request which is from
@@ -106,8 +107,6 @@ public class BluetoothMapService extends ProfileService {
     private static final int USER_TIMEOUT = 2;
 
     private static final int DISCONNECT_MAP = 3;
-
-    private PowerManager.WakeLock mWakeLock = null;
 
     private BluetoothAdapter mAdapter;
 
@@ -252,11 +251,6 @@ public class BluetoothMapService extends ProfileService {
             }
         }
 
-        if (mWakeLock != null) {
-            mWakeLock.release();
-            mWakeLock = null;
-        }
-
         if (mServerSession != null) {
             mServerSession.close();
             mServerSession = null;
@@ -280,15 +274,6 @@ public class BluetoothMapService extends ProfileService {
     private final void startObexServerSession() throws IOException {
         if (DEBUG) Log.d(TAG, "Map Service startObexServerSession");
 
-        // acquire the wakeLock before start Obex transaction thread
-        if (mWakeLock == null) {
-            PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
-            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                    "StartingObexMapTransaction");
-            mWakeLock.setReferenceCounted(false);
-            mWakeLock.acquire();
-        }
-
         mBluetoothMnsObexClient = new BluetoothMnsObexClient(this, mRemoteDevice);
         mMapServer = new BluetoothMapObexServer(mSessionStatusHandler, this,
                                                 mBluetoothMnsObexClient);
@@ -309,12 +294,6 @@ public class BluetoothMapService extends ProfileService {
 
     private void stopObexServerSession() {
         if (DEBUG) Log.d(TAG, "MAP Service stopObexServerSession");
-
-        // Release the wake lock if obex transaction is over
-        if (mWakeLock != null) {
-            mWakeLock.release();
-            mWakeLock = null;
-        }
 
         if (mServerSession != null) {
             mServerSession.close();
