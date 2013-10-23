@@ -112,19 +112,11 @@ public class BluetoothMnsObexClient {
         return mConnected;
     }
 
+    /**
+     * Disconnect the connection to MNS server.
+     * Call this when the MAS client requests a de-registration on events.
+     */
     public void disconnect() {
-        /* should shutdown handler thread first to make sure
-         * handleRegistration won't be called when disconnet
-         */
-        if (mHandler != null) {
-            // Shut down the thread
-            mHandler.removeCallbacksAndMessages(null);
-            Looper looper = mHandler.getLooper();
-            if (looper != null) {
-                looper.quit();
-            }
-            mHandler = null;
-        }
         try {
             if (mClientSession != null) {
                 mClientSession.disconnect(null);
@@ -154,6 +146,28 @@ public class BluetoothMnsObexClient {
                 Log.e(TAG, "mTransport.close error: " + e.getMessage());
             }
         }
+    }
+
+    /**
+     * Shutdown the MNS.
+     */
+    public void shutdown() {
+        /* should shutdown handler thread first to make sure
+         * handleRegistration won't be called when disconnet
+         */
+        if (mHandler != null) {
+            // Shut down the thread
+            mHandler.removeCallbacksAndMessages(null);
+            Looper looper = mHandler.getLooper();
+            if (looper != null) {
+                looper.quit();
+            }
+            mHandler = null;
+        }
+
+        /* Disconnect if connected */
+        disconnect();
+
         if(mObserverRegistered) {
             mObserver.unregisterObserver();
             mObserverRegistered = false;
@@ -180,6 +194,7 @@ public class BluetoothMnsObexClient {
             if(mObserverRegistered == true) {
                 mObserver.unregisterObserver();
                 mObserverRegistered = false;
+                disconnect();
             }
         } else if(notificationStatus == BluetoothMapAppParams.NOTIFICATION_STATUS_YES) {
             /* Connect if we do not have a connection, and start the content observers providing
