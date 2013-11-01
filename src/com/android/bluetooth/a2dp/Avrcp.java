@@ -77,7 +77,6 @@ final class Avrcp {
     private long mNextPosMs;
     private long mPrevPosMs;
     private long mSkipStartTime;
-    private Timer mTimer;
     private int mFeatures;
     private int mAbsoluteVolume;
     private int mLastSetVolume;
@@ -86,6 +85,7 @@ final class Avrcp {
     private final int mAudioStreamMax;
     private boolean mVolCmdInProgress;
     private int mAbsVolRetryTimes;
+    private int mSkipAmount;
 
     /* AVRC IDs from avrc_defs.h */
     private static final int AVRC_ID_REWIND = 0x48;
@@ -116,7 +116,7 @@ final class Avrcp {
     private static final int MESSAGE_ABS_VOL_TIMEOUT = 9;
     private static final int MESSAGE_FAST_FORWARD = 10;
     private static final int MESSAGE_REWIND = 11;
-    private static final int MESSAGE_FF_REW_TIMEOUT = 12;
+    private static final int MESSAGE_CHANGE_PLAY_POS = 12;
     private static final int MSG_UPDATE_STATE = 100;
     private static final int MSG_SET_METADATA = 101;
     private static final int MSG_SET_TRANSPORT_CONTROLS = 102;
@@ -129,6 +129,7 @@ final class Avrcp {
     private static final int KEY_STATE_RELEASE = 0;
     private static final int SKIP_PERIOD = 400;
     private static final int SKIP_DOUBLE_INTERVAL = 3000;
+    private static final long MAX_MULTIPLIER_VALUE = 128L;
     private static final int CMD_TIMEOUT_DELAY = 2000;
     private static final int MAX_ERROR_RETRY_TIMES = 3;
     private static final int AVRCP_MAX_VOL = 127;
@@ -149,7 +150,6 @@ final class Avrcp {
         mSongLengthMs = 0L;
         mPlaybackIntervalMs = 0L;
         mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
-        mTimer = null;
         mFeatures = 0;
         mAbsoluteVolume = -1;
         mLastSetVolume = -1;
@@ -409,7 +409,7 @@ final class Avrcp {
 
             case MESSAGE_FAST_FORWARD:
             case MESSAGE_REWIND:
-                final int skipAmount;
+                int skipAmount;
                 if (msg.what == MESSAGE_FAST_FORWARD) {
                     if (DEBUG) Log.v(TAG, "MESSAGE_FAST_FORWARD");
                     skipAmount = BASE_SKIP_AMOUNT;
@@ -418,32 +418,33 @@ final class Avrcp {
                     skipAmount = -BASE_SKIP_AMOUNT;
                 }
 
-                removeMessages(MESSAGE_FF_REW_TIMEOUT);
+                if (hasMessages(MESSAGE_CHANGE_PLAY_POS) &&
+                        (skipAmount != mSkipAmount)) {
+                    Log.w(TAG, "missing release button event:" + mSkipAmount);
+                }
+
+                if ((!hasMessages(MESSAGE_CHANGE_PLAY_POS)) ||
+                        (skipAmount != mSkipAmount)) {
+                    mSkipStartTime = SystemClock.elapsedRealtime();
+                }
+
+                removeMessages(MESSAGE_CHANGE_PLAY_POS);
                 if (msg.arg1 == KEY_STATE_PRESS) {
-                    if (mTimer == null) {
-                        /** Begin fast forwarding */
-                        mSkipStartTime = SystemClock.elapsedRealtime();
-                        TimerTask task = new TimerTask() {
-                            @Override
-                            public void run() {
-                                changePositionBy(skipAmount*getSkipMultiplier());
-                            }
-                        };
-                        mTimer = new Timer();
-                        mTimer.schedule(task, 0, SKIP_PERIOD);
-                    }
-                    sendMessageDelayed(obtainMessage(MESSAGE_FF_REW_TIMEOUT), BUTTON_TIMEOUT_TIME);
-                } else if (msg.arg1 == KEY_STATE_RELEASE && mTimer != null) {
-                    mTimer.cancel();
-                    mTimer = null;
+                    mSkipAmount = skipAmount;
+                    changePositionBy(mSkipAmount * getSkipMultiplier());
+                    Message posMsg = obtainMessage(MESSAGE_CHANGE_PLAY_POS);
+                    posMsg.arg1 = 1;
+                    sendMessageDelayed(posMsg, SKIP_PERIOD);
                 }
                 break;
 
-            case MESSAGE_FF_REW_TIMEOUT:
-                if (DEBUG) Log.v(TAG, "MESSAGE_FF_REW_TIMEOUT: FF/REW response timed out");
-                if (mTimer != null) {
-                    mTimer.cancel();
-                    mTimer = null;
+            case MESSAGE_CHANGE_PLAY_POS:
+                if (DEBUG) Log.v(TAG, "MESSAGE_CHANGE_PLAY_POS:" + msg.arg1);
+                changePositionBy(mSkipAmount * getSkipMultiplier());
+                if (msg.arg1 * SKIP_PERIOD < BUTTON_TIMEOUT_TIME) {
+                    Message posMsg = obtainMessage(MESSAGE_CHANGE_PLAY_POS);
+                    posMsg.arg1 = msg.arg1 + 1;
+                    sendMessageDelayed(posMsg, SKIP_PERIOD);
                 }
                 break;
             }
@@ -643,7 +644,8 @@ final class Avrcp {
 
     private int getSkipMultiplier() {
         long currentTime = SystemClock.elapsedRealtime();
-        return (int) Math.pow(2, (currentTime - mSkipStartTime)/SKIP_DOUBLE_INTERVAL);
+        long multi = (long) Math.pow(2, (currentTime - mSkipStartTime)/SKIP_DOUBLE_INTERVAL);
+        return (int) Math.min(MAX_MULTIPLIER_VALUE, multi);
     }
 
     private void sendTrackChangedRsp() {
