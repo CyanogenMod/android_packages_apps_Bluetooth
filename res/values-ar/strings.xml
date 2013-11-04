@@ -17,7 +17,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"الدخول إلى إدارة التنزيل."</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"للسماح للتطبيق بالدخول إلى إدارة BluetoothShare واستخدامها لنقل الملفات."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"‏للسماح للتطبيق بالدخول إلى إدارة BluetoothShare واستخدامها لنقل الملفات."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"إضافة وصول جهاز بلوتوث إلى القائمة البيضاء."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"يسمح للتطبيق مؤقتًا بإضافة جهاز بلوتوث إلى القائمة البيضاء مما يتيح لذلك الجهاز إرسال ملفات إلى هذا الجهاز بدون تأكيد المستخدم."</string>
     <string name="permlab_handoverStatus" msgid="7316032998801933554">"استلام عمليات البث المتعلقة بنقل إمكانية التحكم عبر البلوتوث."</string>
@@ -84,8 +84,8 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"إرسال الملف إلى \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"إرسال <xliff:g id="NUMBER">%1$s</xliff:g> من الملفات إلى \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"تم إيقاف إرسال الملف إلى \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
-    <string name="bt_sm_2_1" product="nosdcard" msgid="352165168004521000">"لا توجد مساحة كافية على وحدة تخزين USB لحفظ الملف من \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="bt_sm_2_1" product="default" msgid="1989018443456803630">"لا توجد مساحة كافية على بطاقة SD لحفظ الملف من \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
+    <string name="bt_sm_2_1" product="nosdcard" msgid="352165168004521000">"‏لا توجد مساحة كافية على وحدة تخزين USB لحفظ الملف من \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
+    <string name="bt_sm_2_1" product="default" msgid="1989018443456803630">"‏لا توجد مساحة كافية على بطاقة SD لحفظ الملف من \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"المساحة اللازمة: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"تتم حاليًا معالجة طلبات كثيرة جدًا. حاول مرة أخرى لاحقًا."</string>
     <string name="status_pending" msgid="2503691772030877944">"لم يبدأ نقل الملف بعد."</string>
@@ -95,8 +95,8 @@
     <string name="status_forbidden" msgid="613956401054050725">"تم حظر النقل بواسطة الجهاز الهدف."</string>
     <string name="status_canceled" msgid="6664490318773098285">"تم إلغاء النقل بواسطة المستخدم."</string>
     <string name="status_file_error" msgid="3671917770630165299">"مشكلة في وحدة التخزين."</string>
-    <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"ليس هناك وحدة تخزين USB."</string>
-    <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"ليس هناك بطاقة SD. أدرج بطاقة SD لحفظ الملفات المنقولة."</string>
+    <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"‏ليس هناك وحدة تخزين USB."</string>
+    <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"‏ليس هناك بطاقة SD. أدرج بطاقة SD لحفظ الملفات المنقولة."</string>
     <string name="status_connection_error" msgid="947681831523219891">"لم يتم الاتصال بنجاح."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"لا يمكن معالجة الطلب بشكل صحيح."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"خطأ غير معروف."</string>
