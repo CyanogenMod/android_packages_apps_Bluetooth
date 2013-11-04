@@ -17,7 +17,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"डाउनलोड प्रबंधक में पहुंच प्राप्त करें."</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"एप्स को BluetoothShare प्रबंधक में पहुंच प्राप्त करने और फ़ाइलों को स्थानांतरित करने के लिए उसका उपयोग करने देता है."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"ऐप्स  को BluetoothShare प्रबंधक में पहुंच प्राप्त करने और फ़ाइलों को स्थानांतरित करने के लिए उसका उपयोग करने देता है."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"श्वेतसूची bluetooth उपकरण पहुंच."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"ऐप्स को Bluetooth उपकरण को इस उपकरण पर फ़ाइल भेजने की‍ अनुमति देकर, उपयोगकर्ता की पुष्टि के बिना अस्‍थायी रूप से श्वेतसूची में शामिल करने देता है."</string>
     <string name="permlab_handoverStatus" msgid="7316032998801933554">"BT हस्तांतरण के स्थानांतरण प्रसारण प्राप्त करें."</string>
