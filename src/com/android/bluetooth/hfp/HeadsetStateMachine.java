@@ -351,7 +351,14 @@ final class HeadsetStateMachine extends StateMachine {
                                        BluetoothProfile.STATE_CONNECTING);
                         break;
                     }
-
+                    if (mPhoneProxy != null) {
+                        try {
+                            log("Query the phonestates");
+                            mPhoneProxy.queryPhoneState();
+                        } catch (RemoteException e) {
+                            Log.e(TAG, Log.getStackTraceString(new Throwable()));
+                        }
+                    } else Log.e(TAG, "Phone proxy null for query phone state");
                     synchronized (HeadsetStateMachine.this) {
                         mTargetDevice = device;
                         transitionTo(mPending);
@@ -1121,7 +1128,14 @@ final class HeadsetStateMachine extends StateMachine {
                 case HeadsetHalConstants.AUDIO_STATE_DISCONNECTED:
                     if (mAudioState != BluetoothHeadset.STATE_AUDIO_DISCONNECTED) {
                         mAudioState = BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
+                    if (mAudioManager.isSpeakerphoneOn()) {
+                        // User option might be speaker as sco disconnection
+                        // is delayed setting back the speaker option.
                         mAudioManager.setBluetoothScoOn(false);
+                        mAudioManager.setSpeakerphoneOn(true);
+                    } else {
+                        mAudioManager.setBluetoothScoOn(false);
+                    }
                         if (mA2dpSuspend) {
                             if ((!isInCall()) && (mPhoneState.getNumber().isEmpty())) {
                                 log("Audio is closed,Set A2dpSuspended=false");
@@ -1158,14 +1172,6 @@ final class HeadsetStateMachine extends StateMachine {
         public void onServiceConnected(ComponentName className, IBinder service) {
             if (DBG) Log.d(TAG, "Proxy object connected");
             mPhoneProxy = IBluetoothHeadsetPhone.Stub.asInterface(service);
-            if (mPhoneProxy != null) {
-                try {
-                    log("Try to query the phonestate on bind");
-                    mPhoneProxy.queryPhoneState();
-                } catch (RemoteException e) {
-                    Log.e(TAG, Log.getStackTraceString(new Throwable()));
-                }
-            } else Log.e(TAG, " phone proxy null for query phone state");
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -1663,6 +1669,11 @@ final class HeadsetStateMachine extends StateMachine {
 
     private void processDialCall(String number) {
         String dialNumber;
+        if (mDialingOut) {
+            if (DBG) log("processDialCall, already dialling");
+            atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
+            return;
+        }
         if ((number == null) || (number.length() == 0)) {
             dialNumber = mPhonebook.getLastDialledNumber();
             if (dialNumber == null) {
