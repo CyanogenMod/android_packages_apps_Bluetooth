@@ -269,6 +269,36 @@ static void allowConnectionNative(JNIEnv *env, jobject object, int is_valid) {
 
 }
 
+static jboolean isSrcNative(JNIEnv *env, jobject object, jbyteArray address) {
+    jbyte *addr;
+    bt_status_t status;
+
+    if (!sBluetoothA2dpInterface) return JNI_FALSE;
+
+    addr = env->GetByteArrayElements(address, NULL);
+    if (!addr) {
+        jniThrowIOException(env, EINVAL);
+        return JNI_FALSE;
+    }
+
+    if ( (status = sBluetoothA2dpInterface->is_src((bt_bdaddr_t *)addr)) != BT_STATUS_SUCCESS) {
+        ALOGE("Failed HF disconnection, status: %d", status);
+    }
+    env->ReleaseByteArrayElements(address, addr, 0);
+    return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+}
+
+static void suspendA2dpNative(JNIEnv *env, jobject object) {
+
+    if (!sBluetoothA2dpInterface) {
+        ALOGE("sBluetoothA2dpInterface is NULL ");
+        return;
+    }
+
+    sBluetoothA2dpInterface->suspend_sink();
+}
+
+
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
     {"initNative", "()V", (void *) initNative},
@@ -276,11 +306,13 @@ static JNINativeMethod sMethods[] = {
     {"connectA2dpNative", "([B)Z", (void *) connectA2dpNative},
     {"disconnectA2dpNative", "([B)Z", (void *) disconnectA2dpNative},
     {"allowConnectionNative", "(I)V", (void *) allowConnectionNative},
+    {"isSrcNative", "([B)Z", (void *) isSrcNative},
+    {"suspendA2dpNative", "()V", (void *) suspendA2dpNative},
 };
 
 int register_com_android_bluetooth_a2dp(JNIEnv* env)
 {
-    return jniRegisterNativeMethods(env, "com/android/bluetooth/a2dp/A2dpStateMachine", 
+    return jniRegisterNativeMethods(env, "com/android/bluetooth/a2dp/A2dpStateMachine",
                                     sMethods, NELEM(sMethods));
 }
 
