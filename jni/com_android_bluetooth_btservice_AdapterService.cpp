@@ -45,6 +45,7 @@ static jmethodID method_bondStateChangeCallback;
 static jmethodID method_aclStateChangeCallback;
 static jmethodID method_discoveryStateChangeCallback;
 static jmethodID method_deviceMasInstancesFoundCallback;
+static jmethodID method_wakeStateChangeCallback;
 
 static const bt_interface_t *sBluetoothInterface = NULL;
 static const btsock_interface_t *sBluetoothSocketInterface = NULL;
@@ -349,7 +350,20 @@ static void discovery_state_changed_callback(bt_discovery_state_t state) {
 
     checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
 }
+static void wake_state_changed_callback(bt_state_t state) {
 
+    if (!checkCallbackThread()) {
+       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
+       return;
+    }
+
+    ALOGV("%s: WakeState:%d ", __FUNCTION__, state);
+
+    callbackEnv->CallVoidMethod(sJniCallbacksObj, method_wakeStateChangeCallback,
+                                (jint)state);
+
+    checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
+}
 static void pin_request_callback(bt_bdaddr_t *bd_addr, bt_bdname_t *bdname, uint32_t cod, uint8_t secure) {
     jbyteArray addr, devname;
     if (!checkCallbackThread()) {
@@ -451,6 +465,7 @@ bt_callbacks_t sBluetoothCallbacks = {
     remote_device_properties_callback,
     device_found_callback,
     discovery_state_changed_callback,
+    wake_state_changed_callback,
     pin_request_callback,
     ssp_request_callback,
     bond_state_changed_callback,
@@ -554,7 +569,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
                                                              "([I[[B)V");
     method_discoveryStateChangeCallback = env->GetMethodID(jniCallbackClass,
                                                            "discoveryStateChangeCallback", "(I)V");
-
+    method_wakeStateChangeCallback = env->GetMethodID(jniCallbackClass,
+                                                           "wakeStateChangeCallback", "(I)V");
     method_devicePropertyChangedCallback = env->GetMethodID(jniCallbackClass,
                                                             "devicePropertyChangedCallback",
                                                             "([B[I[[B)V");
