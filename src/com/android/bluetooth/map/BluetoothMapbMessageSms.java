@@ -23,6 +23,8 @@ import com.android.bluetooth.map.BluetoothMapSmsPdu.SmsPdu;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 
 public class BluetoothMapbMessageSms extends BluetoothMapbMessage {
+    private static final boolean D = BluetoothMapService.DEBUG;
+    private static final boolean V = BluetoothMapService.VERBOSE;
 
     private ArrayList<SmsPdu> smsBodyPdus = null;
     private String smsBody = null;

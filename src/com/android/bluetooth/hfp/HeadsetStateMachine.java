@@ -1203,9 +1203,17 @@ final class HeadsetStateMachine extends StateMachine {
             }
 
             if (currentState == mConnected || currentState == mAudioOn) {
-                if (mCurrentDevice.equals(device)) {
-                    return BluetoothProfile.STATE_CONNECTED;
-                }
+                // Added safe check for mCurrentDevice as voice call use
+                // cases can call this function with valid device due to
+                // delay in state transition from connected to disconnected.
+                // This may trigger null pointer exception here since
+                // we set mCurrentDevice to null soon after disconnect,
+                // but it can be calld before we move to disconnected state
+                // in BT regression tests.
+                if (mCurrentDevice != null)
+                    if (mCurrentDevice.equals(device)) {
+                        return BluetoothProfile.STATE_CONNECTED;
+                    }
                 return BluetoothProfile.STATE_DISCONNECTED;
             } else {
                 Log.e(TAG, "Bad currentState: " + currentState);
@@ -1217,7 +1225,7 @@ final class HeadsetStateMachine extends StateMachine {
     List<BluetoothDevice> getConnectedDevices() {
         List<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
         synchronized(this) {
-            if (isConnected()) {
+            if (isConnected() && (mCurrentDevice != null)) { /* Check for mCurrentDevice too*/
                 devices.add(mCurrentDevice);
             }
         }

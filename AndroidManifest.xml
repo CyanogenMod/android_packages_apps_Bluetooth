@@ -59,6 +59,10 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
 
+<uses-permission android:name="com.android.email.permission.ACCESS_PROVIDER"/>
+    <uses-permission android:name="com.android.email.permission.READ_ATTACHMENT"/>
+
+
     <!-- For PBAP Owner Vcard Info -->
     <uses-permission android:name="android.permission.READ_PROFILE"/>
     <application
@@ -80,6 +84,13 @@
             android:name = ".btservice.AdapterService">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetooth" />
+            </intent-filter>
+        </service>
+        <service
+            android:process="@string/process"
+            android:name = ".btservice.QAdapterService">
+            <intent-filter>
+                <action android:name="android.bluetooth.IQBluetooth" />
             </intent-filter>
         </service>
         <service
@@ -199,7 +210,7 @@
                   android:process="@string/process"
                   android:label=""
                   android:excludeFromRecents="true"
-                  android:configChanges="orientation|keyboardHidden"
+                  android:configChanges="orientation|keyboardHidden|screenSize"
                   android:enabled="@bool/profile_supported_opp">
         </activity>
         <activity android:name=".pbap.BluetoothPbapActivity"
@@ -293,6 +304,14 @@
             android:enabled="@bool/profile_supported_hfpclient">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothHandsfreeClient" />
+            </intent-filter>
+        </service>
+        <service
+            android:process="@string/process"
+            android:name = ".hid.HidDevService"
+            android:enabled="@bool/profile_supported_hidd">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothHidDevice" />
             </intent-filter>
         </service>
     </application>

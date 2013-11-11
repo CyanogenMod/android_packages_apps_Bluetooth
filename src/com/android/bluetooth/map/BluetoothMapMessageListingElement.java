@@ -32,8 +32,8 @@ public class BluetoothMapMessageListingElement
     implements Comparable<BluetoothMapMessageListingElement> {
 
     private static final String TAG = "BluetoothMapMessageListingElement";
-    private static final boolean D = false;
-    private static final boolean V = false;
+    private static final boolean D = true;
+    private static final boolean V = true;
 
     private long cpHandle = 0; /* The content provider handle - without type information */
     private String mapHandle = null; /* The map hex-string handle with type information */
@@ -95,6 +95,10 @@ public class BluetoothMapMessageListingElement
 
     public String getSenderAddressing() {
         return senderAddressing;
+    }
+
+    public void setEmailSenderAddressing(String senderAddressing) {
+       this.senderAddressing = senderAddressing;
     }
 
     public void setSenderAddressing(String senderAddressing) {
@@ -218,7 +222,7 @@ public class BluetoothMapMessageListingElement
      * */
     public void encode(XmlSerializer xmlMsgElement) throws IllegalArgumentException, IllegalStateException, IOException
     {
-
+            Log.d(TAG, "Inside encode");
             // contruct the XML tag for a single msg in the msglisting
             xmlMsgElement.startTag("", "msg");
             xmlMsgElement.attribute("", "handle", mapHandle);
@@ -255,6 +259,7 @@ public class BluetoothMapMessageListingElement
             if(protect != null)
                 xmlMsgElement.attribute("", "protect", protect);
             xmlMsgElement.endTag("", "msg");
+            Log.d(TAG, "Exiting encode");
 
     }
 }
