@@ -316,7 +316,7 @@
                 <action android:name="android.bluetooth.IBluetoothPan" />
             </intent-filter>
         </service>
-    <service
+        <service
             android:process="@string/process"
             android:name = ".hfpclient.HeadsetClientService"
             android:enabled="@bool/profile_supported_hfpclient">
@@ -335,6 +335,14 @@
            android:name = ".wipower.WipowerService">
             <intent-filter>
                 <action android:name="android.wipower.IWipower" />
+            </intent-filter>
+        </service>
+        <service
+            android:process="@string/process"
+            android:name = ".hid.HidDevService"
+            android:enabled="@bool/profile_supported_hidd">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothHidDevice" />
             </intent-filter>
         </service>
     </application>

@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 2013 The Linux Foundation. All rights reserved
+ * Not a Contribution.
  * Copyright (C) 2012 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,6 +61,7 @@ import android.util.Pair;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.a2dp.A2dpSinkService;
 import com.android.bluetooth.hid.HidService;
+import com.android.bluetooth.hid.HidDevService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hdp.HealthService;
 import com.android.bluetooth.pan.PanService;
@@ -404,6 +407,8 @@ public class AdapterService extends Service {
         setAdapterService(this);
 
         checkA2dpState();
+
+        checkHidState();
 
         //Start profile services
         if (!mProfilesStarted && supportedProfileServices.length >0) {
@@ -2098,6 +2103,7 @@ public class AdapterService extends Service {
             }
         }
     }
+
     @SuppressWarnings("rawtypes")
     private synchronized void checkA2dpState() {
         final Class a2dp_src[]  =  { A2dpService.class };
@@ -2127,4 +2133,35 @@ public class AdapterService extends Service {
             setProfileServiceState(a2dp_src, BluetoothAdapter.STATE_ON);
         }
     }
+
+    @SuppressWarnings("rawtypes")
+    private synchronized void checkHidState() {
+        final Class hh[] = { HidService.class };
+        final Class hd[] = { HidDevService.class };
+
+        boolean isHidDev = SystemProperties.getBoolean("persist.service.bdroid.hid.dev", false);
+        Log.d(TAG, "checkHidState: isHidDev = " + isHidDev);
+
+        if (isHidDev) {
+            mDisabledProfiles.add(HidService.class.getName());
+            mDisabledProfiles.remove(HidDevService.class.getName());
+        } else {
+            mDisabledProfiles.remove(HidService.class.getName());
+            mDisabledProfiles.add(HidDevService.class.getName());
+        }
+
+        if (mAdapterStateMachine.isTurningOn() || mAdapterStateMachine.isTurningOff()) {
+            Log.e(TAG, "checkHidState: returning");
+            return;
+        }
+
+        if (isHidDev) {
+            setProfileServiceState(hh, BluetoothAdapter.STATE_OFF);
+            setProfileServiceState(hd, BluetoothAdapter.STATE_ON);
+        } else {
+            setProfileServiceState(hd, BluetoothAdapter.STATE_OFF);
+            setProfileServiceState(hh, BluetoothAdapter.STATE_ON);
+        }
+    }
+
 }

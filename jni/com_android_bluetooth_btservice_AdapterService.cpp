@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 2013 The Linux Foundation. All rights reserved
+ * Not a Contribution.
  * Copyright (C) 2012 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1394,6 +1396,11 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 
     if ((status = android::register_com_android_bluetooth_hid(e)) < 0) {
         ALOGE("jni hid registration failure: %d", status);
+        return JNI_ERR;
+    }
+
+    if ((status = android::register_com_android_bluetooth_hidd(e)) < 0) {
+        ALOGE("jni hidd registration failure: %d", status);
         return JNI_ERR;
     }
 
