@@ -16,6 +16,10 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"چۈشۈرۈش باشقۇرغۇچنى زىيارەت."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8739116224907566462">"ئەپنىڭ كۆكچىش ھەمبەھىر باشقۇرغۇچنى زىيارەت قىلىشقا يول قويىدۇ ھەمدە شۇ باشقۇرغۇچنى ئىشلىتىپ ھۆججەت يوللايدۇ."</string>
+    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"ئاق تىزىمدىكى كۆكچىش ئۈسكۈنە زىيارىتى."</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"كۆكچىش ئۈسكۈنىسىنى زىيارەت ھوقۇقى ئاق تىزىملىكىگە كىرگۈزۈشكە يول قويىدۇ، شۇ ئارقىلىق ئىشلەتكۈچىنىڭ جەزملىشى بولمىغان ئەھۋالدا ھۆججەتنى بۇ ئۈسكۈنىگە يوللايدۇ."</string>
+    <string name="permlab_handoverStatus" msgid="7316032998801933554">"كۆكچىش كىرىشتۈرۈپ ئۇزاتقان تارقىتىشنى قوبۇل قىلىدۇ."</string>
+    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"كۆكچىش ئارقىلىق كىرىشتۈرۈپ ئۇزىتىش ھالەت ئۇچۇرىنى قوبۇل قىلىشقا يول قويىدۇ."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"كۆكچىش"</string>
     <string name="unknown_device" msgid="9221903979877041009">"يوچۇن ئۈسكۈنە"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"يوچۇن"</string>
@@ -37,8 +41,10 @@
     <string name="incoming_file_toast_msg" msgid="5763638110029586276">"باشقا ئۈسكۈنىدىن بىر ھۆججەت كەلدى، بۇ ھۆججەتنى قوبۇللاش قوبۇللىماسلىقنى جەزملەڭ"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"كۆكچىش ھەمبەھىر:  <xliff:g id="FILE">%1$s</xliff:g> قوبۇللاۋاتىدۇ"</string>
     <string name="notification_received" msgid="3324588019186687985">"كۆكچىش ھەمبەھىر:  <xliff:g id="FILE">%1$s</xliff:g> قوبۇللىدى"</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"كۆكچىش ھەمبەھىر: <xliff:g id="FILE">%1$s</xliff:g> ھۆججەتنى قوبۇللىمىدى"</string>
     <string name="notification_sending" msgid="3035748958534983833">"كۆكچىش ھەمبەھىر:  <xliff:g id="FILE">%1$s</xliff:g> يوللاۋاتىدۇ"</string>
     <string name="notification_sent" msgid="9218710861333027778">"كۆكچىش ھەمبەھىر:  <xliff:g id="FILE">%1$s</xliff:g> يوللاندى"</string>
+    <string name="notification_sent_complete" msgid="302943281067557969">"100% تامام"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"كۆكچىش ھەمبەھىر: <xliff:g id="FILE">%1$s</xliff:g> ھۆججەت يوللانمىدى"</string>
     <string name="download_title" msgid="3353228219772092586">"ھۆججەت يوللاش"</string>
     <string name="download_line1" msgid="4926604799202134144">"يوللىغۇچى: \"<xliff:g id="SENDER">%1$s</xliff:g>\"</string>

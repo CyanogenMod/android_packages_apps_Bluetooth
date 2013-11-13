@@ -13,8 +13,9 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
- -->
+-->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="empty_file_notification_sent">Delen via Bluetooth: ontvanger weigert leeg bestand <xliff:g id="file">%1$s</xliff:g></string>
-    <string name="alwaysallowed">Altijd toestaan?</string>
+    <!-- CAF additions start -->
+    <string name="empty_file_notification_sent">Bluetooth: Ha sido rechazado el archivo vacío <xliff:g id="file">%1$s</xliff:g></string>
+    <!-- CAF additions end -->
 </resources>
