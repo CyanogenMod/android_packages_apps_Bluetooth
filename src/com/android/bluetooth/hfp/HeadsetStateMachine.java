@@ -355,7 +355,14 @@ final class HeadsetStateMachine extends StateMachine {
                                        BluetoothProfile.STATE_CONNECTING);
                         break;
                     }
-
+                    if (mPhoneProxy != null) {
+                        try {
+                            log("Query the phonestates");
+                            mPhoneProxy.queryPhoneState();
+                        } catch (RemoteException e) {
+                            Log.e(TAG, Log.getStackTraceString(new Throwable()));
+                        }
+                    } else Log.e(TAG, "Phone proxy null for query phone state");
                     synchronized (HeadsetStateMachine.this) {
                         mTargetDevice = device;
                         transitionTo(mPending);
@@ -1165,14 +1172,6 @@ final class HeadsetStateMachine extends StateMachine {
         public void onServiceConnected(ComponentName className, IBinder service) {
             if (DBG) Log.d(TAG, "Proxy object connected");
             mPhoneProxy = IBluetoothHeadsetPhone.Stub.asInterface(service);
-            if (mPhoneProxy != null) {
-                try {
-                    log("Try to query the phonestate on bind");
-                    mPhoneProxy.queryPhoneState();
-                } catch (RemoteException e) {
-                    Log.e(TAG, Log.getStackTraceString(new Throwable()));
-                }
-            } else Log.e(TAG, " phone proxy null for query phone state");
         }
 
         public void onServiceDisconnected(ComponentName className) {
