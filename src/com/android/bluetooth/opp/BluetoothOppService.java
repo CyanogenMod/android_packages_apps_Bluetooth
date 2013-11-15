@@ -278,7 +278,8 @@ public class BluetoothOppService extends Service {
                      * 2. If there is ongoing transfer, hold it for 20 seconds(1 seconds * 20 times)
                      * 3. If there is on-hold connection, reject directly
                      */
-                    if (mBatchs.size() == 0 && mPendingConnection == null) {
+                    if (((mBatchs.size() == 0) || ((mBatchs.size() > 0) && (mServerTransfer == null)
+                        )) && mPendingConnection == null) {
                         Log.i(TAG, "Start Obex Server");
                         createServerSession(transport);
                     } else {
@@ -303,7 +304,8 @@ public class BluetoothOppService extends Service {
                     }
                     break;
                 case MSG_INCOMING_CONNECTION_RETRY:
-                    if (mBatchs.size() == 0) {
+                    if ((mBatchs.size() == 0) || ((mBatchs.size() > 0) && (mServerTransfer == null))
+                        ) {
                         Log.i(TAG, "Start Obex Server");
                         createServerSession(mPendingConnection);
                         mIncomingRetries = 0;
@@ -555,6 +557,22 @@ public class BluetoothOppService extends Service {
 
     }
 
+    private BluetoothOppTransfer insertShareWithOngoingBatch(BluetoothOppTransfer transfer,
+                        BluetoothOppBatch batch, int arrayPos, BluetoothOppObexSession session) {
+        if(transfer == null) {
+            transfer = new BluetoothOppTransfer(this, mPowerManager, batch, session);
+            if (transfer != null) {
+                transfer.start();
+            } else {
+                Log.e(TAG, "Unexpected error! mTransfer is null");
+                mBatchs.remove(batch);
+                mBatchId--;
+                mShares.remove(arrayPos);
+            }
+        }
+        return transfer;
+    }
+
     private void insertShare(Cursor cursor, int arrayPos) {
         String uriString = cursor.getString(cursor.getColumnIndexOrThrow(BluetoothShare.URI));
         Uri uri;
@@ -669,6 +687,14 @@ public class BluetoothOppService extends Service {
                     mBatchs.add(newBatch);
                     if (V) Log.v(TAG, "Service add new Batch " + newBatch.mId + " for info " +
                             info.mId);
+                    if (info.mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
+                        mTransfer = insertShareWithOngoingBatch(mTransfer, newBatch, arrayPos,
+                            null);
+                    } else if (info.mDirection == BluetoothShare.DIRECTION_INBOUND) {
+                        mServerTransfer = insertShareWithOngoingBatch(mServerTransfer, newBatch,
+                            arrayPos, mServerSession);
+                    }
+
                     if (Constants.USE_TCP_DEBUG && !Constants.USE_TCP_SIMPLE_SERVER) {
                         // only allow  concurrent serverTransfer in debug mode
                         if (info.mDirection == BluetoothShare.DIRECTION_INBOUND) {
