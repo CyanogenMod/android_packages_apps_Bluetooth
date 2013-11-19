@@ -214,6 +214,7 @@ public class Constants {
         "text/plain",
         "text/html",
         "text/comma-separated-values",
+        "text/calendar",
         "application/zip",
         "application/vnd.ms-excel",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
