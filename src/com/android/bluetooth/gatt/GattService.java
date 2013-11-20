@@ -1512,8 +1512,18 @@ public class GattService extends ProfileService {
     }
 
     private void continueSearch(int connId, int status) throws RemoteException {
-        if (status == 0 && !mSearchQueue.isEmpty()) {
-            SearchQueue.Entry svc = mSearchQueue.pop();
+        Log.d(TAG, "continueSearch() - connid=" + connId + ", status=" + status);
+
+        if(mSearchQueue.isEmpty())
+            Log.d(TAG,"Queue is completely empty");
+        if(mSearchQueue.isEmpty(connId))
+            Log.d(TAG,"continueSearch():Queue is empty for connid=" + connId);
+        if (status == 0 && !mSearchQueue.isEmpty(connId)) {
+            SearchQueue.Entry svc = mSearchQueue.pop(connId);
+
+            //verify once that the popped value is correct
+            if(svc.connId!=connId)
+                Log.d(TAG,"continueSearch(): connid of popped value not matching: input=" + connId + "and popped="+svc.connId);
 
             if (svc.charUuidLsb == 0) {
                 // Characteristic is up next
@@ -1528,6 +1538,7 @@ public class GattService extends ProfileService {
         } else {
             ClientMap.App app = mClientMap.getByConnId(connId);
             if (app != null) {
+                Log.d(TAG,"continueSearch(): calling searchcomplete in frameworks");
                 app.callback.onSearchComplete(mClientMap.addressByConnId(connId), status);
             }
         }
