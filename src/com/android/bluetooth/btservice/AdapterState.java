@@ -132,6 +132,12 @@ final class AdapterState extends StateMachine {
                    if (DBG) Log.d(TAG,"CURRENT_STATE=OFF, MESSAGE = USER_TURN_OFF");
                    //TODO: Handle case of service started and stopped without enable
                    break;
+               case ENABLED_READY:
+                   if (DBG) Log.d(TAG,"CURRENT_STATE=OFF, MESSAGE = ENABLED_READY");
+                   mAdapterProperties.onBluetoothReady();
+                   transitionTo(mOnState);
+                   notifyAdapterStateChange(BluetoothAdapter.STATE_ON);
+                   break;
                default:
                    if (DBG) Log.d(TAG,"ERROR: UNEXPECTED MESSAGE: CURRENT_STATE=OFF, MESSAGE = " + msg.what );
                    return false;
