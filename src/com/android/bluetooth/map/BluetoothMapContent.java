@@ -42,8 +42,8 @@ import com.google.android.mms.pdu.CharacterSets;
 public class BluetoothMapContent {
     private static final String TAG = "BluetoothMapContent";
 
-    private static final boolean D = false;
-    private static final boolean V = false;
+    private static final boolean D = true;
+    private static final boolean V = true;
 
     private static final int MASK_SUBJECT = 0x1;
     private static final int MASK_DATETIME = 0x2;
@@ -964,9 +964,9 @@ public class BluetoothMapContent {
 
         if ((ap.getFilterPeriodEnd() != -1)) {
             if (fi.msgType == FilterInfo.TYPE_SMS) {
-            where += " AND date < " + ap.getFilterPeriodEnd();
+            where += " AND date <= " + ap.getFilterPeriodEnd();
             } else if (fi.msgType == FilterInfo.TYPE_MMS) {
-                where += " AND date < " + (ap.getFilterPeriodEnd() / 1000L);
+                where += " AND date <= " + (ap.getFilterPeriodEnd() / 1000L);
             }
         }
 
