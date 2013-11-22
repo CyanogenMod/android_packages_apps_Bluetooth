@@ -213,6 +213,7 @@ public class Constants {
         "text/x-vcard",
         "text/plain",
         "text/html",
+        "text/xml",
         "application/zip",
         "application/vnd.ms-excel",
         "application/msword",
