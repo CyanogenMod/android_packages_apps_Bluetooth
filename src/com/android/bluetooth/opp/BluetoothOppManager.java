@@ -118,6 +118,10 @@ public class BluetoothOppManager {
     // The time for which the whitelist entries remain valid.
     private static final int WHITELIST_DURATION_MS = 15000;
 
+    public boolean isA2DPPlaying;
+
+    public boolean isScoConnected;
+
     /**
      * Get singleton instance.
      */
@@ -149,7 +153,8 @@ public class BluetoothOppManager {
 
         // Restore data from preference
         restoreApplicationData();
-
+        isA2DPPlaying = false;
+        isScoConnected = false;
         return true;
     }
 

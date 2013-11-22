@@ -189,6 +189,8 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
         private ClientSession mCs;
 
+        private BluetoothOppManager oppmanager;
+
         private WakeLock wakeLock;
 
         private BluetoothOppSendFileInfo mFileInfo = null;
@@ -263,6 +265,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     mCs.disconnect(null);
                 }
                 mCs = null;
+                oppmanager = null;
                 if (D) Log.d(TAG, "OBEX session disconnected");
             } catch (IOException e) {
                 Log.w(TAG, "OBEX session disconnect error" + e);
@@ -291,6 +294,13 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             try {
                 mCs = new ClientSession(mTransport1);
                 mConnected = true;
+                oppmanager = BluetoothOppManager.getInstance(mContext1);
+                if ((oppmanager != null) && (oppmanager.isA2DPPlaying
+                    || oppmanager.isScoConnected)) {
+                    mCs.reduceMTU(true);
+                    if (V) Log.v(TAG, "Reducing Obex MTU to 8k as A2DP or SCO in progress");
+                }
+
             } catch (IOException e1) {
                 Log.e(TAG, "OBEX session create error");
             }
@@ -454,6 +464,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     boolean okToProceed = false;
                     long timestamp = 0;
                     int outputBufferSize = putOperation.getMaxPacketSize();
+
                     byte[] buffer = new byte[outputBufferSize];
                     BufferedInputStream a = new BufferedInputStream(fileInfo.mInputStream, 0x4000);
 
