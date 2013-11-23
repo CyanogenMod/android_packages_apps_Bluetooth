@@ -503,6 +503,11 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         if(folderName == null) {
             folderName = mCurrentFolder.getName();
         }
+        Log.d(TAG, "sendMessageListingRsp for folder " +folderName);
+        if(mCurrentFolder.getSubFolder(folderName) == null) {
+            Log.d(TAG, "Proper Path not set. returning from here");
+            return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
+        }
         if(appParams == null){
             appParams = new BluetoothMapAppParams();
             appParams.setMaxListCount(1024);
