@@ -20,6 +20,7 @@ import java.util.ArrayList;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.SystemProperties;
 import android.util.Log;
 
 import com.android.bluetooth.R;
@@ -34,6 +35,9 @@ import com.android.bluetooth.map.BluetoothMapService;
 
 public class Config {
     private static final String TAG = "AdapterServiceConfig";
+    private static final int hfpClientNotSupported  = -1;
+    private static final int hfpClientSupported  = 1;
+    private static int enableHfpclient = 0;
     /**
      * List of profile services.
      */
@@ -79,6 +83,14 @@ public class Config {
             boolean supported = resources.getBoolean(PROFILE_SERVICES_FLAG[i]);
             if (supported) {
                 Log.d(TAG, "Adding " + PROFILE_SERVICES[i].getSimpleName());
+                if (PROFILE_SERVICES[i].getSimpleName().equals("HandsfreeClientService")) {
+                    enableHfpclient = SystemProperties.getInt("bluetooth.hfp.client",
+                            hfpClientNotSupported);
+                    Log.d(TAG, "enableHfpclient " +enableHfpclient);
+                    if (enableHfpclient == hfpClientSupported)
+                        profiles.add(PROFILE_SERVICES[i]);
+                    continue;
+                }
                 profiles.add(PROFILE_SERVICES[i]);
             }
         }
