@@ -65,6 +65,9 @@ final class A2dpStateMachine extends StateMachine {
     private static final int STACK_EVENT = 101;
     private static final int CONNECT_TIMEOUT = 201;
 
+    private static final int IS_INVALID_DEVICE = 0;
+    private static final int IS_VALID_DEVICE = 1;
+
     private Disconnected mDisconnected;
     private Pending mPending;
     private Connected mConnected;
@@ -750,6 +753,19 @@ final class A2dpStateMachine extends StateMachine {
         event.device = getDevice(address);
         sendMessage(STACK_EVENT, event);
     }
+
+    private void onCheckConnectionPriority(byte[] address) {
+        BluetoothDevice device = getDevice(address);
+        logw(" device " + device + " okToConnect " + okToConnect(device));
+        if (okToConnect(device)) {
+            // if connection is allowed then go ahead and connect
+            allowConnectionNative(IS_VALID_DEVICE);
+        } else {
+            // if connection is not allowed DO NOT CONNECT
+            allowConnectionNative(IS_INVALID_DEVICE);
+        }
+    }
+
     private BluetoothDevice getDevice(byte[] address) {
         return mAdapter.getRemoteDevice(Utils.getAddressStringFromByte(address));
     }
@@ -812,4 +828,5 @@ final class A2dpStateMachine extends StateMachine {
     private native void cleanupNative();
     private native boolean connectA2dpNative(byte[] address);
     private native boolean disconnectA2dpNative(byte[] address);
+    private native void allowConnectionNative(int isValid);
 }
