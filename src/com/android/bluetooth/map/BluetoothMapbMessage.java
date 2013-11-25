@@ -365,6 +365,17 @@ public abstract class BluetoothMapbMessage {
             }
             return data;
         }
+
+        public String getStringTerminator(String terminator) {
+                StringBuilder dataStr= new StringBuilder();
+                String lineCur = getLine();
+                while( lineCur != null && (!lineCur.equals(terminator)))
+                {
+                  dataStr.append(lineCur);
+                  lineCur = getLine();
+                }
+            return dataStr.toString();
+        }
     };
 
     public BluetoothMapbMessage(){
@@ -614,23 +625,17 @@ public abstract class BluetoothMapbMessage {
                  * Since errata ???(bluetooth.org is down at the moment) introduced escaping of END:MSG
                  * in the actual message content, it is now safe to use the END:MSG tag as terminator,
                  * and simply ignore the length field.*/
-                byte[] rawData = reader.getDataBytes(bMsgLength - (line.getBytes().length + 2)); // 2 added to compensate for the removed \r\n
-                String data;
-                try {
-                    data = new String(rawData, "UTF-8");
-                    if(V) {
-                        Log.v(TAG,"MsgLength: " + bMsgLength);
-                        Log.v(TAG,"line.getBytes().length: " + line.getBytes().length);
-                        String debug = line.replaceAll("\\n", "<LF>\n");
-                        debug = debug.replaceAll("\\r", "<CR>");
-                        Log.v(TAG,"The line: \"" + debug + "\"");
-                        debug = data.replaceAll("\\n", "<LF>\n");
-                        debug = debug.replaceAll("\\r", "<CR>");
-                        Log.v(TAG,"The msgString: \"" + debug + "\"");
-                    }
-                } catch (UnsupportedEncodingException e) {
-                    Log.w(TAG,e);
-                    throw new IllegalArgumentException("Unable to convert to UTF-8");
+                //byte[] rawData = reader.getDataBytes(bMsgLength - (line.getBytes().length + 2)); // 2 added to compensate for the removed \r\n
+                String data = reader.getStringTerminator("END:MSG");
+                if(V) {
+                    Log.v(TAG,"MsgLength: " + bMsgLength);
+                    Log.v(TAG,"data.getBytes().length: " + data.getBytes().length);
+                    String debug = line.replaceAll("\\n", "<LF>\n");
+                    debug = debug.replaceAll("\\r", "<CR>");
+                    Log.v(TAG,"The line: \"" + debug + "\"");
+                    debug = data.replaceAll("\\n", "<LF>\n");
+                    debug = debug.replaceAll("\\r", "<CR>");
+                    Log.v(TAG,"The msgString: \"" + data + "\"");
                 }
                 /* Decoding of MSG:
                  * 1) split on "\r\nEND:MSG\r\n"
