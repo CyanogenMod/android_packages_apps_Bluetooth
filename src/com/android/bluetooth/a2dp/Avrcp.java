@@ -123,9 +123,14 @@ final class Avrcp {
     private static final int MESSAGE_FAST_FORWARD = 10;
     private static final int MESSAGE_REWIND = 11;
     private static final int MESSAGE_FF_REW_TIMEOUT = 12;
+
+    private static final int MESSAGE_SET_ADDR_PLAYER_REQ_TIMEOUT = 13;
+    private static final int SET_ADDR_PLAYER_TIMEOUT = 2000;
+
     private int mAddressedPlayerChangedNT;
     private int mAvailablePlayersChangedNT;
     private int mAddressedPlayerId;
+    private String mRequestedAddressedPlayerPackageName;
 
     private static final int MSG_UPDATE_STATE = 100;
     private static final int MSG_SET_METADATA = 101;
@@ -149,6 +154,11 @@ final class Avrcp {
     private static final int AVRCP_MAX_VOL = 127;
     private static final int AVRCP_BASE_VOLUME_STEP = 1;
     private final static int MESSAGE_PLAYERSETTINGS_TIMEOUT = 602;
+
+    private static final int ERR_INVALID_PLAYER_ID = 0x11;
+    private static final int ERR_ADDR_PLAYER_FAILS = 0x13;
+    private static final int ERR_ADDR_PLAYER_SUCCEEDS = 0x04;
+
     //Intents for PlayerApplication Settings
     private static final String PLAYERSETTINGS_REQUEST = "org.codeaurora.music.playersettingsrequest";
     private static final String PLAYERSETTINGS_RESPONSE =
@@ -240,6 +250,7 @@ final class Avrcp {
         mAddressedPlayerId = 0; //  0 signifies bad entry
         mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
         mTimer = null;
+        mRequestedAddressedPlayerPackageName = null;
         mFeatures = 0;
         mAbsoluteVolume = -1;
         mLastSetVolume = -1;
@@ -422,6 +433,11 @@ final class Avrcp {
             Log.e(TAG,"Unable to unregister Avrcp receiver", e);
         }
         mMediaPlayers.clear();
+        if (mHandler.hasMessages(MESSAGE_SET_ADDR_PLAYER_REQ_TIMEOUT)) {
+            mHandler.removeMessages(MESSAGE_SET_ADDR_PLAYER_REQ_TIMEOUT);
+            mRequestedAddressedPlayerPackageName = null;
+            if (DEBUG) Log.v(TAG, "Addressed player message cleanup as part of doQuit");
+        }
     }
 
     public void cleanup() {
@@ -632,6 +648,12 @@ final class Avrcp {
                 if (DEBUG) Log.v(TAG, "MESSAGE_PLAY_INTERVAL_TIMEOUT");
                 mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
                 registerNotificationRspPlayPosNative(mPlayPosChangedNT, (int)getPlayPosition());
+                break;
+
+            case MESSAGE_SET_ADDR_PLAYER_REQ_TIMEOUT:
+                if (DEBUG) Log.v(TAG, "setAddressedPlayer fails, Times out");
+                setAdressedPlayerRspNative ((byte)ERR_ADDR_PLAYER_FAILS);
+                mRequestedAddressedPlayerPackageName = null;
                 break;
 
             case MESSAGE_VOLUME_CHANGED:
@@ -1019,6 +1041,11 @@ final class Avrcp {
     private void setAddressedPlayer(int playerId) {
         if (DEBUG) Log.v(TAG, "setAddressedPlayer");
         String packageName = null;
+        if (mRequestedAddressedPlayerPackageName != null) {
+            if (DEBUG) Log.v(TAG, "setAddressedPlayer: Request in progress, Reject this Request");
+            setAdressedPlayerRspNative ((byte)ERR_ADDR_PLAYER_FAILS);
+            return;
+        }
         if (mMediaPlayers.size() > 0) {
             final Iterator<MediaPlayerInfo> rccIterator = mMediaPlayers.iterator();
             while (rccIterator.hasNext()) {
@@ -1029,15 +1056,23 @@ final class Avrcp {
             }
         }
         if(packageName != null) {
+            if (playerId == mAddressedPlayerId) {
+                if (DEBUG) Log.v(TAG, "setAddressedPlayer: Already addressed, sending success");
+                setAdressedPlayerRspNative ((byte)ERR_ADDR_PLAYER_SUCCEEDS);
+                return;
+            }
             String newPackageName = packageName.replace("com.android", "org.codeaurora");
             Intent mediaIntent = new Intent(newPackageName + ".setaddressedplayer");
             mediaIntent.setPackage(packageName);
             mContext.sendBroadcast(mediaIntent); // This needs to be caught in respective media players
             if (DEBUG) Log.v(TAG, "Intent Broadcasted: " + newPackageName + ".setaddressedplayer");
-            setAdressedPlayerRspNative ((byte)0x04);
-        }else {
-            if (DEBUG) Log.v(TAG, "Error: No such media player available, hence can not be addressed");
-            setAdressedPlayerRspNative ((byte)0x011);
+            mRequestedAddressedPlayerPackageName = packageName;
+            Message msg = mHandler.obtainMessage(MESSAGE_SET_ADDR_PLAYER_REQ_TIMEOUT);
+            mHandler.sendMessageDelayed(msg, SET_ADDR_PLAYER_TIMEOUT);
+            Log.v(TAG, "Post MESSAGE_SET_ADDR_PLAYER_REQ_TIMEOUT");
+        } else {
+            if (DEBUG) Log.v(TAG, "setAddressedPlayer fails: No such media player available");
+            setAdressedPlayerRspNative ((byte)ERR_INVALID_PLAYER_ID);
         }
     }
     private void getFolderItems(byte scope, int start, int end, int attrCnt) {
@@ -1082,8 +1117,23 @@ final class Avrcp {
         if (isAvailable == 1)
             available = true;
 
-        if (focussed)
+        if (focussed) {
             isResetFocusRequired = true; // need to reset other player's focus.
+            if (mRequestedAddressedPlayerPackageName != null) {
+                if (callingPackageName.equals(mRequestedAddressedPlayerPackageName)) {
+                    mHandler.removeMessages(MESSAGE_SET_ADDR_PLAYER_REQ_TIMEOUT);
+                    if (DEBUG) Log.v(TAG, "SetAddressedPlayer succeeds for: "
+                                                + mRequestedAddressedPlayerPackageName);
+                    mRequestedAddressedPlayerPackageName = null;
+                    setAdressedPlayerRspNative ((byte)ERR_ADDR_PLAYER_SUCCEEDS);
+                } else {
+                    if (DEBUG) Log.v(TAG, "SetaddressedPlayer package mismatch with: "
+                                                + mRequestedAddressedPlayerPackageName);
+                }
+            } else {
+                if (DEBUG) Log.v(TAG, "SetaddressedPlayer request is not in progress");
+            }
+        }
 
         if (mMediaPlayers.size() > 0) {
             final Iterator<MediaPlayerInfo> rccIterator = mMediaPlayers.iterator();
