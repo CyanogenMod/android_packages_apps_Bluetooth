@@ -81,6 +81,7 @@ public class BluetoothMapService extends ProfileService {
      */
     public static final String USER_CONFIRM_TIMEOUT_ACTION =
             "com.android.bluetooth.map.userconfirmtimeout";
+    private static final int USER_CONFIRM_TIMEOUT_VALUE = 30000;
 
     /**
      * Intent Extra name indicating session key which is sent from
@@ -133,6 +134,7 @@ public class BluetoothMapService extends ProfileService {
     private int mState;
 
     private boolean isWaitingAuthorization = false;
+    private boolean removeTimeoutMsg = false;
 
     // package and class name to which we send intent to check message access access permission
     private static final String ACCESS_AUTHORITY_PACKAGE = "com.android.settings";
@@ -390,6 +392,12 @@ public class BluetoothMapService extends ProfileService {
 
                         if (DEBUG) Log.d(TAG, "waiting for authorization for connection from: "
                                 + sRemoteDeviceName);
+                        //Queue USER_TIMEOUT to disconnect MAP OBEX session. If user doesn't
+                        //accept or reject authorization request
+                        removeTimeoutMsg = true;
+                        mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
+                                .obtainMessage(USER_TIMEOUT), USER_CONFIRM_TIMEOUT_VALUE);
+
 
                     }
                     stopped = true; // job done ,close this thread;
@@ -419,11 +427,12 @@ public class BluetoothMapService extends ProfileService {
                     break;
                 case USER_TIMEOUT:
                     Intent intent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
-                    intent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
+                    intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
                     intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                     BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
-                    sendBroadcast(intent);
+                    sendBroadcast(intent, BLUETOOTH_PERM);
                     isWaitingAuthorization = false;
+                    removeTimeoutMsg = false;
                     stopObexServerSession();
                     break;
                 case MSG_SERVERSESSION_CLOSE:
@@ -621,7 +630,22 @@ public class BluetoothMapService extends ProfileService {
                 int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
                                                BluetoothAdapter.ERROR);
                 if (state == BluetoothAdapter.STATE_TURNING_OFF) {
-                    if (DEBUG) Log.d(TAG, "STATE_TURNING_OFF");
+                    if (DEBUG) Log.d(TAG, "STATE_TURNING_OFF removeTimeoutMsg:" + removeTimeoutMsg);
+                    // Send any pending timeout now, as this service will be destroyed.
+                    if (removeTimeoutMsg) {
+                        mSessionStatusHandler.removeMessages(USER_TIMEOUT);
+
+                        Intent timeoutIntent =
+                                new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
+                        timeoutIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+                        timeoutIntent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
+                                               BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
+                        sendBroadcast(timeoutIntent, BLUETOOTH_PERM);
+                        isWaitingAuthorization = false;
+                        removeTimeoutMsg = false;
+                        stopObexServerSession();
+                    }
+
                     // Release all resources
                     closeService();
                 } else if (state == BluetoothAdapter.STATE_ON) {
@@ -635,7 +659,7 @@ public class BluetoothMapService extends ProfileService {
                 int requestType = intent.getIntExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                                BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
                 if (DEBUG) Log.d(TAG, "Received ACTION_CONNECTION_ACCESS_REPLY:" +
-                           requestType + ":" + isWaitingAuthorization);
+                           requestType + "isWaitingAuthorization:" + isWaitingAuthorization);
                 if ((!isWaitingAuthorization) ||
                     (requestType != BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS)) {
                     // this reply is not for us
@@ -643,6 +667,10 @@ public class BluetoothMapService extends ProfileService {
                 }
 
                 isWaitingAuthorization = false;
+                if (removeTimeoutMsg) {
+                    mSessionStatusHandler.removeMessages(USER_TIMEOUT);
+                    removeTimeoutMsg = false;
+                }
 
                 if (intent.getIntExtra(BluetoothDevice.EXTRA_CONNECTION_ACCESS_RESULT,
                                        BluetoothDevice.CONNECTION_ACCESS_NO) ==
