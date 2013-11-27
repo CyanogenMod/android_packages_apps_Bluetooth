@@ -65,8 +65,8 @@ import com.google.android.mms.pdu.PduHeaders;
 public class BluetoothMapContentObserver {
     private static final String TAG = "BluetoothMapContentObserver";
 
-    private static final boolean D = false;
-    private static final boolean V = false;
+    private static final boolean D = true;
+    private static final boolean V = true;
 
     private Context mContext;
     private ContentResolver mResolver;
