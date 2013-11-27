@@ -898,16 +898,20 @@ final class Avrcp {
         private String artist;
         private String trackTitle;
         private String albumTitle;
+        private String genre;
+        private long tracknum;
 
         public Metadata() {
             artist = null;
             trackTitle = null;
             albumTitle = null;
+            genre = null;
+            tracknum = 0;
         }
 
         public String toString() {
             return "Metadata[artist=" + artist + " trackTitle=" + trackTitle + " albumTitle=" +
-                   albumTitle + "]";
+                   albumTitle + " genre=" + genre + " tracknum=" + Long.toString(tracknum) + "]";
         }
     }
 
@@ -952,6 +956,10 @@ final class Avrcp {
         mMetadata.artist = getMdString(data, MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST);
         mMetadata.trackTitle = getMdString(data, MediaMetadataRetriever.METADATA_KEY_TITLE);
         mMetadata.albumTitle = getMdString(data, MediaMetadataRetriever.METADATA_KEY_ALBUM);
+        mMetadata.genre = getMdString(data, MediaMetadataRetriever.METADATA_KEY_GENRE);
+        mMetadata.tracknum = getMdLong(data, MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER);
+
+        Log.v(TAG,"mMetadata.toString() = " + mMetadata.toString());
 
         if (mMediaPlayers.size() > 0) {
             final Iterator<MediaPlayerInfo> rccIterator = mMediaPlayers.iterator();
@@ -966,6 +974,8 @@ final class Avrcp {
         }
         if (!oldMetadata.equals(mMetadata.toString())) {
             updateTrackNumber();
+            Log.v(TAG,"new mMetadata, mTrackNumber update to " + mTrackNumber);
+
             if (mTrackChangedNT == NOTIFICATION_TYPE_INTERIM) {
                 mTrackChangedNT = NOTIFICATION_TYPE_CHANGED;
                 sendTrackChangedRsp();
@@ -1219,7 +1229,7 @@ final class Avrcp {
           If no track is currently selected, then return
          0xFFFFFFFFFFFFFFFF in the interim response */
         if (mCurrentPlayState == RemoteControlClient.PLAYSTATE_PLAYING)
-            TrackNumberRsp = mTrackNumber ;
+            TrackNumberRsp = mMetadata.tracknum ;
         /* track is stored in big endian format */
         for (int i = 0; i < TRACK_ID_SIZE; ++i) {
             track[i] = (byte) (TrackNumberRsp >> (56 - 8 * i));
@@ -1273,6 +1283,17 @@ final class Avrcp {
                 }
                 break;
 
+            case MEDIA_ATTR_TRACK_NUM:
+                attrStr = Long.toString(mMetadata.tracknum);
+                break;
+
+            case MEDIA_ATTR_NUM_TRACKS:
+                attrStr = Long.toString(mTrackNumber);
+                break;
+
+             case MEDIA_ATTR_GENRE:
+                attrStr = mMetadata.genre;
+                break;
         }
         if (attrStr == null) {
             attrStr = new String();

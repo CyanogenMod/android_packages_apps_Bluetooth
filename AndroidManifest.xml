@@ -294,5 +294,13 @@
                 <action android:name="android.bluetooth.IBluetoothHandsfreeClient" />
             </intent-filter>
         </service>
+        <service
+            android:process="@string/process"
+            android:name = ".hid.HidDevService"
+            android:enabled="@bool/profile_supported_hidd">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothHidDevice" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>

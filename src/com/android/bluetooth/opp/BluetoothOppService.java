@@ -45,6 +45,7 @@ import android.content.IntentFilter;
 import android.database.CharArrayBuffer;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.media.MediaScannerConnection;
 import android.media.MediaScannerConnection.MediaScannerConnectionClient;
 import android.net.Uri;
@@ -436,8 +437,14 @@ public class BluetoothOppService extends Service {
                     }
                     mPendingUpdate = false;
                 }
-                Cursor cursor = getContentResolver().query(BluetoothShare.CONTENT_URI, null, null,
+                Cursor cursor;
+                try {
+                    cursor = getContentResolver().query(BluetoothShare.CONTENT_URI, null, null,
                         null, BluetoothShare._ID);
+                } catch (SQLiteException e) {
+                    cursor = null;
+                    Log.e(TAG, "SQLite exception: " + e);
+                }
 
                 if (cursor == null) {
                     return;
@@ -935,9 +942,15 @@ public class BluetoothOppService extends Service {
                 + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + "="
                 + BluetoothShare.STATUS_RUNNING;
 
-        Cursor cursorToFile = contentResolver.query(BluetoothShare.CONTENT_URI,
-                                  new String[] { BluetoothShare._DATA },
-                                  WHERE_INBOUND_INTERRUPTED_ON_POWER_OFF, null, null);
+        Cursor cursorToFile;
+        try {
+            cursorToFile = contentResolver.query(BluetoothShare.CONTENT_URI,
+                new String[] { BluetoothShare._DATA },
+                WHERE_INBOUND_INTERRUPTED_ON_POWER_OFF, null, null);
+        } catch (SQLiteException e) {
+                cursorToFile = null;
+                Log.e(TAG, "SQLite exception: " + e);
+        }
 
         // remove the share and the respective file which was interrupted by battery
         // removal in the local device
@@ -967,9 +980,15 @@ public class BluetoothOppService extends Service {
         final String WHERE_INBOUND_SUCCESS = BluetoothShare.DIRECTION + "="
                 + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + "="
                 + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
-        Cursor cursor = contentResolver.query(BluetoothShare.CONTENT_URI, new String[] {
-            BluetoothShare._ID
-        }, WHERE_INBOUND_SUCCESS, null, BluetoothShare._ID); // sort by id
+        Cursor cursor;
+        try {
+            cursor = contentResolver.query(BluetoothShare.CONTENT_URI, new String[] {
+                BluetoothShare._ID
+                }, WHERE_INBOUND_SUCCESS, null, BluetoothShare._ID); // sort by id
+        } catch (SQLiteException e) {
+            cursor = null;
+            Log.e(TAG, "SQLite exception: " + e);
+        }
 
         if (cursor == null) {
             return;
