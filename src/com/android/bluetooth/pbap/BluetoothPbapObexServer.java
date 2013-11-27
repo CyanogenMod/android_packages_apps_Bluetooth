@@ -415,8 +415,11 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         } else {
 
             // Extracting file name
-            String Filename = name.substring(name.lastIndexOf("/") + 1);
-            Filename = Filename.substring(0, Filename.lastIndexOf('.'));
+            String Filename = name;
+            if (name.contains("/")) {
+                Filename = name.substring(name.lastIndexOf("/") + 1);
+                Filename = Filename.substring(0, Filename.lastIndexOf('.'));
+            }
 
             if (((Filename.equals(PB.subSequence(0, PB.length())) &&
                  name.contains(SIM1.subSequence(0, SIM1.length()))) &&
