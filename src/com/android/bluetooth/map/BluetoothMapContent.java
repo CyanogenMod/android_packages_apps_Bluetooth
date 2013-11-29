@@ -42,8 +42,8 @@ import com.google.android.mms.pdu.CharacterSets;
 public class BluetoothMapContent {
     private static final String TAG = "BluetoothMapContent";
 
-    private static final boolean D = false;
-    private static final boolean V = false;
+    private static final boolean D = true;
+    private static final boolean V = true;
 
     private static final int MASK_SUBJECT = 0x1;
     private static final int MASK_DATETIME = 0x2;
@@ -485,7 +485,7 @@ public class BluetoothMapContent {
     private void setRecipientAddressing(BluetoothMapMessageListingElement e, Cursor c,
         FilterInfo fi, BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_RECIPIENT_ADDRESSING) != 0) {
-            String address = null;
+            String address = "";
             if (fi.msgType == FilterInfo.TYPE_SMS) {
                 int msgType = c.getInt(c.getColumnIndex(Sms.TYPE));
                 if (msgType == 1) {
@@ -505,7 +505,7 @@ public class BluetoothMapContent {
     private void setRecipientName(BluetoothMapMessageListingElement e, Cursor c,
         FilterInfo fi, BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_RECIPIENT_NAME) != 0) {
-            String name = null;
+            String name = "";
             if (fi.msgType == FilterInfo.TYPE_SMS) {
                 int msgType = c.getInt(c.getColumnIndex(Sms.TYPE));
                 if (msgType != 1) {
@@ -547,7 +547,7 @@ public class BluetoothMapContent {
     private void setSenderName(BluetoothMapMessageListingElement e, Cursor c,
         FilterInfo fi, BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_SENDER_NAME) != 0) {
-            String name = null;
+            String name = "";
             if (fi.msgType == FilterInfo.TYPE_SMS) {
                 int msgType = c.getInt(c.getColumnIndex(Sms.TYPE));
                 if (msgType == 1) {
@@ -677,7 +677,7 @@ public class BluetoothMapContent {
     }
 
     private String getContactNameFromPhone(String phone) {
-        String name = null;
+        String name = "";
 
         Uri uri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI,
             Uri.encode(phone));
@@ -964,9 +964,9 @@ public class BluetoothMapContent {
 
         if ((ap.getFilterPeriodEnd() != -1)) {
             if (fi.msgType == FilterInfo.TYPE_SMS) {
-            where += " AND date < " + ap.getFilterPeriodEnd();
+            where += " AND date <= " + ap.getFilterPeriodEnd();
             } else if (fi.msgType == FilterInfo.TYPE_MMS) {
-                where += " AND date < " + (ap.getFilterPeriodEnd() / 1000L);
+                where += " AND date <= " + (ap.getFilterPeriodEnd() / 1000L);
             }
         }
 
