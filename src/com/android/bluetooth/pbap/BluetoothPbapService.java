@@ -290,15 +290,8 @@ public class BluetoothPbapService extends Service {
             mIsWaitingAuthorization = false;
 
             if (intent.getIntExtra(BluetoothDevice.EXTRA_CONNECTION_ACCESS_RESULT,
-                                   BluetoothDevice.CONNECTION_ACCESS_NO)
-                    == BluetoothDevice.CONNECTION_ACCESS_YES) {
-                if (intent.getBooleanExtra(BluetoothDevice.EXTRA_ALWAYS_ALLOWED, false)) {
-                    boolean result = mRemoteDevice.setPhonebookAccessPermission(
-                            BluetoothDevice.ACCESS_ALLOWED);
-                    if (VERBOSE) {
-                        Log.v(TAG, "setPhonebookAccessPermission(ACCESS_ALLOWED) result=" + result);
-                    }
-                }
+                                   BluetoothDevice.CONNECTION_ACCESS_NO) ==
+                BluetoothDevice.CONNECTION_ACCESS_YES) {
                 try {
                     if (mConnSocket != null) {
                         startObexServerSession();
