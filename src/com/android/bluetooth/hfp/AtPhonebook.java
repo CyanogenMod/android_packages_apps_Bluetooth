@@ -169,7 +169,7 @@ public class AtPhonebook {
                 log("handleCscsCommand - Set Command");
                 String[] args = atString.split("=");
                 if (args.length < 2 || !(args[1] instanceof String)) {
-                    mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
+                    atCommandErrorCode = BluetoothCmeError.OPERATION_NOT_SUPPORTED;
                     break;
                 }
                 String characterSet = ((atString.split("="))[1]);
@@ -272,7 +272,6 @@ public class AtPhonebook {
                     PhonebookResult pbr = getPhonebookResult(mCurrentPhonebook, true); //false);
                     if (pbr == null) {
                         atCommandErrorCode = BluetoothCmeError.OPERATION_NOT_ALLOWED;
-                        mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
                         break;
                     }
                     size = pbr.cursor.getCount();
@@ -286,9 +285,6 @@ public class AtPhonebook {
                 }
                 atCommandResponse = "+CPBR: (1-" + size + "),30,30";
                 atCommandResult = HeadsetHalConstants.AT_RESPONSE_OK;
-                if (atCommandResponse != null)
-                    mStateMachine.atResponseStringNative(atCommandResponse);
-                mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
                 break;
             // Read PhoneBook Entries
             case TYPE_READ:
@@ -299,7 +295,6 @@ public class AtPhonebook {
                 if (mCpbrIndex1 != -1) {
                    /* handling a CPBR at the moment, reject this CPBR command */
                    atCommandErrorCode = BluetoothCmeError.OPERATION_NOT_ALLOWED;
-                   mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
                    break;
                 }
                 // Parse indexes
@@ -335,7 +330,6 @@ public class AtPhonebook {
                     mCheckingAccessPermission = false;
                     atCommandResult = processCpbrCommand();
                     mCpbrIndex1 = mCpbrIndex2 = -1;
-                    mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
                     break;
                 }
                 // no reponse here, will continue the process in handleAccessPermissionResult
@@ -344,8 +338,10 @@ public class AtPhonebook {
                 default:
                     log("handleCpbrCommand - invalid chars");
                     atCommandErrorCode = BluetoothCmeError.TEXT_HAS_INVALID_CHARS;
-                    mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
         }
+        if (atCommandResponse != null)
+            mStateMachine.atResponseStringNative(atCommandResponse);
+        mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
     }
 
     /** Get the most recent result for the given phone book,
