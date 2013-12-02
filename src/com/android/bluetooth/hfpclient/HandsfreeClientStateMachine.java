@@ -121,6 +121,8 @@ final class HandsfreeClientStateMachine extends StateMachine {
     private int mIndicatorCall;
     private int mIndicatorCallSetup;
     private int mIndicatorCallHeld;
+    private boolean mVgsFromStack = false;
+    private boolean mVgmFromStack = false;
 
     private String mOperatorName;
     private String mSubscriberInfo;
@@ -1555,11 +1557,19 @@ final class HandsfreeClientStateMachine extends StateMachine {
                     }
                     break;
                 case SET_MIC_VOLUME:
+                    if (mVgmFromStack) {
+                        mVgmFromStack = false;
+                        break;
+                    }
                     if (setVolumeNative(HandsfreeClientHalConstants.VOLUME_TYPE_MIC, message.arg1)) {
                         addQueuedAction(SET_MIC_VOLUME);
                     }
                     break;
                 case SET_SPEAKER_VOLUME:
+                    if (mVgsFromStack) {
+                        mVgsFromStack = false;
+                        break;
+                    }
                     if (setVolumeNative(HandsfreeClientHalConstants.VOLUME_TYPE_SPK, message.arg1)) {
                         addQueuedAction(SET_SPEAKER_VOLUME);
                     }
@@ -1772,8 +1782,10 @@ final class HandsfreeClientStateMachine extends StateMachine {
                             if (event.valueInt == HandsfreeClientHalConstants.VOLUME_TYPE_SPK) {
                                 mAudioManager.setStreamVolume(AudioManager.STREAM_BLUETOOTH_SCO,
                                         event.valueInt2, AudioManager.FLAG_SHOW_UI);
+                                mVgsFromStack = true;
                             } else if (event.valueInt == HandsfreeClientHalConstants.VOLUME_TYPE_MIC) {
                                 mAudioManager.setMicrophoneMute(event.valueInt2 == 0);
+                                mVgmFromStack = true;
                             }
                             break;
                         case EVENT_TYPE_CMD_RESULT:
