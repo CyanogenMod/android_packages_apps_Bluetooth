@@ -41,9 +41,9 @@ public class BluetoothOppTransferInfo {
 
     int mDirection;
 
-    int mTotalBytes;
+    long mTotalBytes;
 
-    int mCurrentBytes;
+    long mCurrentBytes;
 
     int mStatus;
 
