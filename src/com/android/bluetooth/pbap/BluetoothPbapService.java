@@ -284,11 +284,6 @@ public class BluetoothPbapService extends Service {
             if (intent.getIntExtra(BluetoothDevice.EXTRA_CONNECTION_ACCESS_RESULT,
                                    BluetoothDevice.CONNECTION_ACCESS_NO) ==
                 BluetoothDevice.CONNECTION_ACCESS_YES) {
-
-                if (intent.getBooleanExtra(BluetoothDevice.EXTRA_ALWAYS_ALLOWED, false)) {
-                    boolean result = mRemoteDevice.setTrust(true);
-                    if (VERBOSE) Log.v(TAG, "setTrust() result=" + result);
-                }
                 try {
                     if (mConnSocket != null) {
                         startObexServerSession();
@@ -563,42 +558,27 @@ public class BluetoothPbapService extends Service {
                     if (TextUtils.isEmpty(sRemoteDeviceName)) {
                         sRemoteDeviceName = getString(R.string.defaultname);
                     }
-                    boolean trust = mRemoteDevice.getTrustState();
-                    if (VERBOSE) Log.v(TAG, "GetTrustState() = " + trust);
 
-                    if (trust) {
-                        try {
-                            if (VERBOSE) Log.v(TAG, "incoming connection accepted from: "
-                                + sRemoteDeviceName + " automatically as trusted device");
-                            startObexServerSession();
-                        } catch (IOException ex) {
-                            Log.e(TAG, "catch exception starting obex server session"
-                                    + ex.toString());
-                        }
-                    } else {
-                        Intent intent = new
+                    Intent intent = new
                             Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_REQUEST);
-                        intent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
-                        intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
-                                        BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
-                        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-                        intent.putExtra(BluetoothDevice.EXTRA_PACKAGE_NAME, getPackageName());
-                        intent.putExtra(BluetoothDevice.EXTRA_CLASS_NAME,
-                                        BluetoothPbapReceiver.class.getName());
+                    intent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
+                    intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
+                                    BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
+                    intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+                    intent.putExtra(BluetoothDevice.EXTRA_PACKAGE_NAME, getPackageName());
+                    intent.putExtra(BluetoothDevice.EXTRA_CLASS_NAME,
+                                    BluetoothPbapReceiver.class.getName());
 
-                        isWaitingAuthorization = true;
-                        sendBroadcast(intent, BLUETOOTH_ADMIN_PERM);
+                    isWaitingAuthorization = true;
+                    sendBroadcast(intent, BLUETOOTH_ADMIN_PERM);
 
-                        if (VERBOSE) Log.v(TAG, "waiting for authorization for connection from: "
-                                + sRemoteDeviceName);
+                    if (VERBOSE) Log.v(TAG, "waiting for authorization for connection from: "
+                             + sRemoteDeviceName);
 
-                        // In case car kit time out and try to use HFP for
-                        // phonebook
-                        // access, while UI still there waiting for user to
-                        // confirm
-                        mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
-                                .obtainMessage(USER_TIMEOUT), USER_CONFIRM_TIMEOUT_VALUE);
-                    }
+                    // In case car kit time out and try to use HFP for
+                    // phonebook access, while UI still there waiting for user to confirm
+                    mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
+                            .obtainMessage(USER_TIMEOUT), USER_CONFIRM_TIMEOUT_VALUE);
                     stopped = true; // job done ,close this thread;
                 } catch (IOException ex) {
                     stopped=true;
