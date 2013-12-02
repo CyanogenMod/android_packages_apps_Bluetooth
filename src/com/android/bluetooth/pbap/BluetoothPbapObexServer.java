@@ -182,10 +182,6 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         mCallback = callback;
         mContext = context;
         mVcardManager = new BluetoothPbapVcardManager(mContext);
-
-        // set initial value when ObexServer created
-        mMissedCallSize = mVcardManager.getPhonebookSize(ContentType.MISSED_CALL_HISTORY);
-        if (D) Log.d(TAG, "Initialize mMissedCallSize=" + mMissedCallSize);
     }
 
     @Override
