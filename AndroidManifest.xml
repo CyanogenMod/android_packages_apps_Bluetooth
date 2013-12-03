@@ -158,6 +158,7 @@
                 <data android:mimeType="application/zip" />
                 <data android:mimeType="application/vnd.ms-excel" />
                 <data android:mimeType="application/msword" />
+                <data android:mimeType="application/vnd.android.package-archive" />
                 <data android:mimeType="application/vnd.ms-powerpoint" />
                 <data android:mimeType="application/pdf" />
                 <data android:mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
@@ -170,6 +171,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="image/*" />
                 <data android:mimeType="video/*" />
+                <data android:mimeType="audio/*" />
                 <data android:mimeType="x-mixmedia/*" />
                 <data android:mimeType="text/x-vcard" />
             </intent-filter>
@@ -212,7 +214,7 @@
                   android:process="@string/process"
                   android:label=""
                   android:excludeFromRecents="true"
-                  android:configChanges="orientation|keyboardHidden"
+                  android:configChanges="orientation|keyboardHidden|screenSize"
                   android:enabled="@bool/profile_supported_opp">
         </activity>
         <activity android:name=".pbap.BluetoothPbapActivity"
