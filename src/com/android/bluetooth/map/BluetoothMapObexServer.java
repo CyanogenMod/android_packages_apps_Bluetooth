@@ -194,7 +194,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             if(V) {
                 Log.d(TAG,"TYPE_MESSAGE_UPDATE:");
             }
-            return ResponseCodes.OBEX_HTTP_OK;
+            return ResponseCodes.OBEX_HTTP_NOT_IMPLEMENTED;
         }else if(type.equals(TYPE_SET_NOTIFICATION_REGISTRATION)) {
             if(V) {
                 Log.d(TAG,"TYPE_SET_NOTIFICATION_REGISTRATION: NotificationStatus: " + appParams.getNotificationStatus());
