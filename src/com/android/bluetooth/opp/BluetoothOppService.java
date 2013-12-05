@@ -36,6 +36,7 @@ import javax.obex.ObexTransport;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -61,6 +62,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import android.bluetooth.BluetoothA2dp;
+import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothHeadset;
 
 /**
  * Performs the background Bluetooth OPP transfer. It also starts thread to
@@ -139,6 +143,8 @@ public class BluetoothOppService extends Service {
      */
     private BluetoothOppObexServerSession mServerSession;
 
+    BluetoothOppManager mOppManager = null;
+
     @Override
     public IBinder onBind(Intent arg0) {
         throw new UnsupportedOperationException("Cannot bind to Bluetooth OPP Service");
@@ -166,7 +172,13 @@ public class BluetoothOppService extends Service {
             }
         }.start();
 
+        mOppManager = BluetoothOppManager.getInstance(this);
+
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED);
+        filter.addAction(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED);
+
         registerReceiver(mBluetoothReceiver, filter);
 
         synchronized (BluetoothOppService.this) {
@@ -396,6 +408,62 @@ public class BluetoothOppService extends Service {
                         mHandler.sendMessage(mHandler.obtainMessage(STOP_LISTENER));
 
                         break;
+                }
+            } else if (action.equals(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED)) {
+                int newState = intent.getIntExtra(BluetoothHeadset.EXTRA_STATE, -1);
+                int oldState = intent.getIntExtra(BluetoothHeadset.EXTRA_PREVIOUS_STATE, -1);
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (V) Log.v(TAG," Received BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED");
+                if (V) Log.v(TAG,"device: " + device + " newState: " + newState);
+
+                if (mOppManager != null) {
+                    if (newState == BluetoothHeadset.STATE_AUDIO_CONNECTED) {
+                        if (V) Log.v(TAG," Mark SCO state as connected");
+                        mOppManager.isScoConnected = true;
+                    } else if (newState == BluetoothHeadset.STATE_AUDIO_DISCONNECTED) {
+                        if (V) Log.v(TAG," Mark SCO state as not connected");
+                        mOppManager.isScoConnected = false;
+                    } else {
+                        if (V) Log.v(TAG," SCO state not handled");
+                        mOppManager.isScoConnected = false;
+                    }
+                }
+            } else if (action.equals(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED)) {
+                if (V) {
+                    int newState = intent.getIntExtra(BluetoothProfile.EXTRA_STATE,
+                        BluetoothA2dp.STATE_NOT_PLAYING);
+                    int oldState = intent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE,
+                        BluetoothA2dp.STATE_NOT_PLAYING);
+                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+                    Log.v(TAG," Received BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED");
+                    Log.v(TAG,"device: " + device + " newState: " + newState);
+                }
+                if (mOppManager != null) {
+                    if (V) Log.v(TAG," Mark A2DP state as not playing");
+                    mOppManager.isA2DPPlaying = false;
+                }
+            } else if (action.equals(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED)) {
+                int newState = intent.getIntExtra(BluetoothProfile.EXTRA_STATE,
+                    BluetoothA2dp.STATE_NOT_PLAYING);
+                int oldState = intent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE,
+                    BluetoothA2dp.STATE_NOT_PLAYING);
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (V) Log.v(TAG," Received BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED");
+                if (V) Log.v(TAG,"device: " + device + " newState: " + newState);
+
+                if (device == null) {
+                    return;
+                }
+                if (mOppManager != null) {
+                    if (newState == BluetoothA2dp.STATE_PLAYING) {
+                        if (V) Log.v(TAG," Mark A2DP state as playing");
+                        mOppManager.isA2DPPlaying = true;
+                    }
+                    else {
+                        if (V) Log.v(TAG," Mark A2DP state as not playing");
+                        mOppManager.isA2DPPlaying = false;
+                    }
                 }
             }
         }
