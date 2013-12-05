@@ -84,6 +84,13 @@
         </service>
         <service
             android:process="@string/process"
+            android:name = ".btservice.QAdapterService">
+            <intent-filter>
+                <action android:name="android.bluetooth.IQBluetooth" />
+            </intent-filter>
+        </service>
+        <service
+            android:process="@string/process"
             android:name=".opp.BluetoothOppService"
             android:permission="android.permission.ACCESS_BLUETOOTH_SHARE"
             android:enabled="@bool/profile_supported_opp"/>

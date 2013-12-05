@@ -458,7 +458,12 @@ bt_callbacks_t sBluetoothCallbacks = {
     callback_thread_event,
     dut_mode_recv_callback,
 
-    le_test_mode_recv_callback
+    le_test_mode_recv_callback,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
 };
 
 static void remote_mas_instances_callback(bt_status_t status, bt_bdaddr_t *bd_addr,
@@ -1193,6 +1198,11 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 
     if ((status = android::register_com_android_bluetooth_gatt(e)) < 0) {
         ALOGE("jni gatt registration failure: %d", status);
+        return JNI_ERR;
+    }
+
+    if ((status = android::register_com_android_bluetooth_btservice_QAdapterService(e)) < 0) {
+        ALOGE("jni Q adapter service failure: %d", status);
         return JNI_ERR;
     }
     return JNI_VERSION_1_6;
