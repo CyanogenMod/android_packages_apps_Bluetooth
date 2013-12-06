@@ -17,9 +17,9 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"डाउनलोड प्रबंधक में पहुंच प्राप्त करें."</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"एप्स को BluetoothShare प्रबंधक में पहुंच प्राप्त करने और फ़ाइलों को स्थानांतरित करने के लिए उसका उपयोग करने देता है."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"ऐप्स  को BluetoothShare प्रबंधक में पहुंच प्राप्त करने और फ़ाइलों को स्थानांतरित करने के लिए उसका उपयोग करने देता है."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"श्वेतसूची bluetooth उपकरण पहुंच."</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"एप्‍स को Bluetooth उपकरण को इस उपकरण पर फ़ाइल भेजने की‍ अनुमति देकर, उपयोगकर्ता की पुष्टि के बिना अस्‍थायी रूप से श्वेतसूची में शामिल करने देता है."</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"ऐप्स को Bluetooth उपकरण को इस उपकरण पर फ़ाइल भेजने की‍ अनुमति देकर, उपयोगकर्ता की पुष्टि के बिना अस्‍थायी रूप से श्वेतसूची में शामिल करने देता है."</string>
     <string name="permlab_handoverStatus" msgid="7316032998801933554">"BT हस्तांतरण के स्थानांतरण प्रसारण प्राप्त करें."</string>
     <string name="permdesc_handoverStatus" msgid="4752738070064786310">"Bluetooth से हस्तांतरण के स्थानांतरण की स्थिति को प्राप्त करने देता है."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
@@ -73,7 +73,7 @@
     <string name="upload_fail_cancel" msgid="9118496285835687125">"बंद करें"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"ठीक है"</string>
     <string name="unknown_file" msgid="6092727753965095366">"अज्ञात फ़ाइल"</string>
-    <string name="unknown_file_desc" msgid="480434281415453287">"इस प्रकार की फ़ाइल प्रबंधित करने के लिए कोई एप्‍स नहीं है. \n"</string>
+    <string name="unknown_file_desc" msgid="480434281415453287">"इस प्रकार की फ़ाइल प्रबंधित करने के लिए कोई ऐप्स नहीं है. \n"</string>
     <string name="not_exist_file" msgid="3489434189599716133">"कोई फ़ाइल नहीं"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"फ़ाइल मौजूद नहीं है. \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"कृपया प्रतीक्षा करें..."</string>

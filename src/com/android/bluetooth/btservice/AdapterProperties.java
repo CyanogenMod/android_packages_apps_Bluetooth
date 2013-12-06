@@ -203,10 +203,9 @@ class AdapterProperties {
      * @return the mState
      */
     int getState() {
-        synchronized (mObject) {
-            if (VDBG) debugLog("State = " + mState);
-            return mState;
-        }
+        /* remove the lock to work around a platform deadlock problem */
+        /* and also for read access, it is safe to remove the lock to save CPU power */
+        return mState;
     }
 
     /**
