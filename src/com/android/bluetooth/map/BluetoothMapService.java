@@ -257,7 +257,7 @@ public class BluetoothMapService extends ProfileService {
         }
 
         if (mBluetoothMnsObexClient != null) {
-            mBluetoothMnsObexClient.disconnect();
+            mBluetoothMnsObexClient.shutdown();
             mBluetoothMnsObexClient = null;
         }
 
@@ -303,7 +303,7 @@ public class BluetoothMapService extends ProfileService {
         mAcceptThread = null;
 
         if(mBluetoothMnsObexClient != null) {
-            mBluetoothMnsObexClient.disconnect();
+            mBluetoothMnsObexClient.shutdown();
             mBluetoothMnsObexClient = null;
         }
         closeConnectionSocket();
@@ -494,7 +494,7 @@ public class BluetoothMapService extends ProfileService {
                         mServerSession = null;
                     }
                     if(mBluetoothMnsObexClient != null) {
-                        mBluetoothMnsObexClient.disconnect(); //FIXME should use shutdown when implemented
+                        mBluetoothMnsObexClient.shutdown();
                         mBluetoothMnsObexClient = null;
                     }
                     closeConnectionSocket();
