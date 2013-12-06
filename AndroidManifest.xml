@@ -43,7 +43,7 @@
             android:authorities="com.android.bluetooth.opp"
             android:process="@string/process">
             <path-permission
-                    android:path="/btopp"
+                    android:pathPrefix="/btopp"
                     android:permission="android.permission.ACCESS_BLUETOOTH_SHARE" />
         </provider>
         <service
