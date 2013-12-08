@@ -507,14 +507,11 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             switch (appParam[i]) {
                 case ApplicationParameter.TRIPLET_TAGID.FILTER_TAGID:
                     i += 2; // length and tag field in triplet
-                    appParamValue.filter = ((appParam[i+0] << 56) & 0xFF00000000000000L) |
-                                           ((appParam[i+1] << 48) & 0x00FF000000000000L) |
-                                           ((appParam[i+2] << 40) & 0x0000FF0000000000L) |
-                                           ((appParam[i+3] << 32) & 0x000000FF00000000L) |
-                                           ((appParam[i+4] << 24) & 0x00000000FF000000L) |
-                                           ((appParam[i+5] << 16) & 0x0000000000FF0000L) |
-                                           ((appParam[i+6] <<  8) & 0x000000000000FF00L) |
-                                           ((appParam[i+7] <<  0) & 0x00000000000000FFL);
+                    appParamValue.filter = 0;
+                    for (int index = 0;
+                            index < ApplicationParameter.TRIPLET_LENGTH.FILTER_LENGTH; index++) {
+                        appParamValue.filter = (appParamValue.filter << 8) | appParam[i + index];
+                    }
                     if (D) Log.i(TAG, "AppParam filter=" + appParamValue.filter);
                     i += ApplicationParameter.TRIPLET_LENGTH.FILTER_LENGTH;
                     break;
