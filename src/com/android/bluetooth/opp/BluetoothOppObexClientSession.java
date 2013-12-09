@@ -407,7 +407,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             ContentValues updateValues;
             ContentResolverUpdateThread uiUpdateThread = null;
             HeaderSet reply;
-            int position = 0;
+            long position = 0;
             reply = new HeaderSet();
             HeaderSet request;
             request = new HeaderSet();
