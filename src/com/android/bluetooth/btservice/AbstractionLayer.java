@@ -32,6 +32,11 @@ final public class AbstractionLayer {
     static final int BT_SCAN_MODE_CONNECTABLE = 0x01;
     static final int BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE = 0x02;
 
+    static final int BLE_ADV_MODE_NONE = 0x00;
+    static final int BLE_ADV_IND_GENERAL_CONNECTABLE = 0x01;
+    static final int BLE_ADV_IND_LIMITED_CONNECTABLE = 0x02;
+    static final int BLE_ADV_DIR_CONNECTABLE = 0x03;
+
     static final int BT_PROPERTY_BDNAME = 0x01;
     static final int BT_PROPERTY_BDADDR = 0x02;
     static final int BT_PROPERTY_UUIDS = 0x03;
@@ -45,10 +50,14 @@ final public class AbstractionLayer {
     static final int BT_PROPERTY_REMOTE_FRIENDLY_NAME = 0x0A;
     static final int BT_PROPERTY_REMOTE_RSSI = 0x0B;
     static final int BT_PROPERTY_REMOTE_TRUST_VALUE = 0x0C;
+    static final int BT_PROPERTY_ADAPTER_BLE_ADV_MODE = 0x0E;
 
     static final int BT_DEVICE_TYPE_BREDR = 0x01;
     static final int BT_DEVICE_TYPE_BLE = 0x02;
     static final int BT_DEVICE_TYPE_DUAL = 0x03;
+
+    static final int BLE_ADDR_PUBLIC = 0x00;
+    static final int BLE_ADDR_RANDOM = 0x01;
 
     static final int BT_BOND_STATE_NONE = 0x00;
     static final int BT_BOND_STATE_BONDED = 0x01;
@@ -65,6 +74,23 @@ final public class AbstractionLayer {
     static final int BT_ACL_STATE_DISCONNECTED = 0x01;
 
     static final int BT_UUID_SIZE = 16; // bytes
+
+    //define the bit flags for various LE adv data to be visible
+    static final int BTM_BLE_AD_BIT_DEV_NAME=      (0x0001 << 0);
+    static final int BTM_BLE_AD_BIT_FLAGS=         (0x0001 << 1);
+    static final int BTM_BLE_AD_BIT_MANU    =      (0x0001 << 2);
+    static final int BTM_BLE_AD_BIT_TX_PWR=        (0x0001 << 3);
+    static final int BTM_BLE_AD_BIT_INT_RANGE=     (0x0001 << 5);
+    static final int BTM_BLE_AD_BIT_SERVICE =      (0x0001 << 6);
+    static final int BTM_BLE_AD_BIT_SERVICE_SOL=       (0x0001 << 7);
+    static final int BTM_BLE_AD_BIT_SERVICE_DATA=    (0x0001 << 8);
+    static final int BTM_BLE_AD_BIT_SIGN_DATA=     (0x0001 << 9);
+    static final int BTM_BLE_AD_BIT_SERVICE_128SOL=  (0x0001 << 10);
+    static final int BTM_BLE_AD_BIT_APPEARANCE=    (0x0001 << 11);
+    static final int BTM_BLE_AD_BIT_PUBLIC_ADDR =   (0x0001 << 12);
+    static final int BTM_BLE_AD_BIT_RANDOM_ADDR=        (0x0001 << 13);
+
+    static final int BTM_BLE_AD_BIT_PROPRIETARY =   (0x0001 << 15);
 
     public static final int BT_STATUS_SUCCESS = 0;
     public static final int BT_STATUS_FAIL = 1;
