@@ -129,6 +129,8 @@ public class BluetoothOppUtility {
                             + info.mDestAddr);
             }
             cursor.close();
+            if (V) Log.v(TAG, "Freeing cursor: " + cursor);
+            cursor = null;
         } else {
             info = null;
             if (V) Log.v(TAG, "BluetoothOppManager Error: not got data from db for uri:" + uri);
@@ -171,6 +173,8 @@ public class BluetoothOppUtility {
             if (V) Log.d(TAG, "Uri in this batch: " + path.toString());
         }
         metadataCursor.close();
+        if (V) Log.v(TAG, "Freeing cursor: " + metadataCursor);
+        metadataCursor = null;
         return uris;
     }
 
