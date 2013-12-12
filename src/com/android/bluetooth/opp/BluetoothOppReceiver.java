@@ -227,6 +227,8 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                         }
                 }
                 cursor.close();
+                if (V) Log.v(TAG, "Freeing cursor: " + cursor);
+                cursor = null;
             }
         } else if (action.equals(Constants.ACTION_COMPLETE_HIDE)) {
             if (V) Log.v(TAG, "Receiver ACTION_COMPLETE_HIDE");

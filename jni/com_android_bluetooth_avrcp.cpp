@@ -559,10 +559,10 @@ static jboolean sendSettingsTextRspNative(JNIEnv *env, jobject object, jint num_
     btrc_player_setting_text_t *pAttrs = NULL;
     bt_status_t status;
     int i;
-    jstring text ;
+    jstring text;
     const char* textStr;
     jbyte *arr ;
-    //ALOGE("sendSettingsTextRspNative");
+
     if (!sBluetoothAvrcpInterface) return JNI_FALSE;
     if (num_attr > BTRC_MAX_ELEM_ATTR_SIZE) {
         ALOGE("get_element_attr_rsp: number of attributes exceed maximum");
@@ -995,6 +995,8 @@ static JNINativeMethod sMethods[] = {
       (void *) SendSetPlayerAppRspNative},
     {"sendSettingsTextRspNative" , "(I[BI[Ljava/lang/String;)Z",
       (void *)sendSettingsTextRspNative},
+    {"sendValueTextRspNative" , "(I[BI[Ljava/lang/String;)Z",
+      (void *)sendValueTextRspNative},
     {"registerNotificationRspPlayPosNative", "(II)Z",
      (void *) registerNotificationRspPlayPosNative},
     {"setVolumeNative", "(I)Z",

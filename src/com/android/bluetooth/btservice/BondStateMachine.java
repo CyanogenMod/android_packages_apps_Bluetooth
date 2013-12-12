@@ -174,6 +174,12 @@ final class BondStateMachine extends StateMachine {
                     sendIntent(dev, newState, reason);
                     if(newState != BluetoothDevice.BOND_BONDING )
                     {
+                        // check if bond none is received from device which
+                        // was in pairing state otherwise don't transition to
+                        // stable state.
+                        if (newState == BluetoothDevice.BOND_NONE && !mDevices.contains(dev)) {
+                            break;
+                        }
                         /* this is either none/bonded, remove and transition */
                         result = !mDevices.remove(dev);
                         if (mDevices.isEmpty()) {
