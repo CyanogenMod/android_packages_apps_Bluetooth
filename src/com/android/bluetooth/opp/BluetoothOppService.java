@@ -36,6 +36,7 @@ import javax.obex.ObexTransport;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -45,6 +46,7 @@ import android.content.IntentFilter;
 import android.database.CharArrayBuffer;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.media.MediaScannerConnection;
 import android.media.MediaScannerConnection.MediaScannerConnectionClient;
 import android.net.Uri;
@@ -60,6 +62,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import android.bluetooth.BluetoothA2dp;
+import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothHeadset;
 
 /**
  * Performs the background Bluetooth OPP transfer. It also starts thread to
@@ -138,6 +143,8 @@ public class BluetoothOppService extends Service {
      */
     private BluetoothOppObexServerSession mServerSession;
 
+    BluetoothOppManager mOppManager = null;
+
     @Override
     public IBinder onBind(Intent arg0) {
         throw new UnsupportedOperationException("Cannot bind to Bluetooth OPP Service");
@@ -165,7 +172,13 @@ public class BluetoothOppService extends Service {
             }
         }.start();
 
+        mOppManager = BluetoothOppManager.getInstance(this);
+
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED);
+        filter.addAction(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED);
+
         registerReceiver(mBluetoothReceiver, filter);
 
         synchronized (BluetoothOppService.this) {
@@ -278,7 +291,8 @@ public class BluetoothOppService extends Service {
                      * 2. If there is ongoing transfer, hold it for 20 seconds(1 seconds * 20 times)
                      * 3. If there is on-hold connection, reject directly
                      */
-                    if (mBatchs.size() == 0 && mPendingConnection == null) {
+                    if (((mBatchs.size() == 0) || ((mBatchs.size() > 0) && (mServerTransfer == null)
+                        )) && mPendingConnection == null) {
                         Log.i(TAG, "Start Obex Server");
                         createServerSession(transport);
                     } else {
@@ -303,7 +317,8 @@ public class BluetoothOppService extends Service {
                     }
                     break;
                 case MSG_INCOMING_CONNECTION_RETRY:
-                    if (mBatchs.size() == 0) {
+                    if ((mBatchs.size() == 0) || ((mBatchs.size() > 0) && (mServerTransfer == null))
+                        ) {
                         Log.i(TAG, "Start Obex Server");
                         createServerSession(mPendingConnection);
                         mIncomingRetries = 0;
@@ -394,6 +409,62 @@ public class BluetoothOppService extends Service {
 
                         break;
                 }
+            } else if (action.equals(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED)) {
+                int newState = intent.getIntExtra(BluetoothHeadset.EXTRA_STATE, -1);
+                int oldState = intent.getIntExtra(BluetoothHeadset.EXTRA_PREVIOUS_STATE, -1);
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (V) Log.v(TAG," Received BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED");
+                if (V) Log.v(TAG,"device: " + device + " newState: " + newState);
+
+                if (mOppManager != null) {
+                    if (newState == BluetoothHeadset.STATE_AUDIO_CONNECTED) {
+                        if (V) Log.v(TAG," Mark SCO state as connected");
+                        mOppManager.isScoConnected = true;
+                    } else if (newState == BluetoothHeadset.STATE_AUDIO_DISCONNECTED) {
+                        if (V) Log.v(TAG," Mark SCO state as not connected");
+                        mOppManager.isScoConnected = false;
+                    } else {
+                        if (V) Log.v(TAG," SCO state not handled");
+                        mOppManager.isScoConnected = false;
+                    }
+                }
+            } else if (action.equals(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED)) {
+                if (V) {
+                    int newState = intent.getIntExtra(BluetoothProfile.EXTRA_STATE,
+                        BluetoothA2dp.STATE_NOT_PLAYING);
+                    int oldState = intent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE,
+                        BluetoothA2dp.STATE_NOT_PLAYING);
+                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+                    Log.v(TAG," Received BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED");
+                    Log.v(TAG,"device: " + device + " newState: " + newState);
+                }
+                if (mOppManager != null) {
+                    if (V) Log.v(TAG," Mark A2DP state as not playing");
+                    mOppManager.isA2DPPlaying = false;
+                }
+            } else if (action.equals(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED)) {
+                int newState = intent.getIntExtra(BluetoothProfile.EXTRA_STATE,
+                    BluetoothA2dp.STATE_NOT_PLAYING);
+                int oldState = intent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE,
+                    BluetoothA2dp.STATE_NOT_PLAYING);
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (V) Log.v(TAG," Received BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED");
+                if (V) Log.v(TAG,"device: " + device + " newState: " + newState);
+
+                if (device == null) {
+                    return;
+                }
+                if (mOppManager != null) {
+                    if (newState == BluetoothA2dp.STATE_PLAYING) {
+                        if (V) Log.v(TAG," Mark A2DP state as playing");
+                        mOppManager.isA2DPPlaying = true;
+                    }
+                    else {
+                        if (V) Log.v(TAG," Mark A2DP state as not playing");
+                        mOppManager.isA2DPPlaying = false;
+                    }
+                }
             }
         }
     };
@@ -436,8 +507,14 @@ public class BluetoothOppService extends Service {
                     }
                     mPendingUpdate = false;
                 }
-                Cursor cursor = getContentResolver().query(BluetoothShare.CONTENT_URI, null, null,
+                Cursor cursor;
+                try {
+                    cursor = getContentResolver().query(BluetoothShare.CONTENT_URI, null, null,
                         null, BluetoothShare._ID);
+                } catch (SQLiteException e) {
+                    cursor = null;
+                    Log.e(TAG, "SQLite exception: " + e);
+                }
 
                 if (cursor == null) {
                     return;
@@ -555,6 +632,22 @@ public class BluetoothOppService extends Service {
 
     }
 
+    private BluetoothOppTransfer insertShareWithOngoingBatch(BluetoothOppTransfer transfer,
+                        BluetoothOppBatch batch, int arrayPos, BluetoothOppObexSession session) {
+        if(transfer == null) {
+            transfer = new BluetoothOppTransfer(this, mPowerManager, batch, session);
+            if (transfer != null) {
+                transfer.start();
+            } else {
+                Log.e(TAG, "Unexpected error! mTransfer is null");
+                mBatchs.remove(batch);
+                mBatchId--;
+                mShares.remove(arrayPos);
+            }
+        }
+        return transfer;
+    }
+
     private void insertShare(Cursor cursor, int arrayPos) {
         String uriString = cursor.getString(cursor.getColumnIndexOrThrow(BluetoothShare.URI));
         Uri uri;
@@ -669,6 +762,14 @@ public class BluetoothOppService extends Service {
                     mBatchs.add(newBatch);
                     if (V) Log.v(TAG, "Service add new Batch " + newBatch.mId + " for info " +
                             info.mId);
+                    if (info.mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
+                        mTransfer = insertShareWithOngoingBatch(mTransfer, newBatch, arrayPos,
+                            null);
+                    } else if (info.mDirection == BluetoothShare.DIRECTION_INBOUND) {
+                        mServerTransfer = insertShareWithOngoingBatch(mServerTransfer, newBatch,
+                            arrayPos, mServerSession);
+                    }
+
                     if (Constants.USE_TCP_DEBUG && !Constants.USE_TCP_SIMPLE_SERVER) {
                         // only allow  concurrent serverTransfer in debug mode
                         if (info.mDirection == BluetoothShare.DIRECTION_INBOUND) {
@@ -935,9 +1036,15 @@ public class BluetoothOppService extends Service {
                 + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + "="
                 + BluetoothShare.STATUS_RUNNING;
 
-        Cursor cursorToFile = contentResolver.query(BluetoothShare.CONTENT_URI,
-                                  new String[] { BluetoothShare._DATA },
-                                  WHERE_INBOUND_INTERRUPTED_ON_POWER_OFF, null, null);
+        Cursor cursorToFile;
+        try {
+            cursorToFile = contentResolver.query(BluetoothShare.CONTENT_URI,
+                new String[] { BluetoothShare._DATA },
+                WHERE_INBOUND_INTERRUPTED_ON_POWER_OFF, null, null);
+        } catch (SQLiteException e) {
+                cursorToFile = null;
+                Log.e(TAG, "SQLite exception: " + e);
+        }
 
         // remove the share and the respective file which was interrupted by battery
         // removal in the local device
@@ -967,9 +1074,15 @@ public class BluetoothOppService extends Service {
         final String WHERE_INBOUND_SUCCESS = BluetoothShare.DIRECTION + "="
                 + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + "="
                 + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
-        Cursor cursor = contentResolver.query(BluetoothShare.CONTENT_URI, new String[] {
-            BluetoothShare._ID
-        }, WHERE_INBOUND_SUCCESS, null, BluetoothShare._ID); // sort by id
+        Cursor cursor;
+        try {
+            cursor = contentResolver.query(BluetoothShare.CONTENT_URI, new String[] {
+                BluetoothShare._ID
+                }, WHERE_INBOUND_SUCCESS, null, BluetoothShare._ID); // sort by id
+        } catch (SQLiteException e) {
+            cursor = null;
+            Log.e(TAG, "SQLite exception: " + e);
+        }
 
         if (cursor == null) {
             return;

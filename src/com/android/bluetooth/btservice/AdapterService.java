@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2012 The Android Open Source Project
  * Copyright (C) 2013 The Linux Foundation. All rights reserved
+ * Not a Contribution.
+ * Copyright (C) 2012 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,11 +46,13 @@ import android.os.ParcelUuid;
 import android.os.Process;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
+import android.os.SystemProperties;
 import android.provider.Settings;
 import android.util.Log;
 import android.util.Pair;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.hid.HidService;
+import com.android.bluetooth.hid.HidDevService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hdp.HealthService;
 import com.android.bluetooth.pan.PanService;
@@ -60,6 +63,7 @@ import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.Map;
 import java.util.Iterator;
@@ -142,6 +146,8 @@ public class AdapterService extends Service {
     private RemoteCallbackList<IBluetoothCallback> mCallbacks;//Only BluetoothManagerService should be registered
     private int mCurrentRequestId;
     private boolean mQuietmode = false;
+
+    private HashSet<String> mDisabledProfiles = new HashSet<String>();
 
     public AdapterService() {
         super();
@@ -237,7 +243,8 @@ public class AdapterService extends Service {
                 Iterator<Map.Entry<String,Integer>> i = mProfileServicesState.entrySet().iterator();
                 while (i.hasNext()) {
                     Map.Entry<String,Integer> entry = i.next();
-                    if (BluetoothAdapter.STATE_ON != entry.getValue()) {
+                    if (BluetoothAdapter.STATE_ON != entry.getValue()
+                            && !mDisabledProfiles.contains(entry.getKey())) {
                         Log.d(TAG, "Profile still not running:" + entry.getKey());
                         return;
                     }
@@ -303,6 +310,8 @@ public class AdapterService extends Service {
 
         //FIXME: Set static instance here???
         setAdapterService(this);
+
+        checkHidState();
 
         //Start profile services
         if (!mProfilesStarted && supportedProfileServices.length >0) {
@@ -387,6 +396,10 @@ public class AdapterService extends Service {
             mProfileServicesState.clear();
         }
 
+        if (mDisabledProfiles != null) {
+            mDisabledProfiles.clear();
+        }
+
         clearAdapterService();
 
         if (mBinder != null) {
@@ -405,6 +418,8 @@ public class AdapterService extends Service {
     private static final int MESSAGE_PROFILE_CONNECTION_STATE_CHANGED=20;
     private static final int MESSAGE_CONNECT_OTHER_PROFILES = 30;
     private static final int CONNECT_OTHER_PROFILES_TIMEOUT= 6000;
+    private static final int MESSAGE_AUTO_CONNECT_PROFILES = 50;
+    private static final int AUTO_CONNECT_PROFILES_TIMEOUT= 500;
 
     private final Handler mHandler = new Handler() {
         @Override
@@ -427,6 +442,11 @@ public class AdapterService extends Service {
                     processConnectOtherProfiles((BluetoothDevice) msg.obj,msg.arg1);
                 }
                     break;
+                case MESSAGE_AUTO_CONNECT_PROFILES: {
+                    if (DBG) debugLog( "MESSAGE_AUTO_CONNECT_PROFILES");
+                    autoConnectProfilesDelayed();
+                    break;
+                }
             }
         }
     };
@@ -451,6 +471,11 @@ public class AdapterService extends Service {
             if(serviceState != null && serviceState != expectedCurrentState) {
                 Log.w(TAG, "Unable to " + (state == BluetoothAdapter.STATE_OFF? "start" : "stop" ) +" service " +
                         serviceName+". Invalid state: " + serviceState);
+                continue;
+            }
+
+            if (state == BluetoothAdapter.STATE_ON && mDisabledProfiles.contains(serviceName)) {
+                Log.i(TAG, "skipping " + serviceName + " (disabled)");
                 continue;
             }
 
@@ -1137,19 +1162,30 @@ public class AdapterService extends Service {
           return mQuietmode;
      }
 
-     public void autoConnect(){
+    // Delaying Auto Connect to make sure that all clients
+    // are up and running, specially BluetoothHeadset.
+    public void autoConnect() {
+        if (DBG) debugLog( "delay auto connect by 500 ms");
+        if ((mHandler.hasMessages(MESSAGE_AUTO_CONNECT_PROFILES) == false) &&
+            (isQuietModeEnabled()== false)) {
+            Message m = mHandler.obtainMessage(MESSAGE_AUTO_CONNECT_PROFILES);
+            mHandler.sendMessageDelayed(m,AUTO_CONNECT_PROFILES_TIMEOUT);
+        }
+    }
+
+    private void autoConnectProfilesDelayed(){
         if (getState() != BluetoothAdapter.STATE_ON){
-             errorLog("BT is not ON. Exiting autoConnect");
-             return;
-         }
-         if (isQuietModeEnabled() == false) {
+            errorLog("BT is not ON. Exiting autoConnect");
+            return;
+        }
+        if (isQuietModeEnabled() == false) {
             if (DBG) debugLog( "Initiate auto connection on BT on...");
-             autoConnectHeadset();
-             autoConnectA2dp();
-         }
-         else {
-             if (DBG) debugLog( "BT is in Quiet mode. Not initiating  auto connections");
-         }
+            autoConnectHeadset();
+            autoConnectA2dp();
+        }
+        else {
+            if (DBG) debugLog( "BT is in Quiet mode. Not initiating  auto connections");
+        }
     }
 
      private void autoConnectHeadset(){
@@ -1566,4 +1602,35 @@ public class AdapterService extends Service {
             }
         }
     }
+
+    @SuppressWarnings("rawtypes")
+    private synchronized void checkHidState() {
+        final Class hh[] = { HidService.class };
+        final Class hd[] = { HidDevService.class };
+
+        boolean isHidDev = SystemProperties.getBoolean("persist.service.bdroid.hid.dev", false);
+        Log.d(TAG, "checkHidState: isHidDev = " + isHidDev);
+
+        if (isHidDev) {
+            mDisabledProfiles.add(HidService.class.getName());
+            mDisabledProfiles.remove(HidDevService.class.getName());
+        } else {
+            mDisabledProfiles.remove(HidService.class.getName());
+            mDisabledProfiles.add(HidDevService.class.getName());
+        }
+
+        if (mAdapterStateMachine.isTurningOn() || mAdapterStateMachine.isTurningOff()) {
+            Log.e(TAG, "checkHidState: returning");
+            return;
+        }
+
+        if (isHidDev) {
+            setProfileServiceState(hh, BluetoothAdapter.STATE_OFF);
+            setProfileServiceState(hd, BluetoothAdapter.STATE_ON);
+        } else {
+            setProfileServiceState(hd, BluetoothAdapter.STATE_OFF);
+            setProfileServiceState(hh, BluetoothAdapter.STATE_ON);
+        }
+    }
+
 }

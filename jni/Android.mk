@@ -4,11 +4,13 @@ include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES:= \
     com_android_bluetooth_btservice_AdapterService.cpp \
+    com_android_bluetooth_btservice_QAdapterService.cpp \
     com_android_bluetooth_hfp.cpp \
     com_android_bluetooth_hfpclient.cpp \
     com_android_bluetooth_a2dp.cpp \
     com_android_bluetooth_avrcp.cpp \
     com_android_bluetooth_hid.cpp \
+    com_android_bluetooth_hidd.cpp \
     com_android_bluetooth_hdp.cpp \
     com_android_bluetooth_pan.cpp \
     com_android_bluetooth_gatt.cpp

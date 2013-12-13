@@ -32,8 +32,8 @@ public class BluetoothMapMessageListingElement
     implements Comparable<BluetoothMapMessageListingElement> {
 
     private static final String TAG = "BluetoothMapMessageListingElement";
-    private static final boolean D = false;
-    private static final boolean V = false;
+    private static final boolean D = true;
+    private static final boolean V = true;
 
     private long cpHandle = 0; /* The content provider handle - without type information */
     private String mapHandle = null; /* The map hex-string handle with type information */

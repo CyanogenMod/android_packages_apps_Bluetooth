@@ -89,4 +89,32 @@ import java.util.List;
     void clear() {
         mEntries.clear();
     }
+
+    boolean isEmpty(int connId){
+        boolean bEmpty=true;
+        if(isEmpty()) //if completely empty, no need to iterate
+            return bEmpty;
+        for (Iterator<Entry> it = mEntries.iterator(); it.hasNext();) {
+            Entry entry = it.next();
+            if (entry.connId == connId) {
+                bEmpty=false;//not empty
+                break;
+            }
+        }
+        return bEmpty;
+    }
+
+    Entry pop(int connId){
+        Entry retEntry = new Entry();
+        for (Iterator<Entry> it = mEntries.iterator(); it.hasNext();) {
+            Entry entry = it.next();
+            if (entry.connId == connId) {
+                retEntry=entry;
+                it.remove();
+                break;
+            }
+        }
+        return retEntry;
+    }
+
 }

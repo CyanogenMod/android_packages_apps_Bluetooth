@@ -220,7 +220,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             if(V) {
                 Log.d(TAG,"TYPE_MESSAGE_UPDATE:");
             }
-            return ResponseCodes.OBEX_HTTP_OK;
+            return ResponseCodes.OBEX_HTTP_NOT_IMPLEMENTED;
         }else if(type.equals(TYPE_SET_NOTIFICATION_REGISTRATION)) {
             if(V) {
                 Log.d(TAG,"TYPE_SET_NOTIFICATION_REGISTRATION: NotificationStatus: " + appParams.getNotificationStatus());
@@ -502,6 +502,11 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         BluetoothMapMessageListing outList;
         if(folderName == null) {
             folderName = mCurrentFolder.getName();
+        }
+        Log.d(TAG, "sendMessageListingRsp for folder " +folderName);
+        if(mCurrentFolder.getSubFolder(folderName) == null) {
+            Log.d(TAG, "Proper Path not set. returning from here");
+            return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
         }
         if(appParams == null){
             appParams = new BluetoothMapAppParams();

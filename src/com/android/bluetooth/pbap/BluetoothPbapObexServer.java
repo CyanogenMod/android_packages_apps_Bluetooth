@@ -179,10 +179,6 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         mCallback = callback;
         mContext = context;
         mVcardManager = new BluetoothPbapVcardManager(mContext);
-
-        // set initial value when ObexServer created
-        mMissedCallSize = mVcardManager.getPhonebookSize(ContentType.MISSED_CALL_HISTORY);
-        if (D) Log.d(TAG, "Initialize mMissedCallSize=" + mMissedCallSize);
     }
 
     @Override
@@ -376,8 +372,11 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         } else {
 
             // Extracting file name
-            String Filename = name.substring(name.lastIndexOf("/") + 1);
-            Filename = Filename.substring(0, Filename.lastIndexOf('.'));
+            String Filename = name;
+            if (name.contains("/")) {
+                Filename = name.substring(name.lastIndexOf("/") + 1);
+                Filename = Filename.substring(0, Filename.lastIndexOf('.'));
+            }
 
             if (((Filename.equals(PB.subSequence(0, PB.length())) &&
                  name.contains(SIM1.subSequence(0, SIM1.length()))) &&
@@ -673,7 +672,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                         itemsFound < requestSize; pos++) {
                     currentValue = nameList.get(pos);
                     if (D) Log.d(TAG, "currentValue=" + currentValue);
-                    if (currentValue.startsWith(compareValue)) {
+                    if (currentValue.equals(compareValue)) {
                         itemsFound++;
                         writeVCardEntry(pos, currentValue,result);
                     }

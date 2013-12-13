@@ -46,6 +46,7 @@ public class BluetoothPbapUtils {
         boolean isSet = (c != null && c.getCount() > 0);
         if (c != null) {
             c.close();
+            c = null;
         }
         return isSet;
     }
@@ -60,6 +61,7 @@ public class BluetoothPbapUtils {
         }
         if (c != null) {
             c.close();
+            c = null;
         }
         return ownerName;
     }
