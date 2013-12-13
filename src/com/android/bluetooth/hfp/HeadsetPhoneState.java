@@ -187,13 +187,17 @@ class HeadsetPhoneState {
 
     void sendDeviceStateChanged()
     {
+        // When out of service, send signal strength as 0. Some devices don't
+        // use the service indicator, but only the signal indicator
+        int signal = mService == HeadsetHalConstants.NETWORK_STATE_AVAILABLE ? mSignal : 0;
+
         Log.d(TAG, "sendDeviceStateChanged. mService="+ mService +
-                   " mSignal="+mSignal +" mRoam="+mRoam +
+                   " mSignal=" + signal +" mRoam="+ mRoam +
                    " mBatteryCharge=" + mBatteryCharge);
         HeadsetStateMachine sm = mStateMachine;
         if (sm != null) {
             sm.sendMessage(HeadsetStateMachine.DEVICE_STATE_CHANGED,
-                new HeadsetDeviceState(mService, mRoam, mSignal, mBatteryCharge));
+                new HeadsetDeviceState(mService, mRoam, signal, mBatteryCharge));
         }
     }
 
