@@ -115,6 +115,8 @@ public class BluetoothOppReceiveFileInfo {
                 }
             } finally {
                 metadataCursor.close();
+                if (V) Log.v(Constants.TAG, "Freeing cursor: " + metadataCursor);
+                metadataCursor = null;
             }
         }
 

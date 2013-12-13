@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.android.bluetooth.LeScanRequestArbitrator;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ProfileService.IProfileServiceBinder;
 
@@ -899,12 +900,12 @@ public class GattService extends ProfileService {
 
         if (DBG) Log.d(TAG, "startScan() - queue=" + mScanQueue.size());
 
-        if (getScanClient(appIf, isServer) == null) {
+        if (getScanClient(appIf, isServer) == null &&
+            LeScanRequestArbitrator.instance().RequestLeScan(LeScanRequestArbitrator.LE_NORMAL_SCAN_TYPE)) {
             if (DBG) Log.d(TAG, "startScan() - adding client=" + appIf);
             mScanQueue.add(new ScanClient(appIf, isServer));
+            gattClientScanNative(appIf, true);
         }
-
-        gattClientScanNative(appIf, true);
     }
 
     void startScanWithUuids(int appIf, boolean isServer, UUID[] uuids) {
@@ -912,19 +913,22 @@ public class GattService extends ProfileService {
 
         if (DBG) Log.d(TAG, "startScanWithUuids() - queue=" + mScanQueue.size());
 
-        if (getScanClient(appIf, isServer) == null) {
+        if (getScanClient(appIf, isServer) == null &&
+            LeScanRequestArbitrator.instance().RequestLeScan(LeScanRequestArbitrator.LE_NORMAL_SCAN_TYPE)) {
             if (DBG) Log.d(TAG, "startScanWithUuids() - adding client=" + appIf);
             mScanQueue.add(new ScanClient(appIf, isServer, uuids));
+            gattClientScanNative(appIf, true);
         }
-
-        gattClientScanNative(appIf, true);
     }
 
     void stopScan(int appIf, boolean isServer) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH_ADMIN permission");
 
         if (DBG) Log.d(TAG, "stopScan() - queue=" + mScanQueue.size());
-        removeScanClient(appIf, isServer);
+        if (getScanClient(appIf, isServer) != null) {
+            LeScanRequestArbitrator.instance().StopLeScan(LeScanRequestArbitrator.LE_NORMAL_SCAN_TYPE);
+            removeScanClient(appIf, isServer);
+        }
 
         if (mScanQueue.isEmpty()) {
             if (DBG) Log.d(TAG, "stopScan() - queue empty; stopping scan");

@@ -203,10 +203,9 @@ class AdapterProperties {
      * @return the mState
      */
     int getState() {
-        synchronized (mObject) {
-            if (VDBG) debugLog("State = " + mState);
-            return mState;
-        }
+        /* remove the lock to work around a platform deadlock problem */
+        /* and also for read access, it is safe to remove the lock to save CPU power */
+        return mState;
     }
 
     /**
@@ -257,6 +256,12 @@ class AdapterProperties {
                     debugLog("Removing bonded device:" +  device);
                 else
                     debugLog("Failed to remove device: " + device);
+            } else if (state == BluetoothDevice.BOND_BONDING) {
+                // Setting remote trust to false on BONDING state if it's already in BONDED list
+                if (mBondedDevices.contains(device)) {
+                    boolean result = mService.setRemoteTrust(device, false);
+                    debugLog("onBondStateChanged result=" + result);
+                }
             }
         }
         catch(Exception ee) {

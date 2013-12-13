@@ -49,6 +49,7 @@ final class RemoteDevices {
     /* The WakeLock is used for bringing up the LCD during a pairing request
      * from remote device when Android is in Suspend state.*/
     private PowerManager.WakeLock mWakeLock;
+    private PowerManager.WakeLock mWakeLock_stack;
     private Object mObject = new Object();
 
     private static final int UUID_INTENT_DELAY = 6000;
@@ -70,6 +71,10 @@ final class RemoteDevices {
         mWakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP
                        | PowerManager.ON_AFTER_RELEASE, TAG);
         mWakeLock.setReferenceCounted(false);
+        //WakeLock instantiation in RemoteDevices class
+        mWakeLock_stack = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP
+                       | PowerManager.ON_AFTER_RELEASE, TAG);
+        mWakeLock_stack.setReferenceCounted(false);
 
     }
 
@@ -83,6 +88,13 @@ final class RemoteDevices {
 
         if (mDevices != null)
             mDevices.clear();
+
+        if ((mWakeLock_stack != null) && // we have a WakeLock
+           (mWakeLock_stack.isHeld() == true)) { // we hold it
+            mWakeLock_stack.release ();
+            mWakeLock_stack = null;
+        }
+
     }
 
     public Object Clone() throws CloneNotSupportedException {
@@ -528,6 +540,19 @@ final class RemoteDevices {
         }
 
         sendMasInstanceIntent(device, instances);
+    }
+    void wakeStateChangeCallback(int state) {
+        if (state == 0x01) {
+        // Acquire wakelock to not allow Device to go into power collapse
+             mWakeLock_stack.acquire();
+             debugLog("Wake lock Aquired");
+        } else if (state == 0x00){
+        // Release wakelock to allow Device to go into power collapse.
+             mWakeLock_stack.release();
+             debugLog("Wake lock released");
+        } else
+             errorLog("Wake lock WRONG STATE ***** ");
+
     }
 
     void fetchUuids(BluetoothDevice device) {
