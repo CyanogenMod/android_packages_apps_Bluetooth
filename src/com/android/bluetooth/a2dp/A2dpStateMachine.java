@@ -36,6 +36,7 @@ import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetooth;
 import android.content.Context;
 import android.media.AudioManager;
+import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelUuid;
@@ -82,7 +83,8 @@ final class A2dpStateMachine extends StateMachine {
     private static final int MSG_CONNECTION_STATE_CHANGED = 0;
 
     private static final ParcelUuid[] A2DP_UUIDS = {
-        BluetoothUuid.AudioSink
+        BluetoothUuid.AudioSink,
+        BluetoothUuid.AudioSource
     };
 
     // mCurrentDevice is the device connected before the state changes
@@ -602,6 +604,12 @@ final class A2dpStateMachine extends StateMachine {
                        mPlayingA2dpDevice = device;
                        broadcastAudioState(device, BluetoothA2dp.STATE_PLAYING,
                                            BluetoothA2dp.STATE_NOT_PLAYING);
+                       if(isSrcNative(getByteAddress(device))){
+                           // in case PEER DEVICE is A2DP SRC we need to manager audio focus
+                         int status =  mAudioManager.requestAudioFocus(mAudioFocusListener,
+                            AudioManager.STREAM_MUSIC,AudioManager.AUDIOFOCUS_GAIN);
+                         loge("Status gain returned " + status);
+                       }
                     }
                     break;
                 case AUDIO_STATE_STOPPED:
@@ -609,6 +617,12 @@ final class A2dpStateMachine extends StateMachine {
                         mPlayingA2dpDevice = null;
                         broadcastAudioState(device, BluetoothA2dp.STATE_NOT_PLAYING,
                                             BluetoothA2dp.STATE_PLAYING);
+                        if(isSrcNative(getByteAddress(device))){
+                            // in case PEER DEVICE is A2DP SRC we need to manager audio focus
+                            int status = mAudioManager.abandonAudioFocus(mAudioFocusListener);
+                            loge("Status loss returned " + status);
+                        }
+
                     }
                     break;
                 default:
@@ -714,8 +728,16 @@ final class A2dpStateMachine extends StateMachine {
     // This method does not check for error conditon (newState == prevState)
     private void broadcastConnectionState(BluetoothDevice device, int newState, int prevState) {
 
-        int delay = mAudioManager.setBluetoothA2dpDeviceConnectionState(device, newState);
-
+        int delay;
+        // in case PEER DEVICE is A2DP SRC we don't need to tell AUDIO
+        if(!isSrcNative(getByteAddress(device))){
+            delay = mAudioManager.setBluetoothA2dpDeviceConnectionState(device, newState);
+            log("Peer Device is SNK");
+        }
+        else {
+            delay = 0;
+            log("Peer Device is SRC");
+        }
         mWakeLock.acquire();
         mIntentBroadcastHandler.sendMessageDelayed(mIntentBroadcastHandler.obtainMessage(
                                                         MSG_CONNECTION_STATE_CHANGED,
@@ -804,6 +826,24 @@ final class A2dpStateMachine extends StateMachine {
         }
     }
 
+    private OnAudioFocusChangeListener mAudioFocusListener = new OnAudioFocusChangeListener(){
+        public void onAudioFocusChange(int focusChange){
+            loge("onAudioFocusChangeListener  focuschange" + focusChange);
+            switch(focusChange){
+                case AudioManager.AUDIOFOCUS_LOSS:
+                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                    if ((getCurrentState() == mConnected)&& (isPlaying(mCurrentDevice))) {
+                        // we need to send AVDT_SUSPEND from here
+                        suspendA2dpNative();
+                    }
+                    break;
+                case AudioManager.AUDIOFOCUS_GAIN:
+                    break;
+            }
+        }
+    };
+
 
     // Event types for STACK_EVENT message
     final private static int EVENT_TYPE_NONE = 0;
@@ -829,4 +869,6 @@ final class A2dpStateMachine extends StateMachine {
     private native boolean connectA2dpNative(byte[] address);
     private native boolean disconnectA2dpNative(byte[] address);
     private native void allowConnectionNative(int isValid);
+    private native boolean isSrcNative(byte[] address);
+    private native void suspendA2dpNative();
 }
