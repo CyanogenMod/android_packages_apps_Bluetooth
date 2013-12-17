@@ -81,7 +81,9 @@ public class HandsfreeClientService extends ProfileService {
         } catch (Exception e) {
             Log.w(TAG, "Unable to unregister broadcast receiver", e);
         }
-        mStateMachine.doQuit();
+        if (mStateMachine != null) {
+            mStateMachine.doQuit();
+        }
         return true;
     }
 
