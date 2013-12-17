@@ -239,11 +239,11 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             if(folderName == null || folderName.equals("")) {
                 folderName = mCurrentFolder.getName();
             }
-            if(!folderName.equalsIgnoreCase("outbox") && !folderName.equalsIgnoreCase("draft")) {
+            folderName = folderName.toLowerCase();
+            if(!folderName.equals("outbox") && !folderName.equals("draft")) {
                 if(D) Log.d(TAG, "Push message only allowed to outbox and draft. folderName: " + folderName);
                 return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
             }
-            folderName = folderName.toLowerCase();
             /*  - Read out the message
              *  - Decode into a bMessage
              *  - send it.
