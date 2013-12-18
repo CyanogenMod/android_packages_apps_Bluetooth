@@ -795,6 +795,11 @@ public class BluetoothMapService extends ProfileService {
                       if (TextUtils.isEmpty(sRemoteDeviceName)) {
                           sRemoteDeviceName = getString(R.string.defaultname);
                       }
+                      if (!mConnectionManager.isAllowedConnection(mRemoteDevice)) {
+                          mConnSocket.close();
+                          mConnSocket = null;
+                          continue;
+                      }
                       boolean trust = mRemoteDevice.getTrustState();
                       if (DEBUG) Log.d(TAG, "GetTrustState() = " + trust);
 
