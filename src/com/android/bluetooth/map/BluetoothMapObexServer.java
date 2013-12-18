@@ -611,7 +611,9 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                   hasUnread = mOutContent.msgListingHasUnreadEmail(folderName, appParams);
                 }
                 outAppParams.setMessageListingSize(listSize);
+                Log.d(TAG, "not setting body and end of body header");
                 op.noBodyHeader();
+                op.noEndofBody();
             }
 
             // Build the application parameter header
@@ -744,10 +746,12 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                     }
                 }
 
-            if(maxListCount != 0)
-            {
+            if(maxListCount != 0) {
                 outBytes = mCurrentFolder.encode(listStartOffset, maxListCount);
                 outStream = op.openOutputStream();
+            } else {
+                op.noBodyHeader();
+                op.noEndofBody();
             }
 
             // Build and set the application parameter header
