@@ -249,7 +249,9 @@ public class BluetoothMapService extends ProfileService {
         if (getRemoteDevice().equals(device)) {
             switch (mState) {
                 case BluetoothMap.STATE_CONNECTED:
-                    closeService();
+                    //do no call close service else map service will close
+                    //closeService();
+                    mConnectionManager.stopObexServerSessionAll();
                     setState(BluetoothMap.STATE_DISCONNECTED, BluetoothMap.RESULT_CANCELED);
                     result = true;
                     break;
