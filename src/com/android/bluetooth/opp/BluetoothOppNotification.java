@@ -40,6 +40,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.CursorWindowAllocationException;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.util.Log;
@@ -223,15 +224,22 @@ class BluetoothOppNotification {
 
     private void updateActiveNotification() {
         // Active transfers
-        Cursor cursor;
+        Cursor cursor = null;
 
         try {
             cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
                 WHERE_RUNNING, null, BluetoothShare._ID);
         } catch (SQLiteException e) {
+            if (cursor != null) {
+                cursor.close();
+            }
             cursor = null;
-            Log.e(TAG, "SQLite exception: " + e);
+            Log.e(TAG, "updateActiveNotification: " + e);
+        } catch (CursorWindowAllocationException e) {
+            cursor = null;
+            Log.e(TAG, "updateActiveNotification: " + e);
         }
+
 
         if (cursor == null) {
             return;
@@ -399,14 +407,21 @@ class BluetoothOppNotification {
         }
 
         // Creating outbound notification
-        Cursor cursor;
+        Cursor cursor = null;
         try {
             cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
                 WHERE_COMPLETED_OUTBOUND, null, BluetoothShare.TIMESTAMP + " DESC");
         } catch (SQLiteException e) {
+            if (cursor != null) {
+                cursor.close();
+            }
             cursor = null;
-            Log.e(TAG, "SQLite exception: " + e);
+            Log.e(TAG, "updateCompletedNotification: " + e);
+        } catch (CursorWindowAllocationException e) {
+            cursor = null;
+            Log.e(TAG, "updateCompletedNotification: " + e);
         }
+
 
         if (cursor == null) {
             return;
@@ -462,8 +477,14 @@ class BluetoothOppNotification {
             cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
                 WHERE_COMPLETED_INBOUND, null, BluetoothShare.TIMESTAMP + " DESC");
         } catch (SQLiteException e) {
+            if (cursor != null) {
+                cursor.close();
+            }
             cursor = null;
-            Log.e(TAG, "SQLite exception: " + e);
+            Log.e(TAG, "updateCompletedNotification: " + e);
+        } catch (CursorWindowAllocationException e) {
+            cursor = null;
+            Log.e(TAG, "updateCompletedNotification: " + e);
         }
 
         if (cursor == null) {
@@ -514,14 +535,21 @@ class BluetoothOppNotification {
     }
 
     private void updateIncomingFileConfirmNotification() {
-        Cursor cursor;
+        Cursor cursor = null;
         try {
             cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
                 WHERE_CONFIRM_PENDING, null, BluetoothShare._ID);
         } catch (SQLiteException e) {
+            if (cursor != null) {
+                cursor.close();
+            }
             cursor = null;
-            Log.e(TAG, "SQLite exception: " + e);
+            Log.e(TAG, "updateIncomingFileConfirmNotification: " + e);
+        } catch (CursorWindowAllocationException e) {
+            cursor = null;
+            Log.e(TAG, "updateIncomingFileConfirmNotification: " + e);
         }
+
 
         if (cursor == null) {
             return;
