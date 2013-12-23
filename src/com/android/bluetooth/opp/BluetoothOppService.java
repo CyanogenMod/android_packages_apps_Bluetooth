@@ -899,6 +899,11 @@ public class BluetoothOppService extends Service {
                 if (V) Log.v(TAG, "Service cancel batch for share " + info.mId);
                 batch.cancelBatch();
             }
+            if (mTransfer != null) {
+                if (V) Log.v(TAG, "Stop transfer session");
+                mTransfer.stop();
+                mTransfer = null;
+            }
             if (batch.isEmpty()) {
                 if (V) Log.v(TAG, "Service remove batch  " + batch.mId);
                 removeBatch(batch);
