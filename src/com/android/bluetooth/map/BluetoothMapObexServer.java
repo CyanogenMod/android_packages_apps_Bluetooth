@@ -146,6 +146,10 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         BluetoothMapFolderElement tmpFolder;
         tmpFolder = mCurrentFolder.addFolder("telecom"); // root/telecom
         tmpFolder = tmpFolder.addFolder("msg");          // root/telecom/msg
+        tmpFolder.addFolder("inbox");                    // root/telecom/msg/inbox
+        tmpFolder.addFolder("outbox");
+        tmpFolder.addFolder("sent");
+        tmpFolder.addFolder("drafts");
     }
 
     @Override
@@ -694,6 +698,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         HeaderSet replyHeaders = new HeaderSet();
         int curType;
         int bytesToWrite, maxListCount, listStartOffset;
+        ArrayList<BluetoothMapFolderElement> tempSubFolders = new ArrayList<BluetoothMapFolderElement>();
         if(appParams == null){
             appParams = new BluetoothMapAppParams();
             appParams.setMaxListCount(1024);
@@ -732,13 +737,31 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                            }
                       }
                    }
-                    for (int i = 0; i < mCurrentFolder.subFolders.size(); i ++) {
-                         if(finalList.contains(mCurrentFolder.subFolders.get(i).getName())) {
-                            if (V) Log.v(TAG, " listing already contains, hence removing folder : "
-                                                            + mCurrentFolder.subFolders.get(i).getName());
-                            finalList.remove(mCurrentFolder.subFolders.get(i).getName());
-                         }
-                    }
+
+                   tempSubFolders.clear();
+                   for (BluetoothMapFolderElement fold : mCurrentFolder.subFolders) {
+                        tempSubFolders.add(fold);
+                   }
+
+                   if(!(mCurrentFolder.getName().equals("root") ||
+                               mCurrentFolder.getName().equals("telecom"))) {
+
+                      for (int i = 0; i < tempSubFolders.size(); i ++) {
+                           if(!(finalList.contains(tempSubFolders.get(i).getName()))) {
+                              if (V) Log.v(TAG, " removing : "+ tempSubFolders.get(i).getName());
+                                 mCurrentFolder.subFolders.remove(tempSubFolders.get(i));
+                           }
+                      }
+
+                      for (int i = 0; i < mCurrentFolder.subFolders.size(); i ++) {
+                           if(finalList.contains(mCurrentFolder.subFolders.get(i).getName())) {
+                              if (V) Log.v(TAG, " listing already contains, hence removing folder : "
+                                                              + mCurrentFolder.subFolders.get(i).getName());
+                              finalList.remove(mCurrentFolder.subFolders.get(i).getName());
+                           }
+                      }
+                   }
+
                     if (V) Log.v(TAG, "final list");
                     for (String str : finalList) {
                          if (V) Log.v(TAG, "" + str);
