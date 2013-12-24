@@ -1,5 +1,6 @@
 /*
 * Copyright (C) 2013 Samsung System LSI
+* Copyright (C) 2013, The Linux Foundation. All rights reserved.
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
@@ -13,7 +14,18 @@
 * limitations under the License.
 */
 package com.android.bluetooth.map;
-
+import android.util.Log;
+import android.net.Uri;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.*;
+import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
+import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteException;
+import com.android.emailcommon.provider.Mailbox;
 
 /**
  * Various utility methods and generic defines that can be used throughout MAPS
@@ -31,6 +43,22 @@ public class BluetoothMapUtils {
     private static final long HANDLE_TYPE_EMAIL_MASK      = 0x2<<59;
     private static final long HANDLE_TYPE_SMS_GSM_MASK    = 0x4<<59;
     private static final long HANDLE_TYPE_SMS_CDMA_MASK   = 0x8<<59;
+    public static final String AUTHORITY = "com.android.email.provider";
+    public static final Uri EMAIL_URI = Uri.parse("content://" + AUTHORITY);
+    public static final Uri EMAIL_ACCOUNT_URI = Uri.withAppendedPath(EMAIL_URI, "account");
+    public static final String RECORD_ID = "_id";
+    public static final String DISPLAY_NAME = "displayName";
+    public static final String EMAIL_ADDRESS = "emailAddress";
+    public static final String ACCOUNT_KEY = "accountKey";
+    public static final String IS_DEFAULT = "isDefault";
+    public static final String EMAIL_TYPE = "type";
+    public static final String[] EMAIL_BOX_PROJECTION = new String[] {
+        RECORD_ID, DISPLAY_NAME, ACCOUNT_KEY, EMAIL_TYPE };
+    private static Context mContext;
+    private static ContentResolver mResolver;
+    private static final String[] ACCOUNT_ID_PROJECTION = new String[] {
+                         RECORD_ID, EMAIL_ADDRESS, IS_DEFAULT
+    };
 
     /**
      * This enum is used to convert from the bMessage type property to a type safe
@@ -70,6 +98,53 @@ public class BluetoothMapUtils {
         }
         return mapHandle;
 
+    }
+    public static int getSystemMailboxGuessType(String folderName) {
+
+        if(folderName.equalsIgnoreCase("outbox")){
+           return Mailbox.TYPE_OUTBOX;
+        } else if(folderName.equalsIgnoreCase("inbox")){
+           return Mailbox.TYPE_INBOX;
+        } else if(folderName.equalsIgnoreCase("drafts")){
+           return Mailbox.TYPE_DRAFTS;
+        } else if(folderName.equalsIgnoreCase("Trash")){
+           return Mailbox.TYPE_TRASH;
+        } else if(folderName.equalsIgnoreCase("Sent")){
+           return Mailbox.TYPE_SENT;
+        } else if(folderName.equalsIgnoreCase("Junk")){
+           return Mailbox.TYPE_JUNK;
+        } else if(folderName.equalsIgnoreCase("Sent")){
+           return Mailbox.TYPE_STARRED;
+        } else if(folderName.equalsIgnoreCase("Unread")){
+           return Mailbox.TYPE_UNREAD;
+        }
+        //UNKNOWN
+        return -1;
+      }
+    /**
+     * Get Account id for Default Email app
+     * @return the Account id value
+     */
+    static public long getEmailAccountId(Context context) {
+        if (V) Log.v(TAG, "getEmailAccountIdList()");
+        long id = -1;
+        ArrayList<Long> list = new ArrayList<Long>();
+        Context mContext = context;
+        mResolver = mContext.getContentResolver();
+        try {
+            Cursor cursor = mResolver.query(EMAIL_ACCOUNT_URI,
+                   ACCOUNT_ID_PROJECTION, null, null, null);
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    id = cursor.getLong(0);
+                    if (V) Log.v(TAG, "id = " + id);
+                }
+                cursor.close();
+            }
+        } catch (SQLiteException e) {
+            Log.e(TAG, "SQLite exception: " + e);
+        }
+        return id;
     }
 
     /**

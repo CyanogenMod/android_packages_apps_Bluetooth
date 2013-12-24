@@ -233,13 +233,13 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                         }
                     }
                     try {
-                    BluetoothOppShareInfo info2 = (BluetoothOppShareInfo)msg.obj;
+                        BluetoothOppShareInfo info2 = (BluetoothOppShareInfo)msg.obj;
                         if (mSession != null) {
-                    mSession.stop();
+                            mSession.stop();
                         }
-                    mBatch.mStatus = Constants.BATCH_STATUS_FAILED;
-                    markBatchFailed(info2.mStatus);
-                    tickShareStatus(mCurrentShare);
+                        mBatch.mStatus = Constants.BATCH_STATUS_FAILED;
+                        markBatchFailed(info2.mStatus);
+                        tickShareStatus(mCurrentShare);
                     } catch (Exception e) {
                         Log.e(TAG, "Exception while handling MSG_SESSION_ERROR");
                         e.printStackTrace();
