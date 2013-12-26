@@ -30,7 +30,7 @@ import android.util.Xml;
 public class BluetoothMapFolderElement {
     private String name;
     private BluetoothMapFolderElement parent = null;
-    private ArrayList<BluetoothMapFolderElement> subFolders;
+    protected ArrayList<BluetoothMapFolderElement> subFolders;
 
     public BluetoothMapFolderElement( String name, BluetoothMapFolderElement parrent ){
         this.name = name;

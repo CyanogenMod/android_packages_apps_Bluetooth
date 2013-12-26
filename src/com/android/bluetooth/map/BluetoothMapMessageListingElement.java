@@ -97,6 +97,10 @@ public class BluetoothMapMessageListingElement
         return senderAddressing;
     }
 
+    public void setEmailSenderAddressing(String senderAddressing) {
+       this.senderAddressing = senderAddressing;
+    }
+
     public void setSenderAddressing(String senderAddressing) {
         /* TODO: This should depend on the type - for email, the addressing is an email address
          * Consider removing this again - to allow strings.
@@ -218,7 +222,7 @@ public class BluetoothMapMessageListingElement
      * */
     public void encode(XmlSerializer xmlMsgElement) throws IllegalArgumentException, IllegalStateException, IOException
     {
-
+            Log.d(TAG, "Inside encode");
             // contruct the XML tag for a single msg in the msglisting
             xmlMsgElement.startTag("", "msg");
             xmlMsgElement.attribute("", "handle", mapHandle);
@@ -255,6 +259,7 @@ public class BluetoothMapMessageListingElement
             if(protect != null)
                 xmlMsgElement.attribute("", "protect", protect);
             xmlMsgElement.endTag("", "msg");
+            Log.d(TAG, "Exiting encode");
 
     }
 }
