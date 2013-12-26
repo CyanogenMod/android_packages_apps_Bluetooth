@@ -19,12 +19,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
+import android.text.Html;
+import android.text.format.Time;
+
 
 import org.apache.http.util.ByteArrayBuffer;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -35,15 +39,25 @@ import android.provider.Telephony.Mms;
 import android.provider.Telephony.Sms;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import com.android.emailcommon.provider.EmailContent;
+import com.android.emailcommon.provider.EmailContent.Message;
+import com.android.emailcommon.provider.EmailContent.MessageColumns;
+import com.android.emailcommon.provider.EmailContent.SyncColumns;
+
 
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 import com.google.android.mms.pdu.CharacterSets;
+import android.database.sqlite.SQLiteException;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.*;
+
 
 public class BluetoothMapContent {
     private static final String TAG = "BluetoothMapContent";
 
-    private static final boolean D = true;
-    private static final boolean V = true;
+    private static final boolean D = BluetoothMapService.DEBUG;
+    private static final boolean V = BluetoothMapService.VERBOSE;
 
     private static final int MASK_SUBJECT = 0x1;
     private static final int MASK_DATETIME = 0x2;
@@ -72,8 +86,48 @@ public class BluetoothMapContent {
     public static final int MMS_BCC = 0x81;
     public static final int MMS_CC = 0x82;
 
+   /* Type of Email address. From Telephony.java it must be one of PduHeaders.BCC, */
+   /* PduHeaders.CC, PduHeaders.FROM, PduHeaders.TO. These are from PduHeaders.java */
+    public static final int EMAIL_FROM = 0x89;
+    public static final int EMAIL_TO = 0x97;
+    public static final int EMAIL_BCC = 0x81;
+    public static final int EMAIL_CC = 0x82;
+    public static final String AUTHORITY = "com.android.email.provider";
+    public static final Uri EMAIL_URI = Uri.parse("content://" + AUTHORITY);
+    public static final Uri EMAIL_ACCOUNT_URI = Uri.withAppendedPath(EMAIL_URI, "account");
+    public static final Uri EMAIL_BOX_URI = Uri.withAppendedPath(EMAIL_URI, "mailbox");
+    public static final Uri EMAIL_MESSAGE_URI = Uri.withAppendedPath(EMAIL_URI, "message");
+    public static final String RECORD_ID = "_id";
+    public static final String DISPLAY_NAME = "displayName";
+    public static final String SERVER_ID = "serverId";
+    public static final String ACCOUNT_KEY = "accountKey";
+    public static final String MAILBOX_KEY = "mailboxKey";
+    public static final String EMAIL_ADDRESS = "emailAddress";
+    public static final String IS_DEFAULT = "isDefault";
+    public static final String EMAIL_TYPE = "type";
+    public static final String[] EMAIL_BOX_PROJECTION = new String[] {
+             RECORD_ID, DISPLAY_NAME, ACCOUNT_KEY, EMAIL_TYPE };
+
     private Context mContext;
     private ContentResolver mResolver;
+    private static final String[] ACCOUNT_ID_PROJECTION = new String[] {
+                         RECORD_ID, EMAIL_ADDRESS, IS_DEFAULT
+    };
+
+    static final String[] EMAIL_PROJECTION = new String[] {
+        EmailContent.RECORD_ID,
+        MessageColumns.DISPLAY_NAME, MessageColumns.TIMESTAMP,
+        MessageColumns.SUBJECT, MessageColumns.FLAG_READ,
+        MessageColumns.FLAG_ATTACHMENT, MessageColumns.FLAGS,
+        SyncColumns.SERVER_ID, MessageColumns.DRAFT_INFO,
+        MessageColumns.MESSAGE_ID, MessageColumns.MAILBOX_KEY,
+        MessageColumns.ACCOUNT_KEY, MessageColumns.FROM_LIST,
+        MessageColumns.TO_LIST, MessageColumns.CC_LIST,
+        MessageColumns.BCC_LIST, MessageColumns.REPLY_TO_LIST,
+        SyncColumns.SERVER_TIMESTAMP, MessageColumns.MEETING_INFO,
+        MessageColumns.SNIPPET, MessageColumns.PROTOCOL_SEARCH_INFO,
+        MessageColumns.THREAD_TOPIC
+    };
 
     static final String[] SMS_PROJECTION = new String[] {
         BaseColumns._ID,
@@ -106,6 +160,7 @@ public class BluetoothMapContent {
     private class FilterInfo {
         public static final int TYPE_SMS = 0;
         public static final int TYPE_MMS = 1;
+        public static final int TYPE_EMAIL = 2;
 
         int msgType = TYPE_SMS;
         int phoneType = 0;
@@ -117,7 +172,7 @@ public class BluetoothMapContent {
         mContext = context;
         mResolver = mContext.getContentResolver();
         if (mResolver == null) {
-            Log.d(TAG, "getContentResolver failed");
+            Log.e(TAG, "getContentResolver failed");
         }
     }
 
@@ -351,14 +406,24 @@ public class BluetoothMapContent {
 
     private void setSent(BluetoothMapMessageListingElement e, Cursor c,
         FilterInfo fi, BluetoothMapAppParams ap) {
+        String sent = null;
         if ((ap.getParameterMask() & MASK_SENT) != 0) {
             int msgType = 0;
             if (fi.msgType == FilterInfo.TYPE_SMS) {
                 msgType = c.getInt(c.getColumnIndex(Sms.TYPE));
             } else if (fi.msgType == FilterInfo.TYPE_MMS) {
                 msgType = c.getInt(c.getColumnIndex(Mms.MESSAGE_BOX));
+            } else {
+                msgType = c.getInt(c.getColumnIndex(MessageColumns.MAILBOX_KEY));
+                if (msgType == 4) {
+                    sent = "yes";
+                } else {
+                    sent = "no";
+                }
+                if (D) Log.d(TAG, "setSent: " + sent);
+                e.setSent(sent);
+                return;
             }
-            String sent = null;
             if (msgType == 2) {
                 sent = "yes";
             } else {
@@ -376,6 +441,8 @@ public class BluetoothMapContent {
             read = c.getInt(c.getColumnIndex(Sms.READ));
         } else if (fi.msgType == FilterInfo.TYPE_MMS) {
             read = c.getInt(c.getColumnIndex(Mms.READ));
+        } else {
+            read = c.getColumnIndex(MessageColumns.FLAG_READ);
         }
         String setread = null;
         if (read == 1) {
@@ -409,6 +476,20 @@ public class BluetoothMapContent {
             int size = 0;
             if (fi.msgType == FilterInfo.TYPE_MMS) {
                 size = c.getInt(c.getColumnIndex(Mms.MESSAGE_SIZE));
+            } else if (fi.msgType == FilterInfo.TYPE_EMAIL) {
+                Uri uri = Uri.parse("content://com.android.email.provider/attachment");
+                long msgId = Long.valueOf(c.getString(c.getColumnIndex("_id")));
+                String where = setWhereFilterMessagekey(msgId);
+                Cursor cr = mResolver.query(
+                                uri, new String[]{"size"}, where , null, null);
+                if (cr != null && cr.moveToFirst()) {
+                    do {
+                       size += cr.getInt(0);
+                    } while (cr.moveToNext());
+                }
+                if (cr != null) {
+                    cr.close();
+                }
             }
             if (D) Log.d(TAG, "setAttachmentSize: " + size);
             e.setAttachmentSize(size);
@@ -434,6 +515,8 @@ public class BluetoothMapContent {
                         hasText = "no";
                     }
                 }
+            } else {
+                 hasText = "yes";
             }
             if (D) Log.d(TAG, "setText: " + hasText);
             e.setText(hasText);
@@ -458,6 +541,25 @@ public class BluetoothMapContent {
                 size = subject.length();
             } else if (fi.msgType == FilterInfo.TYPE_MMS) {
                 size = c.getInt(c.getColumnIndex(Mms.MESSAGE_SIZE));
+            } else {
+                long msgId = Long.valueOf(c.getString(c.getColumnIndex("_id")));
+                String[] EMAIL_MSGSIZE_PROJECTION = new String[] { "LENGTH(textContent)", "LENGTH(htmlContent)" };
+                String textContent, htmlContent;
+                Uri uri = Uri.parse("content://com.android.email.provider/body");
+                String where = setWhereFilterMessagekey(msgId);
+                Cursor cr = mResolver.query(
+                    uri, EMAIL_MSGSIZE_PROJECTION, where , null, null);
+                if (cr != null && cr.moveToFirst()) {
+                    do {
+                       size = cr.getInt(0);
+                       if(size == -1 || size == 0)
+                          size = cr.getInt(1);
+                          break;
+                    } while (cr.moveToNext());
+                }
+                if (cr != null) {
+                    cr.close();
+                }
             }
             if (D) Log.d(TAG, "setSize: " + size);
             e.setSize(size);
@@ -476,6 +578,8 @@ public class BluetoothMapContent {
                 }
             } else if (fi.msgType == FilterInfo.TYPE_MMS) {
                 type = TYPE.MMS;
+            } else {
+                type = TYPE.EMAIL;
             }
             if (D) Log.d(TAG, "setType: " + type);
             e.setType(type);
@@ -485,7 +589,7 @@ public class BluetoothMapContent {
     private void setRecipientAddressing(BluetoothMapMessageListingElement e, Cursor c,
         FilterInfo fi, BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_RECIPIENT_ADDRESSING) != 0) {
-            String address = "";
+            String address = null;
             if (fi.msgType == FilterInfo.TYPE_SMS) {
                 int msgType = c.getInt(c.getColumnIndex(Sms.TYPE));
                 if (msgType == 1) {
@@ -496,6 +600,10 @@ public class BluetoothMapContent {
             } else if (fi.msgType == FilterInfo.TYPE_MMS) {
                 long id = c.getLong(c.getColumnIndex(BaseColumns._ID));
                 address = getAddressMms(mResolver, id, MMS_TO);
+            } else {
+                int toIndex = c.getColumnIndex(MessageColumns.TO_LIST);
+                if (D) Log.d(TAG, "setRecipientAddressing: " +c.getString(toIndex));
+                address = c.getString(toIndex);
             }
             if (D) Log.d(TAG, "setRecipientAddressing: " + address);
             e.setRecipientAddressing(address);
@@ -505,7 +613,7 @@ public class BluetoothMapContent {
     private void setRecipientName(BluetoothMapMessageListingElement e, Cursor c,
         FilterInfo fi, BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_RECIPIENT_NAME) != 0) {
-            String name = "";
+            String name = null;
             if (fi.msgType == FilterInfo.TYPE_SMS) {
                 int msgType = c.getInt(c.getColumnIndex(Sms.TYPE));
                 if (msgType != 1) {
@@ -518,10 +626,26 @@ public class BluetoothMapContent {
                 long id = c.getLong(c.getColumnIndex(BaseColumns._ID));
                 String phone = getAddressMms(mResolver, id, MMS_TO);
                 name = getContactNameFromPhone(phone);
+            } else {
+                int toIndex = c.getColumnIndex(MessageColumns.TO_LIST);
+                if (D) Log.d(TAG, "setRecipientName: " +c.getString(toIndex));
+                name = c.getString(toIndex);
             }
             if (D) Log.d(TAG, "setRecipientName: " + name);
             e.setRecipientName(name);
         }
+    }
+
+    private void setReplytoAddressing(BluetoothMapMessageListingElement e, Cursor c,
+        FilterInfo fi, BluetoothMapAppParams ap) {
+            String address = null;
+            if (fi.msgType == FilterInfo.TYPE_EMAIL) {
+                int replyToInd = c.getColumnIndex(MessageColumns.REPLY_TO_LIST);
+                if (D) Log.d(TAG, "setReplytoAddressing: " +c.getString(replyToInd));
+                address = c.getString(replyToInd);
+            }
+            if (D) Log.d(TAG, "setReplytoAddressing: " + address);
+            e.setReplytoAddressing(address);
     }
 
     private void setSenderAddressing(BluetoothMapMessageListingElement e, Cursor c,
@@ -538,6 +662,12 @@ public class BluetoothMapContent {
             } else if (fi.msgType == FilterInfo.TYPE_MMS) {
                 long id = c.getLong(c.getColumnIndex(BaseColumns._ID));
                 address = getAddressMms(mResolver, id, MMS_FROM);
+            } else {
+                int fromIndex = c.getColumnIndex(MessageColumns.FROM_LIST);
+                address = c.getString(fromIndex);
+                if (D) Log.d(TAG, "setSenderAddressing: " + address);
+                e.setEmailSenderAddressing(address);
+                return;
             }
             if (D) Log.d(TAG, "setSenderAddressing: " + address);
             e.setSenderAddressing(address);
@@ -547,7 +677,7 @@ public class BluetoothMapContent {
     private void setSenderName(BluetoothMapMessageListingElement e, Cursor c,
         FilterInfo fi, BluetoothMapAppParams ap) {
         if ((ap.getParameterMask() & MASK_SENDER_NAME) != 0) {
-            String name = "";
+            String name = null;
             if (fi.msgType == FilterInfo.TYPE_SMS) {
                 int msgType = c.getInt(c.getColumnIndex(Sms.TYPE));
                 if (msgType == 1) {
@@ -560,6 +690,10 @@ public class BluetoothMapContent {
                 long id = c.getLong(c.getColumnIndex(BaseColumns._ID));
                 String phone = getAddressMms(mResolver, id, MMS_FROM);
                 name = getContactNameFromPhone(phone);
+            } else { //email case
+                int displayNameIndex = c.getColumnIndex(MessageColumns.DISPLAY_NAME);
+                if (D) Log.d(TAG, "setSenderName: " +c.getString(displayNameIndex));
+                name = c.getString(displayNameIndex);
             }
             if (D) Log.d(TAG, "setSenderName: " + name);
             e.setSenderName(name);
@@ -569,6 +703,7 @@ public class BluetoothMapContent {
     private void setDateTime(BluetoothMapMessageListingElement e, Cursor c,
         FilterInfo fi, BluetoothMapAppParams ap) {
         long date = 0;
+        int timeStamp = 0;
 
         if (fi.msgType == FilterInfo.TYPE_SMS) {
             date = c.getLong(c.getColumnIndex(Sms.DATE));
@@ -583,11 +718,38 @@ public class BluetoothMapContent {
             /* } else { */
             /*     date = c.getLong(c.getColumnIndex(Mms.DATE_SENT)) * 1000L; */
             /* } */
+        } else {
+            timeStamp = c.getColumnIndex(MessageColumns.TIMESTAMP);
+            String timestamp = c.getString(timeStamp);
+            date =Long.valueOf(timestamp);
         }
         e.setDateTime(date);
     }
 
     private String getTextPartsMms(long id) {
+        String text = "";
+        String selection = new String("mid=" + id);
+        String uriStr = String.format("content://mms/%d/part", id);
+        Uri uriAddress = Uri.parse(uriStr);
+        Cursor c = mResolver.query(uriAddress, null, selection,
+            null, null);
+
+        if (c != null && c.moveToFirst()) {
+            do {
+                String ct = c.getString(c.getColumnIndex("ct"));
+                if (ct.equals("text/plain")) {
+                    text += c.getString(c.getColumnIndex("text"));
+                }
+            } while(c.moveToNext());
+        }
+        if (c != null) {
+            c.close();
+        }
+        return text;
+    }
+
+
+    private String getTextPartsEmail(long id) {
         String text = "";
         String selection = new String("mid=" + id);
         String uriStr = String.format("content://mms/%d/part", id);
@@ -626,6 +788,13 @@ public class BluetoothMapContent {
                     long id = c.getLong(c.getColumnIndex(BaseColumns._ID));
                     subject = getTextPartsMms(id);
                 }
+            } else {
+                subject = c.getString(c.getColumnIndex(MessageColumns.SUBJECT));
+                if (subject == null || subject.length() == 0) {
+                    /* Get subject from mms text body parts - if any exists */
+                    long id = c.getLong(c.getColumnIndex(BaseColumns._ID));
+                    subject = getTextPartsEmail(id);
+                }
             }
             if (subject != null) {
                 subject = subject.substring(0, Math.min(subject.length(),
@@ -648,6 +817,8 @@ public class BluetoothMapContent {
             }
         } else if (fi.msgType == FilterInfo.TYPE_MMS) {
             type = TYPE.MMS;
+        } else {
+            type = TYPE.EMAIL;
         }
         if (D) Log.d(TAG, "setHandle: " + handle + " - Type: " + type.name());
         e.setHandle(handle, type);
@@ -662,6 +833,7 @@ public class BluetoothMapContent {
         setDateTime(e, c, fi, ap);
         setSenderName(e, c, fi, ap);
         setSenderAddressing(e, c, fi, ap);
+        //setReplytoAddressing(e, c, fi, ap);
         setRecipientName(e, c, fi, ap);
         setRecipientAddressing(e, c, fi, ap);
         setType(e, c, fi, ap);
@@ -677,7 +849,7 @@ public class BluetoothMapContent {
     }
 
     private String getContactNameFromPhone(String phone) {
-        String name = "";
+        String name = null;
 
         Uri uri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI,
             Uri.encode(phone));
@@ -714,6 +886,22 @@ public class BluetoothMapContent {
         return addr;
     }
 
+    private boolean matchRecipientEmail(Cursor c, FilterInfo fi, String recip) {
+        boolean res = false;
+        String name = null;
+        int toIndex = c.getColumnIndex("toList");
+        name = c.getString(toIndex);
+
+        if (name != null && name.length() > 0) {
+            if (name.matches(recip)) {
+                if (D) Log.d(TAG, "match recipient name = " + name);
+                res = true;
+            }  else {
+            res = false;
+            }
+        }
+        return res;
+    }
     private boolean matchRecipientMms(Cursor c, FilterInfo fi, String recip) {
         boolean res;
         long id = c.getLong(c.getColumnIndex(BaseColumns._ID));
@@ -785,12 +973,31 @@ public class BluetoothMapContent {
                 res = matchRecipientSms(c, fi, recip);
             } else if (fi.msgType == FilterInfo.TYPE_MMS) {
                 res = matchRecipientMms(c, fi, recip);
+            } else if (fi.msgType == FilterInfo.TYPE_EMAIL) {
+                res = matchRecipientEmail(c, fi, recip);
             } else {
                 if (D) Log.d(TAG, "Unknown msg type: " + fi.msgType);
                 res = false;
             }
         } else {
             res = true;
+        }
+        return res;
+    }
+
+    private boolean matchOriginatorEmail(Cursor c, FilterInfo fi, String orig) {
+        boolean res = false;
+        String name;
+        int displayNameIndex = c.getColumnIndex("displayName");
+        name = c.getString(displayNameIndex);
+
+        if (name != null && name.length() > 0) {
+            if (name.matches(orig)) {
+                if (D) Log.d(TAG, "match originator name = " + name);
+                res = true;
+            } else {
+            res = false;
+        }
         }
         return res;
     }
@@ -866,6 +1073,8 @@ public class BluetoothMapContent {
                 res = matchOriginatorSms(c, fi, orig);
             } else if (fi.msgType == FilterInfo.TYPE_MMS) {
                 res = matchOriginatorMms(c, fi, orig);
+            } else if (fi.msgType == FilterInfo.TYPE_EMAIL) {
+                res = matchOriginatorEmail(c, fi, orig);
             } else {
                 Log.d(TAG, "Unknown msg type: " + fi.msgType);
                 res = false;
@@ -882,6 +1091,44 @@ public class BluetoothMapContent {
         } else {
             return false;
         }
+    }
+
+
+    private String getQueryWithMailBoxKey(String folder, long id) {
+        Log.d(TAG, "Inside getQueryWithMailBoxKey ");
+        String query = "mailboxKey = -1";;
+        String folderId;
+        Uri uri = Uri.parse("content://com.android.email.provider/mailbox");
+        if (folder == null) {
+            return null;
+        }
+        if (folder.contains("'")){
+            folder = folder.replace("'", "''");
+        }
+        Cursor cr = mResolver.query(
+                uri, null, "(" + ACCOUNT_KEY + "=" + id +
+                ") AND (UPPER(displayName) = '"+ folder.toUpperCase()+"')" , null, null);
+        if (cr != null) {
+            if ( cr.moveToFirst()) {
+                do {
+                    folderId = cr.getString(cr.getColumnIndex("_id"));
+                    query = "mailboxKey = "+ folderId;
+                    break;
+                } while ( cr.moveToNext());
+            }
+            cr.close();
+        }
+        if(D) Log.d(TAG, "Returning  "+query);
+        return query;
+    }
+
+    private String setWhereFilterFolderTypeEmail(String folder) {
+        String where = "";
+        Log.d(TAG, "Inside setWhereFilterFolderTypeEmail ");
+        Log.d(TAG, "folder is  " + folder);
+        where = getQueryWithMailBoxKey(folder,BluetoothMapUtils.getEmailAccountId(mContext)/*1*/);
+        if(D) Log.d(TAG, "where query is  " + where);
+        return where;
     }
 
     private String setWhereFilterFolderTypeSms(String folder) {
@@ -932,6 +1179,9 @@ public class BluetoothMapContent {
             where = setWhereFilterFolderTypeSms(folder);
         } else if (fi.msgType == FilterInfo.TYPE_MMS) {
             where = setWhereFilterFolderTypeMms(folder);
+        } else {
+            where = setWhereFilterFolderTypeEmail(folder);
+
         }
 
         return where;
@@ -1088,6 +1338,29 @@ public class BluetoothMapContent {
         return where;
     }
 
+    private String setWhereFilterAccountKey(long id) {
+        String where = "";
+        where = "accountkey=" + id;
+        return where;
+    }
+
+    private String setWhereFilterMessagekey(long id) {
+        String where = "";
+        where = " messageKey = " + id;
+        return where;
+    }
+
+    private String setWhereFilterServerId(String path) {
+        String where = "";
+        if(path.equals("msg")) {
+           where = "serverId =" + DISPLAY_NAME;
+        }
+        else {
+           where = "serverId LIKE '%" + path + "/%'";
+        }
+        return where;
+    }
+
     private String setWhereFilter(String folder, FilterInfo fi, BluetoothMapAppParams ap) {
         String where = "";
 
@@ -1142,6 +1415,431 @@ public class BluetoothMapContent {
                 " phone num = " + fi.phoneNum +
                 " phone alpha tag = " + fi.phoneAlphaTag);
         }
+    }
+
+    /**
+     * Return Email sub folder list for the id and serverId path
+     * @param context the calling Context
+     * @param id the email account id
+     * @return the list of	server id's of Email sub folder
+     */
+     public List<String> getEmailFolderListAtPath(Context context, long id, String path) {
+         if (V) Log.v(TAG, "getEmailFolderListAtPath: id = " + id + "path: " + path);
+         String where = "";
+         ArrayList<String> list = new ArrayList<String>();
+         where += setWhereFilterAccountKey(id);
+         where += " AND ";
+         where += setWhereFilterServerId(path);
+         Cursor cr = context.getContentResolver().query(EMAIL_BOX_URI, null, where, null, null);
+         if (cr != null) {
+             if (cr.moveToFirst()) {
+                 final int columnIndex = cr.getColumnIndex(SERVER_ID);
+                 do {
+                    final String value = cr.getString(columnIndex);
+                    list.add(value);
+                    if (V) Log.v(TAG, "adding: " + value);
+                  } while (cr.moveToNext());
+              }
+              cr.close();
+          }
+          return list;
+       }
+
+    private boolean emailSelected(FilterInfo fi, BluetoothMapAppParams ap) {
+        int msgType = ap.getFilterMessageType();
+        if(D) Log.d(TAG, "emailSelected, msgType : " + msgType);
+
+        if (msgType == -1)
+            return true;
+
+        if ((msgType & 0x16) == 0)
+            return true;
+
+        return false;
+
+    }
+
+    private void printEmail(Cursor c) {
+        if (D) Log.d(TAG, "printEmail " +
+            c.getLong(c.getColumnIndex("_id")) +
+            "\n   " + "displayName" + " : " + c.getString(c.getColumnIndex("displayName")) +
+            "\n   " + "subject" + " : " + c.getString(c.getColumnIndex("subject")) +
+            "\n   " + "flagRead" + " : " + c.getString(c.getColumnIndex("flagRead")) +
+            "\n   " + "flagAttachment" + " : " + c.getInt(c.getColumnIndex("flagAttachment")) +
+            "\n   " + "flags" + " : " + c.getInt(c.getColumnIndex("flags")) +
+            "\n   " + "syncServerId" + " : " + c.getInt(c.getColumnIndex("syncServerId")) +
+            "\n   " + "clientId" + " : " + c.getInt(c.getColumnIndex("clientId")) +
+            "\n   " + "messageId" + " : " + c.getInt(c.getColumnIndex("messageId")) +
+            "\n   " + "timeStamp" + " : " + c.getInt(c.getColumnIndex("timeStamp")) +
+            "\n   " + "mailboxKey" + " : " + c.getInt(c.getColumnIndex("mailboxKey")) +
+            "\n   " + "accountKey" + " : " + c.getInt(c.getColumnIndex("accountKey")) +
+            "\n   " + "fromList" + " : " + c.getString(c.getColumnIndex("fromList")) +
+            "\n   " + "toList" + " : " + c.getString(c.getColumnIndex("toList")) +
+            "\n   " + "ccList" + " : " + c.getString(c.getColumnIndex("ccList")) +
+            "\n   " + "bccList" + " : " + c.getString(c.getColumnIndex("bccList")) +
+            "\n   " + "replyToList" + " : " + c.getString(c.getColumnIndex("replyToList")) +
+            "\n   " + "meetingInfo" + " : " + c.getString(c.getColumnIndex("meetingInfo")) +
+            "\n   " + "snippet" + " : " + c.getString(c.getColumnIndex("snippet")) +
+            "\n   " + "protocolSearchInfo" + " : " + c.getString(c.getColumnIndex("protocolSearchInfo")) +
+            "\n   " + "threadTopic" + " : " + c.getString(c.getColumnIndex("threadTopic")));
+    }
+
+    /**
+     * Get the folder name (MAP representation) for Email based on the
+     * mailboxKey value in message table
+     */
+    private String getContainingFolderEmail(int folderId) {
+        Cursor cr;
+        String folderName = null;
+        String whereClause = "_id = " + folderId;
+        cr = mResolver.query(
+                Uri.parse("content://com.android.email.provider/mailbox"),
+                null, whereClause, null, null);
+        if (cr != null) {
+            if (cr.getCount() > 0) {
+                cr.moveToFirst();
+                folderName = cr.getString(cr.getColumnIndex(MessageColumns.DISPLAY_NAME));
+            }
+            cr.close();
+        }
+        if (V) Log.v(TAG, "getContainingFolderEmail returning " + folderName);
+        return folderName;
+    }
+
+
+    private void extractEmailAddresses(long id, BluetoothMapbMessageMmsEmail message) {
+        if (V) Log.v(TAG, "extractEmailAddresses with id " + id);
+        String urlEmail = "content://com.android.email.provider/message";
+        Uri uriEmail = Uri.parse(urlEmail);
+        StringTokenizer emailId;
+        String tempEmail = null;
+        Cursor c = mResolver.query(uriEmail, EMAIL_PROJECTION, "_id = " + id, null, null);
+        if (c != null && c.moveToFirst()) {
+            String senderName = null;
+            if((senderName = c.getString(c.getColumnIndex(MessageColumns.FROM_LIST))) != null ) {
+                if(V) Log.v(TAG, " senderName " + senderName);
+                if(senderName.contains("")){
+                   String[] senderStr = senderName.split("");
+                   if(senderStr !=null && senderStr.length > 0){
+                      if(V) Log.v(TAG, " senderStr[1] " + senderStr[1].trim());
+                      if(V) Log.v(TAG, " senderStr[0] " + senderStr[0].trim());
+                      setVCardFromEmailAddress(message, senderStr[1].trim(), true);
+                      message.addFrom(null, senderStr[0].trim());
+                   }
+                } else {
+                       if(V) Log.v(TAG, " senderStr is" + senderName.trim());
+                       setVCardFromEmailAddress(message, senderName.trim(), true);
+                        message.addFrom(null, senderName.trim());
+                }
+            }
+            String recipientName = null;
+            String multiRecepients = null;
+            if((recipientName = c.getString(c.getColumnIndex(MessageColumns.TO_LIST))) != null){
+                if(V) Log.v(TAG, " recipientName " + recipientName);
+                if(recipientName.contains("")){
+                   String[] recepientStr = recipientName.split("");
+                   if(recepientStr !=null && recepientStr.length > 0){
+                      if (V){
+                          Log.v(TAG, " recepientStr[1] " + recepientStr[1].trim());
+                          Log.v(TAG, " recepientStr[0] " + recepientStr[0].trim());
+                      }
+                      setVCardFromEmailAddress(message, recepientStr[1].trim(), false);
+                      message.addTo(recepientStr[1].trim(), recepientStr[0].trim());
+                   }
+                } else if(recipientName.contains("")){
+                      multiRecepients = recipientName.replace('', ';');
+                      if(multiRecepients != null){
+                         if (V){
+                             Log.v(TAG, " Setting ::Recepient name :: " + multiRecepients.trim());
+                         }
+                         emailId = new StringTokenizer(multiRecepients.trim(),";");
+                         do {
+                            setVCardFromEmailAddress(message, emailId.nextElement().toString(), false);
+                         } while(emailId.hasMoreElements());
+
+                            message.addTo(multiRecepients.trim(), multiRecepients.trim());
+                      }
+                } else if(recipientName.contains(",")){
+                      multiRecepients = recipientName.replace(',', ';');
+                      if(multiRecepients != null){
+                         if (V){
+                             Log.v(TAG, "Setting ::Recepient name :: " + multiRecepients.trim());
+                         }
+                         emailId = new StringTokenizer(multiRecepients.trim(),";");
+                         do {
+                            tempEmail = emailId.nextElement().toString();
+                            setVCardFromEmailAddress(message, tempEmail, false);
+                            message.addTo(null, tempEmail);
+                         } while(emailId.hasMoreElements());
+                      }
+                } else {
+                      Log.v(TAG, " Setting ::Recepient name :: " + recipientName.trim());
+                      setVCardFromEmailAddress(message, recipientName.trim(), false);
+                      message.addTo(null, recipientName.trim());
+                 }
+             }
+         }
+    }
+
+    /**
+     * Read out a mms data part and return the data in a byte array.
+     * @param partid the content provider id of the mms.
+     * @return
+     */
+    private byte[] readEmailDataPart(long partid) {
+        String uriStr = String.format("content://mms/part/%d", partid);
+        Uri uriAddress = Uri.parse(uriStr);
+        InputStream is = null;
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        int bufferSize = 8192;
+        byte[] buffer = new byte[bufferSize];
+        byte[] retVal = null;
+
+        try {
+            is = mResolver.openInputStream(uriAddress);
+            int len = 0;
+            while ((len = is.read(buffer)) != -1) {
+              os.write(buffer, 0, len); // We need to specify the len, as it can be != bufferSize
+            }
+            retVal = os.toByteArray();
+        } catch (IOException e) {
+            // do nothing for now
+            Log.w(TAG,"Error reading part data",e);
+        } finally {
+            try {
+                os.close();
+                is.close();
+            } catch (IOException e) {
+            }
+        }
+        return retVal;
+    }
+
+
+    /**
+     * Read out the mms parts and update the bMessage object provided i {@linkplain message}
+     * @param id the content provider ID of the message
+     * @param message the bMessage object to add the information to
+     */
+    private void extractEmailParts(long id, BluetoothMapbMessageMmsEmail message)
+    {
+        if (V) Log.v(TAG, "extractEmailParts with id " + id);
+        String where = setWhereFilterMessagekey(id);
+        String emailBody = "";
+        Uri uriAddress = Uri.parse("content://com.android.email.provider/body");
+        BluetoothMapbMessageMmsEmail.MimePart part;
+        Cursor c = mResolver.query(
+            uriAddress,
+            null,
+            where,
+            null, null);
+
+        if(c != null) {
+           if (V) Log.v(TAG, "cursor not null");
+           if (c.moveToFirst()) {
+               emailBody = c.getString(c.getColumnIndex("textContent"));
+               if (emailBody == null || emailBody.length() == 0) {
+                   String msgBody = c.getString(c.getColumnIndex("htmlContent"));
+                   if (msgBody != null) {
+                       msgBody = msgBody.replaceAll("(?s)(<title>)(.*?)(</title>)", "");
+                       msgBody = msgBody.replaceAll("(?s)(<style type=\"text/css\".*?>)(.*?)(</style>)", "");
+                       CharSequence msgText = Html.fromHtml(msgBody);
+                       emailBody = msgText.toString();
+                       emailBody = emailBody.replaceAll("(?s)(<!--)(.*?)(-->)", "");
+                       // Solves problem with Porche Car-kit and Gmails.
+                       // Changes unix style line conclusion to DOS style
+                       emailBody = emailBody.replaceAll("(?s)(\\r)", "");
+                       emailBody = emailBody.replaceAll("(?s)(\\n)", "\r\n");
+                   }
+                   message.setEmailBody(emailBody);
+               }
+
+                Long partId = c.getLong(c.getColumnIndex(BaseColumns._ID));
+                String contentType = "Content-Type: text/plain; charset=\"UTF-8\"";
+                String name = null;//c.getString(c.getColumnIndex("displayName"));
+                  String text = null;
+
+                if(D) Log.d(TAG, "     _id : " + partId +
+                        "\n     ct : " + contentType +
+                        "\n     partname : " + name);
+
+                part = message.addMimePart();
+                part.contentType = contentType;
+                part.partName = name;
+
+                try {
+                    if(emailBody != null) {
+                        part.data = emailBody.getBytes("UTF-8");
+                        part.charsetName = "utf-8";
+                    }
+                } catch (NumberFormatException e) {
+                    Log.d(TAG,"extractEmailParts",e);
+                    part.data = null;
+                    part.charsetName = null;
+                } catch (UnsupportedEncodingException e) {
+                    Log.d(TAG,"extractEmailParts",e);
+                    part.data = null;
+                    part.charsetName = null;
+                } finally {
+                }
+           }
+       }
+        message.updateCharset();
+        message.setEncoding("8BIT");
+    }
+
+    /**
+     *
+     * @param id the content provider id for the message to fetch.
+     * @param appParams The application parameter object received from the client.
+     * @return a byte[] containing the utf-8 encoded bMessage to send to the client.
+     * @throws UnsupportedEncodingException if UTF-8 is not supported,
+     * which is guaranteed to be supported on an android device
+     */
+    public byte[] getEmailMessage(long id, BluetoothMapAppParams appParams) throws UnsupportedEncodingException {
+        if (V) Log.v(TAG, "getEmailMessage with is " + id);
+        int msgBox, threadId;
+        String urlEmail = "content://com.android.email.provider/message";
+        Uri uriEmail = Uri.parse(urlEmail);
+        BluetoothMapbMessageMmsEmail message = new BluetoothMapbMessageMmsEmail();
+        Cursor c = mResolver.query(uriEmail, EMAIL_PROJECTION, "_id = " + id, null, null);
+        if(c != null && c.moveToFirst())
+        {
+            message.setType(TYPE.EMAIL);
+
+            // The EMAIL info:
+            if (c.getString(c.getColumnIndex(MessageColumns.FLAG_READ)).equalsIgnoreCase("1"))
+                message.setStatus(true);
+            else
+                message.setStatus(false);
+
+            msgBox = c.getInt(c.getColumnIndex(MessageColumns.MAILBOX_KEY));
+            message.setFolder(getContainingFolderEmail(msgBox));
+
+            message.setSubject(c.getString(c.getColumnIndex(MessageColumns.SUBJECT)));
+            message.setContentType("Content-Type: text/plain; charset=\"UTF-8\"");
+            message.setDate(c.getLong(c.getColumnIndex(MessageColumns.TIMESTAMP)) * 1000L);
+            message.setIncludeAttachments(appParams.getAttachment() == 0 ? false : true);
+
+            // The parts
+            extractEmailParts(id, message);
+
+            // The addresses
+            extractEmailAddresses(id, message);
+
+            c.close();
+
+            return message.encodeEmail();
+        }
+        else if(c != null) {
+            c.close();
+        }
+
+        throw new IllegalArgumentException("MMS handle not found");
+    }
+
+    public BluetoothMapMessageListing msgListingEmail(String folder, BluetoothMapAppParams ap) {
+        Log.d(TAG, "msgListing: folder = " + folder);
+        String urlEmail = "content://com.android.email.provider/message";
+        Uri uriEmail = Uri.parse(urlEmail);
+        BluetoothMapMessageListing bmList = new BluetoothMapMessageListing();
+        BluetoothMapMessageListingElement e = null;
+
+        /* Cache some info used throughout filtering */
+        FilterInfo fi = new FilterInfo();
+        setFilterInfo(fi);
+
+        if (emailSelected(fi, ap)) {
+            fi.msgType = FilterInfo.TYPE_EMAIL;
+
+            String where = setWhereFilter(folder, fi, ap);
+            Log.d(TAG, "where clause is = " + where);
+            try {
+                Cursor c = mResolver.query(uriEmail,
+                EMAIL_PROJECTION, where, null, "timeStamp desc");
+                if(c == null) {
+                   Log.e(TAG, "Cursor is null. Returning from here");
+                }
+
+                if (c != null) {
+                    while (c.moveToNext()) {
+                        if (matchAddresses(c, fi, ap)) {
+                        printEmail(c);
+                        e = element(c, fi, ap);
+                        bmList.add(e);
+                        }
+                    }
+                c.close();
+                }
+            } catch (SQLiteException es) {
+             Log.e(TAG, "SQLite exception: " + es);
+            }
+        }
+
+        /* Enable this if post sorting and segmenting needed */
+        bmList.sort();
+        bmList.segment(ap.getMaxListCount(), ap.getStartOffset());
+
+        return bmList;
+    }
+
+    public int msgListingSizeEmail(String folder, BluetoothMapAppParams ap) {
+        if (D) Log.d(TAG, "msgListingSize: folder = " + folder);
+        int cnt = 0;
+        String urlEmail = "content://com.android.email.provider/message";
+        Uri uriEmail = Uri.parse(urlEmail);
+
+        /* Cache some info used throughout filtering */
+        FilterInfo fi = new FilterInfo();
+        setFilterInfo(fi);
+
+        if (emailSelected(fi, ap)) {
+            fi.msgType = FilterInfo.TYPE_EMAIL;
+            String where = setWhereFilter(folder, fi, ap);
+            Cursor c = mResolver.query(uriEmail,
+                EMAIL_PROJECTION, where, null, "timeStamp desc");
+
+            if (c != null) {
+                cnt += c.getCount();
+                c.close();
+            }
+        }
+
+        if (D) Log.d(TAG, "msgListingSize: size = " + cnt);
+        return cnt;
+    }
+    /**
+     * Return true if there are unread messages in the requested list of messages
+     * @param folder folder where the message listing should come from
+     * @param ap application parameter object
+     * @return true if unread messages are in the list, else false
+     */
+    public boolean msgListingHasUnreadEmail(String folder, BluetoothMapAppParams ap) {
+        if (D) Log.d(TAG, "msgListingHasUnread: folder = " + folder);
+        int cnt = 0;
+        String urlEmail = "content://com.android.email.provider/message";
+        Uri uriEmail = Uri.parse(urlEmail);
+
+        /* Cache some info used throughout filtering */
+        FilterInfo fi = new FilterInfo();
+        setFilterInfo(fi);
+
+        if (emailSelected(fi, ap)) {
+            fi.msgType = FilterInfo.TYPE_EMAIL;
+            String where = setWhereFilterFolderType(folder, fi);
+            where += " AND flagRead=0 ";
+            where += setWhereFilterPeriod(ap, fi);
+            Cursor c = mResolver.query(uriEmail,
+                EMAIL_PROJECTION, where, null, "timeStamp desc");
+
+            if (c != null) {
+                cnt += c.getCount();
+                c.close();
+            }
+        }
+
+        if (D) Log.d(TAG, "msgListingHasUnread: numUnread = " + cnt);
+        return (cnt>0)?true:false;
     }
 
     public BluetoothMapMessageListing msgListing(String folder, BluetoothMapAppParams ap) {
@@ -1306,6 +2004,15 @@ public class BluetoothMapContent {
         }
         return "";
     }
+    public void msgUpdate() {
+        if (D) Log.d(TAG, "Message Update");
+        long accountId = BluetoothMapUtils.getEmailAccountId(mContext);
+        if (V) Log.v(TAG, " Account id for Inbox Update: " +accountId);
+        Intent emailIn = new Intent();
+        emailIn.setAction("com.android.email.intent.action.MAIL_SERVICE_WAKEUP");
+        emailIn.putExtra("com.android.email.intent.extra.ACCOUNT", accountId);
+        mContext.sendBroadcast(emailIn);
+    }
 
     public byte[] getMessage(String handle, BluetoothMapAppParams appParams) throws UnsupportedEncodingException{
         TYPE type = BluetoothMapUtils.getMsgTypeFromHandle(handle);
@@ -1317,9 +2024,30 @@ public class BluetoothMapContent {
         case MMS:
             return getMmsMessage(id, appParams);
         case EMAIL:
-            throw new IllegalArgumentException("Email not implemented - invalid message handle.");
+            return getEmailMessage(id, appParams);
         }
         throw new IllegalArgumentException("Invalid message handle.");
+    }
+
+    private void setVCardFromEmailAddress(BluetoothMapbMessage message, String emailAddr, boolean incoming) {
+        if(D) Log.d(TAG, "setVCardFromEmailAddress, emailAdress is " +emailAddr);
+        String contactId = null, contactName = null;
+        String[] phoneNumbers = null;
+        String[] emailAddresses = new String[1];
+        StringTokenizer emailId;
+        Cursor p;
+
+        if(incoming == true) {
+           emailAddresses[0] = emailAddr;
+           if(V) Log.v(TAG,"Adding addOriginator " + emailAddresses[0]);
+            message.addOriginator(emailAddr, phoneNumbers, emailAddresses);
+        }
+        else
+        {
+            emailAddresses[0] = emailAddr;
+           if(V) Log.v(TAG,"Adding Receipient " + emailAddresses[0]);
+            message.addRecipient(emailAddr, phoneNumbers, emailAddresses);
+        }
     }
 
     private void setVCardFromPhoneNumber(BluetoothMapbMessage message, String phone, boolean incoming) {
@@ -1402,7 +2130,7 @@ public class BluetoothMapContent {
         if(c != null && c.moveToFirst())
         {
 
-            if(V) Log.d(TAG,"c.count: " + c.getCount());
+            if(V) Log.v(TAG,"c.count: " + c.getCount());
 
             if (tm.getPhoneType() == TelephonyManager.PHONE_TYPE_GSM) {
                 message.setType(TYPE.SMS_GSM);
