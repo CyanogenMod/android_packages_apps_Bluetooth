@@ -1990,6 +1990,15 @@ final class HandsfreeClientStateMachine extends StateMachine {
                          mAudioManager.setMode(newAudioMode);
                     }
                     Log.d(TAG,"hfp_enable=true");
+                    Log.d(TAG,"mAudioWbs is " + mAudioWbs);
+                    if (mAudioWbs) {
+                        Log.d(TAG,"Setting sampling rate as 16000");
+                        mAudioManager.setParameters("hfp_set_sampling_rate=16000");
+                    }
+                    else {
+                        Log.d(TAG,"Setting sampling rate as 8000");
+                        mAudioManager.setParameters("hfp_set_sampling_rate=8000");
+                    }
                     mAudioManager.setParameters("hfp_enable=true");
                     broadcastAudioState(device, BluetoothHandsfreeClient.STATE_AUDIO_CONNECTED,
                             BluetoothHandsfreeClient.STATE_AUDIO_CONNECTING);
