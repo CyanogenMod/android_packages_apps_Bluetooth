@@ -428,6 +428,12 @@ final class A2dpSinkStateMachine extends StateMachine {
                         mCurrentDevice = device;
                         transitionTo(mConnected);
                     }
+                    // the other profile connection should be initiated
+                    AdapterService adapterService = AdapterService.getAdapterService();
+                    if (adapterService != null) {
+                        adapterService.connectOtherProfile(device,
+                                AdapterService.PROFILE_CONN_CONNECTED);
+                    }
                 } else {
                     //reject the connection and stay in Disconnected state itself
                     logi("Incoming A2DP rejected");
@@ -598,6 +604,13 @@ final class A2dpSinkStateMachine extends StateMachine {
                         transitionTo(mConnected);
                     }
                 }
+                // the other profile connection should be initiated
+                AdapterService adapterService = AdapterService.getAdapterService();
+                if (adapterService != null) {
+                    adapterService.connectOtherProfile(device,
+                            AdapterService.PROFILE_CONN_CONNECTED);
+                }
+
                 break;
             case CONNECTION_STATE_CONNECTING:
                 if ((mCurrentDevice != null) && mCurrentDevice.equals(device)) {
