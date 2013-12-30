@@ -65,8 +65,6 @@ public class BluetoothOppUtility {
 
     private static final ConcurrentHashMap<Uri, BluetoothOppSendFileInfo> sSendFileMap
             = new ConcurrentHashMap<Uri, BluetoothOppSendFileInfo>();
-    private static final ConcurrentHashMap<Uri, Integer> sCurrentTxFileMap
-            = new ConcurrentHashMap<Uri, Integer>();
 
     public static BluetoothOppTransferInfo queryRecord(Context context, Uri uri) {
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
@@ -327,17 +325,7 @@ public class BluetoothOppUtility {
 
     static void putSendFileInfo(Uri uri, BluetoothOppSendFileInfo sendFileInfo) {
         if (D) Log.d(TAG, "putSendFileInfo: uri=" + uri + " sendFileInfo=" + sendFileInfo);
-        BluetoothOppSendFileInfo info = sSendFileMap.put(uri, sendFileInfo);
-        Integer currentCount = sCurrentTxFileMap.get(uri);
-        if (currentCount == null) {
-            /* File is being put in batch first time for transfer */
-            currentCount = 1;
-        } else {
-            /* File that is arelady in tx list is again requested to be transferred. Update the count in Map*/
-            currentCount++;
-        }
-        sCurrentTxFileMap.put(uri, currentCount);
-        if (D) Log.d(TAG, "putSendFileInfo: currentCount = " + currentCount);
+        sSendFileMap.put(uri, sendFileInfo);
     }
 
     static BluetoothOppSendFileInfo getSendFileInfo(Uri uri) {
@@ -348,23 +336,11 @@ public class BluetoothOppUtility {
 
     static void closeSendFileInfo(Uri uri) {
         if (D) Log.d(TAG, "closeSendFileInfo: uri=" + uri);
-        Integer currentCount = sCurrentTxFileMap.get(uri);
-        if (D) Log.d(TAG, "closeSendFileInfo: currentCount = " + currentCount);
-        if (currentCount == null) {
-            return;
-        }
-        if (currentCount > 1) {
-            sCurrentTxFileMap.put(uri, currentCount - 1);
-        } else if (currentCount == 1) {
-            if (D) Log.d(TAG, "closeSendFileInfo: calling sSendFileMap.remove");
-            sCurrentTxFileMap.remove(uri);
-            BluetoothOppSendFileInfo info = sSendFileMap.remove(uri);
-            if (info != null  && info.mInputStream != null) {
-                try {
-                    if (D) Log.d(TAG, "closeSendFileInfo: calling info.mInputStream.close");
-                    info.mInputStream.close();
-                } catch (IOException ignored) {
-                }
+        BluetoothOppSendFileInfo info = sSendFileMap.remove(uri);
+        if (info != null && info.mInputStream != null) {
+            try {
+                info.mInputStream.close();
+            } catch (IOException ignored) {
             }
         }
     }
