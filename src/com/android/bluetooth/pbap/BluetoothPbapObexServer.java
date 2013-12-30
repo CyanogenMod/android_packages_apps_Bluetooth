@@ -629,7 +629,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 if (currentValue.contains(","))
                     currentValue = currentValue.substring(0, currentValue.lastIndexOf(','));
 
-                if (searchValue == null || (currentValue.toLowerCase()).equals(compareValue.toLowerCase())) {
+                if (searchValue.isEmpty() || ((currentValue.toLowerCase()).equals(compareValue.toLowerCase()))) {
                     itemsFound++;
                     writeVCardEntry(pos, currentValue,result);
                 }
