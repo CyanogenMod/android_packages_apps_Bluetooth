@@ -334,12 +334,12 @@ public class BluetoothOppUtility {
         return (info != null) ? info : BluetoothOppSendFileInfo.SEND_FILE_INFO_ERROR;
     }
 
-    static void closeSendFileInfo(Uri uri) {
-        if (D) Log.d(TAG, "closeSendFileInfo: uri=" + uri);
-        BluetoothOppSendFileInfo info = sSendFileMap.remove(uri);
-        if (info != null && info.mInputStream != null) {
+    static void closeSendFileInfo(Uri uri, BluetoothOppSendFileInfo sendFileInfo) {
+        if (D) Log.d(TAG, "closeSendFileInfo: uri=" + uri + "sendFileInfo: " + sendFileInfo);
+        boolean removed = sSendFileMap.remove(uri, sendFileInfo);
+        if (removed && sendFileInfo != null && sendFileInfo.mInputStream != null) {
             try {
-                info.mInputStream.close();
+                sendFileInfo.mInputStream.close();
             } catch (IOException ignored) {
             }
         }
