@@ -206,6 +206,7 @@ final class A2dpStateMachine extends StateMachine {
                     break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
+                    log("Stack Event: " + event.type);
                     switch (event.type) {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
                             processConnectionEvent(event.valueInt, event.device);
@@ -320,6 +321,7 @@ final class A2dpStateMachine extends StateMachine {
                     break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
+                    log("Stack Event: " + event.type);
                     switch (event.type) {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
                             removeMessages(CONNECT_TIMEOUT);
@@ -546,6 +548,7 @@ final class A2dpStateMachine extends StateMachine {
                     break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
+                    log("Stack Event: " + event.type);
                     switch (event.type) {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
                             processConnectionEvent(event.valueInt, event.device);
@@ -624,7 +627,7 @@ final class A2dpStateMachine extends StateMachine {
                                                            mCurrentDevice);
                 return;
             }
-            log("processAudioStateEvent  %d" + state);
+            log("processAudioStateEvent  " + state);
             switch (state) {
                 case AUDIO_STATE_STARTED:
                     if (mPlayingA2dpDevice == null) {
@@ -858,16 +861,22 @@ final class A2dpStateMachine extends StateMachine {
             log("onAudioFocusChangeListener  focuschange" + focusChange);
             switch(focusChange){
                 case AudioManager.AUDIOFOCUS_LOSS:
-                     if (isSrcNative(getByteAddress(mCurrentDevice))) {
-                         // in case of perm loss, disconnect the link
-                         disconnectA2dpNative(getByteAddress(mCurrentDevice));
-                         // in case PEER DEVICE is A2DP SRC we need to manage audio focus
-                         int status = mAudioManager.abandonAudioFocus(mAudioFocusListener);
-                         log("abandonAudioFocus returned" + status);
-                     }
+                    if (mCurrentDevice != null) {
+                        if (isSrcNative(getByteAddress(mCurrentDevice))) {
+                            // in case of perm loss, disconnect the link
+                            disconnectA2dpNative(getByteAddress(mCurrentDevice));
+                            // in case PEER DEVICE is A2DP SRC we need to manage audio focus
+                            int status = mAudioManager.abandonAudioFocus(mAudioFocusListener);
+                            log("abandonAudioFocus returned" + status);
+                        }
+                    } else {
+                        int status = mAudioManager.abandonAudioFocus(mAudioFocusListener);
+                        log("abandonAudioFocus returned" + status);
+                    }
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                    if ((getCurrentState() == mConnected)&& (isPlaying(mCurrentDevice))) {
+                    if ((mCurrentDevice != null) && (getCurrentState() == mConnected) &&
+                        (isPlaying(mCurrentDevice))) {
                         // we need to send AVDT_SUSPEND from here
                         suspendA2dpNative();
                     }
@@ -875,7 +884,8 @@ final class A2dpStateMachine extends StateMachine {
                 case AudioManager.AUDIOFOCUS_GAIN:
                     // we got focus gain
                     log(" Received Focus Gain");
-                    if ((getCurrentState() == mConnected)&& (!isPlaying(mCurrentDevice))){
+                    if ((mCurrentDevice != null) && (getCurrentState() == mConnected) &&
+                        (!isPlaying(mCurrentDevice))){
                         resumeA2dpNative();
                     }
                     break;
