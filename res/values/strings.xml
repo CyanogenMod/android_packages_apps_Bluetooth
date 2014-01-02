@@ -172,8 +172,8 @@
     <!-- Bluetooth  Enabling progress dialog -->
     <string name="enabling_progress_title">Please wait\u2026</string>
     <string name="enabling_progress_content">Turning on Bluetooth\u2026</string>
+    <string name="format_progress_text">%1$d%%</string>
 
-<string name="format_progress_text">%1$d%%</string>
     <!-- Bluetooth Toast Message -->
     <string name="bt_toast_1">The file will be received. Check progress in the Notifications panel.</string>
     <string name="bt_toast_2">The file can\'t be received.</string>
@@ -225,12 +225,12 @@
     <string name="transfer_clear_dlg_title">Clear</string>
 
      <!-- Do not translate. file name used for sharing. -->
-    <string name="bluetooth_share_file_name" translate="false">bluetooth_content_share</string>
+    <string name="bluetooth_share_file_name" translatable="false">bluetooth_content_share</string>
 
     <!-- Used to run Bluetooth.apk in another process if needed -->
     <!-- Do not translate. android:sharedUserId string of this application. -->
-    <string name="sharedUserId" translate="false"><xliff:g id="x" /></string>
+    <string name="sharedUserId" translatable="false"><xliff:g id="x" /></string>
     <!-- Do not translate. android:process of this application. -->
-    <string name="process" translate="false"><xliff:g id="x" /></string>
+    <string name="process" translatable="false"><xliff:g id="x" /></string>
 
 </resources>
