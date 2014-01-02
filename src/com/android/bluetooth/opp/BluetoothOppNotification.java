@@ -162,6 +162,7 @@ class BluetoothOppNotification {
             mUpdateCompleteNotification = true;
             updateCompletedNotification();
             updateIncomingFileConfirmNotification();
+            mPendingUpdate = 0;
             mHandler.removeMessages(NOTIFY);
         }
     }
