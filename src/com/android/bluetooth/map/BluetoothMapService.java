@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.HashMap;
 
 import javax.obex.ServerSession;
 import android.app.Notification;
@@ -369,6 +370,7 @@ public class BluetoothMapService extends ProfileService {
     class BluetoothMapObexConnectionManager {
         private ArrayList<BluetoothMapObexConnection> mConnections =
                 new ArrayList<BluetoothMapObexConnection>();
+                private HashMap<Integer, String> MapClientList = new HashMap<Integer, String>();
 
         public BluetoothMapObexConnectionManager() {
             int numberOfSupportedInstances = MAX_INSTANCES;
@@ -380,6 +382,7 @@ public class BluetoothMapService extends ProfileService {
             for (int i = 0; i < numberOfSupportedInstances; i ++) {
                 mConnections.add(new BluetoothMapObexConnection(
                         MAS_INS_INFO[i], i ));
+            MapClientList.put(i, null);
             }
         }
 
@@ -498,48 +501,39 @@ public class BluetoothMapService extends ProfileService {
             }
         }
 
-        public boolean isAllowedConnection(BluetoothDevice remoteDevice) {
+        public void addToMapClientList(String remoteAddr, int masId) {
+                        Log.d(TAG,"Adding to mapClient List masid "+masId+" bdaddr "+remoteAddr);
+                        MapClientList.put(masId, remoteAddr);
+        }
+
+        public void removeFromMapClientList(int masId) {
+                        Log.d(TAG,"Removing from the list, masid "+masId);
+                        MapClientList.put(masId, null);
+        }
+
+        public boolean isAllowedConnection(BluetoothDevice remoteDevice, int masId) {
             String remoteAddress = remoteDevice.getAddress();
             if (remoteAddress == null) {
                 if (VERBOSE) Log.v(TAG, "Connection request from unknown device");
                 return false;
             }
-            final int size = mConnections.size();
-            for (int i = 0; i < size; i ++) {
-                final BluetoothMapObexConnection connection = mConnections.get(i);
-                BluetoothSocket socket = connection.mConnSocket;
-                if (socket != null) {
-                    BluetoothDevice device = socket.getRemoteDevice();
-                    if (device != null) {
-                        String address = device.getAddress();
-                        if (address != null) {
-                            if (remoteAddress.equalsIgnoreCase(address)) {
-                                if (VERBOSE) {
-                                    Log.v(TAG, "Connection request from " + remoteAddress);
-                                    Log.v(TAG, "when MAS id:" + i + " is connected to " + address);
-                                }
+            if(MapClientList.get(masId)==null) {
+               if(MapClientList.get((masId^1)) == null) {
+                  if (VERBOSE) Log.v(TAG, "Allow Connection request from " +remoteAddress
+                                     + "when no other device is connected");
+                   return true;
+               } else if(MapClientList.get((masId^1)).equalsIgnoreCase(remoteAddress)) {
+                         Log.d(TAG, "Allow Connection request from " +remoteAddress);
+                         Log.d(TAG, "when mas" +(masId^1) +"is connected to " +MapClientList.get((masId^1)));
                                 return true;
-                            } else {
-                                if (VERBOSE) {
-                                    Log.v(TAG, "Connection request from " + remoteAddress);
-                                    Log.v(TAG, "when MAS id:" + i + " is connected to " + address);
-                                }
-                                return false;
-                            }
-                        } else {
-                            // shall not happen, connected device must has address
-                            // just for null pointer dereference
-                            Log.w(TAG, "Connected device has no address!");
-                        }
-                    }
-                }
+               } else {
+                         Log.d(TAG, "Dont Allow Connection request from " +remoteAddress
+                               + "when mas" +(masId^1) +"is connected to" +MapClientList.get((masId^1)));
+                         return false;
+               }
             }
-
-            if (VERBOSE) {
-                Log.v(TAG, "Connection request from " + remoteAddress);
-                Log.v(TAG, "when no MAS instance is connected.");
-            }
-            return true;
+            Log.d(TAG,"connection not allowed from " + remoteAddress);
+            return false;
         }
     }
 
@@ -737,6 +731,7 @@ public class BluetoothMapService extends ProfileService {
 
             if(mBluetoothMnsObexClient != null)
                mBluetoothMnsObexClient.deinitObserver(mMasId);
+            mConnectionManager.removeFromMapClientList(mMasId);
             closeConnectionSocket();
 
             // Last obex transaction is finished, we start to listen for incoming
@@ -770,6 +765,7 @@ public class BluetoothMapService extends ProfileService {
                   }
                }
 
+               mConnectionManager.removeFromMapClientList(mMasId);
                while (!stopped) {
                    try {
                        if (DEBUG) Log.d(TAG, "Accepting socket connection...");
@@ -797,11 +793,13 @@ public class BluetoothMapService extends ProfileService {
                       if (TextUtils.isEmpty(sRemoteDeviceName)) {
                           sRemoteDeviceName = getString(R.string.defaultname);
                       }
-                      if (!mConnectionManager.isAllowedConnection(mRemoteDevice)) {
+                      if (!mConnectionManager.isAllowedConnection(mRemoteDevice,mMasId)) {
                           mConnSocket.close();
                           mConnSocket = null;
                           continue;
                       }
+
+                      mConnectionManager.addToMapClientList(mRemoteDevice.getAddress(), mMasId);
                       boolean trust = mRemoteDevice.getTrustState();
                       if (DEBUG) Log.d(TAG, "GetTrustState() = " + trust);
 
