@@ -828,6 +828,8 @@ public class BluetoothMapService extends ProfileService {
                         if (DEBUG) Log.d(TAG, "waiting for authorization for connection from: "
                                 + sRemoteDeviceName);
 
+                        mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
+                            .obtainMessage(USER_TIMEOUT), USER_CONFIRM_TIMEOUT_VALUE);
                     }
                     stopped = true; // job done ,close this thread;
                     } catch (IOException ex) {
