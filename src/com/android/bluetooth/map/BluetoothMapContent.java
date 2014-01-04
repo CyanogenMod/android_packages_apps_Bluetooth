@@ -442,7 +442,7 @@ public class BluetoothMapContent {
         } else if (fi.msgType == FilterInfo.TYPE_MMS) {
             read = c.getInt(c.getColumnIndex(Mms.READ));
         } else {
-            read = c.getColumnIndex(MessageColumns.FLAG_READ);
+            read = c.getInt(c.getColumnIndex(MessageColumns.FLAG_READ));
         }
         String setread = null;
         if (read == 1) {
