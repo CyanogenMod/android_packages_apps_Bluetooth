@@ -39,6 +39,8 @@ import android.provider.Telephony.Mms;
 import android.provider.Telephony.Sms;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.text.format.Time;
+import android.util.TimeFormatException;
 import com.android.emailcommon.provider.EmailContent;
 import com.android.emailcommon.provider.EmailContent.Message;
 import com.android.emailcommon.provider.EmailContent.MessageColumns;
@@ -1234,6 +1236,15 @@ public class BluetoothMapContent {
             where = " AND date >= " + ap.getFilterPeriodBegin();
             } else if (fi.msgType == FilterInfo.TYPE_MMS) {
                 where = " AND date >= " + (ap.getFilterPeriodBegin() / 1000L);
+            }else {
+                Time time = new Time();
+                try {
+                    time.parse(ap.getFilterPeriodBeginString().trim());
+                    where += " AND timeStamp >= " + time.toMillis(false);
+                } catch (TimeFormatException e) {
+                    Log.d(TAG, "Bad formatted FilterPeriodBegin, Ignore"
+                          + ap.getFilterPeriodBeginString());
+                }
             }
         }
 
@@ -1242,6 +1253,15 @@ public class BluetoothMapContent {
             where += " AND date <= " + ap.getFilterPeriodEnd();
             } else if (fi.msgType == FilterInfo.TYPE_MMS) {
                 where += " AND date <= " + (ap.getFilterPeriodEnd() / 1000L);
+            } else {
+                Time time = new Time();
+                try {
+                    time.parse(ap.getFilterPeriodEndString().trim());
+                    where += " AND timeStamp <= " + time.toMillis(false);
+                } catch (TimeFormatException e) {
+                    Log.d(TAG, "Bad formatted FilterPeriodEnd, Ignore"
+                          + ap.getFilterPeriodEndString());
+                }
             }
         }
 
