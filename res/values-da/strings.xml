@@ -78,7 +78,7 @@
     <string name="not_exist_file_desc" msgid="4059531573790529229">"Filen findes ikke. \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Vent..."</string>
     <string name="enabling_progress_content" msgid="4601542238119927904">"Aktiverer Bluetooth..."</string>
-    <string name="bt_toast_1" msgid="972182708034353383">"Filen modtages. Se status i meddelelsespanelet."</string>
+    <string name="bt_toast_1" msgid="972182708034353383">"Filen modtages. Se status i underretningspanelet."</string>
     <string name="bt_toast_2" msgid="8602553334099066582">"Filen kan ikke modtages."</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"Modtagelse af fil fra \"<xliff:g id="SENDER">%1$s</xliff:g>\" stoppet"</string>
     <string name="bt_toast_4" msgid="4678812947604395649">"Sender filen til \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
