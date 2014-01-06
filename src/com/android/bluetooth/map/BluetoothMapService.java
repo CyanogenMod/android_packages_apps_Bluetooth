@@ -587,9 +587,9 @@ public class BluetoothMapService extends ProfileService {
             for (int i = 0; i < CREATE_RETRY_TIME && !mInterrupted; i++) {
                 try {
                     if(mSupportedMessageTypes == MESSAGE_TYPE_EMAIL)
-                       mServerSocket  = mAdapter.listenUsingEncryptedRfcommWithServiceRecord("Email Message Access",BluetoothUuid.MAS.getUuid());
+                       mServerSocket  = mAdapter.listenUsingRfcommWithServiceRecord("Email Message Access",BluetoothUuid.MAS.getUuid());
                     else
-                       mServerSocket  = mAdapter.listenUsingEncryptedRfcommWithServiceRecord("SMS/MMS Message Access", BluetoothUuid.MAS.getUuid());
+                       mServerSocket  = mAdapter.listenUsingRfcommWithServiceRecord("SMS/MMS Message Access", BluetoothUuid.MAS.getUuid());
                     initSocketOK = true;
                 } catch (IOException e) {
                     Log.e(TAG, "Error create RfcommServerSocket " + e.toString());
