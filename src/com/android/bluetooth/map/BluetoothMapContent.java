@@ -442,7 +442,7 @@ public class BluetoothMapContent {
         } else if (fi.msgType == FilterInfo.TYPE_MMS) {
             read = c.getInt(c.getColumnIndex(Mms.READ));
         } else {
-            read = c.getColumnIndex(MessageColumns.FLAG_READ);
+            read = c.getInt(c.getColumnIndex(MessageColumns.FLAG_READ));
         }
         String setread = null;
         if (read == 1) {
@@ -602,8 +602,20 @@ public class BluetoothMapContent {
                 address = getAddressMms(mResolver, id, MMS_TO);
             } else {
                 int toIndex = c.getColumnIndex(MessageColumns.TO_LIST);
-                if (D) Log.d(TAG, "setRecipientAddressing: " +c.getString(toIndex));
                 address = c.getString(toIndex);
+                if (address.contains("")) {
+                    String[] recepientAddrStr = address.split("");
+                    if (recepientAddrStr !=null && recepientAddrStr.length > 0) {
+                        if (V){
+                            Log.v(TAG, " ::Recepient addressing split String 0:: " + recepientAddrStr[0]
+                                    + "::Recepient addressing split String 1:: " + recepientAddrStr[1]);
+                        }
+                        e.setRecipientAddressing(recepientAddrStr[0].trim());                    }
+                } else {
+                    if (D) Log.d(TAG, "setRecipientAddressing: " + address);
+                    e.setRecipientAddressing(address.trim());
+                }
+                return;
             }
             if (D) Log.d(TAG, "setRecipientAddressing: " + address);
             e.setRecipientAddressing(address);
@@ -665,8 +677,21 @@ public class BluetoothMapContent {
             } else {
                 int fromIndex = c.getColumnIndex(MessageColumns.FROM_LIST);
                 address = c.getString(fromIndex);
-                if (D) Log.d(TAG, "setSenderAddressing: " + address);
-                e.setEmailSenderAddressing(address);
+                if(address != null) {
+                   if(address.contains("")){
+                      String[] senderAddrStr = address.split("");
+                      if(senderAddrStr !=null && senderAddrStr.length > 0){
+                         if (V){
+                             Log.v(TAG, " ::Sender Addressing split String 0:: " + senderAddrStr[0]
+                                   + "::Sender Addressing split String 1:: " + senderAddrStr[1]);
+                         }
+                         e.setEmailSenderAddressing(senderAddrStr[0].trim());
+                      }
+                   } else{
+                         if (D) Log.d(TAG, "setSenderAddressing: " + address);
+                         e.setEmailSenderAddressing(address.trim());
+                   }
+                }
                 return;
             }
             if (D) Log.d(TAG, "setSenderAddressing: " + address);
