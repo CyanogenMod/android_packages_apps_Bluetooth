@@ -16,7 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Získať prístup k správcovi preberania."</string>
+    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Získať prístup k správcovi sťahovania."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Umožňuje aplikácii pristupovať k Správcovi BluetoothShare a použiť ho na prenos súborov."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Prístup povoleného zariadenia Bluetooth."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Umožňuje aplikácii dočasne povoliť zariadenie Bluetooth, čím sa povolí zariadeniu odosielať súbory do tohto zariadenia bez potvrdenia používateľa."</string>
