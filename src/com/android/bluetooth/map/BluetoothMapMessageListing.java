@@ -117,12 +117,12 @@ public class BluetoothMapMessageListing {
         if (offset + count <= list.size()) {
             list = list.subList(offset, offset + count);
         } else {
-            if(offset > count) {
+            if(offset > list.size()) {
                list = null;
                Log.d(TAG, "offset greater than list size. Returning null");
+            } else {
+               list = list.subList(offset, list.size());
             }
-            else
-               list = list.subList(offset, count);
         }
     }
 }

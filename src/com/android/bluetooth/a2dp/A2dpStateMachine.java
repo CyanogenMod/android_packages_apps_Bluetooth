@@ -34,6 +34,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetooth;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
@@ -43,6 +44,7 @@ import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.ServiceManager;
@@ -140,6 +142,12 @@ final class A2dpStateMachine extends StateMachine {
         mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BluetoothA2dpService");
 
         mIntentBroadcastHandler = new IntentBroadcastHandler();
+        IntentFilter filter = new IntentFilter("com.android.music.musicservicecommand");
+        try {
+            context.registerReceiver(mA2dpReceiver, filter);
+        } catch (Exception e) {
+            loge("Unable to register A2dp receiver: " + e);
+        }
 
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
@@ -153,6 +161,11 @@ final class A2dpStateMachine extends StateMachine {
     }
 
     public void doQuit() {
+        try {
+            mContext.unregisterReceiver(mA2dpReceiver);
+        } catch (Exception e) {
+            log("Unable to unregister A2dp receiver" + e);
+        }
         if ((mTargetDevice != null) &&
             (getConnectionState(mTargetDevice) == BluetoothProfile.STATE_CONNECTING)) {
             log("doQuit()- Move A2DP State to DISCONNECTED");
@@ -855,6 +868,34 @@ final class A2dpStateMachine extends StateMachine {
             }
         }
     }
+
+    private final BroadcastReceiver mA2dpReceiver = new BroadcastReceiver() {
+    @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            log("onReceive  " + action);
+            if (action.equals("com.android.music.musicservicecommand")) {
+                String cmd = intent.getStringExtra("command");
+                log("Command Received  " + cmd);
+                if (cmd.equals("pause")) {
+                    if (mCurrentDevice != null) {
+                        if (isSrcNative(getByteAddress(mCurrentDevice))) {
+                            //Camera Pauses the Playback before starting the Video recording
+                            //But it doesn't start the playback once recording is completed.
+                            //Disconnecting the A2dp to move the A2dpSink to proper state.
+                            disconnectA2dpNative(getByteAddress(mCurrentDevice));
+                            // in case PEER DEVICE is A2DP SRC we need to manage audio focus
+                            int status = mAudioManager.abandonAudioFocus(mAudioFocusListener);
+                            log("abandonAudioFocus returned" + status);
+                        }
+                    } else {
+                        int status = mAudioManager.abandonAudioFocus(mAudioFocusListener);
+                        log("abandonAudioFocus returned" + status);
+                    }
+                }
+            }
+        }
+    };
 
     private OnAudioFocusChangeListener mAudioFocusListener = new OnAudioFocusChangeListener(){
         public void onAudioFocusChange(int focusChange){
