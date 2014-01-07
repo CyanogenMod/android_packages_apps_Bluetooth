@@ -566,6 +566,7 @@ final class A2dpStateMachine extends StateMachine {
                                            BluetoothA2dp.STATE_NOT_PLAYING);
                     }
                     break;
+                case AUDIO_STATE_REMOTE_SUSPEND:
                 case AUDIO_STATE_STOPPED:
                     if(mPlayingA2dpDevice != null) {
                         mPlayingA2dpDevice = null;
