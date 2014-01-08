@@ -688,7 +688,7 @@ public class BluetoothMapService extends ProfileService {
             }
             if(mBluetoothMnsObexClient == null)
                 mBluetoothMnsObexClient = new BluetoothMnsObexClient(context, mRemoteDevice);
-            mBluetoothMnsObexClient.initObserver(mMasId);
+            mBluetoothMnsObexClient.initObserver(mSessionStatusHandler, mMasId);
             mMapServer = new BluetoothMapObexServer(mSessionStatusHandler, context,
             mBluetoothMnsObexClient, mMasId);
             synchronized (this) {
