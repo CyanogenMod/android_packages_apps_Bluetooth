@@ -175,6 +175,12 @@ public class A2dpService extends ProfileService {
     public boolean setPriority(BluetoothDevice device, int priority) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH_ADMIN permission");
+
+        if ((mStateMachine.isConnectedSrc(device)) &&
+            (priority == BluetoothProfile.PRIORITY_AUTO_CONNECT)) {
+            if (DBG) Log.d(TAG,"Peer Device is SRC Ignore AutoConnect");
+            return false;
+        }
         Settings.Global.putInt(getContentResolver(),
             Settings.Global.getBluetoothA2dpSinkPriorityKey(device.getAddress()),
             priority);
