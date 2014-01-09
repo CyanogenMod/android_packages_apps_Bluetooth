@@ -415,12 +415,12 @@ static jboolean replyReportNative(JNIEnv *env, jobject thiz, jbyte type, jbyte i
     return result;
 }
 
-static jboolean reportErrorNative(JNIEnv *env, jobject thiz) {
+static jboolean reportErrorNative(JNIEnv *env, jobject thiz, jbyte error) {
     ALOGV("%s enter", __FUNCTION__);
 
     jboolean result = JNI_FALSE;
 
-    bt_status_t ret = sHiddIf->report_error();
+    bt_status_t ret = sHiddIf->report_error(error);
 
     ALOGV("%s: report_error() returned %d", __FUNCTION__, ret);
 
@@ -499,7 +499,7 @@ static JNINativeMethod sMethods[] = {
     {"unregisterAppNative", "()Z", (void *) unregisterAppNative},
     {"sendReportNative",    "(I[B)Z", (void *) sendReportNative},
     {"replyReportNative",   "(BB[B)Z", (void *) replyReportNative},
-    {"reportErrorNative",   "()Z", (void *) reportErrorNative},
+    {"reportErrorNative",   "(B)Z", (void *) reportErrorNative},
     {"unplugNative",        "()Z", (void *) unplugNative},
     {"connectNative",       "()Z", (void *) connectNative},
     {"disconnectNative",    "()Z", (void *) disconnectNative},

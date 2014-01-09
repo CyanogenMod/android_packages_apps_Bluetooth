@@ -338,15 +338,15 @@ public class HidDevService extends ProfileService {
         }
 
         @Override
-        public boolean reportError() {
-            if (DBG) Log.v(TAG, "reportError()");
+        public boolean reportError(byte error) {
+            if (DBG) Log.v(TAG, "reportError(), error = " + error);
 
             HidDevService service = getService();
             if (service == null) {
                 return false;
             }
 
-            return service.reportError();
+            return service.reportError(error);
         }
     }
 
@@ -412,10 +412,10 @@ public class HidDevService extends ProfileService {
         return disconnectNative();
     }
 
-    synchronized boolean reportError() {
-        if (DBG) Log.v(TAG, "reportError()");
+    synchronized boolean reportError(byte error) {
+        if (DBG) Log.v(TAG, "reportError(): error = " + error);
 
-        return reportErrorNative();
+        return reportErrorNative(error);
     }
 
     @Override
@@ -576,5 +576,5 @@ public class HidDevService extends ProfileService {
     private native boolean unplugNative();
     private native boolean connectNative();
     private native boolean disconnectNative();
-    private native boolean reportErrorNative();
+    private native boolean reportErrorNative(byte error);
 }
