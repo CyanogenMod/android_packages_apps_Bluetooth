@@ -950,7 +950,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
        } else if (appParamValue.needTag == ContentType.SIM_PHONEBOOK) {
             if (intIndex < 0 || intIndex >= size) {
                 Log.w(TAG, "The requested vcard is not acceptable! name= " + name);
-                return ResponseCodes.OBEX_HTTP_OK;
+                return ResponseCodes.OBEX_HTTP_NOT_FOUND;
             } else if (intIndex == 0) {
                 // For PB_PATH, 0.vcf is the phone number of this phone.
                 String ownerVcard = mVcardManager.getOwnerPhoneNumberVcard(vcard21, null);
