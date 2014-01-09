@@ -433,10 +433,6 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         if (D) Log.d(TAG, "onSetPath name is " + folderName + " backup: " + backup
                      + "create: " + create);
 
-        if(folderName.equalsIgnoreCase("draft") && mMasId ==1) {
-           folderName="Drafts";
-        }
-
         if(backup == true){
             if(mCurrentFolder.getParent() != null)
                 mCurrentFolder = mCurrentFolder.getParent();
@@ -449,6 +445,9 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 mCurrentFolder = mCurrentFolder.getRoot();
         }
         else {
+            if(folderName.equalsIgnoreCase("draft") && mMasId ==1) {
+               folderName="Drafts";
+            }
             folder = mCurrentFolder.getSubFolder(folderName);
             if(folder != null)
                 mCurrentFolder = folder;
