@@ -234,6 +234,7 @@ bt_callbacks_t sQBluetoothCallbacks = {
     NULL,
     NULL,
     NULL,
+    NULL,
     le_extended_scan_result_callbacks,
     le_lpp_write_rssi_thresh_callbacks,
     le_lpp_read_rssi_thresh_callbacks,
