@@ -1497,10 +1497,12 @@ public class BluetoothMapContent {
         if (msgType == -1)
             return true;
 
-        if ((msgType & 0x16) == 0)
-            return true;
-
-        return false;
+        if ((msgType & 0x04) == 0) {
+           return true;
+        } else {
+           if (V) Log.v(TAG, "Invalid Message Filter");
+           return false;
+        }
 
     }
 
