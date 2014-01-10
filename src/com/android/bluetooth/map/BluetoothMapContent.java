@@ -958,7 +958,7 @@ public class BluetoothMapContent {
         if (msgType == 1) {
             String phone = fi.phoneNum;
             String name = fi.phoneAlphaTag;
-            if (phone != null && phone.length() > 0 && phone.matches(recip)) {
+            if (phone != null && phone.length() > 0 && phone.replaceAll("\\s","").matches(recip)) {
                 if (D) Log.d(TAG, "match recipient phone = " + phone);
                 res = true;
             } else if (name != null && name.length() > 0 && name.matches(recip)) {
@@ -971,7 +971,7 @@ public class BluetoothMapContent {
         else {
             String phone = c.getString(c.getColumnIndex(Sms.ADDRESS));
             if (phone != null && phone.length() > 0) {
-                if (phone.matches(recip)) {
+                if (phone.replaceAll("\\s","").matches(recip)) {
                     if (D) Log.d(TAG, "match recipient phone = " + phone);
                     res = true;
                 } else {
@@ -1058,7 +1058,7 @@ public class BluetoothMapContent {
         if (msgType == 1) {
             String phone = c.getString(c.getColumnIndex(Sms.ADDRESS));
             if (phone !=null && phone.length() > 0) {
-                if (phone.matches(orig)) {
+                if (phone.replaceAll("\\s","").matches(orig)) {
                     if (D) Log.d(TAG, "match originator phone = " + phone);
                     res = true;
                 } else {
@@ -1077,7 +1077,7 @@ public class BluetoothMapContent {
         else {
             String phone = fi.phoneNum;
             String name = fi.phoneAlphaTag;
-            if (phone != null && phone.length() > 0 && phone.matches(orig)) {
+            if (phone != null && phone.length() > 0 && phone.replaceAll("\\s","").matches(orig)) {
                 if (D) Log.d(TAG, "match originator phone = " + phone);
                 res = true;
             } else if (name != null && name.length() > 0 && name.matches(orig)) {

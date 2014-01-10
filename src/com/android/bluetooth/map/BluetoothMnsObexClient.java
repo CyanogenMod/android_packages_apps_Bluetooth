@@ -297,10 +297,9 @@ public class BluetoothMnsObexClient {
         releaseMnsLock();
     }
 
-    public void  initObserver( int masInstanceId) {
+    public void  initObserver( Handler callback, int masInstanceId) {
         if(masInstanceId == 1 ){
-            mEmailObserver = new BluetoothMapContentEmailObserver(mContext);
-            //mEmailObserver = new BluetoothMapContentObserver(mContext);
+            mEmailObserver = new BluetoothMapContentEmailObserver(mContext,callback);
             mEmailObserver.init();
         }else {
             mObserver = new BluetoothMapContentObserver(mContext);
