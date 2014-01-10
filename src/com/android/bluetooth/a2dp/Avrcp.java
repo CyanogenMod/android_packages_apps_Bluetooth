@@ -464,13 +464,15 @@ final class Avrcp {
             mCurrentPosMs = getPlayPosition();
         }
 
-        mCurrentPlayState = state;
         if (currentPosMs != RemoteControlClient.PLAYBACK_POSITION_INVALID) {
             mCurrentPosMs = currentPosMs;
         }
-        if (state == RemoteControlClient.PLAYSTATE_PLAYING) {
+        if ((state == RemoteControlClient.PLAYSTATE_PLAYING) &&
+            ((currentPosMs != RemoteControlClient.PLAYBACK_POSITION_INVALID) ||
+            (mCurrentPlayState != RemoteControlClient.PLAYSTATE_PLAYING))) {
             mPlayStartTimeMs = SystemClock.elapsedRealtime();
         }
+        mCurrentPlayState = state;
 
         boolean newPosValid = (mCurrentPosMs !=
                                RemoteControlClient.PLAYBACK_POSITION_ALWAYS_UNKNOWN);
