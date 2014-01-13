@@ -118,15 +118,11 @@ public class BluetoothMapService extends ProfileService {
 
     private BluetoothMnsObexClient mBluetoothMnsObexClient = null;
 
-    private BluetoothServerSocket mServerSocket = null;
-
     private BluetoothSocket mConnSocket = null;
 
     private BluetoothDevice mRemoteDevice = null;
 
     private static String sRemoteDeviceName = null;
-
-    private volatile boolean mInterrupted;
 
     private int mState;
 
@@ -336,7 +332,6 @@ public class BluetoothMapService extends ProfileService {
         } catch (Exception e) {
             Log.w(TAG,"Unable to register map receiver",e);
         }
-        mInterrupted = false;
         mConnectionManager.init();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         // start RFCOMM listener
@@ -582,6 +577,7 @@ public class BluetoothMapService extends ProfileService {
 
             boolean initSocketOK = false;
             final int CREATE_RETRY_TIME = 10;
+            mInterrupted = false;
 
             // It's possible that create will fail in some cases. retry for 10 times
             for (int i = 0; i < CREATE_RETRY_TIME && !mInterrupted; i++) {
@@ -597,6 +593,16 @@ public class BluetoothMapService extends ProfileService {
                 }
 
                 if (!initSocketOK) {
+                    // Need to break out of this loop if BT is being turned off.
+                    if (mAdapter == null) {
+                        break;
+                    }
+                    int state = mAdapter.getState();
+                    if ((state != BluetoothAdapter.STATE_TURNING_ON) && (state != BluetoothAdapter.STATE_ON)) {
+                         Log.w(TAG, "initRfcommSocket failed as BT is (being) turned off");
+                         break;
+                     }
+
                     synchronized (this) {
                         try {
                             if (VERBOSE) Log.v(TAG, "wait 3 seconds");
@@ -624,6 +630,9 @@ public class BluetoothMapService extends ProfileService {
 
         private final synchronized void closeServerSocket() {
             // exit SocketAcceptThread early
+            if (VERBOSE) {
+                Log.v(TAG, "Close Server Socket : " );
+            }
             if (mServerSocket != null) {
                 try {
                    // this will cause mServerSocket.accept() return early with IOException
@@ -875,7 +884,6 @@ public class BluetoothMapService extends ProfileService {
                     closeService();
                 } else if (state == BluetoothAdapter.STATE_ON) {
                     if (DEBUG) Log.d(TAG, "STATE_ON");
-                    mInterrupted = false;
                     // start RFCOMM listener
                     mSessionStatusHandler.sendMessage(mSessionStatusHandler
                                   .obtainMessage(START_LISTENER));
