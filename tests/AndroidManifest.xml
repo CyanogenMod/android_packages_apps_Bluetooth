@@ -49,7 +49,7 @@
     <application>
         <uses-library android:name="android.test.runner" />
         <uses-permission android:name="android.permission.ACCESS_BLUETOOTH_SHARE" />
-        <uses-permission android:permission="com.android.permission.WHITELIST_BLUETOOTH_DEVICE" />
+        <uses-permission android:name="com.android.permission.WHITELIST_BLUETOOTH_DEVICE" />
         <path-permission
                 android:path="/btopp"
                 android:permission="android.permission.ACCESS_BLUETOOTH_SHARE" />
