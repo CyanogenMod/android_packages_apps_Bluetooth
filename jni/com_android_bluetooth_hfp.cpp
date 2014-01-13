@@ -569,6 +569,15 @@ static jboolean phoneStateChangeNative(JNIEnv *env, jobject object, jint num_act
     return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
+static jint getRemoteFeaturesNative(JNIEnv *env, jobject object, jbyteArray address) {
+    jint ret = 0;
+    if (!sBluetoothHfpInterface) return ret;
+
+    ret = sBluetoothHfpInterface->get_remote_features();
+    ALOGI (" Remote supported Features : %d", ret);
+    return ret;
+}
+
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
     {"initializeNative", "()V", (void *) initializeNative},
@@ -588,6 +597,7 @@ static JNINativeMethod sMethods[] = {
     {"atResponseCodeNative", "(II)Z", (void *)atResponseCodeNative},
     {"clccResponseNative", "(IIIIZLjava/lang/String;I)Z", (void *) clccResponseNative},
     {"phoneStateChangeNative", "(IIILjava/lang/String;I)Z", (void *) phoneStateChangeNative},
+    {"getRemoteFeaturesNative", "()I", (void *) getRemoteFeaturesNative},
 };
 
 int register_com_android_bluetooth_hfp(JNIEnv* env)

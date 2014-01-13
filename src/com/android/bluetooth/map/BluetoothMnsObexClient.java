@@ -212,7 +212,7 @@ public class BluetoothMnsObexClient {
     public void handleRegistration(int masId, int notificationStatus){
         Log.d(TAG, "handleRegistration( " + masId + ", " + notificationStatus + ")");
 
-        if((mEmailObserverRegistered || mObserverRegistered) == false &&
+        if((mEmailObserverRegistered == false) && (mObserverRegistered == false) &&
            (notificationStatus == BluetoothMapAppParams.NOTIFICATION_STATUS_YES)) {
             Log.d(TAG, "handleRegistration: connect");
             connect();
@@ -227,7 +227,7 @@ public class BluetoothMnsObexClient {
                  mObserver.unregisterObserver();
                  mObserverRegistered = false;
               }
-              if((mEmailObserverRegistered || mObserverRegistered) == false) {
+              if((mEmailObserverRegistered ==false) && (mObserverRegistered == false)) {
                   Log.d(TAG, "handleRegistration: disconnect");
                   disconnect();
               }
@@ -297,10 +297,9 @@ public class BluetoothMnsObexClient {
         releaseMnsLock();
     }
 
-    public void  initObserver( int masInstanceId) {
+    public void  initObserver( Handler callback, int masInstanceId) {
         if(masInstanceId == 1 ){
-            mEmailObserver = new BluetoothMapContentEmailObserver(mContext);
-            //mEmailObserver = new BluetoothMapContentObserver(mContext);
+            mEmailObserver = new BluetoothMapContentEmailObserver(mContext,callback);
             mEmailObserver.init();
         }else {
             mObserver = new BluetoothMapContentObserver(mContext);

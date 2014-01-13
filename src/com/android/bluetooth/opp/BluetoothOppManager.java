@@ -120,8 +120,6 @@ public class BluetoothOppManager {
 
     public boolean isA2DPPlaying;
 
-    public boolean isScoConnected;
-
     /**
      * Get singleton instance.
      */
@@ -154,7 +152,6 @@ public class BluetoothOppManager {
         // Restore data from preference
         restoreApplicationData();
         isA2DPPlaying = false;
-        isScoConnected = false;
         return true;
     }
 

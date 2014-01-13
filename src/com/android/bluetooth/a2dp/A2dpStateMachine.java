@@ -84,6 +84,10 @@ final class A2dpStateMachine extends StateMachine {
 
     private static final int MSG_CONNECTION_STATE_CHANGED = 0;
 
+    private static final int AUDIO_FOCUS_LOSS = 0;
+    private static final int AUDIO_FOCUS_GAIN = 1;
+    private static final int AUDIO_FOCUS_LOSS_TRANSIENT = 2;
+
     private static final ParcelUuid[] A2DP_UUIDS = {
         BluetoothUuid.AudioSink
     };
@@ -609,7 +613,7 @@ final class A2dpStateMachine extends StateMachine {
                         // in case PEER DEVICE is A2DP SRC we need to manager audio focus
                         int status = mAudioManager.abandonAudioFocus(mAudioFocusListener);
                         log("Status loss returned " + status);
-                        informAudioFocusStateNative(0);
+                        informAudioFocusStateNative(AUDIO_FOCUS_LOSS);
                     }
 
                     break;
@@ -627,9 +631,9 @@ final class A2dpStateMachine extends StateMachine {
                                AudioManager.STREAM_MUSIC,AudioManager.AUDIOFOCUS_GAIN);
                     loge("Status gain returned " + status);
                     if (status == AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
-                        informAudioFocusStateNative(1);
+                        informAudioFocusStateNative(AUDIO_FOCUS_GAIN);
                     else
-                        informAudioFocusStateNative(0);
+                        informAudioFocusStateNative(AUDIO_FOCUS_LOSS);
                }
             }
         }
@@ -661,6 +665,11 @@ final class A2dpStateMachine extends StateMachine {
                   break;
             }
         }
+    }
+
+    boolean isConnectedSrc(BluetoothDevice device)
+    {
+        return isSrcNative(getByteAddress(device));
     }
 
     int getConnectionState(BluetoothDevice device) {
@@ -918,6 +927,7 @@ final class A2dpStateMachine extends StateMachine {
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                     if ((mCurrentDevice != null) && (getCurrentState() == mConnected) &&
                         (isPlaying(mCurrentDevice))) {
+                        informAudioFocusStateNative(AUDIO_FOCUS_LOSS_TRANSIENT);
                         // we need to send AVDT_SUSPEND from here
                         suspendA2dpNative();
                     }
@@ -925,6 +935,7 @@ final class A2dpStateMachine extends StateMachine {
                 case AudioManager.AUDIOFOCUS_GAIN:
                     // we got focus gain
                     log(" Received Focus Gain");
+                    informAudioFocusStateNative(AUDIO_FOCUS_GAIN);
                     if ((mCurrentDevice != null) && (getCurrentState() == mConnected) &&
                         (!isPlaying(mCurrentDevice))){
                         resumeA2dpNative();
@@ -965,5 +976,5 @@ final class A2dpStateMachine extends StateMachine {
     private native boolean isSrcNative(byte[] address);
     private native void suspendA2dpNative();
     private native void resumeA2dpNative();
-    private native void informAudioFocusStateNative(int isEnable);
+    private native void informAudioFocusStateNative(int state);
 }
