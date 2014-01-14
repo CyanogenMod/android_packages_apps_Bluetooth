@@ -180,6 +180,7 @@ public class BluetoothMapService extends ProfileService {
                                     BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
                     sendBroadcast(intent, BLUETOOTH_PERM);
                     isWaitingAuthorization = false;
+                    removeTimeoutMsg = false;
                     mConnectionManager.stopObexServerSessionWaiting();
                     break;
                 case MSG_SERVERSESSION_CLOSE:
@@ -327,6 +328,7 @@ public class BluetoothMapService extends ProfileService {
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         try {
             registerReceiver(mMapReceiver, filter);
         } catch (Exception e) {
@@ -835,6 +837,9 @@ public class BluetoothMapService extends ProfileService {
                         if (DEBUG) Log.d(TAG, "waiting for authorization for connection from: "
                                 + sRemoteDeviceName);
 
+                        //Queue USER_TIMEOUT to disconnect MAP OBEX session. If user doesn't
+                        //accept or reject authorization request.
+                        removeTimeoutMsg = true;
                         mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
                             .obtainMessage(USER_TIMEOUT), USER_CONFIRM_TIMEOUT_VALUE);
                     }
@@ -922,6 +927,31 @@ public class BluetoothMapService extends ProfileService {
 
                 } else {
                     Log.d(TAG, "calling stopObexServerSessionWaiting");
+                    mConnectionManager.stopObexServerSessionWaiting();
+                }
+            } else if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED) &&
+                    isWaitingAuthorization) {
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+                if (mRemoteDevice == null || device == null) {
+                    Log.e(TAG, "Unexpected error!");
+                    return;
+                }
+
+                if (DEBUG) Log.d(TAG,"ACL disconnected for "+ device);
+
+                if (mRemoteDevice.equals(device) && removeTimeoutMsg) {
+                    // Send any pending timeout now, as ACL got disconnected.
+                    mSessionStatusHandler.removeMessages(USER_TIMEOUT);
+
+                    Intent timeoutIntent =
+                            new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
+                    timeoutIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+                    timeoutIntent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
+                                           BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
+                    sendBroadcast(timeoutIntent, BLUETOOTH_PERM);
+                    isWaitingAuthorization = false;
+                    removeTimeoutMsg = false;
                     mConnectionManager.stopObexServerSessionWaiting();
                 }
             }
