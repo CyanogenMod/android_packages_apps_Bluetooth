@@ -472,7 +472,7 @@ bt_callbacks_t sBluetoothCallbacks = {
     acl_state_changed_callback,
     callback_thread_event,
     dut_mode_recv_callback,
-
+    NULL,
     le_test_mode_recv_callback,
     NULL,
     NULL,
