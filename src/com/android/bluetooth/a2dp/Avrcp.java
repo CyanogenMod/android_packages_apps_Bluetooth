@@ -92,6 +92,7 @@ final class Avrcp {
     private static final String BLUETOOTH_ADMIN_PERM = android.Manifest.permission.BLUETOOTH_ADMIN;
     private static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
     private int mSkipAmount;
+    private int keyPressState;
 
     /* AVRC IDs from avrc_defs.h */
     private static final int AVRC_ID_REWIND = 0x48;
@@ -257,7 +258,7 @@ final class Avrcp {
         mLastDirection = 0;
         mVolCmdInProgress = false;
         mAbsVolRetryTimes = 0;
-
+        keyPressState = KEY_STATE_RELEASE; //Key release state
         mContext = context;
 
         initNative();
@@ -438,6 +439,7 @@ final class Avrcp {
             mRequestedAddressedPlayerPackageName = null;
             if (DEBUG) Log.v(TAG, "Addressed player message cleanup as part of doQuit");
         }
+        keyPressState = KEY_STATE_RELEASE; //Key release state
     }
 
     public void cleanup() {
@@ -1243,13 +1245,25 @@ final class Avrcp {
     }
 
     private void fastForward(int keyState) {
-        Message msg = mHandler.obtainMessage(MESSAGE_FAST_FORWARD, keyState, 0);
-        mHandler.sendMessage(msg);
+        if ((keyState == keyPressState) && (keyState == KEY_STATE_RELEASE)) {
+            Log.e(TAG, "Ignore key release event");
+        }
+        else {
+            Message msg = mHandler.obtainMessage(MESSAGE_FAST_FORWARD, keyState, 0);
+            mHandler.sendMessage(msg);
+            keyPressState = keyState;
+        }
     }
 
     private void rewind(int keyState) {
-        Message msg = mHandler.obtainMessage(MESSAGE_REWIND, keyState, 0);
-        mHandler.sendMessage(msg);
+        if ((keyState == keyPressState) && (keyState == KEY_STATE_RELEASE)) {
+            Log.e(TAG, "Ignore key release event");
+        }
+        else {
+            Message msg = mHandler.obtainMessage(MESSAGE_REWIND, keyState, 0);
+            mHandler.sendMessage(msg);
+            keyPressState = keyState;
+        }
     }
 
     private void changePositionBy(long amount) {
