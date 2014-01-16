@@ -696,7 +696,11 @@ public class BluetoothMapAppParams {
     public void setParameterMask(long parameterMask) {
         if (parameterMask < 0 || parameterMask > 0xFFFFFFFFL)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0xFFFFFFFF");
+        if(parameterMask == 0) {
+           this.parameterMask = INVALID_VALUE_PARAMETER;
+        } else {
         this.parameterMask = parameterMask;
+        }
     }
 
     public int getFolderListingSize() {
