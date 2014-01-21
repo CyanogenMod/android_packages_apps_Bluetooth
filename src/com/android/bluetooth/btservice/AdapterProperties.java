@@ -256,6 +256,12 @@ class AdapterProperties {
                     debugLog("Removing bonded device:" +  device);
                 else
                     debugLog("Failed to remove device: " + device);
+            } else if (state == BluetoothDevice.BOND_BONDING) {
+                // Setting remote trust to false on BONDING state if it's already in BONDED list
+                if (mBondedDevices.contains(device)) {
+                    boolean result = mService.setRemoteTrust(device, false);
+                    debugLog("onBondStateChanged result=" + result);
+                }
             }
         }
         catch(Exception ee) {

@@ -165,6 +165,9 @@ public class BluetoothMapAppParams {
         while (i < appParams.length) {
             tagId = appParams[i++] & 0xff;     // Convert to unsigned to support values above 127
             tagLength = appParams[i++] & 0xff; // Convert to unsigned to support values above 127
+            Log.d(TAG, "tagId is "+ tagId );
+            Log.d(TAG, "tagLength is "+ tagLength );
+            Log.d(TAG, "appParams[i] is "+ appParams[i]);
             switch (tagId) {
             case MAX_LIST_COUNT:
                 if (tagLength != MAX_LIST_COUNT_LEN) {
@@ -209,10 +212,10 @@ public class BluetoothMapAppParams {
                 setFilterReadStatus(appParams[i] & 0x03); // Lower two bits
                 break;
             case FILTER_RECIPIENT:
-                setFilterRecipient(new String(appParams, i, tagLength));
+                setFilterRecipient(new String(appParams, i, tagLength - 1));
                 break;
             case FILTER_ORIGINATOR:
-                setFilterOriginator(new String(appParams, i, tagLength));
+                setFilterOriginator(new String(appParams, i, tagLength - 1));
                 break;
             case FILTER_PRIORITY:
                 if (tagLength != FILTER_PRIORITY_LEN) {

@@ -35,11 +35,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Random;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.StatFs;
@@ -95,9 +98,16 @@ public class BluetoothOppReceiveFileInfo {
         Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + id);
         String filename = null, hint = null, mimeType = null;
         long length = 0;
-        Cursor metadataCursor = contentResolver.query(contentUri, new String[] {
+        Cursor metadataCursor;
+        try {
+            metadataCursor = contentResolver.query(contentUri, new String[] {
                 BluetoothShare.FILENAME_HINT, BluetoothShare.TOTAL_BYTES, BluetoothShare.MIMETYPE
-        }, null, null, null);
+                }, null, null, null);
+        } catch (SQLiteException e) {
+            metadataCursor = null;
+            Log.e(Constants.TAG, "SQLite exception: " + e);
+        }
+
         if (metadataCursor != null) {
             try {
                 if (metadataCursor.moveToFirst()) {
@@ -107,6 +117,8 @@ public class BluetoothOppReceiveFileInfo {
                 }
             } finally {
                 metadataCursor.close();
+                if (V) Log.v(Constants.TAG, "Freeing cursor: " + metadataCursor);
+                metadataCursor = null;
             }
         }
 
@@ -156,7 +168,7 @@ public class BluetoothOppReceiveFileInfo {
             filename = filename.substring(0, dotIndex);
         }
 
-        if ((filename != null) && (filename.length() > OPP_LENGTH_OF_FILE_NAME)) {
+        if ((filename != null) && (filename.getBytes().length > OPP_LENGTH_OF_FILE_NAME)) {
           /* Including extn of the file, Linux supports 255 character as a maximum length of the
            * file name to be created. Hence, Instead of sending OBEX_HTTP_INTERNAL_ERROR,
            * as a response, truncate the length of the file name and save it. This check majorly
@@ -164,7 +176,14 @@ public class BluetoothOppReceiveFileInfo {
            * more than 255 characters, But the server rejects the card just because the length of
            * vcf file name received exceeds 255 Characters.
            */
-          filename = filename.substring(0, OPP_LENGTH_OF_FILE_NAME);
+          try {
+              byte[] oldfilename = filename.getBytes("UTF-8");
+              byte[] newfilename = new byte[OPP_LENGTH_OF_FILE_NAME];
+              System.arraycopy(oldfilename, 0, newfilename, 0, OPP_LENGTH_OF_FILE_NAME);
+              filename = new String(newfilename, "UTF-8");
+          } catch (UnsupportedEncodingException e) {
+              Log.e(Constants.TAG, "Exception: " + e);
+          }
           if (D) Log.d(Constants.TAG, "File name is too long. Name is truncated as: " + filename);
         }
 
