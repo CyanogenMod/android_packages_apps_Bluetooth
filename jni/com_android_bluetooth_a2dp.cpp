@@ -295,13 +295,13 @@ static void allowConnectionNative(JNIEnv *env, jobject object, int is_valid) {
 
 }
 
-static void informAudioFocusStateNative(JNIEnv *env, jobject object, int is_enable) {
+static void informAudioFocusStateNative(JNIEnv *env, jobject object, int state) {
 
     if (!sBluetoothA2dpInterface) {
         ALOGE("sBluetoothA2dpInterface is NULL ");
         return;
     }
-    sBluetoothA2dpInterface->audio_focus_status(is_enable);
+    sBluetoothA2dpInterface->audio_focus_status(state);
 
 }
 

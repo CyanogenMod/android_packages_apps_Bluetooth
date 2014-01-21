@@ -39,6 +39,8 @@ import android.provider.Telephony.Mms;
 import android.provider.Telephony.Sms;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.text.format.Time;
+import android.util.TimeFormatException;
 import com.android.emailcommon.provider.EmailContent;
 import com.android.emailcommon.provider.EmailContent.Message;
 import com.android.emailcommon.provider.EmailContent.MessageColumns;
@@ -956,7 +958,7 @@ public class BluetoothMapContent {
         if (msgType == 1) {
             String phone = fi.phoneNum;
             String name = fi.phoneAlphaTag;
-            if (phone != null && phone.length() > 0 && phone.matches(recip)) {
+            if (phone != null && phone.length() > 0 && phone.replaceAll("\\s","").matches(recip)) {
                 if (D) Log.d(TAG, "match recipient phone = " + phone);
                 res = true;
             } else if (name != null && name.length() > 0 && name.matches(recip)) {
@@ -969,7 +971,7 @@ public class BluetoothMapContent {
         else {
             String phone = c.getString(c.getColumnIndex(Sms.ADDRESS));
             if (phone != null && phone.length() > 0) {
-                if (phone.matches(recip)) {
+                if (phone.replaceAll("\\s","").matches(recip)) {
                     if (D) Log.d(TAG, "match recipient phone = " + phone);
                     res = true;
                 } else {
@@ -1056,7 +1058,7 @@ public class BluetoothMapContent {
         if (msgType == 1) {
             String phone = c.getString(c.getColumnIndex(Sms.ADDRESS));
             if (phone !=null && phone.length() > 0) {
-                if (phone.matches(orig)) {
+                if (phone.replaceAll("\\s","").matches(orig)) {
                     if (D) Log.d(TAG, "match originator phone = " + phone);
                     res = true;
                 } else {
@@ -1075,7 +1077,7 @@ public class BluetoothMapContent {
         else {
             String phone = fi.phoneNum;
             String name = fi.phoneAlphaTag;
-            if (phone != null && phone.length() > 0 && phone.matches(orig)) {
+            if (phone != null && phone.length() > 0 && phone.replaceAll("\\s","").matches(orig)) {
                 if (D) Log.d(TAG, "match originator phone = " + phone);
                 res = true;
             } else if (name != null && name.length() > 0 && name.matches(orig)) {
@@ -1234,6 +1236,15 @@ public class BluetoothMapContent {
             where = " AND date >= " + ap.getFilterPeriodBegin();
             } else if (fi.msgType == FilterInfo.TYPE_MMS) {
                 where = " AND date >= " + (ap.getFilterPeriodBegin() / 1000L);
+            }else {
+                Time time = new Time();
+                try {
+                    time.parse(ap.getFilterPeriodBeginString().trim());
+                    where += " AND timeStamp >= " + time.toMillis(false);
+                } catch (TimeFormatException e) {
+                    Log.d(TAG, "Bad formatted FilterPeriodBegin, Ignore"
+                          + ap.getFilterPeriodBeginString());
+                }
             }
         }
 
@@ -1242,6 +1253,15 @@ public class BluetoothMapContent {
             where += " AND date <= " + ap.getFilterPeriodEnd();
             } else if (fi.msgType == FilterInfo.TYPE_MMS) {
                 where += " AND date <= " + (ap.getFilterPeriodEnd() / 1000L);
+            } else {
+                Time time = new Time();
+                try {
+                    time.parse(ap.getFilterPeriodEndString().trim());
+                    where += " AND timeStamp <= " + time.toMillis(false);
+                } catch (TimeFormatException e) {
+                    Log.d(TAG, "Bad formatted FilterPeriodEnd, Ignore"
+                          + ap.getFilterPeriodEndString());
+                }
             }
         }
 
@@ -1477,10 +1497,12 @@ public class BluetoothMapContent {
         if (msgType == -1)
             return true;
 
-        if ((msgType & 0x16) == 0)
-            return true;
-
-        return false;
+        if ((msgType & 0x04) == 0) {
+           return true;
+        } else {
+           if (V) Log.v(TAG, "Invalid Message Filter");
+           return false;
+        }
 
     }
 

@@ -36,6 +36,7 @@ package com.android.bluetooth.pbap;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.database.CursorWindowAllocationException;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.CallLog;
@@ -178,9 +179,12 @@ public class BluetoothPbapVcardManager {
             if (contactCursor != null) {
                 size = contactCursor.getCount() + 1; // always has the 0.vcf
             }
+        } catch (CursorWindowAllocationException e) {
+            Log.e(TAG, "CursorWindowAllocationException while getting Contacts size");
         } finally {
             if (contactCursor != null) {
                 contactCursor.close();
+                contactCursor = null;
             }
         }
         return size;
@@ -195,9 +199,12 @@ public class BluetoothPbapVcardManager {
             if (contactCursor != null) {
                 size = contactCursor.getCount() +1;  //always has the 0.vcf
             }
+        } catch (CursorWindowAllocationException e) {
+            Log.e(TAG, "CursorWindowAllocationException while getting SIM Contacts size");
         } finally {
             if (contactCursor != null) {
                 contactCursor.close();
+                contactCursor = null;
             }
         }
         return size;
@@ -214,9 +221,12 @@ public class BluetoothPbapVcardManager {
             if (callCursor != null) {
                 size = callCursor.getCount();
             }
+        } catch (CursorWindowAllocationException e) {
+            Log.e(TAG, "CursorWindowAllocationException while getting CallHistory size");
         } finally {
             if (callCursor != null) {
                 callCursor.close();
+                callCursor = null;
             }
         }
         return size;
@@ -254,9 +264,12 @@ public class BluetoothPbapVcardManager {
                     list.add(name);
                 }
             }
+        } catch (CursorWindowAllocationException e) {
+            Log.e(TAG, "CursorWindowAllocationException while loading CallHistory");
         } finally {
             if (callCursor != null) {
                 callCursor.close();
+                callCursor = null;
             }
         }
         return list;
@@ -280,9 +293,12 @@ public class BluetoothPbapVcardManager {
                     allnames.add(name);
                 }
             }
+        } catch (CursorWindowAllocationException e) {
+          Log.e(TAG, "CursorWindowAllocationException while getting SIM Phonebook name list");
         } finally {
             if (contactCursor != null) {
                 contactCursor.close();
+                contactCursor = null;
             }
         }
         if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_INDEXED) {
@@ -358,9 +374,12 @@ public class BluetoothPbapVcardManager {
                     nameList.add(name + "," + id);
                 }
             }
+        } catch (CursorWindowAllocationException e) {
+            Log.e(TAG, "CursorWindowAllocationException while getting Phonebook name list");
         } finally {
             if (contactCursor != null) {
                 contactCursor.close();
+                contactCursor = null;
             }
         }
         return nameList;
@@ -421,9 +440,12 @@ public class BluetoothPbapVcardManager {
                     }
                 }
             }
+        } catch (CursorWindowAllocationException e) {
+            Log.e(TAG, "CursorWindowAllocationException while getting SIM contact names");
         } finally {
             if (contactCursor != null) {
                 contactCursor.close();
+                contactCursor = null;
             }
         }
         int startListSize = startNameList.size();
@@ -466,9 +488,12 @@ public class BluetoothPbapVcardManager {
                     tempNameList.add(name + "," + id);
                 }
             }
+        } catch (CursorWindowAllocationException e) {
+            Log.e(TAG, "CursorWindowAllocationException while getting contact names");
         } finally {
             if (contactCursor != null) {
                 contactCursor.close();
+                contactCursor = null;
             }
         }
         int tempListSize = tempNameList.size();
@@ -514,9 +539,12 @@ public class BluetoothPbapVcardManager {
                 }
                 if (V) Log.v(TAG, "Call log query endPointId = " + endPointId);
             }
+        } catch (CursorWindowAllocationException e) {
+            Log.e(TAG, "CursorWindowAllocationException while composing calllog vcards");
         } finally {
             if (callsCursor != null) {
                 callsCursor.close();
+                callsCursor = null;
             }
         }
 
@@ -568,9 +596,12 @@ public class BluetoothPbapVcardManager {
                 }
                 if (V) Log.v(TAG, "Query endPointId = " + endPointId);
             }
+        } catch (CursorWindowAllocationException e) {
+            Log.e(TAG, "CursorWindowAllocationException while composing phonebook vcards");
         } finally {
             if (contactCursor != null) {
                 contactCursor.close();
+                contactCursor = null;
             }
         }
 
@@ -649,9 +680,12 @@ public class BluetoothPbapVcardManager {
                     contactId = contactCursor.getLong(CONTACTS_ID_COLUMN_INDEX);
                     if (V) Log.v(TAG, "Query startPointId = " + contactId);
                 }
+            } catch (CursorWindowAllocationException e) {
+                Log.e(TAG, "CursorWindowAllocationException while composing phonebook one vcard order by index");
             } finally {
                 if (contactCursor != null) {
                     contactCursor.close();
+                    contactCursor = null;
                 }
             }
         } else if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL) {
@@ -663,9 +697,12 @@ public class BluetoothPbapVcardManager {
                     contactId = contactCursor.getLong(CONTACTS_ID_COLUMN_INDEX);
                     if (V) Log.v(TAG, "Query startPointId = " + contactId);
                 }
+            } catch (CursorWindowAllocationException e) {
+                Log.e(TAG, "CursorWindowAllocationException while composing phonebook one vcard order by alphabetical");
             } finally {
                 if (contactCursor != null) {
                     contactCursor.close();
+                    contactCursor = null;
                 }
             }
         } else {
