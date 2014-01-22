@@ -46,6 +46,7 @@
     <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth compartit: fitxer <xliff:g id="FILE">%1$s</xliff:g> no rebut"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Ús compartit de Bluetooth: s\'està enviant <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Ús compartit de Bluetooth: s\'ha enviat <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="empty_file_notification_sent">Compartició Bluetooth: La part remota ha rebutjat l\'arxiu de longitud zero <xliff:g id="file">%1$s</xliff:g></string>
     <string name="notification_sent_complete" msgid="302943281067557969">"100% complet"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Ús compartit de Bluetooth: no s\'ha enviat el fitxer <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_title" msgid="3353228219772092586">"Transferència del fitxer"</string>
