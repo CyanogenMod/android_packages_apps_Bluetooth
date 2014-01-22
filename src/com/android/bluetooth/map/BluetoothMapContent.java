@@ -729,28 +729,30 @@ public class BluetoothMapContent {
 
     private void setDateTime(BluetoothMapMessageListingElement e, Cursor c,
         FilterInfo fi, BluetoothMapAppParams ap) {
-        long date = 0;
-        int timeStamp = 0;
+        if ((ap.getParameterMask() & MASK_DATETIME) != 0) {
+            long date = 0;
+            int timeStamp = 0;
 
-        if (fi.msgType == FilterInfo.TYPE_SMS) {
-            date = c.getLong(c.getColumnIndex(Sms.DATE));
-        } else if (fi.msgType == FilterInfo.TYPE_MMS) {
-            /* Use Mms.DATE for all messages. Although contract class states */
-            /* Mms.DATE_SENT are for outgoing messages. But that is not working. */
-            date = c.getLong(c.getColumnIndex(Mms.DATE)) * 1000L;
+            if (fi.msgType == FilterInfo.TYPE_SMS) {
+                date = c.getLong(c.getColumnIndex(Sms.DATE));
+            } else if (fi.msgType == FilterInfo.TYPE_MMS) {
+                /* Use Mms.DATE for all messages. Although contract class states */
+                /* Mms.DATE_SENT are for outgoing messages. But that is not working. */
+                date = c.getLong(c.getColumnIndex(Mms.DATE)) * 1000L;
 
-            /* int msgBox = c.getInt(c.getColumnIndex(Mms.MESSAGE_BOX)); */
-            /* if (msgBox == Mms.MESSAGE_BOX_INBOX) { */
-            /*     date = c.getLong(c.getColumnIndex(Mms.DATE)) * 1000L; */
-            /* } else { */
-            /*     date = c.getLong(c.getColumnIndex(Mms.DATE_SENT)) * 1000L; */
-            /* } */
-        } else {
-            timeStamp = c.getColumnIndex(MessageColumns.TIMESTAMP);
-            String timestamp = c.getString(timeStamp);
-            date =Long.valueOf(timestamp);
+                /* int msgBox = c.getInt(c.getColumnIndex(Mms.MESSAGE_BOX)); */
+                /* if (msgBox == Mms.MESSAGE_BOX_INBOX) { */
+                /*     date = c.getLong(c.getColumnIndex(Mms.DATE)) * 1000L; */
+                /* } else { */
+                /*     date = c.getLong(c.getColumnIndex(Mms.DATE_SENT)) * 1000L; */
+                /* } */
+            } else {
+                timeStamp = c.getColumnIndex(MessageColumns.TIMESTAMP);
+                String timestamp = c.getString(timeStamp);
+                date =Long.valueOf(timestamp);
+            }
+            e.setDateTime(date);
         }
-        e.setDateTime(date);
     }
 
     private String getTextPartsMms(long id) {
