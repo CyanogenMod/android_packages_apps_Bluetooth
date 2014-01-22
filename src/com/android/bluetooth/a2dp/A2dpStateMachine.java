@@ -667,11 +667,6 @@ final class A2dpStateMachine extends StateMachine {
         }
     }
 
-    boolean isConnectedSrc(BluetoothDevice device)
-    {
-        return isSrcNative(getByteAddress(device));
-    }
-
     int getConnectionState(BluetoothDevice device) {
         if (getCurrentState() == mDisconnected) {
             return BluetoothProfile.STATE_DISCONNECTED;
