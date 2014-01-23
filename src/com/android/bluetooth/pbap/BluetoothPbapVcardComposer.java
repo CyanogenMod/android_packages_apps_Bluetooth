@@ -33,7 +33,6 @@ import android.util.Log;
 import com.android.vcard.VCardBuilder;
 import com.android.vcard.VCardComposer;
 import com.android.vcard.VCardConfig;
-import com.android.vcard.VCardPhoneNumberTranslationCallback;
 
 import java.util.List;
 import java.util.Map;
@@ -76,29 +75,12 @@ public class BluetoothPbapVcardComposer extends VCardComposer
     private final String mCharset;
     private final long mFilter;
 
-    // BT does want PAUSE/WAIT conversion while it doesn't want the other formatting
-    // done by vCard library by default.
-    VCardPhoneNumberTranslationCallback callback =
-            new VCardPhoneNumberTranslationCallback() {
-                public String onValueReceived(
-                        String rawValue, int type, String label, boolean isPrimary) {
-                    // 'p' and 'w' are the standard characters for pause and wait
-                    // (see RFC 3601)
-                    // so use those when exporting phone numbers via vCard.
-                    String numberWithControlSequence = rawValue
-                            .replace(PhoneNumberUtils.PAUSE, 'p')
-                            .replace(PhoneNumberUtils.WAIT, 'w');
-                    return numberWithControlSequence;
-                }
-            };
-
     public BluetoothPbapVcardComposer(final Context context, final int vcardType,
             long filter, final boolean careHandlerErrors) {
         super(context, vcardType, null, careHandlerErrors);
         mVCardType = vcardType;
         mCharset = null;
         mFilter = filter;
-        setPhoneNumberTranslationCallback(callback); // needed?
     }
 
     public String buildVCard(final Map<String, List<ContentValues>> contentValuesListMap) {
@@ -115,7 +97,7 @@ public class BluetoothPbapVcardComposer extends VCardComposer
             if ((mFilter & FILTER_NICKNAME) != 0)
                 builder.appendNickNames(contentValuesListMap.get(Nickname.CONTENT_ITEM_TYPE));
             if ((mFilter & FILTER_TEL) != 0)
-                builder.appendPhones(contentValuesListMap.get(Phone.CONTENT_ITEM_TYPE), callback);
+                builder.appendPhones(contentValuesListMap.get(Phone.CONTENT_ITEM_TYPE), null);
             if ((mFilter & FILTER_EMAIL) != 0)
                 builder.appendEmails(contentValuesListMap.get(Email.CONTENT_ITEM_TYPE));
             if ((mFilter & FILTER_ADR) != 0)
