@@ -100,10 +100,12 @@ public class HealthService extends ProfileService {
     }
 
     protected boolean stop() {
-        mHandler.removeCallbacksAndMessages(null);
-        Looper looper = mHandler.getLooper();
-        if (looper != null) {
-            looper.quit();
+        if(mHandler != null) {
+            mHandler.removeCallbacksAndMessages(null);
+            Looper looper = mHandler.getLooper();
+            if (looper != null) {
+                looper.quit();
+            }
         }
         cleanupApps();
         return true;
