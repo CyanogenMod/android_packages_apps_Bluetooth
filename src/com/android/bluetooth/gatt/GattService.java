@@ -904,7 +904,14 @@ public class GattService extends ProfileService {
             LeScanRequestArbitrator.instance().RequestLeScan(LeScanRequestArbitrator.LE_NORMAL_SCAN_TYPE)) {
             if (DBG) Log.d(TAG, "startScan() - adding client=" + appIf);
             mScanQueue.add(new ScanClient(appIf, isServer));
-            gattClientScanNative(appIf, true);
+            if(mScanQueue.size()==1)//start scan only if it is not already started
+            {
+                gattClientScanNative(appIf, true);
+            }
+            else
+            {
+                Log.d(TAG, "startScan scan already in progress for appifs-queue=" + mScanQueue.size());
+            }
         }
     }
 
@@ -917,7 +924,14 @@ public class GattService extends ProfileService {
             LeScanRequestArbitrator.instance().RequestLeScan(LeScanRequestArbitrator.LE_NORMAL_SCAN_TYPE)) {
             if (DBG) Log.d(TAG, "startScanWithUuids() - adding client=" + appIf);
             mScanQueue.add(new ScanClient(appIf, isServer, uuids));
-            gattClientScanNative(appIf, true);
+            if(mScanQueue.size()==1)//start scan only if it is not already started
+            {
+                gattClientScanNative(appIf, true);
+            }
+            else
+            {
+                Log.d(TAG, "startScanWithUuids scan already in progress for appifs-queue=" + mScanQueue.size());
+            }
         }
     }
 
