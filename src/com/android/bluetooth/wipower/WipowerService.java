@@ -306,6 +306,24 @@ public class WipowerService extends Service
         }
    }
 
+   void wipowerPowerNotify (byte alert) {
+        Log.e(LOGTAG, "wipowerPowerNotify: " + alert);
+
+        if (mCallbacks !=null) {
+        int n=mCallbacks.beginBroadcast();
+        Log.d(LOGTAG,"Broadcasting wipower power alert() to " + n + " receivers.");
+        for (int i=0; i <n;i++) {
+               try {
+                    mCallbacks.getBroadcastItem(i).onPowerApply((byte)alert);
+               } catch (RemoteException e) {
+                    Log.e(LOGTAG, "Unable to call onBluetoothServiceUp() on callback #" + i, e);
+               }
+           }
+           mCallbacks.finishBroadcast();
+        }
+   }
+
+
    void wipowerDataNotify (byte[] data) {
         Log.e(LOGTAG, "wipowerDataNotify: " + data);
 
