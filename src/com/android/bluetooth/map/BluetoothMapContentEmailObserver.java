@@ -436,24 +436,35 @@ public class BluetoothMapContentEmailObserver extends BluetoothMapContentObserve
 
  @Override
     public boolean setMessageStatusDeleted(long handle, TYPE type, int statusValue) {
-        boolean res = true;
+        boolean res = false;
+        long accountId = BluetoothMapUtils.getEmailAccountId(mContext);
+        Uri uri = Uri.parse("content://com.android.email.provider/message/"+handle);
+        Cursor crEmail = mResolver.query(uri, null, null, null, null);
 
-         long accountId = BluetoothMapUtils.getEmailAccountId(mContext);
-        if (D) Log.d(TAG, "setMessageStatusDeleted: EMAIL handle " + handle
-            + " type " + type + " value " + statusValue + "accountId: "+accountId);
-         Intent emailIn = new Intent();
-         if(statusValue == 1){
-             addMceInitiatedOperation(Long.toString(handle));
-             emailIn.setAction("org.codeaurora.email.intent.action.MAIL_SERVICE_DELETE_MESSAGE");
-         }else {
-             emailIn.setAction("org.codeaurora.email.intent.action.MAIL_SERVICE_MOVE_MESSAGE");
+        if(crEmail != null && crEmail.moveToFirst()) {
+           if (D) Log.d(TAG, "setMessageStatusDeleted: EMAIL handle " + handle
+               + " type " + type + " value " + statusValue + "accountId: "+accountId);
+           Intent emailIn = new Intent();
+           if(statusValue == 1){
+              addMceInitiatedOperation(Long.toString(handle));
+              emailIn.setAction("org.codeaurora.email.intent.action.MAIL_SERVICE_DELETE_MESSAGE");
+           }else {
+              emailIn.setAction("org.codeaurora.email.intent.action.MAIL_SERVICE_MOVE_MESSAGE");
               emailIn.putExtra("org.codeaurora.email.intent.extra.MESSAGE_INFO", Mailbox.TYPE_INBOX);
-         }
+           }
 
-         emailIn.putExtra("com.android.email.intent.extra.ACCOUNT", accountId);
-         emailIn.putExtra("org.codeaurora.email.intent.extra.MESSAGE_ID", handle);
-         mContext.startService(emailIn);
+           emailIn.putExtra("com.android.email.intent.extra.ACCOUNT", accountId);
+           emailIn.putExtra("org.codeaurora.email.intent.extra.MESSAGE_ID", handle);
+           mContext.startService(emailIn);
+           res = true;
+        } else {
+           if(V) Log.v(TAG,"Returning from setMessage Status Deleted");
+        }
+        if (crEmail != null) {
+            crEmail.close();
+        }
         return res;
+
     }
 
     @Override
