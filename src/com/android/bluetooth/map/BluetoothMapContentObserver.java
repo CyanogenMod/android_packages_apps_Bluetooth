@@ -753,10 +753,8 @@ public class BluetoothMapContentObserver {
                     {
                         /* Send message if folder is outbox */
                         /* to do, support MMS in the future */
-                        /*String phone = recipient.getFirstPhoneNumber();
-                        if (folder.equals("outbox")) {
-                           handle = sendMmsMessage(folder, phone, (BluetoothMapbMessageMmsEmail)msg);
-                        }*/
+                        String phone = recipient.getFirstPhoneNumber();
+                        handle = sendMmsMessage(folder, phone, (BluetoothMapbMessageMmsEmail)msg);
                         break;
                     }
                     case SMS_GSM: //fall-through
@@ -823,7 +821,7 @@ public class BluetoothMapContentObserver {
          *else if folder !outbox:
          *1) push message to folder
          * */
-        if (folder != null && (folder.equalsIgnoreCase("outbox")||  folder.equalsIgnoreCase("drafts"))) {
+        if (folder != null && (folder.equalsIgnoreCase("outbox")||  folder.equalsIgnoreCase("drafts") || folder.equalsIgnoreCase("draft"))) {
             long handle = pushMmsToFolder(Mms.MESSAGE_BOX_DRAFTS, to_address, msg);
             /* if invalid handle (-1) then just return the handle - else continue sending (if folder is outbox) */
             if (BluetoothMapAppParams.INVALID_VALUE_PARAMETER != handle && folder.equalsIgnoreCase("outbox")) {
@@ -911,70 +909,71 @@ public class BluetoothMapContentObserver {
         }
 
         long handle = Long.parseLong(uri.getLastPathSegment());
-        if (V){
+        ArrayList<MimePart> parts = msg.getMimeParts();
+        if (parts != null) {
             Log.v(TAG, " NEW URI " + uri.toString());
+            try {
+            //if(V) Log.v(TAG, "Adding " + msg.getMimeParts().size() + " parts to the data base.");
+            for(MimePart part : parts) {
+                int count = 0;
+                count++;
+                values.clear();
+                if(part.contentType != null &&  part.contentType.toUpperCase().contains("TEXT")) {
+                    values.put("ct", "text/plain");
+                    values.put("chset", 106);
+                    if(part.partName != null) {
+                        values.put("fn", part.partName);
+                        values.put("name", part.partName);
+                    } else if(part.contentId == null && part.contentLocation == null) {
+                        /* We must set at least one part identifier */
+                        values.put("fn", "text_" + count +".txt");
+                        values.put("name", "text_" + count +".txt");
+                    }
+                    if(part.contentId != null) {
+                        values.put("cid", part.contentId);
+                    }
+                    if(part.contentLocation != null)
+                        values.put("cl", part.contentLocation);
+                    if(part.contentDisposition != null)
+                        values.put("cd", part.contentDisposition);
+                    values.put("text", new String(part.data, "UTF-8"));
+                    uri = Uri.parse("content://mms/" + handle + "/part");
+                    uri = cr.insert(uri, values);
+                    if(V) Log.v(TAG, "Added TEXT part");
+
+                } else if (part.contentType != null &&  part.contentType.toUpperCase().contains("SMIL")){
+
+                    values.put("seq", -1);
+                    values.put("ct", "application/smil");
+                    if(part.contentId != null)
+                        values.put("cid", part.contentId);
+                    if(part.contentLocation != null)
+                        values.put("cl", part.contentLocation);
+                    if(part.contentDisposition != null)
+                        values.put("cd", part.contentDisposition);
+                    values.put("fn", "smil.xml");
+                    values.put("name", "smil.xml");
+                    values.put("text", new String(part.data, "UTF-8"));
+
+                    uri = Uri.parse("content://mms/" + handle + "/part");
+                    uri = cr.insert(uri, values);
+                    if(V) Log.v(TAG, "Added SMIL part");
+
+               }else /*VIDEO/AUDIO/IMAGE*/ {
+                    writeMmsDataPart(handle, part, count);
+                    if(V) Log.v(TAG, "Added OTHER part");
+               }
+               if (uri != null && V){
+                   Log.v(TAG, "Added part with content-type: "+ part.contentType + " to Uri: " + uri.toString());
+               }
+           }
+           } catch (UnsupportedEncodingException e) {
+              Log.w(TAG, e);
+           } catch (IOException e) {
+              Log.w(TAG, e);
+           }
+
         }
-        try {
-            if(V) Log.v(TAG, "Adding " + msg.getMimeParts().size() + " parts to the data base.");
-        for(MimePart part : msg.getMimeParts()) {
-            int count = 0;
-            count++;
-            values.clear();
-            if(part.contentType != null &&  part.contentType.toUpperCase().contains("TEXT")) {
-                values.put("ct", "text/plain");
-                values.put("chset", 106);
-                if(part.partName != null) {
-                    values.put("fn", part.partName);
-                    values.put("name", part.partName);
-                } else if(part.contentId == null && part.contentLocation == null) {
-                    /* We must set at least one part identifier */
-                    values.put("fn", "text_" + count +".txt");
-                    values.put("name", "text_" + count +".txt");
-                }
-                if(part.contentId != null) {
-                    values.put("cid", part.contentId);
-                }
-                if(part.contentLocation != null)
-                    values.put("cl", part.contentLocation);
-                if(part.contentDisposition != null)
-                    values.put("cd", part.contentDisposition);
-                values.put("text", new String(part.data, "UTF-8"));
-                uri = Uri.parse("content://mms/" + handle + "/part");
-                uri = cr.insert(uri, values);
-                if(V) Log.v(TAG, "Added TEXT part");
-
-            } else if (part.contentType != null &&  part.contentType.toUpperCase().contains("SMIL")){
-
-                values.put("seq", -1);
-                values.put("ct", "application/smil");
-                if(part.contentId != null)
-                    values.put("cid", part.contentId);
-                if(part.contentLocation != null)
-                    values.put("cl", part.contentLocation);
-                if(part.contentDisposition != null)
-                    values.put("cd", part.contentDisposition);
-                values.put("fn", "smil.xml");
-                values.put("name", "smil.xml");
-                values.put("text", new String(part.data, "UTF-8"));
-
-                uri = Uri.parse("content://mms/" + handle + "/part");
-                uri = cr.insert(uri, values);
-                if(V) Log.v(TAG, "Added SMIL part");
-
-            }else /*VIDEO/AUDIO/IMAGE*/ {
-                writeMmsDataPart(handle, part, count);
-                if(V) Log.v(TAG, "Added OTHER part");
-            }
-            if (uri != null && V){
-                Log.v(TAG, "Added part with content-type: "+ part.contentType + " to Uri: " + uri.toString());
-            }
-        }
-        } catch (UnsupportedEncodingException e) {
-            Log.w(TAG, e);
-        } catch (IOException e) {
-            Log.w(TAG, e);
-        }
-
         values.clear();
         values.put("contact_id", "null");
         values.put("address", "insert-address-token");
