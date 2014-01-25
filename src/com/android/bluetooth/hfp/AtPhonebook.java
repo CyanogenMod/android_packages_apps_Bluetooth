@@ -208,7 +208,7 @@ public class AtPhonebook {
                     if (atCommandResponse != null)
                         mStateMachine.atResponseStringNative(atCommandResponse);
                     mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
-                    break;
+                    return;
                 }
                 PhonebookResult pbr = getPhonebookResult(mCurrentPhonebook, true);
                 if (pbr == null) {
