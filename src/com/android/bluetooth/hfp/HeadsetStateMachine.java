@@ -1767,11 +1767,16 @@ final class HeadsetStateMachine extends StateMachine {
         mPhoneState.setCallState(callState.mCallState);
         mPhoneState.setNumber(callState.mNumber);
         mPhoneState.setType(callState.mType);
-        if (mDialingOut && callState.mCallState ==
-            HeadsetHalConstants.CALL_STATE_DIALING) {
+        if (mDialingOut) {
+            if (callState.mCallState ==
+                HeadsetHalConstants.CALL_STATE_DIALING) {
                 atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK, 0);
                 removeMessages(DIALING_OUT_TIMEOUT);
+            } else if (callState.mCallState ==
+                HeadsetHalConstants.CALL_STATE_ACTIVE || callState.mCallState
+                == HeadsetHalConstants.CALL_STATE_IDLE) {
                 mDialingOut = false;
+            }
         }
         log("mNumActive: " + callState.mNumActive + " mNumHeld: " +
             callState.mNumHeld +" mCallState: " + callState.mCallState);
