@@ -96,6 +96,40 @@ static void get_protocol_mode_callback(bt_bdaddr_t *bd_addr, bthh_status_t hh_st
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
+static void get_report_callback(bt_bdaddr_t *bd_addr, bthh_status_t hh_status, uint8_t *rpt_data, int rpt_size) {
+    jbyteArray addr;
+    jbyteArray data;
+
+    CHECK_CALLBACK_ENV
+    if (hh_status != BTHH_OK) {
+        ALOGE("BTHH Status is not OK!");
+        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+        return;
+    }
+
+    addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+    if (!addr) {
+        ALOGE("Fail to new jbyteArray bd addr for get report callback");
+        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+        return;
+    }
+    data = sCallbackEnv->NewByteArray(rpt_size);
+    if (!data) {
+        ALOGE("Fail to new jbyteArray data for get report callback");
+        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+        sCallbackEnv->DeleteLocalRef(addr);
+        return;
+    }
+
+    sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
+    sCallbackEnv->SetByteArrayRegion(data, 0, rpt_size, (jbyte *) rpt_data);
+
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetReport, addr, data, (jint) rpt_size);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+    sCallbackEnv->DeleteLocalRef(addr);
+    sCallbackEnv->DeleteLocalRef(data);
+}
+
 static void virtual_unplug_callback(bt_bdaddr_t *bd_addr, bthh_status_t hh_status) {
     ALOGD("call to virtual_unplug_callback");
     jbyteArray addr;
@@ -136,7 +170,7 @@ static bthh_callbacks_t sBluetoothHidCallbacks = {
     NULL,
     get_protocol_mode_callback,
     NULL,
-    NULL,
+    get_report_callback,
     virtual_unplug_callback
 };
 
@@ -149,6 +183,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
     method_onConnectStateChanged = env->GetMethodID(clazz, "onConnectStateChanged", "([BI)V");
     method_onGetProtocolMode = env->GetMethodID(clazz, "onGetProtocolMode", "([BI)V");
+    method_onGetReport = env->GetMethodID(clazz, "onGetReport", "([B[BI)V");
     method_onVirtualUnplug = env->GetMethodID(clazz, "onVirtualUnplug", "([BI)V");
 
 /*

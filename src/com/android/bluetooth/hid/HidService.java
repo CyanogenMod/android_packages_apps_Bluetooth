@@ -240,6 +240,15 @@ public class HidService extends ProfileService {
                     }
                 }
                 break;
+                case MESSAGE_ON_GET_REPORT:
+                {
+                    BluetoothDevice device = getDevice((byte[])msg.obj);
+                    Bundle data = msg.getData();
+                    byte[] report = data.getByteArray(BluetoothInputDevice.EXTRA_REPORT);
+                    int bufferSize = data.getInt(BluetoothInputDevice.EXTRA_REPORT_BUFFER_SIZE);
+                    broadcastReport(device, report, bufferSize);
+                }
+                break;
                 case MESSAGE_SET_REPORT:
                 {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
@@ -545,6 +554,16 @@ public class HidService extends ProfileService {
         mHandler.sendMessage(msg);
     }
 
+    private void onGetReport(byte[] address, byte[] report, int rpt_size) {
+        Message msg = mHandler.obtainMessage(MESSAGE_ON_GET_REPORT);
+        msg.obj = address;
+        Bundle data = new Bundle();
+        data.putByteArray(BluetoothInputDevice.EXTRA_REPORT, report);
+        data.putInt(BluetoothInputDevice.EXTRA_REPORT_BUFFER_SIZE, rpt_size);
+        msg.setData(data);
+        mHandler.sendMessage(msg);
+    }
+
     private void onVirtualUnplug(byte[] address, int status) {
         Message msg = mHandler.obtainMessage(MESSAGE_ON_VIRTUAL_UNPLUG);
         msg.obj = address;
@@ -591,6 +610,15 @@ public class HidService extends ProfileService {
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
         sendBroadcast(intent, BLUETOOTH_PERM);
         if (DBG) log("Protocol Mode (" + device + "): " + protocolMode);
+    }
+
+    private void broadcastReport(BluetoothDevice device, byte[] report, int rpt_size) {
+        Intent intent = new Intent(BluetoothInputDevice.ACTION_REPORT);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.putExtra(BluetoothInputDevice.EXTRA_REPORT, report);
+        intent.putExtra(BluetoothInputDevice.EXTRA_REPORT_BUFFER_SIZE, rpt_size);
+        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+        sendBroadcast(intent, BLUETOOTH_PERM);
     }
 
     private void broadcastVirtualUnplugStatus(BluetoothDevice device, int status) {
