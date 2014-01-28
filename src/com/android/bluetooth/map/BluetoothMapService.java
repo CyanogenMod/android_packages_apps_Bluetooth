@@ -108,8 +108,6 @@ public class BluetoothMapService extends ProfileService {
 
     private static final int DISCONNECT_MAP = 3;
 
-    private PowerManager.WakeLock mWakeLock = null;
-
     private BluetoothAdapter mAdapter;
 
     private BluetoothMapAuthenticator mAuth = null;
@@ -689,14 +687,6 @@ public class BluetoothMapService extends ProfileService {
             }
             Context context = getApplicationContext();
             Log.d(TAG, "after getting application context");
-            // acquire the wakeLock before start Obex transaction thread
-            if (mWakeLock == null) {
-                PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
-                mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                     "StartingObexMapTransaction");
-                mWakeLock.setReferenceCounted(false);
-                mWakeLock.acquire();
-            }
             if(mBluetoothMnsObexClient == null)
                 mBluetoothMnsObexClient = new BluetoothMnsObexClient(context, mRemoteDevice);
             mBluetoothMnsObexClient.initObserver(mSessionStatusHandler, mMasId);
