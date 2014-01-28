@@ -49,7 +49,9 @@ final class QJniCallbacks {
     public Object Clone() throws CloneNotSupportedException {
         throw new CloneNotSupportedException();
     }
-
+    void advEnableCallback(int advEnable, int advType) {
+        mQAdapterProperties.advEnableCallback(advEnable, advType);
+    }
     void onLeExtendedScanResult(String address, int rssi, byte[] adv_data) {
         if(mQAdapterSvc != null) {
             mQAdapterSvc.onLeExtendedScanResult(address, rssi, adv_data);

@@ -51,6 +51,7 @@ class QAdapterProperties {
     private static final boolean VDBG = false;
     private static final String TAG = "QBluetoothAdapterProperties";
 
+    private int mAdvMode;
     private QAdapterService mQService;
     private BluetoothAdapter mAdapter;
 
@@ -59,11 +60,71 @@ class QAdapterProperties {
     public QAdapterProperties(QAdapterService service) {
         mQService = service;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
+        //set the initial value of adv mode here
+        mAdvMode=QBluetoothAdapter.ADV_MODE_NONE;
     }
     public void cleanup() {
         mQService = null;
     }
+    /**
+     * @return the mAdvMode
+     */
+    int getLEAdvMode() {
+        synchronized (mObject) {
+            return mAdvMode;
+        }
+    }
 
+   /** Set the local adapter property - adv LE Mode
+     *
+     * @param advMode the advMode to set
+     */
+    boolean setLEAdvMode(int advMode) {
+        synchronized (mObject) {
+            if(mQService==null)
+            {
+                debugLog("setLEAdvMode: Handle to the Qadapterservice found null. returning false");
+                return false;
+            }
+            return mQService.setLEAdvModeNative(
+                    AbstractionLayer.BT_PROPERTY_ADAPTER_BLE_ADV_MODE, Utils.intToByteArray(advMode));
+        }
+    }
+
+    void adapterPropertyChangedCallback(int[] types, byte[][] values) {
+        Intent intent;
+        int type;
+        byte[] val;
+        for (int i = 0; i < types.length; i++) {
+            val = values[i];
+            type = types[i];
+            infoLog("adapterPropertyChangedCallback with type:" + type + " len:" + val.length);
+            synchronized (mObject) {
+                switch (type) {
+                    case AbstractionLayer.BT_PROPERTY_ADAPTER_BLE_ADV_MODE:
+                        int advMode=Utils.byteArrayToInt(val,0);
+                        mAdvMode=mQService.convertAdvModeFromHal(advMode);
+                        //create intent if required
+                        infoLog("For property 13 LE_ADV_SET, Adv mode set to:"+ mAdvMode);
+                        break;
+                    default:
+                        errorLog("Property change not handled in Java land:" + type);
+                }
+            }
+        }
+    }
+    void advEnableCallback(int advEnable, int advType){
+        debugLog("advEnableCallback");
+        infoLog("advEnableCallback called with advEnable: "+ advEnable + " advType: " + advType);
+        Intent intent;
+        mAdvMode=mQService.convertAdvModeFromHal(advType);
+        infoLog("Adv Mode changed to:" + mAdvMode);
+
+        intent = new Intent(QBluetoothAdapter.ACTION_ADV_ENABLE_CHANGED);
+        intent.putExtra(QBluetoothAdapter.EXTRA_ADV_ENABLE, mAdvMode);
+        mQService.sendBroadcast(intent,mQService.BLUETOOTH_PERM);
+        infoLog("advEnableCallback Intent Sent");
+    }
     private void infoLog(String msg) {
         if (DBG) Log.i(TAG, msg);
     }
