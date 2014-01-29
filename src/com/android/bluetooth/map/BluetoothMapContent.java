@@ -1214,15 +1214,25 @@ public class BluetoothMapContent {
         return where;
     }
 
-    private String setWhereFilterReadStatus(BluetoothMapAppParams ap) {
+    private String setWhereFilterReadStatus(BluetoothMapAppParams ap, FilterInfo fi) {
         String where = "";
         if (ap.getFilterReadStatus() != -1) {
-            if ((ap.getFilterReadStatus() & 0x01) != 0) {
-                where = " AND read=0 ";
-            }
+            if ((fi.msgType == FilterInfo.TYPE_SMS) || (fi.msgType == FilterInfo.TYPE_MMS)) {
+               if ((ap.getFilterReadStatus() & 0x01) != 0) {
+                   where = " AND read=0 ";
+               }
 
-            if ((ap.getFilterReadStatus() & 0x02) != 0) {
-                where = " AND read=1 ";
+               if ((ap.getFilterReadStatus() & 0x02) != 0) {
+                   where = " AND read=1 ";
+               }
+            } else {
+               if ((ap.getFilterReadStatus() & 0x01) != 0) {
+                    where = " AND flagRead=0 ";
+               }
+
+               if ((ap.getFilterReadStatus() & 0x02) != 0) {
+                    where = " AND flagRead=1 ";
+               }
             }
         }
 
@@ -1410,7 +1420,7 @@ public class BluetoothMapContent {
         String where = "";
 
         where += setWhereFilterFolderType(folder, fi);
-        where += setWhereFilterReadStatus(ap);
+        where += setWhereFilterReadStatus(ap, fi);
         where += setWhereFilterPeriod(ap, fi);
         /* where += setWhereFilterOriginator(ap, fi); */
         /* where += setWhereFilterRecipient(ap, fi); */
