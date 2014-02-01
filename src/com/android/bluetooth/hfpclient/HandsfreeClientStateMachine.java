@@ -704,7 +704,6 @@ final class HandsfreeClientStateMachine extends StateMachine {
 
         if (mQueryCallsSupported) {
             sendMessage(QUERY_CURRENT_CALLS);
-            return;
         }
 
         BluetoothHandsfreeClientCall c = null;
@@ -952,9 +951,6 @@ final class HandsfreeClientStateMachine extends StateMachine {
                 }
                 break;
             case BluetoothHandsfreeClientCall.CALL_STATE_HELD_BY_RESPONSE_AND_HOLD:
-                if (flag != BluetoothHandsfreeClient.CALL_ACCEPT_NONE) {
-                    return;
-                }
                 action = HandsfreeClientHalConstants.CALL_ACTION_BTRH_1;
                 break;
             case BluetoothHandsfreeClientCall.CALL_STATE_ALERTING:
