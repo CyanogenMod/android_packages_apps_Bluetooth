@@ -2081,8 +2081,14 @@ public class BluetoothMapContent {
         case SMS_CDMA:
             return getSmsMessage(id, appParams.getCharset());
         case MMS:
+            if(appParams.getCharset()== MAP_MESSAGE_CHARSET_NATIVE) {
+                throw new IllegalArgumentException("Invalid Charset: Native for Message Type MMS");
+            }
             return getMmsMessage(id, appParams);
         case EMAIL:
+            if(appParams.getCharset()== MAP_MESSAGE_CHARSET_NATIVE) {
+                throw new IllegalArgumentException("Invalid Charset: Native for Message Type Email");
+            }
             return getEmailMessage(id, appParams);
         }
         throw new IllegalArgumentException("Invalid message handle.");
