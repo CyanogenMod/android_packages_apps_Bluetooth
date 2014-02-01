@@ -852,7 +852,9 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             Log.w(TAG,"sendGetMessageRsp: IOException - sending OBEX_HTTP_BAD_REQUEST", e);
             return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
         } catch (IllegalArgumentException e) {
-            Log.w(TAG,"sendGetMessageRsp: IllegalArgumentException (e.g. invalid handle) - sending OBEX_HTTP_BAD_REQUEST", e);
+            Log.w(TAG,
+                     "sendGetMessageRsp: IllegalArgumentException (e.g. invalid handle or charset) - sending OBEX_HTTP_BAD_REQUEST"
+                         , e);
             return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
         }
 

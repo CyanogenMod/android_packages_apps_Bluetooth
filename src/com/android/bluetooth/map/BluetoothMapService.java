@@ -335,8 +335,12 @@ public class BluetoothMapService extends ProfileService {
         mConnectionManager.init();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         // start RFCOMM listener
+        if(mAdapter ==null) {
+          Log.w(TAG,"Local BT device is not enabled");
+        } else {
         mSessionStatusHandler.sendMessage(mSessionStatusHandler
                 .obtainMessage(START_LISTENER));
+        }
         return true;
     }
 
