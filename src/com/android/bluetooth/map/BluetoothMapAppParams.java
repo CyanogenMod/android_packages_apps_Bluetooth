@@ -87,6 +87,9 @@ public class BluetoothMapAppParams {
     public static final int CHARSET_NATIVE = 0;
     public static final int CHARSET_UTF8 = 1;
 
+    /* Default values for omitted application parameters */
+    public static final long PARAMETER_MASK_ALL_ENABLED = 0xFFFF; // TODO: Update when bit 16-31 will be used.
+
     private int maxListCount        = INVALID_VALUE_PARAMETER;
     private int startOffset         = INVALID_VALUE_PARAMETER;
     private int filterMessageType   = INVALID_VALUE_PARAMETER;

@@ -1175,6 +1175,15 @@ public class BluetoothMapContent {
         BluetoothMapMessageListing bmList = new BluetoothMapMessageListing();
         BluetoothMapMessageListingElement e = null;
 
+        /* We overwrite the parameter mask here if it is 0 or not present, as this
+         * should cause all parameters to be included in the message list. */
+        if(ap.getParameterMask() == BluetoothMapAppParams.INVALID_VALUE_PARAMETER ||
+                ap.getParameterMask() == 0) {
+            ap.setParameterMask(BluetoothMapAppParams.PARAMETER_MASK_ALL_ENABLED);
+            if (V) Log.w(TAG, "msgListing(): appParameterMask is zero or not present, " +
+                    "changing to: " + ap.getParameterMask());
+        }
+
         /* Cache some info used throughout filtering */
         FilterInfo fi = new FilterInfo();
         setFilterInfo(fi);
