@@ -20,6 +20,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import com.android.internal.util.FastXmlSerializer;
 
 import org.xmlpull.v1.XmlSerializer;
 
@@ -78,19 +79,20 @@ public class BluetoothMapMessageListing {
     public byte[] encode() throws UnsupportedEncodingException {
         Log.d(TAG, "encoding to UTF-8 format");
         StringWriter sw = new StringWriter();
-        XmlSerializer xmlMsgElement = Xml.newSerializer();
+        XmlSerializer xmlMsgElement = new FastXmlSerializer();
         try {
             xmlMsgElement.setOutput(sw);
-            xmlMsgElement.startDocument(null, null);
-            xmlMsgElement.startTag("", "MAP-msg-listing");
-            xmlMsgElement.attribute("", "version", "1.0");
+            xmlMsgElement.startDocument("UTF-8", true);
+            xmlMsgElement.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+            xmlMsgElement.startTag(null, "MAP-msg-listing");
+            xmlMsgElement.attribute(null, "version", "1.0");
             // Do the XML encoding of list
             if(list != null) {
                for (BluetoothMapMessageListingElement element : list) {
                    try {
                         element.encode(xmlMsgElement); // Append the list element
                    } catch (IllegalArgumentException e) {
-                        xmlMsgElement.endTag("", "msg");
+                        xmlMsgElement.endTag(null, "msg");
                         Log.w(TAG, e.toString());
                    } catch (IllegalStateException e) {
                         Log.w(TAG, e.toString());
@@ -99,7 +101,7 @@ public class BluetoothMapMessageListing {
                    }
                }
             }
-            xmlMsgElement.endTag("", "MAP-msg-listing");
+            xmlMsgElement.endTag(null, "MAP-msg-listing");
             xmlMsgElement.endDocument();
         } catch (IOException e) {
             Log.w(TAG, e.toString());
