@@ -700,7 +700,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                     if (D) Log.d(TAG, "currentValue=" + currentValue);
                     if (currentValue.equals(compareValue)) {
                         itemsFound++;
-                        currentValue = currentValue.substring(0, currentValue.lastIndexOf(','));
+                        if (currentValue.contains(","))
+                           currentValue = currentValue.substring(0, currentValue.lastIndexOf(','));
                         writeVCardEntry(pos, currentValue,result);
                     }
                 }
