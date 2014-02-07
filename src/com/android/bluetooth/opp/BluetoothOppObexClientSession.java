@@ -679,8 +679,6 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
         private void handleSendException(String exception) {
             Log.e(TAG, "Error when sending file: " + exception);
-            int status = BluetoothShare.STATUS_OBEX_DATA_ERROR;
-            Constants.updateShareStatus(mContext1, mInfo.mId, status);
             mCallback.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
         }
 
