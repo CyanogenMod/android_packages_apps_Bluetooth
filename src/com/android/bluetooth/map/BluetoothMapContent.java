@@ -1775,7 +1775,7 @@ public class BluetoothMapContent {
 
             message.setSubject(c.getString(c.getColumnIndex(MessageColumns.SUBJECT)));
             message.setContentType("Content-Type: text/plain; charset=\"UTF-8\"");
-            message.setDate(c.getLong(c.getColumnIndex(MessageColumns.TIMESTAMP)) * 1000L);
+            message.setDate(c.getLong(c.getColumnIndex(MessageColumns.TIMESTAMP)));
             message.setIncludeAttachments(appParams.getAttachment() == 0 ? false : true);
 
             // The parts
