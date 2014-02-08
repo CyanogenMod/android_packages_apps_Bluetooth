@@ -432,7 +432,8 @@ class BluetoothOppNotification {
         if (mInboundUpdateCompleteNotification && mNotificationMgr != null && mInboundActiveNotificationId != 0) {
             mNotificationMgr.cancel(mInboundActiveNotificationId);
             if (V) Log.v(TAG, "Inbound transfer notification was removed");
-        } else if (mOutboundUpdateCompleteNotification && mNotificationMgr != null && mOutboundActiveNotificationId != 0) {
+        }
+        if (mOutboundUpdateCompleteNotification && mNotificationMgr != null && mOutboundActiveNotificationId != 0) {
             mNotificationMgr.cancel(mOutboundActiveNotificationId);
             if (V) Log.v(TAG, "Outbound transfer notification was removed");
         }
