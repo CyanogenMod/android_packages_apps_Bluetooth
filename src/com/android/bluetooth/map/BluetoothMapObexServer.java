@@ -239,7 +239,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             return ResponseCodes.OBEX_HTTP_PRECON_FAILED;
         }
         try {
-            if(folderName == null || folderName.equals("")) {
+            if(folderName == null || folderName.trim().isEmpty()) {
                 folderName = mCurrentFolder.getName();
             }
             folderName = folderName.toLowerCase();
@@ -344,7 +344,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
         }
 
-        if (folderName == null || folderName == "") {
+        if (folderName == null || folderName.trim().isEmpty()) {
             if(backup == false)
                 mCurrentFolder = mCurrentFolder.getRoot();
         }
