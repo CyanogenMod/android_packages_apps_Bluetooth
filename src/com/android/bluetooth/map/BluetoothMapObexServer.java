@@ -440,7 +440,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
         }
 
-        if (folderName == null || folderName == "") {
+        if (folderName == null || folderName.trim().isEmpty() ) {
             if(backup == false)
                 mCurrentFolder = mCurrentFolder.getRoot();
         }
