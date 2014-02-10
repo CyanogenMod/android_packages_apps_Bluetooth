@@ -398,19 +398,25 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
         sb.append("--"+boundary).append("\r\n");
 
         Log.v(TAG, "after encode header sb is "+ sb.toString());
-        if(getIncludeAttachments() == false) {
-            for(MimePart part : parts) {
-                part.encodePlainText(sb); /* We call encode on all parts, to include a tag, where an attachment is missing. */
-                sb.append("--"+boundary+"--").append("\r\n");
-            }
+
+        if (parts != null) {
+            if(getIncludeAttachments() == false) {
+               for(MimePart part : parts) {
+                   part.encodePlainText(sb); /* We call encode on all parts, to include a tag, where an attachment is missing. */
+                   sb.append("--"+boundary+"--").append("\r\n");
+               }
+           } else {
+               for(MimePart part : parts) {
+                   count++;
+                   part.encode(sb, getBoundary(), (count == parts.size()));
+               }
+           }
         } else {
-            for(MimePart part : parts) {
-                count++;
-                part.encode(sb, getBoundary(), (count == parts.size()));
-            }
+               Log.e(TAG, " parts is null.");
         }
 
         emailBody = sb.toString();
+        if (V) Log.v(TAG, "emailBody is "+emailBody);
 
         if(emailBody != null) {
             String tmpBody = emailBody.replaceAll("END:MSG", "/END\\:MSG"); // Replace any occurrences of END:MSG with \END:MSG
