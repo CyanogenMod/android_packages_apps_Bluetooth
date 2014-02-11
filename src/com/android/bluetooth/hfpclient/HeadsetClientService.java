@@ -30,6 +30,8 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Message;
 import android.provider.Settings;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
@@ -64,6 +66,7 @@ public class HeadsetClientService extends ProfileService {
         mStateMachine = HeadsetClientStateMachine.make(this);
         IntentFilter filter = new IntentFilter(AudioManager.VOLUME_CHANGED_ACTION);
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
+        filter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
         try {
             registerReceiver(mBroadcastReceiver, filter);
         } catch (Exception e) {
@@ -112,6 +115,15 @@ public class HeadsetClientService extends ProfileService {
                         mStateMachine.sendMessage(mStateMachine.obtainMessage(
                                 HeadsetClientStateMachine.SET_SPEAKER_VOLUME, streamValue, 0));
                     }
+                }
+            } else if (action.equals(TelephonyManager.ACTION_PHONE_STATE_CHANGED)) {
+                String callState = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
+                Log.i(TAG,"Current call state is " + callState);
+                // Terminate SCO for HFP Client call.
+                if (mStateMachine.isAudioOn() &&
+                        (callState.equals(TelephonyManager.EXTRA_STATE_OFFHOOK))) {
+                    Log.i(TAG,"HFP Client audio is on,Disconnect Audio");
+                    mStateMachine.sendMessage(HeadsetClientStateMachine.DISCONNECT_AUDIO);
                 }
             }
         }

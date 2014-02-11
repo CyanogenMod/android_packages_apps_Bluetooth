@@ -2019,24 +2019,27 @@ final class HeadsetClientStateMachine extends StateMachine {
                     mAudioWbs = true;
                     // fall through
                 case HeadsetClientHalConstants.AUDIO_STATE_CONNECTED:
-                    mAudioState = BluetoothHeadsetClient.STATE_AUDIO_CONNECTED;
+                    int currMode = mAudioManager.getMode();
+                    Log.d(TAG,"currMode is " + currMode);
                     // request audio focus for call
                     if (mRingtone != null && mRingtone.isPlaying()) {
                         Log.d(TAG,"stopping ring and request focus for call");
                         mRingtone.stop();
                     }
-                    int newAudioMode = AudioManager.MODE_IN_CALL;
-                    int currMode = mAudioManager.getMode();
-                    if (currMode != newAudioMode) {
-                         // request audio focus before setting the new mode
-                         mAudioManager.requestAudioFocusForCall(AudioManager.STREAM_VOICE_CALL,
-                                 AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
-                         Log.d(TAG, "setAudioMode Setting audio mode from "
-                            + currMode + " to " + newAudioMode);
-                         mAudioManager.setMode(newAudioMode);
+                    if (currMode == AudioManager.MODE_IN_CALL ||
+                                currMode == AudioManager.MODE_IN_COMMUNICATION) {
+                        Log.d(TAG,"Telephony audio is active");
+                        disconnectAudioNative(getByteAddress(mCurrentDevice));
+                        break;
                     }
-                    Log.d(TAG,"hfp_enable=true");
-                    Log.d(TAG,"mAudioWbs is " + mAudioWbs);
+                    int newAudioMode = AudioManager.MODE_IN_CALL;
+                    // request audio focus before setting the new mode
+                    mAudioManager.requestAudioFocusForCall(AudioManager.STREAM_VOICE_CALL,
+                            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+                    Log.d(TAG, "setAudioMode Setting audio mode from "
+                            + currMode + " to " + newAudioMode + "hfp_enable=true" +
+                            "mAudioWbs is " + mAudioWbs);
+                    mAudioManager.setMode(newAudioMode);
                     if (mAudioWbs) {
                         Log.d(TAG,"Setting sampling rate as 16000");
                         mAudioManager.setParameters("hfp_set_sampling_rate=16000");
@@ -2045,6 +2048,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                         Log.d(TAG,"Setting sampling rate as 8000");
                         mAudioManager.setParameters("hfp_set_sampling_rate=8000");
                     }
+                    mAudioState = BluetoothHeadsetClient.STATE_AUDIO_CONNECTED;
                     mAudioManager.setParameters("hfp_enable=true");
                     broadcastAudioState(device, BluetoothHeadsetClient.STATE_AUDIO_CONNECTED,
                             BluetoothHeadsetClient.STATE_AUDIO_CONNECTING);
