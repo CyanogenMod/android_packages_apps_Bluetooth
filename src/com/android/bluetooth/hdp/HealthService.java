@@ -112,15 +112,16 @@ public class HealthService extends ProfileService {
     }
 
     private void cleanupApps(){
-        Iterator <Map.Entry<BluetoothHealthAppConfiguration,AppInfo>>it
-                    = mApps.entrySet().iterator();
-        while (it.hasNext())
-        {
-           Map.Entry<BluetoothHealthAppConfiguration,AppInfo> entry   = it.next();
-           AppInfo appInfo = entry.getValue();
-           if (appInfo != null)
-               appInfo.cleanup();
-           it.remove();
+        if (mApps != null) {
+            Iterator <Map.Entry<BluetoothHealthAppConfiguration,AppInfo>>it
+                        = mApps.entrySet().iterator();
+            while (it.hasNext()) {
+               Map.Entry<BluetoothHealthAppConfiguration,AppInfo> entry   = it.next();
+               AppInfo appInfo = entry.getValue();
+               if (appInfo != null)
+                   appInfo.cleanup();
+               it.remove();
+            }
         }
     }
     protected boolean cleanup() {
