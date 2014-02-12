@@ -936,6 +936,10 @@ public class BluetoothOppService extends Service {
     }
 
     private void removeBatch(BluetoothOppBatch batch) {
+        if (batch == null) {
+            if (V) Log.v(TAG, "batch is null");
+            return;
+        }
         if (V) Log.v(TAG, "Remove batch " + batch.mId);
         mBatchs.remove(batch);
         BluetoothOppBatch nextBatch;
