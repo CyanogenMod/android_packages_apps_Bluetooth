@@ -1597,6 +1597,8 @@ final class HandsfreeClientStateMachine extends StateMachine {
                     }
                     break;
                 case SET_SPEAKER_VOLUME:
+                    Log.d(TAG,"Volume is set to " + message.arg1);
+                    mAudioManager.setParameters("hfp_volume=" + message.arg1);
                     if (mVgsFromStack) {
                         mVgsFromStack = false;
                         break;
