@@ -258,6 +258,8 @@ final class HeadsetStateMachine extends StateMachine {
             log("Enter Disconnected: " + getCurrentMessage().what);
             mPhonebook.resetAtState();
             mPhoneState.listenForPhoneState(false);
+            mVoiceRecognitionStarted = false;
+            mWaitingForVoiceRecognition = false;
         }
 
         @Override
