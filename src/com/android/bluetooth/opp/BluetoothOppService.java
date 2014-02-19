@@ -393,6 +393,7 @@ public class BluetoothOppService extends Service {
                         break;
                     case BluetoothAdapter.STATE_TURNING_OFF:
                         if (V) Log.v(TAG, "Receiver DISABLED_ACTION ");
+                        removePendingTransfer();
                         mNotifier.updateNotifier();
                         //FIX: Don't block main thread
                         /*
@@ -865,6 +866,94 @@ public class BluetoothOppService extends Service {
                 removeBatch(batch);
             }
         }
+    }
+
+    private void removePendingTransfer() {
+        if (V) Log.v(TAG, "Remove pending share");
+        Cursor cursor = null;
+        try {
+            cursor = getContentResolver().query(BluetoothShare.CONTENT_URI, null, null,
+                null, BluetoothShare._ID);
+        } catch (SQLiteException e) {
+            if (cursor != null){
+                cursor.close();
+            }
+            cursor = null;
+            Log.e(TAG, "UpdateThread: " + e);
+        } catch (CursorWindowAllocationException e) {
+            cursor = null;
+            Log.e(TAG, "UpdateThread: " + e);
+        }
+
+        if (cursor == null) {
+            return;
+        }
+
+        cursor.moveToFirst();
+        int arrayPos = 0;
+        boolean isAfterLast = cursor.isAfterLast();
+
+        while (!isAfterLast || arrayPos < mShares.size()) {
+            String uriString = cursor.getString(cursor.getColumnIndexOrThrow(BluetoothShare.URI));
+            Uri uri;
+            if (uriString != null) {
+                uri = Uri.parse(uriString);
+                Log.d(TAG, "removeShare parsed URI: " + uri);
+            } else {
+                uri = null;
+                Log.e(TAG, "removeShare found null URI at cursor!");
+            }
+            BluetoothOppShareInfo info = new BluetoothOppShareInfo(
+                cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID)),
+                uri,
+                cursor.getString(cursor.getColumnIndexOrThrow(BluetoothShare.FILENAME_HINT)),
+                cursor.getString(cursor.getColumnIndexOrThrow(BluetoothShare._DATA)),
+                cursor.getString(cursor.getColumnIndexOrThrow(BluetoothShare.MIMETYPE)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare.DIRECTION)),
+                cursor.getString(cursor.getColumnIndexOrThrow(BluetoothShare.DESTINATION)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare.VISIBILITY)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare.USER_CONFIRMATION)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare.STATUS)),
+                cursor.getLong(cursor.getColumnIndexOrThrow(BluetoothShare.TOTAL_BYTES)),
+                cursor.getLong(cursor.getColumnIndexOrThrow(BluetoothShare.CURRENT_BYTES)),
+                cursor.getLong(cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(Constants.MEDIA_SCANNED)) != Constants.MEDIA_SCANNED_NOT_SCANNED);
+
+            if (V) {
+                Log.v(TAG, "Service remove entry");
+                Log.v(TAG, "ID      : " + info.mId);
+                // Log.v(TAG, "URI     : " + ((info.mUri != null) ? "yes" : "no"));
+                Log.v(TAG, "URI     : " + info.mUri);
+                Log.v(TAG, "HINT    : " + info.mHint);
+                Log.v(TAG, "FILENAME: " + info.mFilename);
+                Log.v(TAG, "MIMETYPE: " + info.mMimetype);
+                Log.v(TAG, "DIRECTION: " + info.mDirection);
+                Log.v(TAG, "DESTINAT: " + info.mDestination);
+                Log.v(TAG, "VISIBILI: " + info.mVisibility);
+                Log.v(TAG, "CONFIRM : " + info.mConfirm);
+                Log.v(TAG, "STATUS  : " + info.mStatus);
+                Log.v(TAG, "TOTAL   : " + info.mTotalBytes);
+                Log.v(TAG, "CURRENT : " + info.mCurrentBytes);
+                Log.v(TAG, "TIMESTAMP : " + info.mTimestamp);
+                Log.v(TAG, "SCANNED : " + info.mMediaScanned);
+            }
+
+            if (info.isReadyToStart()) {
+                if (info.mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
+                    BluetoothOppSendFileInfo sendFileInfo = BluetoothOppUtility.getSendFileInfo(
+                        info.mUri);
+                    Constants.updateShareStatus(this, info.mId, BluetoothShare.STATUS_BAD_REQUEST);
+                    BluetoothOppUtility.closeSendFileInfo(info.mUri);
+                }
+            }
+
+            ++arrayPos;
+            cursor.moveToNext();
+            isAfterLast = cursor.isAfterLast();
+        }
+        cursor.close();
+        if (V) Log.v(TAG, "Freeing cursor: " + cursor);
+        cursor = null;
     }
 
     /**
