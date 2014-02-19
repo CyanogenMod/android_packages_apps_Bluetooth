@@ -77,6 +77,8 @@ public class BluetoothOppManager {
 
     private String mUriOfSendingFile;
 
+    private String mNameOfSendingFile;
+
     private String mMimeTypeOfSendingFiles;
 
     private ArrayList<Uri> mUrisOfSendingFiles;
@@ -260,6 +262,7 @@ public class BluetoothOppManager {
             uri = BluetoothOppUtility.generateUri(uri, sendFileInfo);
             BluetoothOppUtility.putSendFileInfo(uri, sendFileInfo);
             mUriOfSendingFile = uri.toString();
+            mNameOfSendingFile = sendFileInfo.mFileName;
             storeApplicationData();
         }
     }
@@ -357,7 +360,7 @@ public class BluetoothOppManager {
                 return;
             }
             insertThread = new InsertShareInfoThread(device, mMultipleFlag, mMimeTypeOfSendingFile,
-                    mUriOfSendingFile, mMimeTypeOfSendingFiles, mUrisOfSendingFiles,
+                    mUriOfSendingFile, mNameOfSendingFile, mMimeTypeOfSendingFiles, mUrisOfSendingFiles,
                     mIsHandoverInitiated);
             if (mMultipleFlag) {
                 mfileNumInBatch = mUrisOfSendingFiles.size();
@@ -382,6 +385,8 @@ public class BluetoothOppManager {
 
         private final String mUri;
 
+        private final String mNameOfSingleFile;
+
         private final String mTypeOfMultipleFiles;
 
         private final ArrayList<Uri> mUris;
@@ -391,13 +396,15 @@ public class BluetoothOppManager {
         private final boolean mIsHandoverInitiated;
 
         public InsertShareInfoThread(BluetoothDevice device, boolean multiple,
-                String typeOfSingleFile, String uri, String typeOfMultipleFiles,
-                ArrayList<Uri> uris, boolean handoverInitiated) {
+                String typeOfSingleFile, String uri, String nameOfSingleFile,
+                String typeOfMultipleFiles, ArrayList<Uri> uris,
+                boolean handoverInitiated) {
             super("Insert ShareInfo Thread");
             this.mRemoteDevice = device;
             this.mIsMultiple = multiple;
             this.mTypeOfSingleFile = typeOfSingleFile;
             this.mUri = uri;
+            this.mNameOfSingleFile = nameOfSingleFile;
             this.mTypeOfMultipleFiles = typeOfMultipleFiles;
             this.mUris = uris;
             this.mIsHandoverInitiated = handoverInitiated;
@@ -467,6 +474,7 @@ public class BluetoothOppManager {
         private void insertSingleShare() {
             ContentValues values = new ContentValues();
             values.put(BluetoothShare.URI, mUri);
+            values.put(BluetoothShare.FILENAME_HINT, mNameOfSingleFile);
             values.put(BluetoothShare.MIMETYPE, mTypeOfSingleFile);
             values.put(BluetoothShare.DESTINATION, mRemoteDevice.getAddress());
             if (mIsHandoverInitiated) {
