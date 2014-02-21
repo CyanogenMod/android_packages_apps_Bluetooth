@@ -273,17 +273,19 @@ public class BluetoothMapService extends ProfileService {
         Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
         int connectionState;
         synchronized (this) {
-            for (BluetoothDevice device : bondedDevices) {
-                ParcelUuid[] featureUuids = device.getUuids();
-                if (!BluetoothUuid.containsAnyUuid(featureUuids, MAP_UUIDS)) {
-                    continue;
-                }
-                connectionState = getConnectionState(device);
-                for(int i = 0; i < states.length; i++) {
-                    if (connectionState == states[i]) {
-                        deviceList.add(device);
-                    }
-                }
+            if (bondedDevices != null) {
+               for (BluetoothDevice device : bondedDevices) {
+                   ParcelUuid[] featureUuids = device.getUuids();
+                   if (!BluetoothUuid.containsAnyUuid(featureUuids, MAP_UUIDS)) {
+                       continue;
+                   }
+                   connectionState = getConnectionState(device);
+                   for(int i = 0; i < states.length; i++) {
+                       if (connectionState == states[i]) {
+                           deviceList.add(device);
+                       }
+                   }
+               }
             }
         }
         return deviceList;

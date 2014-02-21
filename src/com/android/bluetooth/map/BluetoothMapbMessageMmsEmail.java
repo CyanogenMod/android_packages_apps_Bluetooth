@@ -87,11 +87,13 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
 
         public void encodePlainText(StringBuilder sb) throws UnsupportedEncodingException {
             if(contentType != null && contentType.toUpperCase().contains("TEXT")) {
-                sb.append(contentType).append("\r\n");
-                sb.append("Content-Transfer-Encoding: 8bit").append("\r\n");
-                sb.append("Content-Disposition:inline").append("\r\n")
-                        .append("\r\n");
-                sb.append(new String(data,"UTF-8")).append("\r\n");
+                if(data != null) {
+                   sb.append(contentType).append("\r\n");
+                   sb.append("Content-Transfer-Encoding: 8bit").append("\r\n");
+                   sb.append("Content-Disposition:inline").append("\r\n")
+                           .append("\r\n");
+                   sb.append(new String(data,"UTF-8")).append("\r\n");
+                }
             } else if(contentType != null && contentType.toUpperCase().contains("/SMIL")) {
                 /* Skip the smil.xml, as no-one knows what it is. */
             } else {
