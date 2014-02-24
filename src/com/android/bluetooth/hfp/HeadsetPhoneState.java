@@ -186,7 +186,9 @@ class HeadsetPhoneState {
         @Override
         public void onSignalStrengthsChanged(SignalStrength signalStrength) {
             int prevSignal = mSignal;
-            if (signalStrength.isGsm()) {
+            if (mService == HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE)
+                mSignal = 0;
+            else if (signalStrength.isGsm()) {
                 mSignal = gsmAsuToSignal(signalStrength);
             } else {
                 mSignal = cdmaDbmEcioToSignal(signalStrength);
