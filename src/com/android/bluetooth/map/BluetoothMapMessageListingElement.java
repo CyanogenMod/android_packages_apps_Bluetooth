@@ -253,7 +253,7 @@ public class BluetoothMapMessageListingElement
             if(sent != null)
                 xmlMsgElement.attribute("", "sent", sent);
             if(protect != null)
-                xmlMsgElement.attribute("", "protect", protect);
+                xmlMsgElement.attribute("", "protected", protect);
             xmlMsgElement.endTag("", "msg");
 
     }
