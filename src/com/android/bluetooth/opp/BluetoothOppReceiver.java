@@ -45,6 +45,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.CursorWindowAllocationException;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.util.Log;
@@ -200,13 +201,19 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             context.startActivity(in);
         } else if (action.equals(Constants.ACTION_HIDE)) {
             if (V) Log.v(TAG, "Receiver hide for " + intent.getData());
-            Cursor cursor;
+            Cursor cursor = null;
             try {
                 cursor = context.getContentResolver().query(intent.getData(), null, null, null,
                     null);
             } catch (SQLiteException e) {
+                if (cursor != null) {
+                    cursor.close();
+                }
                 cursor = null;
-                Log.e(TAG, "SQLite exception: " + e);
+                Log.e(TAG, "onReceive: " + e);
+            } catch (CursorWindowAllocationException e) {
+                cursor = null;
+                Log.e(TAG, "onReceive: " + e);
             }
 
             if (cursor != null) {

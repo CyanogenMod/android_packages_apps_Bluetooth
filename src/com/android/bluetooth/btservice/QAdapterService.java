@@ -335,11 +335,88 @@ public class QAdapterService extends Service {
              }
              return null;
          }
+         public int getLEAdvMode() {
+             if (!Utils.checkCaller()) {
+                 Log.w(TAG,"getLEAdvMode(): not allowed for non-active user");
+                 return QBluetoothAdapter.ADV_MODE_NONE;
+             }
+
+              QAdapterService service = getService();
+              if (service == null) return QBluetoothAdapter.ADV_MODE_NONE;
+              return service.getLEAdvMode();
+         }
+         public boolean setLEAdvMode(int mode) {
+            if (!Utils.checkCaller()) {
+                 Log.w(TAG,"setLEAdvMode(): not allowed for non-active user");
+                 return false;
+            }
+
+            QAdapterService service = getService();
+            if (service == null) return false;
+            return service.setLEAdvMode(mode);
+         }
+
+         public boolean setLEAdvParams(int min_int, int max_int, String address, int ad_type) {
+            if (!Utils.checkCaller()) {
+                 Log.w(TAG,"setLEAdvParams(): not allowed for non-active user");
+                 return false;
+            }
+
+            QAdapterService service = getService();
+            if (service == null) return false;
+
+            Log.d(TAG,"setLEAdvParams() in Adapterservice: address:" + address);
+            return service.setLEAdvParams(min_int,max_int, address, ad_type);
+         }
+
+         public boolean setLEManuData(byte[] manuData) {
+            if (!Utils.checkCaller()) {
+                 Log.w(TAG,"setLEManuData(): not allowed for non-active user");
+                 return false;
+            }
+            QAdapterService service = getService();
+            if (service == null) return false;
+            Log.d(TAG,"setLEManuData() in Adapterservice: manuData:" + manuData);
+            return service.setLEManuData(manuData);
+          }
+
+         public boolean setLEServiceData(byte[] serviceData) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG,"setLEServiceData(): not allowed for non-active user");
+                return false;
+            }
+            QAdapterService service = getService();
+            if (service == null) return false;
+            Log.d(TAG,"setLEServiceData() in Adapterservice: serviceData:" + serviceData);
+            return service.setLEServiceData(serviceData);
+         }
+         public boolean setLEAdvMask(boolean bLocalName, boolean bServices, boolean bTxPower, boolean bManuData, boolean ServiceData) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG,"setLEAdvMask(): not allowed for non-active user");
+                return false;
+            }
+            QAdapterService service = getService();
+            if (service == null) return false;
+            Log.d(TAG,"setLEAdvMask() in Adapterservice: bLocalName:" + bLocalName + "bServices: "+ bServices+ " bTxPower:"+bTxPower+ " manuData:"+ bManuData +" ServiceData" +ServiceData);
+            return service.setLEAdvMask(bLocalName,bServices,bTxPower, bManuData, ServiceData);
+          }
+
+         public boolean setLEScanRespMask(boolean bLocalName, boolean bServices, boolean bTxPower, boolean bManuData) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG,"setLEScanRespMask(): not allowed for non-active user");
+                return false;
+            }
+            QAdapterService service = getService();
+            if (service == null) return false;
+            Log.d(TAG,"setLEScanRespMask() in Adapterservice: bLocalName:" + bLocalName + "bServices: "+ bServices+ " bTxPower:"+bTxPower + " manuData:"+ bManuData);
+            return service.setLEScanRespMask(bLocalName,bServices,bTxPower,bManuData);
+          }
 
           public int startLeScanEx(BluetoothLEServiceUuid[] services, IQBluetoothAdapterCallback callback) {
-              QAdapterService service = getService();
-              if (service == null) return -1;
-              return service.startLeExtendedScan(services, callback);
+               Log.d(TAG, "startLeScanEx()");
+               QAdapterService service = getService();
+               if (service == null) return -1;
+               return service.startLeExtendedScan(services, callback);
           }
 
           public void stopLeScanEx(int token) {
@@ -371,10 +448,103 @@ public class QAdapterService extends Service {
               if (service == null) return;
               service.enableRssiMonitor(address, enable);
           }
-    }
+     }
 
 
     //----API Methods--------
+     int getLEAdvMode() {
+         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
+         return mAdapterProperties.getLEAdvMode();
+     }
+
+     boolean setLEAdvParams(int min_int, int max_int, String address, int ad_type){
+         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
+         byte[] addr = Utils.getBytesFromAddress(address);
+         debugLog("in QAdapterService, calling the native fn");
+         return setLEAdvParamsNative(min_int,max_int,addr,ad_type);
+     }
+     boolean setLEAdvMode(int mode) {
+         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
+         int newMode = convertAdvModeToHal(mode);
+         return mAdapterProperties.setLEAdvMode(newMode);
+     }
+
+     boolean setLEManuData(byte[] manuData){
+         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
+         debugLog("in AdapterService, calling the native fn for manudata");
+         return setLEManuDataNative(manuData);
+     }
+
+     boolean setLEServiceData(byte[] serviceData){
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
+        debugLog("in AdapterService, calling the native fn for serviceData");
+        return setLEServiceDataNative(serviceData);
+     }
+
+     boolean setLEAdvMask(boolean bLocalName, boolean bServices, boolean bTxPower, boolean bManuData, boolean ServiceData){
+         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+         int dMask=0;
+        if(bLocalName)
+             dMask|=AbstractionLayer.BTM_BLE_AD_BIT_DEV_NAME;
+        if(bServices)
+             dMask|=AbstractionLayer.BTM_BLE_AD_BIT_SERVICE;
+        if(bTxPower)
+             dMask|=AbstractionLayer.BTM_BLE_AD_BIT_TX_PWR;
+        if(bManuData)
+             dMask|=AbstractionLayer.BTM_BLE_AD_BIT_MANU;
+        if(ServiceData)
+             dMask|=AbstractionLayer.BTM_BLE_AD_BIT_SERVICE_DATA;
+         debugLog("in AdapterService, calling the native fn for adv data mask" + dMask);
+         return setLEadvMaskNative(dMask);
+     }
+
+     boolean setLEScanRespMask(boolean bLocalName, boolean bServices, boolean bTxPower,boolean bManuData){
+         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+         int dMask=0;
+         if(bLocalName)
+             dMask|=AbstractionLayer.BTM_BLE_AD_BIT_DEV_NAME;
+         if(bServices)
+             dMask|=AbstractionLayer.BTM_BLE_AD_BIT_SERVICE;
+         if(bTxPower)
+             dMask|=AbstractionLayer.BTM_BLE_AD_BIT_TX_PWR;
+         if(bManuData)
+             dMask|=AbstractionLayer.BTM_BLE_AD_BIT_MANU;
+         debugLog("in AdapterService, calling the native fn for scan resp mask" + dMask);
+         return setLEscanRespMaskNative(dMask);
+     }
+
+     private static int convertAdvModeToHal(int mode) {
+        switch (mode) {
+            case QBluetoothAdapter.ADV_MODE_NONE:
+                return AbstractionLayer.BLE_ADV_MODE_NONE;
+            case QBluetoothAdapter.ADV_IND_GENERAL_CONNECTABLE:
+                return AbstractionLayer.BLE_ADV_IND_GENERAL_CONNECTABLE;
+            case QBluetoothAdapter.ADV_IND_LIMITED_CONNECTABLE:
+                return AbstractionLayer.BLE_ADV_IND_LIMITED_CONNECTABLE;
+            case QBluetoothAdapter.ADV_DIR_CONNECTABLE:
+                return AbstractionLayer.BLE_ADV_DIR_CONNECTABLE;
+        }
+        return -1;
+    }
+
+    static int convertAdvModeFromHal(int mode) {
+        switch (mode) {
+             case AbstractionLayer.BLE_ADV_MODE_NONE:
+                 return QBluetoothAdapter.ADV_MODE_NONE;
+             case AbstractionLayer.BLE_ADV_IND_GENERAL_CONNECTABLE:
+                 return QBluetoothAdapter.ADV_IND_GENERAL_CONNECTABLE;
+             case AbstractionLayer.BLE_ADV_IND_LIMITED_CONNECTABLE:
+                 return QBluetoothAdapter.ADV_IND_LIMITED_CONNECTABLE;
+             case AbstractionLayer.BLE_ADV_DIR_CONNECTABLE:
+                 return QBluetoothAdapter.ADV_DIR_CONNECTABLE;
+         }
+         return -1;
+     }
 
      int startLeExtendedScan(BluetoothLEServiceUuid[] services, IQBluetoothAdapterCallback callback) {
          enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
@@ -491,6 +661,14 @@ public class QAdapterService extends Service {
     private native static void classInitNative();
     private native boolean initNative();
     private native void cleanupNative();
+    private native boolean setLEAdvParamsNative(int min_int, int max_int, byte[] address, int ad_type);
+
+    private native boolean setLEManuDataNative(byte [] buff);
+
+    private native boolean setLEServiceDataNative(byte [] buff);
+    private native boolean setLEadvMaskNative(int mask);
+    private native boolean setLEscanRespMaskNative(int mask);
+    /*package*/ native boolean setLEAdvModeNative(int type, byte[] val);
 
     private native void btLeExtendedScanNative(BluetoothLEServiceUuid[] uuids, boolean start);
     private native void btLeLppWriteRssiThresholdNative(String address, byte min, byte max);

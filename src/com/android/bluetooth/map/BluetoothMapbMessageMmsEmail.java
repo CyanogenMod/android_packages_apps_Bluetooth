@@ -276,6 +276,10 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
     }
     public int getSize() {
         int message_size = 0;
+        if (parts == null) {
+            Log.e(TAG, " parts is null. returning ");
+            return message_size;
+        }
         for(MimePart part : parts) {
             message_size += part.data.length;
         }
@@ -394,16 +398,21 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
         sb.append("--"+boundary).append("\r\n");
 
         Log.v(TAG, "after encode header sb is "+ sb.toString());
-        if(getIncludeAttachments() == false) {
-            for(MimePart part : parts) {
-                part.encodePlainText(sb); /* We call encode on all parts, to include a tag, where an attachment is missing. */
-                sb.append("--"+boundary+"--").append("\r\n");
-            }
+
+        if (parts != null) {
+            if(getIncludeAttachments() == false) {
+               for(MimePart part : parts) {
+                   part.encodePlainText(sb); /* We call encode on all parts, to include a tag, where an attachment is missing. */
+                   sb.append("--"+boundary+"--").append("\r\n");
+               }
+           } else {
+               for(MimePart part : parts) {
+                   count++;
+                   part.encode(sb, getBoundary(), (count == parts.size()));
+               }
+           }
         } else {
-            for(MimePart part : parts) {
-                count++;
-                part.encode(sb, getBoundary(), (count == parts.size()));
-            }
+               Log.e(TAG, " parts is null.");
         }
 
         emailBody = sb.toString();
@@ -576,14 +585,15 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
 
     private void parseMmsMimePart(String partStr) {
         String[] parts = partStr.split("\r\n\r\n", 2); // Split the header from the body
-        String body;
+        String body=null;
         if(parts.length != 2) {
-            body = partStr;
+            //body = partStr;
+            throw new IllegalArgumentException("Mime part not formatted correctly: No Header");
         } else {
             body = parts[1];
         }
         String[] headers = parts[0].split("\r\n");
-        MimePart newPart = addMimePart();
+        MimePart newPart = null;
         String partEncoding = encoding; /* Use the overall encoding as default */
 
         for(String header : headers) {
@@ -593,8 +603,13 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
             if(header.trim() == "" || header.trim().equals("--")) // Skip empty lines(the \r\n after the boundary tag) and endBoundary tags
                 continue;
             String[] headerParts = header.split(":",2);
-            if(headerParts.length != 2)
-                throw new IllegalArgumentException("part-Header not formatted correctly: " + header);
+            if(headerParts.length != 2) {
+                throw new IllegalArgumentException("part-Header not Formatted correctly: " + header);
+            }
+            if( newPart == null) {
+                 if(V) Log.d(TAG,"Add new MimePart\n");
+                 newPart = addMimePart();
+            }
             String headerType = headerParts[0].toUpperCase();
             String headerValue = headerParts[1].trim();
             if(headerType.contains("CONTENT-TYPE")) {
@@ -808,7 +823,6 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
                 messageBody = messageParts[1];
             }
         }
-
         if(boundary == null)
         {
             // If the boundary is not set, handle as non-multi-part
@@ -820,12 +834,17 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
         }
         else
         {
-            mimeParts = messageBody.split("--" + boundary);
-            for(int i = 0; i < mimeParts.length - 1; i++) {
+            mimeParts = messageBody.split("--" + boundary.replaceAll("\"",""));
+            for(int i = 0; i < mimeParts.length -1; i++) {
                 String part = mimeParts[i];
-                if (part != null && (part.length() > 0))
-                    parseMmsMimePart(part);
-        }
+                if (part != null && (part.length() > 0)){
+                    try {
+                        parseMmsMimePart(part);
+                    } catch (IllegalArgumentException e) {
+                       Log.d(TAG, " part-Header not formatted correctly: " + e);
+                    }
+                }
+           }
         }
     }
 

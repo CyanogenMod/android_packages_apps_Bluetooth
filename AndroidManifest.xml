@@ -318,5 +318,18 @@
                 <action android:name="android.bluetooth.IBluetoothHidDevice" />
             </intent-filter>
         </service>
+        <receiver
+            android:exported="true"
+            android:name=".wipower.BTEventHandler">
+            <intent-filter>
+                <action android:name="android.bluetooth.adapter.action.STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+        <service
+           android:name = ".wipower.WipowerService">
+            <intent-filter>
+                <action android:name="android.wipower.IWipower" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>

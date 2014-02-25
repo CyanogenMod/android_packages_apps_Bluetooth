@@ -46,6 +46,7 @@ import android.content.IntentFilter;
 import android.database.CharArrayBuffer;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.database.CursorWindowAllocationException;
 import android.database.sqlite.SQLiteException;
 import android.media.MediaScannerConnection;
 import android.media.MediaScannerConnection.MediaScannerConnectionClient;
@@ -487,13 +488,19 @@ public class BluetoothOppService extends Service {
                     }
                     mPendingUpdate = false;
                 }
-                Cursor cursor;
+                Cursor cursor = null;
                 try {
                     cursor = getContentResolver().query(BluetoothShare.CONTENT_URI, null, null,
                         null, BluetoothShare._ID);
                 } catch (SQLiteException e) {
+                    if (cursor != null){
+                        cursor.close();
+                    }
                     cursor = null;
-                    Log.e(TAG, "SQLite exception: " + e);
+                    Log.e(TAG, "UpdateThread: " + e);
+                } catch (CursorWindowAllocationException e) {
+                    cursor = null;
+                    Log.e(TAG, "UpdateThread: " + e);
                 }
 
                 if (cursor == null) {
@@ -604,11 +611,11 @@ public class BluetoothOppService extends Service {
                     }
                 }
 
-                mNotifier.updateNotification();
-
                 cursor.close();
                 if (V) Log.v(TAG, "Freeing cursor: " + cursor);
                 cursor = null;
+
+                mNotifier.updateNotification();
             }
         }
 
@@ -929,6 +936,10 @@ public class BluetoothOppService extends Service {
     }
 
     private void removeBatch(BluetoothOppBatch batch) {
+        if (batch == null) {
+            if (V) Log.v(TAG, "batch is null");
+            return;
+        }
         if (V) Log.v(TAG, "Remove batch " + batch.mId);
         mBatchs.remove(batch);
         BluetoothOppBatch nextBatch;
@@ -1002,35 +1013,49 @@ public class BluetoothOppService extends Service {
     private static void trimDatabase(ContentResolver contentResolver) {
         final String INVISIBLE = BluetoothShare.VISIBILITY + "=" +
                 BluetoothShare.VISIBILITY_HIDDEN;
-
+        int delNum;
         // remove the invisible/complete/outbound shares
         final String WHERE_INVISIBLE_COMPLETE_OUTBOUND = BluetoothShare.DIRECTION + "="
                 + BluetoothShare.DIRECTION_OUTBOUND + " AND " + BluetoothShare.STATUS + ">="
                 + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
-        int delNum = contentResolver.delete(BluetoothShare.CONTENT_URI,
-                WHERE_INVISIBLE_COMPLETE_OUTBOUND, null);
-        if (V) Log.v(TAG, "Deleted complete outbound shares, number =  " + delNum);
+        try {
+            delNum = contentResolver.delete(BluetoothShare.CONTENT_URI,
+                    WHERE_INVISIBLE_COMPLETE_OUTBOUND, null);
+            if (V) Log.v(TAG, "Deleted complete outbound shares, number =  " + delNum);
+        } catch (SQLiteException e) {
+            Log.e(TAG, "trimDatabase: could not deleted complete outbound shares: " + e);
+        }
 
         // remove the invisible/finished/inbound/failed shares
         final String WHERE_INVISIBLE_COMPLETE_INBOUND_FAILED = BluetoothShare.DIRECTION + "="
                 + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + ">"
                 + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
-        delNum = contentResolver.delete(BluetoothShare.CONTENT_URI,
-                WHERE_INVISIBLE_COMPLETE_INBOUND_FAILED, null);
-        if (V) Log.v(TAG, "Deleted complete inbound failed shares, number = " + delNum);
+        try {
+            delNum = contentResolver.delete(BluetoothShare.CONTENT_URI,
+                    WHERE_INVISIBLE_COMPLETE_INBOUND_FAILED, null);
+            if (V) Log.v(TAG, "Deleted complete inbound failed shares, number = " + delNum);
+        } catch (SQLiteException e) {
+            Log.e(TAG, "trimDatabase: could not deleted complete inbound failed shares: " + e);
+        }
 
         final String WHERE_INBOUND_INTERRUPTED_ON_POWER_OFF = BluetoothShare.DIRECTION + "="
                 + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + "="
                 + BluetoothShare.STATUS_RUNNING;
 
-        Cursor cursorToFile;
+        Cursor cursorToFile = null;
         try {
             cursorToFile = contentResolver.query(BluetoothShare.CONTENT_URI,
                 new String[] { BluetoothShare._DATA },
                 WHERE_INBOUND_INTERRUPTED_ON_POWER_OFF, null, null);
         } catch (SQLiteException e) {
-                cursorToFile = null;
-                Log.e(TAG, "SQLite exception: " + e);
+            if (cursorToFile != null) {
+                cursorToFile.close();
+            }
+            cursorToFile = null;
+            Log.e(TAG, "trimDatabase: " + e);
+        } catch (CursorWindowAllocationException e) {
+            cursorToFile = null;
+            Log.e(TAG, "trimDatabase: " + e);
         }
 
         // remove the share and the respective file which was interrupted by battery
@@ -1054,23 +1079,33 @@ public class BluetoothOppService extends Service {
         final String WHERE_CONFIRMATION_PENDING_INBOUND = BluetoothShare.DIRECTION + "="
                 + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.USER_CONFIRMATION
                 + "=" + BluetoothShare.USER_CONFIRMATION_PENDING;
-        delNum = contentResolver.delete(BluetoothShare.CONTENT_URI,
-                 WHERE_CONFIRMATION_PENDING_INBOUND, null);
-        if (V) Log.v(TAG, "Deleted unconfirmed incoming shares, number = " + delNum);
+        try {
+            delNum = contentResolver.delete(BluetoothShare.CONTENT_URI,
+                    WHERE_CONFIRMATION_PENDING_INBOUND, null);
+            if (V) Log.v(TAG, "Deleted unconfirmed incoming shares, number = " + delNum);
+        } catch (SQLiteException e) {
+            Log.e(TAG, "trimDatabase: could not deleted unconfirmed incoming shares " + e);
+        }
 
         // Only keep the inbound and successful shares for LiverFolder use
         // Keep the latest 1000 to easy db query
         final String WHERE_INBOUND_SUCCESS = BluetoothShare.DIRECTION + "="
                 + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + "="
                 + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
-        Cursor cursor;
+        Cursor cursor = null;
         try {
             cursor = contentResolver.query(BluetoothShare.CONTENT_URI, new String[] {
                 BluetoothShare._ID
                 }, WHERE_INBOUND_SUCCESS, null, BluetoothShare._ID); // sort by id
         } catch (SQLiteException e) {
+            if (cursor != null){
+                cursor.close();
+            }
             cursor = null;
-            Log.e(TAG, "SQLite exception: " + e);
+            Log.e(TAG, "trimDatabase: " + e);
+        } catch (CursorWindowAllocationException e) {
+            cursor = null;
+            Log.e(TAG, "trimDatabase: " + e);
         }
 
         if (cursor == null) {

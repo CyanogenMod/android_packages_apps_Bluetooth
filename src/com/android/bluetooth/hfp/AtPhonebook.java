@@ -31,6 +31,8 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.PhoneLookup;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
+import com.android.bluetooth.Utils;
+
 
 import java.util.HashMap;
 
@@ -147,7 +149,11 @@ public class AtPhonebook {
         mCpbrIndex1 = mCpbrIndex2 = cpbrIndex;
     }
 
-    public void handleCscsCommand(String atString, int type)
+    private byte[] getByteAddress(BluetoothDevice device) {
+        return Utils.getBytesFromAddress(device.getAddress());
+    }
+
+    public void handleCscsCommand(String atString, int type, BluetoothDevice device)
     {
         log("handleCscsCommand - atString = " +atString);
         // Select Character Set
@@ -188,11 +194,12 @@ public class AtPhonebook {
                 atCommandErrorCode = BluetoothCmeError.TEXT_HAS_INVALID_CHARS;
         }
         if (atCommandResponse != null)
-            mStateMachine.atResponseStringNative(atCommandResponse);
-        mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
+            mStateMachine.atResponseStringNative(atCommandResponse, getByteAddress(device));
+        mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode,
+                                         getByteAddress(device));
     }
 
-    public void handleCpbsCommand(String atString, int type) {
+    public void handleCpbsCommand(String atString, int type, BluetoothDevice device) {
         // Select PhoneBook memory Storage
         log("handleCpbsCommand - atString = " +atString);
         int atCommandResult = HeadsetHalConstants.AT_RESPONSE_ERROR;
@@ -205,11 +212,18 @@ public class AtPhonebook {
                 if ("SM".equals(mCurrentPhonebook)) {
                     atCommandResponse = "+CPBS: \"SM\",0," + getMaxPhoneBookSize(0);
                     atCommandResult = HeadsetHalConstants.AT_RESPONSE_OK;
+                    if (atCommandResponse != null)
+                        mStateMachine.atResponseStringNative(atCommandResponse,
+                                             getByteAddress(device));
+                    mStateMachine.atResponseCodeNative(atCommandResult,
+                         atCommandErrorCode, getByteAddress(device));
                     break;
                 }
                 PhonebookResult pbr = getPhonebookResult(mCurrentPhonebook, true);
                 if (pbr == null) {
                     atCommandErrorCode = BluetoothCmeError.OPERATION_NOT_SUPPORTED;
+                    mStateMachine.atResponseCodeNative(atCommandResult,
+                         atCommandErrorCode, getByteAddress(device));
                     break;
                 }
                 int size = pbr.cursor.getCount();
@@ -228,7 +242,8 @@ public class AtPhonebook {
                 String[] args = atString.split("=");
                 // Select phonebook memory
                 if (args.length < 2 || !(args[1] instanceof String)) {
-                    atCommandErrorCode = BluetoothCmeError.OPERATION_NOT_SUPPORTED;
+                    mStateMachine.atResponseCodeNative(atCommandResult,
+                           atCommandErrorCode, getByteAddress(device));
                     break;
                 }
                 String pb = ((String)args[1]).trim();
@@ -237,6 +252,8 @@ public class AtPhonebook {
                 if (getPhonebookResult(pb, false) == null && !"SM".equals(pb)) {
                    if (DBG) log("Dont know phonebook: '" + pb + "'");
                    atCommandErrorCode = BluetoothCmeError.OPERATION_NOT_ALLOWED;
+                   mStateMachine.atResponseCodeNative(atCommandResult,
+                          atCommandErrorCode, getByteAddress(device));
                    break;
                 }
                 mCurrentPhonebook = pb;
@@ -248,8 +265,9 @@ public class AtPhonebook {
                 atCommandErrorCode = BluetoothCmeError.TEXT_HAS_INVALID_CHARS;
         }
         if (atCommandResponse != null)
-            mStateMachine.atResponseStringNative(atCommandResponse);
-        mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
+            mStateMachine.atResponseStringNative(atCommandResponse, getByteAddress(device));
+        mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode,
+                                             getByteAddress(device));
     }
 
     public void handleCpbrCommand(String atString, int type, BluetoothDevice remoteDevice) {
@@ -301,7 +319,8 @@ public class AtPhonebook {
                 int index1;
                 int index2;
                 if ((atString.split("=")).length < 2) {
-                    mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
+                    mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode,
+                                         getByteAddress(remoteDevice));
                     break;
                 }
                 String atCommand = (atString.split("="))[1];
@@ -319,7 +338,8 @@ public class AtPhonebook {
                 catch (Exception e) {
                     log("handleCpbrCommand - exception - invalid chars: " + e.toString());
                     atCommandErrorCode = BluetoothCmeError.TEXT_HAS_INVALID_CHARS;
-                    mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
+                    mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode,
+                                         getByteAddress(remoteDevice));
                     break;
                 }
                 mCpbrIndex1 = index1;
@@ -328,7 +348,7 @@ public class AtPhonebook {
 
                 if (checkAccessPermission(remoteDevice)) {
                     mCheckingAccessPermission = false;
-                    atCommandResult = processCpbrCommand();
+                    atCommandResult = processCpbrCommand(remoteDevice);
                     mCpbrIndex1 = mCpbrIndex2 = -1;
                     break;
                 }
@@ -340,8 +360,9 @@ public class AtPhonebook {
                     atCommandErrorCode = BluetoothCmeError.TEXT_HAS_INVALID_CHARS;
         }
         if (atCommandResponse != null)
-            mStateMachine.atResponseStringNative(atCommandResponse);
-        mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode);
+            mStateMachine.atResponseStringNative(atCommandResponse, getByteAddress(remoteDevice));
+        mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode,
+                getByteAddress(remoteDevice));
     }
 
     /** Get the most recent result for the given phone book,
@@ -442,7 +463,7 @@ public class AtPhonebook {
     }
 
     // process CPBR command after permission check
-    /*package*/ int processCpbrCommand()
+    /*package*/ int processCpbrCommand(BluetoothDevice device)
     {
         log("processCpbrCommand");
         int atCommandResult = HeadsetHalConstants.AT_RESPONSE_ERROR;
@@ -546,7 +567,7 @@ public class AtPhonebook {
             record = record + "\r\n\r\n";
             atCommandResponse = record;
             log("processCpbrCommand - atCommandResponse = "+atCommandResponse);
-            mStateMachine.atResponseStringNative(atCommandResponse);
+            mStateMachine.atResponseStringNative(atCommandResponse, getByteAddress(device));
             if (!pbr.cursor.moveToNext()) {
                 break;
             }
