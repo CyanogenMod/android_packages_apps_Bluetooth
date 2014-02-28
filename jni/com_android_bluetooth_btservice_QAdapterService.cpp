@@ -45,16 +45,17 @@
 
 
 namespace android {
+static jmethodID method_advEnableCallback;
 static jmethodID method_onLeExtendedScanResultCallback;
 static jmethodID method_onLeLppWriteRssiThreshold;
 static jmethodID method_onLeLppReadRssiThreshold;
 static jmethodID method_onLeLppEnableRssiMonitor;
 static jmethodID method_onLeLppRssiThresholdEvent;
 
-static const bt_interface_t *qcBluetoothInterface = NULL;
-static JNIEnv *qccallbackEnv = NULL;
-static jobject qcJniCallbacksObj=NULL;
-static jfieldID qcJniCallbacksField;
+static const bt_interface_t *qBluetoothInterface = NULL;
+static JNIEnv *qcallbackEnv = NULL;
+static jobject qJniCallbacksObj=NULL;
+static jfieldID qJniCallbacksField;
 
 static void set_uuid(uint8_t* uuid, jlong uuid_msb, jlong uuid_lsb)
 {
@@ -109,20 +110,34 @@ static void jstr2bdaddr(JNIEnv* env, bt_bdaddr_t *bda, jstring address)
 }
 
 static bool checkCallbackThread() {
-    qccallbackEnv = getCallbackEnv();
+    qcallbackEnv = getCallbackEnv();
 
     JNIEnv* env = AndroidRuntime::getJNIEnv();
     if(env==NULL)
         ALOGE("checkCallbackThread env is NULL");
-    if(qccallbackEnv==NULL)
-        ALOGE("checkCallbackThread qccallbackEnv is NULL");
+    if(qcallbackEnv==NULL)
+        ALOGE("checkCallbackThread qcallbackEnv is NULL");
 
-    if(env!=qccallbackEnv)
-        ALOGE("env and qccallbackEnv dont match");
-    if (qccallbackEnv != env || qccallbackEnv == NULL) return false;
+    if(env!=qcallbackEnv)
+        ALOGE("env and qcallbackEnv dont match");
+    if (qcallbackEnv != env || qcallbackEnv == NULL) return false;
     return true;
 }
 
+static void le_adv_enable_callbacks(uint8_t enable, uint8_t advType) {
+    jbyteArray addr;
+    if (!checkCallbackThread()) {
+       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
+       return;
+    }
+
+    ALOGV("%s: adv enable:%d ", __FUNCTION__, enable);
+
+    qcallbackEnv->CallVoidMethod(qJniCallbacksObj, method_advEnableCallback,
+                                (jint)enable, (jint)advType);
+
+    checkAndClearExceptionFromCallback(qcallbackEnv, __FUNCTION__);
+}
 static void le_extended_scan_result_callbacks(bt_bdaddr_t* bda, int rssi, uint8_t* adv_data)
 {
     char c_address[32];
@@ -134,17 +149,17 @@ static void le_extended_scan_result_callbacks(bt_bdaddr_t* bda, int rssi, uint8_
         bda->address[0], bda->address[1], bda->address[2],
         bda->address[3], bda->address[4], bda->address[5]);
 
-    jstring address = qccallbackEnv->NewStringUTF(c_address);
-    jbyteArray jb = qccallbackEnv->NewByteArray(62);
-    qccallbackEnv->SetByteArrayRegion(jb, 0, 62, (jbyte *) adv_data);
+    jstring address = qcallbackEnv->NewStringUTF(c_address);
+    jbyteArray jb = qcallbackEnv->NewByteArray(62);
+    qcallbackEnv->SetByteArrayRegion(jb, 0, 62, (jbyte *) adv_data);
 
-    qccallbackEnv->CallVoidMethod(qcJniCallbacksObj, method_onLeExtendedScanResultCallback,
+    qcallbackEnv->CallVoidMethod(qJniCallbacksObj, method_onLeExtendedScanResultCallback,
                                   address, rssi, jb);
 
-    qccallbackEnv->DeleteLocalRef(address);
-    qccallbackEnv->DeleteLocalRef(jb);
+    qcallbackEnv->DeleteLocalRef(address);
+    qcallbackEnv->DeleteLocalRef(jb);
 
-    checkAndClearExceptionFromCallback(qccallbackEnv, __FUNCTION__);
+    checkAndClearExceptionFromCallback(qcallbackEnv, __FUNCTION__);
 }
 
 void le_lpp_write_rssi_thresh_callbacks(bt_bdaddr_t *bda, int status)
@@ -158,11 +173,11 @@ void le_lpp_write_rssi_thresh_callbacks(bt_bdaddr_t *bda, int status)
     snprintf(c_address, sizeof(c_address),"%02X:%02X:%02X:%02X:%02X:%02X",
         bda->address[0], bda->address[1], bda->address[2],
         bda->address[3], bda->address[4], bda->address[5]);
-    jstring address = qccallbackEnv->NewStringUTF(c_address);
-    qccallbackEnv->CallVoidMethod(qcJniCallbacksObj, method_onLeLppWriteRssiThreshold,
+    jstring address = qcallbackEnv->NewStringUTF(c_address);
+    qcallbackEnv->CallVoidMethod(qJniCallbacksObj, method_onLeLppWriteRssiThreshold,
                                   address, status);
-    qccallbackEnv->DeleteLocalRef(address);
-    checkAndClearExceptionFromCallback(qccallbackEnv, __FUNCTION__);
+    qcallbackEnv->DeleteLocalRef(address);
+    checkAndClearExceptionFromCallback(qcallbackEnv, __FUNCTION__);
 }
 
 void le_lpp_read_rssi_thresh_callbacks(bt_bdaddr_t *bda, int low, int upper,
@@ -176,11 +191,11 @@ void le_lpp_read_rssi_thresh_callbacks(bt_bdaddr_t *bda, int low, int upper,
     snprintf(c_address, sizeof(c_address),"%02X:%02X:%02X:%02X:%02X:%02X",
         bda->address[0], bda->address[1], bda->address[2],
         bda->address[3], bda->address[4], bda->address[5]);
-    jstring address = qccallbackEnv->NewStringUTF(c_address);
-    qccallbackEnv->CallVoidMethod(qcJniCallbacksObj, method_onLeLppReadRssiThreshold,
+    jstring address = qcallbackEnv->NewStringUTF(c_address);
+    qcallbackEnv->CallVoidMethod(qJniCallbacksObj, method_onLeLppReadRssiThreshold,
                                   address, low, upper, alert, status);
-    qccallbackEnv->DeleteLocalRef(address);
-    checkAndClearExceptionFromCallback(qccallbackEnv, __FUNCTION__);
+    qcallbackEnv->DeleteLocalRef(address);
+    checkAndClearExceptionFromCallback(qcallbackEnv, __FUNCTION__);
 }
 
 void le_lpp_enable_rssi_monitor_callbacks(bt_bdaddr_t *bda,
@@ -194,11 +209,11 @@ void le_lpp_enable_rssi_monitor_callbacks(bt_bdaddr_t *bda,
     snprintf(c_address, sizeof(c_address),"%02X:%02X:%02X:%02X:%02X:%02X",
         bda->address[0], bda->address[1], bda->address[2],
         bda->address[3], bda->address[4], bda->address[5]);
-    jstring address = qccallbackEnv->NewStringUTF(c_address);
-    qccallbackEnv->CallVoidMethod(qcJniCallbacksObj, method_onLeLppEnableRssiMonitor,
+    jstring address = qcallbackEnv->NewStringUTF(c_address);
+    qcallbackEnv->CallVoidMethod(qJniCallbacksObj, method_onLeLppEnableRssiMonitor,
                                   address, enable, status);
-    qccallbackEnv->DeleteLocalRef(address);
-    checkAndClearExceptionFromCallback(qccallbackEnv, __FUNCTION__);
+    qcallbackEnv->DeleteLocalRef(address);
+    checkAndClearExceptionFromCallback(qcallbackEnv, __FUNCTION__);
 }
 
 void le_lpp_rssi_threshold_evt_callbacks(bt_bdaddr_t *bda,
@@ -212,11 +227,11 @@ void le_lpp_rssi_threshold_evt_callbacks(bt_bdaddr_t *bda,
     snprintf(c_address, sizeof(c_address),"%02X:%02X:%02X:%02X:%02X:%02X",
         bda->address[0], bda->address[1], bda->address[2],
         bda->address[3], bda->address[4], bda->address[5]);
-    jstring address = qccallbackEnv->NewStringUTF(c_address);
-    qccallbackEnv->CallVoidMethod(qcJniCallbacksObj, method_onLeLppRssiThresholdEvent,
+    jstring address = qcallbackEnv->NewStringUTF(c_address);
+    qcallbackEnv->CallVoidMethod(qJniCallbacksObj, method_onLeLppRssiThresholdEvent,
                                   address, evt_type, rssi);
-    qccallbackEnv->DeleteLocalRef(address);
-    checkAndClearExceptionFromCallback(qccallbackEnv, __FUNCTION__);
+    qcallbackEnv->DeleteLocalRef(address);
+    checkAndClearExceptionFromCallback(qcallbackEnv, __FUNCTION__);
 }
 
 bt_callbacks_t sQBluetoothCallbacks = {
@@ -234,6 +249,8 @@ bt_callbacks_t sQBluetoothCallbacks = {
     NULL,
     NULL,
     NULL,
+    NULL,
+    le_adv_enable_callbacks,
     le_extended_scan_result_callbacks,
     le_lpp_write_rssi_thresh_callbacks,
     le_lpp_read_rssi_thresh_callbacks,
@@ -245,18 +262,18 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     hw_module_t* module;
 
     ALOGV("%s:",__FUNCTION__);
-    if((qcBluetoothInterface=getBluetoothInterface())==NULL){
+    if((qBluetoothInterface=getBluetoothInterface())==NULL){
         ALOGE("Bluetooth module is not loaded");
         return;
     }
 
     jclass jniCallbackClass =
         env->FindClass("com/android/bluetooth/btservice/QJniCallbacks");
-    qcJniCallbacksField = env->GetFieldID(clazz, "mJniCallbacks",
+    qJniCallbacksField = env->GetFieldID(clazz, "mJniCallbacks",
         "Lcom/android/bluetooth/btservice/QJniCallbacks;");
 
-    method_onLeExtendedScanResultCallback = env->GetMethodID(jniCallbackClass,
-                                                  "onLeExtendedScanResult", "(Ljava/lang/String;I[B)V");
+    method_advEnableCallback = env->GetMethodID(jniCallbackClass, "advEnableCallback", "(II)V");
+    method_onLeExtendedScanResultCallback = env->GetMethodID(jniCallbackClass, "onLeExtendedScanResult", "(Ljava/lang/String;I[B)V");
     method_onLeLppWriteRssiThreshold = env->GetMethodID(jniCallbackClass, "onLeLppWriteRssiThreshold", "(Ljava/lang/String;I)V");
     method_onLeLppReadRssiThreshold = env->GetMethodID(jniCallbackClass, "onLeLppReadRssiThreshold", "(Ljava/lang/String;IIII)V");
     method_onLeLppEnableRssiMonitor = env->GetMethodID(jniCallbackClass, "onLeLppEnableRssiMonitor", "(Ljava/lang/String;II)V");
@@ -267,13 +284,12 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 static bool initNative(JNIEnv* env, jobject obj) {
     ALOGV("%s:",__FUNCTION__);
 
-    qcJniCallbacksObj = env->NewGlobalRef(env->GetObjectField(obj, qcJniCallbacksField));
-
-    if (qcBluetoothInterface) {
-        int ret = qcBluetoothInterface->initq(&sQBluetoothCallbacks);
+    if (qBluetoothInterface) {
+        qJniCallbacksObj = env->NewGlobalRef(env->GetObjectField(obj, qJniCallbacksField));
+        int ret = qBluetoothInterface->initq(&sQBluetoothCallbacks);
         if (ret != BT_STATUS_SUCCESS) {
             ALOGE("Error while setting the callbacks \n");
-            qcBluetoothInterface = NULL;
+            qBluetoothInterface = NULL;
             return JNI_FALSE;
         }
         return JNI_TRUE;
@@ -285,13 +301,94 @@ static bool cleanupNative(JNIEnv *env, jobject obj) {
     ALOGV("%s:",__FUNCTION__);
 
     jboolean result = JNI_FALSE;
-    if (!qcBluetoothInterface) return result;
+    if (!qBluetoothInterface) return result;
 
-    if(qcJniCallbacksObj!=NULL){
-        env->DeleteGlobalRef(qcJniCallbacksObj);
-        qcJniCallbacksObj=NULL;
+    if(qJniCallbacksObj!=NULL){
+        env->DeleteGlobalRef(qJniCallbacksObj);
+        qJniCallbacksObj=NULL;
     }
     return JNI_TRUE;
+}
+
+static jboolean setLEAdvModeNative(JNIEnv *env, jobject obj, jint type, jbyteArray value) {
+    ALOGV("%s:",__FUNCTION__);
+
+    jbyte *val;
+    jboolean result = JNI_FALSE;
+    if (!qBluetoothInterface) return result;
+
+    val = env->GetByteArrayElements(value, NULL);
+    bt_property_t prop;
+    prop.type = (bt_property_type_t) type;
+    prop.len = env->GetArrayLength(value);
+    prop.val = val;
+
+    int ret = qBluetoothInterface->set_adapter_property(&prop);
+    env->ReleaseByteArrayElements(value, val, 0);
+    result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+
+    return result;
+}
+
+static jboolean setLEadvMaskNative(JNIEnv *env, jobject obj,jint mask){
+    ALOGV("%s:",__FUNCTION__);
+    jboolean result = JNI_FALSE;
+    if (!qBluetoothInterface) return result;
+        int ret = qBluetoothInterface->le_set_adv_data_mask(mask);
+
+    result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+    return result;
+}
+
+static jboolean setLEscanRespMaskNative(JNIEnv *env, jobject obj,jint mask){
+    ALOGV("%s:",__FUNCTION__);
+    jboolean result = JNI_FALSE;
+    if (!qBluetoothInterface) return result;
+        int ret = qBluetoothInterface->le_set_scan_resp_mask(mask);
+
+    result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+    return result;
+}
+
+static jboolean setLEManuDataNative(JNIEnv *env, jobject obj,jbyteArray buff){
+    ALOGV("%s:",__FUNCTION__);
+    jbyte *manu_data=NULL;
+    uint8_t size=0;
+    jboolean result = JNI_FALSE;
+    manu_data=env->GetByteArrayElements(buff, NULL);
+    size=env->GetArrayLength(buff);
+    if (!qBluetoothInterface) return result;
+        int ret = qBluetoothInterface->le_set_manu_data((uint8_t *)manu_data, size);
+
+    result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+    return result;
+}
+
+static jboolean setLEServiceDataNative(JNIEnv *env, jobject obj,jbyteArray buff){
+    ALOGV("%s:",__FUNCTION__);
+    jbyte *service_data=NULL;
+    uint8_t size=0;
+    jboolean result = JNI_FALSE;
+    service_data=env->GetByteArrayElements(buff, NULL);
+    size=env->GetArrayLength(buff);
+    if (!qBluetoothInterface) return result;
+        int ret = qBluetoothInterface->le_set_service_data((uint8_t *)service_data, size);
+
+    result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+    return result;
+}
+static jboolean setLEAdvParamsNative(JNIEnv *env, jobject obj, jint min_int, jint max_int, jbyteArray address, jint ad_type){
+    ALOGV("%s:",__FUNCTION__);
+
+    jbyte *addr=NULL;
+    jboolean result = JNI_FALSE;
+    addr = env->GetByteArrayElements(address, NULL);
+    if (!qBluetoothInterface) return result;
+    int ret = qBluetoothInterface->le_set_adv_params(min_int, max_int, (bt_bdaddr_t *)addr,ad_type);
+
+    result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+
+    return result;
 }
 
 static void btLeExtendedScanNative(JNIEnv *env, jobject object,
@@ -301,7 +398,7 @@ static void btLeExtendedScanNative(JNIEnv *env, jobject object,
     uint8_t scan_policy = 0x80; /* 0x80 represent only AD whitelist applied*/
     bt_le_service_t *service_list = 0;
     entries = env->GetArrayLength(uuids);
-    if(qcBluetoothInterface && (service_list = (bt_le_service_t*)malloc(entries * sizeof(bt_le_service_t))))
+    if(qBluetoothInterface && (service_list = (bt_le_service_t*)malloc(entries * sizeof(bt_le_service_t))))
     {
         jclass clazzuuid;
         jobject uuid;
@@ -320,7 +417,7 @@ static void btLeExtendedScanNative(JNIEnv *env, jobject object,
                 msbbits = env->CallLongMethod(uuid, getmsb);
                 set_uuid(&service_list[i].uuidval.uu[0], msbbits, lsbbits);
             }
-            qcBluetoothInterface->le_extended_scan(service_list, entries, scan_policy, start?1:0);
+            qBluetoothInterface->le_extended_scan(service_list, entries, scan_policy, start?1:0);
         }
     }
     free(service_list);
@@ -330,27 +427,27 @@ static void btLeLppWriteRssiThresholdNative(JNIEnv *env, jobject object,
                                             jstring address, jbyte min, jbyte max)
 {
     bt_bdaddr_t bda;
-    if (!qcBluetoothInterface) return;
+    if (!qBluetoothInterface) return;
     jstr2bdaddr(env, &bda, address);
-    qcBluetoothInterface->le_lpp_write_rssi_threshold(&bda, min, max);
+    qBluetoothInterface->le_lpp_write_rssi_threshold(&bda, min, max);
 }
 
 static void btLeLppEnableRssiMonitorNative(JNIEnv* env, jobject object,
                                            jstring address, jboolean enable)
 {
     bt_bdaddr_t bda;
-    if (!qcBluetoothInterface) return;
+    if (!qBluetoothInterface) return;
     jstr2bdaddr(env, &bda, address);
-    qcBluetoothInterface->le_lpp_enable_rssi_monitor(&bda, enable);
+    qBluetoothInterface->le_lpp_enable_rssi_monitor(&bda, enable);
 }
 
 static void btLeLppReadRssiThresholdNative(JNIEnv* env, jobject object,
                                               jstring address)
 {
     bt_bdaddr_t bda;
-    if (!qcBluetoothInterface) return;
+    if (!qBluetoothInterface) return;
     jstr2bdaddr(env, &bda, address);
-    qcBluetoothInterface->le_lpp_read_rssi_threshold(&bda);
+    qBluetoothInterface->le_lpp_read_rssi_threshold(&bda);
 }
 
 static JNINativeMethod qMethods[] = {
@@ -358,6 +455,12 @@ static JNINativeMethod qMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
     {"initNative", "()Z", (void *) initNative},
     {"cleanupNative", "()V", (void*) cleanupNative},
+    {"setLEAdvParamsNative","(II[BI)Z", (void*) setLEAdvParamsNative},
+    {"setLEadvMaskNative","(I)Z",(void*) setLEadvMaskNative},
+    {"setLEscanRespMaskNative","(I)Z",(void*) setLEscanRespMaskNative},
+    {"setLEManuDataNative","([B)Z",(void*) setLEManuDataNative},
+    {"setLEServiceDataNative","([B)Z",(void*) setLEServiceDataNative},
+    {"setLEAdvModeNative", "(I[B)Z", (void*) setLEAdvModeNative},
     {"btLeExtendedScanNative", "([Landroid/bluetooth/BluetoothLEServiceUuid;Z)V", (void*) btLeExtendedScanNative},
     {"btLeLppWriteRssiThresholdNative", "(Ljava/lang/String;BB)V", (void*)btLeLppWriteRssiThresholdNative},
     {"btLeLppEnableRssiMonitorNative", "(Ljava/lang/String;Z)V", (void*)btLeLppEnableRssiMonitorNative},

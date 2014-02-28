@@ -22,6 +22,8 @@ import android.telephony.ServiceState;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.bluetooth.BluetoothDevice;
+
 
 // Note:
 // All methods in this class are not thread safe, donot call them from
@@ -355,10 +357,12 @@ class HeadsetClccResponse {
 }
 
 class HeadsetVendorSpecificResultCode {
+    BluetoothDevice mDevice;
     String mCommand;
     String mArg;
 
-    public HeadsetVendorSpecificResultCode(String command, String arg) {
+    public HeadsetVendorSpecificResultCode(BluetoothDevice device, String command, String arg) {
+        mDevice = device;
         mCommand = command;
         mArg = arg;
     }

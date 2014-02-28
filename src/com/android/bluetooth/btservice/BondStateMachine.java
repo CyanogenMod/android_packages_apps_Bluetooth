@@ -130,6 +130,9 @@ final class BondStateMachine extends StateMachine {
                 else
                 {
                     Log.e(TAG, "In stable state, received invalid newState: " + newState);
+                    if(newState == BluetoothDevice.BOND_NONE) {
+                        sendIntent(dev, newState, 0);
+                    }
                 }
                 break;
 
