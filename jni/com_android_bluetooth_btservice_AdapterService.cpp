@@ -662,6 +662,19 @@ static bool cleanupNative(JNIEnv *env, jobject obj) {
     return JNI_TRUE;
 }
 
+static bool ssrcleanupNative(JNIEnv *env, jobject obj) {
+    ALOGV("%s:",__FUNCTION__);
+
+    jboolean result = JNI_FALSE;
+    if (!sBluetoothInterface) return result;
+
+    sBluetoothInterface->ssrcleanup();
+    ALOGI("%s: return from cleanup",__FUNCTION__);
+
+    env->DeleteGlobalRef(sJniCallbacksObj);
+    return JNI_TRUE;
+}
+
 static jboolean enableNative(JNIEnv* env, jobject obj) {
     ALOGV("%s:",__FUNCTION__);
 
@@ -1124,6 +1137,7 @@ static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
     {"initNative", "()Z", (void *) initNative},
     {"cleanupNative", "()V", (void*) cleanupNative},
+    {"ssrcleanupNative", "()V", (void*) ssrcleanupNative},
     {"enableNative", "()Z",  (void*) enableNative},
     {"disableNative", "()Z",  (void*) disableNative},
     {"setAdapterPropertyNative", "(I[B)Z", (void*) setAdapterPropertyNative},
