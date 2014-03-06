@@ -181,6 +181,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     @Override
     public int onConnect(final HeaderSet request, HeaderSet reply) {
         if (V) logHeader(request);
+        notifyUpdateWakeLock();
         try {
             byte[] uuid = (byte[])request.getHeader(HeaderSet.TARGET);
             if (uuid == null) {
@@ -229,7 +230,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     public void onDisconnect(final HeaderSet req, final HeaderSet resp) {
         if (D) Log.d(TAG, "onDisconnect(): enter");
         if (V) logHeader(req);
-
+        notifyUpdateWakeLock();
         resp.responseCode = ResponseCodes.OBEX_HTTP_OK;
         if (mCallback != null) {
             Message msg = Message.obtain(mCallback);
@@ -242,6 +243,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     @Override
     public int onAbort(HeaderSet request, HeaderSet reply) {
         if (D) Log.d(TAG, "onAbort(): enter.");
+        notifyUpdateWakeLock();
         sIsAborted = true;
         return ResponseCodes.OBEX_HTTP_OK;
     }
@@ -249,6 +251,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     @Override
     public int onPut(final Operation op) {
         if (D) Log.d(TAG, "onPut(): not support PUT request.");
+        notifyUpdateWakeLock();
         return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
     }
 
@@ -257,7 +260,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             final boolean create) {
         if (V) logHeader(request);
         if (D) Log.d(TAG, "before setPath, mCurrentPath ==  " + mCurrentPath);
-
+        notifyUpdateWakeLock();
         String current_path_tmp = mCurrentPath;
         String tmp_path = null;
         try {
@@ -308,6 +311,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     @Override
     public int onGet(Operation op) {
+        notifyUpdateWakeLock();
         sIsAborted = false;
         HeaderSet request = null;
         HeaderSet reply = new HeaderSet();
@@ -1019,6 +1023,12 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         result.append(".vcf\" name=\"");
         xmlEncode(name, result);
         result.append("\"/>");
+    }
+
+    private void notifyUpdateWakeLock() {
+        Message msg = Message.obtain(mCallback);
+        msg.what = BluetoothPbapService.MSG_ACQUIRE_WAKE_LOCK;
+        msg.sendToTarget();
     }
 
     public static final void logHeader(HeaderSet hs) {
