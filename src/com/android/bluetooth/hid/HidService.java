@@ -67,6 +67,7 @@ public class HidService extends ProfileService {
     private static final int MESSAGE_SET_REPORT = 10;
     private static final int MESSAGE_SEND_DATA = 11;
     private static final int MESSAGE_ON_VIRTUAL_UNPLUG = 12;
+    private static final int MESSAGE_ON_HANDSHAKE = 13;
 
     static {
         classInitNative();
@@ -247,6 +248,13 @@ public class HidService extends ProfileService {
                     byte[] report = data.getByteArray(BluetoothInputDevice.EXTRA_REPORT);
                     int bufferSize = data.getInt(BluetoothInputDevice.EXTRA_REPORT_BUFFER_SIZE);
                     broadcastReport(device, report, bufferSize);
+                }
+                break;
+                case MESSAGE_ON_HANDSHAKE:
+                {
+                    BluetoothDevice device = getDevice((byte[])msg.obj);
+                    int status = msg.arg1;
+                    broadcastHandshake(device, status);
                 }
                 break;
                 case MESSAGE_SET_REPORT:
@@ -564,6 +572,13 @@ public class HidService extends ProfileService {
         mHandler.sendMessage(msg);
     }
 
+    private void onHandshake(byte[] address, int status) {
+        Message msg = mHandler.obtainMessage(MESSAGE_ON_HANDSHAKE);
+        msg.obj = address;
+        msg.arg1 = status;
+        mHandler.sendMessage(msg);
+    }
+
     private void onVirtualUnplug(byte[] address, int status) {
         Message msg = mHandler.obtainMessage(MESSAGE_ON_VIRTUAL_UNPLUG);
         msg.obj = address;
@@ -599,6 +614,14 @@ public class HidService extends ProfileService {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+        sendBroadcast(intent, BLUETOOTH_PERM);
+    }
+
+    private void broadcastHandshake(BluetoothDevice device, int status) {
+        Intent intent = new Intent(BluetoothInputDevice.ACTION_HANDSHAKE);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.putExtra(BluetoothInputDevice.EXTRA_STATUS, status);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
         sendBroadcast(intent, BLUETOOTH_PERM);
     }
