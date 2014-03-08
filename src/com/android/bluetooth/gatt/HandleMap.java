@@ -42,6 +42,7 @@ class HandleMap {
         int serviceHandle = 0;
         int charHandle = 0;
         boolean started = false;
+        boolean advertisePreferred = false;
 
         Entry(int serverIf, int handle, UUID uuid, int serviceType, int instance) {
             this.serverIf = serverIf;
@@ -50,6 +51,17 @@ class HandleMap {
             this.uuid = uuid;
             this.instance = instance;
             this.serviceType = serviceType;
+        }
+
+        Entry(int serverIf, int handle, UUID uuid, int serviceType, int instance,
+            boolean advertisePreferred) {
+            this.serverIf = serverIf;
+            this.type = TYPE_SERVICE;
+            this.handle = handle;
+            this.uuid = uuid;
+            this.instance = instance;
+            this.serviceType = serviceType;
+            this.advertisePreferred = advertisePreferred;
         }
 
         Entry(int serverIf, int type, int handle, UUID uuid, int serviceHandle) {
@@ -86,8 +98,9 @@ class HandleMap {
         mRequestMap.clear();
     }
 
-    void addService(int serverIf, int handle, UUID uuid, int serviceType, int instance) {
-        mEntries.add(new Entry(serverIf, handle, uuid, serviceType, instance));
+    void addService(int serverIf, int handle, UUID uuid, int serviceType, int instance,
+        boolean advertisePreferred) {
+        mEntries.add(new Entry(serverIf, handle, uuid, serviceType, instance, advertisePreferred));
     }
 
     void addCharacteristic(int serverIf, int handle, UUID uuid, int serviceHandle) {
