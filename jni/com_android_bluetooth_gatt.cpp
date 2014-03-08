@@ -158,7 +158,6 @@ static jmethodID method_onGetDescriptor;
 static jmethodID method_onGetIncludedService;
 static jmethodID method_onRegisterForNotifications;
 static jmethodID method_onReadRemoteRssi;
-static jmethodID method_onClientListen;
 
 /**
  * Server callback methods
@@ -423,14 +422,6 @@ void btgattc_remote_rssi_cb(int client_if,bt_bdaddr_t* bda, int rssi, int status
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
-void btgattc_listen_cb(int status, int client_if)
-{
-    CHECK_CALLBACK_ENV
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onClientListen
-        , status, client_if);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
-}
-
 static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_register_app_cb,
     btgattc_scan_result_cb,
@@ -448,8 +439,7 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_read_descriptor_cb,
     btgattc_write_descriptor_cb,
     btgattc_execute_write_cb,
-    btgattc_remote_rssi_cb,
-    btgattc_listen_cb
+    btgattc_remote_rssi_cb
 };
 
 
@@ -680,7 +670,6 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onAttributeRead= env->GetMethodID(clazz, "onAttributeRead", "(Ljava/lang/String;IIIIZ)V");
     method_onAttributeWrite= env->GetMethodID(clazz, "onAttributeWrite", "(Ljava/lang/String;IIIIIZZ[B)V");
     method_onExecuteWrite= env->GetMethodID(clazz, "onExecuteWrite", "(Ljava/lang/String;III)V");
-    method_onClientListen = env->GetMethodID(clazz, "onClientListen", "(II)V");
 
     info("classInitNative: Success!");
 }
@@ -1058,7 +1047,7 @@ static void gattClientReadRemoteRssiNative(JNIEnv* env, jobject object, jint cli
     sGattIf->client->read_remote_rssi(clientif, &bda);
 }
 
-static void gattClientListenNative(JNIEnv *env, jobject object,
+static void gattAdvertiseNative(JNIEnv *env, jobject object,
         jint client_if, jboolean start)
 {
     if (!sGattIf) return;
@@ -1066,17 +1055,28 @@ static void gattClientListenNative(JNIEnv *env, jobject object,
 }
 
 static void gattSetAdvDataNative(JNIEnv *env, jobject object, jint client_if, jboolean setScanRsp,
-        jboolean inclName, jboolean inclTxPower, jint minInterval, jint maxInterval, jint appearance,
-        jbyteArray manufacturerData)
+        jboolean inclName, jboolean inclTxPower, jint minInterval, jint maxInterval,
+        jint appearance, jbyteArray manufacturerData, jbyteArray serviceData,
+        jbyteArray serviceUuid)
 {
     if (!sGattIf) return;
-    jbyte* arr_data = env->GetByteArrayElements(manufacturerData, 0);
+    jbyte* arr_data = env->GetByteArrayElements(manufacturerData, NULL);
     uint16_t arr_len = (uint16_t) env->GetArrayLength(manufacturerData);
 
+    jbyte* service_data = env->GetByteArrayElements(serviceData, NULL);
+    uint16_t service_data_len = (uint16_t) env->GetArrayLength(serviceData);
+
+    jbyte* service_uuid = env->GetByteArrayElements(serviceUuid, NULL);
+    uint16_t service_uuid_len = (uint16_t) env->GetArrayLength(serviceUuid);
+
     sGattIf->client->set_adv_data(client_if, setScanRsp, inclName, inclTxPower,
-        minInterval, maxInterval, appearance, arr_len, (char*)arr_data);
+        minInterval, maxInterval, appearance, arr_len, (char*)arr_data,
+        service_data_len, (char*)service_data, service_uuid_len,
+        (char*)service_uuid);
 
     env->ReleaseByteArrayElements(manufacturerData, arr_data, JNI_ABORT);
+    env->ReleaseByteArrayElements(serviceData, service_data, JNI_ABORT);
+    env->ReleaseByteArrayElements(serviceUuid, service_uuid, JNI_ABORT);
 }
 
 
@@ -1292,7 +1292,7 @@ static JNINativeMethod sMethods[] = {
     {"gattClientExecuteWriteNative", "(IZ)V", (void *) gattClientExecuteWriteNative},
     {"gattClientRegisterForNotificationsNative", "(ILjava/lang/String;IIJJIJJZ)V", (void *) gattClientRegisterForNotificationsNative},
     {"gattClientReadRemoteRssiNative", "(ILjava/lang/String;)V", (void *) gattClientReadRemoteRssiNative},
-    {"gattClientListenNative", "(IZ)V", (void *) gattClientListenNative},
+    {"gattAdvertiseNative", "(IZ)V", (void *) gattAdvertiseNative},
 
     {"gattServerRegisterAppNative", "(JJ)V", (void *) gattServerRegisterAppNative},
     {"gattServerUnregisterAppNative", "(I)V", (void *) gattServerUnregisterAppNative},
@@ -1309,7 +1309,7 @@ static JNINativeMethod sMethods[] = {
     {"gattServerSendNotificationNative", "(III[B)V", (void *) gattServerSendNotificationNative},
     {"gattServerSendResponseNative", "(IIIIII[BI)V", (void *) gattServerSendResponseNative},
 
-    {"gattSetAdvDataNative", "(IZZZIII[B)V", (void *) gattSetAdvDataNative},
+    {"gattSetAdvDataNative", "(IZZZIII[B[B[B)V", (void *) gattSetAdvDataNative},
     {"gattTestNative", "(IJJLjava/lang/String;IIIII)V", (void *) gattTestNative},
 };
 
