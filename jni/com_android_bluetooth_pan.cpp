@@ -56,13 +56,13 @@ static bool checkCallbackThread() {
     return true;
 }
 
-static void control_state_callback(btpan_control_state_t state, bt_status_t error, int local_role,
+static void control_state_callback(btpan_control_state_t state, int local_role, bt_status_t error,
                 const char* ifname) {
     debug("state:%d, local_role:%d, ifname:%s", state, local_role, ifname);
     CHECK_CALLBACK_ENV
     jstring js_ifname = sCallbackEnv->NewStringUTF(ifname);
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onControlStateChanged, (jint)state, (jint)error,
-                                (jint)local_role, js_ifname);
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onControlStateChanged, (jint)local_role, (jint)state,
+                                (jint)error, js_ifname);
     sCallbackEnv->DeleteLocalRef(js_ifname);
 }
 
