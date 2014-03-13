@@ -243,7 +243,7 @@ public class AtPhonebook {
                 while (pb.endsWith("\"")) pb = pb.substring(0, pb.length() - 1);
                 while (pb.startsWith("\"")) pb = pb.substring(1, pb.length());
                 if (getPhonebookResult(pb, false) == null && !"SM".equals(pb)) {
-                   if (DBG) log("Dont know phonebook: '" + pb + "'");
+                   log("Dont know phonebook: '" + pb + "'");
                    atCommandErrorCode = BluetoothCmeError.OPERATION_NOT_ALLOWED;
                    break;
                 }
@@ -530,7 +530,7 @@ public class AtPhonebook {
                     }
                     c.close();
                 }
-                if (DBG && name == null) log("Caller ID lookup failed for " + number);
+                if (name == null) log("Caller ID lookup failed for " + number);
 
             } else if (pbr.nameColumn != -1) {
                 name = pbr.cursor.getString(pbr.nameColumn);

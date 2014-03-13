@@ -44,7 +44,7 @@ import java.util.Map;
  * @hide
  */
 public class HeadsetService extends ProfileService {
-    private static final boolean DBG = false;
+    private static final boolean DBG = Log.isLoggable("Handsfree", Log.VERBOSE);
     private static final String TAG = "HeadsetService";
     private static final String MODIFY_PHONE_STATE = android.Manifest.permission.MODIFY_PHONE_STATE;
 
@@ -107,8 +107,7 @@ public class HeadsetService extends ProfileService {
                     mStateMachine.sendMessage(HeadsetStateMachine.INTENT_SCO_VOLUME_CHANGED,
                                               intent);
                 }
-            }
-            else if (action.equals(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY)) {
+            } else if (action.equals(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY)) {
                 int requestType = intent.getIntExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                                BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
                 if (requestType == BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS) {
@@ -162,7 +161,9 @@ public class HeadsetService extends ProfileService {
         public boolean disconnect(BluetoothDevice device) {
             HeadsetService service = getService();
             if (service == null) return false;
+
             if (DBG) Log.d(TAG, "disconnect in HeadsetService");
+
             return service.disconnect(device);
         }
 
@@ -323,10 +324,12 @@ public class HeadsetService extends ProfileService {
     //API methods
     public static synchronized HeadsetService getHeadsetService(){
         if (sHeadsetService != null && sHeadsetService.isAvailable()) {
-            if (DBG) Log.d(TAG, "getHeadsetService(): returning " + sHeadsetService);
+            if (DBG) {
+                Log.d(TAG, "getHeadsetService(): returning " + sHeadsetService);
+            }
             return sHeadsetService;
         }
-        if (DBG)  {
+        if (DBG) {
             if (sHeadsetService == null) {
                 Log.d(TAG, "getHeadsetService(): service is NULL");
             } else if (!(sHeadsetService.isAvailable())) {
@@ -338,10 +341,12 @@ public class HeadsetService extends ProfileService {
 
     private static synchronized void setHeadsetService(HeadsetService instance) {
         if (instance != null && instance.isAvailable()) {
-            if (DBG) Log.d(TAG, "setHeadsetService(): set to: " + sHeadsetService);
+            if (DBG) {
+                Log.d(TAG, "setHeadsetService(): set to: " + sHeadsetService);
+            }
             sHeadsetService = instance;
         } else {
-            if (DBG)  {
+            if (DBG) {
                 if (sHeadsetService == null) {
                     Log.d(TAG, "setHeadsetService(): service not available");
                 } else if (!sHeadsetService.isAvailable()) {
@@ -408,7 +413,9 @@ public class HeadsetService extends ProfileService {
         Settings.Global.putInt(getContentResolver(),
             Settings.Global.getBluetoothHeadsetPriorityKey(device.getAddress()),
             priority);
-        if (DBG) Log.d(TAG, "Saved priority " + device + " = " + priority);
+        if (DBG) {
+            Log.d(TAG, "Saved priority " + device + " = " + priority);
+        }
         return true;
     }
 
@@ -423,6 +430,9 @@ public class HeadsetService extends ProfileService {
 
     boolean startVoiceRecognition(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (DBG) {
+            Log.d(TAG, "startVoiceRecognition");
+        }
         int connectionState = mStateMachine.getConnectionState(device);
         if (connectionState != BluetoothProfile.STATE_CONNECTED &&
             connectionState != BluetoothProfile.STATE_CONNECTING) {
@@ -434,6 +444,9 @@ public class HeadsetService extends ProfileService {
 
     boolean stopVoiceRecognition(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (DBG) {
+            Log.d(TAG, "stopVoiceRecognition");
+        }
         // It seem that we really need to check the AudioOn state.
         // But since we allow startVoiceRecognition in STATE_CONNECTED and
         // STATE_CONNECTING state, we do these 2 in this method

@@ -58,7 +58,7 @@ import java.util.List;
 import java.util.Set;
 
 final class A2dpStateMachine extends StateMachine {
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
 
     static final int CONNECT = 1;
     static final int DISCONNECT = 2;

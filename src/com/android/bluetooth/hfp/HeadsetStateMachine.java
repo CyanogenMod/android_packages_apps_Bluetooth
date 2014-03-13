@@ -82,7 +82,7 @@ import android.os.SystemProperties;
 
 final class HeadsetStateMachine extends StateMachine {
     private static final String TAG = "HeadsetStateMachine";
-    private static final boolean DBG = false;
+    private static final boolean DBG = Log.isLoggable("Handsfree", Log.VERBOSE);
     //For Debugging only
     private static int sRefCount=0;
 
@@ -299,6 +299,7 @@ final class HeadsetStateMachine extends StateMachine {
 
 
     public void doQuit() {
+        log("quit");
         quitNow();
     }
 
@@ -353,7 +354,7 @@ final class HeadsetStateMachine extends StateMachine {
     private class Disconnected extends State {
         @Override
         public void enter() {
-            log("Enter Disconnected: " + getCurrentMessage().what +
+            Log.d(TAG, "Enter Disconnected: " + getCurrentMessage().what +
                                 ", size: " + mConnectedDevicesList.size());
             mPhonebook.resetAtState();
             mPhoneState.listenForPhoneState(false);
@@ -364,7 +365,7 @@ final class HeadsetStateMachine extends StateMachine {
 
         @Override
         public boolean processMessage(Message message) {
-            log("Disconnected process message: " + message.what +
+            Log.d(TAG, "Disconnected process message: " + message.what +
                                 ", size: " + mConnectedDevicesList.size());
             if (mConnectedDevicesList.size() != 0 || mTargetDevice != null ||
                                 mIncomingDevice != null) {
@@ -440,9 +441,7 @@ final class HeadsetStateMachine extends StateMachine {
                     break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
-                    if (DBG) {
-                        log("event type: " + event.type);
-                    }
+                    Log.d(TAG, "event type: " + event.type);
                     switch (event.type) {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
                             processConnectionEvent(event.valueInt, event.device);
@@ -460,20 +459,21 @@ final class HeadsetStateMachine extends StateMachine {
 
         @Override
         public void exit() {
-            log("Exit Disconnected: " + getCurrentMessage().what);
+            Log.d(TAG, "Exit Disconnected: " + getCurrentMessage().what);
         }
 
         // in Disconnected state
         private void processConnectionEvent(int state, BluetoothDevice device) {
             Log.d(TAG, "processConnectionEvent state = " + state +
-                             ", device = " + device);
+                              ", device = " + device);
             switch (state) {
             case HeadsetHalConstants.CONNECTION_STATE_DISCONNECTED:
-                Log.w(TAG, "Ignore HF DISCONNECTED event, device: " + device);
+                Log.d(TAG, "Ignore HF DISCONNECTED event, device: " + device);
                 break;
             case HeadsetHalConstants.CONNECTION_STATE_CONNECTING:
-                if (okToConnect(device)) {
-                    Log.i(TAG,"Incoming Hf accepted");
+                if (okToConnect(device)){
+                    Log.d(TAG, "Incoming Hf accepted");
+
                     broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
                                              BluetoothProfile.STATE_DISCONNECTED);
                     synchronized (HeadsetStateMachine.this) {
@@ -481,7 +481,7 @@ final class HeadsetStateMachine extends StateMachine {
                         transitionTo(mPending);
                     }
                 } else {
-                    Log.i(TAG,"Incoming Hf rejected. priority=" + mService.getPriority(device)+
+                    Log.d(TAG,"Incoming Hf rejected. priority=" + mService.getPriority(device)+
                               " bondState=" + device.getBondState());
                     //reject the connection and stay in Disconnected state itself
                     disconnectHfpNative(getByteAddress(device));
@@ -494,7 +494,7 @@ final class HeadsetStateMachine extends StateMachine {
                 }
                 break;
             case HeadsetHalConstants.CONNECTION_STATE_CONNECTED:
-                Log.w(TAG, "HFP Connected from Disconnected state");
+                Log.d(TAG, "HFP Connected from Disconnected state");
                 if (okToConnect(device)) {
                     Log.d(TAG, "Incoming Hf accepted");
                     if (mPhoneProxy != null) {
@@ -519,7 +519,7 @@ final class HeadsetStateMachine extends StateMachine {
                     configAudioParameters(device);
                 } else {
                     //reject the connection and stay in Disconnected state itself
-                    Log.i(TAG,"Incoming Hf rejected. priority=" + mService.getPriority(device) +
+                    Log.d(TAG, "Incoming Hf rejected. priority=" + mService.getPriority(device) +
                               " bondState=" + device.getBondState());
                     disconnectHfpNative(getByteAddress(device));
                     // the other profile connection should be initiated
@@ -531,7 +531,7 @@ final class HeadsetStateMachine extends StateMachine {
                 }
                 break;
             case HeadsetHalConstants.CONNECTION_STATE_DISCONNECTING:
-                Log.w(TAG, "Ignore HF DISCONNECTING event, device: " + device);
+                Log.d(TAG, "Ignore HF DISCONNECTING event, device: " + device);
                 break;
             default:
                 Log.e(TAG, "Incorrect state: " + state);
@@ -543,12 +543,12 @@ final class HeadsetStateMachine extends StateMachine {
     private class Pending extends State {
         @Override
         public void enter() {
-            log("Enter Pending: " + getCurrentMessage().what);
+            Log.d(TAG, "Enter Pending: " + getCurrentMessage().what);
         }
 
         @Override
         public boolean processMessage(Message message) {
-            log("Pending process message: " + message.what + ", size: "
+            Log.d(TAG, "Pending process message: " + message.what + ", size: "
                                         + mConnectedDevicesList.size());
 
             boolean retValue = HANDLED;
@@ -584,9 +584,7 @@ final class HeadsetStateMachine extends StateMachine {
                     break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
-                    if (DBG) {
-                        log("event type: " + event.type);
-                    }
+                    Log.d(TAG, "event type: " + event.type);
                     switch (event.type) {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
                             BluetoothDevice device1 = getDeviceForMessage(CONNECT_TIMEOUT);
@@ -611,6 +609,7 @@ final class HeadsetStateMachine extends StateMachine {
         private void processConnectionEvent(int state, BluetoothDevice device) {
             Log.d(TAG, "processConnectionEvent state = " + state +
                                               ", device = " + device);
+
             switch (state) {
                 case HeadsetHalConstants.CONNECTION_STATE_DISCONNECTED:
                     if (mConnectedDevicesList.contains(device)) {
@@ -832,8 +831,9 @@ final class HeadsetStateMachine extends StateMachine {
 
         @Override
         public boolean processMessage(Message message) {
-            log("Connected process message: " + message.what +
+            Log.d(TAG, "Connected process message: " + message.what +
                           ", size: " + mConnectedDevicesList.size());
+
             if (DBG) {
                 if (mConnectedDevicesList.size() == 0) {
                     log("ERROR: mConnectedDevicesList is empty in Connected");
@@ -1044,10 +1044,8 @@ final class HeadsetStateMachine extends StateMachine {
                     break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
-                    if (DBG) {
-                        log("event type: " + event.type + "event device : "
+                    Log.d(TAG, "event type: " + event.type + "event device : "
                                                   + event.device);
-                    }
                     switch (event.type) {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
                             processConnectionEvent(event.valueInt, event.device);
@@ -1123,8 +1121,8 @@ final class HeadsetStateMachine extends StateMachine {
 
         // in Connected state
         private void processConnectionEvent(int state, BluetoothDevice device) {
-        Log.d(TAG, "processConnectionEvent state = " + state + ", device = "
-                                                           + device);
+            Log.d(TAG, "processConnectionEvent state = " + state +
+                              ", device = " + device);
             switch (state) {
                 case HeadsetHalConstants.CONNECTION_STATE_DISCONNECTED:
                     if (mConnectedDevicesList.contains(device)) {
@@ -1284,19 +1282,18 @@ final class HeadsetStateMachine extends StateMachine {
 
         @Override
         public void enter() {
-            log("Enter AudioOn: " + getCurrentMessage().what + ", size: " +
+            Log.d(TAG, "Enter AudioOn: " + getCurrentMessage().what + ", size: " +
                                   mConnectedDevicesList.size());
+
         }
 
         @Override
         public boolean processMessage(Message message) {
-            log("AudioOn process message: " + message.what + ", size: " +
+            Log.d(TAG, "AudioOn process message: " + message.what + ", size: " +
                                   mConnectedDevicesList.size());
-            if (DBG) {
-                if (mConnectedDevicesList.size() == 0) {
-                    log("ERROR: mConnectedDevicesList is empty in AudioOn");
-                    return NOT_HANDLED;
-                }
+            if (mConnectedDevicesList.size() == 0) {
+                log("ERROR: mConnectedDevicesList is empty in AudioOn");
+                return NOT_HANDLED;
             }
 
             boolean retValue = HANDLED;
@@ -1514,9 +1511,7 @@ final class HeadsetStateMachine extends StateMachine {
                     break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
-                    if (DBG) {
-                        log("event type: " + event.type);
-                    }
+                    Log.d(TAG, "event type: " + event.type);
                     switch (event.type) {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
                             BluetoothDevice device1 = getDeviceForMessage(CONNECT_TIMEOUT);
@@ -1591,6 +1586,7 @@ final class HeadsetStateMachine extends StateMachine {
 
         // in AudioOn state. Some headsets disconnect RFCOMM prior to SCO down. Handle this
         private void processConnectionEvent(int state, BluetoothDevice device) {
+
         Log.d(TAG, "processConnectionEvent state = " + state + ", device = " +
                                                    device);
             switch (state) {
@@ -2084,6 +2080,7 @@ final class HeadsetStateMachine extends StateMachine {
                         Log.i(TAG,"Incoming Hf accepted");
                         broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTED,
                                          BluetoothProfile.STATE_DISCONNECTED);
+
                         synchronized (HeadsetStateMachine.this) {
                             if (!mConnectedDevicesList.contains(device)) {
                                 mCurrentDevice = device;
@@ -2572,7 +2569,7 @@ final class HeadsetStateMachine extends StateMachine {
 
     // This method does not check for error conditon (newState == prevState)
     private void broadcastConnectionState(BluetoothDevice device, int newState, int prevState) {
-        log("Connection state " + device + ": " + prevState + "->" + newState);
+        Log.d(TAG, "Connection state " + device + ": " + prevState + "->" + newState);
         if(prevState == BluetoothProfile.STATE_CONNECTED) {
             // Headset is disconnecting, stop Virtual call if active.
             terminateScoUsingVirtualVoiceCall();
@@ -2603,7 +2600,9 @@ final class HeadsetStateMachine extends StateMachine {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         mService.sendBroadcastAsUser(intent, UserHandle.ALL,
                 HeadsetService.BLUETOOTH_PERM);
-        log("Audio state " + device + ": " + prevState + "->" + newState);
+        Log.d(TAG, "Audio state " + device + ": " + prevState + "->" + newState);
+
+
     }
 
     /*
@@ -2881,6 +2880,7 @@ final class HeadsetStateMachine extends StateMachine {
         if(device == null) {
             Log.w(TAG, "processAnswerCall device is null");
             return;
+
         }
 
         if (mPhoneProxy != null) {
@@ -3058,6 +3058,7 @@ final class HeadsetStateMachine extends StateMachine {
                 terminateScoUsingVirtualVoiceCall();
             }
 
+
             // Specific handling for case of starting MO/MT call while VOIP
             // ongoing, terminateScoUsingVirtualVoiceCall() resets callState
             // INCOMING/DIALING to IDLE. Some HS send AT+CIND? to read call
@@ -3065,6 +3066,7 @@ final class HeadsetStateMachine extends StateMachine {
             // SCO for VOIP call is not terminated via SDK API call.
             if (mPhoneState.getCallState() != callState.mCallState) {
                 mPhoneState.setCallState(callState.mCallState);
+
             }
 
             // at this step: if there is virtual call ongoing, it means there is no CSV call
