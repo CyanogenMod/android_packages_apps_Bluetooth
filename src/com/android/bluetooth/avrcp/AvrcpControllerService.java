@@ -54,7 +54,7 @@ import java.nio.ByteBuffer;
  * @hide
  */
 public class AvrcpControllerService extends ProfileService {
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
     private static final String TAG = "AvrcpControllerService";
 
     //private Context mContext;

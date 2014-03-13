@@ -38,7 +38,7 @@ import java.util.Map;
  * @hide
  */
 public class A2dpService extends ProfileService {
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
     private static final String TAG="A2dpService";
 
     private A2dpStateMachine mStateMachine;
