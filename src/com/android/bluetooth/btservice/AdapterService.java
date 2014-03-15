@@ -1159,10 +1159,10 @@ public class AdapterService extends Service {
     }
 
      private void adjustOtherHeadsetPriorities(HeadsetService  hsService,
-                                                    BluetoothDevice connectedDevice) {
+                                                    List<BluetoothDevice> connectedDeviceList) {
         for (BluetoothDevice device : getBondedDevices()) {
            if (hsService.getPriority(device) >= BluetoothProfile.PRIORITY_AUTO_CONNECT &&
-               !device.equals(connectedDevice)) {
+               !connectedDeviceList.contains(device)) {
                hsService.setPriority(device, BluetoothProfile.PRIORITY_ON);
            }
         }
@@ -1181,9 +1181,10 @@ public class AdapterService extends Service {
      void setProfileAutoConnectionPriority (BluetoothDevice device, int profileId){
          if (profileId == BluetoothProfile.HEADSET) {
              HeadsetService  hsService = HeadsetService.getHeadsetService();
+             List<BluetoothDevice> deviceList = hsService.getConnectedDevices();
              if ((hsService != null) &&
                 (BluetoothProfile.PRIORITY_AUTO_CONNECT != hsService.getPriority(device))){
-                 adjustOtherHeadsetPriorities(hsService, device);
+                 adjustOtherHeadsetPriorities(hsService, deviceList);
                  hsService.setPriority(device,BluetoothProfile.PRIORITY_AUTO_CONNECT);
              }
          }
