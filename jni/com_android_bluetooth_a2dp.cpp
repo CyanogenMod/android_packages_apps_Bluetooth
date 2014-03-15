@@ -309,7 +309,10 @@ static jint isSrcNative(JNIEnv *env, jobject object, jbyteArray address) {
     jbyte *addr;
     bt_status_t status;
 
-    if (!sBluetoothA2dpInterface) return JNI_FALSE;
+    if (!sBluetoothA2dpInterface) {
+        ALOGE("sBluetoothA2dpInterface is NULL ");
+        return JNI_FALSE;
+    }
 
     addr = env->GetByteArrayElements(address, NULL);
     if (!addr) {
@@ -317,9 +320,7 @@ static jint isSrcNative(JNIEnv *env, jobject object, jbyteArray address) {
         return JNI_FALSE;
     }
 
-    if ( (status = sBluetoothA2dpInterface->is_src((bt_bdaddr_t *)addr)) != BT_STATUS_SUCCESS) {
-        ALOGE("Failed HF disconnection, status: %d", status);
-    }
+    status = sBluetoothA2dpInterface->is_src((bt_bdaddr_t *)addr);
     env->ReleaseByteArrayElements(address, addr, 0);
     return status;
 }
