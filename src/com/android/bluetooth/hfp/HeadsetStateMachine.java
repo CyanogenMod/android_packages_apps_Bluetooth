@@ -2522,7 +2522,7 @@ final class HeadsetStateMachine extends StateMachine {
         //          Get call started indication from bluetooth phone
         mDialingOut = true;
         Message m = obtainMessage(DIALING_OUT_TIMEOUT);
-        m.obj = device;
+        m.obj = getMatchingDevice(device);
         sendMessageDelayed(m, DIALING_OUT_TIMEOUT_VALUE);
     }
 
@@ -2573,6 +2573,9 @@ final class HeadsetStateMachine extends StateMachine {
             if (callState.mCallState ==
                 HeadsetHalConstants.CALL_STATE_DIALING) {
                 BluetoothDevice device = getDeviceForMessage(DIALING_OUT_TIMEOUT);
+                if (device == null) {
+                    return;
+                }
                 atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK,
                                                        0, getByteAddress(device));
                 removeMessages(DIALING_OUT_TIMEOUT);
@@ -3061,6 +3064,9 @@ final class HeadsetStateMachine extends StateMachine {
 
     private void processSendClccResponse(HeadsetClccResponse clcc) {
         BluetoothDevice device = getDeviceForMessage(CLCC_RSP_TIMEOUT);
+        if (device == null) {
+            return;
+        }
         if (clcc.mIndex == 0) {
             removeMessages(CLCC_RSP_TIMEOUT);
         }
