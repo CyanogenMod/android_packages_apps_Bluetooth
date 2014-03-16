@@ -52,6 +52,7 @@ import android.os.ParcelUuid;
 import android.util.Log;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.AbstractionLayer;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.util.IState;
 import com.android.internal.util.State;
@@ -609,7 +610,8 @@ final class A2dpStateMachine extends StateMachine {
                         loge("Disconnected from unknown device: " + device);
                     }
 
-                    if (isSrcNative(getByteAddress(device))) {
+                    if (isSrcNative(getByteAddress(device))
+                                == AbstractionLayer.BT_STATUS_SUCCESS) {
                         // in case PEER DEVICE is A2DP SRC we need to manager audio focus
                         int status = mAudioManager.abandonAudioFocus(mAudioFocusListener);
                         log("Status loss returned " + status);
@@ -625,7 +627,8 @@ final class A2dpStateMachine extends StateMachine {
 
         private void processAudioFocusRequestEvent(int enable, BluetoothDevice device) {
             if (mPlayingA2dpDevice != null) {
-                if ((isSrcNative(getByteAddress(device))) && (enable == 1)){
+                if ((isSrcNative(getByteAddress(device))
+                        == AbstractionLayer.BT_STATUS_SUCCESS) && (enable == 1)){
                     // in case PEER DEVICE is A2DP SRC we need to manager audio focus
                     int status =  mAudioManager.requestAudioFocus(mAudioFocusListener,
                                AudioManager.STREAM_MUSIC,AudioManager.AUDIOFOCUS_GAIN);
@@ -667,9 +670,14 @@ final class A2dpStateMachine extends StateMachine {
         }
     }
 
+    // true if peer device is source
     boolean isConnectedSrc(BluetoothDevice device)
     {
-        return isSrcNative(getByteAddress(device));
+        if (isSrcNative(getByteAddress(device))
+                    == AbstractionLayer.BT_STATUS_SUCCESS)
+            return true;
+        else
+            return false;
     }
 
     int getConnectionState(BluetoothDevice device) {
@@ -768,10 +776,15 @@ final class A2dpStateMachine extends StateMachine {
     // This method does not check for error conditon (newState == prevState)
     private void broadcastConnectionState(BluetoothDevice device, int newState, int prevState) {
 
-        int delay;
-        // in case PEER DEVICE is A2DP SRC we don't need to tell AUDIO
-        if (!isSrcNative(getByteAddress(device))) {
+        int delay = 0;
+        // in case PEER DEVICE is A2DP SNK we need to tell AUDIO
+        if (isSrcNative(getByteAddress(device))
+                    == AbstractionLayer.BT_STATUS_FAIL) {
+            // do not update delay for disconecting as by time disconnect comes
+            // Sep end point is cleared
             delay = mAudioManager.setBluetoothA2dpDeviceConnectionState(device, newState);
+            if (newState == BluetoothProfile.STATE_DISCONNECTING)
+                delay = 0;
             log("Peer Device is SNK");
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 mService.setLastConnectedA2dpSepType (device,
@@ -779,14 +792,15 @@ final class A2dpStateMachine extends StateMachine {
             }
         }
         else {
-            delay = 0;
             log("Peer Device is SRC");
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 mService.setLastConnectedA2dpSepType (device,
                                     BluetoothProfile.PROFILE_A2DP_SRC);
             }
+            log("Peer Device is SRC/Not ready yet");
         }
         mWakeLock.acquire();
+        log("delay is " + delay + "for device " + device);
         mIntentBroadcastHandler.sendMessageDelayed(mIntentBroadcastHandler.obtainMessage(
                                                         MSG_CONNECTION_STATE_CHANGED,
                                                         prevState,
@@ -896,7 +910,8 @@ final class A2dpStateMachine extends StateMachine {
                 log("Command Received  " + cmd);
                 if (cmd.equals("pause")) {
                     if (mCurrentDevice != null) {
-                        if (isSrcNative(getByteAddress(mCurrentDevice))) {
+                        if (isSrcNative(getByteAddress(mCurrentDevice))
+                                == AbstractionLayer.BT_STATUS_SUCCESS) {
                             //Camera Pauses the Playback before starting the Video recording
                             //But it doesn't start the playback once recording is completed.
                             //Disconnecting the A2dp to move the A2dpSink to proper state.
@@ -920,7 +935,8 @@ final class A2dpStateMachine extends StateMachine {
             switch(focusChange){
                 case AudioManager.AUDIOFOCUS_LOSS:
                     if (mCurrentDevice != null) {
-                        if (isSrcNative(getByteAddress(mCurrentDevice))) {
+                        if (isSrcNative(getByteAddress(mCurrentDevice))
+                                == AbstractionLayer.BT_STATUS_SUCCESS) {
                             // in case of perm loss, disconnect the link
                             disconnectA2dpNative(getByteAddress(mCurrentDevice));
                             // in case PEER DEVICE is A2DP SRC we need to manage audio focus
@@ -981,7 +997,7 @@ final class A2dpStateMachine extends StateMachine {
     private native boolean connectA2dpNative(byte[] address);
     private native boolean disconnectA2dpNative(byte[] address);
     private native void allowConnectionNative(int isValid);
-    private native boolean isSrcNative(byte[] address);
+    private native int isSrcNative(byte[] address);
     private native void suspendA2dpNative();
     private native void resumeA2dpNative();
     private native void informAudioFocusStateNative(int state);
