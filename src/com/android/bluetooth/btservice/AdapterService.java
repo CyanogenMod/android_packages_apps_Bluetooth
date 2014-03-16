@@ -1279,6 +1279,7 @@ public class AdapterService extends Service {
         }
         else if((a2dpConnDevList.isEmpty()) &&
             (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_ON) &&
+            (a2dpService.getLastConnectedA2dpSepType(device) == BluetoothProfile.PROFILE_A2DP_SNK)&&
             (hsConnected || (hsService.getPriority(device) == BluetoothProfile.PRIORITY_OFF))) {
             a2dpService.connect(device);
         }
