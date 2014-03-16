@@ -561,6 +561,11 @@ final class A2dpStateMachine extends StateMachine {
                                        BluetoothProfile.STATE_DISCONNECTING);
                         break;
                     }
+                    if (mPlayingA2dpDevice != null) {
+                        broadcastAudioState(mPlayingA2dpDevice, BluetoothA2dp.STATE_NOT_PLAYING,
+                                            BluetoothA2dp.STATE_PLAYING);
+                        mPlayingA2dpDevice = null;
+                    }
                     transitionTo(mPending);
                 }
                     break;
