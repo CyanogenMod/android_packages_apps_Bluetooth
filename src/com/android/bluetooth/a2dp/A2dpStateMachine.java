@@ -773,10 +773,18 @@ final class A2dpStateMachine extends StateMachine {
         if (!isSrcNative(getByteAddress(device))) {
             delay = mAudioManager.setBluetoothA2dpDeviceConnectionState(device, newState);
             log("Peer Device is SNK");
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
+                mService.setLastConnectedA2dpSepType (device,
+                                    BluetoothProfile.PROFILE_A2DP_SNK);
+            }
         }
         else {
             delay = 0;
             log("Peer Device is SRC");
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
+                mService.setLastConnectedA2dpSepType (device,
+                                    BluetoothProfile.PROFILE_A2DP_SRC);
+            }
         }
         mWakeLock.acquire();
         mIntentBroadcastHandler.sendMessageDelayed(mIntentBroadcastHandler.obtainMessage(
