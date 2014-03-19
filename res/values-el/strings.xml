@@ -38,16 +38,16 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Αποδοχή"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Σημειώθηκε διακοπή κατά την αποδοχή ενός εισερχόμενου αρχείου από τον αποστολέα \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Κοινή χρήση μέσω Bluetooth: Εισερχόμενο αρχείο"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Κοινοποίηση μέσω Bluetooth: Εισερχόμενο αρχείο"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Θέλετε να λάβετε αυτό το αρχείο;"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Εισερχόμενο αρχείο από άλλη συσκευή. Επιβεβαιώστε ότι θέλετε να λάβετε αυτό το αρχείο."</string>
-    <string name="notification_receiving" msgid="4674648179652543984">"Κοινή χρήση μέσω Bluetooth: Λήψη του <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received" msgid="3324588019186687985">"Κοινή χρήση μέσω Bluetooth: Ελήφθη το <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Κοινή χρήση μέσω Bluetooth: Το αρχείο <xliff:g id="FILE">%1$s</xliff:g> δεν ελήφθη"</string>
-    <string name="notification_sending" msgid="3035748958534983833">"Κοινή χρήση μέσω Bluetooth: Αποστολή του <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"Κοινή χρήση μέσω Bluetooth: Εστάλη το <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_receiving" msgid="4674648179652543984">"Κοινοποίηση μέσω Bluetooth: Λήψη του <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received" msgid="3324588019186687985">"Κοινοποίηση μέσω Bluetooth: Ελήφθη το <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"Κοινοποίηση μέσω Bluetooth: Το αρχείο <xliff:g id="FILE">%1$s</xliff:g> δεν ελήφθη"</string>
+    <string name="notification_sending" msgid="3035748958534983833">"Κοινοποίηση μέσω Bluetooth: Αποστολή του <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"Κοινοποίηση μέσω Bluetooth: Εστάλη το <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"Ολοκληρώθηκε το 100%"</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"Κοινή χρήση μέσω Bluetooth: Το αρχείο <xliff:g id="FILE">%1$s</xliff:g> δεν εστάλη"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"Κοινοποίηση μέσω Bluetooth: Το αρχείο <xliff:g id="FILE">%1$s</xliff:g> δεν εστάλη"</string>
     <string name="download_title" msgid="3353228219772092586">"Μεταφορά αρχείου"</string>
     <string name="download_line1" msgid="4926604799202134144">"Από: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"Αρχείο: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -107,8 +107,8 @@
     <string name="outbound_history_title" msgid="4279418703178140526">"Εξερχόμενες μεταφορές"</string>
     <string name="no_transfers" msgid="3482965619151865672">"Το ιστορικό μεταφορών είναι κενό."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Θα γίνει εκκαθάριση όλων των στοιχείων από τη λίστα."</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"Κοινή χρήση Bluetooth: Απεσταλμένα αρχεία"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"Κοινή χρήση Bluetooth: Ληφθέντα αρχεία"</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Κοινοποίηση Bluetooth: Απεσταλμένα αρχεία"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Κοινοποίηση Bluetooth: Ληφθέντα αρχεία"</string>
     <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> επιτυχίες, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> αποτυχίες."</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Εκκαθάριση λίστας"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Άνοιγμα"</string>
