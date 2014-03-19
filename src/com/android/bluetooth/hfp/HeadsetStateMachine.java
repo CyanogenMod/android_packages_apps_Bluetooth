@@ -1130,6 +1130,17 @@ final class HeadsetStateMachine extends StateMachine {
                         break;
                     }
 
+                    if (max_hf_connections == 1) {
+                        deferMessage(obtainMessage(DISCONNECT, mCurrentDevice));
+                        deferMessage(obtainMessage(CONNECT, device));
+                        if (disconnectAudioNative(getByteAddress(mCurrentDevice))) {
+                            Log.d(TAG, "Disconnecting SCO audio for device = " + mCurrentDevice);
+                        } else {
+                            Log.e(TAG, "disconnectAudioNative failed");
+                        }
+                        break;
+                    }
+
                     if (mConnectedDevicesList.size() >= max_hf_connections) {
                         BluetoothDevice DisconnectConnectedDevice = null;
                         IState CurrentAudioState = getCurrentState();
@@ -1137,8 +1148,7 @@ final class HeadsetStateMachine extends StateMachine {
                                            "one of them first");
                         DisconnectConnectedDevice = mConnectedDevicesList.get(0);
 
-                        if (mActiveScoDevice.equals(DisconnectConnectedDevice)
-                                                     && (max_hf_connections > 1)) {
+                        if (mActiveScoDevice.equals(DisconnectConnectedDevice)) {
                            DisconnectConnectedDevice = mConnectedDevicesList.get(1);
                         }
 
@@ -1157,12 +1167,8 @@ final class HeadsetStateMachine extends StateMachine {
 
                         synchronized (HeadsetStateMachine.this) {
                             mTargetDevice = device;
-                            if (max_hf_connections == 1) {
-                                transitionTo(mPending);
-                            } else {
-                                mMultiDisconnectDevice = DisconnectConnectedDevice;
-                                transitionTo(mMultiHFPending);
-                            }
+                            mMultiDisconnectDevice = DisconnectConnectedDevice;
+                            transitionTo(mMultiHFPending);
                             DisconnectConnectedDevice = null;
                         }
                     } else if(mConnectedDevicesList.size() < max_hf_connections) {
