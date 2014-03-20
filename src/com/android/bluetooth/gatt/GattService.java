@@ -17,6 +17,7 @@
 package com.android.bluetooth.gatt;
 
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
@@ -103,7 +104,9 @@ public class GattService extends ProfileService {
     private byte[] mServiceData = new byte[0];
     private int mManufacturerCode = -1;
     private byte[] mManufacturerData = new byte[0];
-    private boolean mIsAdvertising = false;
+    private Integer mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STOPPED;
+    private final Object mLock = new Object();
+
     /**
      * Pending service declaration queue
      */
@@ -226,7 +229,7 @@ public class GattService extends ProfileService {
         public void binderDied() {
             if (DBG) Log.d(TAG, "Binder is dead - unregistering client (" + mAppIf + ")!");
             if (mAdvertisingClientIf == mAppIf) {
-                stopAdvertising();
+                stopAdvertising(true);  // force stop advertising.
             } else {
                 stopScan(mAppIf, false);
             }
@@ -917,6 +920,54 @@ public class GattService extends ProfileService {
         }
     }
 
+    void onAdvertiseCallback(int status, int clientIf) throws RemoteException {
+        if (DBG) Log.d(TAG, "onClientListen() status=" + status);
+        synchronized (mLock) {
+            if (DBG) Log.d(TAG, "state" + mAdvertisingState);
+            // Invalid advertising state
+            if (mAdvertisingState == BluetoothAdapter.STATE_ADVERTISE_STARTED ||
+                    mAdvertisingState == BluetoothAdapter.STATE_ADVERTISE_STOPPED) {
+                Log.e(TAG, "invalid callback state " + mAdvertisingState);
+                return;
+            }
+
+            // Force stop advertising, no callback.
+            if (mAdvertisingState == BluetoothAdapter.STATE_ADVERTISE_FORCE_STOPPING) {
+                mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STOPPED;
+                mAdvertisingClientIf = 0;
+                sendBroadcast(new Intent(
+                        BluetoothAdapter.ACTION_BLUETOOTH_ADVERTISING_STOPPED));
+                return;
+            }
+
+            if (mAdvertisingState == BluetoothAdapter.STATE_ADVERTISE_STARTING) {
+                if (status == 0) {
+                    mAdvertisingClientIf = clientIf;
+                    mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STARTED;
+                    sendBroadcast(new Intent(
+                            BluetoothAdapter.ACTION_BLUETOOTH_ADVERTISING_STARTED));
+                } else {
+                    mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STOPPED;
+                }
+            } else if (mAdvertisingState == BluetoothAdapter.STATE_ADVERTISE_STOPPING) {
+                if (status == 0) {
+                    mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STOPPED;
+                    sendBroadcast(new Intent(
+                            BluetoothAdapter.ACTION_BLUETOOTH_ADVERTISING_STOPPED));
+                    mAdvertisingClientIf = 0;
+                } else {
+                    mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STARTED;
+                }
+            }
+        }
+        ClientMap.App app = mClientMap.getById(clientIf);
+        if (app == null || app.callback == null) {
+            Log.e(TAG, "app or callback is null");
+            return;
+        }
+        app.callback.onAdvertiseStateChange(mAdvertisingState, status);
+    }
+
     /**************************************************************************
      * GATT Service functions - Shared CLIENT/SERVER
      *************************************************************************/
@@ -1118,7 +1169,7 @@ public class GattService extends ProfileService {
 
     boolean isAdvertising() {
         enforcePrivilegedPermission();
-        return mIsAdvertising;
+        return mAdvertisingState != BluetoothAdapter.STATE_ADVERTISE_STOPPED;
     }
 
     void startAdvertising(int clientIf) {
@@ -1154,15 +1205,24 @@ public class GattService extends ProfileService {
         if (!isAdvertising()) {
             gattAdvertiseNative(clientIf, true);
             mAdvertisingClientIf = clientIf;
-            mIsAdvertising = true;
+            mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STARTING;
         }
     }
 
     void stopAdvertising() {
+        stopAdvertising(false);
+    }
+
+    void stopAdvertising(boolean forceStop) {
         enforcePrivilegedPermission();
         gattAdvertiseNative(mAdvertisingClientIf, false);
-        mAdvertisingClientIf = 0;
-        mIsAdvertising = false;
+        synchronized (mLock) {
+            if (forceStop) {
+                mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_FORCE_STOPPING;
+            } else {
+                mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STOPPING;
+            }
+        }
     }
 
     List<String> getConnectedDevices() {
