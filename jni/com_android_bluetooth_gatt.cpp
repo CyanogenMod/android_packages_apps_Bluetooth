@@ -158,6 +158,7 @@ static jmethodID method_onGetDescriptor;
 static jmethodID method_onGetIncludedService;
 static jmethodID method_onRegisterForNotifications;
 static jmethodID method_onReadRemoteRssi;
+static jmethodID method_onAdvertiseCallback;
 
 /**
  * Server callback methods
@@ -422,6 +423,13 @@ void btgattc_remote_rssi_cb(int client_if,bt_bdaddr_t* bda, int rssi, int status
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
+void btgattc_advertise_cb(int status, int client_if)
+{
+    CHECK_CALLBACK_ENV
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAdvertiseCallback, status, client_if);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+}
+
 static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_register_app_cb,
     btgattc_scan_result_cb,
@@ -439,7 +447,8 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_read_descriptor_cb,
     btgattc_write_descriptor_cb,
     btgattc_execute_write_cb,
-    btgattc_remote_rssi_cb
+    btgattc_remote_rssi_cb,
+    btgattc_advertise_cb
 };
 
 
@@ -670,6 +679,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onAttributeRead= env->GetMethodID(clazz, "onAttributeRead", "(Ljava/lang/String;IIIIZ)V");
     method_onAttributeWrite= env->GetMethodID(clazz, "onAttributeWrite", "(Ljava/lang/String;IIIIIZZ[B)V");
     method_onExecuteWrite= env->GetMethodID(clazz, "onExecuteWrite", "(Ljava/lang/String;III)V");
+    method_onAdvertiseCallback = env->GetMethodID(clazz, "onAdvertiseCallback", "(II)V");
 
     info("classInitNative: Success!");
 }
