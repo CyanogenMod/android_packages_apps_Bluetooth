@@ -66,6 +66,9 @@ final class BondStateMachine extends StateMachine {
     private PendingCommandState mPendingCommandState = new PendingCommandState();
     private StableState mStableState = new StableState();
 
+    private final ArrayList<BluetoothDevice> mDevices =
+        new ArrayList<BluetoothDevice>();
+
     private BondStateMachine(AdapterService service,
             AdapterProperties prop, RemoteDevices remoteDevices) {
         super("BondStateMachine:");
@@ -120,6 +123,9 @@ final class BondStateMachine extends StateMachine {
                 /* if incoming pairing, transition to pending state */
                 if (newState == BluetoothDevice.BOND_BONDING)
                 {
+                    if(!mDevices.contains(dev)) {
+                        mDevices.add(dev);
+                    }
                     sendIntent(dev, newState, 0);
                     transitionTo(mPendingCommandState);
                 }
@@ -140,8 +146,6 @@ final class BondStateMachine extends StateMachine {
 
 
     private class PendingCommandState extends State {
-        private final ArrayList<BluetoothDevice> mDevices =
-            new ArrayList<BluetoothDevice>();
 
         @Override
         public void enter() {
@@ -180,6 +184,14 @@ final class BondStateMachine extends StateMachine {
                     sendIntent(dev, newState, reason);
                     if(newState != BluetoothDevice.BOND_BONDING )
                     {
+                        // check if bond none is received from device which
+                        // was in pairing state otherwise don't transition to
+                        // stable state.
+                        if (newState == BluetoothDevice.BOND_NONE &&
+                            !mDevices.contains(dev) && mDevices.size() != 0) {
+                            infoLog("not transitioning to stable state");
+                            break;
+                        }
                         /* this is either none/bonded, remove and transition */
                         result = !mDevices.remove(dev);
                         if (mDevices.isEmpty()) {
@@ -250,6 +262,7 @@ final class BondStateMachine extends StateMachine {
     }
 
     private boolean cancelBond(BluetoothDevice dev) {
+        if(mAdapterService == null) return false;
         if (dev.getBondState() == BluetoothDevice.BOND_BONDING) {
             byte[] addr = Utils.getBytesFromAddress(dev.getAddress());
             if (!mAdapterService.cancelBondNative(addr)) {
@@ -262,6 +275,7 @@ final class BondStateMachine extends StateMachine {
     }
 
     private boolean removeBond(BluetoothDevice dev, boolean transition) {
+        if(mAdapterService == null) return false;
         if (dev.getBondState() == BluetoothDevice.BOND_BONDED) {
             byte[] addr = Utils.getBytesFromAddress(dev.getAddress());
             if (!mAdapterService.removeBondNative(addr)) {
@@ -276,6 +290,7 @@ final class BondStateMachine extends StateMachine {
     }
 
     private boolean createBond(BluetoothDevice dev, int transport, boolean transition) {
+        if(mAdapterService == null) return false;
         if (dev.getBondState() == BluetoothDevice.BOND_NONE) {
             infoLog("Bond address is:" + dev);
             byte[] addr = Utils.getBytesFromAddress(dev.getAddress());

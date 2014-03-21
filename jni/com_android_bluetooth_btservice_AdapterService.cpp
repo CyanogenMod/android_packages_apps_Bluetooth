@@ -54,7 +54,7 @@ static const btmce_interface_t *sBluetoothMceInterface = NULL;
 static JNIEnv *callbackEnv = NULL;
 
 static jobject sJniAdapterServiceObj;
-static jobject sJniCallbacksObj;
+static jobject sJniCallbacksObj = NULL;
 static jfieldID sJniCallbacksField;
 
 
@@ -90,9 +90,11 @@ static void adapter_state_change_callback(bt_state_t status) {
        return;
     }
     ALOGV("%s: Status is: %d", __FUNCTION__, status);
-
-    callbackEnv->CallVoidMethod(sJniCallbacksObj, method_stateChangeCallback, (jint)status);
-
+    if(sJniCallbacksObj) {
+       callbackEnv->CallVoidMethod(sJniCallbacksObj, method_stateChangeCallback, (jint)status);
+    } else {
+       ALOGE("JNI ERROR : JNI reference already cleaned : adapter_state_change_callback", __FUNCTION__);
+    }
     checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
 }
 
@@ -744,7 +746,7 @@ static bool initNative(JNIEnv* env, jobject obj) {
 
     if (sBluetoothInterface) {
         int ret = sBluetoothInterface->init(&sBluetoothCallbacks);
-        if (ret != BT_STATUS_SUCCESS) {
+        if (ret != BT_STATUS_SUCCESS && ret != BT_STATUS_DONE) {
             ALOGE("Error while setting the callbacks: %d\n", ret);
             sBluetoothInterface = NULL;
             return JNI_FALSE;
@@ -788,6 +790,7 @@ static bool cleanupNative(JNIEnv *env, jobject obj) {
 
     env->DeleteGlobalRef(sJniCallbacksObj);
     env->DeleteGlobalRef(sJniAdapterServiceObj);
+    sJniCallbacksObj = NULL;
     return JNI_TRUE;
 }
 
