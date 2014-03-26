@@ -483,6 +483,7 @@ static jboolean getPlayerAppValueRspNative(JNIEnv *env ,jobject object , jbyte n
     }
     attr = env->GetByteArrayElements(value, NULL);
     if (!attr) {
+        delete[] pAttrs;
         jniThrowIOException(env, EINVAL);
         return JNI_FALSE;
     }
@@ -570,6 +571,10 @@ static jboolean sendSettingsTextRspNative(JNIEnv *env, jobject object, jint num_
         return JNI_FALSE;
     }
     pAttrs = new btrc_player_setting_text_t[num_attr];
+    if (!pAttrs) {
+        ALOGE("sendSettingsTextRspNative: not have enough memeory");
+        return JNI_FALSE;
+    }
     arr = env->GetByteArrayElements(attr, NULL);
     if (!arr) {
         delete[] pAttrs;
@@ -623,6 +628,10 @@ static jboolean sendValueTextRspNative(JNIEnv *env, jobject object, jint num_att
         return JNI_FALSE;
     }
     pAttrs = new btrc_player_setting_text_t[num_attr];
+    if (!pAttrs) {
+        ALOGE("sendValueTextRspNative: not have enough memeory");
+        return JNI_FALSE;
+    }
     arr = env->GetByteArrayElements(attr, NULL);
     if (!arr) {
         delete[] pAttrs;
