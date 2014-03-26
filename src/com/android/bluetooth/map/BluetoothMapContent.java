@@ -724,7 +724,7 @@ public class BluetoothMapContent {
                         e.setRecipientAddressing(recepientAddrStr[0].trim());                    }
                 } else {
                     if (D) Log.d(TAG, "setRecipientAddressing: " + address);
-                    e.setRecipientAddressing(address.trim());
+                    e.setRecipientAddressing(address);
                 }
                 return;
             }
@@ -1766,7 +1766,7 @@ public class BluetoothMapContent {
                             message.addTo(multiRecepients.trim(), multiRecepients.trim());
                       }
                 } else if(recipientName.contains(",")){
-                      multiRecepients = recipientName.replace(',', ';');
+                      multiRecepients = recipientName.replace(", \"", "; \"");
                       if(multiRecepients != null){
                          if (V){
                              Log.v(TAG, "Setting ::Recepient name :: " + multiRecepients.trim());
@@ -1784,7 +1784,56 @@ public class BluetoothMapContent {
                       message.addTo(null, recipientName.trim());
                  }
              }
-         }
+
+            recipientName = null;
+            multiRecepients = null;
+            if((recipientName = c.getString(c.getColumnIndex(MessageColumns.CC_LIST))) != null){
+                if(V) Log.v(TAG, " recipientName " + recipientName);
+                if(recipientName.contains("^B")){
+                   String[] recepientStr = recipientName.split("^B");
+                   if(recepientStr !=null && recepientStr.length > 0){
+                      if (V){
+                          Log.v(TAG, " recepientStr[1] " + recepientStr[1].trim());
+                          Log.v(TAG, " recepientStr[0] " + recepientStr[0].trim());
+                      }
+                } else if(recipientName.contains("")){
+                      multiRecepients = recipientName.replace('', ';');
+                      setVCardFromEmailAddress(message, recepientStr[1].trim(), false);
+                      message.addCc(recepientStr[1].trim(), recepientStr[0].trim());
+                   }
+                      if(multiRecepients != null){
+                         if (V){
+                             Log.v(TAG, " Setting ::Recepient name :: " + multiRecepients.trim());
+                         }
+                         emailId = new StringTokenizer(multiRecepients.trim(),";");
+                         do {
+                            setVCardFromEmailAddress(message, emailId.nextElement().toString(), false);
+                         } while(emailId.hasMoreElements());
+
+                            message.addCc(multiRecepients.trim(), multiRecepients.trim());
+                      }
+                } else if(recipientName.contains(",")){
+                      multiRecepients = recipientName.replace(", \"", "; \"");
+if(V) Log.v(TAG, " After replacing  " + multiRecepients);
+
+                      if(multiRecepients != null){
+                         if (V){
+                             Log.v(TAG, "Setting ::Recepient name :: " + multiRecepients.trim());
+                         }
+                         emailId = new StringTokenizer(multiRecepients.trim(),";");
+                         do {
+                            tempEmail = emailId.nextElement().toString();
+                            setVCardFromEmailAddress(message, tempEmail, false);
+                            message.addCc(null, tempEmail);
+                         } while(emailId.hasMoreElements());
+                      }
+                } else {
+                      Log.v(TAG, " Setting ::Recepient name :: " + recipientName.trim());
+                      setVCardFromEmailAddress(message, recipientName.trim(), false);
+                      message.addCc(null, recipientName.trim());
+                 }
+             }
+        }
     }
 
     /**
