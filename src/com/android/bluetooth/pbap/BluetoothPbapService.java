@@ -49,6 +49,7 @@ import android.bluetooth.BluetoothUuid;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
@@ -161,6 +162,8 @@ public class BluetoothPbapService extends Service {
     private static String sLocalPhoneName = null;
 
     private static String sRemoteDeviceName = null;
+
+    private PowerManager.WakeLock mFullWakeLock = null;
 
     private boolean mHasStarted = false;
 
@@ -559,6 +562,7 @@ public class BluetoothPbapService extends Service {
                         sRemoteDeviceName = getString(R.string.defaultname);
                     }
 
+                    acquirePbapWakeLock();
                     Intent intent = new
                             Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_REQUEST);
                     intent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
@@ -579,6 +583,8 @@ public class BluetoothPbapService extends Service {
                     // phonebook access, while UI still there waiting for user to confirm
                     mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
                             .obtainMessage(USER_TIMEOUT), USER_CONFIRM_TIMEOUT_VALUE);
+
+                    releasePbapWakeLock();
                     stopped = true; // job done ,close this thread;
                 } catch (IOException ex) {
                     stopped=true;
@@ -719,6 +725,32 @@ public class BluetoothPbapService extends Service {
 
     public static String getRemoteDeviceName() {
         return sRemoteDeviceName;
+    }
+
+    private void acquirePbapWakeLock() {
+        if (mFullWakeLock == null) {
+            PowerManager pm = (PowerManager) this.getSystemService(Context.POWER_SERVICE);
+            mFullWakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP
+            | PowerManager.ON_AFTER_RELEASE, "StartingObexPbapTransaction");
+            mFullWakeLock.setReferenceCounted(false);
+
+            mFullWakeLock.acquire();
+            if (VERBOSE) Log.v(TAG, "Pbap: mFullWakeLock acquired");
+        } else {
+            Log.e(TAG, "Pbap:mFullWakeLock already acquired");
+        }
+    }
+
+    private void releasePbapWakeLock() {
+        if (mFullWakeLock != null) {
+            if (mFullWakeLock.isHeld()) {
+                mFullWakeLock.release();
+                if (VERBOSE) Log.v(TAG, "Pbap: mFullWakeLock released");
+            } else {
+                if (VERBOSE) Log.v(TAG, "Pbap: mFullWakeLock already released");
+            }
+            mFullWakeLock = null;
+        }
     }
 
     /**
