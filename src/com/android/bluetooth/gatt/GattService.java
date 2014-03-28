@@ -1150,6 +1150,15 @@ public class GattService extends ProfileService {
         }
     }
 
+    void onClientCongestion(int connId, boolean congested) throws RemoteException {
+        if (DBG) Log.d(TAG, "onClientCongestion() - connId=" + connId + ", congested=" + congested);
+
+        ClientMap.App app = mClientMap.getByConnId(connId);
+        if (app != null) {
+            app.callback.onConnectionCongested(mClientMap.addressByConnId(connId), congested);
+        }
+    }
+
     /**************************************************************************
      * GATT Service functions - Shared CLIENT/SERVER
      *************************************************************************/
@@ -1936,6 +1945,27 @@ public class GattService extends ProfileService {
 
     void onResponseSendCompleted(int status, int attrHandle) {
         if (DBG) Log.d(TAG, "onResponseSendCompleted() handle=" + attrHandle);
+    }
+
+    void onNotificationSent(int connId, int status) throws RemoteException {
+        if (DBG) Log.d(TAG, "onNotificationSent() connId=" + connId + ", status=" + status);
+
+        String address = mServerMap.addressByConnId(connId);
+        if (address == null) return;
+
+        ServerMap.App app = mServerMap.getByConnId(connId);
+        if (app == null) return;
+
+        app.callback.onNotificationSent(address, status);
+    }
+
+    void onServerCongestion(int connId, boolean congested) throws RemoteException {
+        if (DBG) Log.d(TAG, "onServerCongestion() - connId=" + connId + ", congested=" + congested);
+
+        ServerMap.App app = mServerMap.getByConnId(connId);
+        if (app != null) {
+            app.callback.onConnectionCongested(mServerMap.addressByConnId(connId), congested);
+        }
     }
 
     /**************************************************************************

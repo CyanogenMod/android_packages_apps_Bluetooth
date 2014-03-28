@@ -165,6 +165,7 @@ static jmethodID method_onMultiAdvEnable;
 static jmethodID method_onMultiAdvUpdate;
 static jmethodID method_onMultiAdvSetAdvData;
 static jmethodID method_onMultiAdvDisable;
+static jmethodID method_onClientCongestion;
 
 /**
  * Server callback methods
@@ -182,6 +183,8 @@ static jmethodID method_onResponseSendCompleted;
 static jmethodID method_onAttributeRead;
 static jmethodID method_onAttributeWrite;
 static jmethodID method_onExecuteWrite;
+static jmethodID method_onNotificationSent;
+static jmethodID method_onServerCongestion;
 
 /**
  * Static variables
@@ -480,6 +483,13 @@ void btgattc_multiadv_disable_cb(int client_if, int status)
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
+void btgattc_congestion_cb(int conn_id, bool congested)
+{
+    CHECK_CALLBACK_ENV
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onClientCongestion, conn_id, congested);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+}
+
 static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_register_app_cb,
     btgattc_scan_result_cb,
@@ -504,7 +514,8 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_multiadv_enable_cb,
     btgattc_multiadv_update_cb,
     btgattc_multiadv_setadv_data_cb,
-    btgattc_multiadv_disable_cb
+    btgattc_multiadv_disable_cb,
+    btgattc_congestion_cb
 };
 
 
@@ -668,6 +679,21 @@ void btgatts_response_confirmation_cb(int status, int handle)
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
+void btgatts_indication_sent_cb(int conn_id, int status)
+{
+    CHECK_CALLBACK_ENV
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onNotificationSent,
+                                 conn_id, status);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+}
+
+void btgatts_congestion_cb(int conn_id, bool congested)
+{
+    CHECK_CALLBACK_ENV
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServerCongestion, conn_id, congested);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+}
+
 static const btgatt_server_callbacks_t sGattServerCallbacks = {
     btgatts_register_app_cb,
     btgatts_connection_cb,
@@ -681,7 +707,9 @@ static const btgatt_server_callbacks_t sGattServerCallbacks = {
     btgatts_request_read_cb,
     btgatts_request_write_cb,
     btgatts_request_exec_write_cb,
-    btgatts_response_confirmation_cb
+    btgatts_response_confirmation_cb,
+    btgatts_indication_sent_cb,
+    btgatts_congestion_cb
 };
 
 /**
@@ -726,6 +754,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onMultiAdvUpdate = env->GetMethodID(clazz, "onClientUpdate", "(II)V");
     method_onMultiAdvSetAdvData = env->GetMethodID(clazz, "onClientData", "(II)V");
     method_onMultiAdvDisable = env->GetMethodID(clazz, "onClientDisable", "(II)V");
+    method_onClientCongestion = env->GetMethodID(clazz, "onClientCongestion", "(IZ)V");
 
      // Server callbacks
 
@@ -742,6 +771,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onAttributeRead= env->GetMethodID(clazz, "onAttributeRead", "(Ljava/lang/String;IIIIZ)V");
     method_onAttributeWrite= env->GetMethodID(clazz, "onAttributeWrite", "(Ljava/lang/String;IIIIIZZ[B)V");
     method_onExecuteWrite= env->GetMethodID(clazz, "onExecuteWrite", "(Ljava/lang/String;III)V");
+    method_onNotificationSent = env->GetMethodID(clazz, "onNotificationSent", "(II)V");
+    method_onServerCongestion = env->GetMethodID(clazz, "onServerCongestion", "(IZ)V");
 
     info("classInitNative: Success!");
 }
