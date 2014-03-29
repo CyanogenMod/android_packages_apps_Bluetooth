@@ -214,8 +214,13 @@ final class RemoteDevices {
                 if(alias == null) {
                    mAlias = null;
                 } else {
-                    mAdapterService.setDevicePropertyNative(mAddress,
+                    boolean ret = mAdapterService.setDevicePropertyNative(mAddress,
                         AbstractionLayer.BT_PROPERTY_REMOTE_FRIENDLY_NAME, alias.getBytes());
+                    if (ret) {
+                        int[] types = new int[]{AbstractionLayer.BT_PROPERTY_REMOTE_FRIENDLY_NAME};
+                        byte[][] values = new byte[][]{alias.getBytes()};
+                        devicePropertyChangedCallback(mAddress, types, values);
+                    }
                 }
             }
         }
@@ -340,6 +345,12 @@ final class RemoteDevices {
                             break;
                         case AbstractionLayer.BT_PROPERTY_REMOTE_FRIENDLY_NAME:
                             device.mAlias = new String(val);
+                            intent = new Intent(BluetoothDevice.ACTION_ALIAS_CHANGED);
+                            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, bdDevice);
+                            intent.putExtra(BluetoothDevice.EXTRA_NAME, device.mName);
+                            intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+                            mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_PERM);
+                            debugLog("Remote Device alias is: " + device.mAlias);
                             break;
                         case AbstractionLayer.BT_PROPERTY_BDADDR:
                             device.mAddress = val;
