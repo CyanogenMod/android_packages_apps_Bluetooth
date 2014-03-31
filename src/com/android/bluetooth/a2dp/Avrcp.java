@@ -1473,7 +1473,7 @@ final class Avrcp {
 
     private int convertToAudioStreamVolume(int volume) {
         // Rescale volume to match AudioSystem's volume
-        return (int) Math.ceil((double) volume*mAudioStreamMax/AVRCP_MAX_VOL);
+        return (int) Math.round((double) volume*mAudioStreamMax/AVRCP_MAX_VOL);
     }
 
     private int convertToAvrcpVolume(int volume) {
