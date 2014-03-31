@@ -159,6 +159,7 @@ static jmethodID method_onGetIncludedService;
 static jmethodID method_onRegisterForNotifications;
 static jmethodID method_onReadRemoteRssi;
 static jmethodID method_onAdvertiseCallback;
+static jmethodID method_onConfigureMTU;
 
 /**
  * Server callback methods
@@ -430,6 +431,14 @@ void btgattc_advertise_cb(int status, int client_if)
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
+void btgattc_configure_mtu_cb(int conn_id, int status, int mtu)
+{
+    CHECK_CALLBACK_ENV
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConfigureMTU,
+                                 conn_id, status, mtu);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+}
+
 static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_register_app_cb,
     btgattc_scan_result_cb,
@@ -448,7 +457,8 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_write_descriptor_cb,
     btgattc_execute_write_cb,
     btgattc_remote_rssi_cb,
-    btgattc_advertise_cb
+    btgattc_advertise_cb,
+    btgattc_configure_mtu_cb,
 };
 
 
@@ -663,6 +673,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onGetIncludedService = env->GetMethodID(clazz, "onGetIncludedService", "(IIIIJJIIJJ)V");
     method_onRegisterForNotifications = env->GetMethodID(clazz, "onRegisterForNotifications", "(IIIIIJJIJJ)V");
     method_onReadRemoteRssi = env->GetMethodID(clazz, "onReadRemoteRssi", "(ILjava/lang/String;II)V");
+    method_onConfigureMTU = env->GetMethodID(clazz, "onConfigureMTU", "(III)V");
 
      // Server callbacks
 
@@ -1090,6 +1101,13 @@ static void gattSetAdvDataNative(JNIEnv *env, jobject object, jint client_if, jb
 }
 
 
+static void gattClientConfigureMTUNative(JNIEnv *env, jobject object,
+        jint conn_id, jint mtu)
+{
+    if (!sGattIf) return;
+    sGattIf->client->configure_mtu(conn_id, mtu);
+}
+
 /**
  * Native server functions
  */
@@ -1303,6 +1321,7 @@ static JNINativeMethod sMethods[] = {
     {"gattClientRegisterForNotificationsNative", "(ILjava/lang/String;IIJJIJJZ)V", (void *) gattClientRegisterForNotificationsNative},
     {"gattClientReadRemoteRssiNative", "(ILjava/lang/String;)V", (void *) gattClientReadRemoteRssiNative},
     {"gattAdvertiseNative", "(IZ)V", (void *) gattAdvertiseNative},
+    {"gattClientConfigureMTUNative", "(II)V", (void *) gattClientConfigureMTUNative},
 
     {"gattServerRegisterAppNative", "(JJ)V", (void *) gattServerRegisterAppNative},
     {"gattServerUnregisterAppNative", "(I)V", (void *) gattServerUnregisterAppNative},
