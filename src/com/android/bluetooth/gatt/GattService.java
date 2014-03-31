@@ -415,6 +415,12 @@ public class GattService extends ProfileService {
             service.readRemoteRssi(clientIf, address);
         }
 
+        public void configureMTU(int clientIf, String address, int mtu) {
+            GattService service = getService();
+            if (service == null) return;
+            service.configureMTU(clientIf, address, mtu);
+        }
+
         public void registerServer(ParcelUuid uuid, IBluetoothGattServerCallback callback) {
             GattService service = getService();
             if (service == null) return;
@@ -968,6 +974,18 @@ public class GattService extends ProfileService {
         app.callback.onAdvertiseStateChange(mAdvertisingState, status);
     }
 
+    void onConfigureMTU(int connId, int status, int mtu) throws RemoteException {
+        String address = mClientMap.addressByConnId(connId);
+
+        if (DBG) Log.d(TAG, "onConfigureMTU() address=" + address + ", status="
+            + status + ", mtu=" + mtu);
+
+        ClientMap.App app = mClientMap.getByConnId(connId);
+        if (app != null) {
+            app.callback.onConfigureMTU(address, mtu, status);
+        }
+    }
+
     /**************************************************************************
      * GATT Service functions - Shared CLIENT/SERVER
      *************************************************************************/
@@ -1382,6 +1400,18 @@ public class GattService extends ProfileService {
 
         if (DBG) Log.d(TAG, "readRemoteRssi() - address=" + address);
         gattClientReadRemoteRssiNative(clientIf, address);
+    }
+
+    void configureMTU(int clientIf, String address, int mtu) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
+        if (DBG) Log.d(TAG, "configureMTU() - address=" + address + " mtu=" + mtu);
+        Integer connId = mClientMap.connIdByAddress(clientIf, address);
+        if (connId != null) {
+            gattClientConfigureMTUNative(connId, mtu);
+        } else {
+            Log.e(TAG, "configureMTU() - No connection for " + address + "...");
+        }
     }
 
     /**************************************************************************
@@ -2050,6 +2080,8 @@ public class GattService extends ProfileService {
             String address);
 
     private native void gattAdvertiseNative(int client_if, boolean start);
+
+    private native void gattClientConfigureMTUNative(int conn_id, int mtu);
 
     private native void gattSetAdvDataNative(int serverIf, boolean setScanRsp, boolean inclName,
             boolean inclTxPower, int minInterval, int maxInterval,
