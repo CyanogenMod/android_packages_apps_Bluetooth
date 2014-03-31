@@ -173,9 +173,9 @@ public abstract class BluetoothMapbMessage {
             }
             if (name != null)
                 sb.append("N:").append(name).append("\r\n");
-            for(String phoneNumber : phoneNumbers)
+            if(phoneNumbers.length > 0)
             {
-                sb.append("TEL:").append(phoneNumber).append("\r\n");
+                sb.append("TEL:").append(getFirstPhoneNumber).append("\r\n");
             }
             for(String emailAddress : emailAddresses)
             {
