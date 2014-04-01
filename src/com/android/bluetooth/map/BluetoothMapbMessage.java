@@ -173,7 +173,10 @@ public abstract class BluetoothMapbMessage {
             }
             if (name != null)
                 sb.append("N:").append(name).append("\r\n");
-            sb.append("TEL:").append(getFirstPhoneNumber()).append("\r\n");
+            if(phoneNumbers.length > 0) 
+            { 
+            	sb.append("TEL:").append(getFirstPhoneNumber()).append("\r\n");
+            }
             for(String emailAddress : emailAddresses)
             {
                 sb.append("EMAIL:").append(emailAddress).append("\r\n");
