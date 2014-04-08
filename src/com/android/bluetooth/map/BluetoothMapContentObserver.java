@@ -902,8 +902,13 @@ public class BluetoothMapContentObserver {
     private void writeMmsDataPart(long handle, MimePart part, int count) throws IOException{
         ContentValues values = new ContentValues();
         values.put("mid", handle);
-        if(part.contentType != null)
+        if(part.contentType != null){
+            //Remove last char if ';' from contentType
+            if(part.contentType.charAt(part.contentType.length() - 1) == ';') {
+               part.contentType = part.contentType.substring(0,part.contentType.length() -1);
+            }
             values.put("ct", part.contentType);
+        }
         if(part.contentId != null)
             values.put("cid", part.contentId);
         if(part.contentLocation != null)
