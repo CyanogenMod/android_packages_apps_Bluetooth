@@ -391,6 +391,9 @@ public class AdapterService extends Service {
         }
 
         if (DBG)debugLog("cleanup() done");
+
+        if (DBG) debugLog("bluetooth process exit normally after clean up...");
+        System.exit(0);
     }
 
     private static final int MESSAGE_PROFILE_SERVICE_STATE_CHANGED =1;
