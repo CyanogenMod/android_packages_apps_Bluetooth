@@ -726,7 +726,8 @@ final class A2dpStateMachine extends StateMachine {
     List<BluetoothDevice> getConnectedDevices() {
         List<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
         synchronized(this) {
-            if (getCurrentState() == mConnected) {
+            /* If connected and mCurrentDevice is not null*/
+            if ((getCurrentState() == mConnected) && (mCurrentDevice != null)) {
                 devices.add(mCurrentDevice);
             }
         }
