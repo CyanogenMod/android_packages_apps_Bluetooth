@@ -666,6 +666,7 @@ final class A2dpStateMachine extends StateMachine {
                     }
                     break;
                 case AUDIO_STATE_STOPPED:
+                case AUDIO_STATE_REMOTE_SUSPEND:
                     if (mPlayingA2dpDevice != null) {
                         mPlayingA2dpDevice = null;
                         mService.setAvrcpAudioState(BluetoothA2dp.STATE_NOT_PLAYING);
