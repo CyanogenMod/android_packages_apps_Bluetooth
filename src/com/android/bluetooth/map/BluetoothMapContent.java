@@ -2272,28 +2272,12 @@ public class BluetoothMapContent {
         }
         p.close();
 
-        // Bail out if we are unable to find a contact, based on the phone number
-        if(contactId == null) {
-            phoneNumbers = new String[1];
-            phoneNumbers[0] = phone;
-        }
-        else {
-            // Fetch all contact phone numbers
-            p = mResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
-                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
-                new String[]{contactId},
-                null);
-            if(p != null) {
-                int i = 0;
-                phoneNumbers = new String[p.getCount()];
-                while (p != null && p.moveToNext()) {
-                    String number = p.getString(
-                        p.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                    phoneNumbers[i++] = number;
-                }
-                p.close();
-            }
+        // The phone number we got is the one we will use
+        phoneNumbers = new String[1];
+        phoneNumbers[0] = phone;
 
+        // Get emails only if we have a contact
+        if(contactId != null) {
             // Fetch contact e-mail addresses
             p = mResolver.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, null,
                     ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
