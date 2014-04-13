@@ -430,7 +430,7 @@ public class BluetoothMapContentObserver {
                         msg = new Msg(id, type);
                         msgListSms.put(id, msg);
 
-                        if (folderSms[type].equals("inbox")) {
+                        if (type == Sms.MESSAGE_TYPE_INBOX) {
                             Event evt = new Event("NewMessage", id, folderSms[type],
                                 null, mSmsType);
                             sendEvent(evt);
@@ -438,9 +438,13 @@ public class BluetoothMapContentObserver {
                     } else {
                         /* Existing message */
                         if (type != msg.type) {
+                            String NewfolderSmsName = "Unknown";
+                            String OldfolderSmsName = "Unknown";
+                            if (type < folderSms.length) NewfolderSmsName = folderSms[type];
+                            if (msg.type < folderSms.length) OldfolderSmsName = folderSms[msg.type]; 
                             Log.d(TAG, "new type: " + type + " old type: " + msg.type);
-                            Event evt = new Event("MessageShift", id, folderSms[type],
-                                folderSms[msg.type], mSmsType);
+                            Event evt = new Event("MessageShift", id, NewfolderSmsName,
+                                OldfolderSmsName, mSmsType);
                             sendEvent(evt);
                             msg.type = type;
                         }
@@ -479,15 +483,15 @@ public class BluetoothMapContentObserver {
 
                     if (msg == null) {
                         /* New message - only notify on retrieve conf */
-                        if (folderMms[type].equals("inbox") &&
-                            mtype != MESSAGE_TYPE_RETRIEVE_CONF) {
+                        if ((type == Mms.MESSAGE_BOX_INBOX) &&
+                            (mtype != MESSAGE_TYPE_RETRIEVE_CONF)) {
                                 continue;
                         }
 
                         msg = new Msg(id, type);
                         msgListMms.put(id, msg);
 
-                        if (folderMms[type].equals("inbox")) {
+                        if (type == Mms.MESSAGE_BOX_INBOX) {
                             Event evt = new Event("NewMessage", id, folderMms[type],
                                 null, TYPE.MMS);
                             sendEvent(evt);
@@ -495,13 +499,18 @@ public class BluetoothMapContentObserver {
                     } else {
                         /* Existing message */
                         if (type != msg.type) {
+                            String NewfolderMmsName = "Unknown";
+                            String OldfolderMmsName = "Unknown";
+                            if (type < folderMms.length) NewfolderMmsName = folderMms[type];
+                            if (msg.type < folderMms.length) OldfolderMmsName = folderMms[msg.type]; 
+
                             Log.d(TAG, "new type: " + type + " old type: " + msg.type);
-                            Event evt = new Event("MessageShift", id, folderMms[type],
-                                folderMms[msg.type], TYPE.MMS);
+                            Event evt = new Event("MessageShift", id, NewfolderMmsName,
+                                OldfolderMmsName, TYPE.MMS);
                             sendEvent(evt);
                             msg.type = type;
 
-                            if (folderMms[type].equals("sent")) {
+                            if (type == Mms.MESSAGE_BOX_SENT) {
                                 evt = new Event("SendingSuccess", id,
                                     folderSms[type], null, TYPE.MMS);
                                 sendEvent(evt);
