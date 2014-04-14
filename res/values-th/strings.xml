@@ -38,16 +38,16 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"ยอมรับ"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ตกลง"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"มีการหมดเวลาเกิดขึ้นขณะยอมรับไฟล์ขาเข้าจาก \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"การแบ่งปันทางบลูทูธ: ไฟล์ขาเข้า"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"การแชร์ทางบลูทูธ: ไฟล์ขาเข้า"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"คุณต้องการรับไฟล์นี้หรือไม่"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"ไฟล์ขาเข้าจากอุปกรณ์อื่น ยืนยันว่าคุณต้องการรับไฟล์นี้"</string>
-    <string name="notification_receiving" msgid="4674648179652543984">"การแบ่งปันทางบลูทูธ: กำลังรับ <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received" msgid="3324588019186687985">"การแบ่งปันทางบลูทูธ: รับ <xliff:g id="FILE">%1$s</xliff:g> แล้ว"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"การแบ่งปันทางบลูทูธ: ไม่ได้รับไฟล์ <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sending" msgid="3035748958534983833">"การแบ่งปันทางบลูทูธ: กำลังส่ง <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"การแบ่งปันทางบลูทูธ: ส่ง <xliff:g id="FILE">%1$s</xliff:g> แล้ว"</string>
+    <string name="notification_receiving" msgid="4674648179652543984">"การแชร์ทางบลูทูธ: กำลังรับ <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received" msgid="3324588019186687985">"การแชร์ทางบลูทูธ: รับ <xliff:g id="FILE">%1$s</xliff:g> แล้ว"</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"การแชร์ทางบลูทูธ: ไม่ได้รับไฟล์ <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sending" msgid="3035748958534983833">"การแชร์ทางบลูทูธ: กำลังส่ง <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"การแชร์ทางบลูทูธ: ส่ง <xliff:g id="FILE">%1$s</xliff:g> แล้ว"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"เสร็จสมบูรณ์ 100%"</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"การแบ่งปันทางบลูทูธ: ไฟล์ <xliff:g id="FILE">%1$s</xliff:g> ไม่ถูกส่ง"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"การแชร์ทางบลูทูธ: ไฟล์ <xliff:g id="FILE">%1$s</xliff:g> ไม่ถูกส่ง"</string>
     <string name="download_title" msgid="3353228219772092586">"การถ่ายโอนไฟล์"</string>
     <string name="download_line1" msgid="4926604799202134144">"จาก: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"ไฟล์: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -107,8 +107,8 @@
     <string name="outbound_history_title" msgid="4279418703178140526">"การถ่ายโอนขาออก"</string>
     <string name="no_transfers" msgid="3482965619151865672">"ประวัติการถ่ายโอนว่างเปล่า"</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"รายการทั้งหมดจะถูกล้างจากรายการ"</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"การแบ่งปันทางบลูทูธ: ส่งไฟล์แล้ว"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"การแบ่งปันทางบลูทูธ: รับไฟล์แล้ว"</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"การแชร์ทางบลูทูธ: ส่งไฟล์แล้ว"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"การแชร์ทางบลูทูธ: รับไฟล์แล้ว"</string>
     <string name="noti_caption" msgid="7508708288885707365">"สำเร็จ <xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> รายการ, ไม่สำเร็จ <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> รายการ"</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"ล้างรายการ"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"เปิด"</string>
