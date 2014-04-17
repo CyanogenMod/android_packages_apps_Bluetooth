@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2014 The Linux Foundation. All rights reserved
+ * Copyright (C) 2013 The Linux Foundation. All rights reserved
  * Not a Contribution.
  * Copyright (C) 2012 The Android Open Source Project
  *
@@ -1285,10 +1285,10 @@ public class AdapterService extends Service {
     }
 
      private void adjustOtherHeadsetPriorities(HeadsetService  hsService,
-                                                    List<BluetoothDevice> connectedDeviceList) {
+                                                    BluetoothDevice connectedDevice) {
         for (BluetoothDevice device : getBondedDevices()) {
            if (hsService.getPriority(device) >= BluetoothProfile.PRIORITY_AUTO_CONNECT &&
-               !connectedDeviceList.contains(device)) {
+               !device.equals(connectedDevice)) {
                hsService.setPriority(device, BluetoothProfile.PRIORITY_ON);
            }
         }
@@ -1307,10 +1307,9 @@ public class AdapterService extends Service {
      void setProfileAutoConnectionPriority (BluetoothDevice device, int profileId){
          if (profileId == BluetoothProfile.HEADSET) {
              HeadsetService  hsService = HeadsetService.getHeadsetService();
-             List<BluetoothDevice> deviceList = hsService.getConnectedDevices();
              if ((hsService != null) &&
                 (BluetoothProfile.PRIORITY_AUTO_CONNECT != hsService.getPriority(device))){
-                 adjustOtherHeadsetPriorities(hsService, deviceList);
+                 adjustOtherHeadsetPriorities(hsService, device);
                  hsService.setPriority(device,BluetoothProfile.PRIORITY_AUTO_CONNECT);
              }
          }

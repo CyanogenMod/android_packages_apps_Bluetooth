@@ -162,7 +162,6 @@ public class HeadsetService extends ProfileService {
         public boolean disconnect(BluetoothDevice device) {
             HeadsetService service = getService();
             if (service == null) return false;
-            if (DBG) Log.d(TAG, "disconnect in HeadsetService");
             return service.disconnect(device);
         }
 
@@ -337,7 +336,6 @@ public class HeadsetService extends ProfileService {
         }
 
         int connectionState = mStateMachine.getConnectionState(device);
-        Log.d(TAG,"connectionState = " + connectionState);
         if (connectionState == BluetoothProfile.STATE_CONNECTED ||
             connectionState == BluetoothProfile.STATE_CONNECTING) {
             return false;
@@ -399,7 +397,7 @@ public class HeadsetService extends ProfileService {
         int connectionState = mStateMachine.getConnectionState(device);
         if ((connectionState != BluetoothProfile.STATE_CONNECTED &&
             connectionState != BluetoothProfile.STATE_CONNECTING)  ||
-            !mStateMachine.isBluetoothVoiceDialingEnabled(device)) {
+            !mStateMachine.isBluetoothVoiceDialingEnabled()) {
             return false;
         }
         mStateMachine.sendMessage(HeadsetStateMachine.VOICE_RECOGNITION_START);
@@ -523,7 +521,7 @@ public class HeadsetService extends ProfileService {
             return false;
         }
         mStateMachine.sendMessage(HeadsetStateMachine.SEND_VENDOR_SPECIFIC_RESULT_CODE,
-                new HeadsetVendorSpecificResultCode(device, command, arg));
+                new HeadsetVendorSpecificResultCode(command, arg));
         return true;
     }
 
