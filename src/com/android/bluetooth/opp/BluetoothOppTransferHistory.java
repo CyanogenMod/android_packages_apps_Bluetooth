@@ -76,6 +76,8 @@ public class BluetoothOppTransferHistory extends Activity implements
 
     private boolean mShowAllIncoming;
 
+    private boolean mContextMenu = false;
+
     /** Class to handle Notification Manager updates */
     private BluetoothOppNotification mNotifier;
 
@@ -182,12 +184,14 @@ public class BluetoothOppTransferHistory extends Activity implements
                 updateNotificationWhenBtDisabled();
                 return true;
         }
+        mContextMenu = false;
         return false;
     }
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
         if (mTransferCursor != null) {
+            mContextMenu = true;
             AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
             mTransferCursor.moveToPosition(info.position);
             mContextMenuPosition = info.position;
@@ -263,9 +267,13 @@ public class BluetoothOppTransferHistory extends Activity implements
      */
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         // Open the selected item
-        mTransferCursor.moveToPosition(position);
-        openCompleteTransfer();
-        updateNotificationWhenBtDisabled();
+        if (V) Log.v(TAG, "onItemClick: ContextMenu = " + mContextMenu);
+        if (!mContextMenu) {
+            mTransferCursor.moveToPosition(position);
+            openCompleteTransfer();
+            updateNotificationWhenBtDisabled();
+        }
+        mContextMenu = false;
     }
 
     /**

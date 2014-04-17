@@ -699,7 +699,7 @@ public class BluetoothMapAppParams {
         if(parameterMask == 0) {
            this.parameterMask = INVALID_VALUE_PARAMETER;
         } else {
-        this.parameterMask = parameterMask;
+           this.parameterMask = parameterMask;
         }
     }
 

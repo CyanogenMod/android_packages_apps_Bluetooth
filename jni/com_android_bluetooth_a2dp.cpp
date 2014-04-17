@@ -305,7 +305,7 @@ static void informAudioFocusStateNative(JNIEnv *env, jobject object, int state) 
 
 }
 
-static jboolean isSrcNative(JNIEnv *env, jobject object, jbyteArray address) {
+static jint isSrcNative(JNIEnv *env, jobject object, jbyteArray address) {
     jbyte *addr;
     bt_status_t status;
 
@@ -321,7 +321,7 @@ static jboolean isSrcNative(JNIEnv *env, jobject object, jbyteArray address) {
         ALOGE("Failed HF disconnection, status: %d", status);
     }
     env->ReleaseByteArrayElements(address, addr, 0);
-    return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+    return status;
 }
 
 static void suspendA2dpNative(JNIEnv *env, jobject object) {
@@ -352,7 +352,7 @@ static JNINativeMethod sMethods[] = {
     {"connectA2dpNative", "([B)Z", (void *) connectA2dpNative},
     {"disconnectA2dpNative", "([B)Z", (void *) disconnectA2dpNative},
     {"allowConnectionNative", "(I)V", (void *) allowConnectionNative},
-    {"isSrcNative", "([B)Z", (void *) isSrcNative},
+    {"isSrcNative", "([B)I", (void *) isSrcNative},
     {"suspendA2dpNative", "()V", (void *) suspendA2dpNative},
     {"resumeA2dpNative", "()V", (void *) resumeA2dpNative},
     {"informAudioFocusStateNative", "(I)V", (void *) informAudioFocusStateNative},

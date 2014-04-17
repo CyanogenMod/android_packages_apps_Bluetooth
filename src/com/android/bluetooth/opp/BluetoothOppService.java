@@ -706,7 +706,7 @@ public class BluetoothOppService extends Service {
                 if (sendFileInfo == null || sendFileInfo.mInputStream == null) {
                     Log.e(TAG, "Can't open file for OUTBOUND info " + info.mId);
                     Constants.updateShareStatus(this, info.mId, BluetoothShare.STATUS_BAD_REQUEST);
-                    BluetoothOppUtility.closeSendFileInfo(info.mUri, sendFileInfo);
+                    BluetoothOppUtility.closeSendFileInfo(info.mUri);
                     return;
                 }
             }
