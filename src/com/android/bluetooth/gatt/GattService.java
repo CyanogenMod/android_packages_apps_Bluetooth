@@ -311,10 +311,10 @@ public class GattService extends ProfileService {
             service.stopScan(appIf, isServer);
         }
 
-        public void clientConnect(int clientIf, String address, boolean isDirect) {
+        public void clientConnect(int clientIf, String address, boolean isDirect, int transport) {
             GattService service = getService();
             if (service == null) return;
-            service.clientConnect(clientIf, address, isDirect);
+            service.clientConnect(clientIf, address, isDirect, transport);
         }
 
         public void clientDisconnect(int clientIf, String address) {
@@ -433,10 +433,10 @@ public class GattService extends ProfileService {
             service.unregisterServer(serverIf);
         }
 
-        public void serverConnect(int serverIf, String address, boolean isDirect) {
+        public void serverConnect(int serverIf, String address, boolean isDirect, int transport) {
             GattService service = getService();
             if (service == null) return;
-            service.serverConnect(serverIf, address, isDirect);
+            service.serverConnect(serverIf, address, isDirect, transport);
         }
 
         public void serverDisconnect(int serverIf, String address) {
@@ -573,10 +573,8 @@ public class GattService extends ProfileService {
 
         @Override
         public void removeAdvManufacturerCodeAndData(int manufacturerCode) throws RemoteException {
-            GattService service = getService();
-            if (service == null) return;
-            service.removeAdvManufacturerCodeAndData(manufacturerCode);
         }
+
     };
 
     /**************************************************************************
@@ -1094,11 +1092,11 @@ public class GattService extends ProfileService {
         gattClientUnregisterAppNative(clientIf);
     }
 
-    void clientConnect(int clientIf, String address, boolean isDirect) {
+    void clientConnect(int clientIf, String address, boolean isDirect, int transport) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         if (DBG) Log.d(TAG, "clientConnect() - address=" + address + ", isDirect=" + isDirect);
-        gattClientConnectNative(clientIf, address, isDirect);
+        gattClientConnectNative(clientIf, address, isDirect, transport);
     }
 
     void clientDisconnect(int clientIf, String address) {
@@ -1655,11 +1653,11 @@ public class GattService extends ProfileService {
         gattServerUnregisterAppNative(serverIf);
     }
 
-    void serverConnect(int serverIf, String address, boolean isDirect) {
+    void serverConnect(int serverIf, String address, boolean isDirect, int transport) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         if (DBG) Log.d(TAG, "serverConnect() - address=" + address);
-        gattServerConnectNative(serverIf, address, isDirect);
+        gattServerConnectNative(serverIf, address, isDirect,transport);
     }
 
     void serverDisconnect(int serverIf, String address) {
@@ -1776,6 +1774,7 @@ public class GattService extends ProfileService {
         }
     }
 
+
     /**************************************************************************
      * Private functions
      *************************************************************************/
@@ -1889,7 +1888,8 @@ public class GattService extends ProfileService {
                 }
             }
         } else {
-            gattServerStartServiceNative(serverIf, srvcHandle, (byte)2 /*BREDR/LE*/);
+            gattServerStartServiceNative(serverIf, srvcHandle,
+                (byte)BluetoothDevice.TRANSPORT_BREDR | BluetoothDevice.TRANSPORT_LE);
             finished = true;
         }
 
@@ -2020,7 +2020,7 @@ public class GattService extends ProfileService {
     private native void gattClientScanNative(int clientIf, boolean start);
 
     private native void gattClientConnectNative(int clientIf, String address,
-            boolean isDirect);
+            boolean isDirect, int transport);
 
     private native void gattClientDisconnectNative(int clientIf, String address,
             int conn_id);
@@ -2093,7 +2093,7 @@ public class GattService extends ProfileService {
     private native void gattServerUnregisterAppNative(int serverIf);
 
     private native void gattServerConnectNative(int server_if, String address,
-                                             boolean is_direct);
+                                             boolean is_direct, int transport);
 
     private native void gattServerDisconnectNative(int serverIf, String address,
                                               int conn_id);
