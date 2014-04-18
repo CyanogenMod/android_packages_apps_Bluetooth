@@ -13,7 +13,7 @@ LOCAL_JNI_SHARED_LIBRARIES := libbluetooth_jni
 LOCAL_JAVA_LIBRARIES := javax.obex telephony-common mms-common
 LOCAL_STATIC_JAVA_LIBRARIES := com.android.vcard
 
-LOCAL_REQUIRED_MODULES := libbluetooth_jni bluetooth.default
+LOCAL_REQUIRED_MODULES := bluetooth.default
 
 LOCAL_PROGUARD_ENABLED := disabled
 
