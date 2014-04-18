@@ -785,13 +785,13 @@ static void gattClientScanNative(JNIEnv* env, jobject object, jint clientIf, jbo
 }
 
 static void gattClientConnectNative(JNIEnv* env, jobject object, jint clientif,
-                                 jstring address, jboolean isDirect)
+                                 jstring address, jboolean isDirect, jint transport)
 {
     if (!sGattIf) return;
 
     bt_bdaddr_t bda;
     jstr2bdaddr(env, &bda, address);
-    sGattIf->client->connect(clientif, &bda, isDirect);
+    sGattIf->client->connect(clientif, &bda, isDirect, transport);
 }
 
 static void gattClientDisconnectNative(JNIEnv* env, jobject object, jint clientIf,
@@ -1127,7 +1127,7 @@ static void gattServerUnregisterAppNative(JNIEnv* env, jobject object, jint serv
 }
 
 static void gattServerConnectNative(JNIEnv *env, jobject object,
-                                 jint server_if, jstring address, jboolean is_direct)
+                                 jint server_if, jstring address, jboolean is_direct, jint transport)
 {
     if (!sGattIf) return;
 
@@ -1135,7 +1135,7 @@ static void gattServerConnectNative(JNIEnv *env, jobject object,
     const char *c_address = env->GetStringUTFChars(address, NULL);
     bd_addr_str_to_addr(c_address, bd_addr.address);
 
-    sGattIf->server->connect(server_if, &bd_addr, is_direct);
+    sGattIf->server->connect(server_if, &bd_addr, is_direct, transport);
 }
 
 static void gattServerDisconnectNative(JNIEnv* env, jobject object, jint serverIf,
@@ -1306,7 +1306,7 @@ static JNINativeMethod sMethods[] = {
     {"gattClientRegisterAppNative", "(JJ)V", (void *) gattClientRegisterAppNative},
     {"gattClientUnregisterAppNative", "(I)V", (void *) gattClientUnregisterAppNative},
     {"gattClientScanNative", "(IZ)V", (void *) gattClientScanNative},
-    {"gattClientConnectNative", "(ILjava/lang/String;Z)V", (void *) gattClientConnectNative},
+    {"gattClientConnectNative", "(ILjava/lang/String;ZI)V", (void *) gattClientConnectNative},
     {"gattClientDisconnectNative", "(ILjava/lang/String;I)V", (void *) gattClientDisconnectNative},
     {"gattClientRefreshNative", "(ILjava/lang/String;)V", (void *) gattClientRefreshNative},
     {"gattClientSearchServiceNative", "(IZJJ)V", (void *) gattClientSearchServiceNative},
@@ -1325,7 +1325,7 @@ static JNINativeMethod sMethods[] = {
 
     {"gattServerRegisterAppNative", "(JJ)V", (void *) gattServerRegisterAppNative},
     {"gattServerUnregisterAppNative", "(I)V", (void *) gattServerUnregisterAppNative},
-    {"gattServerConnectNative", "(ILjava/lang/String;Z)V", (void *) gattServerConnectNative},
+    {"gattServerConnectNative", "(ILjava/lang/String;ZI)V", (void *) gattServerConnectNative},
     {"gattServerDisconnectNative", "(ILjava/lang/String;I)V", (void *) gattServerDisconnectNative},
     {"gattServerAddServiceNative", "(IIIJJI)V", (void *) gattServerAddServiceNative},
     {"gattServerAddIncludedServiceNative", "(III)V", (void *) gattServerAddIncludedServiceNative},
@@ -1339,7 +1339,7 @@ static JNINativeMethod sMethods[] = {
     {"gattServerSendResponseNative", "(IIIIII[BI)V", (void *) gattServerSendResponseNative},
 
     {"gattSetAdvDataNative", "(IZZZIII[B[B[B)V", (void *) gattSetAdvDataNative},
-    {"gattTestNative", "(IJJLjava/lang/String;IIIII)V", (void *) gattTestNative},
+    {"gattTestNative", "(IJJLjava/lang/String;IIIII)V", (void *) gattTestNative}
 };
 
 int register_com_android_bluetooth_gatt(JNIEnv* env)
