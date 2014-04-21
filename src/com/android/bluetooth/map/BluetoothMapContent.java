@@ -870,28 +870,30 @@ public class BluetoothMapContent {
 
     private void setDateTime(BluetoothMapMessageListingElement e, Cursor c,
         FilterInfo fi, BluetoothMapAppParams ap) {
-        long date = 0;
-        int timeStamp = 0;
+        if ((ap.getParameterMask() & MASK_DATETIME) != 0) {
+            long date = 0;
+            int timeStamp = 0;
 
-        if (fi.msgType == FilterInfo.TYPE_SMS) {
-            date = c.getLong(c.getColumnIndex(Sms.DATE));
-        } else if (fi.msgType == FilterInfo.TYPE_MMS) {
-            /* Use Mms.DATE for all messages. Although contract class states */
-            /* Mms.DATE_SENT are for outgoing messages. But that is not working. */
-            date = c.getLong(c.getColumnIndex(Mms.DATE)) * 1000L;
+            if (fi.msgType == FilterInfo.TYPE_SMS) {
+                date = c.getLong(c.getColumnIndex(Sms.DATE));
+            } else if (fi.msgType == FilterInfo.TYPE_MMS) {
+                /* Use Mms.DATE for all messages. Although contract class states */
+                /* Mms.DATE_SENT are for outgoing messages. But that is not working. */
+                date = c.getLong(c.getColumnIndex(Mms.DATE)) * 1000L;
 
-            /* int msgBox = c.getInt(c.getColumnIndex(Mms.MESSAGE_BOX)); */
-            /* if (msgBox == Mms.MESSAGE_BOX_INBOX) { */
-            /*     date = c.getLong(c.getColumnIndex(Mms.DATE)) * 1000L; */
-            /* } else { */
-            /*     date = c.getLong(c.getColumnIndex(Mms.DATE_SENT)) * 1000L; */
-            /* } */
-        } else {
-            timeStamp = c.getColumnIndex(MessageColumns.TIMESTAMP);
-            String timestamp = c.getString(timeStamp);
-            date =Long.valueOf(timestamp);
+                /* int msgBox = c.getInt(c.getColumnIndex(Mms.MESSAGE_BOX)); */
+                /* if (msgBox == Mms.MESSAGE_BOX_INBOX) { */
+                /*     date = c.getLong(c.getColumnIndex(Mms.DATE)) * 1000L; */
+                /* } else { */
+                /*     date = c.getLong(c.getColumnIndex(Mms.DATE_SENT)) * 1000L; */
+                /* } */
+            } else {
+                timeStamp = c.getColumnIndex(MessageColumns.TIMESTAMP);
+                String timestamp = c.getString(timeStamp);
+                date =Long.valueOf(timestamp);
+            }
+            e.setDateTime(date);
         }
-        e.setDateTime(date);
     }
 
     private String getTextPartsMms(long id) {
@@ -2222,8 +2224,14 @@ public class BluetoothMapContent {
         case SMS_CDMA:
             return getSmsMessage(id, appParams.getCharset());
         case MMS:
+            if(appParams.getCharset()== MAP_MESSAGE_CHARSET_NATIVE) {
+                throw new IllegalArgumentException("Invalid Charset: Native for Message Type MMS");
+            }
             return getMmsMessage(id, appParams);
         case EMAIL:
+            if(appParams.getCharset()== MAP_MESSAGE_CHARSET_NATIVE) {
+                throw new IllegalArgumentException("Invalid Charset: Native for Message Type Email");
+            }
             return getEmailMessage(id, appParams);
         }
         throw new IllegalArgumentException("Invalid message handle.");
@@ -2232,7 +2240,7 @@ public class BluetoothMapContent {
     private void setVCardFromEmailAddress(BluetoothMapbMessage message, String emailAddr, boolean incoming) {
         if(D) Log.d(TAG, "setVCardFromEmailAddress, emailAdress is " +emailAddr);
         String contactId = null, contactName = null;
-        String[] phoneNumbers = null;
+        String[] phoneNumbers = {""};
         String[] emailAddresses = new String[1];
         StringTokenizer emailId;
         Cursor p;

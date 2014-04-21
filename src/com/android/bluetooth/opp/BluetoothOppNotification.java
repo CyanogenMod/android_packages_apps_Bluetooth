@@ -171,8 +171,8 @@ class BluetoothOppNotification {
             mInboundUpdateCompleteNotification = true;
             mOutboundUpdateCompleteNotification = true;
             updateCompletedNotification();
-            updateIncomingFileConfirmNotification();
             mPendingUpdate = 0;
+            cancelIncomingFileConfirmNotification();
             mHandler.removeMessages(NOTIFY);
         }
     }
@@ -617,6 +617,38 @@ class BluetoothOppNotification {
             n.deleteIntent = PendingIntent.getBroadcast(mContext, 0, intent, 0);
 
             mNotificationMgr.notify(id, n);
+        }
+        cursor.close();
+        if (V) Log.v(TAG, "Freeing cursor: " + cursor);
+        cursor = null;
+    }
+
+    private void cancelIncomingFileConfirmNotification() {
+        Cursor cursor = null;
+        try {
+            cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
+                WHERE_CONFIRM_PENDING, null, BluetoothShare._ID);
+        } catch (SQLiteException e) {
+            if (cursor != null) {
+                cursor.close();
+            }
+            cursor = null;
+            Log.e(TAG, "cancelupdateIncomingFileConfirmNotification: " + e);
+        } catch (CursorWindowAllocationException e) {
+            cursor = null;
+            Log.e(TAG, "cancelupdateIncomingFileConfirmNotification: " + e);
+        }
+
+
+        if (cursor == null) {
+            return;
+        }
+
+        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+            int id = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID));
+            if (V) Log.v(TAG, "Cancelling incoming notification " + id);
+
+            mNotificationMgr.cancel(id);
         }
         cursor.close();
         if (V) Log.v(TAG, "Freeing cursor: " + cursor);

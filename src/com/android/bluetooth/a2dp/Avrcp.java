@@ -875,12 +875,15 @@ final class Avrcp {
     }
     private void updateAddressedMediaPlayer(int playerId) {
         if (DEBUG) Log.v(TAG, "updateAddressedMediaPlayer");
+        int previousAddressedPlayerId = mAddressedPlayerId;
         if ((mAddressedPlayerChangedNT == NOTIFICATION_TYPE_INTERIM) && (mAddressedPlayerId != playerId)) {
             if (DEBUG) Log.v(TAG, "send AddressedMediaPlayer to stack: playerId" + playerId);
             mAddressedPlayerId = playerId;
             mAddressedPlayerChangedNT = NOTIFICATION_TYPE_CHANGED;
             registerNotificationRspAddressedPlayerChangedNative(mAddressedPlayerChangedNT, mAddressedPlayerId);
-            resetAndSendPlayerStatusReject();
+            if (previousAddressedPlayerId != 0) {
+                resetAndSendPlayerStatusReject();
+            }
         } else {
             mAddressedPlayerId = playerId;
         }
