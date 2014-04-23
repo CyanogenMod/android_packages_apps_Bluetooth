@@ -782,9 +782,11 @@ final class A2dpStateMachine extends StateMachine {
     private void broadcastConnectionState(BluetoothDevice device, int newState, int prevState) {
 
         int delay = 0;
+        int isSrc = isSrcNative(getByteAddress(device));
+
         // in case PEER DEVICE is A2DP SNK we need to tell AUDIO
-        if (isSrcNative(getByteAddress(device))
-                    == AbstractionLayer.BT_STATUS_FAIL) {
+        if ((isSrc == AbstractionLayer.BT_STATUS_FAIL) ||
+            (isSrc == AbstractionLayer.BT_STATUS_NOT_READY)) {
             // do not update delay for disconecting as by time disconnect comes
             // Sep end point is cleared
             delay = mAudioManager.setBluetoothA2dpDeviceConnectionState(device, newState);
