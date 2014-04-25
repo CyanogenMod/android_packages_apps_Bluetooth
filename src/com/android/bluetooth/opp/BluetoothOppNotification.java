@@ -112,6 +112,7 @@ class BluetoothOppNotification {
 
     private int mInboundActiveNotificationId = 0;
     private int mOutboundActiveNotificationId = 0;
+    private int mIncomingShownId = 0;
 
     /**
      * This inner class is used to describe some properties for one transfer.
@@ -596,27 +597,30 @@ class BluetoothOppNotification {
             long timeStamp = cursor.getLong(cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP));
             Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + id);
 
-            Notification n = new Notification();
-            n.icon = R.drawable.bt_incomming_file_notification;
-            n.flags |= Notification.FLAG_ONLY_ALERT_ONCE;
-            n.flags |= Notification.FLAG_ONGOING_EVENT;
-            n.defaults = Notification.DEFAULT_SOUND;
-            n.tickerText = title;
+            if (mIncomingShownId != id) {
+                Notification n = new Notification();
+                n.icon = R.drawable.bt_incomming_file_notification;
+                n.flags |= Notification.FLAG_ONLY_ALERT_ONCE;
+                n.flags |= Notification.FLAG_ONGOING_EVENT;
+                n.defaults = Notification.DEFAULT_SOUND;
+                n.tickerText = title;
 
-            Intent intent = new Intent(Constants.ACTION_INCOMING_FILE_CONFIRM);
-            intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
-            intent.setDataAndNormalize(contentUri);
+                Intent intent = new Intent(Constants.ACTION_INCOMING_FILE_CONFIRM);
+                intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
+                intent.setDataAndNormalize(contentUri);
 
-            n.when = timeStamp;
-            n.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(mContext, 0,
+                n.when = timeStamp;
+                n.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(mContext, 0,
                     intent, 0));
 
-            intent = new Intent(Constants.ACTION_HIDE);
-            intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
-            intent.setDataAndNormalize(contentUri);
-            n.deleteIntent = PendingIntent.getBroadcast(mContext, 0, intent, 0);
+                intent = new Intent(Constants.ACTION_HIDE);
+                intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
+                intent.setDataAndNormalize(contentUri);
+                n.deleteIntent = PendingIntent.getBroadcast(mContext, 0, intent, 0);
 
-            mNotificationMgr.notify(id, n);
+                mNotificationMgr.notify(id, n);
+                mIncomingShownId = id;
+            }
         }
         cursor.close();
         if (V) Log.v(TAG, "Freeing cursor: " + cursor);
