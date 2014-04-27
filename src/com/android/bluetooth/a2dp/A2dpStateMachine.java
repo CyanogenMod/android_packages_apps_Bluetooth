@@ -615,8 +615,8 @@ final class A2dpStateMachine extends StateMachine {
                         loge("Disconnected from unknown device: " + device);
                     }
 
-                    if (isSrcNative(getByteAddress(device))
-                                == AbstractionLayer.BT_STATUS_SUCCESS) {
+                    if (mService.getLastConnectedA2dpSepType(device)
+                                == BluetoothProfile.PROFILE_A2DP_SRC) {
                         // in case PEER DEVICE is A2DP SRC we need to manager audio focus
                         int status = mAudioManager.abandonAudioFocus(mAudioFocusListener);
                         log("Status loss returned " + status);
@@ -632,8 +632,8 @@ final class A2dpStateMachine extends StateMachine {
 
         private void processAudioFocusRequestEvent(int enable, BluetoothDevice device) {
             if (mPlayingA2dpDevice != null) {
-                if ((isSrcNative(getByteAddress(device))
-                        == AbstractionLayer.BT_STATUS_SUCCESS) && (enable == 1)){
+                if ((mService.getLastConnectedA2dpSepType(device)
+                        == BluetoothProfile.PROFILE_A2DP_SRC) && (enable == 1)){
                     // in case PEER DEVICE is A2DP SRC we need to manager audio focus
                     int status =  mAudioManager.requestAudioFocus(mAudioFocusListener,
                                AudioManager.STREAM_MUSIC,AudioManager.AUDIOFOCUS_GAIN);
@@ -678,8 +678,8 @@ final class A2dpStateMachine extends StateMachine {
     // true if peer device is source
     boolean isConnectedSrc(BluetoothDevice device)
     {
-        if (isSrcNative(getByteAddress(device))
-                    == AbstractionLayer.BT_STATUS_SUCCESS)
+        if (mService.getLastConnectedA2dpSepType(device)
+                == BluetoothProfile.PROFILE_A2DP_SRC)
             return true;
         else
             return false;
@@ -782,28 +782,46 @@ final class A2dpStateMachine extends StateMachine {
     private void broadcastConnectionState(BluetoothDevice device, int newState, int prevState) {
 
         int delay = 0;
-        // in case PEER DEVICE is A2DP SNK we need to tell AUDIO
-        if (isSrcNative(getByteAddress(device))
+        int remoteSepConnected;
+        // only in case of Connected State we make native call
+        // and update Profile information.
+        if (newState == BluetoothProfile.STATE_CONNECTED) {
+            // peer device is SNK
+            if (isSrcNative(getByteAddress(device))
                     == AbstractionLayer.BT_STATUS_FAIL) {
-            // do not update delay for disconecting as by time disconnect comes
-            // Sep end point is cleared
+                log("Peer Device is SNK");
+                mService.setLastConnectedA2dpSepType (device,
+                        BluetoothProfile.PROFILE_A2DP_SNK);
+            }
+            else if (isSrcNative(getByteAddress(device))
+                    == AbstractionLayer.BT_STATUS_SUCCESS) {
+                log("Peer Device is SRC");
+                mService.setLastConnectedA2dpSepType (device,
+                        BluetoothProfile.PROFILE_A2DP_SRC);
+            }
+        }
+
+        // now get profile value of this device.
+        remoteSepConnected = mService.getLastConnectedA2dpSepType(device);
+
+        if (remoteSepConnected == BluetoothProfile.PROFILE_A2DP_SNK)
+            log(" Remote Sep Connected " + "SINK" + "device: " + device);
+        if (remoteSepConnected == BluetoothProfile.PROFILE_A2DP_SRC)
+            log(" Remote Sep Connected " + "SRC" + "device: " + device);
+        if (remoteSepConnected == BluetoothProfile.PROFILE_A2DP_UNDEFINED)
+            log(" Remote Sep Connected " + "NO Records" + "device: " + device);
+
+        if ((remoteSepConnected == BluetoothProfile.PROFILE_A2DP_SNK) &&
+                        (newState != BluetoothProfile.STATE_CONNECTING)) {
+            // inform Audio Manager now
+            log(" updating audioManager state: " + newState);
             delay = mAudioManager.setBluetoothA2dpDeviceConnectionState(device, newState);
-            if (newState == BluetoothProfile.STATE_DISCONNECTING)
-                delay = 0;
-            log("Peer Device is SNK");
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                mService.setLastConnectedA2dpSepType (device,
-                                    BluetoothProfile.PROFILE_A2DP_SNK);
-            }
         }
-        else {
-            log("Peer Device is SRC");
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                mService.setLastConnectedA2dpSepType (device,
-                                    BluetoothProfile.PROFILE_A2DP_SRC);
-            }
-            log("Peer Device is SRC/Not ready yet");
-        }
+
+        // in disconnecting case, we do not want a delay
+        if (newState == BluetoothProfile.STATE_DISCONNECTING)
+            delay = 0;
+
         mWakeLock.acquire();
         log("delay is " + delay + "for device " + device);
         mIntentBroadcastHandler.sendMessageDelayed(mIntentBroadcastHandler.obtainMessage(
@@ -915,8 +933,8 @@ final class A2dpStateMachine extends StateMachine {
                 log("Command Received  " + cmd);
                 if (cmd.equals("pause")) {
                     if (mCurrentDevice != null) {
-                        if (isSrcNative(getByteAddress(mCurrentDevice))
-                                == AbstractionLayer.BT_STATUS_SUCCESS) {
+                        if (mService.getLastConnectedA2dpSepType(mCurrentDevice)
+                                == BluetoothProfile.PROFILE_A2DP_SRC) {
                             //Camera Pauses the Playback before starting the Video recording
                             //But it doesn't start the playback once recording is completed.
                             //Disconnecting the A2dp to move the A2dpSink to proper state.
@@ -940,8 +958,8 @@ final class A2dpStateMachine extends StateMachine {
             switch(focusChange){
                 case AudioManager.AUDIOFOCUS_LOSS:
                     if (mCurrentDevice != null) {
-                        if (isSrcNative(getByteAddress(mCurrentDevice))
-                                == AbstractionLayer.BT_STATUS_SUCCESS) {
+                        if (mService.getLastConnectedA2dpSepType(mCurrentDevice)
+                                   == BluetoothProfile.PROFILE_A2DP_SRC) {
                             // in case of perm loss, disconnect the link
                             disconnectA2dpNative(getByteAddress(mCurrentDevice));
                             // in case PEER DEVICE is A2DP SRC we need to manage audio focus
