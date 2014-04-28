@@ -76,6 +76,7 @@ final class HeadsetStateMachine extends StateMachine {
 
     private static final String HEADSET_NAME = "bt_headset_name";
     private static final String HEADSET_NREC = "bt_headset_nrec";
+    private static final String HEADSET_WBS = "bt_headset_wbs";
 
     static final int CONNECT = 1;
     static final int DISCONNECT = 2;
@@ -97,6 +98,10 @@ final class HeadsetStateMachine extends StateMachine {
     static final int VIRTUAL_CALL_START = 14;
     static final int VIRTUAL_CALL_STOP = 15;
 
+    static final int ENABLE_WBS = 16;
+    static final int DISABLE_WBS = 17;
+
+
     private static final int STACK_EVENT = 101;
     private static final int DIALING_OUT_TIMEOUT = 102;
     private static final int START_VR_TIMEOUT = 103;
@@ -110,6 +115,9 @@ final class HeadsetStateMachine extends StateMachine {
 
     // Max number of HF connections at any time
     private int max_hf_connections = 2;
+
+    private static final int NBS_CODEC = 1;
+    private static final int WBS_CODEC = 2;
 
     // Keys are AT commands, and values are the company IDs.
     private static final Map<String, Integer> VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID;
@@ -528,6 +536,8 @@ final class HeadsetStateMachine extends StateMachine {
                             mCurrentDevice = null;
                         }
 
+                        processWBSEvent(0, device); /* disable WBS audio parameters */
+
                         if (mTargetDevice != null) {
                             if (!connectHfpNative(getByteAddress(mTargetDevice))) {
                                 broadcastConnectionState(mTargetDevice,
@@ -871,6 +881,18 @@ final class HeadsetStateMachine extends StateMachine {
                 case VIRTUAL_CALL_STOP:
                     terminateScoUsingVirtualVoiceCall();
                     break;
+                case ENABLE_WBS:
+                {
+                    BluetoothDevice device = (BluetoothDevice) message.obj;
+                    configureWBSNative(getByteAddress(device),WBS_CODEC);
+                }
+                    break;
+                case DISABLE_WBS:
+                {
+                    BluetoothDevice device = (BluetoothDevice) message.obj;
+                    configureWBSNative(getByteAddress(device),NBS_CODEC);
+                }
+                    break;
                 case START_VR_TIMEOUT:
                 {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
@@ -920,6 +942,10 @@ final class HeadsetStateMachine extends StateMachine {
                         case EVENT_TYPE_NOICE_REDUCTION:
                             processNoiceReductionEvent(event.valueInt, event.device);
                             break;
+                        case EVENT_TYPE_WBS:
+                            Log.d(TAG, "EVENT_TYPE_WBS codec is "+event.valueInt);
+                            processWBSEvent(event.valueInt, event.device);
+                            break;
                         case EVENT_TYPE_AT_CHLD:
                             processAtChld(event.valueInt, event.device);
                             break;
@@ -961,6 +987,7 @@ final class HeadsetStateMachine extends StateMachine {
                     if (mConnectedDevicesList.contains(device)) {
                         broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED,
                                                  BluetoothProfile.STATE_CONNECTED);
+                        processWBSEvent(0, device); /* disable WBS audio parameters */
                         synchronized (HeadsetStateMachine.this) {
                             mConnectedDevicesList.remove(device);
                             mHeadsetAudioParam.remove(device);
@@ -1400,6 +1427,7 @@ final class HeadsetStateMachine extends StateMachine {
                                            " is removed in AudioOn state");
                             broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED,
                                                      BluetoothProfile.STATE_CONNECTED);
+                            processWBSEvent(0, device); /* disable WBS audio parameters */
                             if (mConnectedDevicesList.size() == 0) {
                                 transitionTo(mDisconnected);
                             }
@@ -2622,6 +2650,20 @@ final class HeadsetStateMachine extends StateMachine {
         Log.d(TAG, "NREC value for device :" + device + " is: " + AudioParamNrec.get("NREC"));
     }
 
+    // 2 - WBS on
+    // 1 - NBS on
+    private void processWBSEvent(int enable, BluetoothDevice device) {
+        if (enable == 2) {
+            Log.d(TAG, "AudioManager.setParameters bt_headset_wbs=on for " +
+                        device.getName() + " - " + device.getAddress());
+            mAudioManager.setParameters(HEADSET_WBS + "=on");
+        } else {
+            Log.d(TAG, "AudioManager.setParameters bt_headset_wbs=off for " +
+                        device.getName() + " - " + device.getAddress());
+            mAudioManager.setParameters(HEADSET_WBS + "=off");
+        }
+    }
+
     private void processAtChld(int chld, BluetoothDevice device) {
         if(device == null) {
             Log.w(TAG, "processAtChld device is null");
@@ -3008,6 +3050,13 @@ final class HeadsetStateMachine extends StateMachine {
         sendMessage(STACK_EVENT, event);
     }
 
+    private void onWBS(int codec, byte[] address) {
+        StackEvent event = new StackEvent(EVENT_TYPE_WBS);
+        event.valueInt = codec;
+        event.device = getDevice(address);
+        sendMessage(STACK_EVENT, event);
+    }
+
     private void onAtChld(int chld, byte[] address) {
         StackEvent event = new StackEvent(EVENT_TYPE_AT_CHLD);
         event.valueInt = chld;
@@ -3209,6 +3258,7 @@ final class HeadsetStateMachine extends StateMachine {
     final private static int EVENT_TYPE_AT_CLCC = 14;
     final private static int EVENT_TYPE_UNKNOWN_AT = 15;
     final private static int EVENT_TYPE_KEY_PRESSED = 16;
+    final private static int EVENT_TYPE_WBS = 17;
 
     private class StackEvent {
         int type = EVENT_TYPE_NONE;
@@ -3249,4 +3299,5 @@ final class HeadsetStateMachine extends StateMachine {
 
     private native boolean phoneStateChangeNative(int numActive, int numHeld, int callState,
                                                   String number, int type);
+    private native boolean configureWBSNative(byte[] address,int condec_config);
 }
