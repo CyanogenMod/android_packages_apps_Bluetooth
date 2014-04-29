@@ -97,6 +97,10 @@ public class BluetoothMapService extends ProfileService {
 
     public static final int MSG_OBEX_AUTH_CHALL = 5003;
 
+    public static final int MSG_ACQUIRE_WAKE_LOCK = 5004;
+
+    public static final int MSG_RELEASE_WAKE_LOCK = 5005;
+
     private static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
 
     private static final String BLUETOOTH_ADMIN_PERM = android.Manifest.permission.BLUETOOTH_ADMIN;
@@ -106,6 +110,8 @@ public class BluetoothMapService extends ProfileService {
     private static final int USER_TIMEOUT = 2;
 
     private static final int DISCONNECT_MAP = 3;
+
+    private static final int RELEASE_WAKE_LOCK_DELAY = 10000;
 
     private PowerManager.WakeLock mWakeLock = null;
 
@@ -289,7 +295,8 @@ public class BluetoothMapService extends ProfileService {
             mWakeLock.acquire();
         }
 
-        mBluetoothMnsObexClient = new BluetoothMnsObexClient(this, mRemoteDevice);
+        mBluetoothMnsObexClient = new BluetoothMnsObexClient(this, mRemoteDevice,
+                                                             mSessionStatusHandler);
         mMapServer = new BluetoothMapObexServer(mSessionStatusHandler, this,
                                                 mBluetoothMnsObexClient);
         synchronized (this) {
@@ -302,6 +309,11 @@ public class BluetoothMapService extends ProfileService {
         BluetoothMapRfcommTransport transport = new BluetoothMapRfcommTransport(mConnSocket);
         mServerSession = new ServerSession(transport, mMapServer, mAuth);
         setState(BluetoothMap.STATE_CONNECTED);
+
+        mSessionStatusHandler.removeMessages(MSG_RELEASE_WAKE_LOCK);
+        mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
+            .obtainMessage(MSG_RELEASE_WAKE_LOCK), RELEASE_WAKE_LOCK_DELAY);
+
         if (VERBOSE) {
             Log.v(TAG, "startObexServerSession() success!");
         }
@@ -309,6 +321,9 @@ public class BluetoothMapService extends ProfileService {
 
     private void stopObexServerSession() {
         if (DEBUG) Log.d(TAG, "MAP Service stopObexServerSession");
+
+        mSessionStatusHandler.removeMessages(MSG_ACQUIRE_WAKE_LOCK);
+        mSessionStatusHandler.removeMessages(MSG_RELEASE_WAKE_LOCK);
 
         // Release the wake lock if obex transaction is over
         if (mWakeLock != null) {
@@ -457,6 +472,27 @@ public class BluetoothMapService extends ProfileService {
                     break;
                 case DISCONNECT_MAP:
                     disconnectMap((BluetoothDevice)msg.obj);
+                    break;
+                case MSG_ACQUIRE_WAKE_LOCK:
+                    if (mWakeLock == null) {
+                        PowerManager pm = (PowerManager)getSystemService(
+                                          Context.POWER_SERVICE);
+                        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                                    "StartingObexMapTransaction");
+                        mWakeLock.setReferenceCounted(false);
+                        mWakeLock.acquire();
+                        Log.w(TAG, "Acquire Wake Lock");
+                    }
+                    mSessionStatusHandler.removeMessages(MSG_RELEASE_WAKE_LOCK);
+                    mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
+                      .obtainMessage(MSG_RELEASE_WAKE_LOCK), RELEASE_WAKE_LOCK_DELAY);
+                    break;
+                case MSG_RELEASE_WAKE_LOCK:
+                    if (mWakeLock != null) {
+                        mWakeLock.release();
+                        mWakeLock = null;
+                        Log.w(TAG, "Release Wake Lock");
+                    }
                     break;
                 default:
                     break;

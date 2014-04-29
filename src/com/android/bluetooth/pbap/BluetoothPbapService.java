@@ -121,6 +121,10 @@ public class BluetoothPbapService extends Service {
 
     public static final int MSG_OBEX_AUTH_CHALL = 5003;
 
+    public static final int MSG_ACQUIRE_WAKE_LOCK = 5004;
+
+    public static final int MSG_RELEASE_WAKE_LOCK = 5005;
+
     private static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
 
     private static final String BLUETOOTH_ADMIN_PERM = android.Manifest.permission.BLUETOOTH_ADMIN;
@@ -134,6 +138,7 @@ public class BluetoothPbapService extends Service {
 
     private static final int USER_CONFIRM_TIMEOUT_VALUE = 30000;
 
+    private static final int RELEASE_WAKE_LOCK_DELAY = 10000;
 
     // Ensure not conflict with Opp notification ID
     private static final int NOTIFICATION_ID_ACCESS = -1000001;
@@ -470,6 +475,11 @@ public class BluetoothPbapService extends Service {
         BluetoothPbapRfcommTransport transport = new BluetoothPbapRfcommTransport(mConnSocket);
         mServerSession = new ServerSession(transport, mPbapServer, mAuth);
         setState(BluetoothPbap.STATE_CONNECTED);
+
+        mSessionStatusHandler.removeMessages(MSG_RELEASE_WAKE_LOCK);
+        mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
+            .obtainMessage(MSG_RELEASE_WAKE_LOCK), RELEASE_WAKE_LOCK_DELAY);
+
         if (VERBOSE) {
             Log.v(TAG, "startObexServerSession() success!");
         }
@@ -478,6 +488,8 @@ public class BluetoothPbapService extends Service {
     private void stopObexServerSession() {
         if (VERBOSE) Log.v(TAG, "Pbap Service stopObexServerSession");
 
+        mSessionStatusHandler.removeMessages(MSG_ACQUIRE_WAKE_LOCK);
+        mSessionStatusHandler.removeMessages(MSG_RELEASE_WAKE_LOCK);
         // Release the wake lock if obex transaction is over
         if (mWakeLock != null) {
             mWakeLock.release();
@@ -659,6 +671,27 @@ public class BluetoothPbapService extends Service {
                     createPbapNotification(AUTH_CHALL_ACTION);
                     mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
                             .obtainMessage(AUTH_TIMEOUT), USER_CONFIRM_TIMEOUT_VALUE);
+                    break;
+                case MSG_ACQUIRE_WAKE_LOCK:
+                    if (mWakeLock == null) {
+                        PowerManager pm = (PowerManager)getSystemService(
+                                          Context.POWER_SERVICE);
+                        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                                    "StartingObexPbapTransaction");
+                        mWakeLock.setReferenceCounted(false);
+                        mWakeLock.acquire();
+                        Log.w(TAG, "Acquire Wake Lock");
+                    }
+                    mSessionStatusHandler.removeMessages(MSG_RELEASE_WAKE_LOCK);
+                    mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
+                      .obtainMessage(MSG_RELEASE_WAKE_LOCK), RELEASE_WAKE_LOCK_DELAY);
+                    break;
+                case MSG_RELEASE_WAKE_LOCK:
+                    if (mWakeLock != null) {
+                        mWakeLock.release();
+                        mWakeLock = null;
+                        Log.w(TAG, "Release Wake Lock");
+                    }
                     break;
                 default:
                     break;
