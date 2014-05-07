@@ -19,6 +19,12 @@ package com.android.bluetooth.gatt;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothLeAdvertiseScanData.AdvertisementData;
+import android.bluetooth.BluetoothLeAdvertiser;
+import android.bluetooth.BluetoothLeAdvertiser.AdvertiseCallback;
+import android.bluetooth.BluetoothLeScanFilter;
+import android.bluetooth.BluetoothLeScanner.ScanResult;
+import android.bluetooth.BluetoothLeScanner.Settings;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothGatt;
@@ -26,8 +32,10 @@ import android.bluetooth.IBluetoothGattCallback;
 import android.bluetooth.IBluetoothGattServerCallback;
 import android.content.Intent;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.util.Log;
 
 import com.android.bluetooth.btservice.ProfileService;
@@ -39,8 +47,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Provides Bluetooth Gatt profile, as a service in
@@ -74,6 +84,9 @@ public class GattService extends ProfileService {
      * Byte size of 128 bit service uuid.
      */
     private static final int FULL_UUID_BYTES = 16;
+
+    static final int SCAN_FILTER_ENABLED = 1;
+    static final int SCAN_FILTER_MODIFIED = 2;
 
     /**
      * Search queue to serialize remote onbject inspection.
@@ -147,7 +160,9 @@ public class GattService extends ProfileService {
      * List of clients interested in scan results.
      */
     private List<ScanClient> mScanQueue = new ArrayList<ScanClient>();
+    private Set<BluetoothLeScanFilter> mScanFilters = new HashSet<BluetoothLeScanFilter>();
 
+    private GattServiceStateMachine mStateMachine;
     private ScanClient getScanClient(int appIf, boolean isServer) {
         for(ScanClient client : mScanQueue) {
             if (client.appIf == appIf && client.isServer == isServer) {
@@ -186,6 +201,7 @@ public class GattService extends ProfileService {
     protected boolean start() {
         if (DBG) Log.d(TAG, "start()");
         initializeNative();
+        mStateMachine = GattServiceStateMachine.make(this);
         return true;
     }
 
@@ -195,8 +211,10 @@ public class GattService extends ProfileService {
         mServerMap.clear();
         mSearchQueue.clear();
         mScanQueue.clear();
+        mScanFilters.clear();
         mHandleMap.clear();
         mServiceDeclarations.clear();
+        mStateMachine.doQuit();
         mReliableQueue.clear();
         return true;
     }
@@ -204,6 +222,7 @@ public class GattService extends ProfileService {
     protected boolean cleanup() {
         if (DBG) Log.d(TAG, "cleanup()");
         cleanupNative();
+        mStateMachine.cleanup();
         return true;
     }
 
@@ -232,7 +251,11 @@ public class GattService extends ProfileService {
             if (mAdvertisingClientIf == mAppIf) {
                 stopAdvertising(true);  // force stop advertising.
             } else {
-                stopScan(mAppIf, false);
+                if (getScanClient(mAppIf, false) != null) {
+                    stopScan(mAppIf, false);
+                } else {
+                    stopMultiAdvertising(mAppIf);
+                }
             }
             unregisterClient(mAppIf);
         }
@@ -316,6 +339,14 @@ public class GattService extends ProfileService {
             }
             service.startScanWithUuidsScanParam(appIf, isServer, uuids,
                     scanWindow, scanInterval);
+        }
+
+        @Override
+        public void startScanWithFilters(int appIf, boolean isServer, Settings settings,
+                List<BluetoothLeScanFilter> filters) {
+            GattService service = getService();
+            if (service == null) return;
+            service.startScanWithFilters(appIf, isServer, settings, filters);
         }
 
         public void stopScan(int appIf, boolean isServer) {
@@ -535,6 +566,21 @@ public class GattService extends ProfileService {
         }
 
         @Override
+        public void startMultiAdvertising(int clientIf, AdvertisementData data,
+                BluetoothLeAdvertiser.Settings settings) {
+            GattService service = getService();
+            if (service == null) return;
+            service.startMultiAdvertising(clientIf, data, settings);
+        }
+
+        @Override
+        public void stopMultiAdvertising(int clientIf) {
+            GattService service = getService();
+            if (service == null) return;
+            service.stopMultiAdvertising(clientIf);
+        }
+
+        @Override
         public boolean isAdvertising() {
             GattService service = getService();
             if (service == null) return false;
@@ -617,12 +663,19 @@ public class GattService extends ProfileService {
             if (!client.isServer) {
                 ClientMap.App app = mClientMap.getById(client.appIf);
                 if (app != null) {
-                    try {
-                        app.callback.onScanResult(address, rssi, adv_data);
-                    } catch (RemoteException e) {
-                        Log.e(TAG, "Exception: " + e);
-                        mClientMap.remove(client.appIf);
-                        mScanQueue.remove(client);
+                    BluetoothDevice device = BluetoothAdapter.getDefaultAdapter()
+                            .getRemoteDevice(address);
+                    long scanTimeMicros =
+                            TimeUnit.NANOSECONDS.toMicros(SystemClock.elapsedRealtimeNanos());
+                    ScanResult result = new ScanResult(device, adv_data, rssi, scanTimeMicros);
+                    if (matchesFilters(client, result)) {
+                        try {
+                            app.callback.onScanResult(address, rssi, adv_data);
+                        } catch (RemoteException e) {
+                            Log.e(TAG, "Exception: " + e);
+                            mClientMap.remove(client.appIf);
+                            mScanQueue.remove(client);
+                        }
                     }
                 }
             } else {
@@ -638,6 +691,19 @@ public class GattService extends ProfileService {
                 }
             }
         }
+    }
+
+    // Check if a scan record matches a specific filters.
+    private boolean matchesFilters(ScanClient client, ScanResult scanResult) {
+        if (client.filters == null || client.filters.isEmpty()) {
+            return true;
+        }
+        for (BluetoothLeScanFilter filter : client.filters) {
+            if (filter.matches(scanResult)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     void onClientRegistered(int status, int clientIf, long uuidLsb, long uuidMsb)
@@ -937,6 +1003,30 @@ public class GattService extends ProfileService {
         }
     }
 
+    void onScanFilterConfig(int action, int status) {
+        log("action = " + action + " status = " + status);
+        Message message = mStateMachine.obtainMessage();
+        if (status != 0) {
+            // If something is wrong with filter configuration, just start scan.
+            message.what = GattServiceStateMachine.ENABLE_BLE_SCAN;
+            mStateMachine.sendMessage(message);
+            return;
+        }
+        message.arg1 = action;
+        if (action == SCAN_FILTER_MODIFIED) {
+            if (mScanFilters.isEmpty()) {
+                message.what = GattServiceStateMachine.ENABLE_BLE_SCAN;
+            } else {
+                message.what = GattServiceStateMachine.ADD_SCAN_FILTER;
+            }
+        } else {
+            if (action == SCAN_FILTER_ENABLED) {
+                message.what = GattServiceStateMachine.ENABLE_BLE_SCAN;
+            }
+        }
+        mStateMachine.sendMessage(message);
+    }
+
     void onAdvertiseCallback(int status, int clientIf) throws RemoteException {
         if (DBG) Log.d(TAG, "onClientListen() status=" + status);
         synchronized (mLock) {
@@ -985,6 +1075,15 @@ public class GattService extends ProfileService {
         app.callback.onAdvertiseStateChange(mAdvertisingState, status);
     }
 
+    void onMultipleAdvertiseCallback(int clientIf, int status) throws RemoteException {
+        ClientMap.App app = mClientMap.getById(clientIf);
+        if (app == null || app.callback == null) {
+            Log.e(TAG, "app or callback is null");
+            return;
+        }
+        app.callback.onMultiAdvertiseCallback(status);
+    }
+
     void onConfigureMTU(int connId, int status, int mtu) throws RemoteException {
         String address = mClientMap.addressByConnId(connId);
 
@@ -994,6 +1093,55 @@ public class GattService extends ProfileService {
         ClientMap.App app = mClientMap.getByConnId(connId);
         if (app != null) {
             app.callback.onConfigureMTU(address, mtu, status);
+        }
+    }
+
+    void onClientEnable(int status, int clientIf) throws RemoteException{
+        if (DBG) Log.d(TAG, "onClientEnable() - clientIf=" + clientIf + ", status=" + status);
+        if (status == 0) {
+            Message message = mStateMachine.obtainMessage(
+                    GattServiceStateMachine.SET_ADVERTISING_DATA);
+            message.arg1 = clientIf;
+            mStateMachine.sendMessage(message);
+        } else {
+            Message message =
+                    mStateMachine.obtainMessage(GattServiceStateMachine.CANCEL_ADVERTISING);
+            message.arg1 = clientIf;
+            mStateMachine.sendMessage(message);
+        }
+    }
+
+    void onClientUpdate(int status, int client_if) throws RemoteException {
+        if (DBG) Log.d(TAG, "onClientUpdate() - client_if=" + client_if
+            + ", status=" + status);
+    }
+
+    void onClientData(int status, int clientIf) throws RemoteException{
+        if (DBG) Log.d(TAG, "onClientData() - clientIf=" + clientIf
+            + ", status=" + status);
+
+        ClientMap.App app = mClientMap.getById(clientIf);
+        if (app != null) {
+            if (status == 0) {
+                app.callback.onMultiAdvertiseCallback(AdvertiseCallback.SUCCESS);
+            } else {
+                app.callback.onMultiAdvertiseCallback(AdvertiseCallback.CONTROLLER_FAILURE);
+            }
+        }
+    }
+
+    void onClientDisable(int status, int client_if) throws RemoteException{
+        if (DBG) Log.d(TAG, "onClientDisable() - client_if=" + client_if
+            + ", status=" + status);
+
+        ClientMap.App app = mClientMap.getById(client_if);
+        if (app != null) {
+            Log.d(TAG, "Client app is not null!");
+            if (status == 0) {
+                app.callback.onMultiAdvertiseCallback(AdvertiseCallback.SUCCESS);
+            } else {
+                app.callback.onMultiAdvertiseCallback(AdvertiseCallback.CONTROLLER_FAILURE);
+            }
         }
     }
 
@@ -1055,9 +1203,9 @@ public class GattService extends ProfileService {
             if (DBG) Log.d(TAG, "startScan() - adding client=" + appIf);
             mScanQueue.add(new ScanClient(appIf, isServer));
         }
-
         configureScanParams();
     }
+
 
     void startScanWithUuids(int appIf, boolean isServer, UUID[] uuids) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
@@ -1068,7 +1216,6 @@ public class GattService extends ProfileService {
             if (DBG) Log.d(TAG, "startScanWithUuids() - adding client=" + appIf);
             mScanQueue.add(new ScanClient(appIf, isServer, uuids));
         }
-
         configureScanParams();
     }
 
@@ -1085,6 +1232,27 @@ public class GattService extends ProfileService {
         }
 
         configureScanParams();
+    }
+
+    void startScanWithFilters(int appIf, boolean isServer, Settings settings,
+            List<BluetoothLeScanFilter> filters) {
+        if (DBG) Log.d(TAG, "start scan with filters " + filters.size());
+        enforceAdminPermission();
+        // TODO: use settings to configure scan params.
+        // TODO: move logic to state machine to avoid locking.
+        synchronized(mScanQueue) {
+            if (getScanClient(appIf, isServer) == null) {
+                if (DBG) Log.d(TAG, "startScan() - adding client=" + appIf);
+                mScanQueue.add(new ScanClient(appIf, isServer, settings, filters));
+            }
+            Set<BluetoothLeScanFilter> newFilters = configureScanFiltersLocked();
+            if (!Objects.deepEquals(newFilters, mScanFilters)) {
+                mScanFilters = newFilters;
+                // Restart scan using new filters.
+                sendStopScanMessage();
+                sendStartScanMessage(mScanFilters);
+            }
+        }
     }
 
     void configureScanParams() {
@@ -1113,16 +1281,47 @@ public class GattService extends ProfileService {
                 scanWindow = (scanWindow * 1000)/625;
                 scanInterval = (scanInterval * 1000)/625;
                 // Presence of scan clients means scan is active.
-                gattClientScanNative(false);
+                sendStopScanMessage();
                 gattSetScanParametersNative(scanInterval, scanWindow);
                 lastConfiguredDutyCycle = curDutyCycle;
-                gattClientScanNative(true);
+                mScanFilters.clear();
+                sendStartScanMessage(mScanFilters);
+            } else {
+                // Duty cycle did not change but scan filters changed.
+                if (!mScanFilters.isEmpty()) {
+                    mScanFilters.clear();
+                    sendStopScanMessage();
+                    sendStartScanMessage(mScanFilters);
+                }
             }
         } else {
             lastConfiguredDutyCycle = curDutyCycle;
-            gattClientScanNative(false);
+            sendStopScanMessage();
             if (DBG) Log.d(TAG, "configureScanParams() - queue emtpy, scan stopped");
         }
+    }
+
+    private Set<BluetoothLeScanFilter> configureScanFiltersLocked() {
+        Set<BluetoothLeScanFilter> filters = new HashSet<BluetoothLeScanFilter>();
+        for (ScanClient client : mScanQueue) {
+            if (client.filters == null || client.filters.isEmpty()) {
+                filters.clear();
+                return filters;
+            }
+            filters.addAll(client.filters);
+        }
+        return filters;
+    }
+
+    private void sendStartScanMessage(Set<BluetoothLeScanFilter> filters) {
+        Message message = mStateMachine.obtainMessage(GattServiceStateMachine.START_BLE_SCAN);
+        message.obj = filters;
+        mStateMachine.sendMessage(message);
+    }
+
+    private void sendStopScanMessage() {
+        Message message = mStateMachine.obtainMessage(GattServiceStateMachine.STOP_BLE_SCAN);
+        mStateMachine.sendMessage(message);
     }
 
     void stopScan(int appIf, boolean isServer) {
@@ -1133,7 +1332,7 @@ public class GattService extends ProfileService {
         configureScanParams();
 
         if (mScanQueue.isEmpty()) {
-            if (DBG) Log.d(TAG, "stopScan() - queue empty; scan stopped");
+            if (DBG) Log.d(TAG, "stopScan() - queue empty; stopping scan");
         }
     }
 
@@ -1305,6 +1504,21 @@ public class GattService extends ProfileService {
                 mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STOPPING;
             }
         }
+    }
+
+    void startMultiAdvertising(int clientIf, AdvertisementData data,
+            BluetoothLeAdvertiser.Settings settings) {
+        enforceAdminPermission();
+        Message message = mStateMachine.obtainMessage(GattServiceStateMachine.START_ADVERTISING);
+        message.obj = new AdvertiseClient(clientIf, settings, data);
+        mStateMachine.sendMessage(message);
+    }
+
+    void stopMultiAdvertising(int clientIf) {
+        enforceAdminPermission();
+        Message message = mStateMachine.obtainMessage(GattServiceStateMachine.STOP_ADVERTISING);
+        message.arg1 = clientIf;
+        mStateMachine.sendMessage(message);
     }
 
     List<String> getConnectedDevices() {
@@ -1872,6 +2086,10 @@ public class GattService extends ProfileService {
         return availableSize;
     }
 
+    private void enforceAdminPermission() {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+    }
+
     // Enforce caller has BLUETOOTH_PRIVILEGED permission. A {@link SecurityException} will be
     // thrown if the caller app does not have BLUETOOTH_PRIVILEGED permission.
     private void enforcePrivilegedPermission() {
@@ -2083,7 +2301,6 @@ public class GattService extends ProfileService {
 
     private native void gattClientUnregisterAppNative(int clientIf);
 
-    private native void gattClientScanNative(boolean start);
     private native void gattSetScanParametersNative(int scan_interval, int scan_window);
 
     private native void gattClientConnectNative(int clientIf, String address,
