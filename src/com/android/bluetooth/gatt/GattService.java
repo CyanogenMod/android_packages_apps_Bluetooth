@@ -1169,7 +1169,7 @@ public class GattService extends ProfileService {
         for (HandleMap.Entry entry : mHandleMap.mEntries) {
             if (entry.advertisePreferred) {
                 ParcelUuid parcelUuid = new ParcelUuid(entry.uuid);
-                if (BluetoothUuid.isShortUuid(parcelUuid)) {
+                if (BluetoothUuid.is16BitUuid(parcelUuid)) {
                     serviceUuids.add(parcelUuid);
                 } else {
                     // Allow at most one 128 bit service uuid to be advertised.
@@ -1791,7 +1791,7 @@ public class GattService extends ProfileService {
         int availableSize = ADVERTISING_PACKET_MAX_BYTES - ADVERTISING_FLAGS_BYTES;
 
         for (ParcelUuid parcelUuid : getAdvServiceUuids()) {
-            if (BluetoothUuid.isShortUuid(parcelUuid)) {
+            if (BluetoothUuid.is16BitUuid(parcelUuid)) {
                 availableSize -= FIELD_OVERHEAD_BYTES + SHORT_UUID_BYTES;
             } else {
                 availableSize -= FIELD_OVERHEAD_BYTES + FULL_UUID_BYTES;
