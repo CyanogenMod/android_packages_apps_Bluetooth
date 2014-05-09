@@ -23,19 +23,35 @@ import java.util.UUID;
  * @hide
  */
 /*package*/ class ScanClient {
+
+    /**
+     * Default scan window value
+     */
+    private static final int LE_SCAN_WINDOW_MS = 100;
+
+    /**
+     * Default scan interval value
+     */
+    private static final int LE_SCAN_INTERVAL_MS = 100;
+
     int appIf;
     boolean isServer;
     UUID[] uuids;
+    int scanWindow, scanInterval;
 
     ScanClient(int appIf, boolean isServer) {
-        this.appIf = appIf;
-        this.isServer = isServer;
-        this.uuids = new UUID[0];
+        this(appIf, isServer, new UUID[0], LE_SCAN_WINDOW_MS, LE_SCAN_INTERVAL_MS);
     }
 
     ScanClient(int appIf, boolean isServer, UUID[] uuids) {
+        this(appIf, isServer, uuids, LE_SCAN_WINDOW_MS, LE_SCAN_INTERVAL_MS);
+    }
+
+    ScanClient(int appIf, boolean isServer, UUID[] uuids, int scanWindow, int scanInterval) {
         this.appIf = appIf;
         this.isServer = isServer;
         this.uuids = uuids;
+        this.scanWindow = scanWindow;
+        this.scanInterval = scanInterval;
     }
 }

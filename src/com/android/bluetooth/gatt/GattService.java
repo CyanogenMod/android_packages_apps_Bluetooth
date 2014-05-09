@@ -106,6 +106,7 @@ public class GattService extends ProfileService {
     private byte[] mManufacturerData = new byte[0];
     private Integer mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STOPPED;
     private final Object mLock = new Object();
+    private static int lastConfiguredDutyCycle = 0;
 
     /**
      * Pending service declaration queue
@@ -305,6 +306,18 @@ public class GattService extends ProfileService {
             service.startScanWithUuids(appIf, isServer, uuids);
         }
 
+        public void startScanWithUuidsAndScanWindowInterval(int appIf, boolean isServer,
+                ParcelUuid[] ids, int scanWindow, int scanInterval) {
+            GattService service = getService();
+            if (service == null) return;
+            UUID[] uuids = new UUID[ids.length];
+            for(int i = 0; i < ids.length; ++i) {
+                uuids[i] = ids[i].getUuid();
+            }
+            service.startScanWithUuidsAndScanWindowInterval(appIf, isServer, uuids,
+                    scanWindow, scanInterval);
+        }
+
         public void stopScan(int appIf, boolean isServer) {
             GattService service = getService();
             if (service == null) return;
@@ -419,12 +432,6 @@ public class GattService extends ProfileService {
             GattService service = getService();
             if (service == null) return;
             service.configureMTU(clientIf, address, mtu);
-        }
-
-        public void setScanParameters(int clientIf, int scan_interval, int scan_window) {
-            GattService service = getService();
-            if (service == null) return;
-            service.setScanParameters(clientIf, scan_interval, scan_window);
         }
 
         public void registerServer(ParcelUuid uuid, IBluetoothGattServerCallback callback) {
@@ -1049,7 +1056,7 @@ public class GattService extends ProfileService {
             mScanQueue.add(new ScanClient(appIf, isServer));
         }
 
-        gattClientScanNative(appIf, true);
+        configureScanParams();
     }
 
     void startScanWithUuids(int appIf, boolean isServer, UUID[] uuids) {
@@ -1062,7 +1069,60 @@ public class GattService extends ProfileService {
             mScanQueue.add(new ScanClient(appIf, isServer, uuids));
         }
 
-        gattClientScanNative(appIf, true);
+        configureScanParams();
+    }
+
+    void startScanWithUuidsAndScanWindowInterval(int appIf, boolean isServer, UUID[] uuids,
+                int scanWindow, int scanInterval) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+
+        if (DBG) Log.d(TAG, "startScanWithWindowAndInterval() - queue=" + mScanQueue.size());
+
+        if (getScanClient(appIf, isServer) == null) {
+            if (DBG) Log.d(TAG, "startScanWithWindowAndInterval() - adding client=" + appIf
+                            + " scanWindow=" + scanWindow + " scanInterval=" + scanInterval);
+            mScanQueue.add(new ScanClient(appIf, isServer, uuids, scanWindow, scanInterval));
+        }
+
+        configureScanParams();
+    }
+
+    void configureScanParams() {
+        if (DBG) Log.d(TAG, "configureScanParams() - queue=" + mScanQueue.size());
+
+        int scanWindow = 0, scanInterval = 0;
+        int curDutyCycle = 0;
+
+        for(ScanClient client : mScanQueue) {
+            // Pick the highest duty cycle - most stressful on battery
+            int newDutyCycle = (client.scanWindow * 100)/client.scanInterval;
+            if (newDutyCycle > curDutyCycle && newDutyCycle <= 100) {
+                curDutyCycle = newDutyCycle;
+                scanWindow = client.scanWindow;
+                scanInterval = client.scanInterval;
+            }
+        }
+
+        if (DBG) Log.d(TAG, "configureScanParams() - dutyCyle=" + curDutyCycle +
+                    " scanWindow=" + scanWindow + " scanInterval=" + scanInterval +
+                    " lastConfiguredDutyCycle=" + lastConfiguredDutyCycle);
+
+        if (curDutyCycle != 0) {
+            if (curDutyCycle != lastConfiguredDutyCycle) {
+                // convert scanWindow and scanInterval from ms to LE scan units(0.625ms)
+                scanWindow = (scanWindow * 1000)/625;
+                scanInterval = (scanInterval * 1000)/625;
+                // Presence of scan clients means scan is active.
+                gattClientScanNative(false);
+                gattSetScanParametersNative(scanInterval, scanWindow);
+                lastConfiguredDutyCycle = curDutyCycle;
+                gattClientScanNative(true);
+            }
+        } else {
+            lastConfiguredDutyCycle = curDutyCycle;
+            gattClientScanNative(false);
+            if (DBG) Log.d(TAG, "configureScanParams() - queue emtpy, scan stopped");
+        }
     }
 
     void stopScan(int appIf, boolean isServer) {
@@ -1070,10 +1130,10 @@ public class GattService extends ProfileService {
 
         if (DBG) Log.d(TAG, "stopScan() - queue=" + mScanQueue.size());
         removeScanClient(appIf, isServer);
+        configureScanParams();
 
         if (mScanQueue.isEmpty()) {
-            if (DBG) Log.d(TAG, "stopScan() - queue empty; stopping scan");
-            gattClientScanNative(appIf, false);
+            if (DBG) Log.d(TAG, "stopScan() - queue empty; scan stopped");
         }
     }
 
@@ -1416,13 +1476,6 @@ public class GattService extends ProfileService {
         } else {
             Log.e(TAG, "configureMTU() - No connection for " + address + "...");
         }
-    }
-
-    void setScanParameters(int clientIf, int scan_interval, int scan_window) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        if (DBG) Log.d(TAG, "setScanParameters() - interval=" + scan_interval
-                            + " window=" + scan_window);
-        gattSetScanParametersNative(scan_interval, scan_window);
     }
 
     /**************************************************************************
@@ -2030,7 +2083,8 @@ public class GattService extends ProfileService {
 
     private native void gattClientUnregisterAppNative(int clientIf);
 
-    private native void gattClientScanNative(int clientIf, boolean start);
+    private native void gattClientScanNative(boolean start);
+    private native void gattSetScanParametersNative(int scan_interval, int scan_window);
 
     private native void gattClientConnectNative(int clientIf, String address,
             boolean isDirect, int transport);
@@ -2099,8 +2153,6 @@ public class GattService extends ProfileService {
     private native void gattSetAdvDataNative(int serverIf, boolean setScanRsp, boolean inclName,
             boolean inclTxPower, int minInterval, int maxInterval,
             int appearance, byte[] manufacturerData, byte[] serviceData, byte[] serviceUuid);
-
-    private native void gattSetScanParametersNative(int scan_interval, int scan_window);
 
     private native void gattServerRegisterAppNative(long app_uuid_lsb,
                                                     long app_uuid_msb);
