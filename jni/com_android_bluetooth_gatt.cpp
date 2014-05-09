@@ -778,10 +778,10 @@ static void gattClientUnregisterAppNative(JNIEnv* env, jobject object, jint clie
     sGattIf->client->unregister_client(clientIf);
 }
 
-static void gattClientScanNative(JNIEnv* env, jobject object, jint clientIf, jboolean start)
+static void gattClientScanNative(JNIEnv* env, jobject object, jboolean start)
 {
     if (!sGattIf) return;
-    sGattIf->client->scan(clientIf, start);
+    sGattIf->client->scan(start);
 }
 
 static void gattClientConnectNative(JNIEnv* env, jobject object, jint clientif,
@@ -1311,7 +1311,7 @@ static JNINativeMethod sMethods[] = {
     {"gattClientGetDeviceTypeNative", "(Ljava/lang/String;)I", (void *) gattClientGetDeviceTypeNative},
     {"gattClientRegisterAppNative", "(JJ)V", (void *) gattClientRegisterAppNative},
     {"gattClientUnregisterAppNative", "(I)V", (void *) gattClientUnregisterAppNative},
-    {"gattClientScanNative", "(IZ)V", (void *) gattClientScanNative},
+    {"gattClientScanNative", "(Z)V", (void *) gattClientScanNative},
     {"gattClientConnectNative", "(ILjava/lang/String;ZI)V", (void *) gattClientConnectNative},
     {"gattClientDisconnectNative", "(ILjava/lang/String;I)V", (void *) gattClientDisconnectNative},
     {"gattClientRefreshNative", "(ILjava/lang/String;)V", (void *) gattClientRefreshNative},
