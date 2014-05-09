@@ -1100,6 +1100,12 @@ static void gattSetAdvDataNative(JNIEnv *env, jobject object, jint client_if, jb
     env->ReleaseByteArrayElements(serviceUuid, service_uuid, JNI_ABORT);
 }
 
+static void gattSetScanParametersNative(JNIEnv* env, jobject object,
+                                        jint scan_interval, jint scan_window)
+{
+    if (!sGattIf) return;
+    sGattIf->client->set_scan_parameters(scan_interval, scan_window);
+}
 
 static void gattClientConfigureMTUNative(JNIEnv *env, jobject object,
         jint conn_id, jint mtu)
@@ -1339,7 +1345,8 @@ static JNINativeMethod sMethods[] = {
     {"gattServerSendResponseNative", "(IIIIII[BI)V", (void *) gattServerSendResponseNative},
 
     {"gattSetAdvDataNative", "(IZZZIII[B[B[B)V", (void *) gattSetAdvDataNative},
-    {"gattTestNative", "(IJJLjava/lang/String;IIIII)V", (void *) gattTestNative}
+    {"gattSetScanParametersNative", "(II)V", (void *) gattSetScanParametersNative},
+    {"gattTestNative", "(IJJLjava/lang/String;IIIII)V", (void *) gattTestNative},
 };
 
 int register_com_android_bluetooth_gatt(JNIEnv* env)

@@ -421,6 +421,12 @@ public class GattService extends ProfileService {
             service.configureMTU(clientIf, address, mtu);
         }
 
+        public void setScanParameters(int clientIf, int scan_interval, int scan_window) {
+            GattService service = getService();
+            if (service == null) return;
+            service.setScanParameters(clientIf, scan_interval, scan_window);
+        }
+
         public void registerServer(ParcelUuid uuid, IBluetoothGattServerCallback callback) {
             GattService service = getService();
             if (service == null) return;
@@ -1412,6 +1418,13 @@ public class GattService extends ProfileService {
         }
     }
 
+    void setScanParameters(int clientIf, int scan_interval, int scan_window) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (DBG) Log.d(TAG, "setScanParameters() - interval=" + scan_interval
+                            + " window=" + scan_window);
+        gattSetScanParametersNative(scan_interval, scan_window);
+    }
+
     /**************************************************************************
      * Callback functions - SERVER
      *************************************************************************/
@@ -2086,6 +2099,8 @@ public class GattService extends ProfileService {
     private native void gattSetAdvDataNative(int serverIf, boolean setScanRsp, boolean inclName,
             boolean inclTxPower, int minInterval, int maxInterval,
             int appearance, byte[] manufacturerData, byte[] serviceData, byte[] serviceUuid);
+
+    private native void gattSetScanParametersNative(int scan_interval, int scan_window);
 
     private native void gattServerRegisterAppNative(long app_uuid_lsb,
                                                     long app_uuid_msb);
