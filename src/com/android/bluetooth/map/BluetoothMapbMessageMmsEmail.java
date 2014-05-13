@@ -53,45 +53,27 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
 
 
         public void encode(StringBuilder sb, String boundaryTag, boolean last) throws UnsupportedEncodingException {
-            sb.append("--").append(boundaryTag).append("\r\n");
-            if(contentType != null)
-                sb.append("Content-Type: ").append(contentType);
-            if(charsetName != null)
-                sb.append("; ").append("charset=\"").append(charsetName).append("\"");
-            sb.append("\r\n");
-            if(contentLocation != null)
-                sb.append("Content-Location: ").append(contentLocation).append("\r\n");
-            if(contentId != null)
-                sb.append("Content-ID: ").append(contentId).append("\r\n");
-            if(contentDisposition != null)
-                sb.append("Content-Disposition: ").append(contentDisposition).append("\r\n");
-            if(data != null) {
+             if(data != null) {
                 /* TODO: If errata 4176 is adopted in the current form (it is not in either 1.1 or 1.2),
                 the below is not allowed, Base64 should be used for text. */
 
                 if(contentType != null &&
                         (contentType.toUpperCase().contains("TEXT") ||
                          contentType.toUpperCase().contains("SMIL") )) {
-                    sb.append("Content-Transfer-Encoding: 8BIT\r\n\r\n"); // Add the header split empty line
                     sb.append(new String(data,"UTF-8")).append("\r\n");
                 }
                 else {
-                    sb.append("Content-Transfer-Encoding: Base64\r\n\r\n"); // Add the header split empty line
                     sb.append(Base64.encodeToString(data, Base64.DEFAULT)).append("\r\n");
                 }
             }
             if(last) {
-                sb.append("--").append(boundaryTag).append("--").append("\r\n");
+               sb.append("\r\n");
             }
         }
 
         public void encodePlainText(StringBuilder sb) throws UnsupportedEncodingException {
             if(contentType != null && contentType.toUpperCase().contains("TEXT")) {
                 if(data != null) {
-                   sb.append(contentType).append("\r\n");
-                   sb.append("Content-Transfer-Encoding: 8bit").append("\r\n");
-                   sb.append("Content-Disposition:inline").append("\r\n")
-                           .append("\r\n");
                    sb.append(new String(data,"UTF-8")).append("\r\n");
                 }
             } else if(contentType != null && contentType.toUpperCase().contains("/SMIL")) {
@@ -390,14 +372,6 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
         String boundary = "MessageBoundary."+randomInt;
 
         encodeHeaders(sb);
-        sb.append("Mime-Version: 1.0").append("\r\n");
-        sb.append(
-               "Content-Type: multipart/mixed; boundary=\""+boundary+"\"")
-                .append("\r\n");
-        sb.append("Content-Transfer-Encoding: 8bit").append("\r\n")
-                .append("\r\n");
-        sb.append("MIME Message").append("\r\n");
-        sb.append("--"+boundary).append("\r\n");
 
         Log.v(TAG, "after encode header sb is "+ sb.toString());
 
@@ -405,7 +379,6 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
             if(getIncludeAttachments() == false) {
                for(MimePart part : parts) {
                    part.encodePlainText(sb); /* We call encode on all parts, to include a tag, where an attachment is missing. */
-                   sb.append("--"+boundary+"--").append("\r\n");
                }
            } else {
                for(MimePart part : parts) {

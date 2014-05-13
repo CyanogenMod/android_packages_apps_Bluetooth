@@ -41,6 +41,8 @@ import android.provider.Telephony.Threads;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.text.format.Time;
+import android.text.util.Rfc822Token;
+import android.text.util.Rfc822Tokenizer;
 import android.util.TimeFormatException;
 import com.android.emailcommon.provider.EmailContent;
 import com.android.emailcommon.provider.EmailContent.Message;
@@ -52,9 +54,9 @@ import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 import com.google.android.mms.pdu.CharacterSets;
 import com.google.android.mms.pdu.PduHeaders;
 import android.database.sqlite.SQLiteException;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.commons.codec.net.QuotedPrintableCodec;
 import org.apache.commons.codec.DecoderException;
 
@@ -1738,6 +1740,76 @@ public class BluetoothMapContent {
         return folderName;
     }
 
+    /**
+     * Since email app returns addresses as RFC822 formatted strings and Rfc822Tokens are expected
+     * this will tear apart the string to return the components we want to put into
+     * an Rfc822Token
+     * @param part = what you want to return: "name" or "address": returns null if neither
+     * @param emailString = raw string from the email provider that is RFC822 formatted
+     * @return string type of the requested part
+     */
+     private String deTokenizeEmail (String part, String emailString) {
+        final Matcher sEmailMatcher =
+                Pattern.compile("\\\"?([^\"<]*?)\\\"?\\s*<(.*)>").matcher("");
+        String name, address;
+        Matcher m = sEmailMatcher.reset(emailString.trim());
+        if (m.matches()) {
+            name = m.group(1);
+            address = m.group(2);
+            if (name == null) {
+                name = "";
+            } else {
+                name = Html.fromHtml(name.trim()).toString();
+            }
+            if (address == null) {
+                address = "";
+            } else {
+                address = Html.fromHtml(address).toString();
+            }
+        } else {
+            // Try and tokenize the string
+            final Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(emailString.trim());
+            if (tokens.length > 0) {
+                final String tokenizedName = tokens[0].getName();
+                name = tokenizedName != null ? Html.fromHtml(tokenizedName.trim()).toString() : "";
+                address = Html.fromHtml(tokens[0].getAddress()).toString();
+            } else {
+                name = "";
+                address = Html.fromHtml(emailString.trim()).toString();
+            }
+        }
+        String output = null;
+        if (part == "name") {
+            output = name.replace("'", "");  //single quote from gmail likes to slip through
+        }
+        else if (part == "address") {
+            output = address;
+        }
+        return output;
+    }
+
+     private String getNameFromEmail(String emailAddress) {
+         String contactName = null;
+         Cursor p;
+
+         Uri uri = Uri.withAppendedPath(ContactsContract.CommonDataKinds.Email.CONTENT_LOOKUP_URI,
+                 Uri.encode(emailAddress));
+
+         String[] projection = {Contacts._ID, Contacts.DISPLAY_NAME};
+         String selection = Contacts.IN_VISIBLE_GROUP + "=1";
+         String orderBy = Contacts._ID + " ASC";
+
+         // Get the contact _ID and name
+         p = mResolver.query(uri, projection, selection, null, orderBy);
+         if (p != null && p.getCount() >= 1) {
+             //Resolved an email to a contact so lets use it
+             p.moveToFirst();
+             contactName = p.getString(p.getColumnIndex(Contacts.DISPLAY_NAME));
+             if(V) Log.v(TAG,"Phone book lookup resolved " + emailAddress + " to " + contactName);
+         }
+         p.close();
+         return contactName;
+     }
 
     private void extractEmailAddresses(long id, BluetoothMapbMessageMmsEmail message) {
         if (V) Log.v(TAG, "extractEmailAddresses with id " + id);
@@ -1745,23 +1817,34 @@ public class BluetoothMapContent {
         Uri uriEmail = Uri.parse(urlEmail);
         StringTokenizer emailId;
         String tempEmail = null;
+        String emailComponent, nameComponent = null, contactsName;
         Cursor c = mResolver.query(uriEmail, EMAIL_PROJECTION, "_id = " + id, null, null);
         if (c != null && c.moveToFirst()) {
             String senderName = null;
             if((senderName = c.getString(c.getColumnIndex(MessageColumns.FROM_LIST))) != null ) {
                 if(V) Log.v(TAG, " senderName " + senderName);
                 if(senderName.contains("")){
-                   String[] senderStr = senderName.split("");
-                   if(senderStr !=null && senderStr.length > 0){
-                      if(V) Log.v(TAG, " senderStr[1] " + senderStr[1].trim());
-                      if(V) Log.v(TAG, " senderStr[0] " + senderStr[0].trim());
-                      setVCardFromEmailAddress(message, senderStr[1].trim(), true);
-                      message.addFrom(null, senderStr[0].trim());
-                   }
+                    String[] senderStr = senderName.split("");
+                    if(senderStr !=null && senderStr.length > 0){
+                        emailComponent = senderStr[1].trim(); //should be email
+                        nameComponent = senderStr[0].trim(); //should be name
+                        if(V){
+                            Log.v(TAG, " senderStr[1] " + emailComponent);
+                            Log.v(TAG, " senderStr[0] " + nameComponent);
+                        }
+                        contactsName = getNameFromEmail(emailComponent);
+                        if (contactsName != null) nameComponent = contactsName;
+                        setVCardFromEmailAddress(message, nameComponent, emailComponent, true);
+                        message.addFrom(nameComponent,emailComponent);
+                    }
                 } else {
-                       if(V) Log.v(TAG, " senderStr is" + senderName.trim());
-                       setVCardFromEmailAddress(message, senderName.trim(), true);
-                        message.addFrom(null, senderName.trim());
+                    if(V) Log.v(TAG, " senderStr is" + senderName.trim());
+                    nameComponent = deTokenizeEmail("name", senderName.trim());
+                    emailComponent = deTokenizeEmail("address", senderName.trim());
+                    contactsName = getNameFromEmail(emailComponent);
+                    if (contactsName != null) nameComponent = contactsName;
+                    setVCardFromEmailAddress(message, nameComponent, emailComponent, true);
+                    message.addFrom(nameComponent,emailComponent);
                 }
             }
             String recipientName = null;
@@ -1769,96 +1852,65 @@ public class BluetoothMapContent {
             if((recipientName = c.getString(c.getColumnIndex(MessageColumns.TO_LIST))) != null){
                 if(V) Log.v(TAG, " recipientName " + recipientName);
                 if(recipientName.contains("")){
-                   String[] recepientStr = recipientName.split("");
-                   if(recepientStr !=null && recepientStr.length > 0){
-                      if (V){
-                          Log.v(TAG, " recepientStr[1] " + recepientStr[1].trim());
-                          Log.v(TAG, " recepientStr[0] " + recepientStr[0].trim());
-                      }
-                      setVCardFromEmailAddress(message, recepientStr[1].trim(), false);
-                      message.addTo(recepientStr[1].trim(), recepientStr[0].trim());
-                   }
+                    String[] recepientStr = recipientName.split("");
+                    if(recepientStr !=null && recepientStr.length > 0){
+                        emailComponent = recepientStr[1].trim(); //should be email
+                        nameComponent = recepientStr[0].trim(); //should be name
+                        if (V){
+                            Log.v(TAG, " recepientStr[1] " + emailComponent);
+                            Log.v(TAG, " recepientStr[0] " + nameComponent);
+                        }
+                        contactsName = getNameFromEmail(emailComponent);
+                        if (contactsName != null) nameComponent = contactsName;
+                        setVCardFromEmailAddress(message, nameComponent, emailComponent, false);
+                        message.addTo(nameComponent,emailComponent);
+                    }
                 } else if(recipientName.contains("")){
-                      multiRecepients = recipientName.replace('', ';');
-                      if(multiRecepients != null){
-                         if (V){
-                             Log.v(TAG, " Setting ::Recepient name :: " + multiRecepients.trim());
-                         }
-                         emailId = new StringTokenizer(multiRecepients.trim(),";");
-                         do {
-                            setVCardFromEmailAddress(message, emailId.nextElement().toString(), false);
-                         } while(emailId.hasMoreElements());
-
-                            message.addTo(multiRecepients.trim(), multiRecepients.trim());
-                      }
-                } else if(recipientName.contains(",")){
-                      multiRecepients = recipientName.replace(", \"", "; \"");
-                      if(multiRecepients != null){
-                         if (V){
-                             Log.v(TAG, "Setting ::Recepient name :: " + multiRecepients.trim());
-                         }
-                         emailId = new StringTokenizer(multiRecepients.trim(),";");
-                         do {
+                    multiRecepients = recipientName.replace('', ';');
+                    if(multiRecepients != null){
+                        if (V){
+                            Log.v(TAG, " Setting::M Recepient name: " + multiRecepients.trim());
+                        }
+                        emailId = new StringTokenizer(multiRecepients.trim(),";");
+                        do {
                             tempEmail = emailId.nextElement().toString();
-                            setVCardFromEmailAddress(message, tempEmail, false);
-                            message.addTo(null, tempEmail);
-                         } while(emailId.hasMoreElements());
-                      }
-                } else {
-                      Log.v(TAG, " Setting ::Recepient name :: " + recipientName.trim());
-                      setVCardFromEmailAddress(message, recipientName.trim(), false);
-                      message.addTo(null, recipientName.trim());
-                 }
-             }
-
-            recipientName = null;
-            multiRecepients = null;
-            if((recipientName = c.getString(c.getColumnIndex(MessageColumns.CC_LIST))) != null){
-                if(V) Log.v(TAG, " recipientName " + recipientName);
-                if(recipientName.contains("^B")){
-                   String[] recepientStr = recipientName.split("^B");
-                   if(recepientStr !=null && recepientStr.length > 0){
-                      if (V){
-                          Log.v(TAG, " recepientStr[1] " + recepientStr[1].trim());
-                          Log.v(TAG, " recepientStr[0] " + recepientStr[0].trim());
-                      }
-                } else if(recipientName.contains("")){
-                      multiRecepients = recipientName.replace('', ';');
-                      setVCardFromEmailAddress(message, recepientStr[1].trim(), false);
-                      message.addCc(recepientStr[1].trim(), recepientStr[0].trim());
-                   }
-                      if(multiRecepients != null){
-                         if (V){
-                             Log.v(TAG, " Setting ::Recepient name :: " + multiRecepients.trim());
-                         }
-                         emailId = new StringTokenizer(multiRecepients.trim(),";");
-                         do {
-                            setVCardFromEmailAddress(message, emailId.nextElement().toString(), false);
-                         } while(emailId.hasMoreElements());
-
-                            message.addCc(multiRecepients.trim(), multiRecepients.trim());
-                      }
+                            nameComponent = deTokenizeEmail("name", tempEmail);
+                            emailComponent = deTokenizeEmail("address", tempEmail);
+                            contactsName = getNameFromEmail(emailComponent);
+                            if (contactsName != null) nameComponent = contactsName;
+                            setVCardFromEmailAddress(message, nameComponent, emailComponent,
+                                    false);
+                            message.addTo(nameComponent,emailComponent);
+                        } while(emailId.hasMoreElements());
+                    }
                 } else if(recipientName.contains(",")){
-                      multiRecepients = recipientName.replace(", \"", "; \"");
-if(V) Log.v(TAG, " After replacing  " + multiRecepients);
-
-                      if(multiRecepients != null){
-                         if (V){
-                             Log.v(TAG, "Setting ::Recepient name :: " + multiRecepients.trim());
-                         }
-                         emailId = new StringTokenizer(multiRecepients.trim(),";");
-                         do {
+                    multiRecepients = recipientName.replace(", \"", "; \"");
+                    if(multiRecepients != null){
+                        if (V){
+                            Log.v(TAG, "Setting::M2 Recepient name : " + multiRecepients.trim());
+                        }
+                        emailId = new StringTokenizer(multiRecepients.trim(),";");
+                        do {
                             tempEmail = emailId.nextElement().toString();
-                            setVCardFromEmailAddress(message, tempEmail, false);
-                            message.addCc(null, tempEmail);
-                         } while(emailId.hasMoreElements());
-                      }
+                            nameComponent = deTokenizeEmail("name", tempEmail);
+                            emailComponent = deTokenizeEmail("address", tempEmail);
+                            contactsName = getNameFromEmail(emailComponent);
+                            if (contactsName != null) nameComponent = contactsName;
+                            setVCardFromEmailAddress(message, nameComponent, emailComponent,
+                                    false);
+                            message.addTo(nameComponent,emailComponent);
+                        } while(emailId.hasMoreElements());
+                    }
                 } else {
-                      Log.v(TAG, " Setting ::Recepient name :: " + recipientName.trim());
-                      setVCardFromEmailAddress(message, recipientName.trim(), false);
-                      message.addCc(null, recipientName.trim());
-                 }
-             }
+                    Log.v(TAG, " Setting ::Single Recepient name :: " + recipientName.trim());
+                    nameComponent = deTokenizeEmail("name", recipientName.trim());
+                    emailComponent = deTokenizeEmail("address", recipientName.trim());
+                    contactsName = getNameFromEmail(emailComponent);
+                    if (contactsName != null) nameComponent = contactsName;
+                    setVCardFromEmailAddress(message, nameComponent, emailComponent, false);
+                    message.addTo(nameComponent,emailComponent);
+                }
+            }
         }
     }
 
@@ -2319,24 +2371,21 @@ if(V) Log.v(TAG, " After replacing  " + multiRecepients);
         throw new IllegalArgumentException("Invalid message handle.");
     }
 
-    private void setVCardFromEmailAddress(BluetoothMapbMessage message, String emailAddr, boolean incoming) {
-        if(D) Log.d(TAG, "setVCardFromEmailAddress, emailAdress is " +emailAddr);
-        String contactId = null, contactName = null;
+    private void setVCardFromEmailAddress(BluetoothMapbMessage message,
+            String contactName, String emailAddress, boolean incoming) {
+        if(D) Log.d(TAG, "setVCardFromEmailAddress, emailAdress is " +emailAddress);
         String[] phoneNumbers = {""};
         String[] emailAddresses = new String[1];
-        StringTokenizer emailId;
-        Cursor p;
-
         if(incoming == true) {
-           emailAddresses[0] = emailAddr;
-           if(V) Log.v(TAG,"Adding addOriginator " + emailAddresses[0]);
-            message.addOriginator(emailAddr, phoneNumbers, emailAddresses);
+           emailAddresses[0] = emailAddress;
+           if(V) Log.v(TAG,"Adding addOriginator " + contactName + " " + emailAddresses[0]);
+            message.addOriginator(contactName, phoneNumbers, emailAddresses);
         }
         else
         {
-            emailAddresses[0] = emailAddr;
-           if(V) Log.v(TAG,"Adding Receipient " + emailAddresses[0]);
-            message.addRecipient(emailAddr, phoneNumbers, emailAddresses);
+            emailAddresses[0] = emailAddress;
+           if(V) Log.v(TAG,"Adding Receipient " + contactName + " " + emailAddresses[0]);
+            message.addRecipient(contactName, phoneNumbers, emailAddresses);
         }
     }
 
