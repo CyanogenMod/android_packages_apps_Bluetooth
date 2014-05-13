@@ -306,7 +306,7 @@ public class GattService extends ProfileService {
             service.startScanWithUuids(appIf, isServer, uuids);
         }
 
-        public void startScanWithUuidsAndScanWindowInterval(int appIf, boolean isServer,
+        public void startScanWithUuidsScanParam(int appIf, boolean isServer,
                 ParcelUuid[] ids, int scanWindow, int scanInterval) {
             GattService service = getService();
             if (service == null) return;
@@ -314,7 +314,7 @@ public class GattService extends ProfileService {
             for(int i = 0; i < ids.length; ++i) {
                 uuids[i] = ids[i].getUuid();
             }
-            service.startScanWithUuidsAndScanWindowInterval(appIf, isServer, uuids,
+            service.startScanWithUuidsScanParam(appIf, isServer, uuids,
                     scanWindow, scanInterval);
         }
 
@@ -1072,14 +1072,14 @@ public class GattService extends ProfileService {
         configureScanParams();
     }
 
-    void startScanWithUuidsAndScanWindowInterval(int appIf, boolean isServer, UUID[] uuids,
+    void startScanWithUuidsScanParam(int appIf, boolean isServer, UUID[] uuids,
                 int scanWindow, int scanInterval) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
 
-        if (DBG) Log.d(TAG, "startScanWithWindowAndInterval() - queue=" + mScanQueue.size());
+        if (DBG) Log.d(TAG, "startScanWithUuidsScanParam() - queue=" + mScanQueue.size());
 
         if (getScanClient(appIf, isServer) == null) {
-            if (DBG) Log.d(TAG, "startScanWithWindowAndInterval() - adding client=" + appIf
+            if (DBG) Log.d(TAG, "startScanWithUuidsScanParam() - adding client=" + appIf
                             + " scanWindow=" + scanWindow + " scanInterval=" + scanInterval);
             mScanQueue.add(new ScanClient(appIf, isServer, uuids, scanWindow, scanInterval));
         }
