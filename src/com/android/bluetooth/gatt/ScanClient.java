@@ -16,18 +16,13 @@
 
 package com.android.bluetooth.gatt;
 
-import android.bluetooth.BluetoothLeScanFilter;
-import android.bluetooth.BluetoothLeScanner.Settings;
-
-import java.util.List;
 import java.util.UUID;
 
 /**
  * Helper class identifying a client that has requested LE scan results.
- *
  * @hide
  */
-/* package */class ScanClient {
+/*package*/ class ScanClient {
 
     /**
      * Default scan window value
@@ -43,8 +38,6 @@ import java.util.UUID;
     boolean isServer;
     UUID[] uuids;
     int scanWindow, scanInterval;
-    Settings settings;
-    List<BluetoothLeScanFilter> filters;
 
     ScanClient(int appIf, boolean isServer) {
         this(appIf, isServer, new UUID[0], LE_SCAN_WINDOW_MS, LE_SCAN_INTERVAL_MS);
@@ -55,23 +48,10 @@ import java.util.UUID;
     }
 
     ScanClient(int appIf, boolean isServer, UUID[] uuids, int scanWindow, int scanInterval) {
-        this(appIf, isServer, uuids, scanWindow, scanInterval, null, null);
-    }
-
-    ScanClient(int appIf, boolean isServer, Settings settings,
-            List<BluetoothLeScanFilter> filters) {
-        this(appIf, isServer, new UUID[0], LE_SCAN_WINDOW_MS, LE_SCAN_INTERVAL_MS,
-                settings, filters);
-    }
-
-    private ScanClient(int appIf, boolean isServer, UUID[] uuids, int scanWindow, int scanInterval,
-            Settings settings, List<BluetoothLeScanFilter> filters) {
         this.appIf = appIf;
         this.isServer = isServer;
         this.uuids = uuids;
         this.scanWindow = scanWindow;
         this.scanInterval = scanInterval;
-        this.settings = settings;
-        this.filters = filters;
     }
 }
