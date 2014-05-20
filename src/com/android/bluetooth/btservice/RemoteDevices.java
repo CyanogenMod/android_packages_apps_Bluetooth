@@ -19,6 +19,7 @@ package com.android.bluetooth.btservice;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothRemoteDiRecord;
 import android.bluetooth.BluetoothMasInstance;
 import android.content.Context;
 import android.content.Intent;
@@ -117,9 +118,11 @@ final class RemoteDevices {
         private int mDeviceType;
         private String mAlias;
         private int mBondState;
+        private BluetoothRemoteDiRecord mDiRecord;
 
         DeviceProperties() {
             mBondState = BluetoothDevice.BOND_NONE;
+            mDiRecord = null;
         }
 
         /**
@@ -221,6 +224,38 @@ final class RemoteDevices {
                 return mBondState;
             }
         }
+
+        /**
+         * @return the mDiRecord
+         */
+        BluetoothRemoteDiRecord getRemoteDiRecord() {
+            synchronized (mObject) {
+                Log.d(TAG, "getRemoteDiRecord: " + mDiRecord);
+                return mDiRecord;
+            }
+        }
+
+        /**
+         * @param byte array contains di record
+         */
+        void updateRemoteDiRecord(byte[] val) {
+            int vendorId, vendorIdSource, productId, productVersion, specificationId;
+            synchronized (mObject) {
+                vendorId = Utils.byteArrayToInt(val);
+                vendorIdSource = Utils.byteArrayToInt(val, 4);
+                productId = Utils.byteArrayToInt(val, 8);
+                productVersion = Utils.byteArrayToInt(val, 12);
+                specificationId = Utils.byteArrayToInt(val, 16);
+
+                mDiRecord = new BluetoothRemoteDiRecord(vendorId, vendorIdSource, productId,
+                                    productVersion, specificationId);
+
+                Log.d(TAG, "VendorID: " + vendorId + " VendorIdSrc: " + vendorIdSource +
+                     " ProductID: " + productId + " ProductVersion: " + productVersion +
+                     " SpecificationId: " + specificationId);
+            }
+        }
+
     }
 
     private void sendUuidIntent(BluetoothDevice device) {
@@ -312,6 +347,9 @@ final class RemoteDevices {
                         case AbstractionLayer.BT_PROPERTY_REMOTE_RSSI:
                             // RSSI from hal is in one byte
                             device.mRssi = val[0];
+                            break;
+                        case AbstractionLayer.BT_PROPERTY_REMOTE_DI_RECORD:
+                            device.updateRemoteDiRecord(val);
                             break;
                     }
                 }

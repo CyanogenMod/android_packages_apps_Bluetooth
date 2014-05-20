@@ -26,6 +26,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothRemoteDiRecord;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetooth;
@@ -1069,6 +1070,17 @@ public class AdapterService extends Service {
             return service.getSocketOpt(type, channel, optionName, optionVal);
         }
 
+        public BluetoothRemoteDiRecord getRemoteDiRecord(BluetoothDevice device) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG,"getRemoteDiRecord: not allowed for non-active user");
+                return null;
+            }
+            AdapterService service = getService();
+            if (service == null) return null;
+            return service.getRemoteDiRecord(device);
+        }
+
+
         public boolean configHciSnoopLog(boolean enable) {
             if ((Binder.getCallingUid() != Process.SYSTEM_UID) &&
                 (!Utils.checkCaller())) {
@@ -1613,6 +1625,13 @@ public class AdapterService extends Service {
 
         mAdapterProperties.sendConnectionStateChange(device, profile, state, prevState);
 
+    }
+
+    BluetoothRemoteDiRecord getRemoteDiRecord(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp == null) return null;
+        return deviceProp.getRemoteDiRecord();
     }
 
      ParcelFileDescriptor connectSocket(BluetoothDevice device, int type,

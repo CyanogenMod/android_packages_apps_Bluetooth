@@ -48,6 +48,8 @@ final public class AbstractionLayer {
     static final int BT_PROPERTY_REMOTE_VERSION_INFO = 0x0C;
     static final int BT_PROPERTY_LOCAL_LE_FEATURES = 0x0D;
 
+    static final int BT_PROPERTY_REMOTE_DI_RECORD = 0xFE;
+
     static final int BT_DEVICE_TYPE_BREDR = 0x01;
     static final int BT_DEVICE_TYPE_BLE = 0x02;
     static final int BT_DEVICE_TYPE_DUAL = 0x03;
