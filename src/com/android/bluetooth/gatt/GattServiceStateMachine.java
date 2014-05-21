@@ -1,11 +1,10 @@
 
 package com.android.bluetooth.gatt;
 
-import android.bluetooth.BluetoothLeAdvertiseScanData;
-import android.bluetooth.BluetoothLeAdvertiseScanData.AdvertisementData;
-import android.bluetooth.BluetoothLeAdvertiser.AdvertiseCallback;
-import android.bluetooth.BluetoothLeAdvertiser.Settings;
-import android.bluetooth.BluetoothLeScanFilter;
+import android.bluetooth.le.AdvertiseCallback;
+import android.bluetooth.le.AdvertisementData;
+import android.bluetooth.le.BluetoothLeAdvertiseSettings;
+import android.bluetooth.le.ScanFilter;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
@@ -170,7 +169,7 @@ final class GattServiceStateMachine extends StateMachine {
                         log("advertising already started for client : " + client.clientIf);
                         try {
                             mService.onMultipleAdvertiseCallback(client.clientIf,
-                                    AdvertiseCallback.ADVERTISING_ALREADY_STARTED);
+                                    AdvertiseCallback.ADVERTISE_FAILED_ALREADY_STARTED);
                         } catch (RemoteException e) {
                             loge("failed to start advertising", e);
                         }
@@ -187,7 +186,7 @@ final class GattServiceStateMachine extends StateMachine {
                     if (!mAdvertiseClients.containsKey(clientIf)) {
                         try {
                             mService.onMultipleAdvertiseCallback(clientIf,
-                                    AdvertiseCallback.ADVERISING_NOT_STARTED);
+                                    AdvertiseCallback.ADVERTISE_FAILED_NOT_STARTED);
                         } catch (RemoteException e) {
                             loge("failed to stop advertising", e);
                         }
@@ -232,11 +231,11 @@ final class GattServiceStateMachine extends StateMachine {
                 case CLEAR_SCAN_FILTER:
                     // TODO: Don't change anything if the filter did not change.
                     Object obj = message.obj;
-                    if (obj == null || ((Set<BluetoothLeScanFilter>) obj).isEmpty()) {
+                    if (obj == null || ((Set<ScanFilter>) obj).isEmpty()) {
                         mScanFilterQueue.clear();
                         hasFilter = false;
                     } else {
-                        mScanFilterQueue.addAll((Set<BluetoothLeScanFilter>) message.obj);
+                        mScanFilterQueue.addAll((Set<ScanFilter>) message.obj);
                         hasFilter = true;
                     }
                     gattClientScanFilterClearNative();
@@ -345,9 +344,9 @@ final class GattServiceStateMachine extends StateMachine {
                     int clientIf = message.arg1;
                     log("setting advertisement: " + clientIf);
                     client = mAdvertiseClients.get(clientIf);
-                    setAdvertisingData(clientIf, client.advertiseData);
+                    setAdvertisingData(clientIf, client.advertiseData, false);
                     if (client.scanResponse != null) {
-                        setAdvertisingData(clientIf, client.scanResponse);
+                        setAdvertisingData(clientIf, client.scanResponse, true);
                     }
                     transitionTo(mIdle);
                     break;
@@ -355,7 +354,7 @@ final class GattServiceStateMachine extends StateMachine {
                     clientIf = message.arg1;
                     try {
                         mService.onMultipleAdvertiseCallback(clientIf,
-                                AdvertiseCallback.CONTROLLER_FAILURE);
+                                AdvertiseCallback.ADVERTISE_FAILED_CONTROLLER_FAILURE);
                     } catch (RemoteException e) {
                         loge("failed to start advertising", e);
                     }
@@ -368,13 +367,11 @@ final class GattServiceStateMachine extends StateMachine {
         }
     }
 
-    private void setAdvertisingData(int clientIf, AdvertisementData data) {
+    private void setAdvertisingData(int clientIf, AdvertisementData data, boolean isScanResponse) {
         if (data == null) {
             return;
         }
         boolean includeName = false;
-        boolean isScanResponse =
-                data.getDataType() == BluetoothLeAdvertiseScanData.SCAN_RESPONSE_DATA;
         boolean includeTxPower = data.getIncludeTxPowerLevel();
         int appearance = 0;
         byte[] manufacturerData = data.getManufacturerSpecificData() == null ? new byte[0]
@@ -418,15 +415,15 @@ final class GattServiceStateMachine extends StateMachine {
     }
 
     // Convert settings tx power level to stack tx power level.
-    private int getTxPowerLevel(Settings settings) {
+    private int getTxPowerLevel(BluetoothLeAdvertiseSettings settings) {
         switch (settings.getTxPowerLevel()) {
-            case Settings.ADVERTISE_TX_POWER_ULTRA_LOW:
+            case BluetoothLeAdvertiseSettings.ADVERTISE_TX_POWER_ULTRA_LOW:
                 return ADVERTISING_TX_POWER_MIN;
-            case Settings.ADVERTISE_TX_POWER_LOW:
+            case BluetoothLeAdvertiseSettings.ADVERTISE_TX_POWER_LOW:
                 return ADVERTISING_TX_POWER_LOW;
-            case Settings.ADVERTISE_TX_POWER_MEDIUM:
+            case BluetoothLeAdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM:
                 return ADVERTISING_TX_POWER_MID;
-            case Settings.ADVERTISE_TX_POWER_HIGH:
+            case BluetoothLeAdvertiseSettings.ADVERTISE_TX_POWER_HIGH:
                 return ADVERTISING_TX_POWER_UPPER;
             default:
                 // Shouldn't happen, just in case.
@@ -435,13 +432,13 @@ final class GattServiceStateMachine extends StateMachine {
     }
 
     // Convert advertising event type to stack advertising event type.
-    private int getAdvertisingEventType(Settings settings) {
+    private int getAdvertisingEventType(BluetoothLeAdvertiseSettings settings) {
         switch (settings.getType()) {
-            case Settings.ADVERTISE_TYPE_CONNECTABLE:
+            case BluetoothLeAdvertiseSettings.ADVERTISE_TYPE_CONNECTABLE:
                 return ADVERTISING_EVENT_TYPE_CONNECTABLE;
-            case Settings.ADVERTISE_TYPE_SCANNABLE:
+            case BluetoothLeAdvertiseSettings.ADVERTISE_TYPE_SCANNABLE:
                 return ADVERTISING_EVENT_TYPE_SCANNABLE;
-            case Settings.ADVERTISE_TYPE_NON_CONNECTABLE:
+            case BluetoothLeAdvertiseSettings.ADVERTISE_TYPE_NON_CONNECTABLE:
                 return ADVERTISING_EVENT_TYPE_NON_CONNECTABLE;
             default:
                 // Should't happen, just in case.
@@ -450,13 +447,13 @@ final class GattServiceStateMachine extends StateMachine {
     }
 
     // Convert advertising milliseconds to advertising units(one unit is 0.625 millisecond).
-    private long getAdvertisingIntervalUnit(Settings settings) {
+    private long getAdvertisingIntervalUnit(BluetoothLeAdvertiseSettings settings) {
         switch (settings.getMode()) {
-            case Settings.ADVERTISE_MODE_LOW_POWER:
+            case BluetoothLeAdvertiseSettings.ADVERTISE_MODE_LOW_POWER:
                 return millsToUnit(ADVERTISING_INTERVAL_LOW_MILLS);
-            case Settings.ADVERTISE_MODE_BALANCED:
+            case BluetoothLeAdvertiseSettings.ADVERTISE_MODE_BALANCED:
                 return millsToUnit(ADVERTISING_INTERVAL_MEDIUM_MILLS);
-            case Settings.ADVERTISE_MODE_LOW_LATENCY:
+            case BluetoothLeAdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY:
                 return millsToUnit(ADVERTISING_INTERVAL_HIGH_MILLS);
             default:
                 // Shouldn't happen, just in case.

@@ -1164,6 +1164,7 @@ static void gattClientScanFilterEnableNative(JNIEnv* env, jobject object, jboole
     if (!sGattIf) return;
     sGattIf->client->scan_filter_enable(enable ? 1 : 0);
 }
+
 static void gattClientScanFilterAddNative(JNIEnv* env, jobject object, jint type,
                 jint company_id, jint company_mask, jlong uuid_lsb, jlong uuid_msb,
                 jlong uuid_mask_lsb, jlong uuid_mask_msb,
@@ -1176,11 +1177,11 @@ static void gattClientScanFilterAddNative(JNIEnv* env, jobject object, jint type
         case 0: // BTM_BLE_PF_ADDR_FILTER
             bt_bdaddr_t bda;
             jstr2bdaddr(env, &bda, address);
-            sGattIf->client->scan_filter_add(type, 0,0,0, 0,0, &bda, addr_type,0);
+            sGattIf->client->scan_filter_add(type, 0, 0, 0, 0, 0, &bda, addr_type, 0);
             break;
 
         case 1: // BTM_BLE_PF_SRVC_DATA
-            sGattIf->client->scan_filter_add(type, 0,0,0, 0,0, 0,0,0);
+            sGattIf->client->scan_filter_add(type, 0, 0, 0, 0, 0, 0, 0, 0);
             break;
 
         case 2: // BTM_BLE_PF_SRVC_UUID
@@ -1190,9 +1191,9 @@ static void gattClientScanFilterAddNative(JNIEnv* env, jobject object, jint type
             set_uuid(uuid.uu, uuid_msb, uuid_lsb);
             set_uuid(uuid_mask.uu, uuid_mask_msb, uuid_mask_lsb);
             if (uuid_mask_lsb != 0 && uuid_mask_msb != 0)
-                sGattIf->client->scan_filter_add(type, 0,0,0, &uuid,&uuid_mask, 0,0,0);
+                sGattIf->client->scan_filter_add(type, 0, 0, 0, &uuid, &uuid_mask, 0, 0, 0);
             else
-                sGattIf->client->scan_filter_add(type, 0,0,0, &uuid,0, 0,0,0);
+                sGattIf->client->scan_filter_add(type, 0, 0, 0, &uuid, 0, 0, 0, 0);
             break;
         }
 
@@ -1201,7 +1202,7 @@ static void gattClientScanFilterAddNative(JNIEnv* env, jobject object, jint type
             const char* c_name = env->GetStringUTFChars(name, NULL);
             if (c_name != NULL && strlen(c_name) != 0)
             {
-                sGattIf->client->scan_filter_add(type, 0,0, strlen(c_name), 0,0, 0,0,c_name);
+                sGattIf->client->scan_filter_add(type, 0, 0, strlen(c_name), 0, 0, 0, 0, c_name);
                 env->ReleaseStringUTFChars(name, c_name);
             }
             break;
@@ -1213,7 +1214,7 @@ static void gattClientScanFilterAddNative(JNIEnv* env, jobject object, jint type
             int data_len = env->GetArrayLength(data) / 2; // Array contains mask
 
             sGattIf->client->scan_filter_add(type, company_id,company_mask, data_len,
-                                            0,0, 0,0,(char*)data_array);
+                                            0, 0, 0, 0, (char*)data_array);
             env->ReleaseByteArrayElements(data, data_array, JNI_ABORT);
             break;
         }
