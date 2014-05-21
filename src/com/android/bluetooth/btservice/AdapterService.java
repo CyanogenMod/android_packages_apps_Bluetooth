@@ -115,6 +115,12 @@ public class AdapterService extends Service {
 
     public static final String BLUETOOTH_ADMIN_PERM =
         android.Manifest.permission.BLUETOOTH_ADMIN;
+
+    static final ParcelUuid[] A2DP_SOURCE_SINK_UUIDS = {
+        BluetoothUuid.AudioSource,
+        BluetoothUuid.AudioSink
+    };
+
     public static final String BLUETOOTH_PRIVILEGED =
                 android.Manifest.permission.BLUETOOTH_PRIVILEGED;
     static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
@@ -1528,6 +1534,13 @@ public class AdapterService extends Service {
      public void connectOtherProfile(BluetoothDevice device, int firstProfileStatus){
         if ((mHandler.hasMessages(MESSAGE_CONNECT_OTHER_PROFILES) == false) &&
             (isQuietModeEnabled()== false)){
+            ParcelUuid[] featureUuids = device.getUuids();
+            // Some Carkits disconnect just after pairing,Initiate SDP for missing UUID's support
+            if ((!(BluetoothUuid.containsAnyUuid(featureUuids, A2DP_SOURCE_SINK_UUIDS))) ||
+                    (!(BluetoothUuid.isUuidPresent(featureUuids, BluetoothUuid.Handsfree)))) {
+                Log.v(TAG,"Initiate SDP for Missing UUID's support in remote");
+                device.fetchUuidsWithSdp();
+            }
             Message m = mHandler.obtainMessage(MESSAGE_CONNECT_OTHER_PROFILES);
             m.obj = device;
             m.arg1 = (int)firstProfileStatus;
