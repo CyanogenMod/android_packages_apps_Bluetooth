@@ -50,6 +50,10 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothA2dp;
 
 /**
  * support Bluetooth AVRCP profile.
@@ -91,6 +95,11 @@ final class Avrcp {
     /* AVRC IDs from avrc_defs.h */
     private static final int AVRC_ID_REWIND = 0x48;
     private static final int AVRC_ID_FAST_FOR = 0x49;
+    public static final int AVRC_ID_PLAY = 0x44;
+    public static final int AVRC_ID_PAUSE = 0x46;
+    public static final int AVRC_ID_VOL_UP = 0x41;
+    public static final int AVRC_ID_VOL_DOWN = 0x42;
+    public static final int AVRC_ID_STOP = 0x45;
 
     /* BTRC features */
     public static final int BTRC_FEAT_METADATA = 0x01;
@@ -117,6 +126,11 @@ final class Avrcp {
     private static final int MESSAGE_ABS_VOL_TIMEOUT = 9;
     private static final int MESSAGE_FAST_FORWARD = 10;
     private static final int MESSAGE_REWIND = 11;
+
+    private static final int MESSAGE_SEND_PASS_THROUGH_CMD = 2001;
+    private BluetoothDevice mDevice;
+    private int mIsConnected;
+
     private static final int MESSAGE_CHANGE_PLAY_POS = 12;
     private static final int MESSAGE_SET_A2DP_AUDIO_STATE = 13;
     private static final int MSG_UPDATE_STATE = 100;
@@ -136,6 +150,10 @@ final class Avrcp {
     private static final int MAX_ERROR_RETRY_TIMES = 3;
     private static final int AVRCP_MAX_VOL = 127;
     private static final int AVRCP_BASE_VOLUME_STEP = 1;
+
+    private static final int AVRCP_CONNECTED = 1;
+    public  static final int KEY_STATE_PRESSED = 0;
+    public  static final int KEY_STATE_RELEASED = 1;
 
     static {
         classInitNative();
@@ -160,6 +178,7 @@ final class Avrcp {
         mAbsVolRetryTimes = 0;
 
         mContext = context;
+        mIsConnected = 0;
 
         initNative();
 
@@ -337,8 +356,8 @@ final class Avrcp {
                 break;
 
             case MESSAGE_VOLUME_CHANGED:
-                if (DEBUG) Log.v(TAG, "MESSAGE_VOLUME_CHANGED: volume=" + msg.arg1 +
-                                                              " ctype=" + msg.arg2);
+                if (DEBUG) Log.v(TAG, "MESSAGE_VOLUME_CHANGED: volume=" + ((byte)msg.arg1 & 0x7f)
+                                                        + " ctype=" + msg.arg2);
 
                 if (msg.arg2 == AVRC_RSP_ACCEPT || msg.arg2 == AVRC_RSP_REJ) {
                     if (mVolCmdInProgress == false) {
@@ -352,8 +371,11 @@ final class Avrcp {
                 if (mAbsoluteVolume != msg.arg1 && (msg.arg2 == AVRC_RSP_ACCEPT ||
                                                     msg.arg2 == AVRC_RSP_CHANGED ||
                                                     msg.arg2 == AVRC_RSP_INTERIM)) {
-                    notifyVolumeChanged(msg.arg1);
-                    mAbsoluteVolume = msg.arg1;
+                    byte absVol = (byte)((byte)msg.arg1 & 0x7f); // discard MSB as it is RFD
+                    notifyVolumeChanged((int)absVol);
+                    mAbsoluteVolume = absVol;
+                    long pecentVolChanged = ((long)absVol * 100) / 0x7f;
+                    Log.e(TAG, "percent volume changed: " + pecentVolChanged + "%");
                 } else if (msg.arg2 == AVRC_RSP_REJ) {
                     Log.e(TAG, "setAbsoluteVolume call rejected");
                 }
@@ -407,6 +429,11 @@ final class Avrcp {
                         mVolCmdInProgress = true;
                     }
                 }
+                break;
+
+            case MESSAGE_SEND_PASS_THROUGH_CMD:
+                if (DEBUG) Log.v(TAG, "MESSAGE_SEND_PASS_THROUGH_CMD");
+                sendPassThroughCommandNative(msg.arg1, msg.arg2);
                 break;
 
             case MESSAGE_FAST_FORWARD:
@@ -595,6 +622,21 @@ final class Avrcp {
         mHandler.sendMessage(msg);
     }
 
+    private void onConnectionStateChanged(int state, byte[] address) {
+        Log.v(TAG, "onConnectionStateChanged");
+        mDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice
+            (Utils.getAddressStringFromByte(address));
+        Intent intent = new Intent(BluetoothA2dp.ACTION_AVRCP_CONNECTION_STATE_CHANGED);
+        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, mIsConnected);
+        intent.putExtra(BluetoothProfile.EXTRA_STATE, state);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
+        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+        mContext.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+        Log.v(TAG, "Device Address: " + mDevice.getAddress());
+        mIsConnected = state;
+        Log.v(TAG, "mIsConnected: " + mIsConnected);
+    }
+
     private void registerNotification(int eventId, int param) {
         Message msg = mHandler.obtainMessage(MESSAGE_REGISTER_NOTIFICATION, eventId, param);
         mHandler.sendMessage(msg);
@@ -639,6 +681,22 @@ final class Avrcp {
             case AVRC_ID_FAST_FOR:
                 fastForward(keyState);
                 break;
+        }
+    }
+
+    private void handlePassthroughRsp(int id, int keyState) {
+        switch (id) {
+            case AVRC_ID_VOL_UP:
+            case AVRC_ID_VOL_DOWN:
+            case AVRC_ID_PLAY:
+            case AVRC_ID_PAUSE:
+            case AVRC_ID_STOP:
+                Log.v(TAG, "passthrough response received as: key: "
+                                        + id + " state: " + keyState);
+                break;
+            default:
+                Log.e(TAG, "Error: unhandled passthrough response received as: key: "
+                                        + id + " state: " + keyState);
         }
     }
 
@@ -790,7 +848,25 @@ final class Avrcp {
         mHandler.removeMessages(MESSAGE_ADJUST_VOLUME);
         Message msg = mHandler.obtainMessage(MESSAGE_SET_ABSOLUTE_VOLUME, avrcpVolume, 0);
         mHandler.sendMessage(msg);
+    }
 
+    public void sendPassThroughCmd(int keyCode, int keyState) {
+        Log.v(TAG, "sendPassThroughCmd");
+        Log.v(TAG, "keyCode: " + keyCode + " keyState: " + keyState);
+        Message msg = mHandler.obtainMessage(MESSAGE_SEND_PASS_THROUGH_CMD, keyCode, keyState);
+        mHandler.sendMessage(msg);
+    }
+
+    public boolean isAvrcpConnected(BluetoothDevice device) {
+        Log.v(TAG, "isAvrcpConnected: " + device.getAddress());
+        if (device.equals(mDevice)) {
+            if (mIsConnected == AVRCP_CONNECTED) {
+                Log.v(TAG, "Connected: true");
+                return true;
+            }
+        }
+        Log.v(TAG, "Connected: false");
+        return false;
     }
 
     /* Called in the native layer as a btrc_callback to return the volume set on the carkit in the
@@ -873,4 +949,6 @@ final class Avrcp {
     private native boolean registerNotificationRspTrackChangeNative(int type, byte[] track);
     private native boolean registerNotificationRspPlayPosNative(int type, int playPos);
     private native boolean setVolumeNative(int volume);
+    private native boolean sendPassThroughCommandNative(int keyCode, int keyState);
+
 }
