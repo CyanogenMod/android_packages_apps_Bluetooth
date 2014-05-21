@@ -76,7 +76,7 @@ final class HeadsetStateMachine extends StateMachine {
 
     private static final String HEADSET_NAME = "bt_headset_name";
     private static final String HEADSET_NREC = "bt_headset_nrec";
-    private static final String HEADSET_WBS = "bt_headset_wbs";
+    private static final String HEADSET_WBS = "bt_wbs";
 
     static final int CONNECT = 1;
     static final int DISCONNECT = 2;
@@ -2654,11 +2654,11 @@ final class HeadsetStateMachine extends StateMachine {
     // 1 - NBS on
     private void processWBSEvent(int enable, BluetoothDevice device) {
         if (enable == 2) {
-            Log.d(TAG, "AudioManager.setParameters bt_headset_wbs=on for " +
+            Log.d(TAG, "AudioManager.setParameters bt_wbs=on for " +
                         device.getName() + " - " + device.getAddress());
             mAudioManager.setParameters(HEADSET_WBS + "=on");
         } else {
-            Log.d(TAG, "AudioManager.setParameters bt_headset_wbs=off for " +
+            Log.d(TAG, "AudioManager.setParameters bt_wbs=off for " +
                         device.getName() + " - " + device.getAddress());
             mAudioManager.setParameters(HEADSET_WBS + "=off");
         }
