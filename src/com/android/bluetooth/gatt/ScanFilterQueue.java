@@ -16,7 +16,7 @@
 
 package com.android.bluetooth.gatt;
 
-import android.bluetooth.BluetoothLeScanFilter;
+import android.bluetooth.le.ScanFilter;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -38,7 +38,7 @@ import java.util.UUID;
     public static final int TYPE_MANUFACTURER_DATA = 5;
 
     // Values defined in bluedroid.
-    private static final byte DEVICE_TYPE_PUBLIC = 0;
+    private static final byte DEVICE_TYPE_ALL = 1;
 
     class Entry {
         public String address;
@@ -170,15 +170,15 @@ import java.util.UUID;
         mEntries.clear();
     }
 
-    void addAll(Set<BluetoothLeScanFilter> filters) {
+    void addAll(Set<ScanFilter> filters) {
         if (filters == null)
             return;
-        for (BluetoothLeScanFilter filter : filters) {
+        for (ScanFilter filter : filters) {
             if (filter.getLocalName() != null) {
                 addName(filter.getLocalName());
             }
             if (filter.getDeviceAddress() != null) {
-                addDeviceAddress(filter.getDeviceAddress(), DEVICE_TYPE_PUBLIC);
+                addDeviceAddress(filter.getDeviceAddress(), DEVICE_TYPE_ALL);
             }
             if (filter.getServiceUuid() != null) {
                 if (filter.getServiceUuidMask() == null) {
