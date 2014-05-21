@@ -345,7 +345,10 @@ final class GattServiceStateMachine extends StateMachine {
                     int clientIf = message.arg1;
                     log("setting advertisement: " + clientIf);
                     client = mAdvertiseClients.get(clientIf);
-                    setAdvertisingData(client);
+                    setAdvertisingData(clientIf, client.advertiseData);
+                    if (client.scanResponse != null) {
+                        setAdvertisingData(clientIf, client.scanResponse);
+                    }
                     transitionTo(mIdle);
                     break;
                 case CANCEL_ADVERTISING:
@@ -365,13 +368,13 @@ final class GattServiceStateMachine extends StateMachine {
         }
     }
 
-    private void setAdvertisingData(AdvertiseClient client) {
-        int clientIf = client.clientIf;
-        log("enabling advertisiment: " + clientIf);
-        AdvertisementData data = client.data;
-        boolean isScanResponse =
-                (data.getDataType() == BluetoothLeAdvertiseScanData.SCAN_RESPONSE_DATA);
+    private void setAdvertisingData(int clientIf, AdvertisementData data) {
+        if (data == null) {
+            return;
+        }
         boolean includeName = false;
+        boolean isScanResponse =
+                data.getDataType() == BluetoothLeAdvertiseScanData.SCAN_RESPONSE_DATA;
         boolean includeTxPower = data.getIncludeTxPowerLevel();
         int appearance = 0;
         byte[] manufacturerData = data.getManufacturerSpecificData() == null ? new byte[0]
