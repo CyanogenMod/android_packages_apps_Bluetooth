@@ -566,11 +566,12 @@ public class GattService extends ProfileService {
         }
 
         @Override
-        public void startMultiAdvertising(int clientIf, AdvertisementData data,
+        public void startMultiAdvertising(int clientIf, AdvertisementData advertiseData,
+                AdvertisementData scanResponse,
                 BluetoothLeAdvertiser.Settings settings) {
             GattService service = getService();
             if (service == null) return;
-            service.startMultiAdvertising(clientIf, data, settings);
+            service.startMultiAdvertising(clientIf, advertiseData, scanResponse, settings);
         }
 
         @Override
@@ -1506,11 +1507,11 @@ public class GattService extends ProfileService {
         }
     }
 
-    void startMultiAdvertising(int clientIf, AdvertisementData data,
-            BluetoothLeAdvertiser.Settings settings) {
+    void startMultiAdvertising(int clientIf, AdvertisementData advertiseData,
+            AdvertisementData scanResponse, BluetoothLeAdvertiser.Settings settings) {
         enforceAdminPermission();
         Message message = mStateMachine.obtainMessage(GattServiceStateMachine.START_ADVERTISING);
-        message.obj = new AdvertiseClient(clientIf, settings, data);
+        message.obj = new AdvertiseClient(clientIf, settings, advertiseData, scanResponse);
         mStateMachine.sendMessage(message);
     }
 
