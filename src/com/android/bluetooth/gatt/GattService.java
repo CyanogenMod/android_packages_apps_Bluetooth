@@ -1245,6 +1245,7 @@ public class GattService extends ProfileService {
         // TODO: use settings to configure scan params.
         // TODO: move logic to state machine to avoid locking.
         synchronized(mScanQueue) {
+            boolean isScaning = (!mScanQueue.isEmpty());
             if (getScanClient(appIf, isServer) == null) {
                 if (DBG) Log.d(TAG, "startScan() - adding client=" + appIf);
                 mScanQueue.add(new ScanClient(appIf, isServer, settings, filters));
@@ -1253,7 +1254,9 @@ public class GattService extends ProfileService {
             if (!Objects.deepEquals(newFilters, mScanFilters)) {
                 mScanFilters = newFilters;
                 // Restart scan using new filters.
-                sendStopScanMessage();
+                if (isScaning) {
+                    sendStopScanMessage();
+                }
                 sendStartScanMessage(mScanFilters);
             }
         }
