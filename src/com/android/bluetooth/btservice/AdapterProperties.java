@@ -487,6 +487,23 @@ class AdapterProperties {
                         mDiscoverableTimeout = Utils.byteArrayToInt(val, 0);
                         debugLog("Discoverable Timeout:" + mDiscoverableTimeout);
                         break;
+
+                    case AbstractionLayer.BT_PROPERTY_LOCAL_LE_FEATURES:
+                        int local_privacy_enabled = val[0];
+                        int max_adv_instance = val [1];
+                        int rpa_offload_supported = val [2];
+                        int max_irk_list_size = val [3];
+                        int max_adv_filter_supported = val[4];
+                        int scan_result_storage_size = val[5];
+
+                        debugLog("BT_PROPERTY_LOCAL_LE_FEATURES: privacy = " +local_privacy_enabled
+                                      + " max adv instance = " + max_adv_instance
+                                      + " rpa_offload_supported = " + rpa_offload_supported
+                                      + " max_irk_list_size = " + max_irk_list_size
+                                      + " max_adv_filter_supported = " + max_adv_filter_supported
+                                      + " scan_result_storage_size = " + scan_result_storage_size);
+                        break;
+
                     default:
                         errorLog("Property change not handled in Java land:" + type);
                 }
