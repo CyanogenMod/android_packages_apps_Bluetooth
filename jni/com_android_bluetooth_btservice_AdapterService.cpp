@@ -22,6 +22,10 @@
 #include "cutils/properties.h"
 #include "android_runtime/AndroidRuntime.h"
 #include "android_runtime/Log.h"
+#include <powermanager/PowerManager.h>
+#include <powermanager/IPowerManager.h>
+#include <binder/IServiceManager.h>
+#include <utils/RefBase.h>
 
 #include <string.h>
 #include <pthread.h>
@@ -439,6 +443,39 @@ static void le_test_mode_recv_callback (bt_status_t status, uint16_t packet_coun
 
     ALOGV("%s: status:%d packet_count:%d ", __FUNCTION__, status, packet_count);
 }
+
+static void bt_wakelock_control_callback(int acquire) {
+    static sp<IPowerManager> sPm = NULL;
+    static sp<IBinder> sWakelock = NULL;
+
+    if (sPm == NULL) {
+        sp<IBinder> binder = defaultServiceManager()->checkService(String16("power"));
+        sPm = interface_cast<IPowerManager>(binder);
+
+        if (sPm == NULL) {
+            ALOGE("Unable to get a hold of PowerManager. Bluetooth wakelocks will not function");
+            return;
+        }
+    }
+    if (acquire) {
+        if (sWakelock != NULL)
+            ALOGE("Double wakelock-acquire in BT");
+        else {
+            sp<IBinder> binder = new BBinder();
+            if (NO_ERROR == sPm->acquireWakeLock(POWERMANAGER_PARTIAL_WAKE_LOCK, binder,
+                                               String16("TimerWakelock"), String16("Bluetooth")))
+                sWakelock = binder;
+        }
+    } else {
+        if (sWakelock == NULL)
+            ALOGE("Double wakelock-release in BT");
+        else {
+            sPm->releaseWakeLock(sWakelock, 0);
+            sWakelock.clear();
+        }
+    }
+}
+
 bt_callbacks_t sBluetoothCallbacks = {
     sizeof(sBluetoothCallbacks),
     adapter_state_change_callback,
@@ -453,7 +490,8 @@ bt_callbacks_t sBluetoothCallbacks = {
     callback_thread_event,
     dut_mode_recv_callback,
 
-    le_test_mode_recv_callback
+    le_test_mode_recv_callback,
+    bt_wakelock_control_callback
 };
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
