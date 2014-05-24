@@ -21,9 +21,7 @@ LOCAL_SHARED_LIBRARIES := \
     libcutils \
     libutils \
     liblog \
-    libhardware \
-    libpowermanager \
-    libbinder
+    libhardware
 
 LOCAL_MULTILIB := 32
 
