@@ -54,6 +54,13 @@ final class GattServiceStateMachine extends StateMachine {
     static final int ADD_SCAN_FILTER = 16;
     static final int ENABLE_SCAN_FILTER = 17;
 
+    // TODO: This should be queried from hardware.
+    private final int MAX_ADVERTISERS = 4;
+
+    // TODO: Remove this once stack callback is stable.
+    private static final int OPERATION_TIMEOUT = 101;
+    private static final int TIMEOUT_MILLIS = 3000;
+
     private static final String TAG = "GattServiceStateMachine";
     private static final boolean DBG = true;
 
@@ -159,17 +166,27 @@ final class GattServiceStateMachine extends StateMachine {
                     break;
                 case STOP_BLE_SCAN:
                     // Note this should only happen no client is doing scans any more.
-                    gattClientScanFilterClearNative();
                     gattClientScanNative(false);
                     break;
                 case START_ADVERTISING:
                     AdvertiseClient client = (AdvertiseClient) message.obj;
                     if (mAdvertiseClients.containsKey(client.clientIf)) {
                         // do something.
-                        log("advertising already started for client : " + client.clientIf);
+                        loge("advertising already started for client : " + client.clientIf);
                         try {
                             mService.onMultipleAdvertiseCallback(client.clientIf,
                                     AdvertiseCallback.ADVERTISE_FAILED_ALREADY_STARTED);
+                        } catch (RemoteException e) {
+                            loge("failed to start advertising", e);
+                        }
+                        transitionTo(mIdle);
+                        break;
+                    }
+                    if (mAdvertiseClients.size() >= MAX_ADVERTISERS) {
+                        loge("too many advertisier, current size : " + mAdvertiseClients.size());
+                        try {
+                            mService.onMultipleAdvertiseCallback(client.clientIf,
+                                    AdvertiseCallback.ADVERTISE_FAILED_TOO_MANY_ADVERTISERS);
                         } catch (RemoteException e) {
                             loge("failed to start advertising", e);
                         }
@@ -239,6 +256,7 @@ final class GattServiceStateMachine extends StateMachine {
                         hasFilter = true;
                     }
                     gattClientScanFilterClearNative();
+                    sendMessageDelayed(OPERATION_TIMEOUT, TIMEOUT_MILLIS);
                     break;
                 case ADD_SCAN_FILTER:
                     if (mScanFilterQueue.isEmpty()) {
@@ -261,6 +279,10 @@ final class GattServiceStateMachine extends StateMachine {
                     break;
                 case ENABLE_BLE_SCAN:
                     gattClientScanNative(true);
+                    removeMessages(OPERATION_TIMEOUT);
+                    transitionTo(mIdle);
+                    break;
+                case OPERATION_TIMEOUT:
                     transitionTo(mIdle);
                     break;
                 default:
@@ -339,6 +361,7 @@ final class GattServiceStateMachine extends StateMachine {
                     AdvertiseClient client = (AdvertiseClient) message.obj;
                     mAdvertiseClients.put(client.clientIf, client);
                     enableAdvertising(client);
+                    sendMessageDelayed(OPERATION_TIMEOUT, client.clientIf, TIMEOUT_MILLIS);
                     break;
                 case SET_ADVERTISING_DATA:
                     int clientIf = message.arg1;
@@ -348,9 +371,11 @@ final class GattServiceStateMachine extends StateMachine {
                     if (client.scanResponse != null) {
                         setAdvertisingData(clientIf, client.scanResponse, true);
                     }
+                    removeMessages(OPERATION_TIMEOUT);
                     transitionTo(mIdle);
                     break;
                 case CANCEL_ADVERTISING:
+                case OPERATION_TIMEOUT:
                     clientIf = message.arg1;
                     try {
                         mService.onMultipleAdvertiseCallback(clientIf,
