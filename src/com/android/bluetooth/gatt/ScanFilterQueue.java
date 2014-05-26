@@ -18,6 +18,7 @@ package com.android.bluetooth.gatt;
 
 import android.bluetooth.le.ScanFilter;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
@@ -130,7 +131,8 @@ import java.util.UUID;
         entry.company = company;
         entry.company_mask = 0xFFFF;
         entry.data = data;
-        entry.data_mask = new byte[0];
+        entry.data_mask = new byte[data.length];
+        Arrays.fill(entry.data_mask, (byte) 0xFF);
         mEntries.add(entry);
     }
 
