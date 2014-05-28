@@ -90,6 +90,7 @@ public class AdapterService extends Service {
     private static final int MIN_ADVT_INSTANCES_FOR_MA = 5;
     private static final int MIN_OFFLOADED_FILTERS = 10;
     private static final int MIN_OFFLOADED_SCAN_STORAGE_BYTES = 1024;
+    private static final String delayConnectTimeoutDevice[] = {"00:23:3D"}; // volkswagen carkit
     //For Debugging only
     private static int sRefCount=0;
 
@@ -579,11 +580,12 @@ public class AdapterService extends Service {
         System.exit(0);
     }
 
-    private static final int MESSAGE_PROFILE_SERVICE_STATE_CHANGED =1;
-    private static final int MESSAGE_PROFILE_CONNECTION_STATE_CHANGED=20;
+    private static final int MESSAGE_PROFILE_SERVICE_STATE_CHANGED = 1;
+    private static final int MESSAGE_PROFILE_CONNECTION_STATE_CHANGED = 20;
     private static final int MESSAGE_CONNECT_OTHER_PROFILES = 30;
     private static final int MESSAGE_PROFILE_INIT_PRIORITIES=40;
     private static final int CONNECT_OTHER_PROFILES_TIMEOUT= 6000;
+    private static final int CONNECT_OTHER_PROFILES_TIMEOUT_DELAYED = 10000;
 
     private final Handler mHandler = new Handler() {
         @Override
@@ -1512,13 +1514,29 @@ public class AdapterService extends Service {
         }
     }
 
+    private boolean isConnectTimeoutDelayApplicable(BluetoothDevice device){
+        boolean isConnectionTimeoutDelayed = false;
+        String deviceAddress = device.getAddress();
+        for (int i = 0; i < delayConnectTimeoutDevice.length;i++) {
+            if (deviceAddress.indexOf(delayConnectTimeoutDevice[i]) == 0) {
+                isConnectionTimeoutDelayed = true;
+            }
+        }
+        return isConnectionTimeoutDelayed;
+    }
+
      public void connectOtherProfile(BluetoothDevice device, int firstProfileStatus){
         if ((mHandler.hasMessages(MESSAGE_CONNECT_OTHER_PROFILES) == false) &&
             (isQuietModeEnabled()== false)){
             Message m = mHandler.obtainMessage(MESSAGE_CONNECT_OTHER_PROFILES);
             m.obj = device;
             m.arg1 = (int)firstProfileStatus;
-            mHandler.sendMessageDelayed(m,CONNECT_OTHER_PROFILES_TIMEOUT);
+            if (isConnectTimeoutDelayApplicable(device)) {
+                mHandler.sendMessageDelayed(m,CONNECT_OTHER_PROFILES_TIMEOUT_DELAYED);
+            }
+            else {
+                mHandler.sendMessageDelayed(m,CONNECT_OTHER_PROFILES_TIMEOUT);
+            }
         }
     }
 
