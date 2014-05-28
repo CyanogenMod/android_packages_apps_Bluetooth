@@ -876,6 +876,8 @@ static int createSocketChannelNative(JNIEnv *env, jobject object, jint type,
 
     if (!sBluetoothSocketInterface) return -1;
 
+    ALOGV("%s: SOCK FLAG = %x", __FUNCTION__, flag);
+
     service_name = env->GetStringUTFChars(name_str, NULL);
 
     uuid = env->GetByteArrayElements(uuidObj, NULL);
@@ -883,7 +885,6 @@ static int createSocketChannelNative(JNIEnv *env, jobject object, jint type,
         ALOGE("failed to get uuid");
         goto Fail;
     }
-    ALOGE("SOCK FLAG = %x ***********************",flag);
     if ( (status = sBluetoothSocketInterface->listen((btsock_type_t) type, service_name,
                        (const uint8_t*) uuid, channel, &socket_fd, flag)) != BT_STATUS_SUCCESS) {
         ALOGE("Socket listen failed: %d", status);
