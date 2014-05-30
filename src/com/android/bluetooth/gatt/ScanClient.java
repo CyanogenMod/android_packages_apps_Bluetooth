@@ -16,8 +16,8 @@
 
 package com.android.bluetooth.gatt;
 
-import android.bluetooth.le.ScanSettings;
 import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanSettings;
 
 import java.util.List;
 import java.util.UUID;
@@ -85,15 +85,15 @@ import java.util.UUID;
         this.filters = filters;
         if (settings != null) {
             switch (settings.getScanMode()) {
-                case BluetoothLeScanSettings.SCAN_MODE_LOW_POWER:
+                case ScanSettings.SCAN_MODE_LOW_POWER:
                     this.scanWindow = SCAN_MODE_LOW_POWER_WINDOW_MS;
                     this.scanInterval = SCAN_MODE_LOW_POWER_INTERVAL_MS;
                     break;
-                case BluetoothLeScanSettings.SCAN_MODE_BALANCED:
+                case ScanSettings.SCAN_MODE_BALANCED:
                     this.scanWindow = SCAN_MODE_BALANCED_WINDOW_MS;
                     this.scanInterval = SCAN_MODE_BALANCED_INTERVAL_MS;
                     break;
-                case BluetoothLeScanSettings.SCAN_MODE_LOW_LATENCY:
+                case ScanSettings.SCAN_MODE_LOW_LATENCY:
                     this.scanWindow = SCAN_MODE_LOW_LATENCY_WINDOW_MS;
                     this.scanInterval = SCAN_MODE_LOW_LATENCY_INTERVAL_MS;
                     break;
