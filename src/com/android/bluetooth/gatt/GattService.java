@@ -19,17 +19,17 @@ package com.android.bluetooth.gatt;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothLeAdvertiseScanData.AdvertisementData;
-import android.bluetooth.BluetoothLeAdvertiser;
-import android.bluetooth.BluetoothLeAdvertiser.AdvertiseCallback;
-import android.bluetooth.BluetoothLeScanFilter;
-import android.bluetooth.BluetoothLeScanner.ScanResult;
-import android.bluetooth.BluetoothLeScanner.Settings;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothGatt;
 import android.bluetooth.IBluetoothGattCallback;
 import android.bluetooth.IBluetoothGattServerCallback;
+import android.bluetooth.le.AdvertiseCallback;
+import android.bluetooth.le.AdvertisementData;
+import android.bluetooth.le.AdvertiseSettings;
+import android.bluetooth.le.ScanSettings;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanResult;
 import android.content.Intent;
 import android.os.IBinder;
 import android.os.Message;
@@ -160,7 +160,7 @@ public class GattService extends ProfileService {
      * List of clients interested in scan results.
      */
     private List<ScanClient> mScanQueue = new ArrayList<ScanClient>();
-    private Set<BluetoothLeScanFilter> mScanFilters = new HashSet<BluetoothLeScanFilter>();
+    private Set<ScanFilter> mScanFilters = new HashSet<ScanFilter>();
 
     private GattServiceStateMachine mStateMachine;
     private ScanClient getScanClient(int appIf, boolean isServer) {
@@ -342,8 +342,8 @@ public class GattService extends ProfileService {
         }
 
         @Override
-        public void startScanWithFilters(int appIf, boolean isServer, Settings settings,
-                List<BluetoothLeScanFilter> filters) {
+        public void startScanWithFilters(int appIf, boolean isServer, ScanSettings settings,
+                List<ScanFilter> filters) {
             GattService service = getService();
             if (service == null) return;
             service.startScanWithFilters(appIf, isServer, settings, filters);
@@ -568,7 +568,7 @@ public class GattService extends ProfileService {
         @Override
         public void startMultiAdvertising(int clientIf, AdvertisementData advertiseData,
                 AdvertisementData scanResponse,
-                BluetoothLeAdvertiser.Settings settings) {
+                AdvertiseSettings settings) {
             GattService service = getService();
             if (service == null) return;
             service.startMultiAdvertising(clientIf, advertiseData, scanResponse, settings);
@@ -699,7 +699,8 @@ public class GattService extends ProfileService {
         if (client.filters == null || client.filters.isEmpty()) {
             return true;
         }
-        for (BluetoothLeScanFilter filter : client.filters) {
+        for (ScanFilter filter : client.filters) {
+            if (DBG) Log.d(TAG, "filter: " + filter.toString());
             if (filter.matches(scanResult)) {
                 return true;
             }
@@ -1126,7 +1127,8 @@ public class GattService extends ProfileService {
             if (status == 0) {
                 app.callback.onMultiAdvertiseCallback(AdvertiseCallback.SUCCESS);
             } else {
-                app.callback.onMultiAdvertiseCallback(AdvertiseCallback.CONTROLLER_FAILURE);
+                app.callback.onMultiAdvertiseCallback(
+                        AdvertiseCallback.ADVERTISE_FAILED_CONTROLLER_FAILURE);
             }
         }
     }
@@ -1141,7 +1143,8 @@ public class GattService extends ProfileService {
             if (status == 0) {
                 app.callback.onMultiAdvertiseCallback(AdvertiseCallback.SUCCESS);
             } else {
-                app.callback.onMultiAdvertiseCallback(AdvertiseCallback.CONTROLLER_FAILURE);
+                app.callback.onMultiAdvertiseCallback(
+                        AdvertiseCallback.ADVERTISE_FAILED_CONTROLLER_FAILURE);
             }
         }
     }
@@ -1235,8 +1238,8 @@ public class GattService extends ProfileService {
         configureScanParams();
     }
 
-    void startScanWithFilters(int appIf, boolean isServer, Settings settings,
-            List<BluetoothLeScanFilter> filters) {
+    void startScanWithFilters(int appIf, boolean isServer, ScanSettings settings,
+            List<ScanFilter> filters) {
         if (DBG) Log.d(TAG, "start scan with filters " + filters.size());
         enforceAdminPermission();
         // TODO: use settings to configure scan params.
@@ -1247,7 +1250,7 @@ public class GattService extends ProfileService {
                 if (DBG) Log.d(TAG, "startScan() - adding client=" + appIf);
                 mScanQueue.add(new ScanClient(appIf, isServer, settings, filters));
             }
-            Set<BluetoothLeScanFilter> newFilters = configureScanFiltersLocked();
+            Set<ScanFilter> newFilters = configureScanFiltersLocked();
             if (!Objects.deepEquals(newFilters, mScanFilters)) {
                 mScanFilters = newFilters;
                 // Restart scan using new filters.
@@ -1300,13 +1303,14 @@ public class GattService extends ProfileService {
             }
         } else {
             lastConfiguredDutyCycle = curDutyCycle;
+            mScanFilters.clear();
             sendStopScanMessage();
             if (DBG) Log.d(TAG, "configureScanParams() - queue emtpy, scan stopped");
         }
     }
 
-    private Set<BluetoothLeScanFilter> configureScanFiltersLocked() {
-        Set<BluetoothLeScanFilter> filters = new HashSet<BluetoothLeScanFilter>();
+    private Set<ScanFilter> configureScanFiltersLocked() {
+        Set<ScanFilter> filters = new HashSet<ScanFilter>();
         for (ScanClient client : mScanQueue) {
             if (client.filters == null || client.filters.isEmpty()) {
                 filters.clear();
@@ -1317,7 +1321,7 @@ public class GattService extends ProfileService {
         return filters;
     }
 
-    private void sendStartScanMessage(Set<BluetoothLeScanFilter> filters) {
+    private void sendStartScanMessage(Set<ScanFilter> filters) {
         Message message = mStateMachine.obtainMessage(GattServiceStateMachine.START_BLE_SCAN);
         message.obj = filters;
         mStateMachine.sendMessage(message);
@@ -1432,7 +1436,7 @@ public class GattService extends ProfileService {
     }
 
     synchronized List<ParcelUuid> getAdvServiceUuids() {
-        enforcePrivilegedPermission();;
+        enforcePrivilegedPermission();
         boolean fullUuidFound = false;
         List<ParcelUuid> serviceUuids = new ArrayList<ParcelUuid>();
         for (HandleMap.Entry entry : mHandleMap.mEntries) {
@@ -1511,7 +1515,7 @@ public class GattService extends ProfileService {
     }
 
     void startMultiAdvertising(int clientIf, AdvertisementData advertiseData,
-            AdvertisementData scanResponse, BluetoothLeAdvertiser.Settings settings) {
+            AdvertisementData scanResponse, AdvertiseSettings settings) {
         enforceAdminPermission();
         Message message = mStateMachine.obtainMessage(GattServiceStateMachine.START_ADVERTISING);
         message.obj = new AdvertiseClient(clientIf, settings, advertiseData, scanResponse);

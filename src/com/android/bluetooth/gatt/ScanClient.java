@@ -16,8 +16,8 @@
 
 package com.android.bluetooth.gatt;
 
-import android.bluetooth.BluetoothLeScanFilter;
-import android.bluetooth.BluetoothLeScanner.Settings;
+import android.bluetooth.le.ScanSettings;
+import android.bluetooth.le.ScanFilter;
 
 import java.util.List;
 import java.util.UUID;
@@ -43,8 +43,8 @@ import java.util.UUID;
     boolean isServer;
     UUID[] uuids;
     int scanWindow, scanInterval;
-    Settings settings;
-    List<BluetoothLeScanFilter> filters;
+    ScanSettings settings;
+    List<ScanFilter> filters;
 
     ScanClient(int appIf, boolean isServer) {
         this(appIf, isServer, new UUID[0], LE_SCAN_WINDOW_MS, LE_SCAN_INTERVAL_MS);
@@ -58,14 +58,14 @@ import java.util.UUID;
         this(appIf, isServer, uuids, scanWindow, scanInterval, null, null);
     }
 
-    ScanClient(int appIf, boolean isServer, Settings settings,
-            List<BluetoothLeScanFilter> filters) {
+    ScanClient(int appIf, boolean isServer, ScanSettings settings,
+            List<ScanFilter> filters) {
         this(appIf, isServer, new UUID[0], LE_SCAN_WINDOW_MS, LE_SCAN_INTERVAL_MS,
                 settings, filters);
     }
 
     private ScanClient(int appIf, boolean isServer, UUID[] uuids, int scanWindow, int scanInterval,
-            Settings settings, List<BluetoothLeScanFilter> filters) {
+            ScanSettings settings, List<ScanFilter> filters) {
         this.appIf = appIf;
         this.isServer = isServer;
         this.uuids = uuids;
