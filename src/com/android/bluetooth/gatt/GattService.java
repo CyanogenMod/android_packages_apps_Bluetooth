@@ -26,8 +26,8 @@ import android.bluetooth.IBluetoothGattCallback;
 import android.bluetooth.IBluetoothGattServerCallback;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertisementData;
-import android.bluetooth.le.BluetoothLeAdvertiseSettings;
-import android.bluetooth.le.BluetoothLeScanSettings;
+import android.bluetooth.le.AdvertiseSettings;
+import android.bluetooth.le.ScanSettings;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.content.Intent;
@@ -345,7 +345,7 @@ public class GattService extends ProfileService {
         }
 
         @Override
-        public void startScanWithFilters(int appIf, boolean isServer, BluetoothLeScanSettings settings,
+        public void startScanWithFilters(int appIf, boolean isServer, ScanSettings settings,
                 List<ScanFilter> filters) {
             GattService service = getService();
             if (service == null) return;
@@ -571,7 +571,7 @@ public class GattService extends ProfileService {
         @Override
         public void startMultiAdvertising(int clientIf, AdvertisementData advertiseData,
                 AdvertisementData scanResponse,
-                BluetoothLeAdvertiseSettings settings) {
+                AdvertiseSettings settings) {
             GattService service = getService();
             if (service == null) return;
             service.startMultiAdvertising(clientIf, advertiseData, scanResponse, settings);
@@ -1241,7 +1241,7 @@ public class GattService extends ProfileService {
         configureScanParams();
     }
 
-    void startScanWithFilters(int appIf, boolean isServer, BluetoothLeScanSettings settings,
+    void startScanWithFilters(int appIf, boolean isServer, ScanSettings settings,
             List<ScanFilter> filters) {
         if (DBG) Log.d(TAG, "start scan with filters " + filters.size());
         enforceAdminPermission();
@@ -1523,7 +1523,7 @@ public class GattService extends ProfileService {
     }
 
     void startMultiAdvertising(int clientIf, AdvertisementData advertiseData,
-            AdvertisementData scanResponse, BluetoothLeAdvertiseSettings settings) {
+            AdvertisementData scanResponse, AdvertiseSettings settings) {
         enforceAdminPermission();
         Message message = mStateMachine.obtainMessage(GattServiceStateMachine.START_ADVERTISING);
         message.obj = new AdvertiseClient(clientIf, settings, advertiseData, scanResponse);

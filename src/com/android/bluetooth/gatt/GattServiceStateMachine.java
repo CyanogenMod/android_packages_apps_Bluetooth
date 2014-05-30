@@ -3,7 +3,7 @@ package com.android.bluetooth.gatt;
 
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertisementData;
-import android.bluetooth.le.BluetoothLeAdvertiseSettings;
+import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.ScanFilter;
 import android.os.Message;
 import android.os.ParcelUuid;
@@ -440,15 +440,15 @@ final class GattServiceStateMachine extends StateMachine {
     }
 
     // Convert settings tx power level to stack tx power level.
-    private int getTxPowerLevel(BluetoothLeAdvertiseSettings settings) {
+    private int getTxPowerLevel(AdvertiseSettings settings) {
         switch (settings.getTxPowerLevel()) {
-            case BluetoothLeAdvertiseSettings.ADVERTISE_TX_POWER_ULTRA_LOW:
+            case AdvertiseSettings.ADVERTISE_TX_POWER_ULTRA_LOW:
                 return ADVERTISING_TX_POWER_MIN;
-            case BluetoothLeAdvertiseSettings.ADVERTISE_TX_POWER_LOW:
+            case AdvertiseSettings.ADVERTISE_TX_POWER_LOW:
                 return ADVERTISING_TX_POWER_LOW;
-            case BluetoothLeAdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM:
+            case AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM:
                 return ADVERTISING_TX_POWER_MID;
-            case BluetoothLeAdvertiseSettings.ADVERTISE_TX_POWER_HIGH:
+            case AdvertiseSettings.ADVERTISE_TX_POWER_HIGH:
                 return ADVERTISING_TX_POWER_UPPER;
             default:
                 // Shouldn't happen, just in case.
@@ -457,13 +457,13 @@ final class GattServiceStateMachine extends StateMachine {
     }
 
     // Convert advertising event type to stack advertising event type.
-    private int getAdvertisingEventType(BluetoothLeAdvertiseSettings settings) {
+    private int getAdvertisingEventType(AdvertiseSettings settings) {
         switch (settings.getType()) {
-            case BluetoothLeAdvertiseSettings.ADVERTISE_TYPE_CONNECTABLE:
+            case AdvertiseSettings.ADVERTISE_TYPE_CONNECTABLE:
                 return ADVERTISING_EVENT_TYPE_CONNECTABLE;
-            case BluetoothLeAdvertiseSettings.ADVERTISE_TYPE_SCANNABLE:
+            case AdvertiseSettings.ADVERTISE_TYPE_SCANNABLE:
                 return ADVERTISING_EVENT_TYPE_SCANNABLE;
-            case BluetoothLeAdvertiseSettings.ADVERTISE_TYPE_NON_CONNECTABLE:
+            case AdvertiseSettings.ADVERTISE_TYPE_NON_CONNECTABLE:
                 return ADVERTISING_EVENT_TYPE_NON_CONNECTABLE;
             default:
                 // Should't happen, just in case.
@@ -472,13 +472,13 @@ final class GattServiceStateMachine extends StateMachine {
     }
 
     // Convert advertising milliseconds to advertising units(one unit is 0.625 millisecond).
-    private long getAdvertisingIntervalUnit(BluetoothLeAdvertiseSettings settings) {
+    private long getAdvertisingIntervalUnit(AdvertiseSettings settings) {
         switch (settings.getMode()) {
-            case BluetoothLeAdvertiseSettings.ADVERTISE_MODE_LOW_POWER:
+            case AdvertiseSettings.ADVERTISE_MODE_LOW_POWER:
                 return millsToUnit(ADVERTISING_INTERVAL_LOW_MILLS);
-            case BluetoothLeAdvertiseSettings.ADVERTISE_MODE_BALANCED:
+            case AdvertiseSettings.ADVERTISE_MODE_BALANCED:
                 return millsToUnit(ADVERTISING_INTERVAL_MEDIUM_MILLS);
-            case BluetoothLeAdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY:
+            case AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY:
                 return millsToUnit(ADVERTISING_INTERVAL_HIGH_MILLS);
             default:
                 // Shouldn't happen, just in case.
