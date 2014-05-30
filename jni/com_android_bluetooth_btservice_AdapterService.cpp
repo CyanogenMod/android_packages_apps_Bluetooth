@@ -41,11 +41,15 @@ static jmethodID method_sspRequestCallback;
 static jmethodID method_bondStateChangeCallback;
 static jmethodID method_aclStateChangeCallback;
 static jmethodID method_discoveryStateChangeCallback;
+static jmethodID method_setWakeAlarm;
+static jmethodID method_acquireWakeLock;
+static jmethodID method_releaseWakeLock;
 
 static const bt_interface_t *sBluetoothInterface = NULL;
 static const btsock_interface_t *sBluetoothSocketInterface = NULL;
 static JNIEnv *callbackEnv = NULL;
 
+static jobject sJniAdapterServiceObj;
 static jobject sJniCallbacksObj;
 static jfieldID sJniCallbacksField;
 
@@ -439,7 +443,7 @@ static void le_test_mode_recv_callback (bt_status_t status, uint16_t packet_coun
 
     ALOGV("%s: status:%d packet_count:%d ", __FUNCTION__, status, packet_count);
 }
-bt_callbacks_t sBluetoothCallbacks = {
+static bt_callbacks_t sBluetoothCallbacks = {
     sizeof(sBluetoothCallbacks),
     adapter_state_change_callback,
     adapter_properties_callback,
@@ -454,6 +458,116 @@ bt_callbacks_t sBluetoothCallbacks = {
     dut_mode_recv_callback,
 
     le_test_mode_recv_callback
+};
+
+// The callback to call when the wake alarm fires.
+static alarm_cb sAlarmCallback;
+
+// The data to pass to the wake alarm callback.
+static void *sAlarmCallbackData;
+
+static bool set_wake_alarm_callout(uint64_t delay_millis, bool should_wake, alarm_cb cb, void *data) {
+    JNIEnv *env;
+    JavaVM *vm = AndroidRuntime::getJavaVM();
+    jint status = vm->GetEnv((void **)&env, JNI_VERSION_1_6);
+
+    if (status != JNI_OK && status != JNI_EDETACHED) {
+        ALOGE("%s unable to get environment for JNI call", __func__);
+        return false;
+    }
+
+    if (status == JNI_EDETACHED && vm->AttachCurrentThread(&env, NULL) != 0) {
+        ALOGE("%s unable to attach thread to VM", __func__);
+        return false;
+    }
+
+    jboolean jshould_wake = should_wake ? JNI_TRUE : JNI_FALSE;
+    jboolean ret = env->CallBooleanMethod(sJniAdapterServiceObj, method_setWakeAlarm, (jlong)delay_millis, jshould_wake);
+    if (ret) {
+        sAlarmCallback = cb;
+        sAlarmCallbackData = data;
+    }
+
+    if (status == JNI_EDETACHED) {
+        vm->DetachCurrentThread();
+    }
+
+    return !!ret;
+}
+
+static int acquire_wake_lock_callout(const char *lock_name) {
+    JNIEnv *env;
+    JavaVM *vm = AndroidRuntime::getJavaVM();
+    jint status = vm->GetEnv((void **)&env, JNI_VERSION_1_6);
+
+    if (status != JNI_OK && status != JNI_EDETACHED) {
+        ALOGE("%s unable to get environment for JNI call", __func__);
+        return BT_STATUS_FAIL;
+    }
+
+    if (status == JNI_EDETACHED && vm->AttachCurrentThread(&env, NULL) != 0) {
+        ALOGE("%s unable to attach thread to VM", __func__);
+        return BT_STATUS_FAIL;
+    }
+
+    jboolean ret = JNI_FALSE;
+    jstring lock_name_jni = env->NewStringUTF(lock_name);
+    if (lock_name_jni) {
+        ret = env->CallBooleanMethod(sJniAdapterServiceObj, method_acquireWakeLock, lock_name_jni);
+        env->DeleteLocalRef(lock_name_jni);
+    } else {
+        ALOGE("%s unable to allocate string: %s", __func__, lock_name);
+    }
+
+    if (status == JNI_EDETACHED) {
+        vm->DetachCurrentThread();
+    }
+
+    return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
+}
+
+static int release_wake_lock_callout(const char *lock_name) {
+    JNIEnv *env;
+    JavaVM *vm = AndroidRuntime::getJavaVM();
+    jint status = vm->GetEnv((void **)&env, JNI_VERSION_1_6);
+
+    if (status != JNI_OK && status != JNI_EDETACHED) {
+        ALOGE("%s unable to get environment for JNI call", __func__);
+        return BT_STATUS_FAIL;
+    }
+
+    if (status == JNI_EDETACHED && vm->AttachCurrentThread(&env, NULL) != 0) {
+        ALOGE("%s unable to attach thread to VM", __func__);
+        return BT_STATUS_FAIL;
+    }
+
+    jboolean ret = JNI_FALSE;
+    jstring lock_name_jni = env->NewStringUTF(lock_name);
+    if (lock_name_jni) {
+        ret = env->CallBooleanMethod(sJniAdapterServiceObj, method_releaseWakeLock, lock_name_jni);
+        env->DeleteLocalRef(lock_name_jni);
+    } else {
+        ALOGE("%s unable to allocate string: %s", __func__, lock_name);
+    }
+
+    if (status == JNI_EDETACHED) {
+        vm->DetachCurrentThread();
+    }
+
+    return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
+}
+
+// Called by Java code when alarm is fired. A wake lock is held by the caller
+// over the duration of this callback.
+static void alarmFiredNative(JNIEnv *env, jobject obj) {
+    sAlarmCallback(sAlarmCallbackData);
+}
+
+static bt_os_callouts_t sBluetoothOsCallouts = {
+    sizeof(sBluetoothOsCallouts),
+    set_wake_alarm_callout,
+    acquire_wake_lock_callout,
+    release_wake_lock_callout,
 };
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
@@ -487,6 +601,11 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
     method_aclStateChangeCallback = env->GetMethodID(jniCallbackClass,
                                                     "aclStateChangeCallback", "(I[BI)V");
+
+    method_setWakeAlarm = env->GetMethodID(clazz, "setWakeAlarm", "(JZ)Z");
+    method_acquireWakeLock = env->GetMethodID(clazz, "acquireWakeLock", "(Ljava/lang/String;)Z");
+    method_releaseWakeLock = env->GetMethodID(clazz, "releaseWakeLock", "(Ljava/lang/String;)Z");
+
     char value[PROPERTY_VALUE_MAX];
     property_get("bluetooth.mock_stack", value, "");
 
@@ -511,15 +630,24 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 static bool initNative(JNIEnv* env, jobject obj) {
     ALOGV("%s:",__FUNCTION__);
 
+    sJniAdapterServiceObj = env->NewGlobalRef(obj);
     sJniCallbacksObj = env->NewGlobalRef(env->GetObjectField(obj, sJniCallbacksField));
 
     if (sBluetoothInterface) {
         int ret = sBluetoothInterface->init(&sBluetoothCallbacks);
         if (ret != BT_STATUS_SUCCESS) {
-            ALOGE("Error while setting the callbacks \n");
+            ALOGE("Error while setting the callbacks: %d\n", ret);
             sBluetoothInterface = NULL;
             return JNI_FALSE;
         }
+        ret = sBluetoothInterface->set_os_callouts(&sBluetoothOsCallouts);
+        if (ret != BT_STATUS_SUCCESS) {
+            ALOGE("Error while setting Bluetooth callouts: %d\n", ret);
+            sBluetoothInterface->cleanup();
+            sBluetoothInterface = NULL;
+            return JNI_FALSE;
+        }
+
         if ( (sBluetoothSocketInterface = (btsock_interface_t *)
                   sBluetoothInterface->get_profile_interface(BT_PROFILE_SOCKETS_ID)) == NULL) {
                 ALOGE("Error getting socket interface");
@@ -539,6 +667,7 @@ static bool cleanupNative(JNIEnv *env, jobject obj) {
     ALOGI("%s: return from cleanup",__FUNCTION__);
 
     env->DeleteGlobalRef(sJniCallbacksObj);
+    env->DeleteGlobalRef(sJniAdapterServiceObj);
     return JNI_TRUE;
 }
 
@@ -943,7 +1072,8 @@ static JNINativeMethod sMethods[] = {
     {"connectSocketNative", "([BI[BII)I", (void*) connectSocketNative},
     {"createSocketChannelNative", "(ILjava/lang/String;[BII)I",
      (void*) createSocketChannelNative},
-    {"configHciSnoopLogNative", "(Z)Z", (void*) configHciSnoopLogNative}
+    {"configHciSnoopLogNative", "(Z)Z", (void*) configHciSnoopLogNative},
+    {"alarmFiredNative", "()V", (void *) alarmFiredNative},
 };
 
 int register_com_android_bluetooth_btservice_AdapterService(JNIEnv* env)

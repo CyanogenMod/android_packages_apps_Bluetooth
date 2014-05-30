@@ -20,7 +20,9 @@
 
 package com.android.bluetooth.btservice;
 
+import android.app.AlarmManager;
 import android.app.Application;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -42,9 +44,11 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.os.ParcelUuid;
+import android.os.PowerManager;
 import android.os.Process;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
 import android.util.Pair;
@@ -82,6 +86,9 @@ public class AdapterService extends Service {
     public static final String EXTRA_ACTION="action";
     public static final int PROFILE_CONN_CONNECTED  = 1;
     public static final int PROFILE_CONN_REJECTED  = 2;
+
+    private static final String ACTION_ALARM_WAKEUP =
+        "com.android.bluetooth.btservice.action.ALARM_WAKEUP";
 
     static final String BLUETOOTH_ADMIN_PERM =
         android.Manifest.permission.BLUETOOTH_ADMIN;
@@ -140,6 +147,12 @@ public class AdapterService extends Service {
     private RemoteCallbackList<IBluetoothCallback> mCallbacks;//Only BluetoothManagerService should be registered
     private int mCurrentRequestId;
     private boolean mQuietmode = false;
+
+    private AlarmManager mAlarmManager;
+    private PendingIntent mPendingAlarm;
+    private PowerManager mPowerManager;
+    private PowerManager.WakeLock mWakeLock;
+    private String mWakeLockName;
 
     public AdapterService() {
         super();
@@ -303,7 +316,10 @@ public class AdapterService extends Service {
         //Load the name and address
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDADDR);
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDNAME);
+        mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
 
+        registerReceiver(mAlarmBroadcastReceiver, new IntentFilter(ACTION_ALARM_WAKEUP));
     }
 
     @Override
@@ -387,6 +403,18 @@ public class AdapterService extends Service {
         }
 
         mCleaningUp = true;
+
+        unregisterReceiver(mAlarmBroadcastReceiver);
+
+        if (mPendingAlarm != null) {
+            mAlarmManager.cancel(mPendingAlarm);
+            mPendingAlarm = null;
+        }
+
+        if (mWakeLock != null) {
+            mWakeLock.release();
+            mWakeLock = null;
+        }
 
         if (mAdapterStateMachine != null) {
             mAdapterStateMachine.doQuit();
@@ -1480,6 +1508,66 @@ public class AdapterService extends Service {
         return -1;
     }
 
+    // This function is called from JNI. It allows native code to set a single wake
+    // alarm. If an alarm is already pending and a new request comes in, the alarm
+    // will be rescheduled (i.e. the previously set alarm will be cancelled).
+    private boolean setWakeAlarm(long delayMillis, boolean shouldWake) {
+        synchronized (this) {
+            if (mPendingAlarm != null) {
+                mAlarmManager.cancel(mPendingAlarm);
+            }
+
+            long wakeupTime = SystemClock.elapsedRealtime() + delayMillis;
+            int type = shouldWake
+                ? AlarmManager.ELAPSED_REALTIME_WAKEUP
+                : AlarmManager.ELAPSED_REALTIME;
+
+            Intent intent = new Intent(ACTION_ALARM_WAKEUP);
+            mPendingAlarm = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+            mAlarmManager.setExact(type, wakeupTime, mPendingAlarm);
+            return true;
+        }
+    }
+
+    // This function is called from JNI. It allows native code to acquire a single wake lock.
+    // If the wake lock is already held, this function returns success. Although this function
+    // only supports acquiring a single wake lock at a time right now, it will eventually be
+    // extended to allow acquiring an arbitrary number of wake locks. The current interface
+    // takes |lockName| as a parameter in anticipation of that implementation.
+    private boolean acquireWakeLock(String lockName) {
+        if (mWakeLock != null) {
+            if (!lockName.equals(mWakeLockName)) {
+                errorLog("Multiple wake lock acquisition attempted; aborting: " + lockName);
+                return false;
+            }
+
+            // We're already holding the desired wake lock so return success.
+            if (mWakeLock.isHeld()) {
+                return true;
+            }
+        }
+
+        mWakeLockName = lockName;
+        mWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, lockName);
+        mWakeLock.acquire();
+        return true;
+    }
+
+    // This function is called from JNI. It allows native code to release a wake lock acquired
+    // by |acquireWakeLock|. If the wake lock is not held, this function returns failure. See
+    // the comment for |acquireWakeLock| for an explanation of the interface.
+    private boolean releaseWakeLock(String lockName) {
+        if (mWakeLock == null) {
+            errorLog("Repeated wake lock release; aborting release: " + lockName);
+            return false;
+        }
+
+        mWakeLock.release();
+        mWakeLock = null;
+        mWakeLockName = null;
+        return true;
+    }
+
     private void debugLog(String msg) {
         Log.d(TAG +"(" +hashCode()+")", msg);
     }
@@ -1487,6 +1575,16 @@ public class AdapterService extends Service {
     private void errorLog(String msg) {
         Log.e(TAG +"(" +hashCode()+")", msg);
     }
+
+    private final BroadcastReceiver mAlarmBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            synchronized (AdapterService.this) {
+                mPendingAlarm = null;
+                alarmFiredNative();
+            }
+        }
+    };
 
     private native static void classInitNative();
     private native boolean initNative();
@@ -1521,6 +1619,8 @@ public class AdapterService extends Service {
                                                  byte[] uuid, int port, int flag);
 
     /*package*/ native boolean configHciSnoopLogNative(boolean enable);
+
+    private native void alarmFiredNative();
 
     protected void finalize() {
         cleanup();
