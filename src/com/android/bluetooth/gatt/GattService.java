@@ -88,6 +88,9 @@ public class GattService extends ProfileService {
     static final int SCAN_FILTER_ENABLED = 1;
     static final int SCAN_FILTER_MODIFIED = 2;
 
+    // TODO: query the number from hardware instead of hard-coded here.
+    private static final int MAX_FILTER_SIZE = 1;
+
     /**
      * Search queue to serialize remote onbject inspection.
      */
@@ -1317,6 +1320,11 @@ public class GattService extends ProfileService {
                 return filters;
             }
             filters.addAll(client.filters);
+        }
+        // TODO: find a better way to handle too many filters.
+        if (filters.size() > MAX_FILTER_SIZE) {
+            if (DBG) Log.d(TAG, "filters size > " + MAX_FILTER_SIZE + ", clearing filters");
+            filters = new HashSet<ScanFilter>();
         }
         return filters;
     }
