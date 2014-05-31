@@ -828,6 +828,11 @@ final class Avrcp {
             mCurrentPosMs = getPlayPosition();
         }
 
+        if ((state == RemoteControlClient.PLAYSTATE_PLAYING) && (mCurrentPlayState != state)) {
+            mPlayStartTimeMs = SystemClock.elapsedRealtime();
+            Log.d(TAG, "Update mPlayStartTimeMs to " + mPlayStartTimeMs);
+        }
+
         mCurrentPlayState = state;
 
         if (mMediaPlayers.size() > 0) {
@@ -852,11 +857,14 @@ final class Avrcp {
             }
         }
 
-        if (currentPosMs != RemoteControlClient.PLAYBACK_POSITION_INVALID) {
-            mCurrentPosMs = currentPosMs;
-        }
-        if (state == RemoteControlClient.PLAYSTATE_PLAYING) {
-            mPlayStartTimeMs = SystemClock.elapsedRealtime();
+        if (!(RemoteControlClient.PLAYSTATE_PLAYING == mCurrentPlayState &&
+              mCurrentPlayState == state && mCurrentPosMs == currentPosMs)) {
+            if (currentPosMs != RemoteControlClient.PLAYBACK_POSITION_INVALID) {
+                mCurrentPosMs = currentPosMs;
+                mPlayStartTimeMs = SystemClock.elapsedRealtime();
+                Log.d(TAG, "Update mPlayStartTimeMs: " + mPlayStartTimeMs + " mCurrentPosMs: "
+                                                                                + mCurrentPosMs);
+            }
         }
 
         boolean newPosValid = (mCurrentPosMs !=
