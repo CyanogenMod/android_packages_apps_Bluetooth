@@ -25,11 +25,11 @@ import android.bluetooth.IBluetoothGatt;
 import android.bluetooth.IBluetoothGattCallback;
 import android.bluetooth.IBluetoothGattServerCallback;
 import android.bluetooth.le.AdvertiseCallback;
-import android.bluetooth.le.AdvertisementData;
 import android.bluetooth.le.AdvertiseSettings;
-import android.bluetooth.le.ScanSettings;
+import android.bluetooth.le.AdvertisementData;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.Intent;
 import android.os.IBinder;
 import android.os.Message;
@@ -39,6 +39,7 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.internal.R;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -88,9 +89,6 @@ public class GattService extends ProfileService {
     static final int SCAN_FILTER_ENABLED = 1;
     static final int SCAN_FILTER_MODIFIED = 2;
 
-    // TODO: query the number from hardware instead of hard-coded here.
-    private static final int MAX_FILTER_SIZE = 1;
-
     /**
      * Search queue to serialize remote onbject inspection.
      */
@@ -123,6 +121,7 @@ public class GattService extends ProfileService {
     private Integer mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STOPPED;
     private final Object mLock = new Object();
     private static int lastConfiguredDutyCycle = 0;
+    private int mMaxScanFilters;
 
     /**
      * Pending service declaration queue
@@ -205,6 +204,7 @@ public class GattService extends ProfileService {
         if (DBG) Log.d(TAG, "start()");
         initializeNative();
         mStateMachine = GattServiceStateMachine.make(this);
+        mMaxScanFilters = getResources().getInteger(R.integer.config_bluetooth_max_scan_filters);
         return true;
     }
 
@@ -1254,12 +1254,17 @@ public class GattService extends ProfileService {
                 mScanQueue.add(new ScanClient(appIf, isServer, settings, filters));
             }
             Set<ScanFilter> newFilters = configureScanFiltersLocked();
-            if (!Objects.deepEquals(newFilters, mScanFilters)) {
-                mScanFilters = newFilters;
-                // Restart scan using new filters.
-                if (isScaning) {
+            if (isScaning) {
+                // Reset scan filters if BLE scan was started and scan filters changed.
+                if (!Objects.deepEquals(newFilters, mScanFilters)) {
+                    mScanFilters = newFilters;
+                    // Restart scan using new filters.
                     sendStopScanMessage();
+                    sendStartScanMessage(mScanFilters);
                 }
+            } else {
+                // Always start scanning with new filters if scan not started yet.
+                mScanFilters = newFilters;
                 sendStartScanMessage(mScanFilters);
             }
         }
@@ -1322,11 +1327,18 @@ public class GattService extends ProfileService {
             filters.addAll(client.filters);
         }
         // TODO: find a better way to handle too many filters.
-        if (filters.size() > MAX_FILTER_SIZE) {
-            if (DBG) Log.d(TAG, "filters size > " + MAX_FILTER_SIZE + ", clearing filters");
+        if (filters.size() > mMaxScanFilters) {
+            if (DBG) Log.d(TAG, "filters size > " + mMaxScanFilters + ", clearing filters");
             filters = new HashSet<ScanFilter>();
         }
         return filters;
+    }
+
+    /**
+     * Returns whether scan filter is supported.
+     */
+    boolean isScanFilterSupported() {
+        return mMaxScanFilters > 0;
     }
 
     private void sendStartScanMessage(Set<ScanFilter> filters) {
