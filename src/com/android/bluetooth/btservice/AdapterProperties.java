@@ -531,11 +531,11 @@ class AdapterProperties {
                         break;
 
                     case AbstractionLayer.BT_PROPERTY_LOCAL_LE_FEATURES:
-                        mNumOfAdvertisementInstancesSupported = val[1];
-                        mRpaOffloadSupported = (val[2] != 0);
-                        mNumOfOffloadedIrkSupported = val[3];
-                        mNumOfOffloadedScanFilterSupported = val[4];
-                        mOffloadedScanResultStorageBytes = val[5];
+                        mNumOfAdvertisementInstancesSupported = (0x000000FF & ((int)val[1]));
+                        mRpaOffloadSupported = ((0x000000FF & ((int)val[2]))!= 0);
+                        mNumOfOffloadedIrkSupported =  (0x000000FF & ((int)val[3]));
+                        mNumOfOffloadedScanFilterSupported = (0x000000FF & ((int)val[4]));
+                        mOffloadedScanResultStorageBytes = (0x000000FF & ((int)val[5]));
 
                         Log.d(TAG, "BT_PROPERTY_LOCAL_LE_FEATURES: update from BT controller"
                                       + " mNumOfAdvertisementInstancesSupported = " + mNumOfAdvertisementInstancesSupported
@@ -544,6 +544,7 @@ class AdapterProperties {
                                       + " mNumOfOffloadedScanFilterSupported = "
                                       + mNumOfOffloadedScanFilterSupported
                                       + " mOffloadedScanResultStorageBytes = " + mOffloadedScanResultStorageBytes);
+
                         break;
 
                     default:
