@@ -463,7 +463,7 @@ static void bt_wakelock_control_callback(int acquire) {
         else {
             sp<IBinder> binder = new BBinder();
             if (NO_ERROR == sPm->acquireWakeLock(POWERMANAGER_PARTIAL_WAKE_LOCK, binder,
-                                               String16("TimerWakelock"), String16("Bluetooth")))
+                                               String16("TimerWakelock"), String16("com.android.bluetooth")))
                 sWakelock = binder;
         }
     } else {
