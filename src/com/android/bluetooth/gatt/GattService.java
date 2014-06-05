@@ -38,6 +38,7 @@ import android.os.RemoteException;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.R;
 
@@ -121,7 +122,6 @@ public class GattService extends ProfileService {
     private Integer mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STOPPED;
     private final Object mLock = new Object();
     private static int lastConfiguredDutyCycle = 0;
-    private int mMaxScanFilters;
 
     /**
      * Pending service declaration queue
@@ -204,7 +204,6 @@ public class GattService extends ProfileService {
         if (DBG) Log.d(TAG, "start()");
         initializeNative();
         mStateMachine = GattServiceStateMachine.make(this);
-        mMaxScanFilters = getResources().getInteger(R.integer.config_bluetooth_max_scan_filters);
         return true;
     }
 
@@ -1326,9 +1325,11 @@ public class GattService extends ProfileService {
             }
             filters.addAll(client.filters);
         }
-        // TODO: find a better way to handle too many filters.
-        if (filters.size() > mMaxScanFilters) {
-            if (DBG) Log.d(TAG, "filters size > " + mMaxScanFilters + ", clearing filters");
+
+        AdapterService adapter = AdapterService.getAdapterService();
+        if (filters.size() > adapter.getNumOfOffloadedScanFilterSupported()) {
+            if (DBG) Log.d(TAG, "filters size > " + adapter.getNumOfOffloadedScanFilterSupported()
+                    + ", clearing filters");
             filters = new HashSet<ScanFilter>();
         }
         return filters;
@@ -1338,7 +1339,8 @@ public class GattService extends ProfileService {
      * Returns whether scan filter is supported.
      */
     boolean isScanFilterSupported() {
-        return mMaxScanFilters > 0;
+        AdapterService adapter = AdapterService.getAdapterService();
+        return adapter.getNumOfOffloadedScanFilterSupported() > 0;
     }
 
     private void sendStartScanMessage(Set<ScanFilter> filters) {

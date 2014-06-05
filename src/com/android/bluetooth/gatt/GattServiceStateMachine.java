@@ -9,7 +9,7 @@ import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 
-import com.android.internal.R;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
 
@@ -98,7 +98,6 @@ final class GattServiceStateMachine extends StateMachine {
     private final Idle mIdle;
     private final ScanStarting mScanStarting;
     private final AdvertiseStarting mAdvertiseStarting;
-    private final int mMaxAdvertisers;
 
     private GattServiceStateMachine(GattService context) {
         super(TAG);
@@ -117,8 +116,6 @@ final class GattServiceStateMachine extends StateMachine {
 
         // Initial state is idle.
         setInitialState(mIdle);
-        mMaxAdvertisers = mService.getResources().getInteger(
-                R.integer.config_bluetooth_max_advertisers);
     }
 
     /**
@@ -188,7 +185,9 @@ final class GattServiceStateMachine extends StateMachine {
                         transitionTo(mIdle);
                         break;
                     }
-                    if (mAdvertiseClients.size() >= mMaxAdvertisers) {
+                    AdapterService adapter = AdapterService.getAdapterService();
+                    int numOfAdvtInstances = adapter.getNumOfAdvertisementInstancesSupported();
+                    if (mAdvertiseClients.size() >= numOfAdvtInstances) {
                         loge("too many advertisier, current size : " + mAdvertiseClients.size());
                         try {
                             mService.onMultipleAdvertiseCallback(client.clientIf,

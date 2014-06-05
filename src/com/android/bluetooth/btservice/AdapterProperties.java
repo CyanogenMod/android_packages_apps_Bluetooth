@@ -57,6 +57,12 @@ class AdapterProperties {
     private boolean mDiscovering;
     private RemoteDevices mRemoteDevices;
     private BluetoothAdapter mAdapter;
+    //TODO - all hw capabilities to be exposed as a class
+    private int mNumOfAdvertisementInstancesSupported;
+    private boolean mRpaOffloadSupported;
+    private int mNumOfOffloadedIrkSupported;
+    private int mNumOfOffloadedScanFilterSupported;
+    private int mOffloadedScanResultStorageBytes;
 
     // Lock for all getters and setters.
     // If finer grained locking is needer, more locks
@@ -206,6 +212,41 @@ class AdapterProperties {
         /* remove the lock to work around a platform deadlock problem */
         /* and also for read access, it is safe to remove the lock to save CPU power */
         return mState;
+    }
+
+    /**
+     * @return the mNumOfAdvertisementInstancesSupported
+     */
+    int getNumOfAdvertisementInstancesSupported() {
+        return mNumOfAdvertisementInstancesSupported;
+    }
+
+    /**
+     * @return the mRpaOffloadSupported
+     */
+    boolean isRpaOffloadSupported() {
+        return mRpaOffloadSupported;
+    }
+
+    /**
+     * @return the mNumOfOffloadedIrkSupported
+     */
+    int getNumOfOffloadedIrkSupported() {
+        return mNumOfOffloadedIrkSupported;
+    }
+
+    /**
+     * @return the mNumOfOffloadedScanFilterSupported
+     */
+    int getNumOfOffloadedScanFilterSupported() {
+        return mNumOfOffloadedScanFilterSupported;
+    }
+
+    /**
+     * @return the mOffloadedScanResultStorageBytes
+     */
+    int getOffloadedScanResultStorage() {
+        return mOffloadedScanResultStorageBytes;
     }
 
     /**
@@ -489,19 +530,19 @@ class AdapterProperties {
                         break;
 
                     case AbstractionLayer.BT_PROPERTY_LOCAL_LE_FEATURES:
-                        int local_privacy_enabled = val[0];
-                        int max_adv_instance = val [1];
-                        int rpa_offload_supported = val [2];
-                        int max_irk_list_size = val [3];
-                        int max_adv_filter_supported = val[4];
-                        int scan_result_storage_size = val[5];
+                        mNumOfAdvertisementInstancesSupported = val[1];
+                        mRpaOffloadSupported = (val[2] != 0);
+                        mNumOfOffloadedIrkSupported = val[3];
+                        mNumOfOffloadedScanFilterSupported = val[4];
+                        mOffloadedScanResultStorageBytes = val[5];
 
-                        debugLog("BT_PROPERTY_LOCAL_LE_FEATURES: privacy = " +local_privacy_enabled
-                                      + " max adv instance = " + max_adv_instance
-                                      + " rpa_offload_supported = " + rpa_offload_supported
-                                      + " max_irk_list_size = " + max_irk_list_size
-                                      + " max_adv_filter_supported = " + max_adv_filter_supported
-                                      + " scan_result_storage_size = " + scan_result_storage_size);
+                        Log.d(TAG, "BT_PROPERTY_LOCAL_LE_FEATURES: update from BT controller"
+                                      + " mNumOfAdvertisementInstancesSupported = " + mNumOfAdvertisementInstancesSupported
+                                      + " mRpaOffloadSupported = " + mRpaOffloadSupported
+                                      + " mNumOfOffloadedIrkSupported = " + mNumOfOffloadedIrkSupported
+                                      + " mNumOfOffloadedScanFilterSupported = "
+                                      + mNumOfOffloadedScanFilterSupported
+                                      + " mOffloadedScanResultStorageBytes = " + mOffloadedScanResultStorageBytes);
                         break;
 
                     default:

@@ -1410,6 +1410,31 @@ public class AdapterService extends Service {
          mCallbacks.unregister(cb);
       }
 
+    public int getNumOfAdvertisementInstancesSupported() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return mAdapterProperties.getNumOfAdvertisementInstancesSupported();
+    }
+
+    public boolean isRpaOffloadSupported() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return mAdapterProperties.isRpaOffloadSupported();
+    }
+
+    public int getNumOfOffloadedIrkSupported() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return mAdapterProperties.getNumOfOffloadedIrkSupported();
+    }
+
+    public int getNumOfOffloadedScanFilterSupported() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return mAdapterProperties.getNumOfOffloadedScanFilterSupported();
+    }
+
+      public int getOffloadedScanResultStorage() {
+          enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+          return mAdapterProperties.getOffloadedScanResultStorage();
+      }
+
     private static int convertScanModeToHal(int mode) {
         switch (mode) {
             case BluetoothAdapter.SCAN_MODE_NONE:
