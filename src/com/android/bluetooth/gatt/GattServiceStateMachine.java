@@ -2,13 +2,14 @@
 package com.android.bluetooth.gatt;
 
 import android.bluetooth.le.AdvertiseCallback;
-import android.bluetooth.le.AdvertisementData;
 import android.bluetooth.le.AdvertiseSettings;
+import android.bluetooth.le.AdvertisementData;
 import android.bluetooth.le.ScanFilter;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 
+import com.android.internal.R;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
 
@@ -54,9 +55,6 @@ final class GattServiceStateMachine extends StateMachine {
     static final int ADD_SCAN_FILTER = 16;
     static final int ENABLE_SCAN_FILTER = 17;
 
-    // TODO: This should be queried from hardware.
-    private final int MAX_ADVERTISERS = 4;
-
     // TODO: Remove this once stack callback is stable.
     private static final int OPERATION_TIMEOUT = 101;
     private static final int TIMEOUT_MILLIS = 3000;
@@ -100,6 +98,7 @@ final class GattServiceStateMachine extends StateMachine {
     private final Idle mIdle;
     private final ScanStarting mScanStarting;
     private final AdvertiseStarting mAdvertiseStarting;
+    private final int mMaxAdvertisers;
 
     private GattServiceStateMachine(GattService context) {
         super(TAG);
@@ -118,6 +117,8 @@ final class GattServiceStateMachine extends StateMachine {
 
         // Initial state is idle.
         setInitialState(mIdle);
+        mMaxAdvertisers = mService.getResources().getInteger(
+                R.integer.config_bluetooth_max_advertisers);
     }
 
     /**
@@ -159,7 +160,12 @@ final class GattServiceStateMachine extends StateMachine {
                 case START_BLE_SCAN:
                     // TODO: check whether scan is already started for the app.
                     // Send the enable scan message to starting state for processing.
-                    Message newMessage = obtainMessage(CLEAR_SCAN_FILTER);
+                    Message newMessage;
+                    if (mService.isScanFilterSupported()) {
+                        newMessage = obtainMessage(CLEAR_SCAN_FILTER);
+                    } else {
+                        newMessage = obtainMessage(ENABLE_BLE_SCAN);
+                    }
                     newMessage.obj = message.obj;
                     sendMessage(newMessage);
                     transitionTo(mScanStarting);
@@ -182,7 +188,7 @@ final class GattServiceStateMachine extends StateMachine {
                         transitionTo(mIdle);
                         break;
                     }
-                    if (mAdvertiseClients.size() >= MAX_ADVERTISERS) {
+                    if (mAdvertiseClients.size() >= mMaxAdvertisers) {
                         loge("too many advertisier, current size : " + mAdvertiseClients.size());
                         try {
                             mService.onMultipleAdvertiseCallback(client.clientIf,
@@ -279,7 +285,9 @@ final class GattServiceStateMachine extends StateMachine {
                     break;
                 case ENABLE_BLE_SCAN:
                     gattClientScanNative(true);
-                    removeMessages(OPERATION_TIMEOUT);
+                    if (mService.isScanFilterSupported()) {
+                        removeMessages(OPERATION_TIMEOUT);
+                    }
                     transitionTo(mIdle);
                     break;
                 case OPERATION_TIMEOUT:
