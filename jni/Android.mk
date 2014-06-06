@@ -9,6 +9,7 @@ LOCAL_SRC_FILES:= \
     com_android_bluetooth_a2dp.cpp \
     com_android_bluetooth_a2dp_sink.cpp \
     com_android_bluetooth_avrcp.cpp \
+    com_android_bluetooth_avrcp_controller.cpp \
     com_android_bluetooth_hid.cpp \
     com_android_bluetooth_hdp.cpp \
     com_android_bluetooth_pan.cpp \

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.a2dp;
+package com.android.bluetooth.avrcp;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothA2dp;
+import android.bluetooth.BluetoothAvrcp;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -50,16 +51,12 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothProfile;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothA2dp;
 
 /**
  * support Bluetooth AVRCP profile.
  * support metadata, play status and event notification
  */
-final class Avrcp {
+public final class Avrcp {
     private static final boolean DEBUG = true;
     private static final String TAG = "Avrcp";
 
@@ -92,15 +89,6 @@ final class Avrcp {
     private int mAbsVolRetryTimes;
     private int mSkipAmount;
 
-    /* AVRC IDs from avrc_defs.h */
-    private static final int AVRC_ID_REWIND = 0x48;
-    private static final int AVRC_ID_FAST_FOR = 0x49;
-    public static final int AVRC_ID_PLAY = 0x44;
-    public static final int AVRC_ID_PAUSE = 0x46;
-    public static final int AVRC_ID_VOL_UP = 0x41;
-    public static final int AVRC_ID_VOL_DOWN = 0x42;
-    public static final int AVRC_ID_STOP = 0x45;
-
     /* BTRC features */
     public static final int BTRC_FEAT_METADATA = 0x01;
     public static final int BTRC_FEAT_ABSOLUTE_VOLUME = 0x02;
@@ -126,11 +114,6 @@ final class Avrcp {
     private static final int MESSAGE_ABS_VOL_TIMEOUT = 9;
     private static final int MESSAGE_FAST_FORWARD = 10;
     private static final int MESSAGE_REWIND = 11;
-
-    private static final int MESSAGE_SEND_PASS_THROUGH_CMD = 2001;
-    private BluetoothDevice mDevice;
-    private int mIsConnected;
-
     private static final int MESSAGE_CHANGE_PLAY_POS = 12;
     private static final int MESSAGE_SET_A2DP_AUDIO_STATE = 13;
     private static final int MSG_UPDATE_STATE = 100;
@@ -150,10 +133,6 @@ final class Avrcp {
     private static final int MAX_ERROR_RETRY_TIMES = 3;
     private static final int AVRCP_MAX_VOL = 127;
     private static final int AVRCP_BASE_VOLUME_STEP = 1;
-
-    private static final int AVRCP_CONNECTED = 1;
-    public  static final int KEY_STATE_PRESSED = 0;
-    public  static final int KEY_STATE_RELEASED = 1;
 
     static {
         classInitNative();
@@ -178,7 +157,6 @@ final class Avrcp {
         mAbsVolRetryTimes = 0;
 
         mContext = context;
-        mIsConnected = 0;
 
         initNative();
 
@@ -198,7 +176,7 @@ final class Avrcp {
                       mRemoteControlDisplay, true);
     }
 
-    static Avrcp make(Context context) {
+    public static Avrcp make(Context context) {
         if (DEBUG) Log.v(TAG, "make");
         Avrcp ar = new Avrcp(context);
         ar.start();
@@ -431,11 +409,6 @@ final class Avrcp {
                 }
                 break;
 
-            case MESSAGE_SEND_PASS_THROUGH_CMD:
-                if (DEBUG) Log.v(TAG, "MESSAGE_SEND_PASS_THROUGH_CMD");
-                sendPassThroughCommandNative(msg.arg1, msg.arg2);
-                break;
-
             case MESSAGE_FAST_FORWARD:
             case MESSAGE_REWIND:
                 int skipAmount;
@@ -622,21 +595,6 @@ final class Avrcp {
         mHandler.sendMessage(msg);
     }
 
-    private void onConnectionStateChanged(int state, byte[] address) {
-        Log.v(TAG, "onConnectionStateChanged");
-        mDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice
-            (Utils.getAddressStringFromByte(address));
-        Intent intent = new Intent(BluetoothA2dp.ACTION_AVRCP_CONNECTION_STATE_CHANGED);
-        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, mIsConnected);
-        intent.putExtra(BluetoothProfile.EXTRA_STATE, state);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
-        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-        mContext.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
-        Log.v(TAG, "Device Address: " + mDevice.getAddress());
-        mIsConnected = state;
-        Log.v(TAG, "mIsConnected: " + mIsConnected);
-    }
-
     private void registerNotification(int eventId, int param) {
         Message msg = mHandler.obtainMessage(MESSAGE_REGISTER_NOTIFICATION, eventId, param);
         mHandler.sendMessage(msg);
@@ -675,28 +633,12 @@ final class Avrcp {
 
     private void handlePassthroughCmd(int id, int keyState) {
         switch (id) {
-            case AVRC_ID_REWIND:
+            case BluetoothAvrcp.PASSTHROUGH_ID_REWIND:
                 rewind(keyState);
                 break;
-            case AVRC_ID_FAST_FOR:
+            case BluetoothAvrcp.PASSTHROUGH_ID_FAST_FOR:
                 fastForward(keyState);
                 break;
-        }
-    }
-
-    private void handlePassthroughRsp(int id, int keyState) {
-        switch (id) {
-            case AVRC_ID_VOL_UP:
-            case AVRC_ID_VOL_DOWN:
-            case AVRC_ID_PLAY:
-            case AVRC_ID_PAUSE:
-            case AVRC_ID_STOP:
-                Log.v(TAG, "passthrough response received as: key: "
-                                        + id + " state: " + keyState);
-                break;
-            default:
-                Log.e(TAG, "Error: unhandled passthrough response received as: key: "
-                                        + id + " state: " + keyState);
         }
     }
 
@@ -848,25 +790,6 @@ final class Avrcp {
         mHandler.removeMessages(MESSAGE_ADJUST_VOLUME);
         Message msg = mHandler.obtainMessage(MESSAGE_SET_ABSOLUTE_VOLUME, avrcpVolume, 0);
         mHandler.sendMessage(msg);
-    }
-
-    public void sendPassThroughCmd(int keyCode, int keyState) {
-        Log.v(TAG, "sendPassThroughCmd");
-        Log.v(TAG, "keyCode: " + keyCode + " keyState: " + keyState);
-        Message msg = mHandler.obtainMessage(MESSAGE_SEND_PASS_THROUGH_CMD, keyCode, keyState);
-        mHandler.sendMessage(msg);
-    }
-
-    public boolean isAvrcpConnected(BluetoothDevice device) {
-        Log.v(TAG, "isAvrcpConnected: " + device.getAddress());
-        if (device.equals(mDevice)) {
-            if (mIsConnected == AVRCP_CONNECTED) {
-                Log.v(TAG, "Connected: true");
-                return true;
-            }
-        }
-        Log.v(TAG, "Connected: false");
-        return false;
     }
 
     /* Called in the native layer as a btrc_callback to return the volume set on the carkit in the
