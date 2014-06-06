@@ -28,80 +28,34 @@ import java.util.UUID;
  * @hide
  */
 /* package */class ScanClient {
-
-    /**
-     * Default scan window value
-     */
-    private static final int LE_SCAN_WINDOW_MS = 100;
-
-    /**
-     * Default scan interval value
-     */
-    private static final int LE_SCAN_INTERVAL_MS = 100;
-
-    /**
-     * Scan params corresponding to scan setting
-     */
-    private static final int SCAN_MODE_LOW_POWER_WINDOW_MS = 500;
-    private static final int SCAN_MODE_LOW_POWER_INTERVAL_MS = 5000;
-    private static final int SCAN_MODE_BALANCED_WINDOW_MS = 1000;
-    private static final int SCAN_MODE_BALANCED_INTERVAL_MS = 5000;
-    private static final int SCAN_MODE_LOW_LATENCY_WINDOW_MS = 2500;
-    private static final int SCAN_MODE_LOW_LATENCY_INTERVAL_MS = 5000;
-
     int appIf;
     boolean isServer;
     UUID[] uuids;
-    int scanWindow, scanInterval;
     ScanSettings settings;
     List<ScanFilter> filters;
+    private static final ScanSettings DEFAULT_SCAN_SETTINGS = new ScanSettings.Builder()
+            .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
 
     ScanClient(int appIf, boolean isServer) {
-        this(appIf, isServer, new UUID[0], LE_SCAN_WINDOW_MS, LE_SCAN_INTERVAL_MS);
+        this(appIf, isServer, new UUID[0], DEFAULT_SCAN_SETTINGS, null);
     }
 
     ScanClient(int appIf, boolean isServer, UUID[] uuids) {
-        this(appIf, isServer, uuids, LE_SCAN_WINDOW_MS, LE_SCAN_INTERVAL_MS);
-    }
-
-    ScanClient(int appIf, boolean isServer, UUID[] uuids, int scanWindow, int scanInterval) {
-        this(appIf, isServer, uuids, scanWindow, scanInterval, null, null);
+        this(appIf, isServer, uuids, DEFAULT_SCAN_SETTINGS, null);
     }
 
     ScanClient(int appIf, boolean isServer, ScanSettings settings,
             List<ScanFilter> filters) {
-        this(appIf, isServer, new UUID[0], LE_SCAN_WINDOW_MS, LE_SCAN_INTERVAL_MS,
-                settings, filters);
+        this(appIf, isServer, new UUID[0], settings, filters);
     }
 
-    private ScanClient(int appIf, boolean isServer, UUID[] uuids, int scanWindow, int scanInterval,
-            ScanSettings settings, List<ScanFilter> filters) {
+    private ScanClient(int appIf, boolean isServer, UUID[] uuids, ScanSettings settings,
+            List<ScanFilter> filters) {
         this.appIf = appIf;
         this.isServer = isServer;
         this.uuids = uuids;
-        this.scanWindow = scanWindow;
-        this.scanInterval = scanInterval;
         this.settings = settings;
         this.filters = filters;
-        if (settings != null) {
-            switch (settings.getScanMode()) {
-                case ScanSettings.SCAN_MODE_LOW_POWER:
-                    this.scanWindow = SCAN_MODE_LOW_POWER_WINDOW_MS;
-                    this.scanInterval = SCAN_MODE_LOW_POWER_INTERVAL_MS;
-                    break;
-                case ScanSettings.SCAN_MODE_BALANCED:
-                    this.scanWindow = SCAN_MODE_BALANCED_WINDOW_MS;
-                    this.scanInterval = SCAN_MODE_BALANCED_INTERVAL_MS;
-                    break;
-                case ScanSettings.SCAN_MODE_LOW_LATENCY:
-                    this.scanWindow = SCAN_MODE_LOW_LATENCY_WINDOW_MS;
-                    this.scanInterval = SCAN_MODE_LOW_LATENCY_INTERVAL_MS;
-                    break;
-                default:
-                    this.scanWindow = SCAN_MODE_BALANCED_WINDOW_MS;
-                    this.scanInterval = SCAN_MODE_BALANCED_INTERVAL_MS;
-                    break;
-            }
-        }
+
     }
 }
