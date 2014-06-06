@@ -91,6 +91,16 @@ public class GattService extends ProfileService {
     static final int SCAN_FILTER_MODIFIED = 2;
 
     /**
+     * Scan params corresponding to scan setting
+     */
+    private static final int SCAN_MODE_LOW_POWER_WINDOW_MS = 500;
+    private static final int SCAN_MODE_LOW_POWER_INTERVAL_MS = 5000;
+    private static final int SCAN_MODE_BALANCED_WINDOW_MS = 2000;
+    private static final int SCAN_MODE_BALANCED_INTERVAL_MS = 5000;
+    private static final int SCAN_MODE_LOW_LATENCY_WINDOW_MS = 5000;
+    private static final int SCAN_MODE_LOW_LATENCY_INTERVAL_MS = 5000;
+
+    /**
      * Search queue to serialize remote onbject inspection.
      */
     SearchQueue mSearchQueue = new SearchQueue();
@@ -121,7 +131,8 @@ public class GattService extends ProfileService {
     private byte[] mManufacturerData = new byte[0];
     private Integer mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STOPPED;
     private final Object mLock = new Object();
-    private static int lastConfiguredDutyCycle = 0;
+    private static int lastConfiguredScanSetting = Integer.MIN_VALUE;
+    private int mMaxScanFilters;
 
     /**
      * Pending service declaration queue
@@ -329,18 +340,6 @@ public class GattService extends ProfileService {
                 uuids[i] = ids[i].getUuid();
             }
             service.startScanWithUuids(appIf, isServer, uuids);
-        }
-
-        public void startScanWithUuidsScanParam(int appIf, boolean isServer,
-                ParcelUuid[] ids, int scanWindow, int scanInterval) {
-            GattService service = getService();
-            if (service == null) return;
-            UUID[] uuids = new UUID[ids.length];
-            for(int i = 0; i < ids.length; ++i) {
-                uuids[i] = ids[i].getUuid();
-            }
-            service.startScanWithUuidsScanParam(appIf, isServer, uuids,
-                    scanWindow, scanInterval);
         }
 
         @Override
@@ -1225,21 +1224,6 @@ public class GattService extends ProfileService {
         configureScanParams();
     }
 
-    void startScanWithUuidsScanParam(int appIf, boolean isServer, UUID[] uuids,
-                int scanWindow, int scanInterval) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-
-        if (DBG) Log.d(TAG, "startScanWithUuidsScanParam() - queue=" + mScanQueue.size());
-
-        if (getScanClient(appIf, isServer) == null) {
-            if (DBG) Log.d(TAG, "startScanWithUuidsScanParam() - adding client=" + appIf
-                            + " scanWindow=" + scanWindow + " scanInterval=" + scanInterval);
-            mScanQueue.add(new ScanClient(appIf, isServer, uuids, scanWindow, scanInterval));
-        }
-
-        configureScanParams();
-    }
-
     void startScanWithFilters(int appIf, boolean isServer, ScanSettings settings,
             List<ScanFilter> filters) {
         if (DBG) Log.d(TAG, "start scan with filters " + filters.size());
@@ -1271,33 +1255,48 @@ public class GattService extends ProfileService {
 
     void configureScanParams() {
         if (DBG) Log.d(TAG, "configureScanParams() - queue=" + mScanQueue.size());
-
-        int scanWindow = 0, scanInterval = 0;
-        int curDutyCycle = 0;
+        int curScanSetting = Integer.MIN_VALUE;
 
         for(ScanClient client : mScanQueue) {
-            // Pick the highest duty cycle - most stressful on battery
-            int newDutyCycle = (client.scanWindow * 100)/client.scanInterval;
-            if (newDutyCycle > curDutyCycle && newDutyCycle <= 100) {
-                curDutyCycle = newDutyCycle;
-                scanWindow = client.scanWindow;
-                scanInterval = client.scanInterval;
+            // ScanClient scan settings are assumed to be monotonically increasing in value for more
+            // power hungry(higher duty cycle) operation
+            if (client.settings.getScanMode() > curScanSetting) {
+                curScanSetting = client.settings.getScanMode();
             }
         }
 
-        if (DBG) Log.d(TAG, "configureScanParams() - dutyCyle=" + curDutyCycle +
-                    " scanWindow=" + scanWindow + " scanInterval=" + scanInterval +
-                    " lastConfiguredDutyCycle=" + lastConfiguredDutyCycle);
+        if (DBG) Log.d(TAG, "configureScanParams() - ScanSetting Scan mode=" + curScanSetting +
+                    " lastConfiguredScanSetting=" + lastConfiguredScanSetting);
 
-        if (curDutyCycle != 0) {
-            if (curDutyCycle != lastConfiguredDutyCycle) {
+        if (curScanSetting != Integer.MIN_VALUE) {
+            if (curScanSetting != lastConfiguredScanSetting) {
+                int scanWindow, scanInterval;
+                switch (curScanSetting){
+                    case ScanSettings.SCAN_MODE_LOW_POWER:
+                        scanWindow = SCAN_MODE_LOW_POWER_WINDOW_MS;
+                        scanInterval = SCAN_MODE_LOW_POWER_INTERVAL_MS;
+                        break;
+                    case ScanSettings.SCAN_MODE_BALANCED:
+                        scanWindow = SCAN_MODE_BALANCED_WINDOW_MS;
+                        scanInterval = SCAN_MODE_BALANCED_INTERVAL_MS;
+                        break;
+                    case ScanSettings.SCAN_MODE_LOW_LATENCY:
+                        scanWindow = SCAN_MODE_LOW_LATENCY_WINDOW_MS;
+                        scanInterval = SCAN_MODE_LOW_LATENCY_INTERVAL_MS;
+                        break;
+                    default:
+                        Log.e(TAG, "Invalid value for curScanSetting " + curScanSetting);
+                        scanWindow = SCAN_MODE_LOW_POWER_WINDOW_MS;
+                        scanInterval = SCAN_MODE_LOW_POWER_INTERVAL_MS;
+                        break;
+                }
                 // convert scanWindow and scanInterval from ms to LE scan units(0.625ms)
                 scanWindow = (scanWindow * 1000)/625;
                 scanInterval = (scanInterval * 1000)/625;
                 // Presence of scan clients means scan is active.
                 sendStopScanMessage();
                 gattSetScanParametersNative(scanInterval, scanWindow);
-                lastConfiguredDutyCycle = curDutyCycle;
+                lastConfiguredScanSetting = curScanSetting;
                 mScanFilters.clear();
                 sendStartScanMessage(mScanFilters);
             } else {
@@ -1309,7 +1308,7 @@ public class GattService extends ProfileService {
                 }
             }
         } else {
-            lastConfiguredDutyCycle = curDutyCycle;
+            lastConfiguredScanSetting = curScanSetting;
             mScanFilters.clear();
             sendStopScanMessage();
             if (DBG) Log.d(TAG, "configureScanParams() - queue emtpy, scan stopped");
