@@ -1117,7 +1117,12 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
     }
 
     if ((status = android::register_com_android_bluetooth_a2dp(e)) < 0) {
-        ALOGE("jni a2dp registration failure: %d", status);
+        ALOGE("jni a2dp source registration failure: %d", status);
+        return JNI_ERR;
+    }
+
+    if ((status = android::register_com_android_bluetooth_a2dp_sink(e)) < 0) {
+        ALOGE("jni a2dp sink registration failure: %d", status);
         return JNI_ERR;
     }
 

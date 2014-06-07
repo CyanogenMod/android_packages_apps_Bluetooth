@@ -265,6 +265,14 @@
         </service>
         <service
             android:process="@string/process"
+            android:name = ".a2dp.A2dpSinkService"
+            android:enabled="@bool/profile_supported_a2dp_sink">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothA2dpSink" />
+            </intent-filter>
+        </service>
+        <service
+            android:process="@string/process"
             android:name = ".hid.HidService"
             android:enabled="@bool/profile_supported_hid">
             <intent-filter>
