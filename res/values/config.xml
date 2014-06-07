@@ -14,6 +14,7 @@
 -->
 <resources>
     <bool name="profile_supported_a2dp">true</bool>
+    <bool name="profile_supported_a2dp_sink">false</bool>
     <bool name="profile_supported_hdp">true</bool>
     <bool name="profile_supported_hs_hfp">true</bool>
     <bool name="profile_supported_hfpclient">false</bool>

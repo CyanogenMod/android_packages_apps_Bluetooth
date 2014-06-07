@@ -25,6 +25,7 @@ import android.util.Log;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.a2dp.A2dpService;
+import com.android.bluetooth.a2dp.A2dpSinkService;
 import com.android.bluetooth.hdp.HealthService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfpclient.HandsfreeClientService;
@@ -44,6 +45,7 @@ public class Config {
     private static final Class[] PROFILE_SERVICES = {
         HeadsetService.class,
         A2dpService.class,
+        A2dpSinkService.class,
         HidService.class,
         HealthService.class,
         PanService.class,
@@ -57,6 +59,7 @@ public class Config {
     private static final int[]  PROFILE_SERVICES_FLAG = {
         R.bool.profile_supported_hs_hfp,
         R.bool.profile_supported_a2dp,
+        R.bool.profile_supported_a2dp_sink,
         R.bool.profile_supported_hid,
         R.bool.profile_supported_hdp,
         R.bool.profile_supported_pan,
