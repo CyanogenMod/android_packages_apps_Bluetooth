@@ -789,6 +789,14 @@ public class AdapterService extends Service {
             return service.getBondState(device);
         }
 
+        public boolean isConnected(BluetoothDevice device) {
+            AdapterService service = getService();
+            if (service == null) {
+                return false;
+            }
+            return service.isConnected(device);
+        }
+
         public String getRemoteName(BluetoothDevice device) {
             if (!Utils.checkCaller()) {
                 Log.w(TAG,"getRemoteName(): not allowed for non-active user");
@@ -1277,6 +1285,14 @@ public class AdapterService extends Service {
             return BluetoothDevice.BOND_NONE;
         }
         return deviceProp.getBondState();
+    }
+
+    boolean isConnected(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp == null) return false;
+        return deviceProp.getOpenAclConnectionCount() > 0;
     }
 
      String getRemoteName(BluetoothDevice device) {
