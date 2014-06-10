@@ -1234,8 +1234,7 @@ public class AdapterService extends Service {
                 isConnectionTimeoutDelayed = true;
             }
         }
-        if ((mHandler.hasMessages(MESSAGE_CONNECT_OTHER_PROFILES) == false) &&
-            (isQuietModeEnabled()== false)){
+        if (mHandler.hasMessages(MESSAGE_CONNECT_OTHER_PROFILES) == false) {
             ParcelUuid[] featureUuids = device.getUuids();
             // Some Carkits disconnect just after pairing,Initiate SDP for missing UUID's support
             if ((!(BluetoothUuid.containsAnyUuid(featureUuids, A2DP_SOURCE_SINK_UUIDS))) ||
