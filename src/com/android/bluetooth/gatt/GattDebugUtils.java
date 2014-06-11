@@ -53,6 +53,7 @@ import java.util.UUID;
     private static final String EXTRA_ADDRESS = "address";
     private static final String EXTRA_UUID = "uuid";
     private static final String EXTRA_TYPE = "type";
+    private static final String EXTRA_ADDR_TYPE = "addr_type";
     private static final String EXTRA_SHANDLE = "start";
     private static final String EXTRA_EHANDLE = "end";
     private static final String EXTRA_AUTH_REQ = "auth_req";
@@ -107,7 +108,8 @@ import java.util.UUID;
         } else if (ACTION_GATT_TEST_CONNECT.equals(action)) {
             String address = intent.getStringExtra(EXTRA_ADDRESS);
             int type = intent.getIntExtra(EXTRA_TYPE, 2 /* LE device */);
-            svc.gattTestCommand( 0x02, null, address, type, 0,0,0,0);
+            int addr_type = intent.getIntExtra(EXTRA_ADDR_TYPE, 0 /* Static */);
+            svc.gattTestCommand( 0x02, null, address, type, addr_type, 0,0,0);
 
         } else if (ACTION_GATT_TEST_DISCONNECT.equals(action)) {
             svc.gattTestCommand( 0x03, null, null, 0,0,0,0,0);
@@ -181,6 +183,9 @@ import java.util.UUID;
         b.append("\n                       defaults to true (enable).\n");
         b.append("\nGATT_TEST_CONNECT");
         b.append("\n   --es address <bda>");
+        b.append("\n  [--ei addr_type <type>] Possible values:");
+        b.append("\n                         0 = Static (default)");
+        b.append("\n                         1 = Random\n");
         b.append("\n  [--ei type <type>]   Default is 2 (LE Only)\n");
         b.append("\nGATT_TEST_DISCONNECT\n");
         b.append("\nGATT_TEST_DISCOVER");
