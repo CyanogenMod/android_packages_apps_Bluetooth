@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "BluetoothHandsfreeClientServiceJni"
+#define LOG_TAG "BluetoothHeadsetClientServiceJni"
 #define LOG_NDEBUG 0
 
 #include "com_android_bluetooth.h"
@@ -607,7 +607,7 @@ static JNINativeMethod sMethods[] = {
 
 int register_com_android_bluetooth_hfpclient(JNIEnv* env)
 {
-    return jniRegisterNativeMethods(env, "com/android/bluetooth/hfpclient/HandsfreeClientStateMachine",
+    return jniRegisterNativeMethods(env, "com/android/bluetooth/hfpclient/HeadsetClientStateMachine",
                                     sMethods, NELEM(sMethods));
 }
 
