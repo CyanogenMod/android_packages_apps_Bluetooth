@@ -447,6 +447,9 @@ static void le_test_mode_recv_callback (bt_status_t status, uint16_t packet_coun
 static void bt_wakelock_control_callback(int acquire) {
     static sp<IPowerManager> sPm = NULL;
     static sp<IBinder> sWakelock = NULL;
+    static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+    pthread_mutex_lock(&mutex);
 
     if (sPm == NULL) {
         sp<IBinder> binder = defaultServiceManager()->checkService(String16("power"));
@@ -454,7 +457,7 @@ static void bt_wakelock_control_callback(int acquire) {
 
         if (sPm == NULL) {
             ALOGE("Unable to get a hold of PowerManager. Bluetooth wakelocks will not function");
-            return;
+            goto out;
         }
     }
     if (acquire) {
@@ -474,6 +477,8 @@ static void bt_wakelock_control_callback(int acquire) {
             sWakelock.clear();
         }
     }
+out:
+    pthread_mutex_unlock(&mutex);
 }
 
 bt_callbacks_t sBluetoothCallbacks = {
