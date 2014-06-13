@@ -20,4 +20,4 @@ LOCAL_PROGUARD_ENABLED := disabled
 
 include $(BUILD_PACKAGE)
 
-include $(call all-makefiles-under,$(LOCAL_PATH))
+#include $(call all-makefiles-under,$(LOCAL_PATH))
