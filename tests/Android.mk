@@ -15,5 +15,4 @@ LOCAL_PACKAGE_NAME := BluetoothProfileTests
 
 LOCAL_INSTRUMENTATION_FOR := Bluetooth
 
-include $(BUILD_PACKAGE)
-
+#include $(BUILD_PACKAGE)
