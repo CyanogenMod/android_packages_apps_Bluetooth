@@ -107,11 +107,9 @@ final class RemoteDevices {
         private int mDeviceType;
         private String mAlias;
         private int mBondState;
-        private AtomicInteger mOpenAclConnectionCount;
 
         DeviceProperties() {
             mBondState = BluetoothDevice.BOND_NONE;
-            mOpenAclConnectionCount = new AtomicInteger(0);
         }
 
         /**
@@ -211,10 +209,6 @@ final class RemoteDevices {
             synchronized (mObject) {
                 return mBondState;
             }
-        }
-
-        int getOpenAclConnectionCount() {
-            return mOpenAclConnectionCount.get();
         }
     }
 
@@ -415,7 +409,6 @@ final class RemoteDevices {
             return;
         }
 
-        int openAclConnectionCount;
         DeviceProperties prop = getDeviceProperties(device);
         if (prop == null) {
             errorLog("aclStateChangeCallback reported unknown device " + Arrays.toString(address));
@@ -424,15 +417,9 @@ final class RemoteDevices {
         if (newState == AbstractionLayer.BT_ACL_STATE_CONNECTED) {
             intent = new Intent(BluetoothDevice.ACTION_ACL_CONNECTED);
             debugLog("aclStateChangeCallback: State:Connected to Device:" + device);
-            if (prop != null) {
-                prop.mOpenAclConnectionCount.incrementAndGet();
-            }
         } else {
             intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
             debugLog("aclStateChangeCallback: State:DisConnected to Device:" + device);
-            if (prop != null) {
-                prop.mOpenAclConnectionCount.decrementAndGet();
-            }
         }
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
