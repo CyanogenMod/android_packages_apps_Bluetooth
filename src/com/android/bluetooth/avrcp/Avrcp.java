@@ -29,6 +29,8 @@ import android.media.AudioManager;
 import android.media.IRemoteControlDisplay;
 import android.media.MediaMetadataRetriever;
 import android.media.RemoteControlClient;
+import android.media.RemoteController;
+import android.media.RemoteController.MetadataEditor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -41,12 +43,14 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.util.Log;
+
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
 import com.android.internal.util.IState;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,8 +67,8 @@ public final class Avrcp {
     private Context mContext;
     private final AudioManager mAudioManager;
     private AvrcpMessageHandler mHandler;
-    private IRemoteControlDisplayWeak mRemoteControlDisplay;
-    private int mClientGeneration;
+    private RemoteController mRemoteController;
+    private RemoteControllerWeak mRemoteControllerCb;
     private Metadata mMetadata;
     private int mTransportControlFlags;
     private int mCurrentPlayState;
@@ -119,7 +123,6 @@ public final class Avrcp {
     private static final int MSG_UPDATE_STATE = 100;
     private static final int MSG_SET_METADATA = 101;
     private static final int MSG_SET_TRANSPORT_CONTROLS = 102;
-    private static final int MSG_SET_ARTWORK = 103;
     private static final int MSG_SET_GENERATION_ID = 104;
 
     private static final int BUTTON_TIMEOUT_TIME = 2000;
@@ -170,10 +173,10 @@ public final class Avrcp {
         thread.start();
         Looper looper = thread.getLooper();
         mHandler = new AvrcpMessageHandler(looper);
-        mRemoteControlDisplay = new IRemoteControlDisplayWeak(mHandler);
-        mAudioManager.registerRemoteControlDisplay(mRemoteControlDisplay);
-        mAudioManager.remoteControlDisplayWantsPlaybackPositionSync(
-                      mRemoteControlDisplay, true);
+        mRemoteControllerCb = new RemoteControllerWeak(mHandler);
+        mRemoteController = new RemoteController(mContext, mRemoteControllerCb);
+        mAudioManager.registerRemoteController(mRemoteController);
+        mRemoteController.setSynchronizationMode(RemoteController.POSITION_SYNCHRONIZATION_CHECK);
     }
 
     public static Avrcp make(Context context) {
@@ -189,72 +192,64 @@ public final class Avrcp {
         if (looper != null) {
             looper.quit();
         }
-        mAudioManager.unregisterRemoteControlDisplay(mRemoteControlDisplay);
+        mAudioManager.unregisterRemoteController(mRemoteController);
     }
 
     public void cleanup() {
         cleanupNative();
     }
 
-    private static class IRemoteControlDisplayWeak extends IRemoteControlDisplay.Stub {
-        private WeakReference<Handler> mLocalHandler;
-        IRemoteControlDisplayWeak(Handler handler) {
+    private static class RemoteControllerWeak implements RemoteController.OnClientUpdateListener {
+        private final WeakReference<Handler> mLocalHandler;
+
+        public RemoteControllerWeak(Handler handler) {
             mLocalHandler = new WeakReference<Handler>(handler);
         }
 
         @Override
-        public void setPlaybackState(int generationId, int state, long stateChangeTimeMs,
+        public void onClientChange(boolean clearing) {
+            Handler handler = mLocalHandler.get();
+            if (handler != null) {
+                handler.obtainMessage(MSG_SET_GENERATION_ID,
+                        0, (clearing ? 1 : 0), null).sendToTarget();
+            }
+        }
+
+        @Override
+        public void onClientPlaybackStateUpdate(int state) {
+            // Should never be called with the existing code, but just in case
+            Handler handler = mLocalHandler.get();
+            if (handler != null) {
+                handler.obtainMessage(MSG_UPDATE_STATE, 0, state,
+                        new Long(RemoteControlClient.PLAYBACK_POSITION_INVALID)).sendToTarget();
+            }
+        }
+
+        @Override
+        public void onClientPlaybackStateUpdate(int state, long stateChangeTimeMs,
                 long currentPosMs, float speed) {
             Handler handler = mLocalHandler.get();
             if (handler != null) {
-                handler.obtainMessage(MSG_UPDATE_STATE, generationId, state,
-                                      new Long(currentPosMs)).sendToTarget();
+                handler.obtainMessage(MSG_UPDATE_STATE, 0, state,
+                        new Long(currentPosMs)).sendToTarget();
             }
         }
 
         @Override
-        public void setMetadata(int generationId, Bundle metadata) {
+        public void onClientTransportControlUpdate(int transportControlFlags) {
             Handler handler = mLocalHandler.get();
             if (handler != null) {
-                handler.obtainMessage(MSG_SET_METADATA, generationId, 0, metadata).sendToTarget();
-            }
-        }
-
-        @Override
-        public void setTransportControlInfo(int generationId, int flags, int posCapabilities) {
-            Handler handler = mLocalHandler.get();
-            if (handler != null) {
-                handler.obtainMessage(MSG_SET_TRANSPORT_CONTROLS, generationId, flags)
+                handler.obtainMessage(MSG_SET_TRANSPORT_CONTROLS, 0, transportControlFlags)
                         .sendToTarget();
             }
         }
 
         @Override
-        public void setArtwork(int generationId, Bitmap bitmap) {
-        }
-
-        @Override
-        public void setAllMetadata(int generationId, Bundle metadata, Bitmap bitmap) {
+        public void onClientMetadataUpdate(MetadataEditor metadataEditor) {
             Handler handler = mLocalHandler.get();
             if (handler != null) {
-                handler.obtainMessage(MSG_SET_METADATA, generationId, 0, metadata).sendToTarget();
-                handler.obtainMessage(MSG_SET_ARTWORK, generationId, 0, bitmap).sendToTarget();
+                handler.obtainMessage(MSG_SET_METADATA, 0, 0, metadataEditor).sendToTarget();
             }
-        }
-
-        @Override
-        public void setCurrentClientId(int clientGeneration, PendingIntent mediaIntent,
-                boolean clearing) throws RemoteException {
-            Handler handler = mLocalHandler.get();
-            if (handler != null) {
-                handler.obtainMessage(MSG_SET_GENERATION_ID,
-                    clientGeneration, (clearing ? 1 : 0), mediaIntent).sendToTarget();
-            }
-        }
-
-        @Override
-        public void setEnabled(boolean enabled) {
-            // no-op: this RemoteControlDisplay is not subject to being disabled.
         }
     }
 
@@ -268,27 +263,19 @@ public final class Avrcp {
         public void handleMessage(Message msg) {
             switch (msg.what) {
             case MSG_UPDATE_STATE:
-                if (mClientGeneration == msg.arg1) {
-                    updatePlayPauseState(msg.arg2, ((Long)msg.obj).longValue());
-                }
+                    updatePlayPauseState(msg.arg2, ((Long) msg.obj).longValue());
                 break;
 
             case MSG_SET_METADATA:
-                if (mClientGeneration == msg.arg1) updateMetadata((Bundle) msg.obj);
+                    updateMetadata((MetadataEditor) msg.obj);
                 break;
 
             case MSG_SET_TRANSPORT_CONTROLS:
-                if (mClientGeneration == msg.arg1) updateTransportControls(msg.arg2);
-                break;
-
-            case MSG_SET_ARTWORK:
-                if (mClientGeneration == msg.arg1) {
-                }
+                    updateTransportControls(msg.arg2);
                 break;
 
             case MSG_SET_GENERATION_ID:
                 if (DEBUG) Log.v(TAG, "New genId = " + msg.arg1 + ", clearing = " + msg.arg2);
-                mClientGeneration = msg.arg1;
                 break;
 
             case MESSAGE_GET_RC_FEATURES:
@@ -350,7 +337,7 @@ public final class Avrcp {
                                                     msg.arg2 == AVRC_RSP_CHANGED ||
                                                     msg.arg2 == AVRC_RSP_INTERIM)) {
                     byte absVol = (byte)((byte)msg.arg1 & 0x7f); // discard MSB as it is RFD
-                    notifyVolumeChanged((int)absVol);
+                    notifyVolumeChanged(absVol);
                     mAbsoluteVolume = absVol;
                     long pecentVolChanged = ((long)absVol * 100) / 0x7f;
                     Log.e(TAG, "percent volume changed: " + pecentVolChanged + "%");
@@ -534,19 +521,11 @@ public final class Avrcp {
         }
     }
 
-    private String getMdString(Bundle data, int id) {
-        return data.getString(Integer.toString(id));
-    }
-
-    private long getMdLong(Bundle data, int id) {
-        return data.getLong(Integer.toString(id));
-    }
-
-    private void updateMetadata(Bundle data) {
+    private void updateMetadata(MetadataEditor data) {
         String oldMetadata = mMetadata.toString();
-        mMetadata.artist = getMdString(data, MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST);
-        mMetadata.trackTitle = getMdString(data, MediaMetadataRetriever.METADATA_KEY_TITLE);
-        mMetadata.albumTitle = getMdString(data, MediaMetadataRetriever.METADATA_KEY_ALBUM);
+        mMetadata.artist = data.getString(MediaMetadataRetriever.METADATA_KEY_ARTIST, null);
+        mMetadata.trackTitle = data.getString(MediaMetadataRetriever.METADATA_KEY_TITLE, null);
+        mMetadata.albumTitle = data.getString(MediaMetadataRetriever.METADATA_KEY_ALBUM, null);
         if (!oldMetadata.equals(mMetadata.toString())) {
             mTrackNumber++;
             if (mTrackChangedNT == NOTIFICATION_TYPE_INTERIM) {
@@ -570,7 +549,8 @@ public final class Avrcp {
         }
         if (DEBUG) Log.v(TAG, "mMetadata=" + mMetadata.toString());
 
-        mSongLengthMs = getMdLong(data, MediaMetadataRetriever.METADATA_KEY_DURATION);
+        mSongLengthMs = data.getLong(MediaMetadataRetriever.METADATA_KEY_DURATION,
+                RemoteControlClient.PLAYBACK_POSITION_INVALID);
         if (DEBUG) Log.v(TAG, "duration=" + mSongLengthMs);
     }
 
@@ -591,7 +571,7 @@ public final class Avrcp {
         for (i = 0; i < numAttr; ++i) {
             attrList.add(attrs[i]);
         }
-        Message msg = mHandler.obtainMessage(MESSAGE_GET_ELEM_ATTRS, (int)numAttr, 0, attrList);
+        Message msg = mHandler.obtainMessage(MESSAGE_GET_ELEM_ATTRS, numAttr, 0, attrList);
         mHandler.sendMessage(msg);
     }
 
@@ -656,8 +636,7 @@ public final class Avrcp {
         long currentPosMs = getPlayPosition();
         if (currentPosMs == -1L) return;
         long newPosMs = Math.max(0L, currentPosMs + amount);
-        mAudioManager.setRemoteControlClientPlaybackPosition(mClientGeneration,
-                newPosMs);
+        mRemoteController.seekTo(newPosMs);
     }
 
     private int getSkipMultiplier() {
