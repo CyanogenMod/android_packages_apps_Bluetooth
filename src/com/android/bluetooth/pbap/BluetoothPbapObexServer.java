@@ -252,6 +252,13 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     @Override
+    public int onDelete(final HeaderSet request, final HeaderSet reply) {
+        if (D) Log.d(TAG, "onDelete(): not support PUT request.");
+        notifyUpdateWakeLock();
+        return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
+    }
+
+    @Override
     public int onSetPath(final HeaderSet request, final HeaderSet reply, final boolean backup,
             final boolean create) {
         if (V) logHeader(request);
@@ -374,25 +381,25 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             // we have weak name checking here to provide better
             // compatibility with other devices,although unique name such as
             // "pb.vcf" is required by SIG spec.
-            if (name.contains(PB.subSequence(0, PB.length()))) {
+            if (isNameMatchTarget(name, PB)) {
                 appParamValue.needTag = ContentType.PHONEBOOK;
                 if (D) Log.v(TAG, "download phonebook request");
-            } else if (name.contains(ICH.subSequence(0, ICH.length()))) {
+            } else if (isNameMatchTarget(name, ICH)) {
                 appParamValue.needTag = ContentType.INCOMING_CALL_HISTORY;
                 if (D) Log.v(TAG, "download incoming calls request");
-            } else if (name.contains(OCH.subSequence(0, OCH.length()))) {
+            } else if (isNameMatchTarget(name, OCH)) {
                 appParamValue.needTag = ContentType.OUTGOING_CALL_HISTORY;
                 if (D) Log.v(TAG, "download outgoing calls request");
-            } else if (name.contains(MCH.subSequence(0, MCH.length()))) {
+            } else if (isNameMatchTarget(name, MCH)) {
                 appParamValue.needTag = ContentType.MISSED_CALL_HISTORY;
                 mNeedNewMissedCallsNum = true;
                 if (D) Log.v(TAG, "download missed calls request");
-            } else if (name.contains(CCH.subSequence(0, CCH.length()))) {
+            } else if (isNameMatchTarget(name, CCH)) {
                 appParamValue.needTag = ContentType.COMBINED_CALL_HISTORY;
                 if (D) Log.v(TAG, "download combined calls request");
             } else {
                 Log.w(TAG, "Input name doesn't contain valid info!!!");
-                return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
+                return ResponseCodes.OBEX_HTTP_NOT_FOUND;
             }
         }
 
@@ -415,6 +422,24 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             Log.w(TAG, "unknown type request!!!");
             return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
         }
+    }
+
+    private boolean isNameMatchTarget(String name, String target) {
+        String contentTypeName = name;
+        if (contentTypeName.endsWith(".vcf")) {
+            contentTypeName = contentTypeName
+                    .substring(0, contentTypeName.length() - ".vcf".length());
+        }
+        // There is a test case: Client will send a wrong name "/telecom/pbpb".
+        // So we must use the String between '/' and '/' as a indivisible part
+        // for comparing.
+        String[] nameList = contentTypeName.split("/");
+        for (String subName : nameList) {
+            if (subName.equals(target)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** check whether path is legal */
