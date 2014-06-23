@@ -261,7 +261,7 @@ class AdapterProperties {
 
             try {
                 bondedDeviceList = mBondedDevices.toArray(bondedDeviceList);
-                debugLog("getBondedDevices: length="+bondedDeviceList.length);
+                infoLog("getBondedDevices: length="+bondedDeviceList.length);
                 return bondedDeviceList;
             } catch(ArrayStoreException ee) {
                 errorLog("Error retrieving bonded device array");
@@ -607,7 +607,7 @@ class AdapterProperties {
     }
 
     private void infoLog(String msg) {
-        if (DBG) Log.i(TAG, msg);
+        if (VDBG) Log.i(TAG, msg);
     }
 
     private void debugLog(String msg) {
