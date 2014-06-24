@@ -2633,9 +2633,17 @@ final class HeadsetStateMachine extends StateMachine {
             callState.mNumHeld +" mCallState: " + callState.mCallState);
         log("mNumber: " + callState.mNumber + " mType: " + callState.mType);
         if(!isVirtualCall) {
-            /* Not a Virtual call request. End the virtual call, if running,
-            before sending phoneStateChangeNative to BTIF */
-            terminateScoUsingVirtualVoiceCall();
+            /* Specific handling when HS connects while in Voip call */
+            if (isVirtualCallInProgress() && !isInCall() &&
+                callState.mCallState == HeadsetHalConstants.CALL_STATE_IDLE) {
+                Log.d(TAG, "update btif for Virtual Call active");
+                callState.mNumActive = 1;
+                mPhoneState.setNumActiveCall(callState.mNumActive);
+            } else {
+                /* Not a Virtual call request. End the virtual call, if running,
+                before sending phoneStateChangeNative to BTIF */
+                terminateScoUsingVirtualVoiceCall();
+            }
         }
         if (getCurrentState() != mDisconnected) {
             phoneStateChangeNative(callState.mNumActive, callState.mNumHeld,
