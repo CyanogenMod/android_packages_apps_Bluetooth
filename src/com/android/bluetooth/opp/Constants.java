@@ -82,34 +82,34 @@ public class Constants {
 
     /** the intent that is used for initiating a handover transfer */
     public static final String ACTION_HANDOVER_SEND =
-            "android.btopp.intent.action.HANDOVER_SEND";
+            "android.nfc.handover.intent.action.HANDOVER_SEND";
 
     /** the intent that is used for initiating a multi-uri handover transfer */
     public static final String ACTION_HANDOVER_SEND_MULTIPLE =
-            "android.btopp.intent.action.HANDOVER_SEND_MULTIPLE";
+            "android.nfc.handover.intent.action.HANDOVER_SEND_MULTIPLE";
 
     /** the intent that is used for indicating an incoming transfer*/
     public static final String ACTION_HANDOVER_STARTED =
-            "android.btopp.intent.action.BT_OPP_HANDOVER_STARTED";
+            "android.nfc.handover.intent.action.HANDOVER_STARTED";
 
     /** intent action used to indicate the progress of a handover transfer */
     public static final String ACTION_BT_OPP_TRANSFER_PROGRESS =
-            "android.btopp.intent.action.BT_OPP_TRANSFER_PROGRESS";
+            "android.nfc.handover.intent.action.TRANSFER_PROGRESS";
 
     /** intent action used to indicate the completion of a handover transfer */
     public static final String ACTION_BT_OPP_TRANSFER_DONE =
-            "android.btopp.intent.action.BT_OPP_TRANSFER_DONE";
+            "android.nfc.handover.intent.action.TRANSFER_DONE";
 
     /** intent extra used to indicate the success of a handover transfer */
     public static final String EXTRA_BT_OPP_TRANSFER_STATUS =
-            "android.btopp.intent.extra.BT_OPP_TRANSFER_STATUS";
+            "android.nfc.handover.intent.extra.TRANSFER_STATUS";
 
     /** intent extra used to indicate the address associated with the transfer */
     public static final String EXTRA_BT_OPP_ADDRESS =
-            "android.btopp.intent.extra.BT_OPP_ADDRESS";
+            "android.nfc.handover.intent.extra.ADDRESS";
 
     public static final String EXTRA_BT_OPP_OBJECT_COUNT =
-            "android.btopp.intent.extra.BT_OPP_OBJECT_COUNT";
+            "android.nfc.handover.intent.extra.OBJECT_COUNT";
 
     public static final int COUNT_HEADER_UNAVAILABLE = -1;
     public static final int HANDOVER_TRANSFER_STATUS_SUCCESS = 0;
@@ -118,7 +118,7 @@ public class Constants {
 
     /** intent extra used to indicate the direction of a handover transfer */
     public static final String EXTRA_BT_OPP_TRANSFER_DIRECTION =
-            "android.btopp.intent.extra.BT_OPP_TRANSFER_DIRECTION";
+            "android.nfc.handover.intent.extra.TRANSFER_DIRECTION";
 
     public static final int DIRECTION_BLUETOOTH_INCOMING = 0;
 
@@ -126,25 +126,25 @@ public class Constants {
 
     /** intent extra used to provide a unique ID for the transfer */
     public static final String EXTRA_BT_OPP_TRANSFER_ID =
-            "android.btopp.intent.extra.BT_OPP_TRANSFER_ID";
+            "android.nfc.handover.intent.extra.TRANSFER_ID";
 
     /** intent extra used to provide progress of the transfer */
     public static final String EXTRA_BT_OPP_TRANSFER_PROGRESS =
-            "android.btopp.intent.extra.BT_OPP_TRANSFER_PROGRESS";
+            "android.nfc.handover.intent.extra.TRANSFER_PROGRESS";
 
     /** intent extra used to provide the Uri where the data was stored
      * by the handover transfer */
     public static final String EXTRA_BT_OPP_TRANSFER_URI =
-            "android.btopp.intent.extra.BT_OPP_TRANSFER_URI";
+            "android.nfc.handover.intent.extra.TRANSFER_URI";
 
     /** intent extra used to provide the mime-type of the data in
      *  the handover transfer */
     public static final String EXTRA_BT_OPP_TRANSFER_MIMETYPE =
-            "android.btopp.intent.extra.BT_OPP_TRANSFER_MIMETYPE";
+            "android.nfc.handover.intent.extra.TRANSFER_MIME_TYPE";
 
     /** permission needed to be able to receive handover status requests */
     public static final String HANDOVER_STATUS_PERMISSION =
-            "com.android.permission.HANDOVER_STATUS";
+            "android.permission.NFC_HANDOVER_STATUS";
 
     /** intent extra that indicates this transfer is a handover from another
       * transport (NFC, WIFI)

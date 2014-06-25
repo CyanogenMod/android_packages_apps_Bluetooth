@@ -17,12 +17,6 @@
         android:description="@string/permdesc_bluetoothWhitelist"
         android:protectionLevel="signature" />
 
-    <!--  Allows receiving handover status broadcasts from Bluetooth -->,
-    <permission android:name="com.android.permission.HANDOVER_STATUS"
-        android:label="@string/permlab_handoverStatus"
-        android:description="@string/permdesc_handoverStatus"
-        android:protectionLevel="signature" />
-
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.ACCESS_BLUETOOTH_SHARE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -35,7 +29,7 @@
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
-    <uses-permission android:name="com.android.permission.HANDOVER_STATUS" />
+    <uses-permission android:name="android.permission.NFC_HANDOVER_STATUS" />
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
     <uses-permission android:name="android.permission.WRITE_APN_SETTINGS" />
     <uses-permission android:name="android.permission.NET_ADMIN" />
@@ -109,12 +103,12 @@
                 <action android:name="android.btopp.intent.action.STOP_HANDOVER_TRANSFER" />
             </intent-filter>
             <intent-filter>
-                <action android:name="android.btopp.intent.action.HANDOVER_SEND" />
+                <action android:name="android.nfc.handover.intent.action.HANDOVER_SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="*/*" />
             </intent-filter>
             <intent-filter>
-                <action android:name="android.btopp.intent.action.HANDOVER_SEND_MULTIPLE" />
+                <action android:name="android.nfc.handover.intent.action.HANDOVER_SEND_MULTIPLE" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="*/*" />
             </intent-filter>
