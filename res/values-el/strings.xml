@@ -20,8 +20,6 @@
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Επιτρέπει στην εφαρμογή να αποκτά πρόσβαση στο πρόγραμμα διαχείρισης BluetoothShare και να το χρησιμοποιεί για τη μεταφορά αρχείων."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Πρόσβαση συσκευής Bluetooth επιτρεπόμενης λίστας."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Επιτρέπει στην εφαρμογή να προσθέσει μια συσκευή Bluetooth σε μια λίστα επιτρεπόμενων συσκευών, δίνοντας τη δυνατότητα στη συγκεκριμένη εφαρμογή να αποστέλλει αρχεία σε αυτήν τη συσκευή χωρίς επιβεβαίωση χρήστη."</string>
-    <string name="permlab_handoverStatus" msgid="7316032998801933554">"Λήψη μεταδόσεων μεταφοράς παράδοσης BT."</string>
-    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"Επιτρέπει τη λήψη πληροφοριών κατάστασης μεταφοράς παράδοσης από το Bluetooth."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Άγνωστη συσκευή"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Άγνωστος"</string>

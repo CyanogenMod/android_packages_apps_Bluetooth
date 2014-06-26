@@ -20,8 +20,6 @@
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"ອະນຸຍາດໃຫ້ແອັບຯນີ້ເຂົາເຖິງໂຕຈັດການ BluetoothShare ແລະໃຊ້ມັນເພື່ອສົ່ງໄຟລ໌."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"ເຮັດບັນຊີອະນຸຍາດການເຂົ້າເຖິງອຸປະກອນ bluetooth."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"ອະນຸຍາດໃຫ້ແອັບຯດັ່ງກ່າວຕັ້ງບັນຊີຂາວໃຫ້ກັບອຸປະກອນ Bluetooth ຊົ່ວຄາວ, ການອະນຸຍາດໃຫ້ອຸປະກອນນັ້ນສົ່ງໄຟລ໌ມາທີ່ອຸປະກອນນີ້ໂດຍທີ່ບໍ່ຈຳເປັນຕ້ອງມີການຢືນຢັນຈາກຜູ່ໃຊ້."</string>
-    <string name="permlab_handoverStatus" msgid="7316032998801933554">"ຮັບສັນຍານການໂອນໄຟລ໌ BT handover."</string>
-    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"ອະນຸຍາດການຮັບຂໍ້ມູນສະຖານະການໂອນຈາກ Bluetooth."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"ອຸປະກອນທີ່ບໍ່ຮູ້ຈັກ"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"ບໍ່ຮູ້ຈັກ"</string>

@@ -20,8 +20,6 @@
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Umožňuje aplikácii pristupovať k Správcovi BluetoothShare a použiť ho na prenos súborov."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Prístup povoleného zariadenia Bluetooth."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Umožňuje aplikácii dočasne povoliť zariadenie Bluetooth, čím sa povolí zariadeniu odosielať súbory do tohto zariadenia bez potvrdenia používateľa."</string>
-    <string name="permlab_handoverStatus" msgid="7316032998801933554">"Prijímať odovzdané vysielania prenosu z rozhrania BT."</string>
-    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"Umožňuje prijímať informácie o odovzdanom stave prenosu z rozhrania Bluetooth."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Neznáme zariadenie"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Neznáme"</string>

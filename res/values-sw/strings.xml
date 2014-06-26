@@ -20,8 +20,6 @@
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Huruhusu programu kufikia kidhibiti cha BluetoothShare na kukitumia kuhamisha faili."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Ruhusu ufikiaji kifaa cha bluetooth."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Huruhusu programu kuorodhesha kwa muda kifaa cha Bluetooth kwenye orodha ya vifaa maalum, ikiruhusu kifaa hicho kutuma faili kwa kifaa hiki bila uthibitishaji wa mtumiaji."</string>
-    <string name="permlab_handoverStatus" msgid="7316032998801933554">"Pokea matangazo ya kuhamisha uwasilisho wa BT."</string>
-    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"Huruhusu upokeaji wa maelezo ya hali ya uhamisho wa kuwasilisha kutoka Bluetooth."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Kifaa kisichojulikana"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Haijulikani"</string>

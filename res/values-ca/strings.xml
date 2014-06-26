@@ -20,8 +20,6 @@
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Permet que l\'aplicació accedeixi al gestor d\'ús compartit de Bluetooth i que l\'utilitzi per transferir fitxers."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Accés al dispositiu Bluetooth en llista blanca."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Permet que l\'aplicació col·loqui temporalment en una llista blanca un dispositiu Bluetooth, cosa que permet que el dispositiu enviï fitxers a aquest dispositiu sense la confirmació de l\'usuari."</string>
-    <string name="permlab_handoverStatus" msgid="7316032998801933554">"Rep emissions de transferència d\'entrega de BT."</string>
-    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"Permet rebre informació de l\'estat de transferència de l\'entrega de Bluetooth."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Dispositiu desconegut"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Desconegut"</string>

@@ -20,8 +20,6 @@
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Tillader, at appen får adgang til BluetoothShare-administratoren og kan bruge den til overførsel af filer."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Godkender adgang til Bluetooth-enheden."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Tillader, at appen midlertidigt godkender en Bluetooth-enhed, så der kan sendes filer derfra til din enhed uden bekræftelse fra brugerens side."</string>
-    <string name="permlab_handoverStatus" msgid="7316032998801933554">"Modtag udsendte oplysninger om overdragelse af oplysninger via Bluetooth."</string>
-    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"Tillader, at der modtages en status for overdragelse af oplysninger via Bluetooth."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Ukendt enhed"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Ukendt"</string>

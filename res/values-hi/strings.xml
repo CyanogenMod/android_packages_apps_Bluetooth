@@ -20,8 +20,6 @@
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"ऐप्स  को BluetoothShare प्रबंधक में पहुंच प्राप्त करने और फ़ाइलों को स्थानांतरित करने के लिए उसका उपयोग करने देता है."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"श्वेतसूची bluetooth उपकरण पहुंच."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"ऐप्स को Bluetooth उपकरण को इस उपकरण पर फ़ाइल भेजने की‍ अनुमति देकर, उपयोगकर्ता की पुष्टि के बिना अस्‍थायी रूप से श्वेतसूची में शामिल करने देता है."</string>
-    <string name="permlab_handoverStatus" msgid="7316032998801933554">"BT हस्तांतरण के स्थानांतरण प्रसारण प्राप्त करें."</string>
-    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"Bluetooth से हस्तांतरण के स्थानांतरण की स्थिति को प्राप्त करने देता है."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"अज्ञात उपकरण"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"अज्ञात"</string>
