@@ -20,8 +20,6 @@
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"የብሉቱዝ አጋራ አስተዳዳሪውን ለመድረስ እና ፋይሎች እንዲያስተላልፉ ለመጠቀም ለመተግበሪያው ይፈቅዳል።"</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"የብሉቱዝ መሳሪያ መዳረሻን በተወዳጆች ዝርዝር ያስገቡ።"</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"መተግበሪያው አንድን የብሉቱዝ መሳሪያ በጊዜያዊነት በተወዳጆች ዝርዝር እንዲያስገባ ይፈቅድለታል፣ ይህም መሳሪያው ወደዚህኛው መሳሪያ ፋይሎችን ያለተጠቃሚው ማረጋገጫ ለመላክ ያስችለዋል።"</string>
-    <string name="permlab_handoverStatus" msgid="7316032998801933554">"የBT ርክክብ ስርጭቶችን ተቀበል።"</string>
-    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"ከብሉቱዝ የርክክብ ሁኔታ መረጃ ለመቀበል ያስችላል።"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"ብሉቱዝ"</string>
     <string name="unknown_device" msgid="9221903979877041009">"ያልታወቀ መሣሪያ"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"ያልታወቀ"</string>

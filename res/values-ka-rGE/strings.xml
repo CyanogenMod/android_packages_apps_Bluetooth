@@ -20,8 +20,6 @@
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"ანიჭებს აპს BluetoothShare მენეჯერზე წვდომას და მისი გამოყენების უფლებას ფაილების გასაგზავნად."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Bluetooth მოწყობილობის წვდომის თეთრ სიაში შეყვანა."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"საშუალებას აძლევს აპს, რომ დროებით თეთრ სიაში შეიყვანოს Bluetooth მოწყობილობა, რაც ამ მოწყობილობას საშუალებას მიცემს ფაილები ამ მოწყობილობაზე მომხმარებლის დასტურის გარეშე გამოაგზავნოს."</string>
-    <string name="permlab_handoverStatus" msgid="7316032998801933554">"BT ჰენდოვერის ტრანსფერის მაუწყებლობების მიღება."</string>
-    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"იძლევა Bluetooth-დან ჰენდოვერის ტრანსფერის სტატუსის მიღების საშუალებას."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"უცნობი მოწყობილობა"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"უცნობი"</string>

@@ -20,8 +20,6 @@
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Hiermee krijgt de app toegang tot de beheerfunctie voor delen via Bluetooth om deze functie te gebruiken voor het overdragen van bestanden."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Toegang voor Bluetooth-apparaat op witte lijst plaatsen."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Hiermee kan de app tijdelijk een Bluetooth-apparaat op de witte lijst plaatsen, waardoor dat apparaat bestanden kan verzenden naar dit apparaat zonder bevestiging van de gebruiker."</string>
-    <string name="permlab_handoverStatus" msgid="7316032998801933554">"Overdrachtsgegevens via Bluetooth ontvangen."</string>
-    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"Staat het ontvangen van gegevens over de gegevensoverdrachtstatus toe voor Bluetooth."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Onbekend apparaat"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Onbekend"</string>

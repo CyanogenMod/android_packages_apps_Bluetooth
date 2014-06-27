@@ -20,8 +20,6 @@
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Омогућава апликацији да приступа менаџеру за дељење преко Bluetooth-а и да га користи за пренос датотека."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Приступ Bluetooth уређаја са беле листе."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Дозвољава апликацији да привремено стави Bluetooth уређај на белу листу, што омогућава том уређају да шаље датотеке овом уређају без потврде корисника."</string>
-    <string name="permlab_handoverStatus" msgid="7316032998801933554">"Примај емитовања трансфера преко Bluetooth-а."</string>
-    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"Дозвољава примање информација о статусу трансфера преко Bluetooth-а."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Непознати уређај"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Непознато"</string>

@@ -23,10 +23,6 @@
     <skip />
     <!-- no translation found for permdesc_bluetoothWhitelist (5494513855192170109) -->
     <skip />
-    <!-- no translation found for permlab_handoverStatus (7316032998801933554) -->
-    <skip />
-    <!-- no translation found for permdesc_handoverStatus (4752738070064786310) -->
-    <skip />
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Apparat nunenconuschent"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Nunenconuschent"</string>
