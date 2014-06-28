@@ -38,9 +38,7 @@ import android.os.RemoteException;
 import android.os.SystemClock;
 import android.util.Log;
 
-import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
-import com.android.internal.R;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -49,7 +47,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -173,7 +170,6 @@ public class GattService extends ProfileService {
      * List of clients interested in scan results.
      */
     private List<ScanClient> mScanQueue = new ArrayList<ScanClient>();
-    private Set<ScanFilter> mScanFilters = new HashSet<ScanFilter>();
 
     private GattServiceStateMachine mStateMachine;
     private ScanClient getScanClient(int appIf, boolean isServer) {
@@ -224,7 +220,6 @@ public class GattService extends ProfileService {
         mServerMap.clear();
         mSearchQueue.clear();
         mScanQueue.clear();
-        mScanFilters.clear();
         mHandleMap.clear();
         mServiceDeclarations.clear();
         mStateMachine.doQuit();
@@ -1006,28 +1001,76 @@ public class GattService extends ProfileService {
         }
     }
 
-    void onScanFilterConfig(int action, int status) {
-        log("action = " + action + " status = " + status);
-        Message message = mStateMachine.obtainMessage();
-        if (status != 0) {
-            // If something is wrong with filter configuration, just start scan.
-            message.what = GattServiceStateMachine.ENABLE_BLE_SCAN;
-            mStateMachine.sendMessage(message);
-            return;
+    void onScanFilterEnableDisabled(int action, int status, int clientIf) {
+        Log.d(TAG, "called");
+        if (DBG) {
+            Log.d(TAG, "onScanFilterEnableDisabled() - clientIf=" + clientIf + ", status=" + status
+                    + ", action=" + action);
         }
-        message.arg1 = action;
-        if (action == SCAN_FILTER_MODIFIED) {
-            if (mScanFilters.isEmpty()) {
-                message.what = GattServiceStateMachine.ENABLE_BLE_SCAN;
-            } else {
-                message.what = GattServiceStateMachine.ADD_SCAN_FILTER;
-            }
-        } else {
-            if (action == SCAN_FILTER_ENABLED) {
-                message.what = GattServiceStateMachine.ENABLE_BLE_SCAN;
-            }
+        if (status != 0 ) {
+            // TODO: error handling.
         }
-        mStateMachine.sendMessage(message);
+        mStateMachine.callbackDone();
+    }
+
+    void onScanFilterParamsConfigured(int action, int status, int clientIf, int availableSpace) {
+        if (DBG) {
+            Log.d(TAG, "onScanFilterParamsConfigured() - clientIf=" + clientIf
+                    + ", status=" + status + ", action=" + action
+                    + ", availableSpace=" + availableSpace);
+        }
+        mStateMachine.callbackDone();
+    }
+
+    void onScanFilterConfig(int action, int status, int clientIf, int filterType,
+            int availableSpace) {
+        if (DBG) {
+            Log.d(TAG, "onScanFilterConfig() - clientIf=" + clientIf + ", action = " + action
+                    + " status = " + status + ", filterType=" + filterType
+                    + ", availableSpace=" + availableSpace);
+        }
+
+        mStateMachine.callbackDone();
+    }
+
+    void onBatchScanStorageConfigured(int status, int clientIf) {
+        if (DBG) {
+            Log.d(TAG, "onBatchScanStorageConfigured() - clientIf="+ clientIf + ", status=" + status);
+        }
+
+    }
+
+    // TODO: split into two different callbacks : onBatchScanStarted and onBatchScanStopped.
+    void onBatchScanStartStopped(int startStopAction, int status, int clientIf) {
+        if (DBG) {
+            Log.d(TAG, "onBatchScanStartStopped() - clientIf=" + clientIf
+                    + ", status=" + status + ", startStopAction=" + startStopAction);
+        }
+    }
+
+    void onBatchScanReports(int status, int clientIf, int reportType, int numRecords,
+            byte[] recordData) {
+        if (DBG) {
+            Log.d(TAG, "onBatchScanReports() - clientIf=" + clientIf + ", status=" + status
+                    + ", reportType=" + reportType + ", numRecords=" + numRecords);
+        }
+    }
+
+    void onBatchScanThresholdCrossed(int clientIf) {
+        if (DBG) {
+            Log.d(TAG, "onBatchScanThresholdCrossed() - clientIf=" + clientIf);
+        }
+    }
+
+    void onTrackAdvFoundLost(int filterIndex, int addrType, String address, int advState,
+            int clientIf) {
+        if (DBG) Log.d(TAG, "onClientAdvertiserFoundLost() - clientIf="
+                + clientIf + "address = " + address + "adv_state = "
+                + advState + "client_if = " + clientIf);
+           ClientMap.App app = mClientMap.getById(clientIf);
+           if (app != null) {
+           // TBD
+           }
     }
 
     void onAdvertiseCallback(int status, int clientIf) throws RemoteException {
@@ -1217,7 +1260,8 @@ public class GattService extends ProfileService {
             if (DBG) Log.d(TAG, "startScan() - adding client=" + appIf);
             mScanQueue.add(new ScanClient(appIf, isServer));
         }
-        configureScanParams();
+        configureScanParams(appIf);
+        sendStartScanMessage(appIf, null);
     }
 
 
@@ -1230,39 +1274,26 @@ public class GattService extends ProfileService {
             if (DBG) Log.d(TAG, "startScanWithUuids() - adding client=" + appIf);
             mScanQueue.add(new ScanClient(appIf, isServer, uuids));
         }
-        configureScanParams();
+        configureScanParams(appIf);
+        sendStartScanMessage(appIf, null);
     }
 
     void startScanWithFilters(int appIf, boolean isServer, ScanSettings settings,
             List<ScanFilter> filters) {
-        if (DBG) Log.d(TAG, "start scan with filters " + filters.size());
+        if (DBG) Log.d(TAG, "start scan with filters ");
         enforceAdminPermission();
         // TODO: use settings to configure scan params.
         // TODO: move logic to state machine to avoid locking.
         synchronized(mScanQueue) {
-            boolean isScaning = (!mScanQueue.isEmpty());
             if (getScanClient(appIf, isServer) == null) {
                 if (DBG) Log.d(TAG, "startScan() - adding client=" + appIf);
                 mScanQueue.add(new ScanClient(appIf, isServer, settings, filters));
             }
-            Set<ScanFilter> newFilters = configureScanFiltersLocked();
-            if (isScaning) {
-                // Reset scan filters if BLE scan was started and scan filters changed.
-                if (!Objects.deepEquals(newFilters, mScanFilters)) {
-                    mScanFilters = newFilters;
-                    // Restart scan using new filters.
-                    sendStopScanMessage();
-                    sendStartScanMessage(mScanFilters);
-                }
-            } else {
-                // Always start scanning with new filters if scan not started yet.
-                mScanFilters = newFilters;
-                sendStartScanMessage(mScanFilters);
-            }
+            sendStartScanMessage(appIf, new HashSet<ScanFilter>(filters));
         }
     }
 
-    void configureScanParams() {
+    void configureScanParams(int appIf) {
         if (DBG) Log.d(TAG, "configureScanParams() - queue=" + mScanQueue.size());
         int curScanSetting = Integer.MIN_VALUE;
 
@@ -1303,62 +1334,27 @@ public class GattService extends ProfileService {
                 scanWindow = (scanWindow * 1000)/625;
                 scanInterval = (scanInterval * 1000)/625;
                 // Presence of scan clients means scan is active.
-                sendStopScanMessage();
+                sendStopScanMessage(appIf);
                 gattSetScanParametersNative(scanInterval, scanWindow);
                 lastConfiguredScanSetting = curScanSetting;
-                mScanFilters.clear();
-                sendStartScanMessage(mScanFilters);
-            } else {
-                // Duty cycle did not change but scan filters changed.
-                if (!mScanFilters.isEmpty()) {
-                    mScanFilters.clear();
-                    sendStopScanMessage();
-                    sendStartScanMessage(mScanFilters);
-                }
             }
         } else {
             lastConfiguredScanSetting = curScanSetting;
-            mScanFilters.clear();
-            sendStopScanMessage();
+            sendStopScanMessage(appIf);
             if (DBG) Log.d(TAG, "configureScanParams() - queue emtpy, scan stopped");
         }
     }
 
-    private Set<ScanFilter> configureScanFiltersLocked() {
-        Set<ScanFilter> filters = new HashSet<ScanFilter>();
-        for (ScanClient client : mScanQueue) {
-            if (client.filters == null || client.filters.isEmpty()) {
-                filters.clear();
-                return filters;
-            }
-            filters.addAll(client.filters);
-        }
-
-        AdapterService adapter = AdapterService.getAdapterService();
-        if (filters.size() > adapter.getNumOfOffloadedScanFilterSupported()) {
-            if (DBG) Log.d(TAG, "filters size > " + adapter.getNumOfOffloadedScanFilterSupported()
-                    + ", clearing filters");
-            filters = new HashSet<ScanFilter>();
-        }
-        return filters;
-    }
-
-    /**
-     * Returns whether scan filter is supported.
-     */
-    boolean isScanFilterSupported() {
-        AdapterService adapter = AdapterService.getAdapterService();
-        return adapter.getNumOfOffloadedScanFilterSupported() > 0;
-    }
-
-    private void sendStartScanMessage(Set<ScanFilter> filters) {
+    private void sendStartScanMessage(int clientIf, Set<ScanFilter> filters) {
         Message message = mStateMachine.obtainMessage(GattServiceStateMachine.START_BLE_SCAN);
+        message.arg1 = clientIf;
         message.obj = filters;
         mStateMachine.sendMessage(message);
     }
 
-    private void sendStopScanMessage() {
+    private void sendStopScanMessage(int appIf) {
         Message message = mStateMachine.obtainMessage(GattServiceStateMachine.STOP_BLE_SCAN);
+        message.arg1 = appIf;
         mStateMachine.sendMessage(message);
     }
 
@@ -1367,7 +1363,7 @@ public class GattService extends ProfileService {
 
         if (DBG) Log.d(TAG, "stopScan() - queue=" + mScanQueue.size());
         removeScanClient(appIf, isServer);
-        configureScanParams();
+        configureScanParams(appIf);
 
         if (mScanQueue.isEmpty()) {
             if (DBG) Log.d(TAG, "stopScan() - queue empty; stopping scan");
