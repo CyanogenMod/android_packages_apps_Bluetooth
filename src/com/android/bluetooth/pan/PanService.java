@@ -109,10 +109,6 @@ public class PanService extends ProfileService {
         SharedPreferences tetherSetting = getSharedPreferences(PAN_PREFERENCE_FILE, 0);
         mTetherOn = tetherSetting.getBoolean(PAN_TETHER_SETTING, false);
 
-        // Set mTetherOn based on the last saved tethering preference while starting the Pan service
-        SharedPreferences tetherSetting = getSharedPreferences(PAN_PREFERENCE_FILE, 0);
-        mTetherOn = tetherSetting.getBoolean(PAN_TETHER_SETTING, false);
-
         return true;
     }
 
