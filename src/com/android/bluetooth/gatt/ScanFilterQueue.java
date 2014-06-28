@@ -39,7 +39,7 @@ import java.util.UUID;
     public static final int TYPE_MANUFACTURER_DATA = 5;
 
     // Values defined in bluedroid.
-    private static final byte DEVICE_TYPE_ALL = 1;
+    private static final byte DEVICE_TYPE_ALL = 0;
 
     class Entry {
         public String address;
@@ -67,13 +67,13 @@ import java.util.UUID;
             if (obj == null || getClass() != obj.getClass()) {
                 return false;
             }
-            Entry other = (Entry)obj;
+            Entry other = (Entry) obj;
             return Objects.equals(address, other.address) &&
                     addr_type == other.addr_type && type == other.type &&
                     Objects.equals(uuid, other.uuid) &&
                     Objects.equals(uuid_mask, other.uuid_mask) &&
                     Objects.equals(name, other.name) &&
-                    company == other.company && company_mask == other.company_mask &&
+                            company == other.company && company_mask == other.company_mask &&
                     Objects.deepEquals(data, other.data) &&
                     Objects.deepEquals(data_mask, other.data_mask);
         }
@@ -172,31 +172,44 @@ import java.util.UUID;
         mEntries.clear();
     }
 
-    void addAll(Set<ScanFilter> filters) {
-        if (filters == null)
+    /**
+     * Compute feature selection based on the filters presented.
+     */
+    int getFeatureSelection() {
+        int selc = 0;
+        for (Entry entry : mEntries) {
+            System.out.println("entry selc value " + (1 << entry.type));
+            selc |= (1 << entry.type);
+        }
+        return selc;
+    }
+
+    /**
+     * Add ScanFilter to scan filter queue.
+     */
+    void addScanFilter(ScanFilter filter) {
+        if (filter == null)
             return;
-        for (ScanFilter filter : filters) {
-            if (filter.getLocalName() != null) {
-                addName(filter.getLocalName());
+        if (filter.getLocalName() != null) {
+            addName(filter.getLocalName());
+        }
+        if (filter.getDeviceAddress() != null) {
+            addDeviceAddress(filter.getDeviceAddress(), DEVICE_TYPE_ALL);
+        }
+        if (filter.getServiceUuid() != null) {
+            if (filter.getServiceUuidMask() == null) {
+                addUuid(filter.getServiceUuid().getUuid());
+            } else {
+                addUuid(filter.getServiceUuid().getUuid(),
+                        filter.getServiceUuidMask().getUuid());
             }
-            if (filter.getDeviceAddress() != null) {
-                addDeviceAddress(filter.getDeviceAddress(), DEVICE_TYPE_ALL);
-            }
-            if (filter.getServiceUuid() != null) {
-                if (filter.getServiceUuidMask() == null) {
-                    addUuid(filter.getServiceUuid().getUuid());
-                } else {
-                    addUuid(filter.getServiceUuid().getUuid(),
-                            filter.getServiceUuidMask().getUuid());
-                }
-            }
-            if (filter.getManufacturerData() != null) {
-                if (filter.getManufacturerDataMask() == null) {
-                    addManufacturerData(filter.getManufacturerId(), filter.getManufacturerData());
-                } else {
-                    addManufacturerData(filter.getManufacturerId(), 0xFFFF,
-                            filter.getManufacturerData(), filter.getManufacturerDataMask());
-                }
+        }
+        if (filter.getManufacturerData() != null) {
+            if (filter.getManufacturerDataMask() == null) {
+                addManufacturerData(filter.getManufacturerId(), filter.getManufacturerData());
+            } else {
+                addManufacturerData(filter.getManufacturerId(), 0xFFFF,
+                        filter.getManufacturerData(), filter.getManufacturerDataMask());
             }
         }
     }
