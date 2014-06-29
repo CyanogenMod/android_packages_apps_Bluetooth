@@ -119,7 +119,7 @@ public class BluetoothMnsObexClient {
      * Disconnect the connection to MNS server.
      * Call this when the MAS client requests a de-registration on events.
      */
-    public void disconnect() {
+    public synchronized void disconnect() {
         try {
             if (mClientSession != null) {
                 mClientSession.disconnect(null);
@@ -203,9 +203,11 @@ public class BluetoothMnsObexClient {
             /* Connect if we do not have a connection, and start the content observers providing
              * this thread as Handler.
              */
-            if(mObserverRegistered == false) {
-                mObserver.registerObserver(this, masId);
-                mObserverRegistered = true;
+            synchronized (this) {
+                if(mObserverRegistered == false && mObserver != null) {
+                    mObserver.registerObserver(this, masId);
+                    mObserverRegistered = true;
+                }
             }
         }
     }

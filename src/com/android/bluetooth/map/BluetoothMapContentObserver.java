@@ -262,8 +262,8 @@ public class BluetoothMapContentObserver {
         Log.d(TAG, "sendEvent: " + evt.eventType + " " + evt.handle + " "
         + evt.folder + " " + evt.oldFolder + " " + evt.msgType.name());
 
-        if (mMnsClient == null) {
-            Log.d(TAG, "sendEvent: No MNS client registered - don't send event");
+        if (mMnsClient == null || mMnsClient.isConnected() == false) {
+            Log.d(TAG, "sendEvent: No MNS client registered or connected- don't send event");
             return;
         }
 
