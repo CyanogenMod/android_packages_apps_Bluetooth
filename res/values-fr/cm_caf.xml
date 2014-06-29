@@ -16,6 +16,6 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="empty_file_notification_sent">Teilen über Bluetooth: Gegenseite hat die Datei <xliff:g id="file">%1$s</xliff:g> mit Null-Länge abgelehnt</string>
+  <string name="empty_file_notification_sent">Partage Bluetooth : le fichier <xliff:g id="file">%1$s</xliff:g> de taille nulle a été rejeté par le destinataire</string>
   <string name="format_progress_text">%1$d%%</string>
 </resources>

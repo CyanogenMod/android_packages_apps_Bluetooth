@@ -76,7 +76,6 @@
   <string name="not_exist_file_desc">El ficheru nun esiste. \n</string>
   <string name="enabling_progress_title">Por favor, espera...</string>
   <string name="enabling_progress_content">Activando Bluetooth...</string>
-  <string name="format_progress_text">%1$d%%</string>
   <string name="bt_toast_1">Va recibise\'l ficheru. Comprueba\'l progresu na barra de notificaciones.</string>
   <string name="bt_toast_2">Nun pue recibise\'l ficheru.</string>
   <string name="bt_toast_3">Detúvose la receición del ficheru de \"<xliff:g id="SENDER">%1$s</xliff:g>\"</string>
