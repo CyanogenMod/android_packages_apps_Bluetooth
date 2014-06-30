@@ -592,7 +592,7 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_multiadv_update_cb,
     btgattc_multiadv_setadv_data_cb,
     btgattc_multiadv_disable_cb,
-    btgattc_congestion_cb
+    btgattc_congestion_cb,
     btgattc_batchscan_cfg_storage_cb,
     btgattc_batchscan_startstop_cb,
     btgattc_batchscan_reports_cb,
