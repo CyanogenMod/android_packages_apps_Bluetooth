@@ -42,6 +42,7 @@ static jmethodID method_onVolumeChanged;
 static jmethodID method_onDialCall;
 static jmethodID method_onSendDtmf;
 static jmethodID method_onNoiceReductionEnable;
+static jmethodID method_onWBS;
 static jmethodID method_onAtChld;
 static jmethodID method_onAtCnum;
 static jmethodID method_onAtCind;
@@ -65,6 +66,19 @@ static bool checkCallbackThread() {
     JNIEnv* env = AndroidRuntime::getJNIEnv();
     if (sCallbackEnv != env || sCallbackEnv == NULL) return false;
     return true;
+}
+
+static jbyteArray marshall_bda(bt_bdaddr_t* bd_addr)
+{
+    jbyteArray addr;
+    addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+    if (!addr) {
+        ALOGE("Fail to new jbyteArray bd addr");
+        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+        return NULL;
+    }
+    sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
+    return addr;
 }
 
 static void connection_state_callback(bthf_connection_state_t state, bt_bdaddr_t* bd_addr) {
@@ -228,6 +242,19 @@ static void noice_reduction_callback(bthf_nrec_t nrec, bt_bdaddr_t* bd_addr) {
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
+static void wbs_callback(bthf_wbs_config_t wbs_config, bt_bdaddr_t* bd_addr) {
+    jbyteArray addr;
+
+    CHECK_CALLBACK_ENV
+
+    if ((addr = marshall_bda(bd_addr)) == NULL)
+        return;
+
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onWBS, wbs_config, addr);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+    sCallbackEnv->DeleteLocalRef(addr);
+}
+
 static void at_chld_callback(bthf_chld_type_t chld, bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
@@ -361,6 +388,7 @@ static bthf_callbacks_t sBluetoothHfpCallbacks = {
     dial_call_callback,
     dtmf_cmd_callback,
     noice_reduction_callback,
+    wbs_callback,
     at_chld_callback,
     at_cnum_callback,
     at_cind_callback,
@@ -387,6 +415,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onDialCall = env->GetMethodID(clazz, "onDialCall", "(Ljava/lang/String;[B)V");
     method_onSendDtmf = env->GetMethodID(clazz, "onSendDtmf", "(I[B)V");
     method_onNoiceReductionEnable = env->GetMethodID(clazz, "onNoiceReductionEnable", "(Z[B)V");
+    method_onWBS = env->GetMethodID(clazz,"onWBS","(I[B)V");
     method_onAtChld = env->GetMethodID(clazz, "onAtChld", "(I[B)V");
     method_onAtCnum = env->GetMethodID(clazz, "onAtCnum", "([B)V");
     method_onAtCind = env->GetMethodID(clazz, "onAtCind", "([B)V");
@@ -768,6 +797,29 @@ static jboolean phoneStateChangeNative(JNIEnv *env, jobject object, jint num_act
     return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
+
+static jboolean configureWBSNative(JNIEnv *env, jobject object, jbyteArray address,
+                                   jint codec_config) {
+    jbyte *addr;
+    bt_status_t status;
+
+    if (!sBluetoothHfpInterface) return JNI_FALSE;
+
+    addr = env->GetByteArrayElements(address, NULL);
+    if (!addr) {
+        jniThrowIOException(env, EINVAL);
+        return JNI_FALSE;
+    }
+
+    if ((status = sBluetoothHfpInterface->configure_wbs((bt_bdaddr_t *)addr,
+                   (bthf_wbs_config_t)codec_config)) != BT_STATUS_SUCCESS){
+        ALOGE("Failed HF WBS codec config, status: %d", status);
+    }
+    env->ReleaseByteArrayElements(address, addr, 0);
+    return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+}
+
+
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
     {"initializeNative", "(I)V", (void *) initializeNative},
@@ -786,6 +838,7 @@ static JNINativeMethod sMethods[] = {
     {"atResponseCodeNative", "(II[B)Z", (void *)atResponseCodeNative},
     {"clccResponseNative", "(IIIIZLjava/lang/String;I[B)Z", (void *) clccResponseNative},
     {"phoneStateChangeNative", "(IIILjava/lang/String;I)Z", (void *) phoneStateChangeNative},
+    {"configureWBSNative", "([BI)Z", (void *) configureWBSNative},
 };
 
 int register_com_android_bluetooth_hfp(JNIEnv* env)
