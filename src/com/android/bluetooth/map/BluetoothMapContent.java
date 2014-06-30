@@ -102,6 +102,7 @@ public class BluetoothMapContent {
         Mms.READ,
         Mms.MESSAGE_BOX,
         Mms.STATUS,
+        Mms.PRIORITY,
     };
 
     private class FilterInfo {
