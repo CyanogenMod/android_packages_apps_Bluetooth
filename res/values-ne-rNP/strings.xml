@@ -20,8 +20,6 @@
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"अनुप्रयोगलाई ब्लुटुथसाझेदारी प्रबन्धक पहुँचको अनुमति दिन्छ र यसलाई फाइलहरू स्थानान्तरण गर्न प्रयोग गर्दछ।"</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"स्वेतसूची ब्लुटुथ उपकरण पहुँच।"</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"त्यस उपकरणलाई यस उपकरणमा फाइलहरू पठाउन बिना कुनै पुष्टि अनुमति दिँदै अनुप्रयोगलाई अस्थायी रूपमा ब्लुटुथ उपकरणलाई स्वेतसूचीमा राख्न अनुमति दिन्छ।"</string>
-    <string name="permlab_handoverStatus" msgid="7316032998801933554">"BT हस्तान्तरण स्थानान्तरण प्रसारण प्राप्त गर्नुहोस्।"</string>
-    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"ब्लुटुथबाट हस्तान्तरण स्थानान्तरण वस्तुस्थिति जानकारी प्राप्त गर्ने अनुमति दिन्छ।"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"ब्लुटुथ"</string>
     <string name="unknown_device" msgid="9221903979877041009">"अज्ञात उपकरण"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"अज्ञात"</string>

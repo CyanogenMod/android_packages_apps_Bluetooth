@@ -20,8 +20,6 @@
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"යෙදුමට බ්ලූටූත් බෙදා ගැනීම් කළමනාකරු වෙත ප්‍රවේශ වීමට ඉඩ දී එය ගොනු මාරු කිරීමට භාවිතා කරන්න."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"බ්ලූටූත් උපාංග ප්‍රවේශය සුදු ලැයිස්තු ගත කරන්න."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"පරිශීලක සහතිකය රහිතව එම උපාංගයට මෙම උපාංගය වෙත ගොනු යැවීමට ඉඩ දෙමින්, බ්ලූටූත් උපාංගයක් තාවකාලිකව සුදු ලැයිස්තු ගත කිරීමට යෙදුමට ඉඩ දෙන්න."</string>
-    <string name="permlab_handoverStatus" msgid="7316032998801933554">"BT බාර දීමේ මාරු විකාශ ලබා ගන්න."</string>
-    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"බ්ලූටූත් වෙතින් බාරදීමේ මාරු තත්ව තොරතුරු ලැබිම ඉඩදෙයි."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"බ්ලූටූත්"</string>
     <string name="unknown_device" msgid="9221903979877041009">"නොදන්නා උපාංගයකි"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"නොදනී"</string>
