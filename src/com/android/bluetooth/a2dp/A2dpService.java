@@ -37,7 +37,7 @@ import java.util.Map;
  * @hide
  */
 public class A2dpService extends ProfileService {
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
     private static final String TAG="A2dpService";
 
     private A2dpStateMachine mStateMachine;
@@ -60,8 +60,8 @@ public class A2dpService extends ProfileService {
     }
 
     protected boolean start() {
-        mStateMachine = A2dpStateMachine.make(this, this);
         mAvrcp = Avrcp.make(this);
+        mStateMachine = A2dpStateMachine.make(this, this);
         setA2dpService(this);
         return true;
     }
@@ -234,6 +234,10 @@ public class A2dpService extends ProfileService {
 
     public void setAvrcpAbsoluteVolume(int volume) {
         mAvrcp.setAbsoluteVolume(volume);
+    }
+
+    public void setAvrcpAudioState(int state) {
+        mAvrcp.setA2dpAudioState(state);
     }
 
     synchronized boolean isA2dpPlaying(BluetoothDevice device) {

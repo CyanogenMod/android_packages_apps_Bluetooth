@@ -504,7 +504,7 @@ public class AdapterService extends Service {
     /**
      * The Binder implementation must be declared to be a static class, with
      * the AdapterService instance passed in the constructor. Furthermore,
-     * when the AdapterService shuts down, the reference to the AdapterService 
+     * when the AdapterService shuts down, the reference to the AdapterService
      * must be explicitly removed.
      *
      * Otherwise, a memory leak can occur from repeated starting/stopping the
@@ -1279,7 +1279,7 @@ public class AdapterService extends Service {
         }
         else if((a2dpConnDevList.isEmpty()) &&
             (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_ON) &&
-            (a2dpService.getLastConnectedA2dpSepType(device) == BluetoothProfile.PROFILE_A2DP_SNK)&&
+            (a2dpService.getLastConnectedA2dpSepType(device) != BluetoothProfile.PROFILE_A2DP_SRC)&&
             (hsConnected || (hsService.getPriority(device) == BluetoothProfile.PRIORITY_OFF))) {
             a2dpService.connect(device);
         }

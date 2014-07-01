@@ -62,7 +62,7 @@ import java.util.List;
 import java.util.Set;
 
 final class A2dpStateMachine extends StateMachine {
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
 
     static final int CONNECT = 1;
     static final int DISCONNECT = 2;
@@ -656,14 +656,16 @@ final class A2dpStateMachine extends StateMachine {
             switch (state) {
                 case AUDIO_STATE_STARTED:
                     if (mPlayingA2dpDevice == null) {
-                       mPlayingA2dpDevice = device;
-                       broadcastAudioState(device, BluetoothA2dp.STATE_PLAYING,
-                                           BluetoothA2dp.STATE_NOT_PLAYING);
+                        mPlayingA2dpDevice = device;
+                        mService.setAvrcpAudioState(BluetoothA2dp.STATE_PLAYING);
+                        broadcastAudioState(device, BluetoothA2dp.STATE_PLAYING,
+                                            BluetoothA2dp.STATE_NOT_PLAYING);
                     }
                     break;
                 case AUDIO_STATE_STOPPED:
                     if (mPlayingA2dpDevice != null) {
                         mPlayingA2dpDevice = null;
+                        mService.setAvrcpAudioState(BluetoothA2dp.STATE_NOT_PLAYING);
                         broadcastAudioState(device, BluetoothA2dp.STATE_NOT_PLAYING,
                                             BluetoothA2dp.STATE_PLAYING);
                     }

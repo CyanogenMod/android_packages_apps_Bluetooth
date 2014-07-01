@@ -39,12 +39,21 @@ class ServiceDeclaration {
         int properties = 0;
         int serviceType = 0;
         int serviceHandle = 0;
+        boolean advertisePreferred = false;
 
         Entry(UUID uuid, int serviceType, int instance) {
             this.type = TYPE_SERVICE;
             this.uuid = uuid;
             this.instance = instance;
             this.serviceType = serviceType;
+        }
+
+        Entry(UUID uuid, int serviceType, int instance, boolean advertisePreferred) {
+          this.type = TYPE_SERVICE;
+          this.uuid = uuid;
+          this.instance = instance;
+          this.serviceType = serviceType;
+          this.advertisePreferred = advertisePreferred;
         }
 
         Entry(UUID uuid, int properties, int permissions, int instance) {
@@ -69,8 +78,9 @@ class ServiceDeclaration {
         mEntries = new ArrayList<Entry>();
     }
 
-    void addService(UUID uuid, int serviceType, int instance, int minHandles) {
-        mEntries.add(new Entry(uuid, serviceType, instance));
+    void addService(UUID uuid, int serviceType, int instance, int minHandles,
+        boolean advertisePreferred) {
+        mEntries.add(new Entry(uuid, serviceType, instance, advertisePreferred));
         if (minHandles == 0) {
             ++mNumHandles;
         } else {
@@ -100,6 +110,15 @@ class ServiceDeclaration {
         Entry entry = mEntries.get(0);
         mEntries.remove(0);
         return entry;
+    }
+
+    boolean isServiceAdvertisePreferred(UUID uuid) {
+      for (Entry entry : mEntries) {
+          if (entry.uuid.equals(uuid)) {
+              return entry.advertisePreferred;
+          }
+      }
+      return false;
     }
 
     int getNumHandles() {

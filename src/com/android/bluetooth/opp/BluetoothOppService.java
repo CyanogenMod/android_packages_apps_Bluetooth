@@ -886,11 +886,20 @@ public class BluetoothOppService extends Service {
                 if (V) Log.v(TAG, "Service cancel batch for share " + info.mId);
                 batch.cancelBatch();
             }
-            if (mTransfer != null) {
-                if (V) Log.v(TAG, "Stop transfer session");
+
+            /* Server/Client transfer cleanup */
+            if ((batch.mDirection == BluetoothShare.DIRECTION_OUTBOUND)
+                    && (mTransfer != null)) {
+                if (V) Log.v(TAG, "Stop Client Transfer");
                 mTransfer.stop();
                 mTransfer = null;
+            } else if ((batch.mDirection == BluetoothShare.DIRECTION_INBOUND)
+                    && (mServerTransfer != null)) {
+                if (V) Log.v(TAG, "Stop Server Transfer");
+                mServerTransfer.stop();
+                mServerTransfer = null;
             }
+
             if (batch.isEmpty()) {
                 if (V) Log.v(TAG, "Service remove batch  " + batch.mId);
                 removeBatch(batch);
