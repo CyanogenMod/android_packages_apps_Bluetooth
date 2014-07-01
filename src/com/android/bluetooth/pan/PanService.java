@@ -36,16 +36,20 @@ import android.os.INetworkManagementService;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.UserManager;
 import android.provider.Settings;
 import android.util.Log;
+
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
+
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
@@ -299,6 +303,10 @@ public class PanService extends ProfileService {
     void setBluetoothTethering(boolean value) {
         if(DBG) Log.d(TAG, "setBluetoothTethering: " + value +", mTetherOn: " + mTetherOn);
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        UserManager um = (UserManager) getSystemService(Context.USER_SERVICE);
+        if (um.hasUserRestriction(UserManager.DISALLOW_CONFIG_TETHERING)) {
+            throw new SecurityException("DISALLOW_CONFIG_TETHERING is enabled for this user.");
+        }
         if(mTetherOn != value) {
 
             SharedPreferences tetherSetting = getSharedPreferences(PAN_PREFERENCE_FILE, 0);
