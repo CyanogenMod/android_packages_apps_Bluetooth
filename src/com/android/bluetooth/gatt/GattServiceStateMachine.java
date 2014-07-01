@@ -130,7 +130,7 @@ public class GattServiceStateMachine extends StateMachine {
         mIdle = new Idle();
         mAdvertiseStarting = new AdvertiseStarting();
         mAdvertiseClients = new HashMap<Integer, AdvertiseClient>();
-        mFilterIndexStack = new ArrayDeque<>();
+        mFilterIndexStack = new ArrayDeque<Integer>();
         mClientFilterIndexMap = new HashMap<Integer, Deque<Integer>>();
         initFilterIndexStack();
 
