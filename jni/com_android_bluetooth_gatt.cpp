@@ -1706,7 +1706,6 @@ static JNINativeMethod sStateMachineMethods[] = {
     {"gattClientConfigBatchScanStorageNative", "(IIII)V",(void *) gattClientConfigBatchScanStorageNative},
     {"gattClientStartBatchScanNative", "(IIIIII)V", (void *) gattClientStartBatchScanNative},
     {"gattClientStopBatchScanNative", "(I)V", (void *) gattClientStopBatchScanNative},
-    {"gattClientReadScanReportsNative", "(II)V", (void *) gattClientReadScanReportsNative},
     {"gattClientScanFilterParamAddNative", "(IIIIIIIIIII)V", (void *) gattClientScanFilterParamAddNative},
     {"gattClientScanFilterParamDeleteNative", "(II)V", (void *) gattClientScanFilterParamDeleteNative},
     {"gattClientScanFilterParamClearAllNative", "(I)V", (void *) gattClientScanFilterParamClearAllNative},
@@ -1761,6 +1760,7 @@ static JNINativeMethod sMethods[] = {
 
     {"gattSetAdvDataNative", "(IZZZIII[B[B[B)V", (void *) gattSetAdvDataNative},
     {"gattSetScanParametersNative", "(II)V", (void *) gattSetScanParametersNative},
+    {"gattClientReadScanReportsNative", "(II)V", (void *) gattClientReadScanReportsNative},
     {"gattTestNative", "(IJJLjava/lang/String;IIIII)V", (void *) gattTestNative},
 };
 

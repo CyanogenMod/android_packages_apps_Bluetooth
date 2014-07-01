@@ -43,6 +43,7 @@ import com.android.bluetooth.btservice.ProfileService;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -96,6 +97,12 @@ public class GattService extends ProfileService {
     private static final int SCAN_MODE_BALANCED_INTERVAL_MS = 5000;
     private static final int SCAN_MODE_LOW_LATENCY_WINDOW_MS = 5000;
     private static final int SCAN_MODE_LOW_LATENCY_INTERVAL_MS = 5000;
+
+    private static final int MAC_ADDRESS_LENGTH = 6;
+    // Batch scan related constants.
+    private static final int TRUNCATED_RESULT_SIZE = 11;
+    private static final int TIME_STAMP_LENGTH = 2;
+
 
     /**
      * Search queue to serialize remote onbject inspection.
@@ -349,6 +356,13 @@ public class GattService extends ProfileService {
             GattService service = getService();
             if (service == null) return;
             service.stopScan(appIf, isServer);
+        }
+
+        @Override
+        public void flushPendingBatchResults(int appIf, boolean isServer) {
+            GattService service = getService();
+            if (service == null) return;
+            service.flushPendingBatchResults(appIf, isServer);
         }
 
         public void clientConnect(int clientIf, String address, boolean isDirect, int transport) {
@@ -662,9 +676,9 @@ public class GattService extends ProfileService {
                 if (app != null) {
                     BluetoothDevice device = BluetoothAdapter.getDefaultAdapter()
                             .getRemoteDevice(address);
-                    long scanTimeMicros =
+                    long scanTimeNanos =
                             TimeUnit.NANOSECONDS.toMicros(SystemClock.elapsedRealtimeNanos());
-                    ScanResult result = new ScanResult(device, adv_data, rssi, scanTimeMicros);
+                    ScanResult result = new ScanResult(device, adv_data, rssi, scanTimeNanos);
                     if (matchesFilters(client, result)) {
                         try {
                             app.callback.onScanResult(address, rssi, adv_data);
@@ -1037,7 +1051,7 @@ public class GattService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "onBatchScanStorageConfigured() - clientIf="+ clientIf + ", status=" + status);
         }
-
+        mStateMachine.callbackDone();
     }
 
     // TODO: split into two different callbacks : onBatchScanStarted and onBatchScanStopped.
@@ -1046,20 +1060,100 @@ public class GattService extends ProfileService {
             Log.d(TAG, "onBatchScanStartStopped() - clientIf=" + clientIf
                     + ", status=" + status + ", startStopAction=" + startStopAction);
         }
+        mStateMachine.callbackDone();
     }
 
     void onBatchScanReports(int status, int clientIf, int reportType, int numRecords,
-            byte[] recordData) {
+            byte[] recordData) throws RemoteException {
         if (DBG) {
             Log.d(TAG, "onBatchScanReports() - clientIf=" + clientIf + ", status=" + status
                     + ", reportType=" + reportType + ", numRecords=" + numRecords);
         }
+        ClientMap.App app = mClientMap.getById(clientIf);
+        if (app == null) return;
+        Set<ScanResult> results = parseBatchScanResults(numRecords, reportType, recordData);
+        app.callback.onBatchScanResults(new ArrayList<ScanResult>(results));
+    }
+
+    private Set<ScanResult> parseBatchScanResults(int numRecords, int reportType,
+            byte[] batchRecord) {
+        if (numRecords == 0) {
+            return Collections.emptySet();
+        }
+        if (DBG) Log.d(TAG, "current time is " + SystemClock.elapsedRealtimeNanos());
+        if (reportType == GattServiceStateMachine.SCAN_RESULT_TYPE_TRUNCATED) {
+            return parseTruncatedResults(numRecords, batchRecord);
+        } else {
+            return parseFullResults(numRecords, batchRecord);
+        }
+    }
+
+    private Set<ScanResult> parseTruncatedResults(int numRecords, byte[] batchRecord) {
+        Set<ScanResult> results = new HashSet<ScanResult>(numRecords);
+        for (int i = 0; i < numRecords; ++i) {
+            byte[] record = extractBytes(batchRecord, i * TRUNCATED_RESULT_SIZE,
+                    TRUNCATED_RESULT_SIZE);
+            byte[] address = extractBytes(batchRecord, 0, 6);
+            BluetoothDevice device = mAdapter.getRemoteDevice(address);
+            int rssi = record[8];
+            // Timestamp is in every 50 ms.
+            long timestampNanos = parseTimestampNanos(extractBytes(record, 9, 2));
+            results.add(new ScanResult(device, new byte[0], rssi, timestampNanos));
+        }
+        return results;
+    }
+
+    private long parseTimestampNanos(byte[] data) {
+        long timestampUnit = data[1] & 0xFF << 8 + data[0];
+        long timestampNanos = SystemClock.elapsedRealtimeNanos() -
+                TimeUnit.MILLISECONDS.toNanos(timestampUnit * 50);
+        return timestampNanos;
+    }
+
+    private Set<ScanResult> parseFullResults(int numRecords, byte[] batchRecord) {
+        Set<ScanResult> results = new HashSet<ScanResult>(numRecords);
+        int position = 0;
+        while (position < batchRecord.length) {
+            byte[] address = extractBytes(batchRecord, position, 6);
+            BluetoothDevice device = mAdapter.getRemoteDevice(address);
+            position += 6;
+            // Skip address type.
+            position++;
+            // Skip tx power level.
+            position++;
+            int rssi = batchRecord[position++];
+            long timestampNanos = parseTimestampNanos(extractBytes(batchRecord, position, 2));
+            position += 2;
+
+            // Combine advertise packet and scan response packet.
+            int advertisePacketLen = batchRecord[position++];
+            byte[] advertiseBytes = extractBytes(batchRecord, position, advertisePacketLen);
+            position += advertisePacketLen;
+            int scanResponsePacketLen = batchRecord[position++];
+            byte[] scanResponseBytes = extractBytes(batchRecord, position, scanResponsePacketLen);
+            position += scanResponsePacketLen;
+            byte[] scanRecord = new byte[advertisePacketLen + scanResponsePacketLen];
+            System.arraycopy(advertiseBytes, 0, scanRecord, 0, advertisePacketLen);
+            System.arraycopy(scanResponseBytes, 0, scanRecord,
+                    advertisePacketLen, scanResponsePacketLen);
+            results.add(new ScanResult(device, scanRecord, rssi, timestampNanos));
+        }
+        return results;
+    }
+
+    // Helper method to extract bytes from byte array.
+    private static byte[] extractBytes(byte[] scanRecord, int start, int length) {
+        byte[] bytes = new byte[length];
+        System.arraycopy(scanRecord, start, bytes, 0, length);
+        return bytes;
     }
 
     void onBatchScanThresholdCrossed(int clientIf) {
         if (DBG) {
             Log.d(TAG, "onBatchScanThresholdCrossed() - clientIf=" + clientIf);
         }
+        boolean isServer = false;
+        flushPendingBatchResults(clientIf, isServer);
     }
 
     void onTrackAdvFoundLost(int filterIndex, int addrType, String address, int advState,
@@ -1067,10 +1161,10 @@ public class GattService extends ProfileService {
         if (DBG) Log.d(TAG, "onClientAdvertiserFoundLost() - clientIf="
                 + clientIf + "address = " + address + "adv_state = "
                 + advState + "client_if = " + clientIf);
-           ClientMap.App app = mClientMap.getById(clientIf);
-           if (app != null) {
-           // TBD
-           }
+        ClientMap.App app = mClientMap.getById(clientIf);
+        if (app != null) {
+            // TBD
+        }
     }
 
     void onAdvertiseCallback(int status, int clientIf) throws RemoteException {
@@ -1289,8 +1383,22 @@ public class GattService extends ProfileService {
                 if (DBG) Log.d(TAG, "startScan() - adding client=" + appIf);
                 mScanQueue.add(new ScanClient(appIf, isServer, settings, filters));
             }
-            sendStartScanMessage(appIf, new HashSet<ScanFilter>(filters));
+            sendStartScanMessage(appIf, getScanClient(appIf, isServer));
         }
+    }
+
+    void flushPendingBatchResults(int clientIf, boolean isServer) {
+        if (DBG) Log.d(TAG, "flushPendingBatchResults - clientIf=" + clientIf +
+                ", isServer=" + isServer);
+        ScanClient scanClient = getScanClient(clientIf, isServer);
+        if (scanClient == null || scanClient.settings == null
+                || scanClient.settings.getReportDelayNanos() == 0) {
+            // Not a batch scan client.
+            Log.e(TAG, "called flushPendingBatchResults without a proper app!");
+            return;
+        }
+        int resultType = mStateMachine.getResultType(scanClient.settings);
+        gattClientReadScanReportsNative(clientIf, resultType);
     }
 
     void configureScanParams(int appIf) {
@@ -1345,10 +1453,10 @@ public class GattService extends ProfileService {
         }
     }
 
-    private void sendStartScanMessage(int clientIf, Set<ScanFilter> filters) {
+    private void sendStartScanMessage(int clientIf, ScanClient client) {
         Message message = mStateMachine.obtainMessage(GattServiceStateMachine.START_BLE_SCAN);
         message.arg1 = clientIf;
-        message.obj = filters;
+        message.obj = client;
         mStateMachine.sendMessage(message);
     }
 
@@ -2471,4 +2579,6 @@ public class GattService extends ProfileService {
     private native void gattServerSendResponseNative (int server_if,
             int conn_id, int trans_id, int status, int handle, int offset,
             byte[] val, int auth_req);
+
+    private native void gattClientReadScanReportsNative(int client_if, int scan_type);
 }
