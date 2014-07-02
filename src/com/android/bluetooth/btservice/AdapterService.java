@@ -76,6 +76,9 @@ public class AdapterService extends Service {
     private static final String TAG = "BluetoothAdapterService";
     private static final boolean DBG = false;
     private static final boolean TRACE_REF = true;
+    private static final int MIN_ADVT_INSTANCES_FOR_MA = 5;
+    private static final int MIN_OFFLOADED_FILTERS = 10;
+    private static final int MIN_OFFLOADED_SCAN_STORAGE_BYTES = 2048;
     //For Debugging only
     private static int sRefCount=0;
 
@@ -998,6 +1001,27 @@ public class AdapterService extends Service {
              AdapterService service = getService();
              if (service == null) return ;
              service.unregisterCallback(cb);
+         }
+
+         public boolean isMultiAdvertisementSupported() {
+             AdapterService service = getService();
+             if (service == null) return false;
+             int val = service.getNumOfAdvertisementInstancesSupported();
+             return (val >= MIN_ADVT_INSTANCES_FOR_MA);
+         }
+
+         public boolean isOffloadedFilteringSupported() {
+             AdapterService service = getService();
+             if (service == null) return false;
+             int val = service.getNumOfOffloadedScanFilterSupported();
+             return (val >= MIN_OFFLOADED_FILTERS);
+         }
+
+         public boolean isOffloadedScanBatchingSupported() {
+             AdapterService service = getService();
+             if (service == null) return false;
+             int val = service.getOffloadedScanResultStorage();
+             return (val >= MIN_OFFLOADED_SCAN_STORAGE_BYTES);
          }
     };
 
