@@ -17,7 +17,7 @@
         android:description="@string/permdesc_bluetoothWhitelist"
         android:protectionLevel="signature" />
 
-    <!--  Allows receiving handover status broadcasts from Bluetooth -->,
+    <!--  Allows receiving handover status broadcasts from Bluetooth -->
     <permission android:name="com.android.permission.HANDOVER_STATUS"
         android:label="@string/permlab_handoverStatus"
         android:description="@string/permdesc_handoverStatus"
