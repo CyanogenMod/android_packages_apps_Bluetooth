@@ -469,6 +469,12 @@ static alarm_cb sAlarmCallback;
 // The data to pass to the wake alarm callback.
 static void *sAlarmCallbackData;
 
+static JavaVMAttachArgs sAttachArgs = {
+  .version = JNI_VERSION_1_6,
+  .name = "bluedroid wake/alarm thread",
+  .group = NULL
+};
+
 static bool set_wake_alarm_callout(uint64_t delay_millis, bool should_wake, alarm_cb cb, void *data) {
     JNIEnv *env;
     JavaVM *vm = AndroidRuntime::getJavaVM();
@@ -479,7 +485,7 @@ static bool set_wake_alarm_callout(uint64_t delay_millis, bool should_wake, alar
         return false;
     }
 
-    if (status == JNI_EDETACHED && vm->AttachCurrentThread(&env, NULL) != 0) {
+    if (status == JNI_EDETACHED && vm->AttachCurrentThread(&env, &sAttachArgs) != 0) {
         ALOGE("%s unable to attach thread to VM", __func__);
         return false;
     }
@@ -508,7 +514,7 @@ static int acquire_wake_lock_callout(const char *lock_name) {
         return BT_STATUS_FAIL;
     }
 
-    if (status == JNI_EDETACHED && vm->AttachCurrentThread(&env, NULL) != 0) {
+    if (status == JNI_EDETACHED && vm->AttachCurrentThread(&env, &sAttachArgs) != 0) {
         ALOGE("%s unable to attach thread to VM", __func__);
         return BT_STATUS_FAIL;
     }
@@ -539,7 +545,7 @@ static int release_wake_lock_callout(const char *lock_name) {
         return BT_STATUS_FAIL;
     }
 
-    if (status == JNI_EDETACHED && vm->AttachCurrentThread(&env, NULL) != 0) {
+    if (status == JNI_EDETACHED && vm->AttachCurrentThread(&env, &sAttachArgs) != 0) {
         ALOGE("%s unable to attach thread to VM", __func__);
         return BT_STATUS_FAIL;
     }
