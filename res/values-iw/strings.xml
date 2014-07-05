@@ -21,7 +21,7 @@
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"‏הכנס מכשיר Bluetooth לרשימה הלבנה."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"‏מאפשר לאפליקציה להכניס מכשיר Bluetooth באופן זמני לרשימה הלבנה, ובכך לאפשר למכשיר לשלוח קבצים למכשיר זה ללא אישור משתמש."</string>
     <string name="permlab_handoverStatus" msgid="7316032998801933554">"‏קבל שידורי העברת מסירה של Bluetooth."</string>
-    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"‏מאפשר קבלת מידע סטטוס של העברת מסירה מ-Bluetooth."</string>
+    <string name="permdesc_handoverStatus" msgid="4752738070064786310">"‏מאפשר קבלת נתוני סטטוס של העברת מסירה מ-Bluetooth."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"מכשיר לא ידוע"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"לא ידוע"</string>
