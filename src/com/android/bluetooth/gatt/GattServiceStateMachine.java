@@ -20,6 +20,7 @@ import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.AdvertisementData;
 import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanSettings;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
@@ -34,6 +35,7 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -105,6 +107,15 @@ public class GattServiceStateMachine extends StateMachine {
     private static final int ADVERTISING_EVENT_TYPE_SCANNABLE = 2;
     private static final int ADVERTISING_EVENT_TYPE_NON_CONNECTABLE = 3;
 
+    // Result type defined in bt stack.
+    static final int SCAN_RESULT_TYPE_TRUNCATED = 1;
+    static final int SCAN_RESULT_TYPE_FULL = 2;
+
+    // Delivery mode defined in bt stack.
+    private static final int DELIVERY_MODE_IMMEDIATE = 0;
+    private static final int DELIVERY_MODE_ON_FOUND = 1;
+    private static final int DELIVERY_MODE_BATCH = 2;
+
     private final GattService mService;
     private final Map<Integer, AdvertiseClient> mAdvertiseClients;
     // Keep track of whether scan filters exist.
@@ -114,6 +125,7 @@ public class GattServiceStateMachine extends StateMachine {
     private final Idle mIdle;
     private final ScanStarting mScanStarting;
     private final AdvertiseStarting mAdvertiseStarting;
+    // A count down latch used to block on stack callback. MUST reset before use.
     private CountDownLatch mCallbackLatch;
 
     // It's sad we need to maintain this.
@@ -160,9 +172,8 @@ public class GattServiceStateMachine extends StateMachine {
     }
 
     void initFilterIndexStack() {
-        int maxFiltersSupported = 16;
-                // AdapterService.getAdapterService().getNumOfOffloadedScanFilterSupported();
-        log("maxFiltersSupported = " + maxFiltersSupported);
+        int maxFiltersSupported =
+                AdapterService.getAdapterService().getNumOfOffloadedScanFilterSupported();
         for (int i = 1; i < maxFiltersSupported; ++i) {
             mFilterIndexStack.add(i);
         }
@@ -198,7 +209,6 @@ public class GattServiceStateMachine extends StateMachine {
                     transitionTo(mScanStarting);
                     break;
                 case STOP_BLE_SCAN:
-                    // Note this should only happen no client is doing scans any more.
                     int clientIf = message.arg1;
                     resetCallbackLatch();
                     gattClientScanFilterParamClearAllNative(clientIf);
@@ -295,32 +305,44 @@ public class GattServiceStateMachine extends StateMachine {
                     resetCallbackLatch();
                     gattClientScanFilterEnableNative(clientIf, true);
                     waitForCallback();
-                    Set<ScanFilter> filters = (Set<ScanFilter>) message.obj;
-                    if (filters != null && filters.size() <= mFilterIndexStack.size()) {
-                        Deque<Integer> clientFilterIndices = new ArrayDeque<Integer>();
-                        for (ScanFilter filter : filters) {
-                            ScanFilterQueue queue = new ScanFilterQueue();
-                            queue.addScanFilter(filter);
-                            int featureSelection = queue.getFeatureSelection();
-                            int filterIndex = mFilterIndexStack.pop();
-                            while (!queue.isEmpty()) {
+                    ScanClient client = (ScanClient) message.obj;
+                    if (client != null) {
+                        Set<ScanFilter> filters = new HashSet<ScanFilter>(client.filters);
+                        // TODO: add ALLOW_ALL filter.
+                        if (filters != null && !filters.isEmpty() &&
+                                filters.size() <= mFilterIndexStack.size()) {
+                            Deque<Integer> clientFilterIndices = new ArrayDeque<Integer>();
+                            for (ScanFilter filter : filters) {
+                                ScanFilterQueue queue = new ScanFilterQueue();
+                                queue.addScanFilter(filter);
+                                int featureSelection = queue.getFeatureSelection();
+                                int filterIndex = mFilterIndexStack.pop();
+                                while (!queue.isEmpty()) {
+                                    resetCallbackLatch();
+                                    addFilterToController(clientIf, queue.pop(), filterIndex);
+                                    waitForCallback();
+                                }
                                 resetCallbackLatch();
-                                addFilterToController(clientIf, queue.pop(), filterIndex);
+                                int deliveryMode = getDeliveryMode(client.settings);
+                                logd("deliveryMode : " + deliveryMode);
+                                int listLogicType = 0x1111111;
+                                int filterLogicType = 1;
+                                int rssiThreshold = Byte.MIN_VALUE;
+                                gattClientScanFilterParamAddNative(
+                                        clientIf, filterIndex, featureSelection, listLogicType,
+                                        filterLogicType, rssiThreshold, rssiThreshold, deliveryMode,
+                                        0, 0, 0);
                                 waitForCallback();
+                                clientFilterIndices.add(filterIndex);
                             }
-                            resetCallbackLatch();
-                            gattClientScanFilterParamAddNative(
-                                    clientIf, filterIndex, featureSelection, 0x1111111, 1, -127,
-                                    -127, 0, 0, 0, 0);
-                            waitForCallback();
-                            clientFilterIndices.add(filterIndex);
+                            mClientFilterIndexMap.put(clientIf, clientFilterIndices);
                         }
-                        mClientFilterIndexMap.put(clientIf, clientFilterIndices);
                     }
-                    sendMessage(ENABLE_BLE_SCAN);
+                    sendMessage(ENABLE_BLE_SCAN, client);
                     break;
                 case ENABLE_BLE_SCAN:
-                    gattClientScanNative(true);
+                    client = (ScanClient) message.obj;
+                    enableBleScan(client);
                     removeMessages(OPERATION_TIMEOUT);
                     transitionTo(mIdle);
                     break;
@@ -333,6 +355,33 @@ public class GattServiceStateMachine extends StateMachine {
             return HANDLED;
         }
 
+    }
+
+    private void enableBleScan(ScanClient client) {
+        if (client == null || client.settings == null
+                || client.settings.getReportDelayNanos() == 0) {
+            logd("enabling ble scan, appIf " + client.appIf);
+            gattClientScanNative(true);
+            return;
+        }
+        int fullScanPercent = 20;
+        int notifyThreshold = 95;
+        resetCallbackLatch();
+        if (DBG)
+            logd("configuring batch scan storage, appIf " + client.appIf);
+        gattClientConfigBatchScanStorageNative(client.appIf, fullScanPercent,
+                100 - fullScanPercent, notifyThreshold);
+        waitForCallback();
+        int scanMode = getResultType(client.settings);
+        // TODO: configure scan parameters.
+        int scanIntervalUnit = 8;
+        int scanWindowUnit = 8;
+        int discardRule = 2;
+        int addressType = 0;
+        logd("Starting BLE batch scan");
+        gattClientStartBatchScanNative(client.appIf, scanMode, scanIntervalUnit, scanWindowUnit,
+                addressType,
+                discardRule);
     }
 
     private void resetCallbackLatch() {
@@ -355,21 +404,18 @@ public class GattServiceStateMachine extends StateMachine {
         log("addFilterToController: " + entry.type);
         switch (entry.type) {
             case ScanFilterQueue.TYPE_DEVICE_ADDRESS:
-                // TBD appropriate params need to be passed here
                 log("add address " + entry.address);
                 gattClientScanFilterAddNative(clientIf, entry.type, filterIndex, 0, 0, 0, 0, 0, 0,
                         "", entry.address, (byte) 0, new byte[0], new byte[0]);
                 break;
 
             case ScanFilterQueue.TYPE_SERVICE_DATA:
-                // TBD appropriate params need to be passed here
                 gattClientScanFilterAddNative(clientIf, entry.type, filterIndex, 0, 0, 0, 0, 0, 0,
                         "", "", (byte) 0, entry.data, entry.data_mask);
                 break;
 
             case ScanFilterQueue.TYPE_SERVICE_UUID:
             case ScanFilterQueue.TYPE_SOLICIT_UUID:
-                // TBD appropriate params need to be passed here
                 gattClientScanFilterAddNative(clientIf, entry.type, filterIndex, 0, 0,
                         entry.uuid.getLeastSignificantBits(),
                         entry.uuid.getMostSignificantBits(),
@@ -379,7 +425,6 @@ public class GattServiceStateMachine extends StateMachine {
                 break;
 
             case ScanFilterQueue.TYPE_LOCAL_NAME:
-                // TBD appropriate params need to be passed here
                 loge("adding filters: " + entry.name);
                 gattClientScanFilterAddNative(clientIf, entry.type, filterIndex, 0, 0, 0, 0, 0, 0,
                         entry.name, "", (byte) 0, new byte[0], new byte[0]);
@@ -390,7 +435,6 @@ public class GattServiceStateMachine extends StateMachine {
                 int len = entry.data.length;
                 if (entry.data_mask.length != len)
                     return;
-                // TBD appropriate params need to be passed here
                 gattClientScanFilterAddNative(clientIf, entry.type, filterIndex, entry.company,
                         entry.company_mask, 0, 0, 0, 0, "", "", (byte) 0,
                         entry.data, entry.data_mask);
@@ -545,6 +589,28 @@ public class GattServiceStateMachine extends StateMachine {
         }
     }
 
+    /**
+     * Return batch scan result type value defined in bt stack.
+     */
+    int getResultType(ScanSettings settings) {
+        return settings.getScanResultType() == ScanSettings.SCAN_RESULT_TYPE_FULL ?
+                SCAN_RESULT_TYPE_FULL : SCAN_RESULT_TYPE_TRUNCATED;
+    }
+
+    // Get delivery mode based on scan settings.
+    private int getDeliveryMode(ScanSettings settings) {
+        if (settings == null) {
+            return DELIVERY_MODE_IMMEDIATE;
+        }
+        // TODO: double check whether it makes sense to use the same delivery mode for found and
+        // lost.
+        if (settings.getCallbackType() == ScanSettings.CALLBACK_TYPE_ON_FOUND ||
+                settings.getCallbackType() == ScanSettings.CALLBACK_TYPE_ON_LOST) {
+            return DELIVERY_MODE_ON_FOUND;
+        }
+        return settings.getReportDelayNanos() == 0 ? DELIVERY_MODE_IMMEDIATE : DELIVERY_MODE_BATCH;
+    }
+
     private long millsToUnit(int millisecond) {
         return TimeUnit.MILLISECONDS.toMicros(millisecond) / ADVERTISING_INTERVAL_MICROS_PER_UNIT;
     }
@@ -605,6 +671,4 @@ public class GattServiceStateMachine extends StateMachine {
             int scan_interval_unit, int scan_window_unit, int address_type, int discard_rule);
 
     private native void gattClientStopBatchScanNative(int client_if);
-
-    private native void gattClientReadScanReportsNative(int client_if, int scan_type);
 }
