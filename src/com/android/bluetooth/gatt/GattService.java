@@ -103,6 +103,9 @@ public class GattService extends ProfileService {
     private static final int TRUNCATED_RESULT_SIZE = 11;
     private static final int TIME_STAMP_LENGTH = 2;
 
+    // onFoundLost related constants
+    private static final int ADVT_STATE_ONFOUND = 0;
+    private static final int ADVT_STATE_ONLOST = 1;
 
     /**
      * Search queue to serialize remote onbject inspection.
@@ -1157,13 +1160,26 @@ public class GattService extends ProfileService {
     }
 
     void onTrackAdvFoundLost(int filterIndex, int addrType, String address, int advState,
-            int clientIf) {
+            int clientIf) throws RemoteException {
         if (DBG) Log.d(TAG, "onClientAdvertiserFoundLost() - clientIf="
                 + clientIf + "address = " + address + "adv_state = "
                 + advState + "client_if = " + clientIf);
         ClientMap.App app = mClientMap.getById(clientIf);
-        if (app != null) {
-            // TBD
+        if (app == null || app.callback == null) {
+            Log.e(TAG, "app or callback is null");
+            return;
+        }
+        if (advState == ADVT_STATE_ONFOUND || advState == ADVT_STATE_ONLOST) {
+            int rssi = 0;
+            byte [] advData = new byte[0];
+            boolean found;
+            if (advState == ADVT_STATE_ONFOUND) {
+                found = true;
+            } else {
+                found = false;
+            }
+            //ToDo: Address reporting format and content and then enable
+            app.callback.onFoundOrLost(found, address, rssi, advData);
         }
     }
 
