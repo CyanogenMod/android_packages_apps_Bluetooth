@@ -578,14 +578,14 @@ public class GattServiceStateMachine extends StateMachine {
     private long getAdvertisingIntervalUnit(AdvertiseSettings settings) {
         switch (settings.getMode()) {
             case AdvertiseSettings.ADVERTISE_MODE_LOW_POWER:
-                return millsToUnit(ADVERTISING_INTERVAL_LOW_MILLS);
+                return millsToUnit(ADVERTISING_INTERVAL_HIGH_MILLS);
             case AdvertiseSettings.ADVERTISE_MODE_BALANCED:
                 return millsToUnit(ADVERTISING_INTERVAL_MEDIUM_MILLS);
             case AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY:
-                return millsToUnit(ADVERTISING_INTERVAL_HIGH_MILLS);
+                return millsToUnit(ADVERTISING_INTERVAL_LOW_MILLS);
             default:
                 // Shouldn't happen, just in case.
-                return millsToUnit(ADVERTISING_INTERVAL_LOW_MILLS);
+                return millsToUnit(ADVERTISING_INTERVAL_HIGH_MILLS);
         }
     }
 
