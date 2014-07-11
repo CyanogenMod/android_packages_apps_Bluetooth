@@ -190,8 +190,8 @@ import java.util.UUID;
     void addScanFilter(ScanFilter filter) {
         if (filter == null)
             return;
-        if (filter.getLocalName() != null) {
-            addName(filter.getLocalName());
+        if (filter.getDeviceName() != null) {
+            addName(filter.getDeviceName());
         }
         if (filter.getDeviceAddress() != null) {
             addDeviceAddress(filter.getDeviceAddress(), DEVICE_TYPE_ALL);
