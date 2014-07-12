@@ -470,7 +470,8 @@ public class BluetoothOppService extends Service {
                         // We're beyond the end of the cursor but there's still
                         // some
                         // stuff in the local array, which can only be junk
-                        if (V) Log.v(TAG, "Array update: trimming " +
+                        if (mShares.size() != 0)
+                            if (V) Log.v(TAG, "Array update: trimming " +
                                 mShares.get(arrayPos).mId + " @ " + arrayPos);
 
                         if (shouldScanFile(arrayPos)) {
@@ -497,7 +498,9 @@ public class BluetoothOppService extends Service {
                             cursor.moveToNext();
                             isAfterLast = cursor.isAfterLast();
                         } else {
-                            int arrayId = mShares.get(arrayPos).mId;
+                            int arrayId = 0;
+                            if (mShares.size() != 0)
+                                arrayId = mShares.get(arrayPos).mId;
 
                             if (arrayId < id) {
                                 if (V) Log.v(TAG, "Array update: removing " + arrayId + " @ "
