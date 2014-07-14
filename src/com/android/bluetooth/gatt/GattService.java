@@ -25,8 +25,8 @@ import android.bluetooth.IBluetoothGatt;
 import android.bluetooth.IBluetoothGattCallback;
 import android.bluetooth.IBluetoothGattServerCallback;
 import android.bluetooth.le.AdvertiseCallback;
+import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
-import android.bluetooth.le.AdvertisementData;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
@@ -579,8 +579,8 @@ public class GattService extends ProfileService {
         }
 
         @Override
-        public void startMultiAdvertising(int clientIf, AdvertisementData advertiseData,
-                AdvertisementData scanResponse,
+        public void startMultiAdvertising(int clientIf, AdvertiseData advertiseData,
+                AdvertiseData scanResponse,
                 AdvertiseSettings settings) {
             GattService service = getService();
             if (service == null) return;
@@ -1278,10 +1278,10 @@ public class GattService extends ProfileService {
         ClientMap.App app = mClientMap.getById(clientIf);
         if (app != null) {
             if (status == 0) {
-                app.callback.onMultiAdvertiseCallback(AdvertiseCallback.SUCCESS);
+                app.callback.onMultiAdvertiseCallback(AdvertiseCallback.ADVERTISE_SUCCESS);
             } else {
                 app.callback.onMultiAdvertiseCallback(
-                        AdvertiseCallback.ADVERTISE_FAILED_CONTROLLER_FAILURE);
+                        AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR);
             }
         }
     }
@@ -1294,10 +1294,10 @@ public class GattService extends ProfileService {
         if (app != null) {
             Log.d(TAG, "Client app is not null!");
             if (status == 0) {
-                app.callback.onMultiAdvertiseCallback(AdvertiseCallback.SUCCESS);
+                app.callback.onMultiAdvertiseCallback(AdvertiseCallback.ADVERTISE_SUCCESS);
             } else {
                 app.callback.onMultiAdvertiseCallback(
-                        AdvertiseCallback.ADVERTISE_FAILED_CONTROLLER_FAILURE);
+                        AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR);
             }
         }
     }
@@ -1407,7 +1407,7 @@ public class GattService extends ProfileService {
                 ", isServer=" + isServer);
         ScanClient scanClient = getScanClient(clientIf, isServer);
         if (scanClient == null || scanClient.settings == null
-                || scanClient.settings.getReportDelayNanos() == 0) {
+                || scanClient.settings.getReportDelaySeconds() == 0) {
             // Not a batch scan client.
             Log.e(TAG, "called flushPendingBatchResults without a proper app!");
             return;
@@ -1663,8 +1663,8 @@ public class GattService extends ProfileService {
         }
     }
 
-    void startMultiAdvertising(int clientIf, AdvertisementData advertiseData,
-            AdvertisementData scanResponse, AdvertiseSettings settings) {
+    void startMultiAdvertising(int clientIf, AdvertiseData advertiseData,
+            AdvertiseData scanResponse, AdvertiseSettings settings) {
         enforceAdminPermission();
         Message message = mStateMachine.obtainMessage(GattServiceStateMachine.START_ADVERTISING);
         message.obj = new AdvertiseClient(clientIf, settings, advertiseData, scanResponse);

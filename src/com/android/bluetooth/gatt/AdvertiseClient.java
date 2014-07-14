@@ -17,8 +17,8 @@
 package com.android.bluetooth.gatt;
 
 import android.annotation.Nullable;
+import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
-import android.bluetooth.le.AdvertisementData;
 
 /**
  * @hide
@@ -26,12 +26,12 @@ import android.bluetooth.le.AdvertisementData;
 class AdvertiseClient {
     int clientIf;
     AdvertiseSettings settings;
-    AdvertisementData advertiseData;
+    AdvertiseData advertiseData;
     @Nullable
-    AdvertisementData scanResponse;
+    AdvertiseData scanResponse;
 
-    AdvertiseClient(int clientIf, AdvertiseSettings settings, AdvertisementData data,
-            AdvertisementData scanResponse) {
+    AdvertiseClient(int clientIf, AdvertiseSettings settings, AdvertiseData data,
+            AdvertiseData scanResponse) {
         this.clientIf = clientIf;
         this.settings = settings;
         this.advertiseData = data;

@@ -18,7 +18,7 @@ package com.android.bluetooth.gatt;
 
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseSettings;
-import android.bluetooth.le.AdvertisementData;
+import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
 import android.os.Message;
@@ -254,17 +254,11 @@ public class GattServiceStateMachine extends StateMachine {
                     break;
                 case STOP_ADVERTISING:
                     clientIf = message.arg1;
-                    if (!mAdvertiseClients.containsKey(clientIf)) {
-                        try {
-                            mService.onMultipleAdvertiseCallback(clientIf,
-                                    AdvertiseCallback.ADVERTISE_FAILED_NOT_STARTED);
-                        } catch (RemoteException e) {
-                            loge("failed to stop advertising", e);
-                        }
+                    if (mAdvertiseClients.containsKey(clientIf)) {
+                        log("disabling client" + clientIf);
+                        gattClientDisableAdvNative(clientIf);
+                        mAdvertiseClients.remove(clientIf);
                     }
-                    log("disabling client" + clientIf);
-                    gattClientDisableAdvNative(clientIf);
-                    mAdvertiseClients.remove(clientIf);
                     break;
 
                 default:
@@ -362,7 +356,7 @@ public class GattServiceStateMachine extends StateMachine {
 
     private void enableBleScan(ScanClient client) {
         if (client == null || client.settings == null
-                || client.settings.getReportDelayNanos() == 0) {
+                || client.settings.getReportDelaySeconds() == 0) {
             gattClientScanNative(true);
             return;
         }
@@ -485,7 +479,7 @@ public class GattServiceStateMachine extends StateMachine {
                     clientIf = message.arg1;
                     try {
                         mService.onMultipleAdvertiseCallback(clientIf,
-                                AdvertiseCallback.ADVERTISE_FAILED_CONTROLLER_FAILURE);
+                                AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR);
                     } catch (RemoteException e) {
                         loge("failed to start advertising", e);
                     }
@@ -498,7 +492,7 @@ public class GattServiceStateMachine extends StateMachine {
         }
     }
 
-    private void setAdvertisingData(int clientIf, AdvertisementData data, boolean isScanResponse) {
+    private void setAdvertisingData(int clientIf, AdvertiseData data, boolean isScanResponse) {
         if (data == null) {
             return;
         }
@@ -564,17 +558,11 @@ public class GattServiceStateMachine extends StateMachine {
 
     // Convert advertising event type to stack advertising event type.
     private int getAdvertisingEventType(AdvertiseSettings settings) {
-        switch (settings.getType()) {
-            case AdvertiseSettings.ADVERTISE_TYPE_CONNECTABLE:
-                return ADVERTISING_EVENT_TYPE_CONNECTABLE;
-            case AdvertiseSettings.ADVERTISE_TYPE_SCANNABLE:
-                return ADVERTISING_EVENT_TYPE_SCANNABLE;
-            case AdvertiseSettings.ADVERTISE_TYPE_NON_CONNECTABLE:
-                return ADVERTISING_EVENT_TYPE_NON_CONNECTABLE;
-            default:
-                // Should't happen, just in case.
-                return ADVERTISING_EVENT_TYPE_NON_CONNECTABLE;
-        }
+        // TODO: Check if we have scan response data to control SCANABLE
+        // TODO: Also check for limited discovery and set flag to LIMITED here?
+        if (settings.getIsConnectable())
+            return ADVERTISING_EVENT_TYPE_CONNECTABLE;
+        return ADVERTISING_EVENT_TYPE_NON_CONNECTABLE;
     }
 
     // Convert advertising milliseconds to advertising units(one unit is 0.625 millisecond).
@@ -607,11 +595,11 @@ public class GattServiceStateMachine extends StateMachine {
         }
         // TODO: double check whether it makes sense to use the same delivery mode for found and
         // lost.
-        if (settings.getCallbackType() == ScanSettings.CALLBACK_TYPE_ON_FOUND ||
-                settings.getCallbackType() == ScanSettings.CALLBACK_TYPE_ON_LOST) {
+        if ( (settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_FIRST_MATCH) != 0
+          || (settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_MATCH_LOST)  != 0) {
             return DELIVERY_MODE_ON_FOUND;
         }
-        return settings.getReportDelayNanos() == 0 ? DELIVERY_MODE_IMMEDIATE : DELIVERY_MODE_BATCH;
+        return settings.getReportDelaySeconds() == 0 ? DELIVERY_MODE_IMMEDIATE : DELIVERY_MODE_BATCH;
     }
 
     private long millsToUnit(int millisecond) {
