@@ -415,9 +415,13 @@ public class AdapterService extends Service {
             mPendingAlarm = null;
         }
 
-        if (mWakeLock != null) {
-            mWakeLock.release();
-            mWakeLock = null;
+        // This wake lock release may also be called concurrently by
+        // {@link #releaseWakeLock(String lockName)}, so a synchronization is needed here.
+        synchronized (this) {
+            if (mWakeLock != null) {
+                mWakeLock.release();
+                mWakeLock = null;
+            }
         }
 
         if (mAdapterStateMachine != null) {
@@ -1590,17 +1594,20 @@ public class AdapterService extends Service {
     }
 
     // This function is called from JNI. It allows native code to release a wake lock acquired
-    // by |acquireWakeLock|. If the wake lock is not held, this function returns failure. See
-    // the comment for |acquireWakeLock| for an explanation of the interface.
+    // by |acquireWakeLock|. If the wake lock is not held, this function returns failure.
+    // Note that the release() call is also invoked by {@link #cleanup()} so a synchronization is
+    // needed here. See the comment for |acquireWakeLock| for an explanation of the interface.
     private boolean releaseWakeLock(String lockName) {
-        if (mWakeLock == null) {
-            errorLog("Repeated wake lock release; aborting release: " + lockName);
-            return false;
-        }
+        synchronized (this) {
+            if (mWakeLock == null) {
+                errorLog("Repeated wake lock release; aborting release: " + lockName);
+                return false;
+            }
 
-        mWakeLock.release();
-        mWakeLock = null;
-        mWakeLockName = null;
+            mWakeLock.release();
+            mWakeLock = null;
+            mWakeLockName = null;
+        }
         return true;
     }
 
