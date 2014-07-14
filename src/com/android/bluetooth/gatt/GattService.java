@@ -1019,7 +1019,6 @@ public class GattService extends ProfileService {
     }
 
     void onScanFilterEnableDisabled(int action, int status, int clientIf) {
-        Log.d(TAG, "called");
         if (DBG) {
             Log.d(TAG, "onScanFilterEnableDisabled() - clientIf=" + clientIf + ", status=" + status
                     + ", action=" + action);

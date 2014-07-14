@@ -144,7 +144,6 @@ public class GattServiceStateMachine extends StateMachine {
         mAdvertiseClients = new HashMap<Integer, AdvertiseClient>();
         mFilterIndexStack = new ArrayDeque<Integer>();
         mClientFilterIndexMap = new HashMap<Integer, Deque<Integer>>();
-        initFilterIndexStack();
 
         addState(mIdle);
         addState(mScanStarting);
@@ -285,6 +284,10 @@ public class GattServiceStateMachine extends StateMachine {
             if (DBG) {
                 log("enter scan starting state: " + getCurrentMessage().what);
             }
+            // TODO: find a better place for this.
+            if (mFilterIndexStack.isEmpty()) {
+                initFilterIndexStack();
+            }
         }
 
         @SuppressWarnings("unchecked")
@@ -360,10 +363,10 @@ public class GattServiceStateMachine extends StateMachine {
     private void enableBleScan(ScanClient client) {
         if (client == null || client.settings == null
                 || client.settings.getReportDelayNanos() == 0) {
-            logd("enabling ble scan, appIf " + client.appIf);
             gattClientScanNative(true);
             return;
         }
+        logd("enabling ble scan, appIf " + client.appIf);
         int fullScanPercent = 20;
         int notifyThreshold = 95;
         resetCallbackLatch();
