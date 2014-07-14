@@ -21,15 +21,10 @@ import java.util.List;
 import java.util.Set;
 
 import javax.obex.ServerSession;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothServerSocket;
-import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothMap;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.BluetoothMap;
@@ -37,7 +32,6 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.ParcelUuid;
@@ -51,7 +45,6 @@ import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
-import com.android.bluetooth.btservice.ProfileService.IProfileServiceBinder;
 
 
 public class BluetoothMapService extends ProfileService {
@@ -142,11 +135,6 @@ public class BluetoothMapService extends ProfileService {
 
     private boolean isWaitingAuthorization = false;
     private boolean removeTimeoutMsg = false;
-
-    // package and class name to which we send intent to check message access access permission
-    private static final String ACCESS_AUTHORITY_PACKAGE = "com.android.settings";
-    private static final String ACCESS_AUTHORITY_CLASS =
-        "com.android.settings.bluetooth.BluetoothPermissionRequest";
 
     private static final ParcelUuid[] MAP_UUIDS = {
         BluetoothUuid.MAP,
@@ -418,13 +406,12 @@ public class BluetoothMapService extends ProfileService {
                     } else {
                         Intent intent = new
                             Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_REQUEST);
-                        intent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
                         intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                         BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
                         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
 
                         isWaitingAuthorization = true;
-                        sendBroadcast(intent, BLUETOOTH_ADMIN_PERM);
+                        sendOrderedBroadcast(intent, BLUETOOTH_ADMIN_PERM);
 
                         if (DEBUG) Log.d(TAG, "waiting for authorization for connection from: "
                                 + sRemoteDeviceName);
