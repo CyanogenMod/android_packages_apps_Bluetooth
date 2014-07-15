@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.gatt;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.AdvertiseData;
@@ -116,6 +117,9 @@ public class GattServiceStateMachine extends StateMachine {
     private static final int DELIVERY_MODE_ON_FOUND = 1;
     private static final int DELIVERY_MODE_BATCH = 2;
 
+    private static final int ALLOW_ALL_FILTER_INDEX = 1;
+    private static final int ALLOW_ALL_FILTER_SELECTION = 0;
+
     private final GattService mService;
     private final Map<Integer, AdvertiseClient> mAdvertiseClients;
     // Keep track of whether scan filters exist.
@@ -173,7 +177,9 @@ public class GattServiceStateMachine extends StateMachine {
     void initFilterIndexStack() {
         int maxFiltersSupported =
                 AdapterService.getAdapterService().getNumOfOffloadedScanFilterSupported();
-        for (int i = 1; i < maxFiltersSupported; ++i) {
+        // Start from index 2 as index 0 is reserved for ALLOW_ALL filter in Settings app and
+        // index 1 is reserved for ALLOW_ALL filter for regular apps.
+        for (int i = 2; i < maxFiltersSupported; ++i) {
             mFilterIndexStack.add(i);
         }
     }
@@ -298,42 +304,46 @@ public class GattServiceStateMachine extends StateMachine {
                     deferMessage(message);
                     break;
                 case ADD_BLE_SCAN_FILTER:
+                    // Add scan filters. The logic is:
+                    // 1) If scan filter is not supported in hardware, start scan directly.
+                    // 2) Otherwise if no offload filter can/needs to be set, set ALLOW_ALL filter.
+                    // 3) Otherwise offload all filters to hardware and enable all filters.
+                    ScanClient client = (ScanClient) message.obj;
+                    // Start scan without setting hardware filters if offloaded filters are not
+                    // supported by controller.
+                    if (!isHardwareScanFilterSupported()) {
+                        sendMessage(ENABLE_BLE_SCAN, client);
+                        break;
+                    }
                     int clientIf = message.arg1;
                     resetCallbackLatch();
                     gattClientScanFilterEnableNative(clientIf, true);
                     waitForCallback();
-                    ScanClient client = (ScanClient) message.obj;
-                    if (client != null) {
-                        Set<ScanFilter> filters = new HashSet<ScanFilter>(client.filters);
-                        // TODO: add ALLOW_ALL filter.
-                        if (filters != null && !filters.isEmpty() &&
-                                filters.size() <= mFilterIndexStack.size()) {
-                            Deque<Integer> clientFilterIndices = new ArrayDeque<Integer>();
-                            for (ScanFilter filter : filters) {
-                                ScanFilterQueue queue = new ScanFilterQueue();
-                                queue.addScanFilter(filter);
-                                int featureSelection = queue.getFeatureSelection();
-                                int filterIndex = mFilterIndexStack.pop();
-                                while (!queue.isEmpty()) {
-                                    resetCallbackLatch();
-                                    addFilterToController(clientIf, queue.pop(), filterIndex);
-                                    waitForCallback();
-                                }
+                    // Set ALLOW_ALL filter if needed.
+                    if (shouldUseAllowAllFilter(client)) {
+                        resetCallbackLatch();
+                        configureFilterParamter(clientIf, client, ALLOW_ALL_FILTER_SELECTION,
+                                ALLOW_ALL_FILTER_INDEX);
+                        waitForCallback();
+                    } else {
+                        Deque<Integer> clientFilterIndices = new ArrayDeque<Integer>();
+                        for (ScanFilter filter : client.filters) {
+                            ScanFilterQueue queue = new ScanFilterQueue();
+                            queue.addScanFilter(filter);
+                            int featureSelection = queue.getFeatureSelection();
+                            int filterIndex = mFilterIndexStack.pop();
+                            while (!queue.isEmpty()) {
                                 resetCallbackLatch();
-                                int deliveryMode = getDeliveryMode(client.settings);
-                                logd("deliveryMode : " + deliveryMode);
-                                int listLogicType = 0x1111111;
-                                int filterLogicType = 1;
-                                int rssiThreshold = Byte.MIN_VALUE;
-                                gattClientScanFilterParamAddNative(
-                                        clientIf, filterIndex, featureSelection, listLogicType,
-                                        filterLogicType, rssiThreshold, rssiThreshold, deliveryMode,
-                                        0, 0, 0);
+                                addFilterToController(clientIf, queue.pop(), filterIndex);
                                 waitForCallback();
-                                clientFilterIndices.add(filterIndex);
                             }
-                            mClientFilterIndexMap.put(clientIf, clientFilterIndices);
+                            resetCallbackLatch();
+                            configureFilterParamter(clientIf, client, featureSelection,
+                                    filterIndex);
+                            waitForCallback();
+                            clientFilterIndices.add(filterIndex);
                         }
+                        mClientFilterIndexMap.put(clientIf, clientFilterIndices);
                     }
                     sendMessage(ENABLE_BLE_SCAN, client);
                     break;
@@ -352,6 +362,35 @@ public class GattServiceStateMachine extends StateMachine {
             return HANDLED;
         }
 
+        // Configure filter parameters.
+        private void configureFilterParamter(int clientIf, ScanClient client, int featureSelection,
+                int filterIndex) {
+            int deliveryMode = getDeliveryMode(client);
+            int listLogicType = 0x1111111;
+            int filterLogicType = 1;
+            int rssiThreshold = Byte.MIN_VALUE;
+            gattClientScanFilterParamAddNative(
+                    clientIf, filterIndex, featureSelection, listLogicType,
+                    filterLogicType, rssiThreshold, rssiThreshold, deliveryMode,
+                    0, 0, 0);
+        }
+    }
+
+    // Returns true if the controller supports scan filters.
+    private boolean isHardwareScanFilterSupported() {
+        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+        return adapter.isOffloadedFilteringSupported();
+    }
+
+    // Check if allow all filters should be used for the app.
+    private boolean shouldUseAllowAllFilter(ScanClient client) {
+        if (client == null) {
+            return true;
+        }
+        if (client.filters == null || client.filters.isEmpty()) {
+            return true;
+        }
+        return client.filters.size() < mClientFilterIndexMap.size();
     }
 
     private void enableBleScan(ScanClient client) {
@@ -589,17 +628,22 @@ public class GattServiceStateMachine extends StateMachine {
     }
 
     // Get delivery mode based on scan settings.
-    private int getDeliveryMode(ScanSettings settings) {
+    private int getDeliveryMode(ScanClient client) {
+        if (client == null) {
+            return DELIVERY_MODE_IMMEDIATE;
+        }
+        ScanSettings settings = client.settings;
         if (settings == null) {
             return DELIVERY_MODE_IMMEDIATE;
         }
         // TODO: double check whether it makes sense to use the same delivery mode for found and
         // lost.
-        if ( (settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_FIRST_MATCH) != 0
-          || (settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_MATCH_LOST)  != 0) {
+        if ((settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_FIRST_MATCH) != 0
+                || (settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_MATCH_LOST) != 0) {
             return DELIVERY_MODE_ON_FOUND;
         }
-        return settings.getReportDelaySeconds() == 0 ? DELIVERY_MODE_IMMEDIATE : DELIVERY_MODE_BATCH;
+        return settings.getReportDelaySeconds() == 0 ? DELIVERY_MODE_IMMEDIATE
+                : DELIVERY_MODE_BATCH;
     }
 
     private long millsToUnit(int millisecond) {
