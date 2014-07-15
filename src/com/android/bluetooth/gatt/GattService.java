@@ -40,8 +40,6 @@ import android.util.Log;
 
 import com.android.bluetooth.btservice.ProfileService;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -60,30 +58,6 @@ import java.util.concurrent.TimeUnit;
 public class GattService extends ProfileService {
     private static final boolean DBG = GattServiceConfig.DBG;
     private static final String TAG = GattServiceConfig.TAG_PREFIX + "GattService";
-    private static final int DEFAULT_SCAN_INTERVAL_MILLIS = 200;
-
-    /**
-     * Max packet size for ble advertising, defined in Bluetooth Specification Version 4.0 [Vol 3].
-     */
-    private static final int ADVERTISING_PACKET_MAX_BYTES = 31;
-    /**
-     * Size overhead for advertising flag.
-     */
-    private static final int ADVERTISING_FLAGS_BYTES = 3;
-    /**
-     * Size overhead per field. Usually it's just one byte of field length and one byte of
-     * field type.
-     */
-    private static final int FIELD_OVERHEAD_BYTES = 2;
-
-    /**
-     * Byte size of 16 bit service uuid.
-     */
-    private static final int SHORT_UUID_BYTES = 2;
-    /**
-     * Byte size of 128 bit service uuid.
-     */
-    private static final int FULL_UUID_BYTES = 16;
 
     static final int SCAN_FILTER_ENABLED = 1;
     static final int SCAN_FILTER_MODIFIED = 2;
@@ -131,13 +105,6 @@ public class GattService extends ProfileService {
     HandleMap mHandleMap = new HandleMap();
     private List<UUID> mAdvertisingServiceUuids = new ArrayList<UUID>();
 
-    private int mAdvertisingClientIf = 0;
-
-    private byte[] mServiceData = new byte[0];
-    private int mManufacturerCode = -1;
-    private byte[] mManufacturerData = new byte[0];
-    private Integer mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STOPPED;
-    private final Object mLock = new Object();
     private static int lastConfiguredScanSetting = Integer.MIN_VALUE;
     private int mMaxScanFilters;
 
@@ -266,14 +233,10 @@ public class GattService extends ProfileService {
 
         public void binderDied() {
             if (DBG) Log.d(TAG, "Binder is dead - unregistering client (" + mAppIf + ")!");
-            if (mAdvertisingClientIf == mAppIf) {
-                stopAdvertising(true);  // force stop advertising.
+            if (getScanClient(mAppIf, false) != null) {
+                stopScan(mAppIf, false);
             } else {
-                if (getScanClient(mAppIf, false) != null) {
-                    stopScan(mAppIf, false);
-                } else {
-                    stopMultiAdvertising(mAppIf);
-                }
+                stopMultiAdvertising(mAppIf);
             }
             unregisterClient(mAppIf);
         }
@@ -572,16 +535,8 @@ public class GattService extends ProfileService {
         }
 
         @Override
-        public void startAdvertising(int appIf) throws RemoteException {
-            GattService service = getService();
-            if (service == null) return;
-            service.startAdvertising(appIf);
-        }
-
-        @Override
         public void startMultiAdvertising(int clientIf, AdvertiseData advertiseData,
-                AdvertiseData scanResponse,
-                AdvertiseSettings settings) {
+                AdvertiseData scanResponse, AdvertiseSettings settings) {
             GattService service = getService();
             if (service == null) return;
             service.startMultiAdvertising(clientIf, advertiseData, scanResponse, settings);
@@ -593,61 +548,6 @@ public class GattService extends ProfileService {
             if (service == null) return;
             service.stopMultiAdvertising(clientIf);
         }
-
-        @Override
-        public boolean isAdvertising() {
-            GattService service = getService();
-            if (service == null) return false;
-            return service.isAdvertising();
-        }
-
-        @Override
-        public void stopAdvertising() throws RemoteException {
-            GattService service = getService();
-            if (service == null) return;
-            service.stopAdvertising();
-        }
-
-        @Override
-        public boolean setAdvServiceData(byte[] serviceData) throws RemoteException {
-            GattService service = getService();
-            if (service == null) return false;
-            return service.setAdvServiceData(serviceData);
-        }
-
-        @Override
-        public byte[] getAdvServiceData() throws RemoteException {
-            GattService service = getService();
-            if (service == null) return null;
-            return service.getAdvServiceData();
-        }
-
-        @Override
-        public boolean setAdvManufacturerCodeAndData(int manufactureCode, byte[] manufacturerData)
-            throws RemoteException {
-            GattService service = getService();
-            if (service == null) return false;
-            return service.setAdvManufacturerCodeAndData(manufactureCode, manufacturerData);
-        }
-
-        @Override
-        public byte[] getAdvManufacturerData() throws RemoteException {
-            GattService service = getService();
-            if (service == null) return null;
-            return service.getAdvManufacturerData();
-        }
-
-        @Override
-        public List<ParcelUuid> getAdvServiceUuids() throws RemoteException {
-            GattService service = getService();
-            if (service == null) return null;
-            return service.getAdvServiceUuids();
-        }
-
-        @Override
-        public void removeAdvManufacturerCodeAndData(int manufacturerCode) throws RemoteException {
-        }
-
     };
 
     /**************************************************************************
@@ -1182,54 +1082,6 @@ public class GattService extends ProfileService {
         }
     }
 
-    void onAdvertiseCallback(int status, int clientIf) throws RemoteException {
-        if (DBG) Log.d(TAG, "onClientListen() status=" + status);
-        synchronized (mLock) {
-            if (DBG) Log.d(TAG, "state" + mAdvertisingState);
-            // Invalid advertising state
-            if (mAdvertisingState == BluetoothAdapter.STATE_ADVERTISE_STARTED ||
-                    mAdvertisingState == BluetoothAdapter.STATE_ADVERTISE_STOPPED) {
-                Log.e(TAG, "invalid callback state " + mAdvertisingState);
-                return;
-            }
-
-            // Force stop advertising, no callback.
-            if (mAdvertisingState == BluetoothAdapter.STATE_ADVERTISE_FORCE_STOPPING) {
-                mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STOPPED;
-                mAdvertisingClientIf = 0;
-                sendBroadcast(new Intent(
-                        BluetoothAdapter.ACTION_BLUETOOTH_ADVERTISING_STOPPED));
-                return;
-            }
-
-            if (mAdvertisingState == BluetoothAdapter.STATE_ADVERTISE_STARTING) {
-                if (status == 0) {
-                    mAdvertisingClientIf = clientIf;
-                    mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STARTED;
-                    sendBroadcast(new Intent(
-                            BluetoothAdapter.ACTION_BLUETOOTH_ADVERTISING_STARTED));
-                } else {
-                    mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STOPPED;
-                }
-            } else if (mAdvertisingState == BluetoothAdapter.STATE_ADVERTISE_STOPPING) {
-                if (status == 0) {
-                    mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STOPPED;
-                    sendBroadcast(new Intent(
-                            BluetoothAdapter.ACTION_BLUETOOTH_ADVERTISING_STOPPED));
-                    mAdvertisingClientIf = 0;
-                } else {
-                    mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STARTED;
-                }
-            }
-        }
-        ClientMap.App app = mClientMap.getById(clientIf);
-        if (app == null || app.callback == null) {
-            Log.e(TAG, "app or callback is null");
-            return;
-        }
-        app.callback.onAdvertiseStateChange(mAdvertisingState, status);
-    }
-
     void onMultipleAdvertiseCallback(int clientIf, int status) throws RemoteException {
         ClientMap.App app = mClientMap.getById(clientIf);
         if (app == null || app.callback == null) {
@@ -1249,6 +1101,11 @@ public class GattService extends ProfileService {
         if (app != null) {
             app.callback.onConfigureMTU(address, mtu, status);
         }
+    }
+
+    // Callback for standard advertising instance.
+    void onAdvertiseCallback(int status, int clientIf) {
+        if (DBG) Log.d(TAG, "onAdvertiseCallback,- clientIf=" + clientIf + ", status=" + status);
     }
 
     void onClientEnable(int status, int clientIf) throws RemoteException{
@@ -1530,60 +1387,6 @@ public class GattService extends ProfileService {
         gattClientDisconnectNative(clientIf, address, connId != null ? connId : 0);
     }
 
-    synchronized boolean setAdvServiceData(byte[] serviceData) {
-        enforcePrivilegedPermission();
-        if (serviceData == null) return false;
-        // Calculate how many more bytes are needed for advertising service data field.
-        int extraBytes = (mServiceData == null) ?
-                FIELD_OVERHEAD_BYTES + serviceData.length :
-                    serviceData.length - mServiceData.length;
-        if (getAvailableSize() < extraBytes) {
-            Log.e(TAG, "cannot set service data, available size " + getAvailableSize());
-            return false;
-        }
-        mServiceData = serviceData;
-        return true;
-    }
-
-    byte[] getAdvServiceData() {
-        enforcePrivilegedPermission();
-        return mServiceData;
-    }
-
-    synchronized boolean setAdvManufacturerCodeAndData(
-        int manufacturerCode, byte[] manufacturerData) {
-        enforcePrivilegedPermission();
-        if (manufacturerCode <= 0 || manufacturerData == null) {
-            return false;
-        }
-        if (mManufacturerCode > 0 && mManufacturerData != null) {
-            Log.e(TAG, "manufacture data is already set");
-            return false;
-        }
-        if (getAvailableSize() <
-            FIELD_OVERHEAD_BYTES + manufacturerData.length) {
-            Log.e(TAG, "cannot set manu data, available size " + getAvailableSize());
-            return false;
-        }
-        this.mManufacturerCode = manufacturerCode;
-        this.mManufacturerData = manufacturerData;
-        return true;
-    }
-
-    void removeAdvManufacturerCodeAndData(int manufacturerCode) {
-        enforcePrivilegedPermission();
-        if (mManufacturerCode != manufacturerCode) {
-            return;
-        }
-        mManufacturerCode = -1;
-        mManufacturerData = new byte[0];
-    }
-
-    byte[] getAdvManufacturerData() {
-        enforcePrivilegedPermission();
-        return mManufacturerData;
-    }
-
     synchronized List<ParcelUuid> getAdvServiceUuids() {
         enforcePrivilegedPermission();
         boolean fullUuidFound = false;
@@ -1603,64 +1406,6 @@ public class GattService extends ProfileService {
             }
         }
         return serviceUuids;
-    }
-
-    boolean isAdvertising() {
-        enforcePrivilegedPermission();
-        return mAdvertisingState != BluetoothAdapter.STATE_ADVERTISE_STOPPED;
-    }
-
-    void startAdvertising(int clientIf) {
-        enforcePrivilegedPermission();
-        if (DBG) Log.d(TAG, "start advertising for app - " + clientIf);
-        List<ParcelUuid> serviceUuids = getAdvServiceUuids();
-        int advertisingServiceUuidLength = serviceUuids == null ? 0 : serviceUuids.size();
-
-        // Note according to Bluetooth Spec Version 4.0, for advertising and scan response data
-        // "all numerical multi-byte entities and values shall use little-endian byte order".
-        ByteBuffer advertisingUuidBytes = ByteBuffer.allocate(advertisingServiceUuidLength * 16)
-                .order(ByteOrder.LITTLE_ENDIAN);
-        for (ParcelUuid parcelUuid : serviceUuids) {
-            UUID uuid = parcelUuid.getUuid();
-            // Least signifcant bits first as the advertising uuid should be in little-endian.
-            advertisingUuidBytes.putLong(uuid.getLeastSignificantBits())
-                    .putLong(uuid.getMostSignificantBits());
-        }
-
-        // Set advertising data.
-        gattSetAdvDataNative(clientIf,
-                false,  // not scan response data
-                false,  // no device name
-                false,  // no tx power included
-                DEFAULT_SCAN_INTERVAL_MILLIS,
-                DEFAULT_SCAN_INTERVAL_MILLIS,
-                0,  // no appearance limit
-                mManufacturerData,
-                mServiceData,
-                advertisingUuidBytes.array());
-
-        // Start advertising if advertising is not already started.
-        if (!isAdvertising()) {
-            gattAdvertiseNative(clientIf, true);
-            mAdvertisingClientIf = clientIf;
-            mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STARTING;
-        }
-    }
-
-    void stopAdvertising() {
-        stopAdvertising(false);
-    }
-
-    void stopAdvertising(boolean forceStop) {
-        enforcePrivilegedPermission();
-        gattAdvertiseNative(mAdvertisingClientIf, false);
-        synchronized (mLock) {
-            if (forceStop) {
-                mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_FORCE_STOPPING;
-            } else {
-                mAdvertisingState = BluetoothAdapter.STATE_ADVERTISE_STOPPING;
-            }
-        }
     }
 
     void startMultiAdvertising(int clientIf, AdvertiseData advertiseData,
@@ -2242,26 +1987,6 @@ public class GattService extends ProfileService {
         if (DBG) Log.d(TAG, "getDeviceType() - device=" + device
             + ", type=" + type);
         return type;
-    }
-
-    private synchronized int getAvailableSize() {
-        enforcePrivilegedPermission();
-        int availableSize = ADVERTISING_PACKET_MAX_BYTES - ADVERTISING_FLAGS_BYTES;
-
-        for (ParcelUuid parcelUuid : getAdvServiceUuids()) {
-            if (BluetoothUuid.is16BitUuid(parcelUuid)) {
-                availableSize -= FIELD_OVERHEAD_BYTES + SHORT_UUID_BYTES;
-            } else {
-                availableSize -= FIELD_OVERHEAD_BYTES + FULL_UUID_BYTES;
-            }
-        }
-        if (mManufacturerCode > 0 && mManufacturerData != null) {
-            availableSize -= (FIELD_OVERHEAD_BYTES + mManufacturerData.length);
-        }
-        if (mServiceData != null) {
-            availableSize -= (FIELD_OVERHEAD_BYTES + mServiceData.length);
-        }
-        return availableSize;
     }
 
     private void enforceAdminPermission() {
