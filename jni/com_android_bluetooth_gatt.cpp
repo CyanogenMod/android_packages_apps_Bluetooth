@@ -833,10 +833,10 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onScanFilterConfig = env->GetMethodID(clazz, "onScanFilterConfig", "(IIIII)V");
     method_onScanFilterParamsConfigured = env->GetMethodID(clazz, "onScanFilterParamsConfigured", "(IIII)V");
     method_onScanFilterEnableDisabled = env->GetMethodID(clazz, "onScanFilterEnableDisabled", "(III)V");
-    method_onMultiAdvEnable = env->GetMethodID(clazz, "onClientEnable", "(II)V");
-    method_onMultiAdvUpdate = env->GetMethodID(clazz, "onClientUpdate", "(II)V");
-    method_onMultiAdvSetAdvData = env->GetMethodID(clazz, "onClientData", "(II)V");
-    method_onMultiAdvDisable = env->GetMethodID(clazz, "onClientDisable", "(II)V");
+    method_onMultiAdvEnable = env->GetMethodID(clazz, "onAdvertiseInstanceEnabled", "(II)V");
+    method_onMultiAdvUpdate = env->GetMethodID(clazz, "onAdvertiseDataUpdated", "(II)V");
+    method_onMultiAdvSetAdvData = env->GetMethodID(clazz, "onAdvertiseDataSet", "(II)V");
+    method_onMultiAdvDisable = env->GetMethodID(clazz, "onAdvertiseInstanceDisabled", "(II)V");
     method_onClientCongestion = env->GetMethodID(clazz, "onClientCongestion", "(IZ)V");
     method_onBatchScanStorageConfigured = env->GetMethodID(clazz, "onBatchScanStorageConfigured", "(II)V");
     method_onBatchScanStartStopped = env->GetMethodID(clazz, "onBatchScanStartStopped", "(III)V");
@@ -1700,6 +1700,14 @@ static void gattTestNative(JNIEnv *env, jobject object, jint command,
  * JNI function definitinos
  */
 
+// JNI functions defined in AdvertiseManager class.
+static JNINativeMethod sAdvertiseMethods[] = {
+    {"gattClientEnableAdvNative", "(IIIIII)V", (void *) gattClientEnableAdvNative},
+    {"gattClientUpdateAdvNative", "(IIIIII)V", (void *) gattClientUpdateAdvNative},
+    {"gattClientSetAdvDataNative", "(IZZZI[B[B[B)V", (void *) gattClientSetAdvDataNative},
+    {"gattClientDisableAdvNative", "(I)V", (void *) gattClientDisableAdvNative},
+};
+
 // JNI functions defined in GattStateMachine class.
 static JNINativeMethod sStateMachineMethods[] = {
     {"gattClientScanNative", "(Z)V", (void *) gattClientScanNative},
@@ -1713,10 +1721,6 @@ static JNINativeMethod sStateMachineMethods[] = {
     {"gattClientScanFilterDeleteNative", "(IIIIIJJJJLjava/lang/String;Ljava/lang/String;B[B[B)V", (void *) gattClientScanFilterDeleteNative},
     {"gattClientScanFilterClearNative", "(II)V", (void *) gattClientScanFilterClearNative},
     {"gattClientScanFilterEnableNative", "(IZ)V", (void *) gattClientScanFilterEnableNative},
-    {"gattClientEnableAdvNative", "(IIIIII)V", (void *) gattClientEnableAdvNative},
-    {"gattClientUpdateAdvNative", "(IIIIII)V", (void *) gattClientUpdateAdvNative},
-    {"gattClientSetAdvDataNative", "(IZZZI[B[B[B)V", (void *) gattClientSetAdvDataNative},
-    {"gattClientDisableAdvNative", "(I)V", (void *) gattClientDisableAdvNative},
 };
 
 // JNI functions defined in GattService class.
@@ -1769,6 +1773,9 @@ int register_com_android_bluetooth_gatt(JNIEnv* env)
     int register_success =
         jniRegisterNativeMethods(env, "com/android/bluetooth/gatt/GattServiceStateMachine",
                 sStateMachineMethods, NELEM(sStateMachineMethods));
+    register_success &=
+        jniRegisterNativeMethods(env, "com/android/bluetooth/gatt/AdvertiseManager$AdvertiseNative",
+                sAdvertiseMethods, NELEM(sAdvertiseMethods));
     return register_success &
         jniRegisterNativeMethods(env, "com/android/bluetooth/gatt/GattService",
                 sMethods, NELEM(sMethods));

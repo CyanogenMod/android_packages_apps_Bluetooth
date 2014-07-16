@@ -20,7 +20,6 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
-import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothGatt;
 import android.bluetooth.IBluetoothGattCallback;
 import android.bluetooth.IBluetoothGattServerCallback;
@@ -38,6 +37,7 @@ import android.os.RemoteException;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.ProfileService;
 
 import java.util.ArrayList;
@@ -149,6 +149,7 @@ public class GattService extends ProfileService {
     private List<ScanClient> mScanQueue = new ArrayList<ScanClient>();
 
     private GattServiceStateMachine mStateMachine;
+    private AdvertiseManager mAdvertiseManager;
     private ScanClient getScanClient(int appIf, boolean isServer) {
         for(ScanClient client : mScanQueue) {
             if (client.appIf == appIf && client.isServer == isServer) {
@@ -188,6 +189,8 @@ public class GattService extends ProfileService {
         if (DBG) Log.d(TAG, "start()");
         initializeNative();
         mStateMachine = GattServiceStateMachine.make(this);
+        mAdvertiseManager = new AdvertiseManager(this);
+        mAdvertiseManager.start();
         return true;
     }
 
@@ -208,6 +211,7 @@ public class GattService extends ProfileService {
         if (DBG) Log.d(TAG, "cleanup()");
         cleanupNative();
         mStateMachine.cleanup();
+        mAdvertiseManager.cleanup();
         return true;
     }
 
@@ -238,6 +242,8 @@ public class GattService extends ProfileService {
             } else {
                 stopMultiAdvertising(mAppIf);
             }
+            // TODO: Move unregisterClient after stop scan/advertise callback to avoid race
+            // condition.
             unregisterClient(mAppIf);
         }
     }
@@ -1108,46 +1114,37 @@ public class GattService extends ProfileService {
         if (DBG) Log.d(TAG, "onAdvertiseCallback,- clientIf=" + clientIf + ", status=" + status);
     }
 
-    void onClientEnable(int status, int clientIf) throws RemoteException{
-        if (DBG) Log.d(TAG, "onClientEnable() - clientIf=" + clientIf + ", status=" + status);
-        if (status == 0) {
-            Message message = mStateMachine.obtainMessage(
-                    GattServiceStateMachine.SET_ADVERTISING_DATA);
-            message.arg1 = clientIf;
-            mStateMachine.sendMessage(message);
-        } else {
-            Message message =
-                    mStateMachine.obtainMessage(GattServiceStateMachine.CANCEL_ADVERTISING);
-            message.arg1 = clientIf;
-            mStateMachine.sendMessage(message);
-        }
+    // Followings are callbacks for Bluetooth LE Advertise operations.
+    // Start advertising flow is
+    //     enable advertising instance -> onAdvertiseInstaceEnabled
+    // ->  set advertise data          -> onAdvertiseDataSet
+    // ->  set scan response           -> onAdvertiseDataSet
+
+    // Callback when advertise instance is enabled.
+    void onAdvertiseInstanceEnabled(int status, int clientIf) {
+        if (DBG) Log.d(TAG, "onAdvertiseInstanceEnabled() - "
+                + "clientIf=" + clientIf + ", status=" + status);
+        mAdvertiseManager.callbackDone(clientIf, status);
     }
 
-    void onClientUpdate(int status, int client_if) throws RemoteException {
-        if (DBG) Log.d(TAG, "onClientUpdate() - client_if=" + client_if
+    // Not really used.
+    void onAdvertiseDataUpdated(int status, int client_if) {
+        if (DBG) Log.d(TAG, "onAdvertiseDataUpdated() - client_if=" + client_if
             + ", status=" + status);
     }
 
-    void onClientData(int status, int clientIf) throws RemoteException{
-        if (DBG) Log.d(TAG, "onClientData() - clientIf=" + clientIf
+    // Callback when advertise data or scan response is set.
+    void onAdvertiseDataSet(int status, int clientIf) {
+        if (DBG) Log.d(TAG, "onAdvertiseDataSet() - clientIf=" + clientIf
             + ", status=" + status);
+        mAdvertiseManager.callbackDone(clientIf, status);
+    }
 
+    // Callback when advertise instance is disabled
+    void onAdvertiseInstanceDisabled(int status, int clientIf) throws RemoteException {
+        if (DBG) Log.d(TAG, "onAdvertiseInstanceEnabled() - clientIf=" + clientIf
+            + ", status=" + status);
         ClientMap.App app = mClientMap.getById(clientIf);
-        if (app != null) {
-            if (status == 0) {
-                app.callback.onMultiAdvertiseCallback(AdvertiseCallback.ADVERTISE_SUCCESS);
-            } else {
-                app.callback.onMultiAdvertiseCallback(
-                        AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR);
-            }
-        }
-    }
-
-    void onClientDisable(int status, int client_if) throws RemoteException{
-        if (DBG) Log.d(TAG, "onClientDisable() - client_if=" + client_if
-            + ", status=" + status);
-
-        ClientMap.App app = mClientMap.getById(client_if);
         if (app != null) {
             Log.d(TAG, "Client app is not null!");
             if (status == 0) {
@@ -1387,40 +1384,24 @@ public class GattService extends ProfileService {
         gattClientDisconnectNative(clientIf, address, connId != null ? connId : 0);
     }
 
-    synchronized List<ParcelUuid> getAdvServiceUuids() {
-        enforcePrivilegedPermission();
-        boolean fullUuidFound = false;
-        List<ParcelUuid> serviceUuids = new ArrayList<ParcelUuid>();
-        for (HandleMap.Entry entry : mHandleMap.mEntries) {
-            if (entry.advertisePreferred) {
-                ParcelUuid parcelUuid = new ParcelUuid(entry.uuid);
-                if (BluetoothUuid.is16BitUuid(parcelUuid)) {
-                    serviceUuids.add(parcelUuid);
-                } else {
-                    // Allow at most one 128 bit service uuid to be advertised.
-                    if (!fullUuidFound) {
-                      fullUuidFound = true;
-                      serviceUuids.add(parcelUuid);
-                    }
-                }
-            }
-        }
-        return serviceUuids;
-    }
-
     void startMultiAdvertising(int clientIf, AdvertiseData advertiseData,
             AdvertiseData scanResponse, AdvertiseSettings settings) {
-        enforceAdminPermission();
-        Message message = mStateMachine.obtainMessage(GattServiceStateMachine.START_ADVERTISING);
-        message.obj = new AdvertiseClient(clientIf, settings, advertiseData, scanResponse);
-        mStateMachine.sendMessage(message);
+        mAdvertiseManager.startAdvertising(new AdvertiseClient(clientIf, settings, advertiseData,
+                scanResponse));
     }
 
     void stopMultiAdvertising(int clientIf) {
-        enforceAdminPermission();
-        Message message = mStateMachine.obtainMessage(GattServiceStateMachine.STOP_ADVERTISING);
-        message.arg1 = clientIf;
-        mStateMachine.sendMessage(message);
+        mAdvertiseManager.stopAdvertising(new AdvertiseClient(clientIf));
+    }
+
+
+    synchronized List<ParcelUuid> getRegisteredServiceUuids() {
+        Utils.enforceAdminPermission(this);
+        List<ParcelUuid> serviceUuids = new ArrayList<ParcelUuid>();
+        for (HandleMap.Entry entry : mHandleMap.mEntries) {
+            serviceUuids.add(new ParcelUuid(entry.uuid));
+        }
+        return serviceUuids;
     }
 
     List<String> getConnectedDevices() {
