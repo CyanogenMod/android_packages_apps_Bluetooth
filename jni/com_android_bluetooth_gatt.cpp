@@ -1432,6 +1432,15 @@ static void gattClientConfigureMTUNative(JNIEnv *env, jobject object,
     sGattIf->client->configure_mtu(conn_id, mtu);
 }
 
+static void gattConnectionParameterUpdateNative(JNIEnv *env, jobject object, jint client_if,
+        jstring address, jint min_interval, jint max_interval, jint latency, jint timeout)
+{
+    if (!sGattIf) return;
+    bt_bdaddr_t bda;
+    jstr2bdaddr(env, &bda, address);
+    sGattIf->client->conn_parameter_update(&bda, min_interval, max_interval, latency, timeout);
+}
+
 static void gattClientEnableAdvNative(JNIEnv* env, jobject object, jint client_if,
        jint min_interval, jint max_interval, jint adv_type, jint chnl_map, jint tx_power)
 {
@@ -1743,6 +1752,7 @@ static JNINativeMethod sMethods[] = {
     {"gattClientReadRemoteRssiNative", "(ILjava/lang/String;)V", (void *) gattClientReadRemoteRssiNative},
     {"gattAdvertiseNative", "(IZ)V", (void *) gattAdvertiseNative},
     {"gattClientConfigureMTUNative", "(II)V", (void *) gattClientConfigureMTUNative},
+    {"gattConnectionParameterUpdateNative", "(ILjava/lang/String;IIII)V", (void *) gattConnectionParameterUpdateNative},
     {"gattServerRegisterAppNative", "(JJ)V", (void *) gattServerRegisterAppNative},
     {"gattServerUnregisterAppNative", "(I)V", (void *) gattServerUnregisterAppNative},
     {"gattServerConnectNative", "(ILjava/lang/String;ZI)V", (void *) gattServerConnectNative},
