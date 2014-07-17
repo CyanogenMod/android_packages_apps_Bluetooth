@@ -1,4 +1,7 @@
 /*
+ * Copyright (C) 2013-2014, The Linux Foundation. All rights reserved.
+ * Not a Contribution.
+ *
  * Copyright (C) 2012 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +25,10 @@ import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothA2dp;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.os.ParcelUuid;
 import android.provider.Settings;
+import android.os.SystemProperties;
 import android.util.Log;
 import com.android.bluetooth.avrcp.Avrcp;
 import com.android.bluetooth.btservice.ProfileService;
@@ -43,6 +48,7 @@ public class A2dpService extends ProfileService {
 
     private A2dpStateMachine mStateMachine;
     private Avrcp mAvrcp;
+    private AudioManager mAudioManager;
     private static A2dpService sAd2dpService;
     static final ParcelUuid[] A2DP_SOURCE_UUID = {
         BluetoothUuid.AudioSource
@@ -61,9 +67,28 @@ public class A2dpService extends ProfileService {
     }
 
     protected boolean start() {
-        mAvrcp = Avrcp.make(this);
-        mStateMachine = A2dpStateMachine.make(this, this);
+        int maxConnections = 1;
+        int multiCastState = 0;
+        int maxA2dpConnection =
+                SystemProperties.getInt("persist.bt.max.a2dp.connections", 1);
+        int a2dpMultiCastState =
+                SystemProperties.getInt("persist.bt.enable.multicast", 0);
+        if (a2dpMultiCastState == 1)
+                multiCastState = a2dpMultiCastState;
+        if (maxA2dpConnection == 2)
+                maxConnections = maxA2dpConnection;
+        // enable soft hands-off also when multicast is enabled.
+        if (multiCastState == 1 && maxConnections != 2) {
+            Log.i(TAG,"Enable soft handsoff as multicast is enabled");
+            maxConnections = 2;
+        }
+        log( "maxA2dpConnections = " + maxConnections);
+        log( "multiCastState = " + multiCastState);
+        mAvrcp = Avrcp.make(this, this, maxConnections);
+        mStateMachine = A2dpStateMachine.make(this, this,
+                maxConnections, multiCastState);
         setA2dpService(this);
+        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         return true;
     }
 
@@ -209,8 +234,43 @@ public class A2dpService extends ProfileService {
         mAvrcp.setAbsoluteVolume(volume);
     }
 
-    public void setAvrcpAudioState(int state) {
-        mAvrcp.setA2dpAudioState(state);
+    public void setAvrcpAudioState(int state, BluetoothDevice device) {
+        mAvrcp.setA2dpAudioState(state, device);
+    }
+
+    public List<BluetoothDevice> getA2dpPlayingDevice() {
+        return mStateMachine.getPlayingDevice();
+    }
+
+    public boolean isMulticastEnabled() {
+        return mStateMachine.isMulticastEnabled();
+    }
+
+    public boolean isMulticastFeatureEnabled() {
+        return mStateMachine.isMulticastFeatureEnabled();
+    }
+
+    // return status of multicast,needed for blocking outgoing connections
+    public boolean isMulticastOngoing(BluetoothDevice device) {
+
+        Log.i(TAG,"audio isMusicActive is " + mAudioManager.isMusicActive());
+        // we should never land is case where playing device size is bigger
+        // than 2 still have safe check.
+        if (device == null) {
+            if ((getA2dpPlayingDevice().size() >= 2) &&
+                    (mAudioManager.isMusicActive())) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        if ((getA2dpPlayingDevice().size() >= 2) &&
+                mAudioManager.isMusicActive() &&
+                !(getA2dpPlayingDevice().contains(device))) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     synchronized boolean isA2dpPlaying(BluetoothDevice device) {
@@ -249,6 +309,11 @@ public class A2dpService extends ProfileService {
         public boolean connect(BluetoothDevice device) {
             A2dpService service = getService();
             if (service == null) return false;
+            //do not allow new connections with active multicast
+            if (service.isMulticastOngoing(device)) {
+                Log.i(TAG,"A2dp Multicast is Ongoing, ignore Connection Request");
+                return false;
+            }
             return service.connect(device);
         }
 

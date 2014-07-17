@@ -120,6 +120,8 @@ final class HeadsetStateMachine extends StateMachine {
     private static final int CLCC_RSP_TIMEOUT = 104;
 
     private static final int CONNECT_TIMEOUT = 201;
+    /* Allow time for possible LMP response timeout + Page timeout */
+    private static final int CONNECT_TIMEOUT_SEC = 38000;
 
     private static final int DIALING_OUT_TIMEOUT_VALUE = 10000;
     private static final int START_VR_TIMEOUT_VALUE = 5000;
@@ -375,7 +377,36 @@ final class HeadsetStateMachine extends StateMachine {
                     int RetryConn = mRetryConnect.get(device);
                     log("RetryConn = " + RetryConn);
 
-                    if (RetryConn > 1) {
+                    if (RetryConn < 2) {
+                        broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
+                                   BluetoothProfile.STATE_DISCONNECTED);
+
+                        if (!connectHfpNative(getByteAddress(device)) ) {
+                            broadcastConnectionState(device,
+                                       BluetoothProfile.STATE_DISCONNECTED,
+                                       BluetoothProfile.STATE_CONNECTING);
+                            break;
+                        }
+                        RetryConn = RetryConn + 1;
+                        mRetryConnect.put(device, RetryConn);
+                        if (mPhoneProxy != null) {
+                            try {
+                                log("Query the phonestates");
+                                mPhoneProxy.queryPhoneState();
+                            } catch (RemoteException e) {
+                                Log.e(TAG, Log.getStackTraceString(new Throwable()));
+                            }
+                        } else Log.e(TAG, "Phone proxy null for query phone state");
+                        synchronized (HeadsetStateMachine.this) {
+                            mTargetDevice = device;
+                            transitionTo(mPending);
+                        }
+                        // TODO(BT) remove CONNECT_TIMEOUT when the stack
+                        // sends back events consistently
+                        Message m = obtainMessage(CONNECT_TIMEOUT);
+                        m.obj = device;
+                        sendMessageDelayed(m, CONNECT_TIMEOUT_SEC);
+                    } else {
                         if (mRetryConnect.containsKey(device)) {
                             Log.d(TAG, "Removing device " + device +
                                   " conn retry entry since RetryConn = " + RetryConn);
@@ -856,8 +887,60 @@ final class HeadsetStateMachine extends StateMachine {
                     }
 
                     int RetryConn = mRetryConnect.get(device);
-                    log("RetryConn = " + RetryConn);
-                    if (RetryConn > 1) {
+                    Log.d(TAG, "RetryConn = " + RetryConn);
+                    if (RetryConn < 2) {
+                        if (mConnectedDevicesList.size() >= max_hf_connections) {
+                            BluetoothDevice DisconnectConnectedDevice = null;
+                            IState CurrentAudioState = getCurrentState();
+                            Log.d(TAG, "Reach to max size, disconnect one of them first");
+                            /* TODO: Disconnect based on CoD */
+                            DisconnectConnectedDevice = mConnectedDevicesList.get(0);
+
+                            broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
+                                        BluetoothProfile.STATE_DISCONNECTED);
+
+                            if (!disconnectHfpNative(getByteAddress(DisconnectConnectedDevice))) {
+                                broadcastConnectionState(device,
+                                            BluetoothProfile.STATE_DISCONNECTED,
+                                            BluetoothProfile.STATE_CONNECTING);
+                                break;
+                            } else {
+                                broadcastConnectionState(DisconnectConnectedDevice,
+                                            BluetoothProfile.STATE_DISCONNECTING,
+                                            BluetoothProfile.STATE_CONNECTED);
+                            }
+
+                            synchronized (HeadsetStateMachine.this) {
+                                mTargetDevice = device;
+                                if (max_hf_connections == 1) {
+                                    transitionTo(mPending);
+                                } else {
+                                    mMultiDisconnectDevice = DisconnectConnectedDevice;
+                                    transitionTo(mMultiHFPending);
+                                }
+                                DisconnectConnectedDevice = null;
+                            }
+                        } else if (mConnectedDevicesList.size() < max_hf_connections) {
+                            broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
+                                BluetoothProfile.STATE_DISCONNECTED);
+                            if (!connectHfpNative(getByteAddress(device))) {
+                                broadcastConnectionState(device,
+                                        BluetoothProfile.STATE_DISCONNECTED,
+                                        BluetoothProfile.STATE_CONNECTING);
+                                break;
+                            }
+                            synchronized (HeadsetStateMachine.this) {
+                                mTargetDevice = device;
+                                // Transtion to MultiHFPending state for Multi HF connection
+                                transitionTo(mMultiHFPending);
+                            }
+                        }
+                        RetryConn = RetryConn + 1;
+                        mRetryConnect.put(device, RetryConn);
+                        Message m = obtainMessage(CONNECT_TIMEOUT);
+                        m.obj = device;
+                        sendMessageDelayed(m, CONNECT_TIMEOUT_SEC);
+                    } else {
                         if (mRetryConnect.containsKey(device)) {
                             Log.d(TAG, "Removing device " + device +
                                   " conn retry entry since RetryConn = " + RetryConn);
@@ -1321,8 +1404,60 @@ final class HeadsetStateMachine extends StateMachine {
                     }
 
                     int RetryConn = mRetryConnect.get(device);
-                    log("RetryConn = " + RetryConn);
-                    if (RetryConn > 1) {
+                    Log.d(TAG, "RetryConn = " + RetryConn);
+                    if (RetryConn < 2) {
+                        if (mConnectedDevicesList.size() >= max_hf_connections) {
+                            BluetoothDevice DisconnectConnectedDevice = null;
+                            IState CurrentAudioState = getCurrentState();
+                            Log.d(TAG, "Reach to max size, disconnect " +
+                                               "one of them first");
+                            DisconnectConnectedDevice = mConnectedDevicesList.get(0);
+
+                            if (mActiveScoDevice.equals(DisconnectConnectedDevice)) {
+                               DisconnectConnectedDevice = mConnectedDevicesList.get(1);
+                            }
+
+                            broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
+                                       BluetoothProfile.STATE_DISCONNECTED);
+
+                            if (!disconnectHfpNative(getByteAddress(DisconnectConnectedDevice))) {
+                                broadcastConnectionState(device,
+                                               BluetoothProfile.STATE_DISCONNECTED,
+                                               BluetoothProfile.STATE_CONNECTING);
+                                break;
+                            } else {
+                                broadcastConnectionState(DisconnectConnectedDevice,
+                                           BluetoothProfile.STATE_DISCONNECTING,
+                                           BluetoothProfile.STATE_CONNECTED);
+                            }
+
+                            synchronized (HeadsetStateMachine.this) {
+                                mTargetDevice = device;
+                                mMultiDisconnectDevice = DisconnectConnectedDevice;
+                                transitionTo(mMultiHFPending);
+                                DisconnectConnectedDevice = null;
+                            }
+                        } else if(mConnectedDevicesList.size() < max_hf_connections) {
+                            broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
+                            BluetoothProfile.STATE_DISCONNECTED);
+                            if (!connectHfpNative(getByteAddress(device))) {
+                                broadcastConnectionState(device,
+                                        BluetoothProfile.STATE_DISCONNECTED,
+                                        BluetoothProfile.STATE_CONNECTING);
+                                break;
+                            }
+                            synchronized (HeadsetStateMachine.this) {
+                                mTargetDevice = device;
+                                // Transtion to MultilHFPending state for Multi handsfree connection
+                                transitionTo(mMultiHFPending);
+                            }
+                        }
+                        RetryConn = RetryConn + 1;
+                        mRetryConnect.put(device, RetryConn);
+                        Message m = obtainMessage(CONNECT_TIMEOUT);
+                        m.obj = device;
+                        sendMessageDelayed(m, CONNECT_TIMEOUT_SEC);
+                    } else {
                         if (mRetryConnect.containsKey(device)) {
                             Log.d(TAG, "Removing device " + device +
                                   " conn retry entry since RetryConn = " + RetryConn);
@@ -1998,6 +2133,7 @@ final class HeadsetStateMachine extends StateMachine {
                               mConnectedDevicesList.remove(device);
                               mHeadsetAudioParam.remove(device);
                               mHeadsetBrsf.remove(device);
+
                               Log.d(TAG, "device " + device.getAddress() +
                                            " is removed in MultiHFPending state");
                             }
