@@ -16,6 +16,7 @@
 
 #define LOG_TAG "BluetoothServiceJni"
 #include "com_android_bluetooth.h"
+#include "android_hardware_wipower.h"
 #include "hardware/bt_sock.h"
 #include "hardware/bt_mce.h"
 #include "utils/Log.h"
@@ -1404,6 +1405,10 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 
     if ((status = android::register_com_android_bluetooth_gatt(e)) < 0) {
         ALOGE("jni gatt registration failure: %d", status);
+        return JNI_ERR;
+    }
+    if ((status = android::register_android_hardware_wipower(e)) < 0) {
+        ALOGE("jni wipower service registration failure, status: %d", status);
         return JNI_ERR;
     }
     return JNI_VERSION_1_6;
