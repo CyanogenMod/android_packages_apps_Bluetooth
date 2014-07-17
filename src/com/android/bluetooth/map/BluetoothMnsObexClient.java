@@ -47,8 +47,8 @@ import javax.btobex.ResponseCodes;
 public class BluetoothMnsObexClient {
 
     private static final String TAG = "BluetoothMnsObexClient";
-    private static final boolean D = false;
-    private static final boolean V = false;
+    private static final boolean D = BluetoothMapService.DEBUG;
+    private static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE) ? true : false;
 
     private ObexTransport mTransport;
     private Context mContext;
@@ -58,9 +58,11 @@ public class BluetoothMnsObexClient {
     private ClientSession mClientSession;
     private boolean mConnected = false;
     BluetoothDevice mRemoteDevice;
-    private Handler mCallback = null;
     private BluetoothMapContentObserver mObserver;
+    private BluetoothMapContentObserver mEmailObserver;
     private boolean mObserverRegistered = false;
+    private boolean mEmailObserverRegistered = false;
+    private Handler mCallback = null;
 
     // Used by the MAS to forward notification registrations
     public static final int MSG_MNS_NOTIFICATION_REGISTRATION = 1;
@@ -70,8 +72,7 @@ public class BluetoothMnsObexClient {
             ParcelUuid.fromString("00001133-0000-1000-8000-00805F9B34FB");
 
 
-    public BluetoothMnsObexClient(Context context, BluetoothDevice remoteDevice,
-                                  Handler callback) {
+    public BluetoothMnsObexClient(Context context, BluetoothDevice remoteDevice) {
         if (remoteDevice == null) {
             throw new NullPointerException("Obex transport is null");
         }
@@ -81,16 +82,16 @@ public class BluetoothMnsObexClient {
         mHandler = new MnsObexClientHandler(looper);
         mContext = context;
         mRemoteDevice = remoteDevice;
-        mCallback = callback;
-        mObserver = new BluetoothMapContentObserver(mContext);
-        mObserver.init();
     }
 
     public Handler getMessageHandler() {
         return mHandler;
     }
 
-    public BluetoothMapContentObserver getContentObserver() {
+    public BluetoothMapContentObserver getContentObserver(int masInstanceId) {
+        if(masInstanceId == 1)
+           return mEmailObserver;
+
         return mObserver;
     }
 
@@ -120,6 +121,7 @@ public class BluetoothMnsObexClient {
      * Call this when the MAS client requests a de-registration on events.
      */
     public synchronized void disconnect() {
+        if(D) Log.d(TAG, "BluetoothMnsObexClient: disconnect");
         try {
             if (mClientSession != null) {
                 mClientSession.disconnect(null);
@@ -149,15 +151,17 @@ public class BluetoothMnsObexClient {
                 Log.e(TAG, "mTransport.close error: " + e.getMessage());
             }
         }
+        if(D) Log.d(TAG, "BluetoothMnsObexClient: exiting from disconnect");
     }
 
     /**
      * Shutdown the MNS.
      */
-    public void shutdown() {
+    public synchronized void shutdown() {
         /* should shutdown handler thread first to make sure
          * handleRegistration won't be called when disconnet
          */
+        if(D) Log.d(TAG, "BluetoothMnsObexClient: shutdown");
         if (mHandler != null) {
             // Shut down the thread
             mHandler.removeCallbacksAndMessages(null);
@@ -171,6 +175,14 @@ public class BluetoothMnsObexClient {
         /* Disconnect if connected */
         disconnect();
 
+        if(mEmailObserverRegistered) {
+            mEmailObserver.unregisterObserver();
+            mEmailObserverRegistered = false;
+        }
+        if (mEmailObserver != null) {
+            mEmailObserver.deinit();
+            mEmailObserver = null;
+        }
         if(mObserverRegistered) {
             mObserver.unregisterObserver();
             mObserverRegistered = false;
@@ -179,6 +191,16 @@ public class BluetoothMnsObexClient {
             mObserver.deinit();
             mObserver = null;
         }
+        if (mHandler != null) {
+            // Shut down the thread
+            mHandler.removeCallbacksAndMessages(null);
+            Looper looper = mHandler.getLooper();
+            if (looper != null) {
+                looper.quit();
+            }
+            mHandler = null;
+        }
+        if(D) Log.d(TAG, "BluetoothMnsObexClient: exiting from shutdown");
     }
 
     private HeaderSet hsConnect = null;
@@ -186,29 +208,37 @@ public class BluetoothMnsObexClient {
     public void handleRegistration(int masId, int notificationStatus){
         Log.d(TAG, "handleRegistration( " + masId + ", " + notificationStatus + ")");
 
-        if((isConnected() == false) &&
+        synchronized (this) {
+        if((mEmailObserverRegistered == false) && (mObserverRegistered == false) &&
            (notificationStatus == BluetoothMapAppParams.NOTIFICATION_STATUS_YES)) {
             Log.d(TAG, "handleRegistration: connect");
             connect();
         }
 
         if(notificationStatus == BluetoothMapAppParams.NOTIFICATION_STATUS_NO) {
-            // Unregister - should we disconnect, or keep the connection? - the spec. says nothing about this.
-            if(mObserverRegistered == true) {
+              if(masId == 1 && mEmailObserverRegistered ) {
+                 mEmailObserver.unregisterObserver();
+                 mEmailObserverRegistered = false;
+              } else if(mObserverRegistered) {
                 mObserver.unregisterObserver();
                 mObserverRegistered = false;
+              }
+              if((mEmailObserverRegistered ==false) && (mObserverRegistered == false)) {
+                  Log.d(TAG, "handleRegistration: disconnect");
                 disconnect();
             }
         } else if(notificationStatus == BluetoothMapAppParams.NOTIFICATION_STATUS_YES) {
             /* Connect if we do not have a connection, and start the content observers providing
              * this thread as Handler.
              */
-            synchronized (this) {
-                if(mObserverRegistered == false && mObserver != null) {
-                    mObserver.registerObserver(this, masId);
-                    mObserverRegistered = true;
-                }
+               if(masId == 1 && mEmailObserverRegistered == false && mEmailObserver != null) {
+                  mEmailObserver.registerObserver(this, masId);
+                  mEmailObserverRegistered = true;
+                } else if(mObserverRegistered == false && mObserver != null) {
+                mObserver.registerObserver(this, masId);
+                mObserverRegistered = true;
             }
+        }
         }
     }
 
@@ -258,10 +288,44 @@ public class BluetoothMnsObexClient {
             synchronized (this) {
                 mWaitingForRemote = false;
         }
+        Log.d(TAG, "Exiting from connect");
+    }
+
+    public void  initObserver( Handler callback, int masInstanceId) {
+        mCallback = callback;
+        if(masInstanceId == 1 ){
+            mEmailObserver = new BluetoothMapContentEmailObserver(mContext,callback);
+            mEmailObserver.init();
+        }else {
+            mObserver = new BluetoothMapContentObserver(mContext);
+            mObserver.init();
+        }
+    }
+    public void  deinitObserver( int masInstanceId) {
+        if(masInstanceId == 1 ){
+           if(mEmailObserverRegistered) {
+              mEmailObserver.unregisterObserver();
+              mEmailObserverRegistered = false;
+           }
+           if (mEmailObserver != null) {
+               mEmailObserver.deinit();
+               mEmailObserver = null;
+           }
+        }else {
+           if (mObserverRegistered) {
+               mObserver.unregisterObserver();
+               mObserverRegistered = false;
+           }
+           if (mObserver != null) {
+               mObserver.deinit();
+               mObserver = null;
+           }
+        }
     }
 
     public int sendEvent(byte[] eventBytes, int masInstanceId) {
 
+        Log.d(TAG, "BluetoothMnsObexClient: sendEvent");
         boolean error = false;
         int responseCode = -1;
         HeaderSet request;
@@ -299,7 +363,7 @@ public class BluetoothMnsObexClient {
             // Send the header first and then the body
             try {
                 if (V) Log.v(TAG, "Send headerset Event ");
-                putOperation = (ClientOperation)clientSession.put(request);
+                putOperation = (ClientOperation)mClientSession.put(request);
                 // TODO - Should this be kept or Removed
 
             } catch (IOException e) {
@@ -331,8 +395,13 @@ public class BluetoothMnsObexClient {
 
                 if (bytesWritten == eventBytes.length) {
                     Log.i(TAG, "SendEvent finished send length" + eventBytes.length);
+                    if (outputStream != null) {
+                        if (V) Log.v(TAG, "Closing outputStream");
+                        outputStream.close();
+                    }
                 } else {
                     error = true;
+                    outputStream.close();
                     putOperation.abort();
                     Log.i(TAG, "SendEvent interrupted");
                 }
@@ -368,7 +437,7 @@ public class BluetoothMnsObexClient {
                 Log.e(TAG, "Error when closing stream after send " + e.getMessage());
             }
         }
-
+        if(D) Log.d(TAG, "BluetoothMnsObexClient: Exiting sendEvent");
         return responseCode;
     }
 

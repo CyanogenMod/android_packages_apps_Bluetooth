@@ -19,6 +19,12 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
+import android.telephony.PhoneNumberUtils;
+import android.util.Log;
+import android.util.Xml;
+import java.util.List;
+import java.nio.charset.Charset;
+import com.android.internal.util.FastXmlSerializer;
 import org.xmlpull.v1.XmlSerializer;
 
 import android.util.Xml;
@@ -30,7 +36,7 @@ import android.util.Xml;
 public class BluetoothMapFolderElement {
     private String name;
     private BluetoothMapFolderElement parent = null;
-    private ArrayList<BluetoothMapFolderElement> subFolders;
+    protected ArrayList<BluetoothMapFolderElement> subFolders;
 
     public BluetoothMapFolderElement( String name, BluetoothMapFolderElement parrent ){
         this.name = name;
@@ -87,7 +93,7 @@ public class BluetoothMapFolderElement {
      */
     public BluetoothMapFolderElement getSubFolder(String folderName){
         for(BluetoothMapFolderElement subFolder : subFolders){
-            if(subFolder.getName().equals(folderName))
+            if(subFolder.getName().equalsIgnoreCase(folderName))
                 return subFolder;
         }
         return null;
@@ -95,7 +101,7 @@ public class BluetoothMapFolderElement {
 
     public byte[] encode(int offset, int count) throws UnsupportedEncodingException {
         StringWriter sw = new StringWriter();
-        XmlSerializer xmlMsgElement = Xml.newSerializer();
+        XmlSerializer xmlMsgElement = new FastXmlSerializer();
         int i, stopIndex;
         if(offset > subFolders.size())
             throw new IllegalArgumentException("FolderListingEncode: offset > subFolders.size()");
@@ -106,17 +112,17 @@ public class BluetoothMapFolderElement {
 
         try {
             xmlMsgElement.setOutput(sw);
-            xmlMsgElement.startDocument(null, null);
-            xmlMsgElement.text("\n");
-            xmlMsgElement.startTag("", "folder-listing");
-            xmlMsgElement.attribute("", "version", "1.0");
+            xmlMsgElement.startDocument("UTF-8", true);
+            xmlMsgElement.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+            xmlMsgElement.startTag(null, "folder-listing");
+            xmlMsgElement.attribute(null, "version", "1.0");
             for(i = offset; i<stopIndex; i++)
             {
-                xmlMsgElement.startTag("", "folder");
-                xmlMsgElement.attribute("", "name", subFolders.get(i).getName());
-                xmlMsgElement.endTag("", "folder");
+                xmlMsgElement.startTag(null, "folder");
+                xmlMsgElement.attribute(null, "name", subFolders.get(i).getName());
+                xmlMsgElement.endTag(null, "folder");
             }
-            xmlMsgElement.endTag("", "folder-listing");
+            xmlMsgElement.endTag(null, "folder-listing");
             xmlMsgElement.endDocument();
         } catch (IllegalArgumentException e) {
             // TODO Auto-generated catch block

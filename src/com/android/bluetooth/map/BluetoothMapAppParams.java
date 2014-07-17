@@ -168,6 +168,9 @@ public class BluetoothMapAppParams {
         while (i < appParams.length) {
             tagId = appParams[i++] & 0xff;     // Convert to unsigned to support values above 127
             tagLength = appParams[i++] & 0xff; // Convert to unsigned to support values above 127
+            Log.d(TAG, "tagId is "+ tagId );
+            Log.d(TAG, "tagLength is "+ tagLength );
+            Log.d(TAG, "appParams[i] is "+ appParams[i]);
             switch (tagId) {
             case MAX_LIST_COUNT:
                 if (tagLength != MAX_LIST_COUNT_LEN) {
@@ -696,7 +699,11 @@ public class BluetoothMapAppParams {
     public void setParameterMask(long parameterMask) {
         if (parameterMask < 0 || parameterMask > 0xFFFFFFFFL)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0xFFFFFFFF");
-        this.parameterMask = parameterMask;
+        if(parameterMask == 0) {
+           this.parameterMask = INVALID_VALUE_PARAMETER;
+        } else {
+           this.parameterMask = parameterMask;
+        }
     }
 
     public int getFolderListingSize() {

@@ -21,7 +21,16 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.xmlpull.v1.XmlSerializer;
-
+import android.telephony.PhoneNumberUtils;
+import android.util.Log;
+import android.util.Xml;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.ByteArrayInputStream;
+import java.io.BufferedReader;
+import java.io.StringWriter;
+import java.util.List;
+import java.nio.charset.Charset;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 import android.util.Xml;
@@ -32,8 +41,8 @@ public class BluetoothMapMessageListingElement
     implements Comparable<BluetoothMapMessageListingElement> {
 
     private static final String TAG = "BluetoothMapMessageListingElement";
-    private static final boolean D = false;
-    private static final boolean V = false;
+    private static final boolean D = BluetoothMapService.DEBUG;
+    private static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE) ? true : false;
 
     private long cpHandle = 0; /* The content provider handle - without type information */
     private String mapHandle = null; /* The map hex-string handle with type information */
@@ -95,6 +104,10 @@ public class BluetoothMapMessageListingElement
 
     public String getSenderAddressing() {
         return senderAddressing;
+    }
+
+    public void setEmailSenderAddressing(String senderAddressing) {
+       this.senderAddressing = senderAddressing;
     }
 
     public void setSenderAddressing(String senderAddressing) {
@@ -218,16 +231,33 @@ public class BluetoothMapMessageListingElement
      * */
     public void encode(XmlSerializer xmlMsgElement) throws IllegalArgumentException, IllegalStateException, IOException
     {
-
+            Log.d(TAG, "Inside encode");
             // contruct the XML tag for a single msg in the msglisting
             xmlMsgElement.startTag(null, "msg");
             xmlMsgElement.attribute(null, "handle", mapHandle);
-            if(subject != null)
-                xmlMsgElement.attribute(null, "subject", subject);
+            if(subject != null) {
+               InputStreamReader isr = new InputStreamReader(new ByteArrayInputStream(subject.getBytes(Charset.forName("UTF-8"))), Charset.forName("UTF-8"));
+               BufferedReader reader = new BufferedReader(isr);
+               StringBuilder sb = new StringBuilder();
+               String line = null;
+               while ((line = reader.readLine()) != null) {
+                     sb.append(line);
+               }
+               xmlMsgElement.attribute(null, "subject", sb.toString());
+            }
+
             if(dateTime != 0)
                 xmlMsgElement.attribute(null, "datetime", this.getDateTimeString());
-            if(senderName != null)
-                xmlMsgElement.attribute(null, "sender_name", senderName);
+            if(senderName != null) {
+               InputStreamReader isr = new InputStreamReader(new ByteArrayInputStream(senderName.getBytes(Charset.forName("UTF-8"))), Charset.forName("UTF-8"));
+               BufferedReader reader = new BufferedReader(isr);
+               StringBuilder sb = new StringBuilder();
+               String line = null;
+               while ((line = reader.readLine()) != null) {
+                     sb.append(line);
+               }
+               xmlMsgElement.attribute(null, "sender_name", sb.toString());
+            }
             if(senderAddressing != null)
                 xmlMsgElement.attribute(null, "sender_addressing", senderAddressing);
             if(replytoAddressing != null)
@@ -255,6 +285,7 @@ public class BluetoothMapMessageListingElement
             if(protect != null)
                 xmlMsgElement.attribute(null, "protected", protect);
             xmlMsgElement.endTag(null, "msg");
+            Log.d(TAG, "Exiting encode");
 
     }
 }

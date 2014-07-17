@@ -21,7 +21,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import com.android.internal.util.FastXmlSerializer;
-
+import java.io.UnsupportedEncodingException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
 import org.xmlpull.v1.XmlSerializer;
 
 import android.util.Log;
@@ -37,6 +40,7 @@ public class BluetoothMapMessageListing {
     }
     public void add(BluetoothMapMessageListingElement element) {
         list.add(element);
+        Log.d(TAG, "list size is  " +list.size());
         /* update info regarding whether the list contains unread messages */
         if (element.getRead().equalsIgnoreCase("no"))
         {
@@ -51,8 +55,10 @@ public class BluetoothMapMessageListing {
     public int getCount() {
         if(list != null)
         {
+            Log.d(TAG, "returning  " + list.size());
             return list.size();
         }
+        Log.e(TAG, "list is null returning 0");
         return 0;
     }
 
@@ -74,28 +80,65 @@ public class BluetoothMapMessageListing {
      *             if UTF-8 encoding is unsupported on the platform.
      */
     public byte[] encode() throws UnsupportedEncodingException {
-        StringWriter sw = new StringWriter();
+        Log.d(TAG, "encoding to UTF-8 format");
         XmlSerializer xmlMsgElement = new FastXmlSerializer();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        OutputStreamWriter myOutputStreamWriter = null;
         try {
-            xmlMsgElement.setOutput(sw);
+            myOutputStreamWriter = new OutputStreamWriter(outputStream, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            Log.e(TAG, "Failed to encode: charset=" + "UTF-8");
+            return null;
+        }
+
+       try {
+            String str1;
+            String str2 = "<?xml version=\"1.0\"?>";
+            xmlMsgElement.setOutput(myOutputStreamWriter);
             xmlMsgElement.startDocument("UTF-8", true);
             xmlMsgElement.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+            xmlMsgElement.text("\n");
             xmlMsgElement.startTag(null, "MAP-msg-listing");
             xmlMsgElement.attribute(null, "version", "1.0");
             // Do the XML encoding of list
+            if(list != null) {
             for (BluetoothMapMessageListingElement element : list) {
+                   try {
                 element.encode(xmlMsgElement); // Append the list element
-            }
-            xmlMsgElement.endTag(null, "MAP-msg-listing");
-            xmlMsgElement.endDocument();
         } catch (IllegalArgumentException e) {
+                        xmlMsgElement.endTag(null, "msg");
             Log.w(TAG, e.toString());
         } catch (IllegalStateException e) {
             Log.w(TAG, e.toString());
         } catch (IOException e) {
             Log.w(TAG, e.toString());
         }
-        return sw.toString().getBytes("UTF-8");
+               }
+            }
+            xmlMsgElement.endTag(null, "MAP-msg-listing");
+            xmlMsgElement.endDocument();
+
+            try {
+                str1 = outputStream.toString("UTF-8");
+                Log.v(TAG, "Printing XML-Converted String: " + str1);
+                int line1 = 0;
+                line1 = str1.indexOf("\n");
+                str2 += str1.substring(line1 + 1);
+                if (list.size() > 0) {
+                    int indxHandle = str2.indexOf("msg handle");
+                    str1 = "<" + str2.substring(indxHandle);
+                    str2 = str2.substring(0, (indxHandle - 1)) + str1;
+                }
+
+                return str2.getBytes("UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                Log.e(TAG, "Failed to encode: charset=" + "UTF-8");
+                return null;
+            }
+        } catch (IOException e) {
+            Log.e(TAG, e.toString());
+            return null;
+        }
     }
 
     public void sort() {

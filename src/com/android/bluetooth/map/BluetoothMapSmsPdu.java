@@ -46,7 +46,7 @@ import com.android.internal.telephony.gsm.SmsMessage.SubmitPdu;
 public class BluetoothMapSmsPdu {
 
     private static final String TAG = "BluetoothMapSmsPdu";
-    private static final boolean V = false;
+    private static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE) ? true : false;
     private static int INVALID_VALUE = -1;
     public static int SMS_TYPE_GSM = 1;
     public static int SMS_TYPE_CDMA = 2;
@@ -283,12 +283,12 @@ public class BluetoothMapSmsPdu {
         }
 
         private int gsmSubmitGetTpUdlOffset() {
-            switch(((data[0]  & 0xff) & (0x08 | 0x04))>>2) {
+            switch(((data[0]  & 0xff) & (0x10 | 0x08))>>3) {
             case 0: // Not TP-VP present
                 return gsmSubmitGetTpPidOffset() + 2;
             case 1: // TP-VP relative format
-                return gsmSubmitGetTpPidOffset() + 2 + 1;
             case 2: // TP-VP enhanced format
+                return gsmSubmitGetTpPidOffset() + 2 + 1;
             case 3: // TP-VP absolute format
                 break;
             }

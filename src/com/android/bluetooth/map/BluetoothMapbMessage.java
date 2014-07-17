@@ -33,8 +33,8 @@ import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 public abstract class BluetoothMapbMessage {
 
     protected static String TAG = "BluetoothMapbMessage";
-    protected static final boolean D = false;
-    protected static final boolean V = false;
+    protected static final boolean D = BluetoothMapService.DEBUG;
+    protected static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE) ? true : false;
     private static final String VERSION = "VERSION:1.0";
 
     public static int INVALID_VALUE = -1;
@@ -152,28 +152,34 @@ public abstract class BluetoothMapbMessage {
             } else
                 throw new IllegalArgumentException("No Phone number");
         }
+        public String[] getEmailAddresses() {
+            if(emailAddresses.length > 0) {
+                return emailAddresses;
+            } else
+                throw new IllegalArgumentException("No Recipient Email Address");
+        }
 
         public int getEnvLevel() {
             return envLevel;
         }
 
-        public void encode(StringBuilder sb)
+        public void encode(StringBuilder sb) throws UnsupportedEncodingException
         {
             sb.append("BEGIN:VCARD").append("\r\n");
             sb.append("VERSION:").append(version).append("\r\n");
             if(version.equals("3.0") && formattedName != null)
             {
-                sb.append("FN:").append(formattedName).append("\r\n");
+                sb.append("FN:").append(new String(formattedName.getBytes("UTF-8"),"UTF-8")).append("\r\n");
             }
             if (name != null)
-                sb.append("N:").append(name).append("\r\n");
+                sb.append("N:").append(new String(name.getBytes("UTF-8"),"UTF-8")).append("\r\n");
             for(String phoneNumber : phoneNumbers)
             {
                 sb.append("TEL:").append(phoneNumber).append("\r\n");
             }
             for(String emailAddress : emailAddresses)
             {
-                sb.append("EMAIL:").append(emailAddress).append("\r\n");
+                sb.append("EMAIL:").append(new String(emailAddress.getBytes("UTF-8"),"UTF-8")).append("\r\n");
             }
             sb.append("END:VCARD").append("\r\n");
         }
@@ -244,6 +250,36 @@ public abstract class BluetoothMapbMessage {
             this.mInStream = is;
         }
 
+        private byte[] getLineTerminatorAsBytes() {
+            int readByte;
+
+            /* Donot skip Empty Line.
+             */
+
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            try {
+                while ((readByte = mInStream.read()) != -1) {
+                    if (readByte == '\r') {
+                        if ((readByte = mInStream.read()) != -1 && readByte == '\n') {
+                            if(output.size() == 0){
+                               Log.v(TAG,"outputsize 0");
+                               output.write('\r');
+                               output.write('\n');
+                            }
+                            break;
+                        } else {
+                            output.write('\r');
+                        }
+                    }
+                    output.write(readByte);
+                }
+            } catch (IOException e) {
+                Log.w(TAG, e);
+                return null;
+            }
+            return output.toByteArray();
+        }
+
         private byte[] getLineAsBytes() {
             int readByte;
 
@@ -280,6 +316,22 @@ public abstract class BluetoothMapbMessage {
             return output.toByteArray();
         }
 
+        /**
+         * Read a line of text from the BMessage including empty lines.
+         * @return the next line of text, or null at end of file, or if UTF-8 is not supported.
+         */
+        public String getLineTerminator() {
+            try {
+                byte[] line = getLineTerminatorAsBytes();
+                if (line.length == 0)
+                    return null;
+                else
+                    return new String(line, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                Log.w(TAG, e);
+                return null;
+            }
+        }
         /**
          * Read a line of text from the BMessage.
          * @return the next line of text, or null at end of file, or if UTF-8 is not supported.
@@ -364,6 +416,19 @@ public abstract class BluetoothMapbMessage {
                 return null;
             }
             return data;
+        }
+
+        public String getStringTerminator(String terminator) {
+            StringBuilder dataStr= new StringBuilder();
+            String lineCur = getLineTerminator();
+           while( lineCur != null && (!lineCur.equals(terminator))) {
+                dataStr.append(lineCur);
+                if(! lineCur.equals("\r\n")) {
+                   dataStr.append("\r\n");
+                }
+                lineCur = getLineTerminator();
+           }
+           return dataStr.toString();
         }
     };
 
@@ -548,6 +613,11 @@ public abstract class BluetoothMapbMessage {
         }
         if(line.contains("BEGIN:BBODY")){
             if(D) Log.d(TAG,"Decoding bbody");
+
+            if(type == TYPE.EMAIL){
+               //TODO: Support Attachments also.
+               parseBodyEmail(reader.getStringTerminator("END:BBODY"));
+            } else
             parseBody(reader);
         }
     }
@@ -614,23 +684,17 @@ public abstract class BluetoothMapbMessage {
                  * Since errata ???(bluetooth.org is down at the moment) introduced escaping of END:MSG
                  * in the actual message content, it is now safe to use the END:MSG tag as terminator,
                  * and simply ignore the length field.*/
-                byte[] rawData = reader.getDataBytes(bMsgLength - (line.getBytes().length + 2)); // 2 added to compensate for the removed \r\n
-                String data;
-                try {
-                    data = new String(rawData, "UTF-8");
+                //byte[] rawData = reader.getDataBytes(bMsgLength - (line.getBytes().length + 2)); // 2 added to compensate for the removed \r\n
+                String data = reader.getStringTerminator("END:MSG");
                     if(V) {
                         Log.v(TAG,"MsgLength: " + bMsgLength);
-                        Log.v(TAG,"line.getBytes().length: " + line.getBytes().length);
+                    Log.v(TAG,"data.getBytes().length: " + data.getBytes().length);
                         String debug = line.replaceAll("\\n", "<LF>\n");
                         debug = debug.replaceAll("\\r", "<CR>");
                         Log.v(TAG,"The line: \"" + debug + "\"");
                         debug = data.replaceAll("\\n", "<LF>\n");
                         debug = debug.replaceAll("\\r", "<CR>");
-                        Log.v(TAG,"The msgString: \"" + debug + "\"");
-                    }
-                } catch (UnsupportedEncodingException e) {
-                    Log.w(TAG,e);
-                    throw new IllegalArgumentException("Unable to convert to UTF-8");
+                    Log.v(TAG,"The msgString: \"" + data + "\"");
                 }
                 /* Decoding of MSG:
                  * 1) split on "\r\nEND:MSG\r\n"
@@ -662,6 +726,8 @@ public abstract class BluetoothMapbMessage {
      */
     public abstract void parseMsgInit();
 
+    public void parseBodyEmail (String msg){
+    }
     public abstract byte[] encode() throws UnsupportedEncodingException;
 
     public void setStatus(boolean read) {
