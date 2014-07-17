@@ -413,7 +413,6 @@ final class HeadsetStateMachine extends StateMachine {
                         }
                         break;
                     }
-
                     broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
                                BluetoothProfile.STATE_DISCONNECTED);
 
@@ -2120,6 +2119,7 @@ final class HeadsetStateMachine extends StateMachine {
                               mConnectedDevicesList.remove(device);
                               mHeadsetAudioParam.remove(device);
                               mHeadsetBrsf.remove(device);
+
                               Log.d(TAG, "device " + device.getAddress() +
                                            " is removed in MultiHFPending state");
                             }

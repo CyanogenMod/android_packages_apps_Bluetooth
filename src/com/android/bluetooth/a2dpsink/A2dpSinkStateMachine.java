@@ -1,4 +1,7 @@
 /*
+ * Copyright (C) 2013-2014, The Linux Foundation. All rights reserved.
+ * Not a Contribution.
+ *
  * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -98,6 +101,10 @@ final class A2dpSinkStateMachine extends StateMachine {
     private static final int MSG_CONNECTION_STATE_CHANGED = 0;
     private static A2dpSinkStreamingStateMachine mStreaming;
 
+    private final Object mLockForPatch = new Object();
+    private static final int maxA2dpSinkConnections = 1;
+    private static final int multiCastState = 0;
+
     // mCurrentDevice is the device connected before the state changes
     // mTargetDevice is the device to be connected
     // mIncomingDevice is the device connecting to us, valid only in Pending state
@@ -138,7 +145,8 @@ final class A2dpSinkStateMachine extends StateMachine {
         mContext = context;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        initNative();
+        // for sink soft handsoff and multicast are disabled
+        initNative(maxA2dpSinkConnections, multiCastState);
 
         mDisconnected = new Disconnected();
         mPending = new Pending();
@@ -871,7 +879,8 @@ final class A2dpSinkStateMachine extends StateMachine {
     final static int AUDIO_STATE_STARTED = 2;
 
     private native static void classInitNative();
-    private native void initNative();
+    private native void initNative(int maxA2dpConnectionsAllowed,
+            int multiCastState);
     private native void cleanupNative();
     private native boolean connectA2dpNative(byte[] address);
     private native boolean disconnectA2dpNative(byte[] address);
