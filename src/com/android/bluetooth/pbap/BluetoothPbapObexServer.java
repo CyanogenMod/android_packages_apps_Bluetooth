@@ -650,7 +650,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                     if (currentValue.equals(compareValue)) {
                         itemsFound++;
                         if (currentValue.contains(","))
-                           currentValue = currentValue.substring(0, currentValue.lastIndexOf(','));
+                            currentValue = currentValue.substring(0, currentValue.lastIndexOf(','));
                         writeVCardEntry(pos, currentValue,result);
                     }
                 }
@@ -661,10 +661,12 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         } else {
             if (searchValue != null) {
                 compareValue = searchValue.trim();
+                if (D) Log.d(TAG, "compareValue=" + compareValue);
             }
             for (int pos = listStartOffset; pos < listSize &&
                     itemsFound < requestSize; pos++) {
                 currentValue = nameList.get(pos);
+                if (D) Log.d(TAG, "currentValue=" + currentValue);
                 if (currentValue.contains(","))
                     currentValue = currentValue.substring(0, currentValue.lastIndexOf(','));
 
@@ -818,6 +820,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         int size = mVcardManager.getPhonebookSize(appParamValue.needTag);
         int needSendBody = handleAppParaForResponse(appParamValue, size, reply, op);
         if (needSendBody != NEED_SEND_BODY) {
+            op.noBodyHeader();
             return needSendBody;
         }
 
@@ -928,6 +931,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         int pbSize = mVcardManager.getPhonebookSize(appParamValue.needTag);
         int needSendBody = handleAppParaForResponse(appParamValue, pbSize, reply, op);
         if (needSendBody != NEED_SEND_BODY) {
+            op.noBodyHeader();
             return needSendBody;
         }
 
