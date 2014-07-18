@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2014, The Linux Foundation. All rights reserved.
  * Copyright (c) 2008-2009, Motorola, Inc.
  *
  * All rights reserved.
@@ -37,18 +38,30 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
+import java.nio.ByteBuffer;
 import android.bluetooth.BluetoothSocket;
+import android.util.Log;
+import java.nio.ByteOrder;
+import javax.btobex.ObexTransport;
+import javax.btobex.ObexHelper;
 
-import javax.obex.ObexTransport;
+public class BluetoothOppTransport implements ObexTransport {
 
-public class BluetoothOppRfcommTransport implements ObexTransport {
+    public static final int TYPE_RFCOMM = 0;
+    public static final int TYPE_L2CAP = 1;
 
     private final BluetoothSocket mSocket;
+    private final int mType;
 
-    public BluetoothOppRfcommTransport(BluetoothSocket socket) {
+    public BluetoothOppTransport(BluetoothSocket socket, int type) {
         super();
         this.mSocket = socket;
+        this.mType = type;
+    }
+
+    public int getMaxPacketSize() {
+        //return mSocket.getMtu();
+        return ObexHelper.MAX_PACKET_SIZE_INT;
     }
 
     public void close() throws IOException {
@@ -69,6 +82,20 @@ public class BluetoothOppRfcommTransport implements ObexTransport {
 
     public OutputStream openOutputStream() throws IOException {
         return mSocket.getOutputStream();
+    }
+
+    public int setPutSockMTUSize(int size) throws IOException {
+       ByteBuffer bb = ByteBuffer.allocate(4);
+       int status;
+       Log.v("srinu", "Interrupted waiting for size"+ size);
+       bb.order(ByteOrder.LITTLE_ENDIAN);
+       bb.putInt(0, size);
+       try {
+            status = mSocket.setSocketOpt(4, bb.array(), 4);
+          } catch (IOException ex) {
+             return -1;
+          }
+       return status;
     }
 
     public void connect() throws IOException {
@@ -93,6 +120,14 @@ public class BluetoothOppRfcommTransport implements ObexTransport {
         if (mSocket == null)
             return null;
         return mSocket.getRemoteDevice().getAddress();
+    }
+
+    public boolean isAmpCapable() {
+        return mType == TYPE_L2CAP;
+    }
+
+    public boolean isSrmCapable() {
+        return mType == TYPE_L2CAP;
     }
 
 }

@@ -48,12 +48,12 @@ import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import javax.obex.ServerRequestHandler;
-import javax.obex.ResponseCodes;
-import javax.obex.ApplicationParameter;
-import javax.obex.ServerOperation;
-import javax.obex.Operation;
-import javax.obex.HeaderSet;
+import javax.btobex.ServerRequestHandler;
+import javax.btobex.ResponseCodes;
+import javax.btobex.ApplicationParameter;
+import javax.btobex.ServerOperation;
+import javax.btobex.Operation;
+import javax.btobex.HeaderSet;
 
 public class BluetoothPbapObexServer extends ServerRequestHandler {
 

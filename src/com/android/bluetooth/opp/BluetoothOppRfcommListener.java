@@ -158,8 +158,8 @@ public class BluetoothOppRfcommListener {
                                     clientSocket = sSocket.accept();
                                     if (V) Log.v(TAG, "Accepted connection from "
                                         + clientSocket.getRemoteDevice());
-                                    BluetoothOppRfcommTransport transport = new BluetoothOppRfcommTransport(
-                                        clientSocket);
+                                BluetoothOppTransport transport = new BluetoothOppTransport(
+                                        clientSocket, BluetoothOppTransport.TYPE_RFCOMM);
                                     Message msg = Message.obtain();
                                     msg.setTarget(mCallback);
                                     msg.what = MSG_INCOMING_BTOPP_CONNECTION;

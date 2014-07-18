@@ -27,11 +27,12 @@ import android.util.SparseBooleanArray;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import javax.obex.ClientOperation;
-import javax.obex.ClientSession;
-import javax.obex.HeaderSet;
-import javax.obex.ObexTransport;
-import javax.obex.ResponseCodes;
+import javax.btobex.ApplicationParameter;
+import javax.btobex.ClientOperation;
+import javax.btobex.ClientSession;
+import javax.btobex.HeaderSet;
+import javax.btobex.ObexTransport;
+import javax.btobex.ResponseCodes;
 
 /**
  * The Message Notification Service class runs its own message handler thread,

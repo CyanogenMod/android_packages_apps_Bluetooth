@@ -33,12 +33,14 @@
 
 package com.android.bluetooth.opp;
 
-import javax.obex.ClientOperation;
-import javax.obex.ClientSession;
-import javax.obex.HeaderSet;
-import javax.obex.ObexTransport;
-import javax.obex.ResponseCodes;
+import javax.btobex.ClientOperation;
+import javax.btobex.ClientSession;
+import javax.btobex.HeaderSet;
+import javax.btobex.ObexHelper;
+import javax.btobex.ObexTransport;
+import javax.btobex.ResponseCodes;
 
+import android.bluetooth.BluetoothSocket;
 import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
@@ -47,6 +49,7 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.os.Process;
+import android.os.SystemProperties;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
@@ -54,6 +57,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.Thread;
+import android.widget.RemoteViews;
+import android.app.PendingIntent;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.content.Intent;
 
 /**
  * This class runs as an OBEX client
@@ -64,6 +72,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
     private static final boolean D = Constants.DEBUG;
     private static final boolean V = Constants.VERBOSE;
 
+    private static final int OPP_A2DP_SCO_CONCURRENCY_REDUCED_MTU_SIZE = 8192;
     private ClientThread mThread;
 
     private ObexTransport mTransport;
@@ -174,6 +183,8 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
         private ClientSession mCs;
 
+        private BluetoothOppManager oppmanager;
+
         private WakeLock wakeLock;
 
         private BluetoothOppSendFileInfo mFileInfo = null;
@@ -248,6 +259,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     mCs.disconnect(null);
                 }
                 mCs = null;
+                oppmanager = null;
                 if (D) Log.d(TAG, "OBEX session disconnected");
             } catch (IOException e) {
                 Log.w(TAG, "OBEX session disconnect error" + e);
@@ -276,6 +288,17 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             try {
                 mCs = new ClientSession(mTransport1);
                 mConnected = true;
+                int mps = ((BluetoothOppTransport)mTransport1).getMaxPacketSize();
+                oppmanager = BluetoothOppManager.getInstance(mContext1);
+                if ((mps > OPP_A2DP_SCO_CONCURRENCY_REDUCED_MTU_SIZE) && (oppmanager != null)
+                       && oppmanager.isA2DPPlaying ) {
+                    //Reduce Obex over L2CAP MTU size for simultaneous A2DP and OPP
+                    mps = OPP_A2DP_SCO_CONCURRENCY_REDUCED_MTU_SIZE;
+                    mCs.reduceMTU(true);
+                    if (V) Log.v(TAG, "Reducing Obex MTU to 8k as A2DP or SCO in progress");
+                }
+                mCs.setMaxPacketSize(mps);
+                if (D) Log.d(TAG, "Setting ClientSession mps " + mps);
             } catch (IOException e1) {
                 Log.e(TAG, "OBEX session create error");
             }
@@ -387,13 +410,32 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             HeaderSet request;
             request = new HeaderSet();
             request.setHeader(HeaderSet.NAME, fileInfo.mFileName);
+            if(V) Log.v(TAG, "setHeader NAME:	" + fileInfo.mFileName);
             request.setHeader(HeaderSet.TYPE, fileInfo.mMimetype);
+            Log.v(TAG, "setHeader Type:	" + fileInfo.mMimetype);
 
             applyRemoteDeviceQuirks(request, mInfo.mDestination, fileInfo.mFileName);
 
             Constants.updateShareStatus(mContext1, mInfo.mId, BluetoothShare.STATUS_RUNNING);
 
             request.setHeader(HeaderSet.LENGTH, fileInfo.mLength);
+            Log.v(TAG, "setHeader Len:  " + fileInfo.mLength);
+
+            // Turn on/off SRM based on transport capability
+            //(whether this is OBEX-over-L2CAP, or not)
+            mCs.mSrmClient.setLocalSrmCapability(((BluetoothOppTransport)mTransport1).isSrmCapable());
+
+            // Add the SRM header if both client is SRM capable
+            if (mCs.mSrmClient.getLocalSrmCapability() == ObexHelper.SRM_CAPABLE) {
+                Log.v(TAG, "SRM status: Enable SRM for first PUT");
+                mCs.mSrmClient.setLocalSrmStatus(ObexHelper.LOCAL_SRM_ENABLED);
+                request.setHeader(HeaderSet.SINGLE_RESPONSE_MODE, ObexHelper.OBEX_SRM_ENABLED);
+            } else {
+                Log.v(TAG, "SRM status: Disable SRM for first PUT");
+                mCs.mSrmClient.setLocalSrmStatus(ObexHelper.LOCAL_SRM_DISABLED);
+            }
+            mCs.mSrmClient.setLocalSrmpWait(false);
+
             ClientOperation putOperation = null;
             OutputStream outputStream = null;
             InputStream inputStream = null;
@@ -436,6 +478,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
                 if (!error) {
                     int readLength = 0;
+                    long readbytesleft = 0;
                     boolean okToProceed = false;
                     long timestamp = 0;
                     int outputBufferSize = putOperation.getMaxPacketSize();
@@ -443,6 +486,12 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     BufferedInputStream a = new BufferedInputStream(fileInfo.mInputStream, 0x4000);
 
                     if (!mInterrupted && (position != fileInfo.mLength)) {
+
+                        readbytesleft = fileInfo.mLength - position;
+                        if(readbytesleft < outputBufferSize) {
+                            outputBufferSize = (int) readbytesleft;
+                        }
+
                         readLength = readFully(a, buffer, outputBufferSize);
 
                         mCallback.sendMessageDelayed(mCallback
@@ -451,6 +500,15 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                         synchronized (this) {
                             mWaitingForRemote = true;
                         }
+                        //SET MTU SIZE BEFORE WRITE
+                        if(V) Log.v(TAG,"outputstream: readLength: "+readLength+ " getHeaddrLength: " +
+                            putOperation.getHeaderLength()+ " fileLen: " + fileInfo.mLength);
+
+                        int size = readLength + putOperation.getHeaderLength() + 6;
+                        int status_2 = ((BluetoothOppTransport)mTransport1).setPutSockMTUSize(size);
+
+                        if(V) Log.v(TAG,"setPutSockMTUSize status "+ status_2);
+
 
                         // first packet will block here
                         outputStream.write(buffer, 0, readLength);
@@ -477,6 +535,26 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                         if (responseCode == ResponseCodes.OBEX_HTTP_CONTINUE
                                 || responseCode == ResponseCodes.OBEX_HTTP_OK) {
                             if (V) Log.v(TAG, "Remote accept");
+
+                            reply = putOperation.getReceivedHeader();
+                            Byte srm = (Byte)reply.getHeader(HeaderSet.SINGLE_RESPONSE_MODE);
+                            if (srm == ObexHelper.OBEX_SRM_ENABLED) {
+                                Log.v(TAG, "SRM status: Enabled by Server response");
+                                mCs.mSrmClient.setLocalSrmStatus(ObexHelper.LOCAL_SRM_ENABLED);
+                                Byte srmp = (Byte)reply.getHeader(HeaderSet.SINGLE_RESPONSE_MODE_PARAMETER);
+                                Log.v(TAG, "SRMP header (CONTINUE or OK): " + srmp);
+                                if (srmp == ObexHelper.OBEX_SRM_PARAM_WAIT) {
+                                    Log.v(TAG, "SRMP status: WAIT");
+                                    mCs.mSrmClient.setLocalSrmpWait(true);
+                                } else {
+                                    Log.v(TAG, "SRMP status: NONE");
+                                    mCs.mSrmClient.setLocalSrmpWait(false);
+                                }
+                            } else {
+                                Log.v(TAG, "SRM status: Disabled by Server response");
+                                mCs.mSrmClient.setLocalSrmStatus(ObexHelper.LOCAL_SRM_DISABLED);
+                                mCs.mSrmClient.setLocalSrmpWait(false);
+                            }
                             okToProceed = true;
                             updateValues = new ContentValues();
                             updateValues.put(BluetoothShare.CURRENT_BYTES, position);
@@ -491,11 +569,23 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                         {
                             if (V) timestamp = System.currentTimeMillis();
 
+                            readbytesleft = fileInfo.mLength - position;
+                            if(readbytesleft < outputBufferSize) {
+                                outputBufferSize = (int) readbytesleft;
+                            }
+
                             readLength = a.read(buffer, 0, outputBufferSize);
                             int writtenLength = 0;
                             while (writtenLength != readLength) {
+                                //SET MTU SIZE BEFORE WRITE
+                                if(V) Log.v(TAG,"outputstream: readLength: "+readLength+ " getHeaddrLength: " +
+                                    putOperation.getHeaderLength()+ " fileLen: " + fileInfo.mLength);
+
+                                int size = readLength + 6;
+                                int status_2 = ((BluetoothOppTransport)mTransport1).setPutSockMTUSize(size);
+                                if(V) Log.v(TAG,"setPutSockMTUSize status "+ status_2);
                                 try {
-                            outputStream.write(buffer, 0, readLength);
+                                    outputStream.write(buffer, 0, readLength);
                                     writtenLength = readLength;
                                 } catch (IOException e) {
                                     if (e.toString().contains("Try again")) {
@@ -654,6 +744,8 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
         private void handleSendException(String exception) {
             Log.e(TAG, "Error when sending file: " + exception);
+            int status = BluetoothShare.STATUS_OBEX_DATA_ERROR;
+            Constants.updateShareStatus(mContext1, mInfo.mId, status);
             mCallback.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
         }
 

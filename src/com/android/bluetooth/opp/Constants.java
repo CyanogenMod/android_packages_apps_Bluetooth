@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2014, The Linux Foundation. All rights reserved.
  * Copyright (c) 2008-2009, Motorola, Inc.
  *
  * All rights reserved.
@@ -35,7 +36,7 @@ package com.android.bluetooth.opp;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-import javax.obex.HeaderSet;
+import javax.btobex.HeaderSet;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -247,7 +248,7 @@ public class Constants {
     /**
      * Verbose level logging
      */
-    public static final boolean VERBOSE = false;
+    public static final boolean VERBOSE = true;
 
     /** use TCP socket instead of Rfcomm Socket to develop */
     public static final boolean USE_TCP_DEBUG = false;

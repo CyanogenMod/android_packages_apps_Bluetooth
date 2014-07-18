@@ -20,7 +20,7 @@
     <application
         android:icon="@drawable/bt_share"
         android:label="@string/app_name">
-        <uses-library android:name="javax.obex" />
+        <uses-library android:name="javax.btobex" />
         <activity android:name=".opp.TestActivity" android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

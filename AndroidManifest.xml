@@ -64,7 +64,10 @@
         android:icon="@drawable/bt_share"
         android:persistent="false"
         android:label="@string/app_name">
-        <uses-library android:name="javax.obex" />
+        <uses-library
+            android:name="javax.btobex"></uses-library>
+
+
         <provider android:name=".opp.BluetoothOppProvider"
             android:authorities="com.android.bluetooth.opp"
             android:exported="true"

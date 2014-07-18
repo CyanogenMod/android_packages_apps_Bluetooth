@@ -23,9 +23,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
-import javax.obex.ServerSession;
 
 import android.app.AlarmManager;
+import javax.btobex.ServerSession;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;

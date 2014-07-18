@@ -60,9 +60,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
-import javax.obex.ServerOperation;
-import javax.obex.Operation;
-import javax.obex.ResponseCodes;
+import javax.btobex.ServerOperation;
+import javax.btobex.Operation;
+import javax.btobex.ResponseCodes;
 
 import com.android.bluetooth.Utils;
 
