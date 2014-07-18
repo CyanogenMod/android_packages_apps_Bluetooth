@@ -58,6 +58,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class GattService extends ProfileService {
     private static final boolean DBG = GattServiceConfig.DBG;
+    private static final boolean VDBG = GattServiceConfig.VDBG;
     private static final String TAG = GattServiceConfig.TAG_PREFIX + "GattService";
 
     static final int SCAN_FILTER_ENABLED = 1;
@@ -569,7 +570,7 @@ public class GattService extends ProfileService {
      *************************************************************************/
 
     void onScanResult(String address, int rssi, byte[] adv_data) {
-        if (DBG) Log.d(TAG, "onScanResult() - address=" + address
+        if (VDBG) Log.d(TAG, "onScanResult() - address=" + address
                     + ", rssi=" + rssi);
 
         List<UUID> remoteUuids = parseUuids(adv_data);
@@ -684,7 +685,7 @@ public class GattService extends ProfileService {
         UUID uuid = new UUID(srvcUuidMsb, srvcUuidLsb);
         String address = mClientMap.addressByConnId(connId);
 
-        if (DBG) Log.d(TAG, "onSearchResult() - address=" + address + ", uuid=" + uuid);
+        if (VDBG) Log.d(TAG, "onSearchResult() - address=" + address + ", uuid=" + uuid);
 
         mSearchQueue.add(connId, srvcType, srvcInstId, srvcUuidLsb, srvcUuidMsb);
 
@@ -704,7 +705,7 @@ public class GattService extends ProfileService {
         UUID charUuid = new UUID(charUuidMsb, charUuidLsb);
         String address = mClientMap.addressByConnId(connId);
 
-        if (DBG) Log.d(TAG, "onGetCharacteristic() - address=" + address
+        if (VDBG) Log.d(TAG, "onGetCharacteristic() - address=" + address
             + ", status=" + status + ", charUuid=" + charUuid + ", prop=" + charProp);
 
         if (status == 0) {
@@ -741,7 +742,7 @@ public class GattService extends ProfileService {
         UUID descUuid = new UUID(descrUuidMsb, descrUuidLsb);
         String address = mClientMap.addressByConnId(connId);
 
-        if (DBG) Log.d(TAG, "onGetDescriptor() - address=" + address
+        if (VDBG) Log.d(TAG, "onGetDescriptor() - address=" + address
             + ", status=" + status + ", descUuid=" + descUuid);
 
         if (status == 0) {
@@ -772,7 +773,7 @@ public class GattService extends ProfileService {
         UUID inclSrvcUuid = new UUID(inclSrvcUuidMsb, inclSrvcUuidLsb);
         String address = mClientMap.addressByConnId(connId);
 
-        if (DBG) Log.d(TAG, "onGetIncludedService() - address=" + address
+        if (VDBG) Log.d(TAG, "onGetIncludedService() - address=" + address
             + ", status=" + status + ", uuid=" + srvcUuid
             + ", inclUuid=" + inclSrvcUuid);
 
@@ -813,7 +814,7 @@ public class GattService extends ProfileService {
         UUID srvcUuid = new UUID(srvcUuidMsb, srvcUuidLsb);
         UUID charUuid = new UUID(charUuidMsb, charUuidLsb);
 
-        if (DBG) Log.d(TAG, "onNotify() - address=" + address
+        if (VDBG) Log.d(TAG, "onNotify() - address=" + address
             + ", charUuid=" + charUuid + ", length=" + data.length);
 
         ClientMap.App app = mClientMap.getByConnId(connId);
@@ -834,7 +835,7 @@ public class GattService extends ProfileService {
         UUID charUuid = new UUID(charUuidMsb, charUuidLsb);
         String address = mClientMap.addressByConnId(connId);
 
-        if (DBG) Log.d(TAG, "onReadCharacteristic() - address=" + address
+        if (VDBG) Log.d(TAG, "onReadCharacteristic() - address=" + address
             + ", status=" + status + ", length=" + data.length);
 
         ClientMap.App app = mClientMap.getByConnId(connId);
@@ -854,7 +855,7 @@ public class GattService extends ProfileService {
         UUID charUuid = new UUID(charUuidMsb, charUuidLsb);
         String address = mClientMap.addressByConnId(connId);
 
-        if (DBG) Log.d(TAG, "onWriteCharacteristic() - address=" + address
+        if (VDBG) Log.d(TAG, "onWriteCharacteristic() - address=" + address
             + ", status=" + status);
 
         ClientMap.App app = mClientMap.getByConnId(connId);
@@ -867,7 +868,7 @@ public class GattService extends ProfileService {
 
     void onExecuteCompleted(int connId, int status) throws RemoteException {
         String address = mClientMap.addressByConnId(connId);
-        if (DBG) Log.d(TAG, "onExecuteCompleted() - address=" + address
+        if (VDBG) Log.d(TAG, "onExecuteCompleted() - address=" + address
             + ", status=" + status);
 
         ClientMap.App app = mClientMap.getByConnId(connId);
@@ -887,7 +888,7 @@ public class GattService extends ProfileService {
         UUID descrUuid = new UUID(descrUuidMsb, descrUuidLsb);
         String address = mClientMap.addressByConnId(connId);
 
-        if (DBG) Log.d(TAG, "onReadDescriptor() - address=" + address
+        if (VDBG) Log.d(TAG, "onReadDescriptor() - address=" + address
             + ", status=" + status + ", length=" + data.length);
 
         ClientMap.App app = mClientMap.getByConnId(connId);
@@ -909,7 +910,7 @@ public class GattService extends ProfileService {
         UUID descrUuid = new UUID(descrUuidMsb, descrUuidLsb);
         String address = mClientMap.addressByConnId(connId);
 
-        if (DBG) Log.d(TAG, "onWriteDescriptor() - address=" + address
+        if (VDBG) Log.d(TAG, "onWriteDescriptor() - address=" + address
             + ", status=" + status);
 
         ClientMap.App app = mClientMap.getByConnId(connId);
@@ -1446,7 +1447,7 @@ public class GattService extends ProfileService {
                             int charInstanceId, UUID charUuid, int authReq) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
-        if (DBG) Log.d(TAG, "readCharacteristic() - address=" + address);
+        if (VDBG) Log.d(TAG, "readCharacteristic() - address=" + address);
 
         Integer connId = mClientMap.connIdByAddress(clientIf, address);
         if (connId != null)
@@ -1465,7 +1466,7 @@ public class GattService extends ProfileService {
                              int authReq, byte[] value) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
-        if (DBG) Log.d(TAG, "writeCharacteristic() - address=" + address);
+        if (VDBG) Log.d(TAG, "writeCharacteristic() - address=" + address);
 
         if (mReliableQueue.contains(address)) writeType = 3; // Prepared write
 
@@ -1487,7 +1488,7 @@ public class GattService extends ProfileService {
                             int authReq) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
-        if (DBG) Log.d(TAG, "readDescriptor() - address=" + address);
+        if (VDBG) Log.d(TAG, "readDescriptor() - address=" + address);
 
         Integer connId = mClientMap.connIdByAddress(clientIf, address);
         if (connId != null)
@@ -1510,7 +1511,7 @@ public class GattService extends ProfileService {
                             int writeType, int authReq, byte[] value) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
-        if (DBG) Log.d(TAG, "writeDescriptor() - address=" + address);
+        if (VDBG) Log.d(TAG, "writeDescriptor() - address=" + address);
 
         Integer connId = mClientMap.connIdByAddress(clientIf, address);
         if (connId != null)
@@ -1722,7 +1723,7 @@ public class GattService extends ProfileService {
     void onAttributeRead(String address, int connId, int transId,
                             int attrHandle, int offset, boolean isLong)
                             throws RemoteException {
-        if (DBG) Log.d(TAG, "onAttributeRead() connId=" + connId
+        if (VDBG) Log.d(TAG, "onAttributeRead() connId=" + connId
             + ", address=" + address + ", handle=" + attrHandle
             + ", requestId=" + transId + ", offset=" + offset);
 
@@ -1771,7 +1772,7 @@ public class GattService extends ProfileService {
                             boolean needRsp, boolean isPrep,
                             byte[] data)
                             throws RemoteException {
-        if (DBG) Log.d(TAG, "onAttributeWrite() connId=" + connId
+        if (VDBG) Log.d(TAG, "onAttributeWrite() connId=" + connId
             + ", address=" + address + ", handle=" + attrHandle
             + ", requestId=" + transId + ", isPrep=" + isPrep
             + ", offset=" + offset);
@@ -1963,7 +1964,7 @@ public class GattService extends ProfileService {
                       int status, int offset, byte[] value) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
-        if (DBG) Log.d(TAG, "sendResponse() - address=" + address);
+        if (VDBG) Log.d(TAG, "sendResponse() - address=" + address);
 
         int handle = 0;
         HandleMap.Entry entry = mHandleMap.getByRequestId(requestId);
@@ -1981,7 +1982,7 @@ public class GattService extends ProfileService {
                                  boolean confirm, byte[] value) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
-        if (DBG) Log.d(TAG, "sendNotification() - address=" + address);
+        if (VDBG) Log.d(TAG, "sendNotification() - address=" + address);
 
         int srvcHandle = mHandleMap.getServiceHandle(srvcUuid, srvcType, srvcInstanceId);
         if (srvcHandle == 0) return;
