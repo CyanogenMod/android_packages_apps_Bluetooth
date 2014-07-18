@@ -20,7 +20,11 @@ import android.annotation.Nullable;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
 
+import java.util.Objects;
+
 /**
+ * Helper class that represents a client for Bluetooth LE advertise operations.
+ *
  * @hide
  */
 class AdvertiseClient {
@@ -30,11 +34,41 @@ class AdvertiseClient {
     @Nullable
     AdvertiseData scanResponse;
 
-    AdvertiseClient(int clientIf, AdvertiseSettings settings, AdvertiseData data,
+    /**
+     * @param clientIf - Identifier of the client.
+     */
+    public AdvertiseClient(int clientIf) {
+        this.clientIf = clientIf;
+    }
+
+    /**
+     * @param clientIf - Identifier of the client.
+     * @param settings - Settings for the advertising.
+     * @param advertiseData - Advertise data broadcasted over the air.
+     * @param scanResponse - Response of scan request, could be null.
+     */
+    AdvertiseClient(int clientIf, AdvertiseSettings settings, AdvertiseData advertiseData,
             AdvertiseData scanResponse) {
         this.clientIf = clientIf;
         this.settings = settings;
-        this.advertiseData = data;
+        this.advertiseData = advertiseData;
         this.scanResponse = scanResponse;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        AdvertiseClient other = (AdvertiseClient) obj;
+        return clientIf == other.clientIf;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(clientIf);
     }
 }
