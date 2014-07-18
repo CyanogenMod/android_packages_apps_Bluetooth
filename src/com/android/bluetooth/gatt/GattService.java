@@ -19,6 +19,7 @@ package com.android.bluetooth.gatt;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothGatt;
@@ -439,6 +440,13 @@ public class GattService extends ProfileService {
             GattService service = getService();
             if (service == null) return;
             service.configureMTU(clientIf, address, mtu);
+        }
+
+        public void connectionParameterUpdate(int clientIf, String address,
+                                              int connectionPriority) {
+            GattService service = getService();
+            if (service == null) return;
+            service.connectionParameterUpdate(clientIf, address, connectionPriority);
         }
 
         public void registerServer(ParcelUuid uuid, IBluetoothGattServerCallback callback) {
@@ -1594,6 +1602,39 @@ public class GattService extends ProfileService {
         }
     }
 
+    void connectionParameterUpdate(int clientIf, String address, int connectionPriority) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
+        // Default spec recommended interval is 30->50 ms
+        int minInterval = 24; // 24 * 1.25ms = 30ms
+        int maxInterval = 40; // 40 * 1.25ms = 50ms
+
+        // Slave latency
+        int latency = 0;
+
+        // Link supervision timeout is measured in N * 10ms
+        int timeout = 2000; // 20s
+
+        switch (connectionPriority)
+        {
+            case BluetoothGatt.GATT_CONNECTION_HIGH_PRIORITY:
+                minInterval = 6; // 7.5ms
+                maxInterval = 8; // 10ms
+                break;
+
+            case BluetoothGatt.GATT_CONNECTION_LOW_POWER:
+                minInterval = 80; // 100ms
+                maxInterval = 100; // 125ms
+                latency = 2;
+                break;
+        }
+
+        if (DBG) Log.d(TAG, "connectionParameterUpdate() - address=" + address
+            + "params=" + connectionPriority + " interval=" + minInterval + "/" + maxInterval);
+        gattConnectionParameterUpdateNative(clientIf, address, minInterval, maxInterval,
+                                            latency, timeout);
+    }
+
     /**************************************************************************
      * Callback functions - SERVER
      *************************************************************************/
@@ -2269,6 +2310,9 @@ public class GattService extends ProfileService {
     private native void gattAdvertiseNative(int client_if, boolean start);
 
     private native void gattClientConfigureMTUNative(int conn_id, int mtu);
+
+    private native void gattConnectionParameterUpdateNative(int client_if, String address,
+            int minInterval, int maxInterval, int latency, int timeout);
 
     private native void gattSetAdvDataNative(int serverIf, boolean setScanRsp, boolean inclName,
             boolean inclTxPower, int minInterval, int maxInterval,
