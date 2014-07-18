@@ -21,6 +21,8 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.BroadcastReceiver;
 import android.os.ParcelUuid;
 import android.os.UserHandle;
 import android.util.Log;
@@ -65,15 +67,28 @@ class AdapterProperties {
     private int mNumOfOffloadedScanFilterSupported;
     private int mOffloadedScanResultStorageBytes;
     private boolean mIsActivityAndEnergyReporting;
+    private Context mContext;
 
     // Lock for all getters and setters.
     // If finer grained locking is needer, more locks
     // can be added here.
     private Object mObject = new Object();
 
+    private final BroadcastReceiver mBluetoothReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (Intent.ACTION_USER_SWITCHED.equals(action)) {
+                debugLog("USER_SWITCHED");
+                setScanMode(AbstractionLayer.BT_SCAN_MODE_NONE);
+            }
+        }
+    };
+
     public AdapterProperties(AdapterService service) {
         mService = service;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
+        mContext = mService;
     }
     public void init(RemoteDevices remoteDevices) {
         if (mProfileConnectionState ==null) {
@@ -82,6 +97,8 @@ class AdapterProperties {
             mProfileConnectionState.clear();
         }
         mRemoteDevices = remoteDevices;
+        IntentFilter filter = new IntentFilter(Intent.ACTION_USER_SWITCHED);
+        mContext.registerReceiver(mBluetoothReceiver, filter, null, null);
     }
 
     public void cleanup() {
@@ -93,6 +110,8 @@ class AdapterProperties {
         mService = null;
         if (!mBondedDevices.isEmpty())
             mBondedDevices.clear();
+        mContext.unregisterReceiver(mBluetoothReceiver);
+        mContext = null;
     }
 
     @Override
@@ -579,15 +598,22 @@ class AdapterProperties {
         // When BT is being turned on, all adapter properties will be sent in 1
         // callback. At this stage, set the scan mode.
         synchronized (mObject) {
-            if (getState() == BluetoothAdapter.STATE_TURNING_ON &&
-                    mScanMode == BluetoothAdapter.SCAN_MODE_NONE) {
+            if (getState() == BluetoothAdapter.STATE_TURNING_ON) {
                     /* mDiscoverableTimeout is part of the
                        adapterPropertyChangedCallback received before
                        onBluetoothReady */
-                    if (mDiscoverableTimeout != 0)
-                      setScanMode(AbstractionLayer.BT_SCAN_MODE_CONNECTABLE);
-                    else /* if timeout == never (0) at startup */
-                      setScanMode(AbstractionLayer.BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE);
+                    switch (mScanMode) {
+                        case BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE:
+                            if (mDiscoverableTimeout != 0)
+                                setScanMode(AbstractionLayer.BT_SCAN_MODE_CONNECTABLE);
+                            else
+                                setScanMode(AbstractionLayer.BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE);
+                            break;
+                        case BluetoothAdapter.SCAN_MODE_NONE:
+                        case BluetoothAdapter.SCAN_MODE_CONNECTABLE:
+                        default:
+                            setScanMode(AbstractionLayer.BT_SCAN_MODE_CONNECTABLE);
+                    }
                     /* though not always required, this keeps NV up-to date on first-boot after flash */
                     setDiscoverableTimeout(mDiscoverableTimeout);
             }
@@ -604,8 +630,20 @@ class AdapterProperties {
         //continue with disable sequence
         debugLog("onBluetoothDisable()");
         mBluetoothDisabling = true;
+
         if (getState() == BluetoothAdapter.STATE_TURNING_OFF) {
-            setScanMode(AbstractionLayer.BT_SCAN_MODE_NONE);
+           switch (mScanMode) {
+               case BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE:
+                   if (mDiscoverableTimeout != 0)
+                       setScanMode(AbstractionLayer.BT_SCAN_MODE_CONNECTABLE);
+                   else
+                       setScanMode(AbstractionLayer.BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE);
+                   break;
+               case BluetoothAdapter.SCAN_MODE_NONE:
+               case BluetoothAdapter.SCAN_MODE_CONNECTABLE:
+               default:
+                   setScanMode(AbstractionLayer.BT_SCAN_MODE_CONNECTABLE);
+           }
         }
     }
     void discoveryStateChangeCallback(int state) {
