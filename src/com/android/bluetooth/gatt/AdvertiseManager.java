@@ -180,10 +180,7 @@ class AdvertiseManager {
                         AdvertiseCallback.ADVERTISE_FAILED_TOO_MANY_ADVERTISERS);
                 return;
             }
-
-            if (!isAllServiceRegistered(client)) {
-                postCallback(clientIf, AdvertiseCallback.ADVERTISE_FAILED_SERVICE_UNKNOWN);
-            }
+            // TODO: check if the advertise data length is larger than 31 bytes.
             if (!mAdvertiseNative.startAdverising(client)) {
                 postCallback(clientIf, AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR);
                 return;
