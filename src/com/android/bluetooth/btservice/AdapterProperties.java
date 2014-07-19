@@ -537,6 +537,7 @@ class AdapterProperties {
                         mNumOfOffloadedIrkSupported =  (0x000000FF & ((int)val[3]));
                         mNumOfOffloadedScanFilterSupported = (0x000000FF & ((int)val[4]));
                         mOffloadedScanResultStorageBytes = (0x000000FF & ((int)val[5]));
+                        // TBD for energy support
 
                         Log.d(TAG, "BT_PROPERTY_LOCAL_LE_FEATURES: update from BT controller"
                                       + " mNumOfAdvertisementInstancesSupported = " + mNumOfAdvertisementInstancesSupported

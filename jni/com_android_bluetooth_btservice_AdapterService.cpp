@@ -46,6 +46,7 @@ static jmethodID method_setWakeAlarm;
 static jmethodID method_acquireWakeLock;
 static jmethodID method_releaseWakeLock;
 static jmethodID method_deviceMasInstancesFoundCallback;
+static jmethodID method_energyInfo;
 
 static const bt_interface_t *sBluetoothInterface = NULL;
 static const btsock_interface_t *sBluetoothSocketInterface = NULL;
@@ -446,6 +447,21 @@ static void le_test_mode_recv_callback (bt_status_t status, uint16_t packet_coun
 
     ALOGV("%s: status:%d packet_count:%d ", __FUNCTION__, status, packet_count);
 }
+
+static void energy_info_recv_callback(bt_activity_energy_info *p_energy_info)
+{
+    if (!checkCallbackThread()) {
+       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
+       return;
+    }
+
+    callbackEnv->CallVoidMethod(sJniCallbacksObj, method_energyInfo, p_energy_info->status,
+        p_energy_info->ctrl_state, p_energy_info->tx_time, p_energy_info->rx_time,
+        p_energy_info->idle_time, p_energy_info->energy_used);
+
+    checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
+}
+
 static bt_callbacks_t sBluetoothCallbacks = {
     sizeof(sBluetoothCallbacks),
     adapter_state_change_callback,
@@ -460,7 +476,8 @@ static bt_callbacks_t sBluetoothCallbacks = {
     callback_thread_event,
     dut_mode_recv_callback,
 
-    le_test_mode_recv_callback
+    le_test_mode_recv_callback,
+    energy_info_recv_callback
 };
 
 // The callback to call when the wake alarm fires.
@@ -689,6 +706,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_deviceMasInstancesFoundCallback = env->GetMethodID(jniCallbackClass,
                                                     "deviceMasInstancesFoundCallback",
                                                     "(I[B[Ljava/lang/String;[I[I[I)V");
+    method_energyInfo = env->GetMethodID(clazz, "energyInfoCallback", "(IIJJJJ)V");
 
     char value[PROPERTY_VALUE_MAX];
     property_get("bluetooth.mock_stack", value, "");
@@ -1179,6 +1197,16 @@ static jboolean configHciSnoopLogNative(JNIEnv* env, jobject obj, jboolean enabl
     return result;
 }
 
+static int readEnergyInfo()
+{
+    ALOGV("%s:",__FUNCTION__);
+    jboolean result = JNI_FALSE;
+    if (!sBluetoothInterface) return result;
+    int ret = sBluetoothInterface->read_energy_info();
+    result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+    return result;
+}
+
 static JNINativeMethod sMethods[] = {
     /* name, signature, funcPtr */
     {"classInitNative", "()V", (void *) classInitNative},
@@ -1206,6 +1234,7 @@ static JNINativeMethod sMethods[] = {
      (void*) createSocketChannelNative},
     {"configHciSnoopLogNative", "(Z)Z", (void*) configHciSnoopLogNative},
     {"alarmFiredNative", "()V", (void *) alarmFiredNative},
+    {"readEnergyInfo", "()I", (void*) readEnergyInfo},
 };
 
 int register_com_android_bluetooth_btservice_AdapterService(JNIEnv* env)
