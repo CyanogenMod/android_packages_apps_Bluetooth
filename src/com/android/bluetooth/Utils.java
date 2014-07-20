@@ -19,6 +19,7 @@ package com.android.bluetooth;
 import android.app.ActivityManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.ContextWrapper;
 import android.os.Binder;
 import android.os.ParcelUuid;
 import android.os.UserHandle;
@@ -41,7 +42,7 @@ final public class Utils {
     static final int BD_UUID_LEN = 16; // bytes
 
     public static String getAddressStringFromByte(byte[] address) {
-        if (address == null || address.length !=6) {
+        if (address == null || address.length != BD_ADDR_LEN) {
             return null;
         }
 
@@ -58,9 +59,9 @@ final public class Utils {
         int i, j = 0;
         byte[] output = new byte[BD_ADDR_LEN];
 
-        for (i = 0; i < address.length();i++) {
+        for (i = 0; i < address.length(); i++) {
             if (address.charAt(i) != ':') {
-                output[j] = (byte) Integer.parseInt(address.substring(i, i+2), 16);
+                output[j] = (byte) Integer.parseInt(address.substring(i, i + 2), BD_UUID_LEN);
                 j++;
                 i++;
             }
@@ -115,14 +116,14 @@ final public class Utils {
             uuid = uuids[i].getUuid();
             msb = uuid.getMostSignificantBits();
             lsb = uuid.getLeastSignificantBits();
-            converter.putLong(i * 16, msb);
-            converter.putLong(i * 16 + 8, lsb);
+            converter.putLong(i * BD_UUID_LEN, msb);
+            converter.putLong(i * BD_UUID_LEN + 8, lsb);
         }
         return converter.array();
     }
 
     public static ParcelUuid[] byteArrayToUuid(byte[] val) {
-        int numUuids = val.length/BD_UUID_LEN;
+        int numUuids = val.length / BD_UUID_LEN;
         ParcelUuid[] puuids = new ParcelUuid[numUuids];
         UUID uuid;
         int offset = 0;
@@ -133,27 +134,33 @@ final public class Utils {
         for (int i = 0; i < numUuids; i++) {
             puuids[i] = new ParcelUuid(new UUID(converter.getLong(offset),
                     converter.getLong(offset + 8)));
-            offset += 16;
+            offset += BD_UUID_LEN;
         }
         return puuids;
     }
 
     public static String debugGetAdapterStateString(int state) {
         switch (state) {
-            case BluetoothAdapter.STATE_OFF : return "STATE_OFF";
-            case BluetoothAdapter.STATE_ON : return "STATE_ON";
-            case BluetoothAdapter.STATE_TURNING_ON : return "STATE_TURNING_ON";
-            case BluetoothAdapter.STATE_TURNING_OFF : return "STATE_TURNING_OFF";
-            default : return "UNKNOWN";
+            case BluetoothAdapter.STATE_OFF:
+                return "STATE_OFF";
+            case BluetoothAdapter.STATE_ON:
+                return "STATE_ON";
+            case BluetoothAdapter.STATE_TURNING_ON:
+                return "STATE_TURNING_ON";
+            case BluetoothAdapter.STATE_TURNING_OFF:
+                return "STATE_TURNING_OFF";
+            default:
+                return "UNKNOWN";
         }
     }
 
-    public static void copyStream(InputStream is, OutputStream os, int bufferSize) throws IOException {
-        if (is != null && os!=null) {
+    public static void copyStream(InputStream is, OutputStream os, int bufferSize)
+            throws IOException {
+        if (is != null && os != null) {
             byte[] buffer = new byte[bufferSize];
-            int bytesRead=0;
-            while ( (bytesRead = is.read(buffer))>=0) {
-                os.write(buffer,0,bytesRead);
+            int bytesRead = 0;
+            while ((bytesRead = is.read(buffer)) >= 0) {
+                os.write(buffer, 0, bytesRead);
             }
         }
     }
@@ -163,7 +170,7 @@ final public class Utils {
             try {
                 is.close();
             } catch (Throwable t) {
-                Log.d(TAG,"Error closing stream",t);
+                Log.d(TAG, "Error closing stream", t);
             }
         }
     }
@@ -173,7 +180,7 @@ final public class Utils {
             try {
                 os.close();
             } catch (Throwable t) {
-                Log.d(TAG,"Error closing stream",t);
+                Log.d(TAG, "Error closing stream", t);
             }
         }
     }
@@ -190,11 +197,24 @@ final public class Utils {
             int foregroundUser = ActivityManager.getCurrentUser();
             ok = (foregroundUser == callingUser);
         } catch (Exception ex) {
-            Log.e(TAG,"checkIfCallerIsSelfOrForegroundUser: Exception ex=" + ex);
+            Log.e(TAG, "checkIfCallerIsSelfOrForegroundUser: Exception ex=" + ex);
             ok = false;
         } finally {
             Binder.restoreCallingIdentity(ident);
         }
         return ok;
     }
+
+    /**
+     * Enforce the context has android.Manifest.permission.BLUETOOTH_ADMIN permission. A
+     * {@link SecurityException} would be thrown if neither the calling process or the application
+     * does not have BLUETOOTH_ADMIN permission.
+     *
+     * @param context Context for the permission check.
+     */
+    public static void enforceAdminPermission(ContextWrapper context) {
+        context.enforceCallingOrSelfPermission(android.Manifest.permission.BLUETOOTH_ADMIN,
+                "Need BLUETOOTH_ADMIN permission");
+    }
+
 }
