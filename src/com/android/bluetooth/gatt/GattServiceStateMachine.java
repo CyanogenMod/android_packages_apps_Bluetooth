@@ -303,7 +303,7 @@ public class GattServiceStateMachine extends StateMachine {
 
     private void enableBleScan(ScanClient client) {
         if (client == null || client.settings == null
-                || client.settings.getReportDelaySeconds() == 0) {
+                || client.settings.getReportDelayMillis() == 0) {
             gattClientScanNative(true);
             return;
         }
@@ -410,7 +410,7 @@ public class GattServiceStateMachine extends StateMachine {
                 || (settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_MATCH_LOST) != 0) {
             return DELIVERY_MODE_ON_FOUND;
         }
-        return settings.getReportDelaySeconds() == 0 ? DELIVERY_MODE_IMMEDIATE
+        return settings.getReportDelayMillis() == 0 ? DELIVERY_MODE_IMMEDIATE
                 : DELIVERY_MODE_BATCH;
     }
 

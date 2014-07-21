@@ -28,6 +28,7 @@ import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Intent;
@@ -596,7 +597,8 @@ public class GattService extends ProfileService {
                             .getRemoteDevice(address);
                     long scanTimeNanos =
                             TimeUnit.NANOSECONDS.toMicros(SystemClock.elapsedRealtimeNanos());
-                    ScanResult result = new ScanResult(device, adv_data, rssi, scanTimeNanos);
+                    ScanResult result = new ScanResult(device, ScanRecord.parseFromBytes(adv_data),
+                            rssi, scanTimeNanos);
                     if (matchesFilters(client, result)) {
                         try {
                             app.callback.onScanResult(address, rssi, adv_data);
@@ -1015,7 +1017,8 @@ public class GattService extends ProfileService {
             int rssi = record[8];
             // Timestamp is in every 50 ms.
             long timestampNanos = parseTimestampNanos(extractBytes(record, 9, 2));
-            results.add(new ScanResult(device, new byte[0], rssi, timestampNanos));
+            results.add(new ScanResult(device, ScanRecord.parseFromBytes(new byte[0]),
+                    rssi, timestampNanos));
         }
         return results;
     }
@@ -1053,7 +1056,8 @@ public class GattService extends ProfileService {
             System.arraycopy(advertiseBytes, 0, scanRecord, 0, advertisePacketLen);
             System.arraycopy(scanResponseBytes, 0, scanRecord,
                     advertisePacketLen, scanResponsePacketLen);
-            results.add(new ScanResult(device, scanRecord, rssi, timestampNanos));
+            results.add(new ScanResult(device, ScanRecord.parseFromBytes(scanRecord),
+                    rssi, timestampNanos));
         }
         return results;
     }
@@ -1270,7 +1274,7 @@ public class GattService extends ProfileService {
                 ", isServer=" + isServer);
         ScanClient scanClient = getScanClient(clientIf, isServer);
         if (scanClient == null || scanClient.settings == null
-                || scanClient.settings.getReportDelaySeconds() == 0) {
+                || scanClient.settings.getReportDelayMillis() == 0) {
             // Not a batch scan client.
             Log.e(TAG, "called flushPendingBatchResults without a proper app!");
             return;
