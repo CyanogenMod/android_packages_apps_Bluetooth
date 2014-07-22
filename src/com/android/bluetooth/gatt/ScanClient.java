@@ -20,6 +20,7 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -28,7 +29,7 @@ import java.util.UUID;
  * @hide
  */
 /* package */class ScanClient {
-    int appIf;
+    int clientIf;
     boolean isServer;
     UUID[] uuids;
     ScanSettings settings;
@@ -51,11 +52,28 @@ import java.util.UUID;
 
     private ScanClient(int appIf, boolean isServer, UUID[] uuids, ScanSettings settings,
             List<ScanFilter> filters) {
-        this.appIf = appIf;
+        this.clientIf = appIf;
         this.isServer = isServer;
         this.uuids = uuids;
         this.settings = settings;
         this.filters = filters;
 
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        ScanClient other = (ScanClient) obj;
+        return clientIf == other.clientIf;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(clientIf);
     }
 }
