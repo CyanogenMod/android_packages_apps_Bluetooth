@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -146,30 +147,8 @@ public class GattService extends ProfileService {
         }
     }
 
-    /**
-     * List of clients interested in scan results.
-     */
-    private List<ScanClient> mScanQueue = new ArrayList<ScanClient>();
-
-    private GattServiceStateMachine mStateMachine;
     private AdvertiseManager mAdvertiseManager;
-    private ScanClient getScanClient(int appIf, boolean isServer) {
-        for(ScanClient client : mScanQueue) {
-            if (client.appIf == appIf && client.isServer == isServer) {
-                return client;
-            }
-        }
-        return null;
-    }
-
-    private void removeScanClient(int appIf, boolean isServer) {
-        for(ScanClient client : mScanQueue) {
-          if (client.appIf == appIf && client.isServer == isServer) {
-                mScanQueue.remove(client);
-                break;
-            }
-        }
-    }
+    private ScanManager mScanManager;
 
     /**
      * Reliable write queue
@@ -191,9 +170,12 @@ public class GattService extends ProfileService {
     protected boolean start() {
         if (DBG) Log.d(TAG, "start()");
         initializeNative();
-        mStateMachine = GattServiceStateMachine.make(this);
         mAdvertiseManager = new AdvertiseManager(this);
         mAdvertiseManager.start();
+
+        mScanManager = new ScanManager(this);
+        mScanManager.start();
+
         return true;
     }
 
@@ -202,19 +184,19 @@ public class GattService extends ProfileService {
         mClientMap.clear();
         mServerMap.clear();
         mSearchQueue.clear();
-        mScanQueue.clear();
         mHandleMap.clear();
         mServiceDeclarations.clear();
-        mStateMachine.doQuit();
         mReliableQueue.clear();
+        mAdvertiseManager.cleanup();
+        mScanManager.cleanup();
         return true;
     }
 
     protected boolean cleanup() {
         if (DBG) Log.d(TAG, "cleanup()");
         cleanupNative();
-        mStateMachine.cleanup();
         mAdvertiseManager.cleanup();
+        mScanManager.cleanup();
         return true;
     }
 
@@ -240,7 +222,7 @@ public class GattService extends ProfileService {
 
         public void binderDied() {
             if (DBG) Log.d(TAG, "Binder is dead - unregistering client (" + mAppIf + ")!");
-            if (getScanClient(mAppIf, false) != null) {
+            if (mScanManager.scanQueue().contains(new ScanClient(mAppIf, false))) {
                 stopScan(mAppIf, false);
             } else {
                 stopMultiAdvertising(mAppIf);
@@ -573,9 +555,9 @@ public class GattService extends ProfileService {
     void onScanResult(String address, int rssi, byte[] adv_data) {
         if (VDBG) Log.d(TAG, "onScanResult() - address=" + address
                     + ", rssi=" + rssi);
-
+        ScanRecord record = ScanRecord.parseFromBytes(adv_data);
         List<UUID> remoteUuids = parseUuids(adv_data);
-        for (ScanClient client : mScanQueue) {
+        for (ScanClient client : mScanManager.scanQueue()) {
             if (client.uuids.length > 0) {
                 int matches = 0;
                 for (UUID search : client.uuids) {
@@ -591,7 +573,7 @@ public class GattService extends ProfileService {
             }
 
             if (!client.isServer) {
-                ClientMap.App app = mClientMap.getById(client.appIf);
+                ClientMap.App app = mClientMap.getById(client.clientIf);
                 if (app != null) {
                     BluetoothDevice device = BluetoothAdapter.getDefaultAdapter()
                             .getRemoteDevice(address);
@@ -604,20 +586,20 @@ public class GattService extends ProfileService {
                             app.callback.onScanResult(address, rssi, adv_data);
                         } catch (RemoteException e) {
                             Log.e(TAG, "Exception: " + e);
-                            mClientMap.remove(client.appIf);
-                            mScanQueue.remove(client);
+                            mClientMap.remove(client.clientIf);
+                            mScanManager.stopScan(client);
                         }
                     }
                 }
             } else {
-                ServerMap.App app = mServerMap.getById(client.appIf);
+                ServerMap.App app = mServerMap.getById(client.clientIf);
                 if (app != null) {
                     try {
                         app.callback.onScanResult(address, rssi, adv_data);
                     } catch (RemoteException e) {
                         Log.e(TAG, "Exception: " + e);
-                        mServerMap.remove(client.appIf);
-                        mScanQueue.remove(client);
+                        mServerMap.remove(client.clientIf);
+                        mScanManager.stopScan(client);
                     }
                 }
             }
@@ -940,10 +922,7 @@ public class GattService extends ProfileService {
             Log.d(TAG, "onScanFilterEnableDisabled() - clientIf=" + clientIf + ", status=" + status
                     + ", action=" + action);
         }
-        if (status != 0 ) {
-            // TODO: error handling.
-        }
-        mStateMachine.callbackDone();
+        mScanManager.callbackDone(clientIf, status);
     }
 
     void onScanFilterParamsConfigured(int action, int status, int clientIf, int availableSpace) {
@@ -952,7 +931,7 @@ public class GattService extends ProfileService {
                     + ", status=" + status + ", action=" + action
                     + ", availableSpace=" + availableSpace);
         }
-        mStateMachine.callbackDone();
+        mScanManager.callbackDone(clientIf, status);
     }
 
     void onScanFilterConfig(int action, int status, int clientIf, int filterType,
@@ -963,14 +942,14 @@ public class GattService extends ProfileService {
                     + ", availableSpace=" + availableSpace);
         }
 
-        mStateMachine.callbackDone();
+        mScanManager.callbackDone(clientIf, status);
     }
 
     void onBatchScanStorageConfigured(int status, int clientIf) {
         if (DBG) {
             Log.d(TAG, "onBatchScanStorageConfigured() - clientIf="+ clientIf + ", status=" + status);
         }
-        mStateMachine.callbackDone();
+        mScanManager.callbackDone(clientIf, status);
     }
 
     // TODO: split into two different callbacks : onBatchScanStarted and onBatchScanStopped.
@@ -979,7 +958,7 @@ public class GattService extends ProfileService {
             Log.d(TAG, "onBatchScanStartStopped() - clientIf=" + clientIf
                     + ", status=" + status + ", startStopAction=" + startStopAction);
         }
-        mStateMachine.callbackDone();
+        mScanManager.callbackDone(clientIf, status);
     }
 
     void onBatchScanReports(int status, int clientIf, int reportType, int numRecords,
@@ -1000,7 +979,7 @@ public class GattService extends ProfileService {
             return Collections.emptySet();
         }
         if (DBG) Log.d(TAG, "current time is " + SystemClock.elapsedRealtimeNanos());
-        if (reportType == GattServiceStateMachine.SCAN_RESULT_TYPE_TRUNCATED) {
+        if (reportType == ScanManager.SCAN_RESULT_TYPE_TRUNCATED) {
             return parseTruncatedResults(numRecords, batchRecord);
         } else {
             return parseFullResults(numRecords, batchRecord);
@@ -1101,10 +1080,11 @@ public class GattService extends ProfileService {
         }
     }
 
+    // callback from AdvertiseManager for advertise status dispatch.
     void onMultipleAdvertiseCallback(int clientIf, int status) throws RemoteException {
         ClientMap.App app = mClientMap.getById(clientIf);
         if (app == null || app.callback == null) {
-            Log.e(TAG, "app or callback is null");
+            Log.e(TAG, "Advertise app or callback is null");
             return;
         }
         app.callback.onMultiAdvertiseCallback(status);
@@ -1227,67 +1207,40 @@ public class GattService extends ProfileService {
         return deviceList;
     }
 
+    // TODO: Remove this and implement legacy scan using new logic.
     void startScan(int appIf, boolean isServer) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-
-        if (DBG) Log.d(TAG, "startScan() - queue=" + mScanQueue.size());
-
-        if (getScanClient(appIf, isServer) == null) {
-            if (DBG) Log.d(TAG, "startScan() - adding client=" + appIf);
-            mScanQueue.add(new ScanClient(appIf, isServer));
-        }
         configureScanParams(appIf);
-        sendStartScanMessage(appIf, null);
+        mScanManager.startScan(new ScanClient(appIf, false));
     }
 
-
+    // TODO: Remove this and implement legacy scan using new logic.
     void startScanWithUuids(int appIf, boolean isServer, UUID[] uuids) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
 
-        if (DBG) Log.d(TAG, "startScanWithUuids() - queue=" + mScanQueue.size());
-
-        if (getScanClient(appIf, isServer) == null) {
-            if (DBG) Log.d(TAG, "startScanWithUuids() - adding client=" + appIf);
-            mScanQueue.add(new ScanClient(appIf, isServer, uuids));
-        }
         configureScanParams(appIf);
-        sendStartScanMessage(appIf, null);
+        mScanManager.startScan(new ScanClient(appIf, false, uuids));
     }
 
     void startScanWithFilters(int appIf, boolean isServer, ScanSettings settings,
             List<ScanFilter> filters) {
         if (DBG) Log.d(TAG, "start scan with filters ");
         enforceAdminPermission();
-        // TODO: use settings to configure scan params.
-        // TODO: move logic to state machine to avoid locking.
-        synchronized(mScanQueue) {
-            if (getScanClient(appIf, isServer) == null) {
-                if (DBG) Log.d(TAG, "startScan() - adding client=" + appIf);
-                mScanQueue.add(new ScanClient(appIf, isServer, settings, filters));
-            }
-            sendStartScanMessage(appIf, getScanClient(appIf, isServer));
-        }
+        mScanManager.startScan(new ScanClient(appIf, isServer, settings, filters));
     }
 
     void flushPendingBatchResults(int clientIf, boolean isServer) {
         if (DBG) Log.d(TAG, "flushPendingBatchResults - clientIf=" + clientIf +
                 ", isServer=" + isServer);
-        ScanClient scanClient = getScanClient(clientIf, isServer);
-        if (scanClient == null || scanClient.settings == null
-                || scanClient.settings.getReportDelayMillis() == 0) {
-            // Not a batch scan client.
-            Log.e(TAG, "called flushPendingBatchResults without a proper app!");
-            return;
-        }
-        int resultType = mStateMachine.getResultType(scanClient.settings);
-        gattClientReadScanReportsNative(clientIf, resultType);
+        mScanManager.flushBatchScanResults(new ScanClient(clientIf, isServer));
     }
 
+    // TODO: Move this to ScanManager.
     void configureScanParams(int appIf) {
-        if (DBG) Log.d(TAG, "configureScanParams() - queue=" + mScanQueue.size());
+        if (DBG) Log.d(TAG, "configureScanParams() - queue=" + mScanManager.scanQueue().size());
         int curScanSetting = Integer.MIN_VALUE;
 
-        for(ScanClient client : mScanQueue) {
+        for(ScanClient client : mScanManager.scanQueue()) {
             // ScanClient scan settings are assumed to be monotonically increasing in value for more
             // power hungry(higher duty cycle) operation
             if (client.settings.getScanMode() > curScanSetting) {
@@ -1324,40 +1277,22 @@ public class GattService extends ProfileService {
                 scanWindow = (scanWindow * 1000)/625;
                 scanInterval = (scanInterval * 1000)/625;
                 // Presence of scan clients means scan is active.
-                sendStopScanMessage(appIf);
+                mScanManager.stopScan(new ScanClient(appIf, false));
                 gattSetScanParametersNative(scanInterval, scanWindow);
                 lastConfiguredScanSetting = curScanSetting;
             }
         } else {
             lastConfiguredScanSetting = curScanSetting;
-            sendStopScanMessage(appIf);
+            mScanManager.stopScan(new ScanClient(appIf, false));
             if (DBG) Log.d(TAG, "configureScanParams() - queue emtpy, scan stopped");
         }
     }
 
-    private void sendStartScanMessage(int clientIf, ScanClient client) {
-        Message message = mStateMachine.obtainMessage(GattServiceStateMachine.START_BLE_SCAN);
-        message.arg1 = clientIf;
-        message.obj = client;
-        mStateMachine.sendMessage(message);
-    }
-
-    private void sendStopScanMessage(int appIf) {
-        Message message = mStateMachine.obtainMessage(GattServiceStateMachine.STOP_BLE_SCAN);
-        message.arg1 = appIf;
-        mStateMachine.sendMessage(message);
-    }
-
     void stopScan(int appIf, boolean isServer) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH_ADMIN permission");
-
-        if (DBG) Log.d(TAG, "stopScan() - queue=" + mScanQueue.size());
-        removeScanClient(appIf, isServer);
+        enforceAdminPermission();
+        if (DBG) Log.d(TAG, "stopScan() - queue=" + mScanManager.scanQueue().size());
         configureScanParams(appIf);
-
-        if (mScanQueue.isEmpty()) {
-            if (DBG) Log.d(TAG, "stopScan() - queue empty; stopping scan");
-        }
+        mScanManager.stopScan(new ScanClient(appIf, isServer));
     }
 
     /**************************************************************************
@@ -1399,11 +1334,13 @@ public class GattService extends ProfileService {
 
     void startMultiAdvertising(int clientIf, AdvertiseData advertiseData,
             AdvertiseData scanResponse, AdvertiseSettings settings) {
+        enforceAdminPermission();
         mAdvertiseManager.startAdvertising(new AdvertiseClient(clientIf, settings, advertiseData,
                 scanResponse));
     }
 
     void stopMultiAdvertising(int clientIf) {
+        enforceAdminPermission();
         mAdvertiseManager.stopAdvertising(new AdvertiseClient(clientIf));
     }
 
@@ -2349,6 +2286,4 @@ public class GattService extends ProfileService {
     private native void gattServerSendResponseNative (int server_if,
             int conn_id, int trans_id, int status, int handle, int offset,
             byte[] val, int auth_req);
-
-    private native void gattClientReadScanReportsNative(int client_if, int scan_type);
 }
