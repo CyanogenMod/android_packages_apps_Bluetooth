@@ -1717,12 +1717,15 @@ static JNINativeMethod sAdvertiseMethods[] = {
     {"gattClientDisableAdvNative", "(I)V", (void *) gattClientDisableAdvNative},
 };
 
-// JNI functions defined in GattStateMachine class.
-static JNINativeMethod sStateMachineMethods[] = {
+// JNI functions defined in ScanManager class.
+static JNINativeMethod sScanMethods[] = {
     {"gattClientScanNative", "(Z)V", (void *) gattClientScanNative},
+    // Batch scan JNI functions.
     {"gattClientConfigBatchScanStorageNative", "(IIII)V",(void *) gattClientConfigBatchScanStorageNative},
     {"gattClientStartBatchScanNative", "(IIIIII)V", (void *) gattClientStartBatchScanNative},
     {"gattClientStopBatchScanNative", "(I)V", (void *) gattClientStopBatchScanNative},
+    {"gattClientReadScanReportsNative", "(II)V", (void *) gattClientReadScanReportsNative},
+    // Scan filter JNI functions.
     {"gattClientScanFilterParamAddNative", "(IIIIIIIIIII)V", (void *) gattClientScanFilterParamAddNative},
     {"gattClientScanFilterParamDeleteNative", "(II)V", (void *) gattClientScanFilterParamDeleteNative},
     {"gattClientScanFilterParamClearAllNative", "(I)V", (void *) gattClientScanFilterParamClearAllNative},
@@ -1774,15 +1777,14 @@ static JNINativeMethod sMethods[] = {
 
     {"gattSetAdvDataNative", "(IZZZIII[B[B[B)V", (void *) gattSetAdvDataNative},
     {"gattSetScanParametersNative", "(II)V", (void *) gattSetScanParametersNative},
-    {"gattClientReadScanReportsNative", "(II)V", (void *) gattClientReadScanReportsNative},
     {"gattTestNative", "(IJJLjava/lang/String;IIIII)V", (void *) gattTestNative},
 };
 
 int register_com_android_bluetooth_gatt(JNIEnv* env)
 {
     int register_success =
-        jniRegisterNativeMethods(env, "com/android/bluetooth/gatt/GattServiceStateMachine",
-                sStateMachineMethods, NELEM(sStateMachineMethods));
+        jniRegisterNativeMethods(env, "com/android/bluetooth/gatt/ScanManager$ScanNative",
+                sScanMethods, NELEM(sScanMethods));
     register_success &=
         jniRegisterNativeMethods(env, "com/android/bluetooth/gatt/AdvertiseManager$AdvertiseNative",
                 sAdvertiseMethods, NELEM(sAdvertiseMethods));
