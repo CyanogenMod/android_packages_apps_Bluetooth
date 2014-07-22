@@ -849,13 +849,12 @@ public class BluetoothOppService extends Service {
         BluetoothOppBatch nextBatch;
         if (mBatchs.size() > 0) {
             for (int i = 0; i < mBatchs.size(); i++) {
-                // we have a running batch
                 nextBatch = mBatchs.get(i);
-                if (nextBatch.mStatus == Constants.BATCH_STATUS_RUNNING) {
-                    return;
-                } else {
+                if (V) Log.v(TAG, "Batch Status= " + nextBatch.mStatus);
+                if (nextBatch.mStatus == Constants.BATCH_STATUS_PENDING) {
                     // just finish a transfer, start pending outbound transfer
-                    if (nextBatch.mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
+                    if (nextBatch.mDirection == BluetoothShare.DIRECTION_OUTBOUND
+                            && mTransfer == null) {
                         if (V) Log.v(TAG, "Start pending outbound batch " + nextBatch.mId);
                         mTransfer = new BluetoothOppTransfer(this, mPowerManager, nextBatch);
                         mTransfer.start();
