@@ -455,7 +455,7 @@ static void energy_info_recv_callback(bt_activity_energy_info *p_energy_info)
        return;
     }
 
-    callbackEnv->CallVoidMethod(sJniCallbacksObj, method_energyInfo, p_energy_info->status,
+    callbackEnv->CallVoidMethod(sJniAdapterServiceObj, method_energyInfo, p_energy_info->status,
         p_energy_info->ctrl_state, p_energy_info->tx_time, p_energy_info->rx_time,
         p_energy_info->idle_time, p_energy_info->energy_used);
 
