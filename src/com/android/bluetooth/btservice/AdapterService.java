@@ -959,6 +959,11 @@ public class AdapterService extends Service {
             service.sendConnectionStateChange(device, profile, state, prevState);
         }
 
+        public void getEnergyInfo(){
+            AdapterService service = getService();
+            if (service == null) return;
+            service.getEnergyInfo();
+        }
         public ParcelFileDescriptor connectSocket(BluetoothDevice device, int type,
                                                   ParcelUuid uuid, int port, int flag) {
             if (!Utils.checkCaller()) {
@@ -1522,6 +1527,11 @@ public class AdapterService extends Service {
           return mAdapterProperties.getOffloadedScanResultStorage();
       }
 
+    public int getEnergyInfo() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return readEnergyInfo();
+    }
+
     private static int convertScanModeToHal(int mode) {
         switch (mode) {
             case BluetoothAdapter.SCAN_MODE_NONE:
@@ -1611,6 +1621,16 @@ public class AdapterService extends Service {
         return true;
     }
 
+    private void energyInfoCallback (int status, int ctrl_state,
+        long tx_time, long rx_time, long idle_time, long energy_used)
+        throws RemoteException {
+        // TBD
+        debugLog("energyInfoCallback  " + "status = " + status +
+        "tx_time = " + tx_time + "rx_time = " + rx_time +
+        "idle_time = " + idle_time + "energy_used = " + energy_used +
+        "ctrl_state = " + ctrl_state);
+    }
+
     private void debugLog(String msg) {
         if (DBG) Log.d(TAG +"(" +hashCode()+")", msg);
     }
@@ -1658,6 +1678,7 @@ public class AdapterService extends Service {
     /*package*/ native boolean getRemoteServicesNative(byte[] address);
     /*package*/ native boolean getRemoteMasInstancesNative(byte[] address);
 
+    private native int readEnergyInfo();
     // TODO(BT) move this to ../btsock dir
     private native int connectSocketNative(byte[] address, int type,
                                            byte[] uuid, int port, int flag);

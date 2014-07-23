@@ -149,7 +149,6 @@ static jmethodID method_onWriteCharacteristic;
 static jmethodID method_onExecuteCompleted;
 static jmethodID method_onSearchCompleted;
 static jmethodID method_onSearchResult;
-static jmethodID method_onReadDescrExtProp;
 static jmethodID method_onReadDescriptor;
 static jmethodID method_onWriteDescriptor;
 static jmethodID method_onNotify;
@@ -563,7 +562,6 @@ void btgattc_track_adv_event_cb(int client_if, int filt_index, int addr_type,
     sCallbackEnv->DeleteLocalRef(address);
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
-
 
 static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_register_app_cb,
