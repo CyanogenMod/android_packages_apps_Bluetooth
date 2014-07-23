@@ -64,6 +64,7 @@ class AdapterProperties {
     private int mNumOfOffloadedIrkSupported;
     private int mNumOfOffloadedScanFilterSupported;
     private int mOffloadedScanResultStorageBytes;
+    private boolean mIsActivityAndEnergyReporting;
 
     // Lock for all getters and setters.
     // If finer grained locking is needer, more locks
@@ -251,6 +252,12 @@ class AdapterProperties {
         return mOffloadedScanResultStorageBytes;
     }
 
+    /**
+     * @return tx/rx/idle activity and energy info
+     */
+    boolean isActivityAndEnergyReportingSupported() {
+        return mIsActivityAndEnergyReporting;
+    }
     /**
      * @return the mBondedDevices
      */
@@ -532,21 +539,7 @@ class AdapterProperties {
                         break;
 
                     case AbstractionLayer.BT_PROPERTY_LOCAL_LE_FEATURES:
-                        mNumOfAdvertisementInstancesSupported = (0x000000FF & ((int)val[1]));
-                        mRpaOffloadSupported = ((0x000000FF & ((int)val[2]))!= 0);
-                        mNumOfOffloadedIrkSupported =  (0x000000FF & ((int)val[3]));
-                        mNumOfOffloadedScanFilterSupported = (0x000000FF & ((int)val[4]));
-                        mOffloadedScanResultStorageBytes = (0x000000FF & ((int)val[5]));
-                        // TBD for energy support
-
-                        Log.d(TAG, "BT_PROPERTY_LOCAL_LE_FEATURES: update from BT controller"
-                                      + " mNumOfAdvertisementInstancesSupported = " + mNumOfAdvertisementInstancesSupported
-                                      + " mRpaOffloadSupported = " + mRpaOffloadSupported
-                                      + " mNumOfOffloadedIrkSupported = " + mNumOfOffloadedIrkSupported
-                                      + " mNumOfOffloadedScanFilterSupported = "
-                                      + mNumOfOffloadedScanFilterSupported
-                                      + " mOffloadedScanResultStorageBytes = " + mOffloadedScanResultStorageBytes);
-
+                        updateFeatureSupport(val);
                         break;
 
                     default:
@@ -554,6 +547,25 @@ class AdapterProperties {
                 }
             }
         }
+    }
+
+    void updateFeatureSupport(byte[] val) {
+        mNumOfAdvertisementInstancesSupported = (0xFF & ((int)val[1]));
+        mRpaOffloadSupported = ((0xFF & ((int)val[2]))!= 0);
+        mNumOfOffloadedIrkSupported =  (0xFF & ((int)val[3]));
+        mNumOfOffloadedScanFilterSupported = (0xFF & ((int)val[4]));
+        mOffloadedScanResultStorageBytes = (0xFF & ((int)val[5]));
+        mIsActivityAndEnergyReporting = ((0xFF & ((int)val[6])) != 0);
+
+        Log.d(TAG, "BT_PROPERTY_LOCAL_LE_FEATURES: update from BT controller"
+                + " mNumOfAdvertisementInstancesSupported = " + mNumOfAdvertisementInstancesSupported
+                + " mRpaOffloadSupported = " + mRpaOffloadSupported
+                + " mNumOfOffloadedIrkSupported = " + mNumOfOffloadedIrkSupported
+                + " mNumOfOffloadedScanFilterSupported = "
+                + mNumOfOffloadedScanFilterSupported
+                + " mOffloadedScanResultStorageBytes = " + mOffloadedScanResultStorageBytes
+                + " mIsActivityAndEnergyReporting = "
+                + mIsActivityAndEnergyReporting);
     }
 
     void onBluetoothReady() {

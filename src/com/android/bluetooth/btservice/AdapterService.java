@@ -32,6 +32,7 @@ import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothCallback;
 import android.bluetooth.IBluetoothManager;
 import android.bluetooth.IBluetoothManagerCallback;
+import android.bluetooth.BluetoothActivityEnergyInfo;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -82,6 +83,12 @@ public class AdapterService extends Service {
     //For Debugging only
     private static int sRefCount=0;
 
+    private int mStackReportedState;
+    private int mTxTimeTotalMs;
+    private int mRxTimeTotalMs;
+    private int mIdleTimeTotalMs;
+    private int mEnergyUsedTotalVoltAmpSecMicro;
+
     public static final String ACTION_LOAD_ADAPTER_PROPERTIES =
         "com.android.bluetooth.btservice.action.LOAD_ADAPTER_PROPERTIES";
     public static final String ACTION_SERVICE_STATE_CHANGED =
@@ -95,6 +102,8 @@ public class AdapterService extends Service {
 
     static final String BLUETOOTH_ADMIN_PERM =
         android.Manifest.permission.BLUETOOTH_ADMIN;
+    public static final String BLUETOOTH_PRIVILEGED =
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED;
     static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
     static final String RECEIVE_MAP_PERM = android.Manifest.permission.RECEIVE_BLUETOOTH_MAP;
 
@@ -959,11 +968,6 @@ public class AdapterService extends Service {
             service.sendConnectionStateChange(device, profile, state, prevState);
         }
 
-        public void getEnergyInfo(){
-            AdapterService service = getService();
-            if (service == null) return;
-            service.getEnergyInfo();
-        }
         public ParcelFileDescriptor connectSocket(BluetoothDevice device, int type,
                                                   ParcelUuid uuid, int port, int flag) {
             if (!Utils.checkCaller()) {
@@ -1031,6 +1035,24 @@ public class AdapterService extends Service {
              if (service == null) return false;
              int val = service.getOffloadedScanResultStorage();
              return (val >= MIN_OFFLOADED_SCAN_STORAGE_BYTES);
+         }
+
+         public boolean isActivityAndEnergyReportingSupported() {
+             AdapterService service = getService();
+             if (service == null) return false;
+             return service.isActivityAndEnergyReportingSupported();
+         }
+
+         public void getActivityEnergyInfoFromController() {
+             AdapterService service = getService();
+             if (service == null) return;
+             service.getActivityEnergyInfoFromController();
+         }
+
+         public BluetoothActivityEnergyInfo reportActivityInfo() {
+             AdapterService service = getService();
+             if (service == null) return null;
+             return service.reportActivityInfo();
          }
     };
 
@@ -1522,14 +1544,36 @@ public class AdapterService extends Service {
         return mAdapterProperties.getNumOfOffloadedScanFilterSupported();
     }
 
-      public int getOffloadedScanResultStorage() {
-          enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-          return mAdapterProperties.getOffloadedScanResultStorage();
-      }
-
-    public int getEnergyInfo() {
+    public int getOffloadedScanResultStorage() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        return readEnergyInfo();
+        return mAdapterProperties.getOffloadedScanResultStorage();
+    }
+
+    private boolean isActivityAndEnergyReportingSupported() {
+          enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED, "Need BLUETOOTH permission");
+          return mAdapterProperties.isActivityAndEnergyReportingSupported();
+    }
+
+    private void getActivityEnergyInfoFromController() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED, "Need BLUETOOTH permission");
+        if (isActivityAndEnergyReportingSupported()) {
+            readEnergyInfo();
+        }
+    }
+
+    private BluetoothActivityEnergyInfo reportActivityInfo() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED, "Need BLUETOOTH permission");
+        BluetoothActivityEnergyInfo info =
+            new BluetoothActivityEnergyInfo(mStackReportedState, mTxTimeTotalMs,
+                    mRxTimeTotalMs, mIdleTimeTotalMs, mEnergyUsedTotalVoltAmpSecMicro);
+        // Read on clear values; a record of data is created with
+        // timstamp and new samples are collected until read again
+        mStackReportedState = 0;
+        mTxTimeTotalMs = 0;
+        mRxTimeTotalMs = 0;
+        mIdleTimeTotalMs = 0;
+        mEnergyUsedTotalVoltAmpSecMicro = 0;
+        return info;
     }
 
     private static int convertScanModeToHal(int mode) {
@@ -1624,11 +1668,23 @@ public class AdapterService extends Service {
     private void energyInfoCallback (int status, int ctrl_state,
         long tx_time, long rx_time, long idle_time, long energy_used)
         throws RemoteException {
-        // TBD
-        debugLog("energyInfoCallback  " + "status = " + status +
-        "tx_time = " + tx_time + "rx_time = " + rx_time +
-        "idle_time = " + idle_time + "energy_used = " + energy_used +
-        "ctrl_state = " + ctrl_state);
+        // ToDo: Update only status is valid
+        if (ctrl_state >= BluetoothActivityEnergyInfo.BT_STACK_STATE_INVALID &&
+                ctrl_state <= BluetoothActivityEnergyInfo.BT_STACK_STATE_STATE_IDLE) {
+            mStackReportedState = ctrl_state;
+            mTxTimeTotalMs += tx_time;
+            mRxTimeTotalMs += rx_time;
+            mIdleTimeTotalMs += idle_time;
+            // Energy is product of mA, V and ms
+            mEnergyUsedTotalVoltAmpSecMicro += energy_used;
+        }
+
+        if (DBG) {
+            Log.d(TAG, "energyInfoCallback  " + "status = " + status +
+            "tx_time = " + tx_time + "rx_time = " + rx_time +
+            "idle_time = " + idle_time + "energy_used = " + energy_used +
+            "ctrl_state = " + ctrl_state);
+        }
     }
 
     private void debugLog(String msg) {
