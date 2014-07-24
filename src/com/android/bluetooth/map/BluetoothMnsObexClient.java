@@ -390,20 +390,14 @@ public class BluetoothMnsObexClient {
                     bytesWritten += bytesToWrite;
                 }
 
+                if (V) Log.v(TAG, "Closing outputStream");
+                outputStream.close();
                 if (bytesWritten == eventBytes.length) {
-                    Log.i(TAG, "SendEvent finished send length" + eventBytes.length);
-                    if (putOperation != null) {
-                        if (V) Log.v(TAG, "Closing putOperation");
-                        putOperation.close();
-                    }
-                    if (outputStream != null) {
-                        if (V) Log.v(TAG, "Closing outputStream");
-                        outputStream.close();
-                    }
+                    Log.i(TAG, "SendEvent finished send length " + eventBytes.length);
                 } else {
                     error = true;
-                    outputStream.close();
                     putOperation.abort();
+                    putOperation = null;
                     Log.i(TAG, "SendEvent interrupted");
                 }
             }
@@ -417,19 +411,22 @@ public class BluetoothMnsObexClient {
             Log.v(TAG, "finally");
             try {
                 if (!error) {
+                    if (V) Log.v(TAG, "Closing putOperation");
+                    putOperation.close();
                     if (V) Log.v(TAG, "Getting response Code");
                     responseCode = putOperation.getResponseCode();
-                    if (V) Log.v(TAG, "response code is" + responseCode);
+                    if (V) Log.v(TAG, "response code is " + responseCode);
                     if (responseCode != -1) {
                         if (V) Log.v(TAG, "Put response code " + responseCode);
                         if (responseCode != ResponseCodes.OBEX_HTTP_OK) {
                             Log.i(TAG, "Response error code is " + responseCode);
                         }
                     }
-                }
-                if (putOperation != null) {
-                    if (V) Log.v(TAG, "Closing putOperation");
-                    putOperation.close();
+                } else {
+                    if (putOperation != null) {
+                        if (V) Log.v(TAG, "Closing putOperation");
+                        putOperation.close();
+                    }
                 }
             } catch (IOException e) {
                 Log.e(TAG, "Error when closing stream after send " + e.getMessage());
