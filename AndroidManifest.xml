@@ -23,6 +23,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" />
+    <uses-permission android:name="android.permission.BLUETOOTH_MAP" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
@@ -233,8 +234,17 @@
             android:enabled="@bool/profile_supported_map" >
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothMap" />
+                <action android:name="android.btmap.intent.action.SHOW_MAPS_EMAIL_SETTINGS" />
+                <action android:name="com.android.bluetooth.map.USER_CONFIRM_TIMEOUT"/>
             </intent-filter>
         </service>
+         <activity android:name=".map.BluetoothMapEmailSettings"
+                  android:process="@string/process"
+                  android:label="@string/bluetooth_map_email_settings_title"
+                  android:excludeFromRecents="true"
+                  android:configChanges="orientation|keyboardHidden"
+                  android:enabled="@bool/profile_supported_map">
+        </activity>
         <service
             android:process="@string/process"
             android:name = ".gatt.GattService"
