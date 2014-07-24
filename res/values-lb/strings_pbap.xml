@@ -3,6 +3,8 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <string name="pbap_session_key_dialog_title">Tipp de Sëtzungsschlëssel fir %1$s an</string>
   <string name="pbap_session_key_dialog_header">Bluetooth-Sëtzungsschlëssel néideg</string>
+  <string name="pbap_acceptance_timeout_message">Beim Acceptéiere vun der Connectioun mat %1$s ass d\'Zäit ofgelaf</string>
+  <string name="auth_notif_ticker">Obex-Authentifizéierungs-Ufro</string>
   <string name="auth_notif_title">Sëtzungsschlëssel</string>
   <string name="auth_notif_message">Tipp de Sëtzungsschlëssel fir %1$s an</string>
   <string name="unknownName">Onbekannten Numm</string>
