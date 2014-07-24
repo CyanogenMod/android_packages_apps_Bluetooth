@@ -62,7 +62,9 @@ public class A2dpService extends ProfileService {
         if (mStateMachine != null) {
             mStateMachine.doQuit();
         }
-        mAvrcp.doQuit();
+        if (mAvrcp != null) {
+            mAvrcp.doQuit();
+        }
         return true;
     }
 
