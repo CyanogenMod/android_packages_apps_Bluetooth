@@ -213,13 +213,6 @@ class AdvertiseManager {
             return numOfAdvtInstances - 1;
         }
 
-        // Check whether all service uuids have been registered to GATT server.
-        private boolean isAllServiceRegistered(AdvertiseClient client) {
-            List<ParcelUuid> registeredUuids = mService.getRegisteredServiceUuids();
-            return containsAll(registeredUuids, client.advertiseData) &&
-                    containsAll(registeredUuids, client.scanResponse);
-        }
-
         // Check whether the registeredUuids contains all uuids in advertiseData.
         private boolean containsAll(List<ParcelUuid> registeredUuids, AdvertiseData advertiseData) {
             if (advertiseData == null) {
@@ -321,7 +314,7 @@ class AdvertiseManager {
             if (data == null) {
                 return;
             }
-            boolean includeName = true;
+            boolean includeName = data.getIncludeDeviceName();
             boolean includeTxPower = data.getIncludeTxPowerLevel();
             int appearance = 0;
             byte[] manufacturerData = data.getManufacturerSpecificData() == null ? new byte[0]
