@@ -110,7 +110,6 @@ public class GattService extends ProfileService {
     HandleMap mHandleMap = new HandleMap();
     private List<UUID> mAdvertisingServiceUuids = new ArrayList<UUID>();
 
-    private static int lastConfiguredScanSetting = Integer.MIN_VALUE;
     private int mMaxScanFilters;
 
     /**
@@ -1211,59 +1210,6 @@ public class GattService extends ProfileService {
         mScanManager.flushBatchScanResults(new ScanClient(clientIf, isServer));
     }
 
-    // TODO: Move this to ScanManager.
-    void configureScanParams(int appIf) {
-        if (DBG) Log.d(TAG, "configureScanParams() - queue=" + mScanManager.scanQueue().size());
-        int curScanSetting = Integer.MIN_VALUE;
-
-        for(ScanClient client : mScanManager.scanQueue()) {
-            // ScanClient scan settings are assumed to be monotonically increasing in value for more
-            // power hungry(higher duty cycle) operation
-            if (client.settings.getScanMode() > curScanSetting) {
-                curScanSetting = client.settings.getScanMode();
-            }
-        }
-
-        if (DBG) Log.d(TAG, "configureScanParams() - ScanSetting Scan mode=" + curScanSetting +
-                    " lastConfiguredScanSetting=" + lastConfiguredScanSetting);
-
-        if (curScanSetting != Integer.MIN_VALUE) {
-            if (curScanSetting != lastConfiguredScanSetting) {
-                int scanWindow, scanInterval;
-                switch (curScanSetting){
-                    case ScanSettings.SCAN_MODE_LOW_POWER:
-                        scanWindow = SCAN_MODE_LOW_POWER_WINDOW_MS;
-                        scanInterval = SCAN_MODE_LOW_POWER_INTERVAL_MS;
-                        break;
-                    case ScanSettings.SCAN_MODE_BALANCED:
-                        scanWindow = SCAN_MODE_BALANCED_WINDOW_MS;
-                        scanInterval = SCAN_MODE_BALANCED_INTERVAL_MS;
-                        break;
-                    case ScanSettings.SCAN_MODE_LOW_LATENCY:
-                        scanWindow = SCAN_MODE_LOW_LATENCY_WINDOW_MS;
-                        scanInterval = SCAN_MODE_LOW_LATENCY_INTERVAL_MS;
-                        break;
-                    default:
-                        Log.e(TAG, "Invalid value for curScanSetting " + curScanSetting);
-                        scanWindow = SCAN_MODE_LOW_POWER_WINDOW_MS;
-                        scanInterval = SCAN_MODE_LOW_POWER_INTERVAL_MS;
-                        break;
-                }
-                // convert scanWindow and scanInterval from ms to LE scan units(0.625ms)
-                scanWindow = (scanWindow * 1000)/625;
-                scanInterval = (scanInterval * 1000)/625;
-                // Presence of scan clients means scan is active.
-                mScanManager.stopScan(new ScanClient(appIf, false));
-                gattSetScanParametersNative(scanInterval, scanWindow);
-                lastConfiguredScanSetting = curScanSetting;
-            }
-        } else {
-            lastConfiguredScanSetting = curScanSetting;
-            mScanManager.stopScan(new ScanClient(appIf, false));
-            if (DBG) Log.d(TAG, "configureScanParams() - queue emtpy, scan stopped");
-        }
-    }
-
     void stopScan(int appIf, boolean isServer) {
         enforceAdminPermission();
         if (DBG) Log.d(TAG, "stopScan() - queue=" + mScanManager.scanQueue().size());
@@ -2143,8 +2089,6 @@ public class GattService extends ProfileService {
                                                     long app_uuid_msb);
 
     private native void gattClientUnregisterAppNative(int clientIf);
-
-    private native void gattSetScanParametersNative(int scan_interval, int scan_window);
 
     private native void gattClientConnectNative(int clientIf, String address,
             boolean isDirect, int transport);
