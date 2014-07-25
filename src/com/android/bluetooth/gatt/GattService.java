@@ -285,28 +285,12 @@ public class GattService extends ProfileService {
             service.unregisterClient(clientIf);
         }
 
-        public void startScan(int appIf, boolean isServer) {
-            GattService service = getService();
-            if (service == null) return;
-            service.startScan(appIf, isServer);
-        }
-
-        public void startScanWithUuids(int appIf, boolean isServer, ParcelUuid[] ids) {
-            GattService service = getService();
-            if (service == null) return;
-            UUID[] uuids = new UUID[ids.length];
-            for(int i = 0; i != ids.length; ++i) {
-                uuids[i] = ids[i].getUuid();
-            }
-            service.startScanWithUuids(appIf, isServer, uuids);
-        }
-
         @Override
-        public void startScanWithFilters(int appIf, boolean isServer, ScanSettings settings,
+        public void startScan(int appIf, boolean isServer, ScanSettings settings,
                 List<ScanFilter> filters) {
             GattService service = getService();
             if (service == null) return;
-            service.startScanWithFilters(appIf, isServer, settings, filters);
+            service.startScan(appIf, isServer, settings, filters);
         }
 
         public void stopScan(int appIf, boolean isServer) {
@@ -1207,22 +1191,7 @@ public class GattService extends ProfileService {
         return deviceList;
     }
 
-    // TODO: Remove this and implement legacy scan using new logic.
-    void startScan(int appIf, boolean isServer) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-        configureScanParams(appIf);
-        mScanManager.startScan(new ScanClient(appIf, false));
-    }
-
-    // TODO: Remove this and implement legacy scan using new logic.
-    void startScanWithUuids(int appIf, boolean isServer, UUID[] uuids) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-
-        configureScanParams(appIf);
-        mScanManager.startScan(new ScanClient(appIf, false, uuids));
-    }
-
-    void startScanWithFilters(int appIf, boolean isServer, ScanSettings settings,
+    void startScan(int appIf, boolean isServer, ScanSettings settings,
             List<ScanFilter> filters) {
         if (DBG) Log.d(TAG, "start scan with filters ");
         enforceAdminPermission();

@@ -23,7 +23,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
-import android.os.RemoteException;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -356,6 +355,7 @@ public class ScanManager {
         }
 
         private void removeScanFilters(int clientIf) {
+            logd("removeScanFilters, clientIf - " + clientIf);
             Deque<Integer> filterIndices = mClientFilterIndexMap.remove(clientIf);
             if (filterIndices != null) {
                 mFilterIndexStack.addAll(filterIndices);
