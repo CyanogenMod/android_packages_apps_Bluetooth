@@ -187,6 +187,7 @@ public class ScanManager {
                 mScanNative.startBatchScan(client);
             } else {
                 mRegularScanClients.add(client);
+                mScanNative.startRegularScan(client);
                 mScanNative.configureRegularScanParams();
             }
         }
@@ -344,7 +345,9 @@ public class ScanManager {
                     // convert scanWindow and scanInterval from ms to LE scan units(0.625ms)
                     scanWindow = (scanWindow * 1000)/625;
                     scanInterval = (scanInterval * 1000)/625;
+                    gattClientScanNative(false);
                     gattSetScanParametersNative(scanInterval, scanWindow);
+                    gattClientScanNative(true);
                     lastConfiguredScanSetting = curScanSetting;
                 }
             } else {
