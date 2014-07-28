@@ -43,6 +43,7 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.ProfileService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -595,6 +596,7 @@ public class GattService extends ProfileService {
         if (client.filters == null || client.filters.isEmpty()) {
             return true;
         }
+        if (DBG) Log.d(TAG, "result: " + scanResult.toString());
         for (ScanFilter filter : client.filters) {
             if (DBG) Log.d(TAG, "filter: " + filter.toString());
             if (filter.matches(scanResult)) {
@@ -954,6 +956,9 @@ public class GattService extends ProfileService {
         ClientMap.App app = mClientMap.getById(clientIf);
         if (app == null) return;
         Set<ScanResult> results = parseBatchScanResults(numRecords, reportType, recordData);
+        for (ScanResult result : new ArrayList<ScanResult>(results)) {
+            Log.d(TAG, result.getScanRecord().toString());
+        }
         app.callback.onBatchScanResults(new ArrayList<ScanResult>(results));
     }
 
@@ -994,6 +999,7 @@ public class GattService extends ProfileService {
     }
 
     private Set<ScanResult> parseFullResults(int numRecords, byte[] batchRecord) {
+        Log.d(TAG, "Batch record : " + Arrays.toString(batchRecord));
         Set<ScanResult> results = new HashSet<ScanResult>(numRecords);
         int position = 0;
         while (position < batchRecord.length) {
@@ -1019,6 +1025,7 @@ public class GattService extends ProfileService {
             System.arraycopy(advertiseBytes, 0, scanRecord, 0, advertisePacketLen);
             System.arraycopy(scanResponseBytes, 0, scanRecord,
                     advertisePacketLen, scanResponsePacketLen);
+            Log.d(TAG, "ScanRecord : " + Arrays.toString(scanRecord));
             results.add(new ScanResult(device, ScanRecord.parseFromBytes(scanRecord),
                     rssi, timestampNanos));
         }
