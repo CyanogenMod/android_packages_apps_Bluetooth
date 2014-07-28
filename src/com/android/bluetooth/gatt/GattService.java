@@ -1213,7 +1213,6 @@ public class GattService extends ProfileService {
     void stopScan(int appIf, boolean isServer) {
         enforceAdminPermission();
         if (DBG) Log.d(TAG, "stopScan() - queue=" + mScanManager.scanQueue().size());
-        configureScanParams(appIf);
         mScanManager.stopScan(new ScanClient(appIf, isServer));
     }
 
