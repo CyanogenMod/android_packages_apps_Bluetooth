@@ -1731,6 +1731,7 @@ static JNINativeMethod sScanMethods[] = {
     {"gattClientScanFilterDeleteNative", "(IIIIIJJJJLjava/lang/String;Ljava/lang/String;B[B[B)V", (void *) gattClientScanFilterDeleteNative},
     {"gattClientScanFilterClearNative", "(II)V", (void *) gattClientScanFilterClearNative},
     {"gattClientScanFilterEnableNative", "(IZ)V", (void *) gattClientScanFilterEnableNative},
+    {"gattSetScanParametersNative", "(II)V", (void *) gattSetScanParametersNative},
 };
 
 // JNI functions defined in GattService class.
@@ -1774,7 +1775,6 @@ static JNINativeMethod sMethods[] = {
     {"gattServerSendResponseNative", "(IIIIII[BI)V", (void *) gattServerSendResponseNative},
 
     {"gattSetAdvDataNative", "(IZZZIII[B[B[B)V", (void *) gattSetAdvDataNative},
-    {"gattSetScanParametersNative", "(II)V", (void *) gattSetScanParametersNative},
     {"gattTestNative", "(IJJLjava/lang/String;IIIII)V", (void *) gattTestNative},
 };
 

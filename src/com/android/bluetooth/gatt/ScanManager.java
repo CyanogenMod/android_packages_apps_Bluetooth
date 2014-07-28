@@ -70,6 +70,8 @@ public class ScanManager {
     // Timeout for each controller operation.
     private static final int OPERATION_TIME_OUT_MILLIS = 500;
 
+    private static int lastConfiguredScanSetting = Integer.MIN_VALUE;
+
     private GattService mService;
     private ScanNative mScanNative;
     private ClientHandler mHandler;
@@ -185,7 +187,7 @@ public class ScanManager {
                 mScanNative.startBatchScan(client);
             } else {
                 mRegularScanClients.add(client);
-                mScanNative.startRegularScan(client);
+                mScanNative.configureRegularScanParams();
             }
         }
 
@@ -193,6 +195,7 @@ public class ScanManager {
             Utils.enforceAdminPermission(mService);
             if (mRegularScanClients.contains(client)) {
                 mRegularScanClients.remove(client);
+                mScanNative.configureRegularScanParams();
                 mScanNative.stopRegularScan(client);
             } else {
                 mBatchClients.remove(client);
@@ -239,6 +242,17 @@ public class ScanManager {
 
         private static final int ALLOW_ALL_FILTER_INDEX = 1;
         private static final int ALLOW_ALL_FILTER_SELECTION = 0;
+
+        /**
+         * Scan params corresponding to scan setting
+         */
+        private static final int SCAN_MODE_LOW_POWER_WINDOW_MS = 500;
+        private static final int SCAN_MODE_LOW_POWER_INTERVAL_MS = 5000;
+        private static final int SCAN_MODE_BALANCED_WINDOW_MS = 2000;
+        private static final int SCAN_MODE_BALANCED_INTERVAL_MS = 5000;
+        private static final int SCAN_MODE_LOW_LATENCY_WINDOW_MS = 5000;
+        private static final int SCAN_MODE_LOW_LATENCY_INTERVAL_MS = 5000;
+
 
         // The logic is AND for each filter field.
         private static final int LIST_LOGIC_TYPE = 0x1111111;
@@ -289,6 +303,56 @@ public class ScanManager {
                 return false;
             }
         }
+
+        void configureRegularScanParams() {
+            if (DBG) Log.d(TAG, "configureRegularScanParams() - queue=" + mRegularScanClients.size());
+            int curScanSetting = Integer.MIN_VALUE;
+
+            for(ScanClient client : mRegularScanClients) {
+                // ScanClient scan settings are assumed to be monotonically increasing in value for more
+                // power hungry(higher duty cycle) operation
+                if (client.settings.getScanMode() > curScanSetting) {
+                    curScanSetting = client.settings.getScanMode();
+                }
+            }
+
+            if (DBG) Log.d(TAG, "configureRegularScanParams() - ScanSetting Scan mode=" + curScanSetting +
+                    " lastConfiguredScanSetting=" + lastConfiguredScanSetting);
+
+            if (curScanSetting != Integer.MIN_VALUE) {
+                if (curScanSetting != lastConfiguredScanSetting) {
+                    int scanWindow, scanInterval;
+                    switch (curScanSetting){
+                        case ScanSettings.SCAN_MODE_LOW_POWER:
+                            scanWindow = SCAN_MODE_LOW_POWER_WINDOW_MS;
+                            scanInterval = SCAN_MODE_LOW_POWER_INTERVAL_MS;
+                            break;
+                        case ScanSettings.SCAN_MODE_BALANCED:
+                            scanWindow = SCAN_MODE_BALANCED_WINDOW_MS;
+                            scanInterval = SCAN_MODE_BALANCED_INTERVAL_MS;
+                            break;
+                        case ScanSettings.SCAN_MODE_LOW_LATENCY:
+                            scanWindow = SCAN_MODE_LOW_LATENCY_WINDOW_MS;
+                            scanInterval = SCAN_MODE_LOW_LATENCY_INTERVAL_MS;
+                            break;
+                        default:
+                            Log.e(TAG, "Invalid value for curScanSetting " + curScanSetting);
+                            scanWindow = SCAN_MODE_LOW_POWER_WINDOW_MS;
+                            scanInterval = SCAN_MODE_LOW_POWER_INTERVAL_MS;
+                            break;
+                    }
+                    // convert scanWindow and scanInterval from ms to LE scan units(0.625ms)
+                    scanWindow = (scanWindow * 1000)/625;
+                    scanInterval = (scanInterval * 1000)/625;
+                    gattSetScanParametersNative(scanInterval, scanWindow);
+                    lastConfiguredScanSetting = curScanSetting;
+                }
+            } else {
+                lastConfiguredScanSetting = curScanSetting;
+                if (DBG) Log.d(TAG, "configureRegularScanParams() - queue emtpy, scan stopped");
+            }
+        }
+
 
         void startRegularScan(ScanClient client) {
             if (mFilterIndexStack.isEmpty() && isFilteringSupported()) {
@@ -547,6 +611,9 @@ public class ScanManager {
 
         /************************** Regular scan related native methods **************************/
         private native void gattClientScanNative(boolean start);
+
+        private native void gattSetScanParametersNative(int scan_interval,
+                int scan_window);
 
         /************************** Filter related native methods ********************************/
         private native void gattClientScanFilterAddNative(int client_if,
