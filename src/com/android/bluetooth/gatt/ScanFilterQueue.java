@@ -16,7 +16,10 @@
 
 package com.android.bluetooth.gatt;
 
+import android.bluetooth.BluetoothUuid;
 import android.bluetooth.le.ScanFilter;
+import android.os.ParcelUuid;
+import android.util.Log;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -32,11 +35,15 @@ import java.util.UUID;
  */
 /* package */class ScanFilterQueue {
     public static final int TYPE_DEVICE_ADDRESS = 0;
-    public static final int TYPE_SERVICE_DATA = 1;
+    public static final int TYPE_SERVICE_DATA_CHANGED = 1;
     public static final int TYPE_SERVICE_UUID = 2;
     public static final int TYPE_SOLICIT_UUID = 3;
     public static final int TYPE_LOCAL_NAME = 4;
     public static final int TYPE_MANUFACTURER_DATA = 5;
+    public static final int TYPE_SERVICE_DATA = 6;
+
+    // Max length is 31 - 3(flags) - 2 (one byte for length and one byte for type).
+    private static final int MAX_LEN_PER_FIELD = 26;
 
     // Values defined in bluedroid.
     private static final byte DEVICE_TYPE_ALL = 0;
@@ -91,7 +98,7 @@ import java.util.UUID;
 
     void addServiceChanged() {
         Entry entry = new Entry();
-        entry.type = TYPE_SERVICE_DATA;
+        entry.type = TYPE_SERVICE_DATA_CHANGED;
         mEntries.add(entry);
     }
 
@@ -146,6 +153,14 @@ import java.util.UUID;
         mEntries.add(entry);
     }
 
+    void addServiceData(byte[] data, byte[] dataMask) {
+        Entry entry = new Entry();
+        entry.type = TYPE_SERVICE_DATA;
+        entry.data = data;
+        entry.data_mask = dataMask;
+        mEntries.add(entry);
+    }
+
     Entry pop() {
         if (isEmpty()) {
             return null;
@@ -178,7 +193,6 @@ import java.util.UUID;
     int getFeatureSelection() {
         int selc = 0;
         for (Entry entry : mEntries) {
-            System.out.println("entry selc value " + (1 << entry.type));
             selc |= (1 << entry.type);
         }
         return selc;
@@ -212,5 +226,38 @@ import java.util.UUID;
                         filter.getManufacturerData(), filter.getManufacturerDataMask());
             }
         }
+        if (filter.getServiceDataUuid() != null && filter.getServiceData() != null) {
+            ParcelUuid serviceDataUuid = filter.getServiceDataUuid();
+            byte[] serviceData = filter.getServiceData();
+            byte[] serviceDataMask = filter.getServiceDataMask();
+            if (serviceDataMask == null) {
+                serviceDataMask = new byte[serviceData.length];
+                Arrays.fill(serviceDataMask, (byte) 0xFF);
+            }
+            serviceData = concate(serviceDataUuid, serviceData);
+            serviceDataMask = concate(serviceDataUuid, serviceDataMask);
+            if (serviceData != null && serviceDataMask != null) {
+                addServiceData(serviceData, serviceDataMask);
+            }
+        }
+    }
+
+    private byte[] concate(ParcelUuid serviceDataUuid, byte[] serviceData) {
+        int dataLen = 2 + (serviceData == null ? 0 : serviceData.length);
+        // If data is too long, don't add it to hardware scan filter.
+        if (dataLen > MAX_LEN_PER_FIELD) {
+            return null;
+        }
+        byte[] concated = new byte[dataLen];
+        // Extract 16 bit UUID value.
+        int uuidValue = BluetoothUuid.getServiceIdentifierFromParcelUuid(
+                serviceDataUuid);
+        // First two bytes are service data UUID in little-endian.
+        concated[0] = (byte) (uuidValue & 0xFF);
+        concated[1] = (byte) ((uuidValue >> 8) & 0xFF);
+        if (serviceData != null) {
+            System.arraycopy(serviceData, 0, concated, 2, serviceData.length);
+        }
+        return concated;
     }
 }

@@ -16,13 +16,20 @@
 
 package com.android.bluetooth.gatt;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.os.SystemClock;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -57,6 +64,9 @@ public class ScanManager {
     private static final int MSG_STOP_BLE_SCAN = 1;
     private static final int MSG_FLUSH_BATCH_RESULTS = 2;
 
+    private static final String ACTION_REFRESH_BATCHED_SCAN =
+            "com.android.bluetooth.gatt.REFRESH_BATCHED_SCAN";
+
     // Timeout for each controller operation.
     private static final int OPERATION_TIME_OUT_MILLIS = 500;
 
@@ -72,8 +82,8 @@ public class ScanManager {
     ScanManager(GattService service) {
         mRegularScanClients = new HashSet<ScanClient>();
         mBatchClients = new HashSet<ScanClient>();
-        mScanNative = new ScanNative();
         mService = service;
+        mScanNative = new ScanNative();
     }
 
     void start() {
@@ -85,6 +95,7 @@ public class ScanManager {
     void cleanup() {
         mRegularScanClients.clear();
         mBatchClients.clear();
+        mScanNative.cleanup();
     }
 
     /**
@@ -236,10 +247,34 @@ public class ScanManager {
         private final Deque<Integer> mFilterIndexStack;
         // Map of clientIf and Filter indices used by client.
         private final Map<Integer, Deque<Integer>> mClientFilterIndexMap;
+        private AlarmManager mAlarmManager;
+        private PendingIntent mBatchScanIntervalIntent;
 
         ScanNative() {
             mFilterIndexStack = new ArrayDeque<Integer>();
             mClientFilterIndexMap = new HashMap<Integer, Deque<Integer>>();
+
+            mAlarmManager = (AlarmManager) mService.getSystemService(Context.ALARM_SERVICE);
+            Intent batchIntent = new Intent(ACTION_REFRESH_BATCHED_SCAN, null);
+            mBatchScanIntervalIntent = PendingIntent.getBroadcast(mService, 0, batchIntent, 0);
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(ACTION_REFRESH_BATCHED_SCAN);
+            mService.registerReceiver(
+                    new BroadcastReceiver() {
+                    @Override
+                        public void onReceive(Context context, Intent intent) {
+                            Log.d(TAG, "awakened up at time " + SystemClock.elapsedRealtime());
+                            String action = intent.getAction();
+
+                            if (action.equals(ACTION_REFRESH_BATCHED_SCAN)) {
+                                if (mBatchClients.isEmpty()) {
+                                    return;
+                                }
+                                // TODO: find out if we need to flush all clients at once.
+                                flushBatchScanResults(mBatchClients.iterator().next());
+                            }
+                        }
+                    }, filter);
         }
 
         private void resetCountDownLatch() {
@@ -286,10 +321,24 @@ public class ScanManager {
             int scanWindowUnit = 8;
             int discardRule = 2;
             int addressType = 0;
-            logd("Starting BLE batch scan");
-            gattClientStartBatchScanNative(client.clientIf, scanMode, scanIntervalUnit, scanWindowUnit,
-                    addressType,
-                    discardRule);
+            gattClientStartBatchScanNative(client.clientIf, scanMode, scanIntervalUnit,
+                    scanWindowUnit, addressType, discardRule);
+            logd("Starting BLE batch scan, scanMode -" + scanMode);
+            gattClientStartBatchScanNative(client.clientIf, scanMode, scanIntervalUnit,
+                    scanWindowUnit, addressType, discardRule);
+            setBatchAlarm();
+        }
+
+        private void setBatchAlarm() {
+            if (mBatchClients.isEmpty()) {
+                mAlarmManager.cancel(mBatchScanIntervalIntent);
+                return;
+            }
+            long batchTriggerIntervalMillis = getBatchTriggerIntervalMillis();
+            mAlarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    SystemClock.elapsedRealtime() + batchTriggerIntervalMillis,
+                    batchTriggerIntervalMillis,
+                    mBatchScanIntervalIntent);
         }
 
         void stopRegularScan(ScanClient client) {
@@ -306,6 +355,7 @@ public class ScanManager {
             removeScanFilters(client.clientIf);
             mBatchClients.remove(client);
             gattClientStopBatchScanNative(client.clientIf);
+            setBatchAlarm();
         }
 
         void flushBatchResults(int clientIf) {
@@ -317,6 +367,21 @@ public class ScanManager {
             }
             int resultType = getResultType(client.settings);
             gattClientReadScanReportsNative(client.clientIf, resultType);
+        }
+
+        void cleanup() {
+            mAlarmManager.cancel(mBatchScanIntervalIntent);
+        }
+
+        private long getBatchTriggerIntervalMillis() {
+            long intervalMillis = Long.MAX_VALUE;
+            for (ScanClient client : mBatchClients) {
+                if (client.settings != null && client.settings.getReportDelayMillis() > 0) {
+                    intervalMillis = Math.min(intervalMillis,
+                            client.settings.getReportDelayMillis());
+                }
+            }
+            return intervalMillis;
         }
 
         // Add scan filters. The logic is:
@@ -430,7 +495,6 @@ public class ScanManager {
                     break;
 
                 case ScanFilterQueue.TYPE_MANUFACTURER_DATA:
-                {
                     int len = entry.data.length;
                     if (entry.data_mask.length != len)
                         return;
@@ -438,7 +502,6 @@ public class ScanManager {
                             entry.company_mask, 0, 0, 0, 0, "", "", (byte) 0,
                             entry.data, entry.data_mask);
                     break;
-                }
             }
         }
 
