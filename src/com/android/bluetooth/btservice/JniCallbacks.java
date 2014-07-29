@@ -47,7 +47,7 @@ final class JniCallbacks {
 
     void sspRequestCallback(byte[] address, byte[] name, int cod, int pairingVariant,
             int passkey) {
-        mRemoteDevices.sspRequestCallback(address, name, cod, pairingVariant,
+        mBondStateMachine.sspRequestCallback(address, name, cod, pairingVariant,
             passkey);
     }
     void devicePropertyChangedCallback(byte[] address, int[] types, byte[][] val) {
@@ -59,7 +59,7 @@ final class JniCallbacks {
     }
 
     void pinRequestCallback(byte[] address, byte[] name, int cod) {
-        mRemoteDevices.pinRequestCallback(address, name, cod);
+        mBondStateMachine.pinRequestCallback(address, name, cod);
     }
 
     void bondStateChangeCallback(int status, byte[] address, int newState) {
