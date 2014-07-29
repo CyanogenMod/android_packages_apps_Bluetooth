@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.gatt;
 
+import android.bluetooth.BluetoothUuid;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
@@ -212,18 +213,6 @@ class AdvertiseManager {
             // advertising.
             return numOfAdvtInstances - 1;
         }
-
-        // Check whether the registeredUuids contains all uuids in advertiseData.
-        private boolean containsAll(List<ParcelUuid> registeredUuids, AdvertiseData advertiseData) {
-            if (advertiseData == null) {
-                return true;
-            }
-            List<ParcelUuid> advertiseUuids = advertiseData.getServiceUuids();
-            if (advertiseUuids == null) {
-                return true;
-            }
-            return registeredUuids.containsAll(advertiseUuids);
-        }
     }
 
     // Class that wraps advertise native related constants, methods etc.
@@ -317,11 +306,9 @@ class AdvertiseManager {
             boolean includeName = data.getIncludeDeviceName();
             boolean includeTxPower = data.getIncludeTxPowerLevel();
             int appearance = 0;
-            byte[] manufacturerData = data.getManufacturerSpecificData() == null ? new byte[0]
-                    : data.getManufacturerSpecificData();
-            byte[] serviceData = data.getServiceData() == null ? new byte[0]
-                    : data.getServiceData();
+            byte[] manufacturerData = getManufacturerData(data);
 
+            byte[] serviceData = getServiceData(data);
             byte[] serviceUuids;
             if (data.getServiceUuids() == null) {
                 serviceUuids = new byte[0];
@@ -331,7 +318,7 @@ class AdvertiseManager {
                         .order(ByteOrder.LITTLE_ENDIAN);
                 for (ParcelUuid parcelUuid : data.getServiceUuids()) {
                     UUID uuid = parcelUuid.getUuid();
-                    // Least significant bits first as the advertising uuid should be in
+                    // Least significant bits first as the advertising UUID should be in
                     // little-endian.
                     advertisingUuidBytes.putLong(uuid.getLeastSignificantBits())
                             .putLong(uuid.getMostSignificantBits());
@@ -341,6 +328,45 @@ class AdvertiseManager {
             gattClientSetAdvDataNative(clientIf, isScanResponse, includeName, includeTxPower,
                     appearance,
                     manufacturerData, serviceData, serviceUuids);
+        }
+
+        // Combine manufacturer id and manufacturer data.
+        private byte[] getManufacturerData(AdvertiseData advertiseData) {
+            if (advertiseData.getManufacturerId() < 0) {
+                return new byte[0];
+            }
+            byte[] manufacturerData = advertiseData.getManufacturerSpecificData();
+            int dataLen = 2 + (manufacturerData == null ? 0 : manufacturerData.length);
+            byte[] concated = new byte[dataLen];
+            // / First two bytes are manufacturer id in little-endian.
+            int manufacturerId = advertiseData.getManufacturerId();
+            concated[0] = (byte) (manufacturerId & 0xFF);
+            concated[1] = (byte) ((manufacturerId >> 8) & 0xFF);
+            if (manufacturerData != null) {
+                System.arraycopy(manufacturerData, 0, concated, 2, manufacturerData.length);
+            }
+            return concated;
+        }
+
+        // Combine service UUID and service data.
+        private byte[] getServiceData(AdvertiseData advertiseData) {
+            if (advertiseData.getServiceDataUuid() == null) {
+                return new byte[0];
+            }
+
+            byte[] serviceData = advertiseData.getServiceData();
+            int dataLen = 2 + (serviceData == null ? 0 : serviceData.length);
+            byte[] concated = new byte[dataLen];
+            // Extract 16 bit UUID value.
+            int uuidValue = BluetoothUuid.getServiceIdentifierFromParcelUuid(
+                    advertiseData.getServiceDataUuid());
+            // First two bytes are service data UUID in little-endian.
+            concated[0] = (byte) (uuidValue & 0xFF);
+            concated[1] = (byte) ((uuidValue >> 8) & 0xFF);
+            if (serviceData != null) {
+                System.arraycopy(serviceData, 0, concated, 2, serviceData.length);
+            }
+            return concated;
         }
 
         // Convert settings tx power level to stack tx power level.
