@@ -332,14 +332,15 @@ class AdvertiseManager {
 
         // Combine manufacturer id and manufacturer data.
         private byte[] getManufacturerData(AdvertiseData advertiseData) {
-            if (advertiseData.getManufacturerId() < 0) {
+            if (advertiseData.getManufacturerSpecificData().size() == 0) {
                 return new byte[0];
             }
-            byte[] manufacturerData = advertiseData.getManufacturerSpecificData();
+            int manufacturerId = advertiseData.getManufacturerSpecificData().keyAt(0);
+            byte[] manufacturerData = advertiseData.getManufacturerSpecificData().get(
+                    manufacturerId);
             int dataLen = 2 + (manufacturerData == null ? 0 : manufacturerData.length);
             byte[] concated = new byte[dataLen];
             // / First two bytes are manufacturer id in little-endian.
-            int manufacturerId = advertiseData.getManufacturerId();
             concated[0] = (byte) (manufacturerId & 0xFF);
             concated[1] = (byte) ((manufacturerId >> 8) & 0xFF);
             if (manufacturerData != null) {
@@ -350,16 +351,16 @@ class AdvertiseManager {
 
         // Combine service UUID and service data.
         private byte[] getServiceData(AdvertiseData advertiseData) {
-            if (advertiseData.getServiceDataUuid() == null) {
+            if (advertiseData.getServiceData().isEmpty()) {
                 return new byte[0];
             }
-
-            byte[] serviceData = advertiseData.getServiceData();
+            ParcelUuid uuid = advertiseData.getServiceData().keySet().iterator().next();
+            byte[] serviceData = advertiseData.getServiceData().get(uuid);
             int dataLen = 2 + (serviceData == null ? 0 : serviceData.length);
             byte[] concated = new byte[dataLen];
             // Extract 16 bit UUID value.
             int uuidValue = BluetoothUuid.getServiceIdentifierFromParcelUuid(
-                    advertiseData.getServiceDataUuid());
+                    uuid);
             // First two bytes are service data UUID in little-endian.
             concated[0] = (byte) (uuidValue & 0xFF);
             concated[1] = (byte) ((uuidValue >> 8) & 0xFF);
