@@ -392,10 +392,6 @@ public class BluetoothMnsObexClient {
 
                 if (bytesWritten == eventBytes.length) {
                     Log.i(TAG, "SendEvent finished send length" + eventBytes.length);
-                    if (putOperation != null) {
-                        if (V) Log.v(TAG, "Closing putOperation");
-                        putOperation.close();
-                    }
                     if (outputStream != null) {
                         if (V) Log.v(TAG, "Closing outputStream");
                         outputStream.close();
