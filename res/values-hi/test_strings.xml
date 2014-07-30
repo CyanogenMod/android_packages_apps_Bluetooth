@@ -2,7 +2,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="hello" msgid="1740533743008967039">"नमस्ते दुनिया, परीक्षण गतिविधि"</string>
-    <string name="app_name" msgid="1203877025577761792">"Bluetooth शेयर"</string>
+    <string name="app_name" msgid="1203877025577761792">"ब्लूटूथ शेयर"</string>
     <string name="insert_record" msgid="1450997173838378132">"रिकॉर्ड सम्मिलित करें"</string>
     <string name="update_record" msgid="2480425402384910635">"रिकॉर्ड की पुष्टि करें"</string>
     <string name="ack_record" msgid="6716152390978472184">"रिकॉर्ड अभिस्वीकृत करें"</string>
