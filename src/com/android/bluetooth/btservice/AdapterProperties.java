@@ -554,16 +554,20 @@ class AdapterProperties {
         mRpaOffloadSupported = ((0xFF & ((int)val[2]))!= 0);
         mNumOfOffloadedIrkSupported =  (0xFF & ((int)val[3]));
         mNumOfOffloadedScanFilterSupported = (0xFF & ((int)val[4]));
-        mOffloadedScanResultStorageBytes = (0xFF & ((int)val[5]));
-        mIsActivityAndEnergyReporting = ((0xFF & ((int)val[6])) != 0);
+        mOffloadedScanResultStorageBytes = ((0xFF & ((int)val[6])) << 8)
+                            + (0xFF & ((int)val[5]));
+        mIsActivityAndEnergyReporting = ((0xFF & ((int)val[7])) != 0);
 
         Log.d(TAG, "BT_PROPERTY_LOCAL_LE_FEATURES: update from BT controller"
-                + " mNumOfAdvertisementInstancesSupported = " + mNumOfAdvertisementInstancesSupported
+                + " mNumOfAdvertisementInstancesSupported = "
+                + mNumOfAdvertisementInstancesSupported
                 + " mRpaOffloadSupported = " + mRpaOffloadSupported
-                + " mNumOfOffloadedIrkSupported = " + mNumOfOffloadedIrkSupported
+                + " mNumOfOffloadedIrkSupported = "
+                + mNumOfOffloadedIrkSupported
                 + " mNumOfOffloadedScanFilterSupported = "
                 + mNumOfOffloadedScanFilterSupported
-                + " mOffloadedScanResultStorageBytes = " + mOffloadedScanResultStorageBytes
+                + " mOffloadedScanResultStorageBytes= "
+                + mOffloadedScanResultStorageBytes
                 + " mIsActivityAndEnergyReporting = "
                 + mIsActivityAndEnergyReporting);
     }
