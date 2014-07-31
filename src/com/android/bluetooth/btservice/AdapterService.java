@@ -79,7 +79,7 @@ public class AdapterService extends Service {
     private static final boolean TRACE_REF = true;
     private static final int MIN_ADVT_INSTANCES_FOR_MA = 5;
     private static final int MIN_OFFLOADED_FILTERS = 10;
-    private static final int MIN_OFFLOADED_SCAN_STORAGE_BYTES = 2048;
+    private static final int MIN_OFFLOADED_SCAN_STORAGE_BYTES = 1024;
     //For Debugging only
     private static int sRefCount=0;
 
