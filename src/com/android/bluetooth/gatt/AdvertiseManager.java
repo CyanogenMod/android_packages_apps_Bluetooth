@@ -200,7 +200,7 @@ class AdvertiseManager {
             logd("advertise clients size " + mAdvertiseClients.size());
             if (mAdvertiseClients.contains(client)) {
                 mAdvertiseNative.stopAdvertising(client);
-                mAdvertiseClients.remove(clientIf);
+                mAdvertiseClients.remove(client);
             }
         }
 
