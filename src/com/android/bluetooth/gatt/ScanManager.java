@@ -388,8 +388,6 @@ public class ScanManager {
             int scanWindowUnit = 8;
             int discardRule = 2;
             int addressType = 0;
-            gattClientStartBatchScanNative(client.clientIf, scanMode, scanIntervalUnit,
-                    scanWindowUnit, addressType, discardRule);
             logd("Starting BLE batch scan, scanMode -" + scanMode);
             gattClientStartBatchScanNative(client.clientIf, scanMode, scanIntervalUnit,
                     scanWindowUnit, addressType, discardRule);
