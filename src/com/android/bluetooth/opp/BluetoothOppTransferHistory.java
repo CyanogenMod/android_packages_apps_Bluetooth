@@ -212,6 +212,12 @@ public class BluetoothOppTransferHistory extends Activity implements
         }
     }
 
+    @Override
+    public void onContextMenuClosed(Menu menu) {
+        super.onContextMenuClosed(menu);
+        mContextMenu = false;
+    }
+
     /**
      * Prompt the user if they would like to clear the transfer history
      */
