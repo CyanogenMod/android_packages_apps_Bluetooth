@@ -137,10 +137,22 @@ class AdvertiseManager {
     // Post callback status to app process.
     private void postCallback(int clientIf, int status) {
         try {
-            mService.onMultipleAdvertiseCallback(clientIf, status);
+            AdvertiseClient client = getAdvertiseClient(clientIf);
+            AdvertiseSettings settings = (client == null) ? null : client.settings;
+            boolean isStart = true;
+            mService.onMultipleAdvertiseCallback(clientIf, status, isStart, settings);
         } catch (RemoteException e) {
             loge("failed onMultipleAdvertiseCallback", e);
         }
+    }
+
+    private AdvertiseClient getAdvertiseClient(int clientIf) {
+        for (AdvertiseClient client : mAdvertiseClients) {
+            if (client.clientIf == clientIf) {
+                return client;
+            }
+        }
+        return null;
     }
 
     // Handler class that handles BLE advertising operations.
@@ -181,7 +193,6 @@ class AdvertiseManager {
                         AdvertiseCallback.ADVERTISE_FAILED_TOO_MANY_ADVERTISERS);
                 return;
             }
-            // TODO: check if the advertise data length is larger than 31 bytes.
             if (!mAdvertiseNative.startAdverising(client)) {
                 postCallback(clientIf, AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR);
                 return;

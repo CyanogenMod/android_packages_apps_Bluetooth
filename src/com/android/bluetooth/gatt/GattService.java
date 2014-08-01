@@ -567,7 +567,7 @@ public class GattService extends ProfileService {
                             rssi, scanTimeNanos);
                     if (matchesFilters(client, result)) {
                         try {
-                            app.callback.onScanResult(address, rssi, adv_data);
+                            app.callback.onScanResult(result);
                         } catch (RemoteException e) {
                             Log.e(TAG, "Exception: " + e);
                             mClientMap.remove(client.clientIf);
@@ -1071,13 +1071,14 @@ public class GattService extends ProfileService {
     }
 
     // callback from AdvertiseManager for advertise status dispatch.
-    void onMultipleAdvertiseCallback(int clientIf, int status) throws RemoteException {
+    void onMultipleAdvertiseCallback(int clientIf, int status, boolean isStart,
+            AdvertiseSettings settings) throws RemoteException {
         ClientMap.App app = mClientMap.getById(clientIf);
         if (app == null || app.callback == null) {
             Log.e(TAG, "Advertise app or callback is null");
             return;
         }
-        app.callback.onMultiAdvertiseCallback(status);
+        app.callback.onMultiAdvertiseCallback(status, isStart, settings);
     }
 
     void onConfigureMTU(int connId, int status, int mtu) throws RemoteException {
@@ -1130,11 +1131,13 @@ public class GattService extends ProfileService {
         ClientMap.App app = mClientMap.getById(clientIf);
         if (app != null) {
             Log.d(TAG, "Client app is not null!");
+            boolean isStart = false;
             if (status == 0) {
-                app.callback.onMultiAdvertiseCallback(AdvertiseCallback.ADVERTISE_SUCCESS);
+                app.callback.onMultiAdvertiseCallback(AdvertiseCallback.ADVERTISE_SUCCESS,
+                        isStart, null);
             } else {
                 app.callback.onMultiAdvertiseCallback(
-                        AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR);
+                        AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR, isStart, null);
             }
         }
     }
