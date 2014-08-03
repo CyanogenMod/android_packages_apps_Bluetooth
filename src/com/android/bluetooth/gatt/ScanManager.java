@@ -244,6 +244,8 @@ public class ScanManager {
         private static final int ALLOW_ALL_FILTER_INDEX = 1;
         private static final int ALLOW_ALL_FILTER_SELECTION = 0;
 
+        private static final int DISCARD_OLDEST_WHEN_BUFFER_FULL = 0;
+
         /**
          * Scan params corresponding to scan setting
          */
@@ -386,7 +388,7 @@ public class ScanManager {
             // TODO: configure scan parameters.
             int scanIntervalUnit = 8;
             int scanWindowUnit = 8;
-            int discardRule = 2;
+            int discardRule = DISCARD_OLDEST_WHEN_BUFFER_FULL;
             int addressType = 0;
             logd("Starting BLE batch scan, scanMode -" + scanMode);
             gattClientStartBatchScanNative(client.clientIf, scanMode, scanIntervalUnit,
