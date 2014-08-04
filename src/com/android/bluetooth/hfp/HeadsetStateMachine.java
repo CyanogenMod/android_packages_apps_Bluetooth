@@ -2051,7 +2051,7 @@ final class HeadsetStateMachine extends StateMachine {
             }
 
             if (currentState == mConnected || currentState == mAudioOn) {
-                if (mCurrentDevice.equals(device)) {
+                if (mConnectedDevicesList.contains(device)) {
                     return BluetoothProfile.STATE_CONNECTED;
                 }
                 return BluetoothProfile.STATE_DISCONNECTED;
