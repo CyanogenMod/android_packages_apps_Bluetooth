@@ -108,7 +108,7 @@ final class BondStateMachine extends StateMachine {
             switch(msg.what) {
 
               case CREATE_BOND:
-                  createBond(dev, true);
+                  createBond(dev, msg.arg1, true);
                   break;
               case REMOVE_BOND:
                   removeBond(dev, true);
@@ -160,7 +160,7 @@ final class BondStateMachine extends StateMachine {
 
             switch (msg.what) {
                 case CREATE_BOND:
-                    result = createBond(dev, false);
+                    result = createBond(dev, msg.arg1, false);
                     break;
                 case REMOVE_BOND:
                     result = removeBond(dev, false);
@@ -237,11 +237,11 @@ final class BondStateMachine extends StateMachine {
         return false;
     }
 
-    private boolean createBond(BluetoothDevice dev, boolean transition) {
+    private boolean createBond(BluetoothDevice dev, int transport, boolean transition) {
         if (dev.getBondState() == BluetoothDevice.BOND_NONE) {
             infoLog("Bond address is:" + dev);
             byte[] addr = Utils.getBytesFromAddress(dev.getAddress());
-            if (!mAdapterService.createBondNative(addr)) {
+            if (!mAdapterService.createBondNative(addr, transport)) {
                 sendIntent(dev, BluetoothDevice.BOND_NONE,
                            BluetoothDevice.UNBOND_REASON_REMOVED);
                 return false;

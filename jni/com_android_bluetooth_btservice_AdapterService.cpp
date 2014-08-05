@@ -832,7 +832,7 @@ static jboolean cancelDiscoveryNative(JNIEnv* env, jobject obj) {
     return result;
 }
 
-static jboolean createBondNative(JNIEnv* env, jobject obj, jbyteArray address) {
+static jboolean createBondNative(JNIEnv* env, jobject obj, jbyteArray address, jint transport) {
     ALOGV("%s:",__FUNCTION__);
 
     jbyte *addr;
@@ -846,7 +846,7 @@ static jboolean createBondNative(JNIEnv* env, jobject obj, jbyteArray address) {
         return result;
     }
 
-    int ret = sBluetoothInterface->create_bond((bt_bdaddr_t *)addr);
+    int ret = sBluetoothInterface->create_bond((bt_bdaddr_t *)addr, transport);
     env->ReleaseByteArrayElements(address, addr, 0);
     result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 
@@ -1221,7 +1221,7 @@ static JNINativeMethod sMethods[] = {
     {"setDevicePropertyNative", "([BI[B)Z", (void*) setDevicePropertyNative},
     {"startDiscoveryNative", "()Z", (void*) startDiscoveryNative},
     {"cancelDiscoveryNative", "()Z", (void*) cancelDiscoveryNative},
-    {"createBondNative", "([B)Z", (void*) createBondNative},
+    {"createBondNative", "([BI)Z", (void*) createBondNative},
     {"removeBondNative", "([B)Z", (void*) removeBondNative},
     {"cancelBondNative", "([B)Z", (void*) cancelBondNative},
     {"isConnectedNative", "([B)Z", (void*) isConnectedNative},

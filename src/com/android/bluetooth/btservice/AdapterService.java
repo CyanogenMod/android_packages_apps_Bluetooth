@@ -792,7 +792,7 @@ public class AdapterService extends Service {
             return service.getProfileConnectionState(profile);
         }
 
-        public boolean createBond(BluetoothDevice device) {
+        public boolean createBond(BluetoothDevice device, int transport) {
             if (!Utils.checkCaller()) {
                 Log.w(TAG, "createBond() - Not allowed for non-active user");
                 return false;
@@ -800,7 +800,7 @@ public class AdapterService extends Service {
 
             AdapterService service = getService();
             if (service == null) return false;
-            return service.createBond(device);
+            return service.createBond(device, transport);
         }
 
         public boolean cancelBondProcess(BluetoothDevice device) {
@@ -1202,7 +1202,7 @@ public class AdapterService extends Service {
         return mAdapterProperties.getProfileConnectionState(profile);
     }
 
-     boolean createBond(BluetoothDevice device) {
+     boolean createBond(BluetoothDevice device, int transport) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
             "Need BLUETOOTH ADMIN permission");
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
@@ -1216,6 +1216,7 @@ public class AdapterService extends Service {
 
         Message msg = mBondStateMachine.obtainMessage(BondStateMachine.CREATE_BOND);
         msg.obj = device;
+        msg.arg1 = transport;
         mBondStateMachine.sendMessage(msg);
         return true;
     }
@@ -1718,7 +1719,7 @@ public class AdapterService extends Service {
         setDevicePropertyNative(byte[] address, int type, byte[] val);
     /*package*/ native boolean getDevicePropertyNative(byte[] address, int type);
 
-    /*package*/ native boolean createBondNative(byte[] address);
+    /*package*/ native boolean createBondNative(byte[] address, int transport);
     /*package*/ native boolean removeBondNative(byte[] address);
     /*package*/ native boolean cancelBondNative(byte[] address);
 
