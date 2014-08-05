@@ -33,7 +33,6 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Intent;
 import android.os.IBinder;
-import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.os.SystemClock;
@@ -49,7 +48,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -975,11 +973,14 @@ public class GattService extends ProfileService {
     }
 
     private Set<ScanResult> parseTruncatedResults(int numRecords, byte[] batchRecord) {
+        if (DBG) Log.d(TAG, "batch record " + Arrays.toString(batchRecord));
         Set<ScanResult> results = new HashSet<ScanResult>(numRecords);
         for (int i = 0; i < numRecords; ++i) {
             byte[] record = extractBytes(batchRecord, i * TRUNCATED_RESULT_SIZE,
                     TRUNCATED_RESULT_SIZE);
-            byte[] address = extractBytes(batchRecord, 0, 6);
+            byte[] address = extractBytes(record, 0, 6);
+            // TODO: remove temp hack.
+            reverse(address);
             BluetoothDevice device = mAdapter.getRemoteDevice(address);
             int rssi = record[8];
             // Timestamp is in every 50 ms.
@@ -1003,6 +1004,8 @@ public class GattService extends ProfileService {
         int position = 0;
         while (position < batchRecord.length) {
             byte[] address = extractBytes(batchRecord, position, 6);
+            // TODO: remove temp hack.
+            reverse(address);
             BluetoothDevice device = mAdapter.getRemoteDevice(address);
             position += 6;
             // Skip address type.
@@ -1029,6 +1032,16 @@ public class GattService extends ProfileService {
                     rssi, timestampNanos));
         }
         return results;
+    }
+
+    // Reverse byte array.
+    private void reverse(byte[] address) {
+        int len = address.length;
+        for (int i = 0; i < len / 2; ++i) {
+            byte b = address[i];
+            address[i] = address[len - 1 - i];
+            address[len - 1 - i] = b;
+        }
     }
 
     // Helper method to extract bytes from byte array.
