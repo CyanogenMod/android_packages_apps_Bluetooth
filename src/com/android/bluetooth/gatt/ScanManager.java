@@ -256,7 +256,6 @@ public class ScanManager {
         private static final int SCAN_MODE_LOW_LATENCY_WINDOW_MS = 5000;
         private static final int SCAN_MODE_LOW_LATENCY_INTERVAL_MS = 5000;
 
-
         // The logic is AND for each filter field.
         private static final int LIST_LOGIC_TYPE = 0x1111111;
         private static final int FILTER_LOGIC_TYPE = 1;
@@ -386,8 +385,8 @@ public class ScanManager {
             waitForCallback();
             int scanMode = getResultType(client.settings);
             // TODO: configure scan parameters.
-            int scanIntervalUnit = 8;
-            int scanWindowUnit = 8;
+            int scanIntervalUnit = 2400;
+            int scanWindowUnit = 2400;
             int discardRule = DISCARD_OLDEST_WHEN_BUFFER_FULL;
             int addressType = 0;
             logd("Starting BLE batch scan, scanMode -" + scanMode);
