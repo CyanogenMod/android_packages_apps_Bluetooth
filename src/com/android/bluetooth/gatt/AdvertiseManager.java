@@ -34,7 +34,6 @@ import com.android.bluetooth.btservice.AdapterService;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -207,7 +206,6 @@ class AdvertiseManager {
             if (client == null) {
                 return;
             }
-            int clientIf = client.clientIf;
             logd("advertise clients size " + mAdvertiseClients.size());
             if (mAdvertiseClients.contains(client)) {
                 mAdvertiseNative.stopAdvertising(client);
