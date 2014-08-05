@@ -124,18 +124,30 @@ class HeadsetPhoneState {
             if (SubscriptionManager.isValidSubscriptionId(subId)) {
                 mPhoneStateListener = getPhoneStateListener(subId);
 
-                mTelephonyManager.listen(mPhoneStateListener,
+                try {
+                    mTelephonyManager.listen(mPhoneStateListener,
                                          PhoneStateListener.LISTEN_SERVICE_STATE |
                                          PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
-                mListening = true;
+                    mListening = true;
+                } catch (NullPointerException npe) {
+                    // Handle case where Telephoneymanager crashes
+                    // and context becomes NULL
+                    Log.e(TAG, "NullPointerException for Telephonymanager while startListen", npe);
+                }
+
             }
         }
     }
 
     private void stopListenForPhoneState() {
         if (mListening) {
-
-            mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
+            try {
+                mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
+            } catch (NullPointerException npe) {
+                // Handle case where Telephoneymanager crashes
+                // and context becomes NULL
+                Log.e(TAG, "NullPointerException for Telephonymanager while stopListen", npe);
+            }
             mListening = false;
         }
     }
