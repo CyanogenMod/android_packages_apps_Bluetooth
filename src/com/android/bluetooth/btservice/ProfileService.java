@@ -228,8 +228,8 @@ public abstract class ProfileService extends Service {
     private void doStop(Intent intent) {
         if (stop()) {
             if (DBG) log("stop()");
-            notifyProfileServiceStateChanged(BluetoothAdapter.STATE_OFF);
             stopSelf();
+            notifyProfileServiceStateChanged(BluetoothAdapter.STATE_OFF);
         } else {
             Log.e(mName, "Unable to stop profile");
         }
