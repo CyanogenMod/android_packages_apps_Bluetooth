@@ -164,6 +164,8 @@ public class GattService extends ProfileService {
     private Set<String> mReliableQueue = new HashSet<String>();
 
     static {
+        System.load("/system/lib/libbluetooth_jni.so");
+        if (DBG) Log.d(TAG, "classInitNative called");
         classInitNative();
     }
 
