@@ -96,8 +96,8 @@
     <!-- label for the notification item of sending file -->
     <string name="notification_sending">Bluetooth share: Sending <xliff:g id="file">%1$s</xliff:g></string>
     <!-- label for the notification item of sent file -->
-    <string name="notification_sent">Bluetooth share: Sent <xliff:g id="file">%1$s</xliff:g></string> 
-    <!-- label for the notification item of sent file -status --> 
+    <string name="notification_sent">Bluetooth share: Sent <xliff:g id="file">%1$s</xliff:g></string>
+    <!-- label for the notification item of sent file -status -->
     <string name="notification_sent_complete">100% complete</string>
     <!-- label for the notification item of failed sending file -->
     <string name="notification_sent_fail">Bluetooth share: File <xliff:g id="file">%1$s</xliff:g> not sent</string>
@@ -224,4 +224,12 @@
     <!-- Do not translate. android:process of this application. -->
     <string name="process" translate="false"><xliff:g id="x" /></string>
 
+
+    <string name="bluetooth_map_email_settings_save">Save</string>
+    <string name="bluetooth_map_email_settings_cancel">Cancel</string>
+    <string name="bluetooth_map_email_settings_intro">Select the email accounts you want to share through Bluetooth. You still have to accept any acceess to the accounts when connecting.</string>
+    <string name="bluetooth_map_email_settings_count">Slots left:</string>
+    <string name="bluetooth_map_email_settings_app_icon">Application Icon</string>
+    <string name="bluetooth_map_email_settings_title">Bluetooth Message Sharing Settings</string>
+    <string name="bluetooth_map_email_settings_no_account_slots_left">Cannot select account. 0 slots left</string>
 </resources>
