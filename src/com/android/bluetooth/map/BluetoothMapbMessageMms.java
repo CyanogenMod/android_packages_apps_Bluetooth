@@ -16,6 +16,7 @@ package com.android.bluetooth.map;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,48 +29,76 @@ import android.text.util.Rfc822Tokenizer;
 import android.util.Base64;
 import android.util.Log;
 
-public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
+public class BluetoothMapbMessageMms extends BluetoothMapbMessage {
 
     public static class MimePart {
-        public long _id = INVALID_VALUE;   /* The _id from the content provider, can be used to sort the parts if needed */
-        public String contentType = null;  /* The mime type, e.g. text/plain */
-        public String contentId = null;
-        public String contentLocation = null;
-        public String contentDisposition = null;
-        public String partName = null;     /* e.g. text_1.txt*/
-        public String charsetName = null;  /* This seems to be a number e.g. 106 for UTF-8 CharacterSets
+        public long mId = INVALID_VALUE;   /* The _id from the content provider, can be used to sort the parts if needed */
+        public String mContentType = null;  /* The mime type, e.g. text/plain */
+        public String mContentId = null;
+        public String mContentLocation = null;
+        public String mContentDisposition = null;
+        public String mPartName = null;     /* e.g. text_1.txt*/
+        public String mCharsetName = null;  /* This seems to be a number e.g. 106 for UTF-8 CharacterSets
                                                 holds a method for the mapping. */
-        public String fileName = null;     /* Do not seem to be used */
-        public byte[] data = null;        /* The raw un-encoded data e.g. the raw jpeg data or the text.getBytes("utf-8") */
+        public String mFileName = null;     /* Do not seem to be used */
+        public byte[] mData = null;        /* The raw un-encoded data e.g. the raw jpeg data or the text.getBytes("utf-8") */
 
 
+        String getDataAsString() {
+            String result = null;
+            String charset = mCharsetName;
+            // Figure out if we support the charset, else fall back to UTF-8, as this is what
+            // the MAP specification suggest to use, and is compatible with US-ASCII.
+            if(charset == null){
+                charset = "UTF-8";
+            } else {
+                charset = charset.toUpperCase();
+                try {
+                    if(Charset.isSupported(charset) == false) {
+                        charset = "UTF-8";
+                    }
+                } catch (IllegalCharsetNameException e) {
+                    Log.w(TAG, "Received unknown charset: " + charset + " - using UTF-8.");
+                    charset = "UTF-8";
+                }
+            }
+            try{
+                result = new String(mData, charset);
+            } catch (UnsupportedEncodingException e) {
+                /* This cannot happen unless Charset.isSupported() is out of sync with String */
+                try{
+                    result = new String(mData, "UTF-8");
+                } catch (UnsupportedEncodingException e2) {/* This cannot happen */}
+            }
+            return result;
+        }
 
         public void encode(StringBuilder sb, String boundaryTag, boolean last) throws UnsupportedEncodingException {
             sb.append("--").append(boundaryTag).append("\r\n");
-            if(contentType != null)
-                sb.append("Content-Type: ").append(contentType);
-            if(charsetName != null)
-                sb.append("; ").append("charset=\"").append(charsetName).append("\"");
+            if(mContentType != null)
+                sb.append("Content-Type: ").append(mContentType);
+            if(mCharsetName != null)
+                sb.append("; ").append("charset=\"").append(mCharsetName).append("\"");
             sb.append("\r\n");
-            if(contentLocation != null)
-                sb.append("Content-Location: ").append(contentLocation).append("\r\n");
-            if(contentId != null)
-                sb.append("Content-ID: ").append(contentId).append("\r\n");
-            if(contentDisposition != null)
-                sb.append("Content-Disposition: ").append(contentDisposition).append("\r\n");
-            if(data != null) {
+            if(mContentLocation != null)
+                sb.append("Content-Location: ").append(mContentLocation).append("\r\n");
+            if(mContentId != null)
+                sb.append("Content-ID: ").append(mContentId).append("\r\n");
+            if(mContentDisposition != null)
+                sb.append("Content-Disposition: ").append(mContentDisposition).append("\r\n");
+            if(mData != null) {
                 /* TODO: If errata 4176 is adopted in the current form (it is not in either 1.1 or 1.2),
-                the below is not allowed, Base64 should be used for text. */
+                the below use of UTF-8 is not allowed, Base64 should be used for text. */
 
-                if(contentType != null &&
-                        (contentType.toUpperCase().contains("TEXT") ||
-                         contentType.toUpperCase().contains("SMIL") )) {
+                if(mContentType != null &&
+                        (mContentType.toUpperCase().contains("TEXT") ||
+                         mContentType.toUpperCase().contains("SMIL") )) {
                     sb.append("Content-Transfer-Encoding: 8BIT\r\n\r\n"); // Add the header split empty line
-                    sb.append(new String(data,"UTF-8")).append("\r\n");
+                    sb.append(new String(mData,"UTF-8")).append("\r\n");
                 }
                 else {
                     sb.append("Content-Transfer-Encoding: Base64\r\n\r\n"); // Add the header split empty line
-                    sb.append(Base64.encodeToString(data, Base64.DEFAULT)).append("\r\n");
+                    sb.append(Base64.encodeToString(mData, Base64.DEFAULT)).append("\r\n");
                 }
             }
             if(last) {
@@ -78,14 +107,14 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
         }
 
         public void encodePlainText(StringBuilder sb) throws UnsupportedEncodingException {
-            if(contentType != null && contentType.toUpperCase().contains("TEXT")) {
-                sb.append(new String(data,"UTF-8")).append("\r\n");
-            } else if(contentType != null && contentType.toUpperCase().contains("/SMIL")) {
+            if(mContentType != null && mContentType.toUpperCase().contains("TEXT")) {
+                sb.append(new String(mData,"UTF-8")).append("\r\n");
+            } else if(mContentType != null && mContentType.toUpperCase().contains("/SMIL")) {
                 /* Skip the smil.xml, as no-one knows what it is. */
             } else {
                 /* Not a text part, just print the filename or part name if they exist. */
-                if(partName != null)
-                    sb.append("<").append(partName).append(">\r\n");
+                if(mPartName != null)
+                    sb.append("<").append(mPartName).append(">\r\n");
                 else
                     sb.append("<").append("attachment").append(">\r\n");
             }
@@ -111,7 +140,8 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
 
     private String getBoundary() {
         if(boundary == null)
-            boundary = "----" + UUID.randomUUID();
+            // Include "=_" as these cannot occur in quoted printable text
+            boundary = "--=_" + UUID.randomUUID();
         return boundary;
     }
 
@@ -122,9 +152,23 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
         return parts;
     }
 
+    public String getMessageAsText() {
+        StringBuilder sb = new StringBuilder();
+        if(subject != null && !subject.isEmpty()) {
+            sb.append("<Sub:").append(subject).append("> ");
+        }
+        if(parts != null) {
+            for(MimePart part : parts) {
+                if(part.mContentType.toUpperCase().contains("TEXT")) {
+                    sb.append(new String(part.mData));
+                }
+            }
+        }
+        return sb.toString();
+    }
     public MimePart addMimePart() {
         if(parts == null)
-            parts = new ArrayList<BluetoothMapbMessageMmsEmail.MimePart>();
+            parts = new ArrayList<BluetoothMapbMessageMms.MimePart>();
         MimePart newPart = new MimePart();
         parts.add(newPart);
         return newPart;
@@ -237,19 +281,24 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
         return includeAttachments;
     }
     public void updateCharset() {
-        charset = null;
-        for(MimePart part : parts) {
-            if(part.contentType != null &&
-               part.contentType.toUpperCase().contains("TEXT")) {
-                charset = "UTF-8";
-                break;
+        if(parts != null) {
+            mCharset = null;
+            for(MimePart part : parts) {
+                if(part.mContentType != null &&
+                   part.mContentType.toUpperCase().contains("TEXT")) {
+                    mCharset = "UTF-8";
+                    if(V) Log.v(TAG,"Charset set to UTF-8");
+                    break;
+                }
             }
         }
     }
     public int getSize() {
         int message_size = 0;
-        for(MimePart part : parts) {
-            message_size += part.data.length;
+        if(parts != null) {
+            for(MimePart part : parts) {
+                message_size += part.mData.length;
+            }
         }
         return message_size;
     }
@@ -299,9 +348,9 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
             sb.append("Date: ").append(getDateString()).append("\r\n");
         /* According to RFC-2822 headers must use US-ASCII, where the MAP specification states
          * UTF-8 should be used for the entire <bmessage-body-content>. We let the MAP specification
-         * take precedence above the RFC-2822. The code to
+         * take precedence above the RFC-2822.
          */
-        /* If we are to use US-ASCII anyway, here are the code for it.
+        /* If we are to use US-ASCII anyway, here is the code for it for base64.
           if (subject != null){
             // Use base64 encoding for the subject, as it may contain non US-ASCII characters or other
             // illegal (RFC822 header), and android do not seem to have encoders/decoders for quoted-printables
@@ -311,13 +360,14 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
         }*/
         if (subject != null)
             sb.append("Subject: ").append(subject).append("\r\n");
+        if(from == null)
+            sb.append("From: \r\n");
         if(from != null)
             encodeHeaderAddresses(sb, "From: ", from); // This includes folding if needed.
         if(sender != null)
             encodeHeaderAddresses(sb, "Sender: ", sender); // This includes folding if needed.
         /* For MMS one recipient(to, cc or bcc) must exists, if none: 'To:  undisclosed-
          * recipients:;' could be used.
-         * TODO: Is this a valid solution for E-Mail?
          */
         if(to == null && cc == null && bcc == null)
             sb.append("To:  undisclosed-recipients:;\r\n");
@@ -383,14 +433,16 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
         encoding = "8BIT"; // The encoding used
 
         encodeHeaders(sb);
-        if(getIncludeAttachments() == false) {
-            for(MimePart part : parts) {
-                part.encodePlainText(sb); /* We call encode on all parts, to include a tag, where an attachment is missing. */
-            }
-        } else {
-            for(MimePart part : parts) {
-                count++;
-                part.encode(sb, getBoundary(), (count == parts.size()));
+        if(parts != null) {
+            if(getIncludeAttachments() == false) {
+                for(MimePart part : parts) {
+                    part.encodePlainText(sb); /* We call encode on all parts, to include a tag, where an attachment is missing. */
+                }
+            } else {
+                for(MimePart part : parts) {
+                    count++;
+                    part.encode(sb, getBoundary(), (count == parts.size()));
+                }
             }
         }
 
@@ -415,12 +467,13 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
      */
     private String parseMmsHeaders(String hdrPart) {
         String[] headers = hdrPart.split("\r\n");
+        if(D) Log.d(TAG,"Header count=" + headers.length);
         String header;
         hasHeaders = false;
 
         for(int i = 0, c = headers.length; i < c; i++) {
             header = headers[i];
-
+            if(D) Log.d(TAG,"Header[" + i + "]: " + header);
             /* We need to figure out if any headers are present, in cases where devices do not follow the e-mail RFCs.
              * Skip empty lines, and then parse headers until a non-header line is found, at which point we treat the
              * remaining as plain text.
@@ -441,39 +494,34 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
             String headerValue = headerParts[1].trim();
 
             // Address headers
-            /* TODO: If this is empty, the MSE needs to fill it in before sending the message.
-             * This happens when sending the MMS, not sure what happens for e-mail.
+            /* If this is empty, the MSE needs to fill it in before sending the message.
+             * This happens when sending the MMS.
              */
             if(headerType.contains("FROM")) {
                 Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(headerValue);
                 from = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
-            }
-            else if(headerType.contains("TO")) {
+            } else if(headerType.contains("TO")) {
                 Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(headerValue);
                 to = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
-            }
-            else if(headerType.contains("CC")) {
+            } else if(headerType.contains("CC")) {
                 Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(headerValue);
                 cc = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
-            }
-            else if(headerType.contains("BCC")) {
+            } else if(headerType.contains("BCC")) {
                 Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(headerValue);
                 bcc = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
-            }
-            else if(headerType.contains("REPLY-TO")) {
+            } else if(headerType.contains("REPLY-TO")) {
                 Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(headerValue);
                 replyTo = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
-            }// Other headers
-            else if(headerType.contains("SUBJECT")) {
+            } else if(headerType.contains("SUBJECT")) { // Other headers
                 subject = headerValue;
-            }
-            else if(headerType.contains("MESSAGE-ID")) {
+            } else if(headerType.contains("MESSAGE-ID")) {
                 messageId = headerValue;
-            }
-            else if(headerType.contains("DATE")) {
-                /* TODO: Do we need the date? */
-            }
-            else if(headerType.contains("CONTENT-TYPE")) {
+            } else if(headerType.contains("DATE")) {
+                /* The date is not needed, as the time stamp will be set in the DB
+                 * when the message is send. */
+            } else if(headerType.contains("MIME-VERSION")) {
+                /* The mime version is not needed */
+            } else if(headerType.contains("CONTENT-TYPE")) {
                 String[] contentTypeParts = headerValue.split(";");
                 contentType = contentTypeParts[0];
                 // Extract the boundary if it exists
@@ -481,14 +529,17 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
                 {
                     if(contentTypeParts[j].contains("boundary")) {
                         boundary = contentTypeParts[j].split("boundary[\\s]*=", 2)[1].trim();
-                        boundary = boundary.replaceAll("\"", ""); // " is allowed around a boundary, but is not allowed as part of the boundary
+                        // removing quotes from boundary string
+                        if ((boundary.charAt(0) == '\"') && (boundary.charAt(boundary.length()-1) == '\"'))
+                            boundary = boundary.substring(1, boundary.length()-1);
+                        if(D) Log.d(TAG,"Boundary tag=" + boundary);
+                    } else if(contentTypeParts[j].contains("charset")) {
+                        mCharset = contentTypeParts[j].split("charset[\\s]*=", 2)[1].trim();
                     }
                 }
-            }
-            else if(headerType.contains("CONTENT-TRANSFER-ENCODING")) {
+            } else if(headerType.contains("CONTENT-TRANSFER-ENCODING")) {
                 encoding = headerValue;
-            }
-            else {
+            } else {
                 if(D) Log.w(TAG,"Skipping unknown header: " + headerType + " (" + header + ")");
             }
         }
@@ -497,71 +548,88 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
 
     private void parseMmsMimePart(String partStr) {
         String[] parts = partStr.split("\r\n\r\n", 2); // Split the header from the body
-        String body;
         MimePart newPart = addMimePart();
         String partEncoding = encoding; /* Use the overall encoding as default */
+        String body;
+
+        String[] headers = parts[0].split("\r\n");
+        if(D) Log.d(TAG, "parseMmsMimePart: headers count=" + headers.length);
+
         if(parts.length != 2) {
             body = partStr;
         } else {
-            body = parts[1];
-            String[] headers = parts[0].split("\r\n");
-
             for(String header : headers) {
-                if(header.length() == 0)
+                // Skip empty lines(the \r\n after the boundary tag) and endBoundary tags
+                if((header.length() == 0) || (header.trim().isEmpty()) || header.trim().equals("--"))
                     continue;
 
-                if(header.trim() == "" || header.trim().equals("--")) // Skip empty lines(the \r\n after the boundary tag) and endBoundary tags
-                    continue;
                 String[] headerParts = header.split(":",2);
                 if(headerParts.length != 2) {
-                    //throw new IllegalArgumentException("part-Header not formatted correctly: " + header);
-                    // If we find a part without headers, treat the entire content as body
-                    body = partStr;
-                    break;
+                    if(D) Log.w(TAG, "part-Header not formatted correctly: ");
+                    continue;
                 }
+                if(D) Log.d(TAG, "parseMmsMimePart: header=" + header);
                 String headerType = headerParts[0].toUpperCase();
                 String headerValue = headerParts[1].trim();
                 if(headerType.contains("CONTENT-TYPE")) {
-                    // TODO: extract charset? Only UTF-8 is allowed for TEXT typed parts
-                    newPart.contentType = headerValue;
-                    Log.d(TAG, "*** CONTENT-TYPE: " + newPart.contentType);
+                    String[] contentTypeParts = headerValue.split(";");
+                    newPart.mContentType = contentTypeParts[0];
+                    // Extract the boundary if it exists
+                    for(int j=1, n=contentTypeParts.length; j<n; j++)
+                    {
+                        String value = contentTypeParts[j].toLowerCase();
+                        if(value.contains("charset")) {
+                            newPart.mCharsetName = value.split("charset[\\s]*=", 2)[1].trim();
+                        }
+                    }
                 }
                 else if(headerType.contains("CONTENT-LOCATION")) {
-                    // This is used if the smil refers to a file name in its src=
-                    newPart.contentLocation = headerValue;
-                    newPart.partName = headerValue;
+                    // This is used if the smil refers to a file name in its src
+                    newPart.mContentLocation = headerValue;
+                    newPart.mPartName = headerValue;
                 }
                 else if(headerType.contains("CONTENT-TRANSFER-ENCODING")) {
                     partEncoding = headerValue;
                 }
                 else if(headerType.contains("CONTENT-ID")) {
-                    // This is used if the smil refers to a cid:<xxx> in it's src=
-                    newPart.contentId = headerValue;
+                    // This is used if the smil refers to a cid:<xxx> in it's src
+                    newPart.mContentId = headerValue;
                 }
                 else if(headerType.contains("CONTENT-DISPOSITION")) {
-                    // This is used if the smil refers to a cid:<xxx> in it's src=
-                    newPart.contentDisposition = headerValue;
+                    // This is used if the smil refers to a cid:<xxx> in it's src
+                    newPart.mContentDisposition = headerValue;
                 }
                 else {
                     if(D) Log.w(TAG,"Skipping unknown part-header: " + headerType + " (" + header + ")");
                 }
             }
+            body = parts[1];
+            if(body.length() > 2) {
+                if(body.charAt(body.length()-2) == '\r'
+                        && body.charAt(body.length()-2) == '\n') {
+                    body = body.substring(0, body.length()-2);
+                }
+            }
         }
         // Now for the body
-        newPart.data = decodeBody(body, partEncoding);
+        newPart.mData = decodeBody(body, partEncoding, newPart.mCharsetName);
     }
 
     private void parseMmsMimeBody(String body) {
         MimePart newPart = addMimePart();
-        newPart.data = decodeBody(body, encoding);
+        newPart.mCharsetName = mCharset;
+        newPart.mData = decodeBody(body, encoding, mCharset);
     }
 
-    private byte[] decodeBody(String body, String encoding) {
+    private byte[] decodeBody(String body, String encoding, String charset) {
         if(encoding != null && encoding.toUpperCase().contains("BASE64")) {
             return Base64.decode(body, Base64.DEFAULT);
-        } else {
+        } else if(encoding != null && encoding.toUpperCase().contains("QUOTED-PRINTABLE")) {
+            return quotedPrintableToUtf8(body, charset);
+        }else{
             // TODO: handle other encoding types? - here we simply store the string data as bytes
             try {
+
                 return body.getBytes("UTF-8");
             } catch (UnsupportedEncodingException e) {
                 // This will never happen, as UTF-8 is mandatory on Android platforms
@@ -594,8 +662,8 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
             // If we have some text not being a header, add it to the message body.
             if(remaining != null) {
                 messageBody = remaining + messageParts[1];
-            }
-            else {
+                if(D) Log.d(TAG, "parseMms remaining=" + remaining );
+            } else {
                 messageBody = messageParts[1];
             }
         }
@@ -607,17 +675,113 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
             setTextOnly(true);
             if(contentType == null)
                 contentType = "text/plain";
-            parts.get(0).contentType = contentType;
+            parts.get(0).mContentType = contentType;
         }
         else
         {
             mimeParts = messageBody.split("--" + boundary);
+            if(D) Log.d(TAG, "mimePart count=" + mimeParts.length);
+            // Part 0 is the message to clients not capable of decoding MIME
             for(int i = 1; i < mimeParts.length - 1; i++) {
                 String part = mimeParts[i];
                 if (part != null && (part.length() > 0))
                     parseMmsMimePart(part);
+            }
         }
+    }
+
+    /**
+     * Convert a quoted-printable encoded string to a UTF-8 string:
+     *  - Remove any soft line breaks: "=<CRLF>"
+     *  - Convert all "=xx" to the corresponding byte
+     * @param text quoted-printable encoded UTF-8 text
+     * @return decoded UTF-8 string
+     */
+    public static byte[] quotedPrintableToUtf8(String text, String charset) {
+        byte[] output = new byte[text.length()]; // We allocate for the worst case memory need
+        byte[] input = null;
+        try {
+            input = text.getBytes("US-ASCII");
+        } catch (UnsupportedEncodingException e) {
+            /* This cannot happen as "US-ASCII" is supported for all Java implementations */ }
+
+        if(input == null){
+            return "".getBytes();
         }
+
+        int in, out, stopCnt = input.length-2; // Leave room for peaking the next two bytes
+
+        /* Algorithm:
+         *  - Search for token, copying all non token chars
+         * */
+        for(in=0, out=0; in < stopCnt; in++){
+            byte b0 = input[in];
+            if(b0 == '=') {
+                byte b1 = input[++in];
+                byte b2 = input[++in];
+                if(b1 == '\r' && b2 == '\n') {
+                    continue; // soft line break, remove all tree;
+                }
+                if(((b1 >= '0' && b1 <= '9') || (b1 >= 'A' && b1 <= 'F') || (b1 >= 'a' && b1 <= 'f')) &&
+                   ((b2 >= '0' && b2 <= '9') || (b2 >= 'A' && b2 <= 'F') || (b2 >= 'a' && b2 <= 'f'))) {
+                    if(V)Log.v(TAG, "Found hex number: " + String.format("%c%c", b1, b2));
+                    if(b1 <= '9')       b1 = (byte) (b1 - '0');
+                    else if (b1 <= 'F') b1 = (byte) (b1 - 'A' + 10);
+                    else if (b1 <= 'f') b1 = (byte) (b1 - 'a' + 10);
+
+                    if(b2 <= '9')       b2 = (byte) (b2 - '0');
+                    else if (b2 <= 'F') b2 = (byte) (b2 - 'A' + 10);
+                    else if (b2 <= 'f') b2 = (byte) (b2 - 'a' + 10);
+
+                    if(V)Log.v(TAG, "Resulting nibble values: " + String.format("b1=%x b2=%x", b1, b2));
+
+                    output[out++] = (byte)(b1<<4 | b2); // valid hex char, append
+                    if(V)Log.v(TAG, "Resulting value: "  + String.format("0x%2x", output[out-1]));
+                    continue;
+                }
+                Log.w(TAG, "Received wrongly quoted printable encoded text. Continuing at best effort...");
+                /* If we get a '=' without either a hex value or CRLF following, just add it and
+                 * rewind the in counter. */
+                output[out++] = b0;
+                in -= 2;
+                continue;
+            } else {
+                output[out++] = b0;
+                continue;
+            }
+        }
+
+        // Just add any remaining characters. If they contain any encoding, it is invalid,
+        // and best effort would be just to display the characters.
+        while (in < input.length) {
+            output[out++] = input[in++];
+        }
+
+        String result = null;
+        // Figure out if we support the charset, else fall back to UTF-8, as this is what
+        // the MAP specification suggest to use, and is compatible with US-ASCII.
+        if(charset == null){
+            charset = "UTF-8";
+        } else {
+            charset = charset.toUpperCase();
+            try {
+                if(Charset.isSupported(charset) == false) {
+                    charset = "UTF-8";
+                }
+            } catch (IllegalCharsetNameException e) {
+                Log.w(TAG, "Received unknown charset: " + charset + " - using UTF-8.");
+                charset = "UTF-8";
+            }
+        }
+        try{
+            result = new String(output, 0, out, charset);
+        } catch (UnsupportedEncodingException e) {
+            /* This cannot happen unless Charset.isSupported() is out of sync with String */
+            try{
+                result = new String(output, 0, out, "UTF-8");
+            } catch (UnsupportedEncodingException e2) {/* This cannot happen */}
+        }
+        return result.getBytes(); /* return the result as "UTF-8" bytes */
     }
 
     /* Notes on SMIL decoding (from http://tools.ietf.org/html/rfc2557):
