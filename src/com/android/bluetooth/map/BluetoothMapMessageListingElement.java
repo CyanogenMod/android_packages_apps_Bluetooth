@@ -35,225 +35,264 @@ public class BluetoothMapMessageListingElement
     private static final boolean D = false;
     private static final boolean V = false;
 
-    private long cpHandle = 0; /* The content provider handle - without type information */
-    private String mapHandle = null; /* The map hex-string handle with type information */
-    private String subject = null;
-    private long dateTime = 0;
-    private String senderName = null;
-    private String senderAddressing = null;
-    private String replytoAddressing = null;
-    private String recipientName = null;
-    private String recipientAddressing = null;
-    private TYPE type = null;
-    private int size = -1;
-    private String text = null;
-    private String receptionStatus = null;
-    private int attachmentSize = -1;
-    private String priority = null;
-    private String read = null;
-    private String sent = null;
-    private String protect = null;
-    private boolean reportRead;
-    public long getHandle() {
-        return cpHandle;
+    private long mCpHandle = 0; /* The content provider handle - without type information */
+    private String mSubject = null;
+    private long mDateTime = 0;
+    private String mSenderName = null;
+    private String mSenderAddressing = null;
+    private String mReplytoAddressing = null;
+    private String mRecipientName = null;
+    private String mRecipientAddressing = null;
+    private TYPE mType = null;
+    private int mSize = -1;
+    private String mText = null;
+    private String mReceptionStatus = null;
+    private int mAttachmentSize = -1;
+    private String mPriority = null;
+    private boolean mRead = false;
+    private String mSent = null;
+    private String mProtect = null;
+    private String mThreadId = null;
+    private boolean mReportRead = false;
+    private int mCursorIndex = 0;
+
+    public int getCursorIndex() {
+        return mCursorIndex;
     }
 
-    public void setHandle(long handle, TYPE type) {
-        this.cpHandle = handle;
-        this.mapHandle = BluetoothMapUtils.getMapHandle(cpHandle, type);
+    public void setCursorIndex(int cursorIndex) {
+        this.mCursorIndex = cursorIndex;
+    }
+
+    public long getHandle() {
+        return mCpHandle;
+    }
+
+    public void setHandle(long handle) {
+        this.mCpHandle = handle;
     }
 
     public long getDateTime() {
-        return dateTime;
+        return mDateTime;
     }
 
     public String getDateTimeString() {
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
-        Date date = new Date(dateTime);
+        Date date = new Date(mDateTime);
         return format.format(date); // Format to YYYYMMDDTHHMMSS local time
     }
 
     public void setDateTime(long dateTime) {
-        this.dateTime = dateTime;
+        this.mDateTime = dateTime;
     }
 
     public String getSubject() {
-        return subject;
+        return mSubject;
     }
 
     public void setSubject(String subject) {
-        this.subject = subject;
+        this.mSubject = subject;
     }
 
     public String getSenderName() {
-        return senderName;
+        return mSenderName;
     }
 
     public void setSenderName(String senderName) {
-        this.senderName = senderName;
+        this.mSenderName = senderName;
     }
 
     public String getSenderAddressing() {
-        return senderAddressing;
+        return mSenderAddressing;
     }
 
     public void setSenderAddressing(String senderAddressing) {
-        /* TODO: This should depend on the type - for email, the addressing is an email address
-         * Consider removing this again - to allow strings.
-         */
-        this.senderAddressing = PhoneNumberUtils.extractNetworkPortion(senderAddressing);
-        if(this.senderAddressing == null || this.senderAddressing.length() < 2){
-            this.senderAddressing = "11"; // Ensure we have at least two digits to
-        }
+        this.mSenderAddressing = senderAddressing;
     }
 
     public String getReplyToAddressing() {
-        return replytoAddressing;
+        return mReplytoAddressing;
     }
 
     public void setReplytoAddressing(String replytoAddressing) {
-        this.replytoAddressing = replytoAddressing;
+        this.mReplytoAddressing = replytoAddressing;
     }
 
     public String getRecipientName() {
-        return recipientName;
+        return mRecipientName;
     }
 
     public void setRecipientName(String recipientName) {
-        this.recipientName = recipientName;
+        this.mRecipientName = recipientName;
     }
 
     public String getRecipientAddressing() {
-        return recipientAddressing;
+        return mRecipientAddressing;
     }
 
     public void setRecipientAddressing(String recipientAddressing) {
-        this.recipientAddressing = recipientAddressing;
+        this.mRecipientAddressing = recipientAddressing;
     }
 
     public TYPE getType() {
-        return type;
+        return mType;
     }
 
     public void setType(TYPE type) {
-        this.type = type;
+        this.mType = type;
     }
 
     public int getSize() {
-        return size;
+        return mSize;
     }
 
     public void setSize(int size) {
-        this.size = size;
+        this.mSize = size;
     }
 
     public String getText() {
-        return text;
+        return mText;
     }
 
     public void setText(String text) {
-        this.text = text;
+        this.mText = text;
     }
 
     public String getReceptionStatus() {
-        return receptionStatus;
+        return mReceptionStatus;
     }
 
     public void setReceptionStatus(String receptionStatus) {
-        this.receptionStatus = receptionStatus;
+        this.mReceptionStatus = receptionStatus;
     }
 
     public int getAttachmentSize() {
-        return attachmentSize;
+        return mAttachmentSize;
     }
 
     public void setAttachmentSize(int attachmentSize) {
-        this.attachmentSize = attachmentSize;
+        this.mAttachmentSize = attachmentSize;
     }
 
     public String getPriority() {
-        return priority;
+        return mPriority;
     }
 
     public void setPriority(String priority) {
-        this.priority = priority;
+        this.mPriority = priority;
     }
 
     public String getRead() {
-        return read;
+        return (mRead?"yes":"no");
+    }
+    public boolean getReadBool() {
+        return mRead;
     }
 
-    public void setRead(String read, boolean reportRead) {
-        this.read = read;
-        this.reportRead = reportRead;
+    public void setRead(boolean read, boolean reportRead) {
+        this.mRead = read;
+        this.mReportRead = reportRead;
     }
 
     public String getSent() {
-        return sent;
+        return mSent;
     }
 
     public void setSent(String sent) {
-        this.sent = sent;
+        this.mSent = sent;
     }
 
     public String getProtect() {
-        return protect;
+        return mProtect;
     }
 
     public void setProtect(String protect) {
-        this.protect = protect;
+        this.mProtect = protect;
+    }
+
+    public void setThreadId(long threadId) {
+        if(threadId != -1) {
+            this.mThreadId = BluetoothMapUtils.getLongAsString(threadId);
+        }
     }
 
     public int compareTo(BluetoothMapMessageListingElement e) {
-        if (this.dateTime < e.dateTime) {
+        if (this.mDateTime < e.mDateTime) {
             return 1;
-        } else if (this.dateTime > e.dateTime) {
+        } else if (this.mDateTime > e.mDateTime) {
             return -1;
         } else {
             return 0;
         }
     }
 
+    /**
+     * Strip away any illegal XML characters, that would otherwise cause the
+     * xml serializer to throw an exception.
+     * Examples of such characters are the emojis used on Android.
+     * @param text The string to validate
+     * @return the same string if valid, otherwise a new String stripped for
+     * any illegal characters
+     */
+    private static String stripInvalidChars(String text) {
+        char out[] = new char[text.length()];
+        int i, o, l;
+        for(i=0, o=0, l=text.length(); i<l; i++){
+            char c = text.charAt(i);
+            if((c >= 0x20 && c <= 0xd7ff) || (c >= 0xe000 && c <= 0xfffd)) {
+                out[o++] = c;
+            } // Else we skip the character
+        }
+
+        if(i==o) {
+            return text;
+        } else { // We removed some characters, create the new string
+            return new String(out,0,o);
+        }
+    }
+
     /* Encode the MapMessageListingElement into the StringBuilder reference.
      * */
-    public void encode(XmlSerializer xmlMsgElement) throws IllegalArgumentException, IllegalStateException, IOException
+    public void encode(XmlSerializer xmlMsgElement, boolean includeThreadId) throws IllegalArgumentException, IllegalStateException, IOException
     {
 
             // contruct the XML tag for a single msg in the msglisting
             xmlMsgElement.startTag(null, "msg");
-            xmlMsgElement.attribute(null, "handle", mapHandle);
-            if(subject != null)
-                xmlMsgElement.attribute(null, "subject", subject);
-            if(dateTime != 0)
+            xmlMsgElement.attribute(null, "handle", BluetoothMapUtils.getMapHandle(mCpHandle, mType));
+            if(mSubject != null)
+                xmlMsgElement.attribute(null, "subject", stripInvalidChars(mSubject));
+            if(mDateTime != 0)
                 xmlMsgElement.attribute(null, "datetime", this.getDateTimeString());
-            if(senderName != null)
-                xmlMsgElement.attribute(null, "sender_name", senderName);
-            if(senderAddressing != null)
-                xmlMsgElement.attribute(null, "sender_addressing", senderAddressing);
-            if(replytoAddressing != null)
-                xmlMsgElement.attribute(null, "replyto_addressing",replytoAddressing);
-            if(recipientName != null)
-                xmlMsgElement.attribute(null, "recipient_name",recipientName);
-            if(recipientAddressing != null)
-                xmlMsgElement.attribute(null, "recipient_addressing", recipientAddressing);
-            if(type != null)
-                xmlMsgElement.attribute(null, "type", type.name());
-            if(size != -1)
-                xmlMsgElement.attribute(null, "size", Integer.toString(size));
-            if(text != null)
-                xmlMsgElement.attribute(null, "text", text);
-            if(receptionStatus != null)
-                xmlMsgElement.attribute(null, "reception_status", receptionStatus);
-            if(attachmentSize != -1)
-                xmlMsgElement.attribute(null, "attachment_size", Integer.toString(attachmentSize));
-            if(priority != null)
-                xmlMsgElement.attribute(null, "priority", priority);
-            if(read != null && reportRead)
-                xmlMsgElement.attribute(null, "read", read);
-            if(sent != null)
-                xmlMsgElement.attribute(null, "sent", sent);
-            if(protect != null)
-                xmlMsgElement.attribute(null, "protected", protect);
+            if(mSenderName != null)
+                xmlMsgElement.attribute(null, "sender_name", stripInvalidChars(mSenderName));
+            if(mSenderAddressing != null)
+                xmlMsgElement.attribute(null, "sender_addressing", mSenderAddressing);
+            if(mReplytoAddressing != null)
+                xmlMsgElement.attribute(null, "replyto_addressing",mReplytoAddressing);
+            if(mRecipientName != null)
+                xmlMsgElement.attribute(null, "recipient_name", stripInvalidChars(mRecipientName));
+            if(mRecipientAddressing != null)
+                xmlMsgElement.attribute(null, "recipient_addressing", mRecipientAddressing);
+            if(mType != null)
+                xmlMsgElement.attribute(null, "type", mType.name());
+            if(mSize != -1)
+                xmlMsgElement.attribute(null, "size", Integer.toString(mSize));
+            if(mText != null)
+                xmlMsgElement.attribute(null, "text", mText);
+            if(mReceptionStatus != null)
+                xmlMsgElement.attribute(null, "reception_status", mReceptionStatus);
+            if(mAttachmentSize != -1)
+                xmlMsgElement.attribute(null, "attachment_size", Integer.toString(mAttachmentSize));
+            if(mPriority != null)
+                xmlMsgElement.attribute(null, "priority", mPriority);
+            if(mReportRead)
+                xmlMsgElement.attribute(null, "read", getRead());
+            if(mSent != null)
+                xmlMsgElement.attribute(null, "sent", mSent);
+            if(mProtect != null)
+                xmlMsgElement.attribute(null, "protected", mProtect);
+            if(mThreadId != null && includeThreadId == true)
+                xmlMsgElement.attribute(null, "thread_id", mThreadId);
             xmlMsgElement.endTag(null, "msg");
 
     }
