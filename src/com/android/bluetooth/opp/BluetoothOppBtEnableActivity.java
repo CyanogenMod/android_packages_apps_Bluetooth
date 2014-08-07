@@ -105,8 +105,8 @@ public class BluetoothOppBtEnableActivity extends AlertActivity implements
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
+    public void onDestroy() {
+        super.onDestroy();
 
         if (!mBtEnabled) {
             mOppManager.cleanUpSendingFileInfo();
