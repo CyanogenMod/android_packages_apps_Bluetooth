@@ -220,7 +220,7 @@ public class GattService extends ProfileService {
 
         public void binderDied() {
             if (DBG) Log.d(TAG, "Binder is dead - unregistering client (" + mAppIf + ")!");
-            if (mScanManager.scanQueue().contains(new ScanClient(mAppIf, false))) {
+            if (isScanClient(mAppIf)) {
                 stopScan(mAppIf, false);
             } else {
                 stopMultiAdvertising(mAppIf);
@@ -228,6 +228,20 @@ public class GattService extends ProfileService {
             // TODO: Move unregisterClient after stop scan/advertise callback to avoid race
             // condition.
             unregisterClient(mAppIf);
+        }
+
+        private boolean isScanClient(int clientIf) {
+            for (ScanClient client : mScanManager.getRegularScanQueue()) {
+                if (client.clientIf == clientIf) {
+                    return true;
+                }
+            }
+            for (ScanClient client : mScanManager.getBatchScanQueue()) {
+                if (client.clientIf == clientIf) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
@@ -539,7 +553,7 @@ public class GattService extends ProfileService {
                     + ", rssi=" + rssi);
         ScanRecord record = ScanRecord.parseFromBytes(adv_data);
         List<UUID> remoteUuids = parseUuids(adv_data);
-        for (ScanClient client : mScanManager.scanQueue()) {
+        for (ScanClient client : mScanManager.getRegularScanQueue()) {
             if (client.uuids.length > 0) {
                 int matches = 0;
                 for (UUID search : client.uuids) {
@@ -950,13 +964,37 @@ public class GattService extends ProfileService {
             Log.d(TAG, "onBatchScanReports() - clientIf=" + clientIf + ", status=" + status
                     + ", reportType=" + reportType + ", numRecords=" + numRecords);
         }
-        ClientMap.App app = mClientMap.getById(clientIf);
-        if (app == null) return;
+        mScanManager.callbackDone(clientIf, status);
         Set<ScanResult> results = parseBatchScanResults(numRecords, reportType, recordData);
-        for (ScanResult result : new ArrayList<ScanResult>(results)) {
-            Log.d(TAG, result.getScanRecord().toString());
+        if (reportType == ScanManager.SCAN_RESULT_TYPE_TRUNCATED) {
+            // We only support single client for truncated mode.
+            ClientMap.App app = mClientMap.getById(clientIf);
+            if (app == null) return;
+            app.callback.onBatchScanResults(new ArrayList<ScanResult>(results));
+        } else {
+            for (ScanClient client : mScanManager.getBatchScanQueue()) {
+                // Deliver results for each client.
+                deliverBatchScan(client, results);
+            }
         }
-        app.callback.onBatchScanResults(new ArrayList<ScanResult>(results));
+    }
+
+    // Check and deliver scan results for different scan clients.
+    private void deliverBatchScan(ScanClient client, Set<ScanResult> allResults) throws
+            RemoteException {
+        ClientMap.App app = mClientMap.getById(client.clientIf);
+        if (app == null) return;
+        if (client.filters == null || client.filters.isEmpty()) {
+            app.callback.onBatchScanResults(new ArrayList<ScanResult>(allResults));
+        }
+        // Reconstruct the scan results.
+        List<ScanResult> results = new ArrayList<ScanResult>();
+        for (ScanResult scanResult : allResults) {
+            if (matchesFilters(client, scanResult)) {
+                results.add(scanResult);
+            }
+        }
+        app.callback.onBatchScanResults(results);
     }
 
     private Set<ScanResult> parseBatchScanResults(int numRecords, int reportType,
@@ -1215,7 +1253,7 @@ public class GattService extends ProfileService {
 
     void startScan(int appIf, boolean isServer, ScanSettings settings,
             List<ScanFilter> filters) {
-        if (DBG) Log.d(TAG, "start scan with filters ");
+        if (DBG) Log.d(TAG, "start scan with filters");
         enforceAdminPermission();
         mScanManager.startScan(new ScanClient(appIf, isServer, settings, filters));
     }
@@ -1228,7 +1266,9 @@ public class GattService extends ProfileService {
 
     void stopScan(int appIf, boolean isServer) {
         enforceAdminPermission();
-        if (DBG) Log.d(TAG, "stopScan() - queue=" + mScanManager.scanQueue().size());
+        int scanQueueSize = mScanManager.getBatchScanQueue().size() +
+                mScanManager.getRegularScanQueue().size();
+        if (DBG) Log.d(TAG, "stopScan() - queue size =" + scanQueueSize);
         mScanManager.stopScan(new ScanClient(appIf, isServer));
     }
 
