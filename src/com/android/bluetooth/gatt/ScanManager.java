@@ -240,8 +240,11 @@ public class ScanManager {
 
         // Delivery mode defined in bt stack.
         private static final int DELIVERY_MODE_IMMEDIATE = 0;
-        private static final int DELIVERY_MODE_ON_FOUND = 1;
+        private static final int DELIVERY_MODE_ON_FOUND_LOST = 1;
         private static final int DELIVERY_MODE_BATCH = 2;
+
+        private static final int DEFAULT_ONLOST_ONFOUND_TIMEOUT_MILLIS = 1000;
+        private static final int ONFOUND_SIGHTINGS = 2;
 
         private static final int ALLOW_ALL_FILTER_INDEX = 1;
         private static final int ALLOW_ALL_FILTER_SELECTION = 0;
@@ -594,10 +597,11 @@ public class ScanManager {
                 int filterIndex) {
             int deliveryMode = getDeliveryMode(client);
             int rssiThreshold = Byte.MIN_VALUE;
+            int timeout = getOnfoundLostTimeout(client);
             gattClientScanFilterParamAddNative(
                     clientIf, filterIndex, featureSelection, LIST_LOGIC_TYPE,
                     FILTER_LOGIC_TYPE, rssiThreshold, rssiThreshold, deliveryMode,
-                    0, 0, 0);
+                    timeout, timeout, ONFOUND_SIGHTINGS);
         }
 
         // Get delivery mode based on scan settings.
@@ -609,14 +613,24 @@ public class ScanManager {
             if (settings == null) {
                 return DELIVERY_MODE_IMMEDIATE;
             }
-            // TODO: double check whether it makes sense to use the same delivery mode for found and
-            // lost.
             if ((settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_FIRST_MATCH) != 0
                     || (settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_MATCH_LOST) != 0) {
-                return DELIVERY_MODE_ON_FOUND;
+                return DELIVERY_MODE_ON_FOUND_LOST;
             }
             return settings.getReportDelayMillis() == 0 ? DELIVERY_MODE_IMMEDIATE
                     : DELIVERY_MODE_BATCH;
+        }
+
+        //Get onfound and onlost timeouts in ms
+        private int getOnfoundLostTimeout(ScanClient client) {
+            if (client == null) {
+                return DEFAULT_ONLOST_ONFOUND_TIMEOUT_MILLIS;
+            }
+            ScanSettings settings = client.settings;
+            if (settings == null) {
+                return DEFAULT_ONLOST_ONFOUND_TIMEOUT_MILLIS;
+            }
+            return (int)settings.getReportDelayMillis();
         }
 
         /************************** Regular scan related native methods **************************/
