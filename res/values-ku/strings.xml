@@ -92,7 +92,7 @@
   <string name="bt_toast_6">وەستاندنی فایل ناردن بۆ \u0022<xliff:g id="recipient">%1$s</xliff:g>\u0022</string>
   <string name="bt_sm_2_1" product="nosdcard">بیرگەی تەواو لەبەردەست نیە بۆ پاشەکەوتکردنی فایلەکە لە \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022</string>
   <string name="bt_sm_2_1" product="default">بیرگەی تەواو لەبەردەست نیە بۆ پاشەکەوتکردنی فایلەکە لە \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022</string>
-  <string name="bt_sm_2_2">بۆشای پێوستە: <xliff:g id="size">%1$s</xliff:g></string>
+  <string name="bt_sm_2_2">بۆشایی پێوستە: <xliff:g id="size">%1$s</xliff:g></string>
   <string name="ErrorTooManyRequests">زۆر داواکاری له‌ پرۆسه‌یه‌. دوباره‌ هه‌وڵ بده‌ره‌وه‌.</string>
   <string name="status_pending">گواستنەوەی فایلەکە دەستی پێ نەکردوە هێشتا.</string>
   <string name="status_running">ڕۆیشتنی فایل ناردنەکە.</string>

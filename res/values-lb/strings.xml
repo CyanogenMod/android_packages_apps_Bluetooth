@@ -16,14 +16,47 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <string name="permlab_bluetoothShareManager">Zougrëff op den Download-Manager.</string>
   <string name="bt_share_picker_label">Bluetooth</string>
   <string name="unknown_device">Onbekannten Apparat</string>
+  <string name="unknownNumber">Onbekannt</string>
+  <string name="airplane_error_title">Fligermodus</string>
+  <string name="airplane_error_msg">Du kanns Bluetooth net am Fligermodus benotzen.</string>
+  <string name="bt_enable_line2">Bluetooth elo uschalten?</string>
   <string name="bt_enable_cancel">Ofbriechen</string>
+  <string name="bt_enable_ok">Uschalten</string>
+  <string name="incoming_file_confirm_title">Fichiersiwwerdroung</string>
+  <string name="incoming_file_confirm_content">\u0022<xliff:g id="sender">%1$s</xliff:g>\u0022 wëll dir <xliff:g id="file">%2$s</xliff:g> (<xliff:g id="size">%3$s</xliff:g>) schécken. \n\n De Fichier acceptéieren? </string>
+  <string name="incoming_file_confirm_cancel">Refuséieren</string>
+  <string name="incoming_file_confirm_ok">Acceptéieren</string>
   <string name="incoming_file_confirm_timeout_ok">OK</string>
+  <string name="incoming_file_confirm_Notification_caption">Wëlls du dëse Fichier emfänken?</string>
+  <string name="notification_receiving">Bluetooth-Fräigab: <xliff:g id="file">%1$s</xliff:g> gëtt emfaangen</string>
+  <string name="notification_sent_complete">100% ofgeschloss</string>
+  <string name="download_title">Fichiersiwwerdroung</string>
+  <string name="download_line2">Fichier: <xliff:g id="file">%1$s</xliff:g></string>
+  <string name="download_cancel">Stoppen</string>
+  <string name="download_ok">Verstoppen</string>
+  <string name="download_fail_line2">Fichier: <xliff:g id="file">%1$s</xliff:g></string>
+  <string name="download_fail_line3">Grond: <xliff:g id="reason">%1$s</xliff:g></string>
   <string name="download_fail_ok">OK</string>
   <string name="download_succ_ok">Opmaachen</string>
   <string name="upload_succ_ok">OK</string>
+  <string name="upload_fail_line1_2">Fichier: <xliff:g id="file">%1$s</xliff:g></string>
+  <string name="upload_fail_ok">Probéier nees</string>
+  <string name="upload_fail_cancel">Zoumaachen</string>
   <string name="bt_error_btn_ok">OK</string>
+  <string name="unknown_file">Onbekannte Fichier</string>
+  <string name="not_exist_file">Kee Fichier</string>
+  <string name="not_exist_file_desc">De Fichier existéiert net. \n</string>
+  <string name="enabling_progress_title">Waart w.e.g.\u2026</string>
+  <string name="status_not_accept">Inhalt net ënnerstëtzt.</string>
+  <string name="status_canceled">Iwwerdroung duerch de Benotzer ofgebrach.</string>
+  <string name="status_file_error">Späicherproblem.</string>
+  <string name="status_no_sd_card" product="nosdcard">Keen USB-Späicher.</string>
+  <string name="status_unknown_error">Onbekannte Feeler.</string>
+  <string name="download_success"> <xliff:g id="file_size">%1$s</xliff:g> vollstänneg empfaangen.</string>
+  <string name="upload_success"> <xliff:g id="file_size">%1$s</xliff:g> vollstänneg geschéckt.</string>
   <string name="transfer_menu_open">Opmaachen</string>
   <string name="transfer_clear_dlg_title">Eidel maachen</string>
 </resources>
