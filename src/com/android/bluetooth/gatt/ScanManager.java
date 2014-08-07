@@ -101,13 +101,17 @@ public class ScanManager {
     }
 
     /**
-     * Returns the combined scan queue of regular scans and batch scans.
+     * Returns the regular scan queue.
      */
-    List<ScanClient> scanQueue() {
-        List<ScanClient> clients = new ArrayList<>();
-        clients.addAll(mRegularScanClients);
-        clients.addAll(mBatchClients);
-        return clients;
+    Set<ScanClient> getRegularScanQueue() {
+        return mRegularScanClients;
+    }
+
+    /**
+     * Returns batch scan queue.
+     */
+    Set<ScanClient> getBatchScanQueue() {
+        return mBatchClients;
     }
 
     void startScan(ScanClient client) {
@@ -195,11 +199,9 @@ public class ScanManager {
         void handleStopScan(ScanClient client) {
             Utils.enforceAdminPermission(mService);
             if (mRegularScanClients.contains(client)) {
-                mRegularScanClients.remove(client);
                 mScanNative.configureRegularScanParams();
                 mScanNative.stopRegularScan(client);
             } else {
-                mBatchClients.remove(client);
                 mScanNative.stopBatchScan(client);
             }
         }
@@ -286,7 +288,7 @@ public class ScanManager {
                                 if (mBatchClients.isEmpty()) {
                                     return;
                                 }
-                                // TODO: find out if we need to flush all clients at once.
+                                // Note this actually flushes all pending batch data.
                                 flushBatchScanResults(mBatchClients.iterator().next());
                             }
                         }
@@ -418,9 +420,10 @@ public class ScanManager {
         }
 
         void stopBatchScan(ScanClient client) {
+            flushBatchResults(client.clientIf);
             removeScanFilters(client.clientIf);
-            mBatchClients.remove(client);
             gattClientStopBatchScanNative(client.clientIf);
+            mBatchClients.remove(client);
             setBatchAlarm();
         }
 
@@ -432,7 +435,9 @@ public class ScanManager {
                 return;
             }
             int resultType = getResultType(client.settings);
+            resetCountDownLatch();
             gattClientReadScanReportsNative(client.clientIf, resultType);
+            waitForCallback();
         }
 
         void cleanup() {
@@ -463,6 +468,9 @@ public class ScanManager {
                 resetCountDownLatch();
                 configureFilterParamter(clientIf, client, ALLOW_ALL_FILTER_SELECTION,
                         ALLOW_ALL_FILTER_INDEX);
+                Deque<Integer> clientFilterIndices = new ArrayDeque<Integer>();
+                clientFilterIndices.add(ALLOW_ALL_FILTER_INDEX);
+                mClientFilterIndexMap.put(clientIf, clientFilterIndices);
                 waitForCallback();
             } else {
                 Deque<Integer> clientFilterIndices = new ArrayDeque<Integer>();
