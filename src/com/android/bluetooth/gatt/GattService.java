@@ -1129,7 +1129,7 @@ public class GattService extends ProfileService {
             return;
         }
 
-        for (ScanClient client : mScanManager.scanQueue()) {
+        for (ScanClient client : mScanManager.getRegularScanQueue()) {
             if (client.clientIf == clientIf) {
                 ScanSettings settings = client.settings;
                 if ((settings.getCallbackType() &
