@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.gatt;
 
+import android.bluetooth.le.ResultStorageDescriptor;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
 
@@ -34,31 +35,38 @@ import java.util.UUID;
     UUID[] uuids;
     ScanSettings settings;
     List<ScanFilter> filters;
+    List<List<ResultStorageDescriptor>> storages;
 
     private static final ScanSettings DEFAULT_SCAN_SETTINGS = new ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
 
     ScanClient(int appIf, boolean isServer) {
-        this(appIf, isServer, new UUID[0], DEFAULT_SCAN_SETTINGS, null);
+        this(appIf, isServer, new UUID[0], DEFAULT_SCAN_SETTINGS, null, null);
     }
 
     ScanClient(int appIf, boolean isServer, UUID[] uuids) {
-        this(appIf, isServer, uuids, DEFAULT_SCAN_SETTINGS, null);
+        this(appIf, isServer, uuids, DEFAULT_SCAN_SETTINGS, null, null);
     }
 
     ScanClient(int appIf, boolean isServer, ScanSettings settings,
             List<ScanFilter> filters) {
-        this(appIf, isServer, new UUID[0], settings, filters);
+        this(appIf, isServer, new UUID[0], settings, filters, null);
+    }
+
+
+    ScanClient(int appIf, boolean isServer, ScanSettings settings,
+            List<ScanFilter> filters,  List<List<ResultStorageDescriptor>> storages) {
+        this(appIf, isServer, new UUID[0], settings, filters, storages);
     }
 
     private ScanClient(int appIf, boolean isServer, UUID[] uuids, ScanSettings settings,
-            List<ScanFilter> filters) {
+            List<ScanFilter> filters, List<List<ResultStorageDescriptor>> storages) {
         this.clientIf = appIf;
         this.isServer = isServer;
         this.uuids = uuids;
         this.settings = settings;
         this.filters = filters;
-
+        this.storages = storages;
     }
 
     @Override
