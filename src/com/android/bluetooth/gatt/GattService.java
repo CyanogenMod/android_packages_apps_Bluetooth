@@ -27,6 +27,7 @@ import android.bluetooth.IBluetoothGattServerCallback;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
+import android.bluetooth.le.ResultStorageDescriptor;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
@@ -300,10 +301,10 @@ public class GattService extends ProfileService {
 
         @Override
         public void startScan(int appIf, boolean isServer, ScanSettings settings,
-                List<ScanFilter> filters) {
+                List<ScanFilter> filters, List storages) {
             GattService service = getService();
             if (service == null) return;
-            service.startScan(appIf, isServer, settings, filters);
+            service.startScan(appIf, isServer, settings, filters, storages);
         }
 
         public void stopScan(int appIf, boolean isServer) {
@@ -1278,10 +1279,10 @@ public class GattService extends ProfileService {
     }
 
     void startScan(int appIf, boolean isServer, ScanSettings settings,
-            List<ScanFilter> filters) {
+            List<ScanFilter> filters, List<List<ResultStorageDescriptor>> storages) {
         if (DBG) Log.d(TAG, "start scan with filters");
         enforceAdminPermission();
-        mScanManager.startScan(new ScanClient(appIf, isServer, settings, filters));
+        mScanManager.startScan(new ScanClient(appIf, isServer, settings, filters, storages));
     }
 
     void flushPendingBatchResults(int clientIf, boolean isServer) {
