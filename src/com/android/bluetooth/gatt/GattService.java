@@ -109,6 +109,7 @@ public class GattService extends ProfileService {
     private List<UUID> mAdvertisingServiceUuids = new ArrayList<UUID>();
 
     private int mMaxScanFilters;
+    private Map<ScanClient, ScanResult> mOnFoundResults = new HashMap<ScanClient, ScanResult>();
 
     /**
      * Pending service declaration queue
@@ -579,7 +580,22 @@ public class GattService extends ProfileService {
                             rssi, scanTimeNanos);
                     if (matchesFilters(client, result)) {
                         try {
-                            app.callback.onScanResult(result);
+                            ScanSettings settings = client.settings;
+                            // framework detects the first match, hw signal is
+                            // used to detect the onlost
+                            // ToDo: make scanClient+result, 1 to many when hw
+                            // support is available
+                            if ((settings.getCallbackType() &
+                                    ScanSettings.CALLBACK_TYPE_FIRST_MATCH) != 0) {
+                                synchronized (mOnFoundResults) {
+                                    mOnFoundResults.put(client, result);
+                                }
+                                app.callback.onFoundOrLost(true, result);
+                            }
+                            if ((settings.getCallbackType() &
+                                    ScanSettings.CALLBACK_TYPE_ALL_MATCHES) != 0) {
+                                app.callback.onScanResult(result);
+                            }
                         } catch (RemoteException e) {
                             Log.e(TAG, "Exception: " + e);
                             mClientMap.remove(client.clientIf);
@@ -1107,17 +1123,27 @@ public class GattService extends ProfileService {
             Log.e(TAG, "app or callback is null");
             return;
         }
-        if (advState == ADVT_STATE_ONFOUND || advState == ADVT_STATE_ONLOST) {
-            int rssi = 0;
-            byte [] advData = new byte[0];
-            boolean found;
-            if (advState == ADVT_STATE_ONFOUND) {
-                found = true;
-            } else {
-                found = false;
+
+        // use hw signal for only onlost reporting
+        if (advState != ADVT_STATE_ONLOST) {
+            return;
+        }
+
+        for (ScanClient client : mScanManager.scanQueue()) {
+            if (client.clientIf == clientIf) {
+                ScanSettings settings = client.settings;
+                if ((settings.getCallbackType() &
+                            ScanSettings.CALLBACK_TYPE_MATCH_LOST) != 0) {
+
+                    while (!mOnFoundResults.isEmpty()) {
+                        ScanResult result = mOnFoundResults.get(client);
+                        app.callback.onFoundOrLost(false, result);
+                        synchronized (mOnFoundResults) {
+                            mOnFoundResults.remove(client);
+                        }
+                    }
+                }
             }
-            //ToDo: Address reporting format and content and then enable
-            app.callback.onFoundOrLost(found, address, rssi, advData);
         }
     }
 
