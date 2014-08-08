@@ -305,7 +305,8 @@ class AdvertiseManager {
                     minAdvertiseUnit, maxAdvertiseUnit,
                     advertiseEventType,
                     ADVERTISING_CHANNEL_ALL,
-                    txPowerLevel);
+                    txPowerLevel,
+                    client.settings.getTimeout());
         }
 
         private void setAdvertisingData(int clientIf, AdvertiseData data, boolean isScanResponse) {
@@ -431,11 +432,11 @@ class AdvertiseManager {
 
         private native void gattClientEnableAdvNative(int client_if,
                 int min_interval, int max_interval, int adv_type, int chnl_map,
-                int tx_power);
+                int tx_power, int timeout_s);
 
         private native void gattClientUpdateAdvNative(int client_if,
                 int min_interval, int max_interval, int adv_type, int chnl_map,
-                int tx_power);
+                int tx_power, int timeout_s);
 
         private native void gattClientSetAdvDataNative(int client_if,
                 boolean set_scan_rsp, boolean incl_name, boolean incl_txpower, int appearance,

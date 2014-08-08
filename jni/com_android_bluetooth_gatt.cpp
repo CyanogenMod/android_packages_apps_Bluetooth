@@ -1440,21 +1440,23 @@ static void gattConnectionParameterUpdateNative(JNIEnv *env, jobject object, jin
 }
 
 static void gattClientEnableAdvNative(JNIEnv* env, jobject object, jint client_if,
-       jint min_interval, jint max_interval, jint adv_type, jint chnl_map, jint tx_power)
+       jint min_interval, jint max_interval, jint adv_type, jint chnl_map, jint tx_power,
+       jint timeout_s)
 {
     if (!sGattIf) return;
 
     sGattIf->client->multi_adv_enable(client_if, min_interval, max_interval, adv_type, chnl_map,
-        tx_power);
+        tx_power, timeout_s);
 }
 
 static void gattClientUpdateAdvNative(JNIEnv* env, jobject object, jint client_if,
-       jint min_interval, jint max_interval, jint adv_type, jint chnl_map, jint tx_power)
+       jint min_interval, jint max_interval, jint adv_type, jint chnl_map, jint tx_power,
+       jint timeout_s)
 {
     if (!sGattIf) return;
 
     sGattIf->client->multi_adv_update(client_if, min_interval, max_interval, adv_type, chnl_map,
-        tx_power);
+        tx_power, timeout_s);
 }
 
 static void gattClientSetAdvDataNative(JNIEnv* env, jobject object , jint client_if,
@@ -1709,8 +1711,8 @@ static void gattTestNative(JNIEnv *env, jobject object, jint command,
 
 // JNI functions defined in AdvertiseManager class.
 static JNINativeMethod sAdvertiseMethods[] = {
-    {"gattClientEnableAdvNative", "(IIIIII)V", (void *) gattClientEnableAdvNative},
-    {"gattClientUpdateAdvNative", "(IIIIII)V", (void *) gattClientUpdateAdvNative},
+    {"gattClientEnableAdvNative", "(IIIIIII)V", (void *) gattClientEnableAdvNative},
+    {"gattClientUpdateAdvNative", "(IIIIIII)V", (void *) gattClientUpdateAdvNative},
     {"gattClientSetAdvDataNative", "(IZZZI[B[B[B)V", (void *) gattClientSetAdvDataNative},
     {"gattClientDisableAdvNative", "(I)V", (void *) gattClientDisableAdvNative},
 };
