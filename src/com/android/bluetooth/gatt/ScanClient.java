@@ -34,6 +34,7 @@ import java.util.UUID;
     UUID[] uuids;
     ScanSettings settings;
     List<ScanFilter> filters;
+
     private static final ScanSettings DEFAULT_SCAN_SETTINGS = new ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
 
