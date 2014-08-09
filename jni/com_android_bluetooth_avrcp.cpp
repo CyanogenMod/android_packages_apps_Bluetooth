@@ -430,7 +430,7 @@ static jboolean getListPlayerappAttrRspNative(JNIEnv *env ,jobject object , jbyt
 
     if (!sBluetoothAvrcpInterface) return JNI_FALSE;
     if( numAttr > BTRC_MAX_APP_ATTR_SIZE) {
-        ALOGE("get_element_attr_rsp: number of attributes exceed maximum");
+        ALOGE("getListPlayerappAttrRspNative: number of attributes exceed maximum");
         return JNI_FALSE;
     }
     ALOGI("getListPlayerappAttrRspNative");
@@ -456,7 +456,7 @@ static jboolean getListPlayerappAttrRspNative(JNIEnv *env ,jobject object , jbyt
     //Call Stack Method
     if ((status = sBluetoothAvrcpInterface->list_player_app_attr_rsp(numAttr, pAttrs)) !=
         BT_STATUS_SUCCESS) {
-        ALOGE("Failed getelementattrrsp, status: %d", status);
+        ALOGE("Failed list_player_app_attr_rsp, status: %d", status);
     }
     delete[] pAttrs;
     env->ReleaseByteArrayElements(attrIds, attr, 0);
@@ -473,7 +473,7 @@ static jboolean getPlayerAppValueRspNative(JNIEnv *env ,jobject object , jbyte n
     jbyte *attr;
 
     if( numvalue > BTRC_MAX_APP_ATTR_SIZE) {
-        ALOGE("get_element_attr_rsp: number of attributes exceed maximum");
+        ALOGE("getPlayerAppValueRspNative: number of attributes exceed maximum");
         return JNI_FALSE;
     }
     pAttrs = new uint8_t[numvalue];
@@ -496,7 +496,7 @@ static jboolean getPlayerAppValueRspNative(JNIEnv *env ,jobject object , jbyte n
     }
     if ((status = sBluetoothAvrcpInterface->list_player_app_value_rsp(numvalue, pAttrs)) !=
                                                                            BT_STATUS_SUCCESS) {
-        ALOGE("Failed get_element_attr_rsp, status: %d", status);
+        ALOGE("Failed list_player_app_value_rsp, status: %d", status);
     }
     delete[] pAttrs;
     env->ReleaseByteArrayElements(value, attr, 0);
@@ -533,7 +533,7 @@ static jboolean SendCurrentPlayerValueRspNative(JNIEnv *env, jobject object ,
     }
     if ((status = sBluetoothAvrcpInterface->get_player_app_value_rsp(pAttrs)) !=
                                                                      BT_STATUS_SUCCESS) {
-        ALOGE("Failed get_element_attr_rsp, status: %d", status);
+        ALOGE("Failed get_player_app_value_rsp, status: %d", status);
     }
     delete[] pAttrs;
     env->ReleaseByteArrayElements(value, attr, 0);
@@ -548,7 +548,7 @@ static jboolean SendSetPlayerAppRspNative(JNIEnv *env, jobject object)
     btrc_status_t player_rsp = BTRC_STS_NO_ERROR;
     if ((status = sBluetoothAvrcpInterface->set_player_app_value_rsp(player_rsp)) !=
                                                                    BT_STATUS_SUCCESS) {
-        ALOGE("Failed get_element_attr_rsp, status: %d", status);
+        ALOGE("Failed set_player_app_value_rsp, status: %d", status);
     }
     return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
@@ -566,7 +566,7 @@ static jboolean sendSettingsTextRspNative(JNIEnv *env, jobject object, jint num_
 
     if (!sBluetoothAvrcpInterface) return JNI_FALSE;
     if (num_attr > BTRC_MAX_ELEM_ATTR_SIZE) {
-        ALOGE("get_element_attr_rsp: number of attributes exceed maximum");
+        ALOGE("sendSettingsTextRspNative: number of attributes exceed maximum");
         return JNI_FALSE;
     }
     pAttrs = new btrc_player_setting_text_t[num_attr];
@@ -580,7 +580,7 @@ static jboolean sendSettingsTextRspNative(JNIEnv *env, jobject object, jint num_
         text = (jstring) env->GetObjectArrayElement(textArray, i);
         textStr = env->GetStringUTFChars(text, NULL);
         if (!textStr) {
-            ALOGE("get_element_attr_rsp: GetStringUTFChars return NULL");
+            ALOGE("sendSettingsTextRspNative: GetStringUTFChars return NULL");
             env->DeleteLocalRef(text);
             break;
         }
@@ -599,7 +599,7 @@ static jboolean sendSettingsTextRspNative(JNIEnv *env, jobject object, jint num_
     //Call Stack Methos to Respond PDU 0x16
     if ((status = sBluetoothAvrcpInterface->get_player_app_attr_text_rsp(num_attr, pAttrs))
                                                                        !=  BT_STATUS_SUCCESS) {
-        ALOGE("Failed get_element_attr_rsp, status: %d", status);
+        ALOGE("Failed get_player_app_attr_text_rsp, status: %d", status);
     }
     delete[] pAttrs;
     env->ReleaseByteArrayElements(attr, arr, 0);
@@ -651,7 +651,7 @@ static jboolean sendValueTextRspNative(JNIEnv *env, jobject object, jint num_att
     //Call Stack Method to Respond to PDU 0x16
     if ((status = sBluetoothAvrcpInterface->get_player_app_value_text_rsp(num_attr, pAttrs))
                                                                        != BT_STATUS_SUCCESS) {
-        ALOGE("Failed get_element_attr_rsp, status: %d", status);
+        ALOGE("Failed get_player_app_value_text_rsp, status: %d", status);
     }
     delete[] pAttrs;
     env->ReleaseByteArrayElements(attr, arr, 0);
@@ -670,13 +670,13 @@ static jboolean sendValueTextRspNative(JNIEnv *env, jobject object, jint num_att
     if (!sBluetoothAvrcpInterface) return JNI_FALSE;
 
     if (numAttr > BTRC_MAX_ELEM_ATTR_SIZE) {
-        ALOGE("get_element_attr_rsp: number of attributes exceed maximum");
+        ALOGE("getElementAttrRspNative: number of attributes exceed maximum");
         return JNI_FALSE;
     }
 
     pAttrs = new btrc_element_attr_val_t[numAttr];
     if (!pAttrs) {
-        ALOGE("get_element_attr_rsp: not have enough memeory");
+        ALOGE("getElementAttrRspNative: not have enough memeory");
         return JNI_FALSE;
     }
 
@@ -691,14 +691,14 @@ static jboolean sendValueTextRspNative(JNIEnv *env, jobject object, jint num_att
         text = (jstring) env->GetObjectArrayElement(textArray, i);
         textStr = env->GetStringUTFChars(text, NULL);
         if (!textStr) {
-            ALOGE("get_element_attr_rsp: GetStringUTFChars return NULL");
+            ALOGE("getElementAttrRspNative: GetStringUTFChars return NULL");
             env->DeleteLocalRef(text);
             break;
         }
 
         pAttrs[i].attr_id = attr[i];
         if (strlen(textStr) >= BTRC_MAX_ATTR_STR_LEN) {
-            ALOGE("get_element_attr_rsp: string length exceed maximum");
+            ALOGE("getElementAttrRspNative: string length exceed maximum");
             strncpy((char *)pAttrs[i].text, textStr, BTRC_MAX_ATTR_STR_LEN-1);
             pAttrs[i].text[BTRC_MAX_ATTR_STR_LEN-1] = 0;
         } else {
@@ -757,7 +757,7 @@ static jboolean registerNotificationPlayerAppRspNative(JNIEnv *env, jobject obje
     if ((status = sBluetoothAvrcpInterface->register_notification_rsp(BTRC_EVT_APP_SETTINGS_CHANGED,
                                                 (btrc_notification_type_t)type,param)) !=
                                                                     BT_STATUS_SUCCESS) {
-        ALOGE("Failed get_element_attr_rsp, status: %d", status);
+        ALOGE("Failed register_notification_rsp, status: %d", status);
     }
     delete[] param;
     env->ReleaseByteArrayElements(value, attr, 0);
