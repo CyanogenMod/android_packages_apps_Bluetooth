@@ -112,4 +112,11 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"খুলুন"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"তালিকা থেকে সাফ করুন"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"সাফ করুন"</string>
+    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"সংরক্ষণ করুন"</string>
+    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"বাতিল করুন"</string>
+    <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"Bluetooth এর মাধ্যমে ভাগ করতে চান এমন ইমেল অ্যাকাউন্টগুলি নির্বাচন করুন। সংযুক্ত হওয়ার সময় আপনাকে এখনও অ্যাকাউন্টগুলোতে অ্যাক্সেস গ্রহণ করতে হবে।"</string>
+    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"যে স্লটগুলি বাকি আছে:"</string>
+    <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"অ্যাপ্লিকেশান আইকন"</string>
+    <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"Bluetooth মারফত বার্তা ভাগ করার সেটিংস"</string>
+    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"অ্যাকাউন্ট নির্বাচন করা যাচ্ছে না। ০ স্লট বাকি আছে"</string>
 </resources>

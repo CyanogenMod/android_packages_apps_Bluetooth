@@ -112,4 +112,11 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Otvoriť"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Vymazať zo zoznamu"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Vymazať"</string>
+    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"Uložiť"</string>
+    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"Zrušiť"</string>
+    <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"Vyberte e-mailové účty, ktoré chcete zdieľať prostredníctvom rozhrania Bluetooth. Počas pripájania budete musieť aj tak prijať akékoľvek prístupy k účtom."</string>
+    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"Počet zostávajúcich slotov:"</string>
+    <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"Ikona aplikácie"</string>
+    <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"Nastavenia zdieľania správ prostredníctvom rozhrania Bluetooth"</string>
+    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"Účet sa nedá vybrať. Nie sú k dispozícii žiadne ďalšie sloty."</string>
 </resources>

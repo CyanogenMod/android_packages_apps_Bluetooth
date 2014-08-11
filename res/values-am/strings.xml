@@ -112,4 +112,11 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"ክፈት"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"ከዝርዝር አጽዳ"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"አጽዳ"</string>
+    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"አስቀምጥ"</string>
+    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"ይቅር"</string>
+    <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"በብሉቱዝ በኩል ማጋራት የሚፈልጉትን የኢሜይል አድራሻ ይምረጡ። አሁንም በሚያገናኙበት ወቅት ወደመለያዎቹ ማንኛውንም መዳረሻ መፍቀድ አለብዎ።"</string>
+    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"መክተቻዎች ይቀራሉ፦"</string>
+    <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"የመተግበሪያ አዶ"</string>
+    <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"የብሉቱዝ የመልዕክት ማጋራት ቅንብሮች"</string>
+    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"መለያን መምረጥ አይቻልም። 0 መክተቻዎች ይቀራሉ"</string>
 </resources>

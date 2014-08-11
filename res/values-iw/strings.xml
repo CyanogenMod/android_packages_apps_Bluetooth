@@ -112,4 +112,11 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"פתח"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"נקה מהרשימה"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"נקה"</string>
+    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"שמור"</string>
+    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"בטל"</string>
+    <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"‏בחר את חשבונות הדוא\"ל שברצונך לשתף באמצעות Bluetooth. עדיין יהיה עליך לאשר גישה אל החשבונות בעת החיבור."</string>
+    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"מקומות נותרים:"</string>
+    <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"סמל אפליקציה"</string>
+    <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"‏הגדרות לשיתוף הודעות ב-Bluetooth"</string>
+    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"לא ניתן לבחור חשבון. נותרו 0 מקומות"</string>
 </resources>

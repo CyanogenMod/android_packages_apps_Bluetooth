@@ -112,4 +112,11 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"తెరువు"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"జాబితా నుండి క్లియర్ చేయి"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"క్లియర్ చేయి"</string>
+    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"సేవ్ చేయి"</string>
+    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"రద్దు చేయి"</string>
+    <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"మీరు బ్లూటూత్ ద్వారా భాగస్వామ్యం చేయాలనుకునే ఇమెయిల్ ఖాతాలను ఎంచుకోండి. మీరు ఇప్పటికీ కనెక్ట్ చేస్తున్నప్పుడు ఖాతాలకు ప్రాప్యతలను ఆమోదించాలి."</string>
+    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"మిగిలిన స్లాట్‌లు:"</string>
+    <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"అనువర్తన చిహ్నం"</string>
+    <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"బ్లూటూత్ సందేశ భాగస్వామ్య సెట్టింగ్‌లు"</string>
+    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"ఖాతాను ఎంచుకోవడం సాధ్యపడదు. 0 స్లాట్‌లు మిగిలి ఉన్నాయి"</string>
 </resources>

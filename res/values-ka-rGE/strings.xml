@@ -112,4 +112,11 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"გახსნა"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"სიიდან ამოშლა"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"ამოშლა"</string>
+    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"შენახვა"</string>
+    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"გაუქმება"</string>
+    <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"აირჩიეთ ელფოსტის ანგარიშები, რომელთა გაზიარებაც Bluetooth-ით გსურთ. დაკავშირებისას ანგარიშებზე ნებისმიერი წვდომის დადასტურება მაინც მოგიწევთ."</string>
+    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"დარჩენილი სლოტი:"</string>
+    <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"აპლიკაციის ხატულა"</string>
+    <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"Bluetooth შეტყობინების გაზიარების პარამეტრები"</string>
+    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"ანგარიშის არჩევა ვერ ხერხდება. დარჩენილია 0 სლოტი"</string>
 </resources>

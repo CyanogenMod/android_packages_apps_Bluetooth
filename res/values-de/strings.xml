@@ -112,4 +112,11 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Öffnen"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Aus Liste löschen"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Löschen"</string>
+    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"Speichern"</string>
+    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"Abbrechen"</string>
+    <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"Wählen Sie die E-Mail-Konten aus, die Sie über Bluetooth freigeben möchten. Sie müssen beim Verbinden Zugriffe auf die Konten akzeptieren."</string>
+    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"Plätze frei:"</string>
+    <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"App-Symbol"</string>
+    <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"Bluetooth-Nachrichtenfreigabeeinstellungen"</string>
+    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"Konto kann nicht ausgewählt werden. 0 Plätze frei."</string>
 </resources>
