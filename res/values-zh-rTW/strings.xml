@@ -112,4 +112,11 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"開啟"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"從清單清除"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"清除"</string>
+    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"儲存"</string>
+    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"取消"</string>
+    <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"選取您要透過藍牙分享的電子郵件帳戶。連線時，您仍然必須接受所有帳戶存取要求。"</string>
+    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"剩餘插槽數："</string>
+    <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"應用程式圖示"</string>
+    <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"藍牙郵件分享設定"</string>
+    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"無法選取帳戶 (剩餘插槽數為 0)"</string>
 </resources>

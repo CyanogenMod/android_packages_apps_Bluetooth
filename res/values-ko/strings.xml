@@ -112,4 +112,11 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"열기"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"목록에서 지우기"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"지우기"</string>
+    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"저장"</string>
+    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"취소"</string>
+    <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"블루투스를 통해 공유하려는 이메일 계정을 선택하세요. 연결할 때 계정에 대한 모든 액세스를 수락해야 합니다."</string>
+    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"남은 슬롯:"</string>
+    <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"애플리케이션 아이콘"</string>
+    <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"블루투스 메시지 공유 설정"</string>
+    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"계정을 선택할 수 없습니다. 남은 슬롯이 없습니다."</string>
 </resources>
