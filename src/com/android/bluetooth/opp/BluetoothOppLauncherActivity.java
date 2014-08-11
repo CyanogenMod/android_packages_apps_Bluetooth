@@ -157,13 +157,15 @@ public class BluetoothOppLauncherActivity extends Activity {
                         public void run() {
                             BluetoothOppManager.getInstance(BluetoothOppLauncherActivity.this)
                                 .saveSendingFileInfo(mimeType,uris, false);
-                            //Done getting file info..Launch device picker
-                            //and finish this activity
-                            launchDevicePicker();
-                            finish();
+                            //Done getting file info
                         }
                     });
                     t.start();
+                    //Launch device picker after thread is started to avoid delay
+                    //caused by saving file information during multiple file share scenarios
+                    //which may cause ANR.
+                    launchDevicePicker();
+                    finish();
                     return;
                 } else {
                     Log.e(TAG, "type is null; or sending files URIs are null");
