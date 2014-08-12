@@ -97,8 +97,12 @@ class AdapterProperties {
             mProfileConnectionState.clear();
         }
         mRemoteDevices = remoteDevices;
-        IntentFilter filter = new IntentFilter(Intent.ACTION_USER_SWITCHED);
-        mContext.registerReceiver(mBluetoothReceiver, filter, null, null);
+        try {
+            IntentFilter filter = new IntentFilter(Intent.ACTION_USER_SWITCHED);
+            mContext.registerReceiver(mBluetoothReceiver, filter, null, null);
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "Exception: registerReceiver");
+        }
     }
 
     public void cleanup() {
@@ -110,7 +114,11 @@ class AdapterProperties {
         mService = null;
         if (!mBondedDevices.isEmpty())
             mBondedDevices.clear();
-        mContext.unregisterReceiver(mBluetoothReceiver);
+        try {
+            mContext.unregisterReceiver(mBluetoothReceiver);
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "Exception: unregisterReceiver");
+        }
         mContext = null;
     }
 
