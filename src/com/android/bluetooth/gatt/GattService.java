@@ -220,16 +220,19 @@ public class GattService extends ProfileService {
             mAppIf = appIf;
         }
 
+        @Override
         public void binderDied() {
             if (DBG) Log.d(TAG, "Binder is dead - unregistering client (" + mAppIf + ")!");
+
             if (isScanClient(mAppIf)) {
-                stopScan(mAppIf, false);
+                ScanClient client = new ScanClient(mAppIf, false);
+                client.appDied = true;
+                stopScan(client);
             } else {
-                stopMultiAdvertising(mAppIf);
+                AdvertiseClient client = new AdvertiseClient(mAppIf);
+                client.appDied = true;
+                stopMultiAdvertising(client);
             }
-            // TODO: Move unregisterClient after stop scan/advertise callback to avoid race
-            // condition.
-            unregisterClient(mAppIf);
         }
 
         private boolean isScanClient(int clientIf) {
@@ -310,7 +313,7 @@ public class GattService extends ProfileService {
         public void stopScan(int appIf, boolean isServer) {
             GattService service = getService();
             if (service == null) return;
-            service.stopScan(appIf, isServer);
+            service.stopScan(new ScanClient(appIf, isServer));
         }
 
         @Override
@@ -542,7 +545,7 @@ public class GattService extends ProfileService {
         public void stopMultiAdvertising(int clientIf) {
             GattService service = getService();
             if (service == null) return;
-            service.stopMultiAdvertising(clientIf);
+            service.stopMultiAdvertising(new AdvertiseClient(clientIf));
         }
     };
 
@@ -1202,7 +1205,7 @@ public class GattService extends ProfileService {
 
     // Callback when advertise instance is disabled
     void onAdvertiseInstanceDisabled(int status, int clientIf) throws RemoteException {
-        if (DBG) Log.d(TAG, "onAdvertiseInstanceEnabled() - clientIf=" + clientIf
+        if (DBG) Log.d(TAG, "onAdvertiseInstanceDisabled() - clientIf=" + clientIf
             + ", status=" + status);
         ClientMap.App app = mClientMap.getById(clientIf);
         if (app != null) {
@@ -1289,12 +1292,12 @@ public class GattService extends ProfileService {
         mScanManager.flushBatchScanResults(new ScanClient(clientIf, isServer));
     }
 
-    void stopScan(int appIf, boolean isServer) {
+    void stopScan(ScanClient client) {
         enforceAdminPermission();
         int scanQueueSize = mScanManager.getBatchScanQueue().size() +
                 mScanManager.getRegularScanQueue().size();
         if (DBG) Log.d(TAG, "stopScan() - queue size =" + scanQueueSize);
-        mScanManager.stopScan(new ScanClient(appIf, isServer));
+        mScanManager.stopScan(client);
     }
 
     /**************************************************************************
@@ -1341,9 +1344,9 @@ public class GattService extends ProfileService {
                 scanResponse));
     }
 
-    void stopMultiAdvertising(int clientIf) {
+    void stopMultiAdvertising(AdvertiseClient client) {
         enforceAdminPermission();
-        mAdvertiseManager.stopAdvertising(new AdvertiseClient(clientIf));
+        mAdvertiseManager.stopAdvertising(client);
     }
 
 

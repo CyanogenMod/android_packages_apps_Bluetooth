@@ -36,6 +36,8 @@ import java.util.UUID;
     ScanSettings settings;
     List<ScanFilter> filters;
     List<List<ResultStorageDescriptor>> storages;
+    // App associated with the scan client died.
+    boolean appDied;
 
     private static final ScanSettings DEFAULT_SCAN_SETTINGS = new ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
@@ -53,9 +55,8 @@ import java.util.UUID;
         this(appIf, isServer, new UUID[0], settings, filters, null);
     }
 
-
     ScanClient(int appIf, boolean isServer, ScanSettings settings,
-            List<ScanFilter> filters,  List<List<ResultStorageDescriptor>> storages) {
+            List<ScanFilter> filters, List<List<ResultStorageDescriptor>> storages) {
         this(appIf, isServer, new UUID[0], settings, filters, storages);
     }
 

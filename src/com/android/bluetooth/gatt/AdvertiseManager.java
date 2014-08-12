@@ -206,9 +206,13 @@ class AdvertiseManager {
             if (client == null) {
                 return;
             }
-            logd("advertise clients size " + mAdvertiseClients.size());
+            logd("stop advertise for client " + client.clientIf);
+            mAdvertiseNative.stopAdvertising(client);
+            if (client.appDied) {
+                logd("app died - unregistering client : " + client.clientIf);
+                mService.unregisterClient(client.clientIf);
+            }
             if (mAdvertiseClients.contains(client)) {
-                mAdvertiseNative.stopAdvertising(client);
                 mAdvertiseClients.remove(client);
             }
         }

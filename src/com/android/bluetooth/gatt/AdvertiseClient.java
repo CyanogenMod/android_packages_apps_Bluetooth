@@ -29,6 +29,8 @@ import java.util.Objects;
  */
 class AdvertiseClient {
     int clientIf;
+    // Associated application died.
+    boolean appDied;
     AdvertiseSettings settings;
     AdvertiseData advertiseData;
     @Nullable
@@ -37,7 +39,7 @@ class AdvertiseClient {
     /**
      * @param clientIf - Identifier of the client.
      */
-    public AdvertiseClient(int clientIf) {
+    AdvertiseClient(int clientIf) {
         this.clientIf = clientIf;
     }
 
