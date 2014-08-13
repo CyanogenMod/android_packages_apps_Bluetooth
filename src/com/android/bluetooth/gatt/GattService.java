@@ -575,10 +575,8 @@ public class GattService extends ProfileService {
                 if (app != null) {
                     BluetoothDevice device = BluetoothAdapter.getDefaultAdapter()
                             .getRemoteDevice(address);
-                    long scanTimeNanos =
-                            TimeUnit.NANOSECONDS.toMicros(SystemClock.elapsedRealtimeNanos());
                     ScanResult result = new ScanResult(device, ScanRecord.parseFromBytes(adv_data),
-                            rssi, scanTimeNanos);
+                            rssi, SystemClock.elapsedRealtimeNanos());
                     if (matchesFilters(client, result)) {
                         try {
                             ScanSettings settings = client.settings;
