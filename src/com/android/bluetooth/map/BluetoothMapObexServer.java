@@ -538,6 +538,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         int value = appParams.getStatusValue();
         long handle;
         BluetoothMapUtils.TYPE msgType;
+        if (D) Log.d(TAG, "setMessageStatus():");
 
         if(indicator == BluetoothMapAppParams.INVALID_VALUE_PARAMETER ||
            value == BluetoothMapAppParams.INVALID_VALUE_PARAMETER ||

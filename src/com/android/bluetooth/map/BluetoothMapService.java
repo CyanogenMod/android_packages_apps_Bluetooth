@@ -314,7 +314,7 @@ public class BluetoothMapService extends ProfileService {
     private final Handler mSessionStatusHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            if (VERBOSE) Log.v(TAG, "Handler(): got msg=" + msg.what);
+            if (DEBUG) Log.v(TAG, "Handler(): got msg=" + msg.what);
 
             switch (msg.what) {
                 case UPDATE_MAS_INSTANCES:

@@ -57,7 +57,7 @@ import android.util.Log;
  */
 public class BluetoothOppReceiveFileInfo {
     private static final boolean D = Constants.DEBUG;
-    private static final boolean V = Constants.VERBOSE;
+    private static final boolean V = Log.isLoggable(Constants.TAG, Log.VERBOSE) ? true : false;
     private static String sDesiredStoragePath = null;
 
     /* To truncate the name of the received file if the length exceeds 245 */

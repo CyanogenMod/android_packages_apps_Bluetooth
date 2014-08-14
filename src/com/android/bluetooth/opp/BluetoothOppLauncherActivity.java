@@ -65,8 +65,7 @@ import java.util.Locale;
 public class BluetoothOppLauncherActivity extends Activity {
     private static final String TAG = "BluetoothLauncherActivity";
     private static final boolean D = Constants.DEBUG;
-    private static final boolean V = Constants.VERBOSE;
-
+    private static final boolean V = Log.isLoggable(Constants.TAG, Log.VERBOSE) ? true : false;
     // Regex that matches characters that have special meaning in HTML. '<', '>', '&' and
     // multiple continuous spaces.
     private static final Pattern PLAIN_TEXT_TO_ESCAPE = Pattern.compile("[<>&]| {2,}|\r?\n");
@@ -91,7 +90,6 @@ public class BluetoothOppLauncherActivity extends Activity {
             finish();
             return;
         }
-
         if (action.equals(Intent.ACTION_SEND) || action.equals(Intent.ACTION_SEND_MULTIPLE)) {
             //Check if Bluetooth is available in the beginning instead of at the end
             if (!isBluetoothAllowed()) {

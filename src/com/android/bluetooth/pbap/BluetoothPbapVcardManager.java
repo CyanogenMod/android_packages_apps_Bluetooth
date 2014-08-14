@@ -69,7 +69,7 @@ import com.android.bluetooth.Utils;
 public class BluetoothPbapVcardManager {
     private static final String TAG = "BluetoothPbapVcardManager";
 
-    private static final boolean V = BluetoothPbapService.VERBOSE;
+    private static final boolean V = Log.isLoggable(BluetoothPbapService.LOG_TAG, Log.VERBOSE) ? true : false;
 
     private ContentResolver mResolver;
 

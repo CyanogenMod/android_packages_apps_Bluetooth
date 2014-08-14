@@ -80,7 +80,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     private static final String TAG = "BtOppObexServer";
     private static final boolean D = Constants.DEBUG;
-    private static final boolean V = Constants.VERBOSE;
+    private static final boolean V = Log.isLoggable(Constants.TAG, Log.VERBOSE) ? true : false;
 
     private ObexTransport mTransport;
 
@@ -543,6 +543,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         /*
          * implement receive file
          */
+        long beginTime = 0;
         int status = -1;
         BufferedOutputStream bos = null;
         ContentResolverUpdateThread uiUpdateThread = null;
@@ -576,6 +577,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             int readLength = 0;
             long timestamp = 0;
             try {
+                beginTime = System.currentTimeMillis();
                 while ((!mInterrupted) && (position != fileInfo.mLength)) {
 
                     if (V) timestamp = System.currentTimeMillis();
@@ -652,7 +654,10 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             status = BluetoothShare.STATUS_CANCELED;
         } else {
             if (position == fileInfo.mLength) {
-                if (D) Log.d(TAG, "Receiving file completed for " + fileInfo.mFileName);
+                long endTime = System.currentTimeMillis();
+                Log.i(TAG, "Receiving file completed for " + fileInfo.mFileName
+                        + " length " + fileInfo.mLength
+                        + " Bytes in " + (endTime - beginTime) + "ms"  );
                 status = BluetoothShare.STATUS_SUCCESS;
             } else {
                 Log.i(TAG, "Reading file failed at " + position + " of " + fileInfo.mLength);
