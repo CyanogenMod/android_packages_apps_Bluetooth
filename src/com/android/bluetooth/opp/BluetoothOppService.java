@@ -868,7 +868,8 @@ public class BluetoothOppService extends Service {
                         mServerTransfer = new BluetoothOppTransfer(this, mPowerManager, nextBatch,
                                                                    mServerSession);
                         mServerTransfer.start();
-                        if (nextBatch.getPendingShare().mConfirm ==
+                        if (nextBatch.getPendingShare() != null
+                            && nextBatch.getPendingShare().mConfirm ==
                                 BluetoothShare.USER_CONFIRMATION_CONFIRMED) {
                             mServerTransfer.confirmStatusChanged();
                         }
