@@ -187,16 +187,16 @@ public class GattService extends ProfileService {
         mHandleMap.clear();
         mServiceDeclarations.clear();
         mReliableQueue.clear();
-        mAdvertiseManager.cleanup();
-        mScanManager.cleanup();
+        if (mAdvertiseManager != null) mAdvertiseManager.cleanup();
+        if (mScanManager != null) mScanManager.cleanup();
         return true;
     }
 
     protected boolean cleanup() {
         if (DBG) Log.d(TAG, "cleanup()");
         cleanupNative();
-        mAdvertiseManager.cleanup();
-        mScanManager.cleanup();
+        if (mAdvertiseManager != null) mAdvertiseManager.cleanup();
+        if (mScanManager != null) mScanManager.cleanup();
         return true;
     }
 
