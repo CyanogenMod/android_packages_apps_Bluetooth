@@ -115,8 +115,8 @@
     <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"जतन करा"</string>
     <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"रद्द करा"</string>
     <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"आपण Bluetooth द्वारे सामायिक करू इच्छित असलेली ईमेल खाती निवडा. कनेक्‍ट करताना आपल्याला खात्यांवरील कोणतेही प्रवेश अद्याप स्वीकारावे लागतील."</string>
-    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"स्लॉट उर्वरित:"</string>
+    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"स्लॉट शिल्लक:"</string>
     <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"अनुप्रयोग चिन्ह"</string>
     <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"Bluetooth संदेश सामायिकरण सेटिंग्ज"</string>
-    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"खाते निवडू शकले नाही. 0 स्लॉट उर्वरित"</string>
+    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"खाते निवडू शकले नाही. 0 स्लॉट शिल्लक"</string>
 </resources>
