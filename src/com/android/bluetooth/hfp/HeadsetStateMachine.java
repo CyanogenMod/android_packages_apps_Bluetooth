@@ -3038,6 +3038,15 @@ final class HeadsetStateMachine extends StateMachine {
                 /* Not a Virtual call request. End the virtual call, if running,
                 before sending phoneStateChangeNative to BTIF */
                 terminateScoUsingVirtualVoiceCall();
+
+                /* Specific handling for case of starting MO/MT call while VOIP
+                is ongoing, terminateScoUsingVirtualVoiceCall() resets callState
+                from INCOMING/DIALING to IDLE. Some HS send AT+CIND? to read call
+                indicators and get wrong value of callsetup. This case is hit only
+                when SCO for VOIP call is not terminated via SDK API call. */
+                if (mPhoneState.getCallState() != callState.mCallState) {
+                    mPhoneState.setCallState(callState.mCallState);
+                }
             }
         }
         processA2dpState(callState);
