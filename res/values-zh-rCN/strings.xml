@@ -117,6 +117,6 @@
     <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"选中您要通过蓝牙共享的电子邮件帐户。建立连接后，您仍需接受对这些帐户的访问请求。"</string>
     <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"剩余空档数："</string>
     <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"应用图标"</string>
-    <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"蓝牙消息共享设置"</string>
+    <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"蓝牙邮件共享设置"</string>
     <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"无法选择帐户。目前没有任何空档"</string>
 </resources>
