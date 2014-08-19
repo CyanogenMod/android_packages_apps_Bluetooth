@@ -107,7 +107,8 @@ public class BluetoothTetheringNetworkFactory extends NetworkFactory {
                 }
 
                 synchronized(BluetoothTetheringNetworkFactory.this) {
-                    mLinkProperties = dhcpResults.linkProperties;
+                    mLinkProperties = dhcpResults.toLinkProperties(
+                            linkProperties.getInterfaceName());
                     mNetworkInfo.setIsAvailable(true);
                     mNetworkInfo.setDetailedState(DetailedState.CONNECTED, null, null);
 
