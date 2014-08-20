@@ -146,8 +146,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                     * RFCOMM connect fail is for outbound share only! Mark batch
                     * failed, and all shares in batch failed
                     */
-                    if (V) Log.v(TAG, "receive RFCOMM_ERROR msg");
-                    mConnectThread = null;
+                    if (V) Log.v(TAG, "receive TRANSPORT_ERROR msg");
                     markBatchFailed(BluetoothShare.STATUS_CONNECTION_ERROR);
                     mBatch.mStatus = Constants.BATCH_STATUS_FAILED;
 
