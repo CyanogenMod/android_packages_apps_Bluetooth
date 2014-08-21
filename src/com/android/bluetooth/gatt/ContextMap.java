@@ -167,6 +167,15 @@ import java.util.Map;
                 }
             }
         }
+        synchronized (mConnections) {
+            Iterator<Connection> i = mConnections.iterator();
+            while(i.hasNext()) {
+                Connection connection = i.next();
+                if (connection.appId == id) {
+                    i.remove();
+                }
+            }
+        }
     }
 
     /**
@@ -191,7 +200,6 @@ import java.util.Map;
                 Connection connection = i.next();
                 if (connection.connId == connId) {
                     i.remove();
-                    break;
                 }
             }
         }
