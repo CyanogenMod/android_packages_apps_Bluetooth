@@ -748,13 +748,14 @@ public class BluetoothPbapVcardManager {
         long timestamp = 0;
         if (V) timestamp = System.currentTimeMillis();
 
+        FilterVcard vcardfilter= new FilterVcard();
+        if (!ignorefilter) {
+            vcardfilter.setFilter(filter);
+        }
+        HandlerForStringBuffer buffer = null;
+
         if (isContacts) {
             VCardComposer composer = null;
-            FilterVcard vcardfilter= new FilterVcard();
-            if (!ignorefilter) {
-                vcardfilter.setFilter(filter);
-            }
-            HandlerForStringBuffer buffer = null;
             try {
                 // Currently only support Generic Vcard 2.1 and 3.0
                 int vcardType;
@@ -830,7 +831,6 @@ public class BluetoothPbapVcardManager {
             }
         } else { // CallLog
             BluetoothPbapCallLogComposer composer = null;
-            HandlerForStringBuffer buffer = null;
             try {
 
                 composer = new BluetoothPbapCallLogComposer(mContext);
@@ -848,6 +848,11 @@ public class BluetoothPbapVcardManager {
                         break;
                     }
                     String vcard = composer.createOneEntry(vcardType21);
+                    Log.v (TAG , "vCard from composer: " + vcard);
+                    if (!ignorefilter) {
+                        vcard = vcardfilter.applyFilter(vcard, vcardType21);
+                        Log.v (TAG , "vCard on applying filter: " + vcard);
+                    }
                     if (vcard == null) {
                         Log.e(TAG, "Failed to read a contact. Error reason: "
                                 + composer.getErrorReason());
@@ -1000,6 +1005,10 @@ public class BluetoothPbapVcardManager {
 
         private boolean nickname = true;
 
+        private final int DATETIME_BIT = 28;
+
+        private boolean datetime = true;
+
         public void setFilter(byte[] filter){
 
            fn = checkbit(FN_BIT, filter);
@@ -1012,6 +1021,7 @@ public class BluetoothPbapVcardManager {
            notes = checkbit(NOTES_BIT, filter);
            url = checkbit(URL_BIT, filter);
            nickname = checkbit(NICKNAME_BIT, filter);
+           datetime = checkbit(DATETIME_BIT, filter);
         }
 
         private boolean checkbit (int attr_bit, byte[] filter){
@@ -1194,6 +1204,24 @@ public class BluetoothPbapVcardManager {
             if((!url) && (vCard.contains("URL"))) {
                 for (int i=0; i < attr.length; i++) {
                     if(attr[i].startsWith("URL")){
+                        attr[i] = "";
+                        /** Remove multiline Content, if any */
+                        /** End traversal before END:VCARD */
+                        for (int j = i+1; j < attr.length - 1; j++) {
+                            if (checkValidFilter(attr[j])) {
+                                break;
+                            } else {
+                                /** Continuation of above attribute, remove */
+                                attr[j] = "";
+                            }
+                        }
+                    }
+                }
+            }
+
+            if((!datetime) && (vCard.contains("X-IRMC-CALL-DATETIME"))) {
+                for (int i=0; i < attr.length; i++) {
+                    if(attr[i].startsWith("X-IRMC-CALL-DATETIME")){
                         attr[i] = "";
                         /** Remove multiline Content, if any */
                         /** End traversal before END:VCARD */
