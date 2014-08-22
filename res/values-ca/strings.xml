@@ -112,18 +112,11 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Obre"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Esborra de la llista"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Esborra"</string>
-    <!-- no translation found for bluetooth_map_email_settings_save (5349902976213455385) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_email_settings_cancel (5019472404940038118) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_email_settings_intro (6219461401455143988) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_email_settings_count (8884933619108905375) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_email_settings_app_icon (6905622365985483669) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_email_settings_title (2181388147513118336) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_email_settings_no_account_slots_left (5989596869950397488) -->
-    <skip />
+    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"Desa"</string>
+    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"Cancel·la"</string>
+    <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"Selecciona els comptes de correu electrònic que vulguis compartir mitjançant Bluetooth. Cal que acceptis l\'accés als comptes en connectar-hi."</string>
+    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"Espais que queden:"</string>
+    <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"Icona d\'aplicació"</string>
+    <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"Configuració per compartir missatges mitjançant Bluetooth"</string>
+    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"No es pot seleccionar el compte. No queda cap espai."</string>
 </resources>
