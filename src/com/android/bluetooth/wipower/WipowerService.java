@@ -287,7 +287,7 @@ public class WipowerService extends Service
         initNative();
         //Make this restarable service by
         //Android app manager
-        return START_STICKY;
+        return START_NOT_STICKY;
    }
 
 
