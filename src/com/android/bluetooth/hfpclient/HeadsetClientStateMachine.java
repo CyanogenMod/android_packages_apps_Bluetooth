@@ -186,8 +186,8 @@ final class HeadsetClientStateMachine extends StateMachine {
             id++;
         }
 
-        BluetoothHeadsetClientCall c = new BluetoothHeadsetClientCall(id, state, number, false,
-                outgoing);
+        BluetoothHeadsetClientCall c = new BluetoothHeadsetClientCall(mCurrentDevice, id, state,
+                number, false, outgoing);
         mCalls.put(id, c);
 
         sendCallChangedIntent(c);
@@ -856,8 +856,8 @@ final class HeadsetClientStateMachine extends StateMachine {
             return;
         }
 
-        mCallsUpdate.put(id, new BluetoothHeadsetClientCall(id, state, number, multiParty,
-                outgoing));
+        mCallsUpdate.put(id, new BluetoothHeadsetClientCall(mCurrentDevice, id, state, number,
+                multiParty, outgoing));
     }
 
     // helper function for determining if query calls should be looped
