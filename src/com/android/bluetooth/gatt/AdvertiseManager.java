@@ -304,13 +304,15 @@ class AdvertiseManager {
             int maxAdvertiseUnit = minAdvertiseUnit + ADVERTISING_INTERVAL_DELTA_UNIT;
             int advertiseEventType = getAdvertisingEventType(client);
             int txPowerLevel = getTxPowerLevel(client.settings);
+            int advertiseTimeoutSeconds = (int) TimeUnit.MILLISECONDS.toSeconds(
+                    client.settings.getTimeout());
             gattClientEnableAdvNative(
                     clientIf,
                     minAdvertiseUnit, maxAdvertiseUnit,
                     advertiseEventType,
                     ADVERTISING_CHANNEL_ALL,
                     txPowerLevel,
-                    client.settings.getTimeout());
+                    advertiseTimeoutSeconds);
         }
 
         private void setAdvertisingData(int clientIf, AdvertiseData data, boolean isScanResponse) {
@@ -404,7 +406,7 @@ class AdvertiseManager {
         // Convert advertising event type to stack values.
         private int getAdvertisingEventType(AdvertiseClient client) {
             AdvertiseSettings settings = client.settings;
-            if (settings.getIsConnectable()) {
+            if (settings.isConnectable()) {
                 return ADVERTISING_EVENT_TYPE_CONNECTABLE;
             }
             return client.scanResponse == null ? ADVERTISING_EVENT_TYPE_NON_CONNECTABLE
