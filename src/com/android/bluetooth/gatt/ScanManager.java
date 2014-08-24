@@ -198,11 +198,16 @@ public class ScanManager {
 
         void handleStopScan(ScanClient client) {
             Utils.enforceAdminPermission(mService);
+            if (client == null) return;
             if (mRegularScanClients.contains(client)) {
                 mScanNative.configureRegularScanParams();
                 mScanNative.stopRegularScan(client);
             } else {
                 mScanNative.stopBatchScan(client);
+            }
+            if (client.appDied) {
+                logd("app died, unregister client - " + client.clientIf);
+                mService.unregisterClient(client.clientIf);
             }
         }
 
