@@ -17,19 +17,19 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"ဒေါင်းလုပ်မန်နေဂျာကို အသုံးပြုနိုင်မည်"</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"အပလီကေးရှင်းအား ဘလူးတုသ်မျှဝေမှု မန်နေဂျာကို အသုံးပြုခွင့်ပေးပြီး ဖိုင်လွှဲရန် အသုံးပြုပါ"</string>
-    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"ဘလူးတုသ်ယာယီခွင့်ပြုစာရင်းကို အသုံးပြုခွင့်"</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"အပလီကေးရှင်းအား ဘလူးတုသ်စက်ကို ယာယီခွင့်ပြုစာရင်းထဲ ထည့်ရန်ခွင့်ပြုကာ အသုံးပြုသူ၏ အတည်ပြုချက်မရယူပဲ ဖိုင်များကို စက်ထဲသို့ ပို့ခွင့်ပြုမည်"</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"အပလီကေးရှင်းအား ဘလူးတုသ်မျှဝေမှု မန်နေဂျာကို အသုံးပြုခွင့်ပေးပြီး ဖိုင်လွှဲရန် အသုံးပြုပါ"</string>
+    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"ဘလူးတုသ်ယာယီခွင့်ပြုစာရင်းကို အသုံးပြုခွင့်"</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"အပလီကေးရှင်းအား ဘလူးတုသ်စက်ကို ယာယီခွင့်ပြုစာရင်းထဲ ထည့်ရန်ခွင့်ပြုကာ အသုံးပြုသူ၏ အတည်ပြုချက်မရယူပဲ ဖိုင်များကို စက်ထဲသို့ ပို့ခွင့်ပြုမည်"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"ဘလူးတုသ်"</string>
     <string name="unknown_device" msgid="9221903979877041009">"မသိသော စက်"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"အကြောင်းအရာ မသိရှိ"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"လေယာဉ်ပျံပေါ်အသုံးပြုစနစ်"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"လေယာဥ်ပျံပေါ်သုံးစနစ်တွင် ဘလူးတုသ်အသုံးပြုမရပါ"</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
-    <string name="bt_enable_line1" msgid="7203551583048149">"ဘလူးတုသ်ဆားဗစ်ကိုအသုံးပြုရန် ပထမဦးစွာ ဘလူးတုသ်ကိုဖွင့်ပါ"</string>
-    <string name="bt_enable_line2" msgid="4341936569415937994">"ယခုပင် ဘလူးတုသ်ကိုဖွင့်မည်လား?"</string>
+    <string name="bt_enable_line1" msgid="7203551583048149">"ဘလူးတုသ်ဆားဗစ်ကိုအသုံးပြုရန် ပထမဦးစွာ ဘလူးတုသ်ကိုဖွင့်ပါ"</string>
+    <string name="bt_enable_line2" msgid="4341936569415937994">"ယခုပင် ဘလူးတုသ်ကိုဖွင့်မည်လား?"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"ပယ်ဖျက်သည်"</string>
-    <string name="bt_enable_ok" msgid="3432462749994538265">"ဖွင့်မည်"</string>
+    <string name="bt_enable_ok" msgid="3432462749994538265">"ဖွင့်မည်"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"ဖိုင်လွှဲပြောင်းခြင်း"</string>
     <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" မှ သင်ထံပို့ချင်ပါသည်<xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>). \n\nဖိုင်ကိုလက်ခံမည်လား?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"လက်မခံပါ"</string>
@@ -75,8 +75,8 @@
     <string name="not_exist_file" msgid="3489434189599716133">"ဖိုင်မရှိပါ"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"ထိုဖိုင်မှာ မရှိပါ \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"ကျေးဇူးပြု၍ ခဏစောင့်ပါ…"</string>
-    <string name="enabling_progress_content" msgid="4601542238119927904">"ဘလူးတုသ် ဖွင့်နေသည်"</string>
-    <string name="bt_toast_1" msgid="972182708034353383">"ဖိုင်ကို လက်ခံပါမည် အကြောင်းကြားချက် အကန့်ထဲတွင် တိုးတက်မှုကိုကြည့်ပါ"</string>
+    <string name="enabling_progress_content" msgid="4601542238119927904">"ဘလူးတုသ် ဖွင့်နေသည်"</string>
+    <string name="bt_toast_1" msgid="972182708034353383">"ဖိုင်ကို လက်ခံပါမည် အကြောင်းကြားချက် အကန့်ထဲတွင် တိုးတက်မှုကိုကြည့်ပါ"</string>
     <string name="bt_toast_2" msgid="8602553334099066582">"ဤဖိုင်ကိုလက်ခံမရပါ"</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"\"<xliff:g id="SENDER">%1$s</xliff:g>\"မှ ဖိုင်ကို လက်ခံခြင်းအား ရပ်ပါ"</string>
     <string name="bt_toast_4" msgid="4678812947604395649">"\"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"ထံသို့ ဖိုင်ကိုပို့ပါ"</string>
@@ -94,7 +94,7 @@
     <string name="status_canceled" msgid="6664490318773098285">"အသုံးပြုသူမှ လွှဲပြောင်းခြင်းကို ဖယ်ဖျက်ရန်"</string>
     <string name="status_file_error" msgid="3671917770630165299">"သိုလှောင်မှု အချက်"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"USBသိုလှောင်ရာမရှိပါ"</string>
-    <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"SDကဒ်မရှိပါ၊ လွှဲပြောင်းထားသော ဖိုင်များကို သိမ်းဆည်းရန် SDကဒ်ထည့်ပါ"</string>
+    <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"SDကဒ်မရှိပါ၊ လွှဲပြောင်းထားသော ဖိုင်များကို သိမ်းဆည်းရန် SDကဒ်ထည့်ပါ"</string>
     <string name="status_connection_error" msgid="947681831523219891">"ချိတ်ဆက်ခြင်း မအောင်မြင်ပါ"</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"တောင်းခံခြင်းကို မှန်ကန်စွာကိုင်တွယ်မရပါ"</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"အမည်မသိသော မှားယွင်းမှု"</string>
@@ -102,9 +102,9 @@
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> လက်ခံရပြီး"</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ပို့ခြင်း ပြီးဆုံးပြီး"</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"ပြန်လည်ရောက်လာသော လွှဲမှုများ"</string>
-    <string name="outbound_history_title" msgid="4279418703178140526">"ပြန်လည်ထွက်မည့် လွှဲမှုများ"</string>
+    <string name="outbound_history_title" msgid="4279418703178140526">"ပြန်လည်ထွက်မည့် လွှဲမှုများ"</string>
     <string name="no_transfers" msgid="3482965619151865672">"လွဲပြောင်းခြင်း မှတ်တမ်းတွင် ဘာမှမရှိပါ"</string>
-    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"အရာများအားလုံး စာရင်းမှ ရှင်းလင်းပစ်လိမ့်မည်"</string>
+    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"အရာများအားလုံး စာရင်းမှ ရှင်းလင်းပစ်လိမ့်မည်"</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"ဘလူးတုသ် ဝေမျှမှု - ဖိုင်ပို့ပြီး"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"ဘလူးတုသ် ဝေမျှမှု - ရရှိပြီးဖိုင်များ"</string>
     <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> အောင်မြင်သည် <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> မအောင်မြင်ပါ"</string>
@@ -114,9 +114,9 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"ရှင်းလင်းရန်"</string>
     <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"သိမ်းဆည်းရန်"</string>
     <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"ပယ်ဖျက်ရန်"</string>
-    <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"သင်က ဘလူးတုသ် မှတစ်ဆင့် မျှဝေလိုသည့် အီးမေးလ် အကောင့်ကို ရွေးပါ။ သင်သည် အကောင့်အား ရယူသုံးလိုမှု မှန်သမျှကို ချိတ်ဆက်လာသည့် အခါမှာ လက်ခံပေးရန် လိုဦးမည်။"</string>
-    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"ကျန်နေသည့် အပေါက်များ:"</string>
+    <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"သင်က ဘလူးတုသ် မှတစ်ဆင့် မျှဝေလိုသည့် အီးမေးလ် အကောင့်ကို ရွေးပါ။ သင်သည် အကောင့်အား ရယူသုံးလိုမှု မှန်သမျှကို ချိတ်ဆက်လာသည့် အခါမှာ လက်ခံပေးရန် လိုဦးမည်။"</string>
+    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"ကျန်နေသည့် အပေါက်များ:"</string>
     <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"အပလီကေးရှင်း အိုင်ကွန်"</string>
     <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"ဘလူးတုသ် စာ မျှဝေရေး ဆက်တင်များ"</string>
-    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"ရွေးထားသည့် အကောင့်ကို မရွေးနိုင်ပါ။ သုည အပေါက်များ ကျန်နေ"</string>
+    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"ရွေးထားသည့် အကောင့်ကို မရွေးနိုင်ပါ။ သုည အပေါက်များ ကျန်နေ"</string>
 </resources>
