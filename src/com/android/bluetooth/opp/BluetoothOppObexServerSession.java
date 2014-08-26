@@ -118,6 +118,8 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     boolean mTransferInProgress = false;
 
+    private ContentResolverUpdateThread uiUpdateThread = null;
+
     public BluetoothOppObexServerSession(Context context, ObexTransport transport) {
         mContext = context;
         mTransport = transport;
@@ -192,7 +194,6 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     private class ContentResolverUpdateThread extends Thread {
 
-        private static final int sSleepTime = 500;
         private Uri contentUri;
         private Context mContext1;
         private int position;
@@ -204,28 +205,21 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             position = pos;
         }
 
-        public void updateProgress (int pos) {
-            position = pos;
-        }
-
         @Override
         public void run() {
-            ContentValues updateValues;
-
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-
-            while (true) {
-                updateValues = new ContentValues();
-                updateValues.put(BluetoothShare.CURRENT_BYTES, position);
-                mContext1.getContentResolver().update(contentUri, updateValues,
-                        null, null);
-
-                try {
-                    Thread.sleep(sSleepTime);
-                } catch (InterruptedException e1) {
-                    if (V) Log.v(TAG, "Server ContentResolverUpdateThread was interrupted (1), exiting");
-                    return;
+            synchronized (BluetoothOppObexServerSession.this) {
+                if (uiUpdateThread != this) {
+                    throw new IllegalStateException(
+                        "multiple UpdateThreads in BluetoothOppObexServerSession");
                 }
+            }
+            ContentValues updateValues = new ContentValues();
+            updateValues.put(BluetoothShare.CURRENT_BYTES, position);
+            mContext1.getContentResolver().update(contentUri, updateValues,
+                    null, null);
+            synchronized (BluetoothOppObexServerSession.this) {
+                uiUpdateThread = null;
             }
         }
     }
@@ -546,7 +540,6 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         long beginTime = 0;
         int status = -1;
         BufferedOutputStream bos = null;
-        ContentResolverUpdateThread uiUpdateThread = null;
 
         InputStream is = null;
         boolean error = false;
@@ -604,8 +597,6 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                             Log.v(TAG, "Worker for Updation : Created");
                         }
                         uiUpdateThread.start();
-                    } else {
-                        uiUpdateThread.updateProgress (position);
                     }
                 }
 
