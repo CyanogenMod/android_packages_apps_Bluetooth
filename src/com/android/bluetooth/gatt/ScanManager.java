@@ -70,7 +70,11 @@ public class ScanManager {
     // Timeout for each controller operation.
     private static final int OPERATION_TIME_OUT_MILLIS = 500;
 
-    private static int lastConfiguredScanSetting = Integer.MIN_VALUE;
+    private int mLastConfiguredScanSetting = Integer.MIN_VALUE;
+    private int mLastConfiguredBatchFullScanSetting = Integer.MIN_VALUE;
+    private int mLastConfiguredBatchFullClientIf = Integer.MIN_VALUE;
+    private int mLastConfiguredBatchTruncScanSetting = Integer.MIN_VALUE;
+    private int mLastConfiguredBatchTruncClientIf = Integer.MIN_VALUE;
 
     private GattService mService;
     private ScanNative mScanNative;
@@ -189,6 +193,8 @@ public class ScanManager {
             if (isBatchClient(client)) {
                 mBatchClients.add(client);
                 mScanNative.startBatchScan(client);
+                mScanNative.configureBatchScanParams(SCAN_RESULT_TYPE_FULL);
+                mScanNative.configureBatchScanParams(SCAN_RESULT_TYPE_TRUNCATED);
             } else {
                 mRegularScanClients.add(client);
                 mScanNative.startRegularScan(client);
@@ -200,8 +206,8 @@ public class ScanManager {
             Utils.enforceAdminPermission(mService);
             if (client == null) return;
             if (mRegularScanClients.contains(client)) {
-                mScanNative.configureRegularScanParams();
                 mScanNative.stopRegularScan(client);
+                mScanNative.configureRegularScanParams();
             } else {
                 mScanNative.stopBatchScan(client);
             }
@@ -257,7 +263,7 @@ public class ScanManager {
         private static final int DISCARD_OLDEST_WHEN_BUFFER_FULL = 0;
 
         /**
-         * Scan params corresponding to scan setting
+         * Scan params corresponding to regular scan setting
          */
         private static final int SCAN_MODE_LOW_POWER_WINDOW_MS = 500;
         private static final int SCAN_MODE_LOW_POWER_INTERVAL_MS = 5000;
@@ -265,6 +271,16 @@ public class ScanManager {
         private static final int SCAN_MODE_BALANCED_INTERVAL_MS = 5000;
         private static final int SCAN_MODE_LOW_LATENCY_WINDOW_MS = 5000;
         private static final int SCAN_MODE_LOW_LATENCY_INTERVAL_MS = 5000;
+
+        /**
+         * Scan params corresponding to batch scan setting
+         */
+        private static final int SCAN_MODE_BATCH_LOW_POWER_WINDOW_MS = 1500;
+        private static final int SCAN_MODE_BATCH_LOW_POWER_INTERVAL_MS = 150000;
+        private static final int SCAN_MODE_BATCH_BALANCED_WINDOW_MS = 1500;
+        private static final int SCAN_MODE_BATCH_BALANCED_INTERVAL_MS = 15000;
+        private static final int SCAN_MODE_BATCH_LOW_LATENCY_WINDOW_MS = 1500;
+        private static final int SCAN_MODE_BATCH_LOW_LATENCY_INTERVAL_MS = 5000;
 
         // The logic is AND for each filter field.
         private static final int LIST_LOGIC_TYPE = 0x1111111;
@@ -316,23 +332,66 @@ public class ScanManager {
             }
         }
 
+        void updateAndConfigureScanParam(int clientIf, int curScanSetting, int resultType,
+                int scanWindow, int scanInterval) {
+
+            int discardRule = DISCARD_OLDEST_WHEN_BUFFER_FULL;
+            int addressType = 0;
+
+            if (resultType == SCAN_RESULT_TYPE_FULL) {
+                if (mLastConfiguredBatchFullClientIf != Integer.MIN_VALUE) {
+                    gattClientStopBatchScanNative(mLastConfiguredBatchFullClientIf);
+                }
+                gattClientStartBatchScanNative(clientIf, resultType, scanInterval,
+                            scanWindow, addressType, discardRule);
+                mLastConfiguredBatchFullScanSetting = curScanSetting;
+                mLastConfiguredBatchFullClientIf = clientIf;
+            } else if (resultType == SCAN_RESULT_TYPE_TRUNCATED) {
+                if (mLastConfiguredBatchTruncClientIf != Integer.MIN_VALUE) {
+                    gattClientStopBatchScanNative(mLastConfiguredBatchTruncClientIf);
+                }
+                gattClientStartBatchScanNative(clientIf, resultType, scanInterval,
+                            scanWindow, addressType, discardRule);
+                mLastConfiguredBatchTruncScanSetting = curScanSetting;
+                mLastConfiguredBatchTruncClientIf = clientIf;
+            }
+        }
+
+        int getLastConfiguredBatchScanSetting(int resultType) {
+            if (resultType == SCAN_RESULT_TYPE_FULL) {
+                return mLastConfiguredBatchFullScanSetting;
+            } else if (resultType == SCAN_RESULT_TYPE_TRUNCATED) {
+                return mLastConfiguredBatchTruncScanSetting;
+            }
+            return Integer.MIN_VALUE;
+        }
+
+        void resetBatchScanParam(int resultType) {
+            if (resultType == SCAN_RESULT_TYPE_FULL) {
+                mLastConfiguredBatchFullScanSetting = Integer.MIN_VALUE;
+                mLastConfiguredBatchFullClientIf = Integer.MIN_VALUE;
+            } else if (resultType == SCAN_RESULT_TYPE_TRUNCATED) {
+                mLastConfiguredBatchTruncScanSetting = Integer.MIN_VALUE;
+                mLastConfiguredBatchTruncClientIf = Integer.MIN_VALUE;
+            }
+        }
+
+
         void configureRegularScanParams() {
             if (DBG) Log.d(TAG, "configureRegularScanParams() - queue=" + mRegularScanClients.size());
             int curScanSetting = Integer.MIN_VALUE;
+            ScanClient client = null;
 
-            for(ScanClient client : mRegularScanClients) {
-                // ScanClient scan settings are assumed to be monotonically increasing in value for more
-                // power hungry(higher duty cycle) operation
-                if (client.settings.getScanMode() > curScanSetting) {
-                    curScanSetting = client.settings.getScanMode();
-                }
+            client = getAggressiveClient(mRegularScanClients, false, SCAN_RESULT_TYPE_FULL);
+            if (client != null) {
+                curScanSetting = client.settings.getScanMode();
             }
 
             if (DBG) Log.d(TAG, "configureRegularScanParams() - ScanSetting Scan mode=" + curScanSetting +
-                    " lastConfiguredScanSetting=" + lastConfiguredScanSetting);
+                    " mLastConfiguredScanSetting=" + mLastConfiguredScanSetting);
 
             if (curScanSetting != Integer.MIN_VALUE) {
-                if (curScanSetting != lastConfiguredScanSetting) {
+                if (curScanSetting != mLastConfiguredScanSetting) {
                     int scanWindow, scanInterval;
                     switch (curScanSetting){
                         case ScanSettings.SCAN_MODE_LOW_POWER:
@@ -359,11 +418,82 @@ public class ScanManager {
                     gattClientScanNative(false);
                     gattSetScanParametersNative(scanInterval, scanWindow);
                     gattClientScanNative(true);
-                    lastConfiguredScanSetting = curScanSetting;
+                    mLastConfiguredScanSetting = curScanSetting;
                 }
             } else {
-                lastConfiguredScanSetting = curScanSetting;
+                mLastConfiguredScanSetting = curScanSetting;
                 if (DBG) Log.d(TAG, "configureRegularScanParams() - queue emtpy, scan stopped");
+            }
+        }
+
+
+       ScanClient getAggressiveClient(Set<ScanClient> cList, boolean isBatchClientList, int resultType) {
+            ScanClient result = null;
+            int curScanSetting = Integer.MIN_VALUE;
+            for(ScanClient client : cList) {
+                // ScanClient scan settings are assumed to be monotonically increasing in value for more
+                // power hungry(higher duty cycle) operation
+                // For batch clients, there are 2 possible scan modes Truncated or Full
+                // Match resultType based on client list
+                if (!isBatchClientList ||
+                    (isBatchClientList && resultType == getResultType(client.settings))) {
+                    if (client.settings.getScanMode() > curScanSetting) {
+                        result = client;
+                    }
+                }
+            }
+            return result;
+        }
+
+        void configureBatchScanParams(int resultType) {
+            if (DBG) Log.d(TAG, "configureBathScanParams() - queue=" + mBatchClients.size());
+            int curScanSetting = Integer.MIN_VALUE;
+            int clientIf = Integer.MIN_VALUE;
+            ScanClient client = null;
+            int lastConfiguredBatchScanSetting = getLastConfiguredBatchScanSetting(resultType);
+
+            client = getAggressiveClient(mBatchClients, true, resultType);
+            if (client != null) {
+                curScanSetting = client.settings.getScanMode();
+                clientIf = client.clientIf;
+            }
+
+            if (DBG) Log.d(TAG, "configureBatchScanParams() - ScanSetting Scan mode=" + curScanSetting +
+                    " lastConfiguredBatchScanSetting=" + lastConfiguredBatchScanSetting +
+                    " scanType=" + resultType);
+
+            if (curScanSetting != Integer.MIN_VALUE) {
+                if (curScanSetting != lastConfiguredBatchScanSetting) {
+                    int scanWindow, scanInterval;
+                    switch (curScanSetting){
+                        case ScanSettings.SCAN_MODE_LOW_POWER:
+                            scanWindow = SCAN_MODE_BATCH_LOW_POWER_WINDOW_MS;
+                            scanInterval = SCAN_MODE_BATCH_LOW_POWER_INTERVAL_MS;
+                            break;
+                        case ScanSettings.SCAN_MODE_BALANCED:
+                            scanWindow = SCAN_MODE_BATCH_BALANCED_WINDOW_MS;
+                            scanInterval = SCAN_MODE_BATCH_BALANCED_INTERVAL_MS;
+                            break;
+                        case ScanSettings.SCAN_MODE_LOW_LATENCY:
+                            scanWindow = SCAN_MODE_BATCH_LOW_LATENCY_WINDOW_MS;
+                            scanInterval = SCAN_MODE_BATCH_LOW_LATENCY_INTERVAL_MS;
+                            break;
+                        default:
+                            Log.e(TAG, "Invalid value for curScanSetting " + curScanSetting);
+                            scanWindow = SCAN_MODE_BATCH_LOW_POWER_WINDOW_MS;
+                            scanInterval = SCAN_MODE_BATCH_LOW_POWER_INTERVAL_MS;
+                            break;
+                    }
+                    // convert scanWindow and scanInterval from ms to LE scan units(0.625ms)
+                    scanWindow = (scanWindow * 1000)/625;
+                    scanInterval = (scanInterval * 1000)/625;
+                    updateAndConfigureScanParam(clientIf, curScanSetting, resultType,
+                            scanWindow, scanInterval);
+                }
+            } else {
+                resetBatchScanParam(resultType);
+                if (DBG) Log.d(TAG, "configureBatchScanParams() - queue emtpy," +
+                            "resetting batch scan config params");
             }
         }
 
@@ -393,15 +523,7 @@ public class ScanManager {
             gattClientConfigBatchScanStorageNative(client.clientIf, fullScanPercent,
                     100 - fullScanPercent, notifyThreshold);
             waitForCallback();
-            int scanMode = getResultType(client.settings);
-            // TODO: configure scan parameters.
-            int scanIntervalUnit = 2400;
-            int scanWindowUnit = 2400;
-            int discardRule = DISCARD_OLDEST_WHEN_BUFFER_FULL;
-            int addressType = 0;
-            logd("Starting BLE batch scan, scanMode -" + scanMode);
-            gattClientStartBatchScanNative(client.clientIf, scanMode, scanIntervalUnit,
-                    scanWindowUnit, addressType, discardRule);
+            logd("Starting BLE batch scan");
             setBatchAlarm();
         }
 
@@ -430,8 +552,9 @@ public class ScanManager {
         void stopBatchScan(ScanClient client) {
             flushBatchResults(client.clientIf);
             removeScanFilters(client.clientIf);
-            gattClientStopBatchScanNative(client.clientIf);
             mBatchClients.remove(client);
+            configureBatchScanParams(SCAN_RESULT_TYPE_FULL);
+            configureBatchScanParams(SCAN_RESULT_TYPE_TRUNCATED);
             setBatchAlarm();
         }
 
