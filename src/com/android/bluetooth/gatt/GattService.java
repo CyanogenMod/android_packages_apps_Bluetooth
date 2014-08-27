@@ -66,16 +66,6 @@ public class GattService extends ProfileService {
     static final int SCAN_FILTER_ENABLED = 1;
     static final int SCAN_FILTER_MODIFIED = 2;
 
-    /**
-     * Scan params corresponding to scan setting
-     */
-    private static final int SCAN_MODE_LOW_POWER_WINDOW_MS = 500;
-    private static final int SCAN_MODE_LOW_POWER_INTERVAL_MS = 5000;
-    private static final int SCAN_MODE_BALANCED_WINDOW_MS = 2000;
-    private static final int SCAN_MODE_BALANCED_INTERVAL_MS = 5000;
-    private static final int SCAN_MODE_LOW_LATENCY_WINDOW_MS = 5000;
-    private static final int SCAN_MODE_LOW_LATENCY_INTERVAL_MS = 5000;
-
     private static final int MAC_ADDRESS_LENGTH = 6;
     // Batch scan related constants.
     private static final int TRUNCATED_RESULT_SIZE = 11;
