@@ -1029,6 +1029,7 @@ final class HeadsetStateMachine extends StateMachine {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
                     configureWBSNative(getByteAddress(device),NBS_CODEC);
                 }
+                    break;
                 case UPDATE_A2DP_PLAY_STATE:
                     processIntentA2dpPlayStateChanged((Intent) message.obj);
                     break;
@@ -1499,6 +1500,18 @@ final class HeadsetStateMachine extends StateMachine {
                     }
                 }
                     break;
+                case ENABLE_WBS:
+                {
+                    BluetoothDevice device = (BluetoothDevice) message.obj;
+                    configureWBSNative(getByteAddress(device),WBS_CODEC);
+                }
+                    break;
+                case DISABLE_WBS:
+                {
+                    BluetoothDevice device = (BluetoothDevice) message.obj;
+                    configureWBSNative(getByteAddress(device),NBS_CODEC);
+                }
+                    break;
                 case START_VR_TIMEOUT:
                 {
                     if (mWaitingForVoiceRecognition) {
@@ -1547,6 +1560,10 @@ final class HeadsetStateMachine extends StateMachine {
                             break;
                         case EVENT_TYPE_NOICE_REDUCTION:
                             processNoiceReductionEvent(event.valueInt, event.device);
+                            break;
+                        case EVENT_TYPE_WBS:
+                            Log.d(TAG, "EVENT_TYPE_WBS codec is " + event.valueInt);
+                            processWBSEvent(event.valueInt, event.device);
                             break;
                         case EVENT_TYPE_AT_CHLD:
                             processAtChld(event.valueInt, event.device);
@@ -1704,7 +1721,7 @@ final class HeadsetStateMachine extends StateMachine {
             } else {
                 Log.e(TAG, "Handsfree phone proxy null for query phone state");
             }
-         }
+        }
 
         private void processIntentScoVolume(Intent intent, BluetoothDevice device) {
             int volumeValue = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE, 0);
@@ -1848,6 +1865,18 @@ final class HeadsetStateMachine extends StateMachine {
                         terminateScoUsingVirtualVoiceCall();
                     }
                     break;
+                case ENABLE_WBS:
+                {
+                    device = (BluetoothDevice) message.obj;
+                    configureWBSNative(getByteAddress(device),WBS_CODEC);
+                }
+                    break;
+                case DISABLE_WBS:
+                {
+                    device = (BluetoothDevice) message.obj;
+                    configureWBSNative(getByteAddress(device),NBS_CODEC);
+                }
+                    break;
                 case START_VR_TIMEOUT:
                     if (mWaitingForVoiceRecognition) {
                         device = (BluetoothDevice) message.obj;
@@ -1856,6 +1885,14 @@ final class HeadsetStateMachine extends StateMachine {
                                              "recognition to start");
                         atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR,
                                                0, getByteAddress(device));
+                    }
+                    break;
+                case QUERY_PHONE_STATE_AT_SLC:
+                    try {
+                        log("Update call states after SLC is up");
+                        mPhoneProxy.queryPhoneState();
+                    } catch (RemoteException e) {
+                        Log.e(TAG, Log.getStackTraceString(new Throwable()));
                     }
                     break;
                 case STACK_EVENT:
@@ -2081,6 +2118,17 @@ final class HeadsetStateMachine extends StateMachine {
                     }
                 }
                 break;
+            case HeadsetHalConstants.CONNECTION_STATE_SLC_CONNECTED:
+                int RemoteBrsf = getRemoteFeaturesNative(getByteAddress(device));
+                Log.d(TAG, "Remote Brsf: " + RemoteBrsf + " for device: " + device);
+                mHeadsetBrsf.put(device, RemoteBrsf);
+                if (mRetryConnect.containsKey(device)) {
+                    Log.d(TAG, "Removing device " + device +
+                               " conn retry entry since we got SLC");
+                    mRetryConnect.remove(device);
+                }
+                processSlcConnected();
+                break;
             case HeadsetHalConstants.CONNECTION_STATE_CONNECTING:
                 if (mConnectedDevicesList.contains(device)) {
                     Log.e(TAG, "current device tries to connect back");
@@ -2163,7 +2211,26 @@ final class HeadsetStateMachine extends StateMachine {
                     break;
             }
         }
-
+        private void processSlcConnected() {
+            if (mPhoneProxy != null) {
+                // start phone state listener here, instead of on disconnected exit()
+                // On BT off, exitting SM sends a SM exit() call which incorrectly forces
+                // a listenForPhoneState(true).
+                // Additionally, no indicator updates should be sent prior to SLC setup
+                mPhoneState.listenForPhoneState(true);
+                sendMessageDelayed(QUERY_PHONE_STATE_AT_SLC, QUERY_PHONE_STATE_CHANGED_DELAYED);
+                mA2dpSuspend = false;/*Reset at SLC*/
+                mPendingCiev = false;
+                if ((isInCall()) && (mA2dpState == BluetoothProfile.STATE_CONNECTED)) {
+                    log("Headset connected while we are in some call state");
+                    log("Make A2dpSuspended=true here");
+                    mAudioManager.setParameters("A2dpSuspended=true");
+                    mA2dpSuspend = true;
+                }
+            } else {
+                Log.e(TAG, "Handsfree phone proxy null for query phone state");
+            }
+        }
         private void processMultiHFDisconnect(BluetoothDevice device) {
             log("MultiHFPending state: processMultiHFDisconnect");
             if (mActiveScoDevice != null && mActiveScoDevice.equals(device)) {
