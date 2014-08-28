@@ -726,6 +726,11 @@ final class HeadsetStateMachine extends StateMachine {
         public void enter() {
             log("Enter Connected: " + getCurrentMessage().what +
                            ", size: " + mConnectedDevicesList.size());
+            // start phone state listener here so that the CIND response as part of SLC can be
+            // responded to, correctly.
+            // we may enter Connected from Disconnected/Pending/AudioOn. listenForPhoneState
+            // internally handles multiple calls to start listen
+            mPhoneState.listenForPhoneState(true);
         }
 
         @Override
@@ -1085,11 +1090,6 @@ final class HeadsetStateMachine extends StateMachine {
         private void processSlcConnected() {
             if (mPhoneProxy != null) {
                 try {
-                    // start phone state listener here, instead of on disconnected exit()
-                    // On BT off, exitting SM sends a SM exit() call which incorrectly forces
-                    // a listenForPhoneState(true).
-                    // Additionally, no indicator updates should be sent prior to SLC setup
-                    mPhoneState.listenForPhoneState(true);
                     mPhoneProxy.queryPhoneState();
                 } catch (RemoteException e) {
                     Log.e(TAG, Log.getStackTraceString(new Throwable()));
@@ -1514,11 +1514,6 @@ final class HeadsetStateMachine extends StateMachine {
         private void processSlcConnected() {
             if (mPhoneProxy != null) {
                 try {
-                    // start phone state listener here, instead of on disconnected exit()
-                    // On BT off, exitting SM sends a SM exit() call which incorrectly forces
-                    // a listenForPhoneState(true).
-                    // Additionally, no indicator updates should be sent prior to SLC setup
-                    mPhoneState.listenForPhoneState(true);
                     mPhoneProxy.queryPhoneState();
                 } catch (RemoteException e) {
                     Log.e(TAG, Log.getStackTraceString(new Throwable()));
