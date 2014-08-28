@@ -765,6 +765,8 @@ public class BluetoothPbapService extends Service {
             deleteIntent.setAction(AUTH_CANCELLED_ACTION);
             notification = new Notification(android.R.drawable.stat_sys_data_bluetooth,
                 getString(R.string.auth_notif_ticker), System.currentTimeMillis());
+            notification.color = getResources().getColor(
+                    com.android.internal.R.color.system_notification_accent_color);
             notification.setLatestEventInfo(this, getString(R.string.auth_notif_title),
                     getString(R.string.auth_notif_message, name), PendingIntent
                             .getActivity(this, 0, clickIntent, 0));
