@@ -49,6 +49,8 @@ import android.os.Message;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.ParcelUuid;
+import android.os.UserHandle;
+import android.provider.Settings;
 import android.util.Log;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
@@ -631,7 +633,9 @@ final class A2dpStateMachine extends StateMachine {
         }
 
         private void processAudioFocusRequestEvent(int enable, BluetoothDevice device) {
-            if (mPlayingA2dpDevice != null) {
+            if (mPlayingA2dpDevice != null && Settings.System.getIntForUser(
+                    mContext.getContentResolver(), Settings.System.HEADSET_CONNECT_PLAYER,
+                    0, UserHandle.USER_CURRENT) != 0) {
                 if ((mService.getLastConnectedA2dpSepType(device)
                         == BluetoothProfile.PROFILE_A2DP_SRC) && (enable == 1)){
                     // in case PEER DEVICE is A2DP SRC we need to manager audio focus
