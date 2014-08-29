@@ -43,6 +43,7 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.util.Log;
+import android.view.KeyEvent;
 
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
@@ -55,7 +56,6 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
 /**
  * support Bluetooth AVRCP profile.
  * support metadata, play status and event notification
@@ -398,12 +398,34 @@ public final class Avrcp {
 
             case MESSAGE_FAST_FORWARD:
             case MESSAGE_REWIND:
+                if(msg.what == MESSAGE_FAST_FORWARD) {
+                    if((mTransportControlFlags &
+                        RemoteControlClient.FLAG_KEY_MEDIA_FAST_FORWARD) != 0) {
+                    int keyState = msg.arg1 == KEY_STATE_PRESS ?
+                        KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP;
+                    KeyEvent keyEvent =
+                        new KeyEvent(keyState, KeyEvent.KEYCODE_MEDIA_FAST_FORWARD);
+                    mRemoteController.sendMediaKeyEvent(keyEvent);
+                    break;
+                    }
+                } else if((mTransportControlFlags &
+                        RemoteControlClient.FLAG_KEY_MEDIA_REWIND) != 0) {
+                    int keyState = msg.arg1 == KEY_STATE_PRESS ?
+                        KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP;
+                    KeyEvent keyEvent =
+                        new KeyEvent(keyState, KeyEvent.KEYCODE_MEDIA_REWIND);
+                    mRemoteController.sendMediaKeyEvent(keyEvent);
+                    break;
+                }
+
                 int skipAmount;
                 if (msg.what == MESSAGE_FAST_FORWARD) {
                     if (DEBUG) Log.v(TAG, "MESSAGE_FAST_FORWARD");
+                    removeMessages(MESSAGE_FAST_FORWARD);
                     skipAmount = BASE_SKIP_AMOUNT;
                 } else {
                     if (DEBUG) Log.v(TAG, "MESSAGE_REWIND");
+                    removeMessages(MESSAGE_REWIND);
                     skipAmount = -BASE_SKIP_AMOUNT;
                 }
 
@@ -425,6 +447,7 @@ public final class Avrcp {
                     posMsg.arg1 = 1;
                     sendMessageDelayed(posMsg, SKIP_PERIOD);
                 }
+
                 break;
 
             case MESSAGE_CHANGE_PLAY_POS:
