@@ -507,11 +507,14 @@ static bool set_wake_alarm_callout(uint64_t delay_millis, bool should_wake, alar
         return false;
     }
 
+    sAlarmCallback = cb;
+    sAlarmCallbackData = data;
+
     jboolean jshould_wake = should_wake ? JNI_TRUE : JNI_FALSE;
     jboolean ret = env->CallBooleanMethod(sJniAdapterServiceObj, method_setWakeAlarm, (jlong)delay_millis, jshould_wake);
-    if (ret) {
-        sAlarmCallback = cb;
-        sAlarmCallbackData = data;
+    if (!ret) {
+        sAlarmCallback = NULL;
+        sAlarmCallbackData = NULL;
     }
 
     if (status == JNI_EDETACHED) {
@@ -586,7 +589,11 @@ static int release_wake_lock_callout(const char *lock_name) {
 // Called by Java code when alarm is fired. A wake lock is held by the caller
 // over the duration of this callback.
 static void alarmFiredNative(JNIEnv *env, jobject obj) {
-    sAlarmCallback(sAlarmCallbackData);
+    if (sAlarmCallback) {
+        sAlarmCallback(sAlarmCallbackData);
+    } else {
+        ALOGE("%s() - Alarm fired with callback not set!", __FUNCTION__);
+    }
 }
 
 static void remote_mas_instances_callback(bt_status_t status, bt_bdaddr_t *bd_addr,
