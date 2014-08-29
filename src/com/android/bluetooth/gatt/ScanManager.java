@@ -77,6 +77,8 @@ public class ScanManager {
     private int mLastConfiguredBatchTruncClientIf = Integer.MIN_VALUE;
 
     private GattService mService;
+    private BroadcastReceiver mBatchAlarmReceiver;
+    private boolean mBatchAlarmReceiverRegistered;
     private ScanNative mScanNative;
     private ClientHandler mHandler;
 
@@ -301,22 +303,23 @@ public class ScanManager {
             mBatchScanIntervalIntent = PendingIntent.getBroadcast(mService, 0, batchIntent, 0);
             IntentFilter filter = new IntentFilter();
             filter.addAction(ACTION_REFRESH_BATCHED_SCAN);
-            mService.registerReceiver(
-                    new BroadcastReceiver() {
+            mBatchAlarmReceiver = new BroadcastReceiver() {
                     @Override
-                        public void onReceive(Context context, Intent intent) {
-                            Log.d(TAG, "awakened up at time " + SystemClock.elapsedRealtime());
-                            String action = intent.getAction();
+                public void onReceive(Context context, Intent intent) {
+                    Log.d(TAG, "awakened up at time " + SystemClock.elapsedRealtime());
+                    String action = intent.getAction();
 
-                            if (action.equals(ACTION_REFRESH_BATCHED_SCAN)) {
-                                if (mBatchClients.isEmpty()) {
-                                    return;
-                                }
-                                // Note this actually flushes all pending batch data.
-                                flushBatchScanResults(mBatchClients.iterator().next());
-                            }
+                    if (action.equals(ACTION_REFRESH_BATCHED_SCAN)) {
+                        if (mBatchClients.isEmpty()) {
+                            return;
                         }
-                    }, filter);
+                        // Note this actually flushes all pending batch data.
+                        flushBatchScanResults(mBatchClients.iterator().next());
+                    }
+                }
+            };
+            mService.registerReceiver(mBatchAlarmReceiver, filter);
+            mBatchAlarmReceiverRegistered = true;
         }
 
         private void resetCountDownLatch() {
@@ -426,7 +429,6 @@ public class ScanManager {
             }
         }
 
-
        ScanClient getAggressiveClient(Set<ScanClient> cList, boolean isBatchClientList, int resultType) {
             ScanClient result = null;
             int curScanSetting = Integer.MIN_VALUE;
@@ -497,7 +499,6 @@ public class ScanManager {
             }
         }
 
-
         void startRegularScan(ScanClient client) {
             if (mFilterIndexStack.isEmpty() && isFilteringSupported()) {
                 initFilterIndexStack();
@@ -527,15 +528,18 @@ public class ScanManager {
             setBatchAlarm();
         }
 
+        // Set the batch alarm to be triggered within a short window after batch interval. This
+        // allows system to optimize wake up time while still allows a degree of precise control.
         private void setBatchAlarm() {
-            if (mBatchClients.isEmpty()) {
-                mAlarmManager.cancel(mBatchScanIntervalIntent);
-                return;
-            }
+            // Cancel any pending alarm just in case.
+            mAlarmManager.cancel(mBatchScanIntervalIntent);
             long batchTriggerIntervalMillis = getBatchTriggerIntervalMillis();
-            mAlarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                    SystemClock.elapsedRealtime() + batchTriggerIntervalMillis,
-                    batchTriggerIntervalMillis,
+            // Allows the alarm to be triggered within
+            // [batchTriggerIntervalMillis, 1.1 * batchTriggerIntervalMillis]
+            long windowLengthMillis = batchTriggerIntervalMillis / 10;
+            long windowStartMillis = SystemClock.elapsedRealtime() + batchTriggerIntervalMillis;
+            mAlarmManager.setWindow(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    windowStartMillis, windowLengthMillis,
                     mBatchScanIntervalIntent);
         }
 
@@ -569,10 +573,16 @@ public class ScanManager {
             resetCountDownLatch();
             gattClientReadScanReportsNative(client.clientIf, resultType);
             waitForCallback();
+            setBatchAlarm();
         }
 
         void cleanup() {
             mAlarmManager.cancel(mBatchScanIntervalIntent);
+            // Protect against multiple calls of cleanup.
+            if (mBatchAlarmReceiverRegistered) {
+                mService.unregisterReceiver(mBatchAlarmReceiver);
+            }
+            mBatchAlarmReceiverRegistered = false;
         }
 
         private long getBatchTriggerIntervalMillis() {
@@ -749,7 +759,7 @@ public class ScanManager {
                     : DELIVERY_MODE_BATCH;
         }
 
-        //Get onfound and onlost timeouts in ms
+        // Get onfound and onlost timeouts in ms
         private int getOnfoundLostTimeout(ScanClient client) {
             if (client == null) {
                 return DEFAULT_ONLOST_ONFOUND_TIMEOUT_MILLIS;
@@ -758,7 +768,7 @@ public class ScanManager {
             if (settings == null) {
                 return DEFAULT_ONLOST_ONFOUND_TIMEOUT_MILLIS;
             }
-            return (int)settings.getReportDelayMillis();
+            return (int) settings.getReportDelayMillis();
         }
 
         /************************** Regular scan related native methods **************************/
