@@ -1489,7 +1489,12 @@ final class HeadsetStateMachine extends StateMachine {
                 case VIRTUAL_CALL_STOP:
                     terminateScoUsingVirtualVoiceCall();
                     break;
-
+                case UPDATE_A2DP_PLAY_STATE:
+                    processIntentA2dpPlayStateChanged((Intent) message.obj);
+                    break;
+                case UPDATE_A2DP_CONN_STATE:
+                    processIntentA2dpStateChanged((Intent) message.obj);
+                    break;
                 case DIALING_OUT_TIMEOUT:
                 {
                     if (mDialingOut) {
@@ -1694,9 +1699,23 @@ final class HeadsetStateMachine extends StateMachine {
                 case HeadsetHalConstants.AUDIO_STATE_DISCONNECTED:
                     if (mAudioState != BluetoothHeadset.STATE_AUDIO_DISCONNECTED) {
                         mAudioState = BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
-                        mAudioManager.setBluetoothScoOn(false);
+                        if (mAudioManager.isSpeakerphoneOn()) {
+                            // User option might be speaker as sco disconnection
+                            // is delayed setting back the speaker option.
+                            mAudioManager.setBluetoothScoOn(false);
+                            mAudioManager.setSpeakerphoneOn(true);
+                        } else {
+                            mAudioManager.setBluetoothScoOn(false);
+                        }
+                        if (mA2dpSuspend) {
+                            if ((!isInCall()) && (mPhoneState.getNumber().isEmpty())) {
+                                log("Audio is closed,Set A2dpSuspended=false");
+                                mAudioManager.setParameters("A2dpSuspended=false");
+                                mA2dpSuspend = false;
+                            }
+                        }
                         broadcastAudioState(device, BluetoothHeadset.STATE_AUDIO_DISCONNECTED,
-                                            BluetoothHeadset.STATE_AUDIO_CONNECTED);
+                                           BluetoothHeadset.STATE_AUDIO_CONNECTED);
                     }
                     transitionTo(mConnected);
                     break;
@@ -2840,6 +2859,10 @@ final class HeadsetStateMachine extends StateMachine {
     }
 
     private void processAnswerCall(BluetoothDevice device) {
+         if(device == null) {
+            Log.w(TAG, "processAnswerCall device is null");
+            return;
+        }
         if (mPhoneProxy != null) {
             try {
                 mPhoneProxy.answerCall();
