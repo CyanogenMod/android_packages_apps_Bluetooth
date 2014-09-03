@@ -469,10 +469,9 @@ final class RemoteDevices {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, getDevice(address));
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT,
                 BluetoothDevice.PAIRING_VARIANT_PIN);
+        intent.putExtra(BluetoothDevice.EXTRA_SECURE_PAIRING, secure);
         intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
-        intent.putExtra(BluetoothDevice.EXTRA_SECURE_PAIRING, secure);
-        mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
         // Release wakelock to allow the LCD to go off after the PIN popup notification.
         mWakeLock.release();
         return;
