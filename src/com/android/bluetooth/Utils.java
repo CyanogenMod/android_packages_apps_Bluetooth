@@ -31,6 +31,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @hide
@@ -38,6 +39,8 @@ import java.util.UUID;
 
 final public class Utils {
     private static final String TAG = "BluetoothUtils";
+    private static final int MICROS_PER_UNIT = 625;
+
     static final int BD_ADDR_LEN = 6; // bytes
     static final int BD_UUID_LEN = 16; // bytes
 
@@ -217,4 +220,10 @@ final public class Utils {
                 "Need BLUETOOTH_ADMIN permission");
     }
 
+    /**
+     * Converts {@code millisecond} to unit. Each unit is 0.625 millisecond.
+     */
+    public static int millsToUnit(int milliseconds) {
+        return (int) (TimeUnit.MILLISECONDS.toMicros(milliseconds) / MICROS_PER_UNIT);
+    }
 }
