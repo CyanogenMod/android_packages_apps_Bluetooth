@@ -1484,7 +1484,7 @@ public final class Avrcp {
 
     private void processSetBrowsedPlayer(int playerId) {
         String packageName = null;
-        byte retError = PLAYER_NOT_BROWSABLE;
+        byte retError = INVALID_PLAYER_ID;
         /*Following gets updated if SetBrowsed Player succeeds*/
         mCurrentPath = PATH_INVALID;
         mMediaUri = Uri.EMPTY;
@@ -1510,6 +1510,8 @@ public final class Avrcp {
                             } else {
                                 packageName = di.RetrievePlayerPackageName();
                             }
+                        } else {
+                            retError = PLAYER_NOT_BROWSABLE;
                         }
                     }
                 }

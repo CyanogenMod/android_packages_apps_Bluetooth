@@ -1174,9 +1174,9 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
             }
             param.p_item_list[count].u.folder.name.charset_id = BTRC_CHARSET_UTF8;
             param.p_item_list[count].u.folder.name.str_len = utfStringLength;
-            param.p_item_list[count].u.folder.name.p_str = new uint8_t[utfStringLength];
+            param.p_item_list[count].u.folder.name.p_str = new uint8_t[utfStringLength + 1];
             strlcpy((char *)param.p_item_list[count].u.folder.name.p_str, textStr,
-                                                                    utfStringLength);
+                                                                utfStringLength + 1);
             env->ReleaseStringUTFChars(text, textStr);
             env->DeleteLocalRef(text);
         } else if (itemTypeElements[count] == BTRC_TYPE_MEDIA_ELEMENT) {
@@ -1202,9 +1202,9 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
             }
             param.p_item_list[count].u.media.name.charset_id = BTRC_CHARSET_UTF8;
             param.p_item_list[count].u.media.name.str_len = utfStringLength;
-            param.p_item_list[count].u.media.name.p_str = new uint8_t[utfStringLength];
+            param.p_item_list[count].u.media.name.p_str = new uint8_t[utfStringLength + 1];
             strlcpy((char *)param.p_item_list[count].u.media.name.p_str, textStr,
-                                                                    utfStringLength);
+                                                                utfStringLength + 1);
             env->ReleaseStringUTFChars(text, textStr);
             env->DeleteLocalRef(text);
             ALOGI("getFolderItemsRspNative: numAttr: %d", numAttElements[count]);
@@ -1236,9 +1236,9 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
                 ALOGI("getFolderItemsRspNative: Attr Length: %d",
                     param.p_item_list[count].u.media.p_attr_list[num_attr].name.str_len);
                 param.p_item_list[count].u.media.p_attr_list[num_attr].name.p_str =
-                                                            new uint8_t[utfStringLength];
+                                                            new uint8_t[utfStringLength + 1];
                 strlcpy((char *)param.p_item_list[count].u.media.p_attr_list[num_attr].
-                                                name.p_str, textStr, utfStringLength);
+                                                name.p_str, textStr, utfStringLength + 1);
                 num_attr++;
                 env->ReleaseStringUTFChars(text, textStr);
                 env->DeleteLocalRef(text);
@@ -1253,12 +1253,15 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
         ALOGE("Failed get_folder_items_rsp, status: %u", status);
     }
 
-    env->ReleaseIntArrayElements(itemType, itemTypeElements, 0);
-    env->ReleaseLongArrayElements(uid, uidElements, 0);
-    env->ReleaseIntArrayElements(type, typeElements, 0);
-    env->ReleaseByteArrayElements(playable, playableElements, 0);
-    env->ReleaseByteArrayElements(numAtt, numAttElements, 0);
-    env->ReleaseIntArrayElements(attIds, attIdsElements, 0);
+
+    if (numItems > 0) {
+        env->ReleaseIntArrayElements(itemType, itemTypeElements, 0);
+        env->ReleaseLongArrayElements(uid, uidElements, 0);
+        env->ReleaseIntArrayElements(type, typeElements, 0);
+        env->ReleaseByteArrayElements(playable, playableElements, 0);
+        env->ReleaseByteArrayElements(numAtt, numAttElements, 0);
+        env->ReleaseIntArrayElements(attIds, attIdsElements, 0);
+    }
 
     return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
@@ -1432,10 +1435,10 @@ static jboolean getItemAttrRspNative(JNIEnv *env, jobject object, jbyte numAttr,
         pAttrs[i].attr_id = attr[i];
         if (utfStringLength >= BTRC_MAX_ATTR_STR_LEN) {
             ALOGE("get_item_attr_rsp: string length exceed maximum");
-            strlcpy((char *)pAttrs[i].text, textStr, BTRC_MAX_ATTR_STR_LEN-1);
+            strlcpy((char *)pAttrs[i].text, textStr, BTRC_MAX_ATTR_STR_LEN);
             pAttrs[i].text[BTRC_MAX_ATTR_STR_LEN-1] = 0;
         } else {
-            strlcpy((char *)pAttrs[i].text, textStr, utfStringLength);
+            strlcpy((char *)pAttrs[i].text, textStr, utfStringLength + 1);
         }
         env->ReleaseStringUTFChars(text, textStr);
         env->DeleteLocalRef(text);
@@ -1504,8 +1507,8 @@ static jboolean setBrowsedPlayerRspNative(JNIEnv *env, jobject object,
         }
 
         param.p_folders[count].str_len = utfStringLength;
-        param.p_folders[count].p_str = new uint8_t[utfStringLength];
-        strlcpy((char *)param.p_folders[count].p_str, textStr, utfStringLength);
+        param.p_folders[count].p_str = new uint8_t[utfStringLength + 1];
+        strlcpy((char *)param.p_folders[count].p_str, textStr, utfStringLength + 1);
         env->ReleaseStringUTFChars(text, textStr);
         env->DeleteLocalRef(text);
 
