@@ -645,7 +645,8 @@ public class GattService extends ProfileService {
         if (status == 0) mClientMap.addConnection(clientIf, connId, address);
         ClientMap.App app = mClientMap.getById(clientIf);
         if (app != null) {
-            app.callback.onClientConnectionState(status, clientIf, true, address);
+            app.callback.onClientConnectionState(status, clientIf,
+                                (status==BluetoothGatt.GATT_SUCCESS), address);
         }
     }
 
