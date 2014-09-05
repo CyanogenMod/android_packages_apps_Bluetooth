@@ -981,7 +981,7 @@ public class GattService extends ProfileService {
             if (app == null) return;
             app.callback.onBatchScanResults(new ArrayList<ScanResult>(results));
         } else {
-            for (ScanClient client : mScanManager.getBatchScanQueue()) {
+            for (ScanClient client : mScanManager.getFullBatchScanQueue()) {
                 // Deliver results for each client.
                 deliverBatchScan(client, results);
             }
