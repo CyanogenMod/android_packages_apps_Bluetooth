@@ -288,7 +288,7 @@ public class BluetoothOppManager {
         synchronized (BluetoothOppManager.this) {
             if (V) Log.v(TAG, "cleanUpSendingFileInfo: mMultipleFlag = " +
                 mMultipleFlag);
-            if (!mMultipleFlag) {
+            if (!mMultipleFlag && (mUriOfSendingFile != null)) {
                 final Uri uri = Uri.parse(mUriOfSendingFile);
                 if (V) Log.v(TAG, "cleanUpSendingFileInfo: " +
                         "closeSendFileInfo for uri = " + uri);
