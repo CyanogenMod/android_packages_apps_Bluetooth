@@ -238,7 +238,6 @@ class AdvertiseManager {
         // Add some randomness to the advertising min/max interval so the controller can do some
         // optimization.
         private static final int ADVERTISING_INTERVAL_DELTA_UNIT = 10;
-        private static final int ADVERTISING_INTERVAL_MICROS_PER_UNIT = 625;
 
         // The following constants should be kept the same as those defined in bt stack.
         private static final int ADVERTISING_CHANNEL_37 = 1 << 0;
@@ -417,20 +416,15 @@ class AdvertiseManager {
         private long getAdvertisingIntervalUnit(AdvertiseSettings settings) {
             switch (settings.getMode()) {
                 case AdvertiseSettings.ADVERTISE_MODE_LOW_POWER:
-                    return millsToUnit(ADVERTISING_INTERVAL_HIGH_MILLS);
+                    return Utils.millsToUnit(ADVERTISING_INTERVAL_HIGH_MILLS);
                 case AdvertiseSettings.ADVERTISE_MODE_BALANCED:
-                    return millsToUnit(ADVERTISING_INTERVAL_MEDIUM_MILLS);
+                    return Utils.millsToUnit(ADVERTISING_INTERVAL_MEDIUM_MILLS);
                 case AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY:
-                    return millsToUnit(ADVERTISING_INTERVAL_LOW_MILLS);
+                    return Utils.millsToUnit(ADVERTISING_INTERVAL_LOW_MILLS);
                 default:
                     // Shouldn't happen, just in case.
-                    return millsToUnit(ADVERTISING_INTERVAL_HIGH_MILLS);
+                    return Utils.millsToUnit(ADVERTISING_INTERVAL_HIGH_MILLS);
             }
-        }
-
-        private long millsToUnit(int millisecond) {
-            return TimeUnit.MILLISECONDS.toMicros(millisecond)
-                    / ADVERTISING_INTERVAL_MICROS_PER_UNIT;
         }
 
         // Native functions
