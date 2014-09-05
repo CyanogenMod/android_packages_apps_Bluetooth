@@ -114,7 +114,7 @@ final class HeadsetStateMachine extends StateMachine {
     private static final int CLCC_RSP_TIMEOUT_VALUE = 5000;
 
     // Max number of HF connections at any time
-    private int max_hf_connections = 2;
+    private int max_hf_connections = 1;
 
     private static final int NBS_CODEC = 1;
     private static final int WBS_CODEC = 2;
