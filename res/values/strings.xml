@@ -68,7 +68,7 @@
     <!--Title -->
     <string name="incoming_file_confirm_title">File transfer</string>
     <!--content -->
-    <string name="incoming_file_confirm_content">\u0022<xliff:g id="sender">%1$s</xliff:g>\u0022 wants to send you <xliff:g id="file">%2$s</xliff:g> (<xliff:g id="size">%3$s</xliff:g>). \n\n Accept the file? </string>
+    <string name="incoming_file_confirm_content">Accept incoming file? </string>
     <!-- Label for a cancel button. -->
     <string name="incoming_file_confirm_cancel">Decline</string>
     <!-- Label for a confirm button.-->
@@ -118,6 +118,12 @@
     <string name="download_cancel">Stop</string>
     <!-- Label for a hide button.-->
     <string name="download_ok">Hide</string>
+    <!--Line 1 -->
+    <string name="incoming_line1">From</string>
+    <!--Line 2 -->
+    <string name="incoming_line2">Filename</string>
+    <!--Line 3 -->
+    <string name="incoming_line3">Size</string>
 
     <!-- Bluetooth failed Download  Dialog -->
     <!--Line 1  -->
