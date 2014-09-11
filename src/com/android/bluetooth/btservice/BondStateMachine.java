@@ -17,6 +17,7 @@
 package com.android.bluetooth.btservice;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothDevice;
 import com.android.bluetooth.a2dp.A2dpService;
@@ -51,7 +52,8 @@ final class BondStateMachine extends StateMachine {
     static final int CANCEL_BOND = 2;
     static final int REMOVE_BOND = 3;
     static final int BONDING_STATE_CHANGE = 4;
-
+    static final int SSP_REQUEST = 5;
+    static final int PIN_REQUEST = 6;
     static final int BOND_STATE_NONE = 0;
     static final int BOND_STATE_BONDING = 1;
     static final int BOND_STATE_BONDED = 2;
@@ -151,12 +153,16 @@ final class BondStateMachine extends StateMachine {
         public boolean processMessage(Message msg) {
 
             BluetoothDevice dev = (BluetoothDevice)msg.obj;
+            DeviceProperties devProp = mRemoteDevices.getDeviceProperties(dev);
             boolean result = false;
-            if (mDevices.contains(dev) &&
-                    msg.what != CANCEL_BOND && msg.what != BONDING_STATE_CHANGE) {
-                deferMessage(msg);
-                return true;
-            }
+             if (mDevices.contains(dev) && msg.what != CANCEL_BOND &&
+                   msg.what != BONDING_STATE_CHANGE && msg.what != SSP_REQUEST &&
+                   msg.what != PIN_REQUEST) {
+                 deferMessage(msg);
+                 return true;
+             }
+
+            Intent intent = new Intent(BluetoothDevice.ACTION_PAIRING_REQUEST);
 
             switch (msg.what) {
                 case CREATE_BOND:
@@ -200,6 +206,34 @@ final class BondStateMachine extends StateMachine {
                     }
                     else if(!mDevices.contains(dev))
                         result=true;
+                    break;
+                case SSP_REQUEST:
+                    int passkey = msg.arg1;
+                    int variant = msg.arg2;
+                    sendDisplayPinIntent(devProp.getAddress(), passkey, variant);
+                    break;
+                case PIN_REQUEST:
+                    BluetoothClass btClass = dev.getBluetoothClass();
+                    int btDeviceClass = btClass.getDeviceClass();
+                    if (btDeviceClass == BluetoothClass.Device.PERIPHERAL_KEYBOARD ||
+                         btDeviceClass == BluetoothClass.Device.PERIPHERAL_KEYBOARD_POINTING) {
+                        // Its a keyboard. Follow the HID spec recommendation of creating the
+                        // passkey and displaying it to the user. If the keyboard doesn't follow
+                        // the spec recommendation, check if the keyboard has a fixed PIN zero
+                        // and pair.
+                        //TODO: Maintain list of devices that have fixed pin
+                        // Generate a variable 6-digit PIN in range of 100000-999999
+                        // This is not truly random but good enough.
+                        int pin = 100000 + (int)Math.floor((Math.random() * (999999 - 100000)));
+                        sendDisplayPinIntent(devProp.getAddress(), pin,
+                                 BluetoothDevice.PAIRING_VARIANT_DISPLAY_PIN);
+                        break;
+                    }
+                    //In PIN_REQUEST, there is no passkey to display.So do not send the
+                    //EXTRA_PAIRING_KEY type in the intent( 0 in SendDisplayPinIntent() )
+                    sendDisplayPinIntent(devProp.getAddress(), 0,
+                                          BluetoothDevice.PAIRING_VARIANT_PIN);
+
                     break;
                 default:
                     Log.e(TAG, "Received unhandled event:" + msg.what);
@@ -253,6 +287,16 @@ final class BondStateMachine extends StateMachine {
         return false;
     }
 
+    private void sendDisplayPinIntent(byte[] address, int pin, int variant) {
+        Intent intent = new Intent(BluetoothDevice.ACTION_PAIRING_REQUEST);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevices.getDevice(address));
+        if (pin != 0) {
+            intent.putExtra(BluetoothDevice.EXTRA_PAIRING_KEY, pin);
+        }
+        intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, variant);
+        mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
+    }
+
     private void sendIntent(BluetoothDevice device, int newState, int reason) {
         DeviceProperties devProp = mRemoteDevices.getDeviceProperties(device);
         int oldState = BluetoothDevice.BOND_NONE;
@@ -301,6 +345,71 @@ final class BondStateMachine extends StateMachine {
         sendMessage(msg);
     }
 
+    void sspRequestCallback(byte[] address, byte[] name, int cod, int pairingVariant,
+            int passkey) {
+        //TODO(BT): Get wakelock and update name and cod
+        BluetoothDevice bdDevice = mRemoteDevices.getDevice(address);
+        if (bdDevice == null) {
+            mRemoteDevices.addDeviceProperties(address);
+        }
+        infoLog("sspRequestCallback: " + address + " name: " + name + " cod: " +
+                cod + " pairingVariant " + pairingVariant + " passkey: " + passkey);
+        int variant;
+        boolean displayPasskey = false;
+        switch(pairingVariant) {
+
+            case AbstractionLayer.BT_SSP_VARIANT_PASSKEY_CONFIRMATION :
+                variant = BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION;
+                displayPasskey = true;
+            break;
+
+            case AbstractionLayer.BT_SSP_VARIANT_CONSENT :
+                variant = BluetoothDevice.PAIRING_VARIANT_CONSENT;
+            break;
+
+            case AbstractionLayer.BT_SSP_VARIANT_PASSKEY_ENTRY :
+                variant = BluetoothDevice.PAIRING_VARIANT_PASSKEY;
+            break;
+
+            case AbstractionLayer.BT_SSP_VARIANT_PASSKEY_NOTIFICATION :
+                variant = BluetoothDevice.PAIRING_VARIANT_DISPLAY_PASSKEY;
+                displayPasskey = true;
+            break;
+
+            default:
+                errorLog("SSP Pairing variant not present");
+                return;
+        }
+        BluetoothDevice device = mRemoteDevices.getDevice(address);
+        if (device == null) {
+           warnLog("Device is not known for:" + Utils.getAddressStringFromByte(address));
+           mRemoteDevices.addDeviceProperties(address);
+           device = mRemoteDevices.getDevice(address);
+        }
+
+        Message msg = obtainMessage(SSP_REQUEST);
+        msg.obj = device;
+        if(displayPasskey)
+            msg.arg1 = passkey;
+        msg.arg2 = variant;
+        sendMessage(msg);
+    }
+
+    void pinRequestCallback(byte[] address, byte[] name, int cod) {
+        //TODO(BT): Get wakelock and update name and cod
+        BluetoothDevice bdDevice = mRemoteDevices.getDevice(address);
+        if (bdDevice == null) {
+            mRemoteDevices.addDeviceProperties(address);
+        }
+        infoLog("pinRequestCallback: " + address + " name:" + name + " cod:" +
+                cod);
+
+        Message msg = obtainMessage(PIN_REQUEST);
+        msg.obj = bdDevice;
+
+        sendMessage(msg);
+    }
+
     private void setProfilePriorty (BluetoothDevice device){
         HidService hidService = HidService.getHidService();
         A2dpService a2dpService = A2dpService.getA2dpService();
@@ -341,6 +450,10 @@ final class BondStateMachine extends StateMachine {
 
     private void errorLog(String msg) {
         Log.e(TAG, msg);
+    }
+
+    private void warnLog(String msg) {
+        Log.w(TAG, msg);
     }
 
     private int getUnbondReasonFromHALCode (int reason) {
