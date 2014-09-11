@@ -91,6 +91,7 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity imple
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.Theme_Material_Settings_Floating);
         if (V) Log.d(TAG, "onCreate(): action = " + getIntent().getAction());
         super.onCreate(savedInstanceState);
 
@@ -106,7 +107,7 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity imple
 
         // Set up the "dialog"
         final AlertController.AlertParams p = mAlertParams;
-        p.mTitle = getString(R.string.incoming_file_confirm_title);
+        p.mTitle = getString(R.string.incoming_file_confirm_content);
         p.mView = createView();
         p.mPositiveButtonText = getString(R.string.incoming_file_confirm_ok);
         p.mPositiveButtonListener = this;
@@ -125,14 +126,12 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity imple
     }
 
     private View createView() {
-        View view = getLayoutInflater().inflate(R.layout.confirm_dialog, null);
+        View view = getLayoutInflater().inflate(R.layout.incoming_dialog, null);
 
-        mContentView = (TextView)view.findViewById(R.id.content);
-
-        String text = getString(R.string.incoming_file_confirm_content, mTransInfo.mDeviceName,
-                mTransInfo.mFileName, Formatter.formatFileSize(this, mTransInfo.mTotalBytes));
-
-        mContentView.setText(text);
+        ((TextView)view.findViewById(R.id.from_content)).setText(mTransInfo.mDeviceName);
+        ((TextView)view.findViewById(R.id.filename_content)).setText(mTransInfo.mFileName);
+        ((TextView)view.findViewById(R.id.size_content)).setText(
+                Formatter.formatFileSize(this, mTransInfo.mTotalBytes));
 
         return view;
     }
