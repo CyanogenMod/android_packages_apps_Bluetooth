@@ -298,8 +298,9 @@ public class ScanManager {
         private static final int DEFAULT_ONLOST_ONFOUND_TIMEOUT_MILLIS = 1000;
         private static final int ONFOUND_SIGHTINGS = 2;
 
-        private static final int ALLOW_ALL_FILTER_INDEX = 1;
-        private static final int ALLOW_ALL_FILTER_SELECTION = 0;
+        private static final int ALL_PASS_FILTER_INDEX_REGULAR_SCAN = 1;
+        private static final int ALL_PASS_FILTER_INDEX_BATCH_SCAN = 2;
+        private static final int ALL_PASS_FILTER_SELECTION = 0;
 
         private static final int DISCARD_OLDEST_WHEN_BUFFER_FULL = 0;
 
@@ -330,6 +331,10 @@ public class ScanManager {
         private final Deque<Integer> mFilterIndexStack;
         // Map of clientIf and Filter indices used by client.
         private final Map<Integer, Deque<Integer>> mClientFilterIndexMap;
+        // Keep track of the clients that uses ALL_PASS filters.
+        private final Set<Integer> mAllPassRegularClients = new HashSet<>();
+        private final Set<Integer> mAllPassBatchClients = new HashSet<>();
+
         private AlarmManager mAlarmManager;
         private PendingIntent mBatchScanIntervalIntent;
 
@@ -377,9 +382,7 @@ public class ScanManager {
         void configureRegularScanParams() {
             logd("configureRegularScanParams() - queue=" + mRegularScanClients.size());
             int curScanSetting = Integer.MIN_VALUE;
-            ScanClient client = null;
-
-            client = getAggressiveClient(mRegularScanClients);
+            ScanClient client = getAggressiveClient(mRegularScanClients);
             if (client != null) {
                 curScanSetting = client.settings.getScanMode();
             }
@@ -431,6 +434,7 @@ public class ScanManager {
                 // more power hungry(higher duty cycle) operation.
                 if (client.settings.getScanMode() > curScanSetting) {
                     result = client;
+                    curScanSetting = client.settings.getScanMode();
                 }
             }
             return result;
@@ -624,21 +628,24 @@ public class ScanManager {
         }
 
         // Add scan filters. The logic is:
-        // If no offload filter can/needs to be set, set ALLOW_ALL filter.
+        // If no offload filter can/needs to be set, set ALL_PASS filter.
         // Otherwise offload all filters to hardware and enable all filters.
         private void configureScanFilters(ScanClient client) {
             int clientIf = client.clientIf;
+            int deliveryMode = getDeliveryMode(client);
+            if (!shouldAddAllPassFilterToController(client, deliveryMode)) {
+                return;
+            }
+
             resetCountDownLatch();
             gattClientScanFilterEnableNative(clientIf, true);
             waitForCallback();
 
-            if (shouldUseAllowAllFilter(client)) {
+            if (shouldUseAllPassFilter(client)) {
+                int filterIndex = (deliveryMode == DELIVERY_MODE_BATCH) ?
+                        ALL_PASS_FILTER_INDEX_BATCH_SCAN : ALL_PASS_FILTER_INDEX_REGULAR_SCAN;
                 resetCountDownLatch();
-                configureFilterParamter(clientIf, client, ALLOW_ALL_FILTER_SELECTION,
-                        ALLOW_ALL_FILTER_INDEX);
-                Deque<Integer> clientFilterIndices = new ArrayDeque<Integer>();
-                clientFilterIndices.add(ALLOW_ALL_FILTER_INDEX);
-                mClientFilterIndexMap.put(clientIf, clientFilterIndices);
+                configureFilterParamter(clientIf, client, ALL_PASS_FILTER_SELECTION, filterIndex);
                 waitForCallback();
             } else {
                 Deque<Integer> clientFilterIndices = new ArrayDeque<Integer>();
@@ -661,8 +668,24 @@ public class ScanManager {
             }
         }
 
+        // Check whether the filter should be added to controller.
+        // Note only on ALL_PASS filter should be added.
+        private boolean shouldAddAllPassFilterToController(ScanClient client, int deliveryMode) {
+            // Not an ALL_PASS client, need to add filter.
+            if (!shouldUseAllPassFilter(client)) {
+                return true;
+            }
+
+            if (deliveryMode == DELIVERY_MODE_BATCH) {
+                mAllPassBatchClients.add(client.clientIf);
+                return mAllPassBatchClients.size() == 1;
+            } else {
+                mAllPassRegularClients.add(client.clientIf);
+                return mAllPassRegularClients.size() == 1;
+            }
+        }
+
         private void removeScanFilters(int clientIf) {
-            logd("removeScanFilters, clientIf - " + clientIf);
             Deque<Integer> filterIndices = mClientFilterIndexMap.remove(clientIf);
             if (filterIndices != null) {
                 mFilterIndexStack.addAll(filterIndices);
@@ -671,6 +694,24 @@ public class ScanManager {
                     gattClientScanFilterParamDeleteNative(clientIf, filterIndex);
                     waitForCallback();
                 }
+            }
+            // Remove if ALL_PASS filters are used.
+            removeFilterIfExisits(mAllPassRegularClients, clientIf,
+                    ALL_PASS_FILTER_INDEX_REGULAR_SCAN);
+            removeFilterIfExisits(mAllPassBatchClients, clientIf,
+                    ALL_PASS_FILTER_INDEX_BATCH_SCAN);
+        }
+
+        private void removeFilterIfExisits(Set<Integer> clients, int clientIf, int filterIndex) {
+            if (!clients.contains(clientIf)) {
+                return;
+            }
+            clients.remove(clientIf);
+            // Remove ALL_PASS filter iff no app is using it.
+            if (clients.isEmpty()) {
+                resetCountDownLatch();
+                gattClientScanFilterParamDeleteNative(clientIf, filterIndex);
+                waitForCallback();
             }
         }
 
@@ -699,8 +740,8 @@ public class ScanManager {
             return -1;
         }
 
-        // Check if ALLOW_FILTER should be used for the client.
-        private boolean shouldUseAllowAllFilter(ScanClient client) {
+        // Check if ALL_PASS filter should be used for the client.
+        private boolean shouldUseAllPassFilter(ScanClient client) {
             if (client == null) {
                 return true;
             }
@@ -758,9 +799,11 @@ public class ScanManager {
         private void initFilterIndexStack() {
             int maxFiltersSupported =
                     AdapterService.getAdapterService().getNumOfOffloadedScanFilterSupported();
-            // Start from index 2 as index 0 is reserved for ALLOW_ALL filter in Settings app and
-            // index 1 is reserved for ALLOW_ALL filter for regular apps.
-            for (int i = 2; i < maxFiltersSupported; ++i) {
+            // Start from index 3 as:
+            // index 0 is reserved for ALL_PASS filter in Settings app.
+            // index 1 is reserved for ALL_PASS filter for regular scan apps.
+            // index 2 is reserved for ALL_PASS filter for batch scan apps.
+            for (int i = 3; i < maxFiltersSupported; ++i) {
                 mFilterIndexStack.add(i);
             }
         }
