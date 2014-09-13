@@ -40,6 +40,7 @@
   <string name="download_fail_line2">Fichier: <xliff:g id="file">%1$s</xliff:g></string>
   <string name="download_fail_line3">Grond: <xliff:g id="reason">%1$s</xliff:g></string>
   <string name="download_fail_ok">OK</string>
+  <string name="download_succ_line5">Fichier empfaangen</string>
   <string name="download_succ_ok">Opmaachen</string>
   <string name="upload_succ_ok">OK</string>
   <string name="upload_fail_line1_2">Fichier: <xliff:g id="file">%1$s</xliff:g></string>
@@ -50,6 +51,8 @@
   <string name="not_exist_file">Kee Fichier</string>
   <string name="not_exist_file_desc">De Fichier existéiert net. \n</string>
   <string name="enabling_progress_title">Waart w.e.g.\u2026</string>
+  <string name="enabling_progress_content">Bluetooth gëtt ugemaach\u2026</string>
+  <string name="bt_toast_2">De Fichier kann net empfaange ginn.</string>
   <string name="status_not_accept">Inhalt net ënnerstëtzt.</string>
   <string name="status_canceled">Iwwerdroung duerch de Benotzer ofgebrach.</string>
   <string name="status_file_error">Späicherproblem.</string>
