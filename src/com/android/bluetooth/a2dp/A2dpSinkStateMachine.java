@@ -94,6 +94,7 @@ final class A2dpSinkStateMachine extends StateMachine {
     private static final int AUDIO_FOCUS_LOSS = 0;
     private static final int AUDIO_FOCUS_GAIN = 1;
     private static final int AUDIO_FOCUS_LOSS_TRANSIENT = 2;
+    private static final int AUDIO_FOCUS_LOSS_CAN_DUCK = 3;
     private int mAudioFocusAcquired = AUDIO_FOCUS_LOSS;
 
     // mCurrentDevice is the device connected before the state changes
@@ -945,13 +946,22 @@ final class A2dpSinkStateMachine extends StateMachine {
                         }
                     }
                     break;
+                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                    log(" Received AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK ");
+                    mAudioFocusAcquired = AUDIO_FOCUS_LOSS_CAN_DUCK;
+                    break;
                 case AudioManager.AUDIOFOCUS_GAIN:
                     // we got focus gain
                     if ((mCurrentDevice != null) && (getCurrentState() == mConnected)) {
+                        if (mAudioFocusAcquired == AUDIO_FOCUS_LOSS_CAN_DUCK) {
+                            log(" Received Can_Duck earlier, Ignore Now ");
+                            mAudioFocusAcquired = AUDIO_FOCUS_GAIN;
+                            break;
+                        }
                         mAudioFocusAcquired = AUDIO_FOCUS_GAIN;
                         informAudioFocusStateNative(AUDIO_FOCUS_GAIN);
                         if (SendPassThruPlay(mCurrentDevice)) {
-                            log(" Sending AVRCP Pause");
+                            log(" Sending AVRCP Play");
                         } else {
                             log(" Sending AVDTP_Start AVRCP Not Up");
                             resumeA2dpNative();
