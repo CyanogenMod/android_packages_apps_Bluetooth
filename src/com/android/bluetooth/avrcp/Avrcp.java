@@ -2870,7 +2870,7 @@ public final class Avrcp {
                     }
                 }
             }
-            mAudioManager.getRemoteControlClientNowPlayingEntries();
+            mRemoteController.getRemoteControlClientNowPlayingEntries();
             mCachedRequest = new CachedRequest(start, end, numAttr, attrs);
         }
     }
