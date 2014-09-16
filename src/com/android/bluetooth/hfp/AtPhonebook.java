@@ -141,8 +141,8 @@ public class AtPhonebook {
         return mCheckingAccessPermission;
     }
 
-    public void setCheckingAccessPermission(boolean checkAccessPermission) {
-        mCheckingAccessPermission = checkAccessPermission;
+    public void setCheckingAccessPermission(boolean checkingAccessPermission) {
+        mCheckingAccessPermission = checkingAccessPermission;
     }
 
     public void setCpbrIndex(int cpbrIndex) {
@@ -346,22 +346,31 @@ public class AtPhonebook {
                 mCpbrIndex2 = index2;
                 mCheckingAccessPermission = true;
 
-                if (checkAccessPermission(remoteDevice)) {
+                int permission = checkAccessPermission(remoteDevice);
+                if (permission == BluetoothDevice.ACCESS_ALLOWED) {
                     mCheckingAccessPermission = false;
                     atCommandResult = processCpbrCommand(remoteDevice);
                     mCpbrIndex1 = mCpbrIndex2 = -1;
                     mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode,
                                          getByteAddress(remoteDevice));
                     break;
+                } else if (permission == BluetoothDevice.ACCESS_REJECTED) {
+                    mCheckingAccessPermission = false;
+                    mCpbrIndex1 = mCpbrIndex2 = -1;
+                    mStateMachine.atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR,
+                            BluetoothCmeError.AG_FAILURE, getByteAddress(remoteDevice));
                 }
-                // no reponse here, will continue the process in handleAccessPermissionResult
+                // If checkAccessPermission(remoteDevice) has returned
+                // BluetoothDevice.ACCESS_UNKNOWN, we will continue the process in
+                // HeadsetStateMachine.handleAccessPermissionResult(Intent) once HeadsetService
+                // receives BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY from Settings app.
                 break;
-                case TYPE_UNKNOWN:
-                default:
-                    log("handleCpbrCommand - invalid chars");
-                    atCommandErrorCode = BluetoothCmeError.TEXT_HAS_INVALID_CHARS;
-                    mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode,
-                                         getByteAddress(remoteDevice));
+            case TYPE_UNKNOWN:
+            default:
+                log("handleCpbrCommand - invalid chars");
+                atCommandErrorCode = BluetoothCmeError.TEXT_HAS_INVALID_CHARS;
+                mStateMachine.atResponseCodeNative(atCommandResult, atCommandErrorCode,
+                        getByteAddress(remoteDevice));
         }
     }
 
@@ -579,27 +588,31 @@ public class AtPhonebook {
         return atCommandResult;
     }
 
-    // Check if the remote device has premission to read our phone book
-    // Return true if it has the permission
-    // false if not known and we have sent our Intent to check
-    private boolean checkAccessPermission(BluetoothDevice remoteDevice) {
+    /**
+     * Checks if the remote device has premission to read our phone book.
+     * If the return value is {@link BluetoothDevice#ACCESS_UNKNOWN}, it means this method has sent
+     * an Intent to Settings application to ask user preference.
+     *
+     * @return {@link BluetoothDevice#ACCESS_UNKNOWN}, {@link BluetoothDevice#ACCESS_ALLOWED} or
+     *         {@link BluetoothDevice#ACCESS_REJECTED}.
+     */
+    private int checkAccessPermission(BluetoothDevice remoteDevice) {
         log("checkAccessPermission");
-        boolean trust = remoteDevice.getTrustState();
+        int permission = remoteDevice.getPhonebookAccessPermission();
 
-        if (trust) {
-            return true;
+        if (permission == BluetoothDevice.ACCESS_UNKNOWN) {
+            log("checkAccessPermission - ACTION_CONNECTION_ACCESS_REQUEST");
+            Intent intent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_REQUEST);
+            intent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
+            intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
+            BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, remoteDevice);
+            // Leave EXTRA_PACKAGE_NAME and EXTRA_CLASS_NAME field empty.
+            // BluetoothHandsfree's broadcast receiver is anonymous, cannot be targeted.
+            mContext.sendOrderedBroadcast(intent, BLUETOOTH_ADMIN_PERM);
         }
 
-        log("checkAccessPermission - ACTION_CONNECTION_ACCESS_REQUEST");
-        Intent intent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_REQUEST);
-        intent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
-        intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
-        BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, remoteDevice);
-        // Leave EXTRA_PACKAGE_NAME and EXTRA_CLASS_NAME field empty
-        // BluetoothHandsfree's broadcast receiver is anonymous, cannot be targeted
-        mContext.sendOrderedBroadcast(intent, BLUETOOTH_ADMIN_PERM);
-        return false;
+        return permission;
     }
 
     private static String getPhoneType(int type) {
