@@ -277,7 +277,7 @@ final class HeadsetStateMachine extends StateMachine {
             Log.e(TAG, "Could not bind to Bluetooth Headset Phone Service");
         }
 
-        String max_hfp_clients = SystemProperties.get("bt.max.hfpclient.connections");
+        String max_hfp_clients = SystemProperties.get("bt.max.hs.connections");
         if (!max_hfp_clients.isEmpty() && (Integer.parseInt(max_hfp_clients) == 2))
             max_hf_connections = Integer.parseInt(max_hfp_clients);
         Log.d(TAG, "max_hf_connections = " + max_hf_connections);
