@@ -123,11 +123,10 @@ class HeadsetPhoneState extends BroadcastReceiver{
     private void startListenForPhoneState() {
         if (!mListening && mSlcReady) {
 
-            // SUB selection, use sim1 always
-            long[] subs = SubscriptionManager.getSubId(PhoneConstants.SIM_ID_1);
+            long subId = SubscriptionManager.getDefaultSubId();
 
-            if (subs != null && subs[0] >= 0) {
-                mPhoneStateListener = getPhoneStateListener(subs[0]);
+            if (SubscriptionManager.isValidSubId(subId)) {
+                mPhoneStateListener = getPhoneStateListener(subId);
 
                 mTelephonyManager.listen(mPhoneStateListener,
                                          PhoneStateListener.LISTEN_SERVICE_STATE |

@@ -2697,10 +2697,14 @@ final class HeadsetStateMachine extends StateMachine {
                 String number = mPhoneProxy.getSubscriberNumber();
                 if (number != null) {
                     atResponseStringNative("+CNUM: ,\"" + number + "\"," +
-                                           PhoneNumberUtils.toaFromString(number) +
-                                             ",,4", getByteAddress(device));
+                                                PhoneNumberUtils.toaFromString(number) +
+                                                ",,4", getByteAddress(device));
                     atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK,
-                                                 0, getByteAddress(device));
+                                                0, getByteAddress(device));
+                } else {
+                    Log.e(TAG, "getSubscriberNumber returns null");
+                    atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR,
+                                                0, getByteAddress(device));
                 }
             } catch (RemoteException e) {
                 Log.e(TAG, Log.getStackTraceString(new Throwable()));
