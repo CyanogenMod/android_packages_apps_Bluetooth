@@ -574,10 +574,10 @@ public class BluetoothPbapVcardManager {
                                 + composer.getErrorReason());
                         return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
                     }
-                    Log.v (TAG , "vCard from composer: " + vcard);
+                    if (V) Log.v (TAG , "vCard from composer: " + vcard);
                     if (!ignorefilter) {
                         vcard = vcardfilter.applyFilter(vcard, vcardType21);
-                        Log.v (TAG , "vCard on applying filter: " + vcard);
+                        if (V) Log.v (TAG , "vCard on applying filter: " + vcard);
                     }
                     vcard = StripTelephoneNumber(vcard);
                     if (V) {
@@ -663,7 +663,7 @@ public class BluetoothPbapVcardManager {
                     Vcard = Vcard.concat(attr[i] + "\n");
                 }
             }
-        Log.v(TAG, "Vcard with stripped telephone no.: " + Vcard);
+        if (V) Log.v(TAG, "Vcard with stripped telephone no.: " + Vcard);
         return Vcard;
     }
 
