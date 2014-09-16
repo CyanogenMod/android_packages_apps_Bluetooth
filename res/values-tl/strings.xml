@@ -31,7 +31,7 @@
     <string name="bt_enable_cancel" msgid="1988832367505151727">"Kanselahin"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"I-on"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"Paglilipat ng file"</string>
-    <string name="incoming_file_confirm_content" msgid="6673812334377911289">"Gusto kang padalhan ni \"<xliff:g id="SENDER">%1$s</xliff:g>\" ng <xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>). \n\n Tanggapin ang file?"</string>
+    <string name="incoming_file_confirm_content" msgid="2752605552743148036">"Tanggapin ang papasok na file?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Tanggihan"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Tanggapin"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
@@ -54,6 +54,9 @@
     <string name="download_line5" msgid="3069560415845295386">"Tumatanggap ng file…"</string>
     <string name="download_cancel" msgid="9177305996747500768">"Itigil"</string>
     <string name="download_ok" msgid="5000360731674466039">"Itago"</string>
+    <string name="incoming_line1" msgid="2127419875681087545">"Mula sa"</string>
+    <string name="incoming_line2" msgid="3348994249285315873">"Filename"</string>
+    <string name="incoming_line3" msgid="7954237069667474024">"Laki"</string>
     <string name="download_fail_line1" msgid="3846450148862894552">"Hindi natanggap ang file"</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"File: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_fail_line3" msgid="3451040656154861722">"Dahilan: <xliff:g id="REASON">%1$s</xliff:g>"</string>
