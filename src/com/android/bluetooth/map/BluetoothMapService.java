@@ -149,7 +149,7 @@ public class BluetoothMapService extends ProfileService {
 
     private boolean mIsWaitingAuthorization = false;
     private boolean mRemoveTimeoutMsg = false;
-    private boolean mTrust = false; // Temp. fix for missing BluetoothDevice.getTrustState()
+    private int mPermission = BluetoothDevice.ACCESS_UNKNOWN;
     private boolean mAccountChanged = false;
 
     // package and class name to which we send intent to check phone book access permission
@@ -166,7 +166,6 @@ public class BluetoothMapService extends ProfileService {
         mState = BluetoothMap.STATE_DISCONNECTED;
 
     }
-
 
     private final void closeService() {
         if (DEBUG) Log.d(TAG, "MAP Service closeService in");
@@ -186,7 +185,7 @@ public class BluetoothMapService extends ProfileService {
         }
 
         mIsWaitingAuthorization = false;
-        mTrust = false;
+        mPermission = BluetoothDevice.ACCESS_UNKNOWN;
         setState(BluetoothMap.STATE_DISCONNECTED);
 
         if (mWakeLock != null) {
@@ -296,7 +295,7 @@ public class BluetoothMapService extends ProfileService {
 
         if(lastMasInst) {
             setState(BluetoothMap.STATE_DISCONNECTED);
-            mTrust = false;
+            mPermission = BluetoothDevice.ACCESS_UNKNOWN;
             mRemoteDevice = null;
             if(mAccountChanged) {
                 updateMasInstances(UPDATE_MAS_INSTANCES_ACCOUNT_DISCONNECT);
@@ -333,7 +332,7 @@ public class BluetoothMapService extends ProfileService {
                     stopObexServerSessions(-1);
                     break;
                 case USER_TIMEOUT:
-                    if(mIsWaitingAuthorization){
+                    if (mIsWaitingAuthorization){
                         Intent intent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
                         intent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
                         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
@@ -392,21 +391,17 @@ public class BluetoothMapService extends ProfileService {
     };
 
     private void onConnectHandler(int masId) {
-        if(mIsWaitingAuthorization == true || mRemoteDevice == null) {
+        if (mIsWaitingAuthorization == true || mRemoteDevice == null) {
             return;
         }
         BluetoothMapMasInstance masInst = mMasInstances.get(masId);
-        // getTrustState() is not implemented, use local cache
-        // boolean trust = mRemoteDevice.getTrustState(); // Need to ensure we are still trusted
-        boolean trust = mTrust;
-        if (DEBUG) Log.d(TAG, "GetTrustState() = " + trust);
-
-        if (trust) {
+        // Need to ensure we are still allowed.
+        if (DEBUG) Log.d(TAG, "mPermission = " + mPermission);
+        if (mPermission == BluetoothDevice.ACCESS_ALLOWED) {
             try {
                 if (DEBUG) Log.d(TAG, "incoming connection accepted from: "
-                    + sRemoteDeviceName + " automatically as trusted device");
-                if(mBluetoothMnsObexClient != null
-                   && masInst != null) {
+                        + sRemoteDeviceName + " automatically as trusted device");
+                if (mBluetoothMnsObexClient != null && masInst != null) {
                     masInst.startObexServerSession(mBluetoothMnsObexClient);
                 } else {
                     startObexServerSessions();
@@ -418,6 +413,7 @@ public class BluetoothMapService extends ProfileService {
             }
         }
     }
+
     public int getState() {
         return mState;
     }
@@ -756,11 +752,12 @@ public class BluetoothMapService extends ProfileService {
      * @return
      */
     public boolean onConnect(BluetoothDevice remoteDevice, BluetoothMapMasInstance masInst) {
+        boolean sendIntent = false;
+        boolean cancelConnection = false;
 
-        boolean sendIntent=false;
         // As this can be called from each MasInstance, we need to lock access to member variables
         synchronized(this) {
-            if(mRemoteDevice == null) {
+            if (mRemoteDevice == null) {
                 mRemoteDevice = remoteDevice;
                 sRemoteDeviceName = mRemoteDevice.getName();
                 // In case getRemoteName failed and return null
@@ -768,10 +765,13 @@ public class BluetoothMapService extends ProfileService {
                     sRemoteDeviceName = getString(R.string.defaultname);
                 }
 
-                if(mTrust == false) {
+                mPermission = mRemoteDevice.getMessageAccessPermission();
+                if (mPermission == BluetoothDevice.ACCESS_UNKNOWN) {
                     sendIntent = true;
                     mIsWaitingAuthorization = true;
                     setUserTimeoutAlarm();
+                } else if (mPermission == BluetoothDevice.ACCESS_REJECTED) {
+                    cancelConnection = true;
                 }
             } else if (!mRemoteDevice.equals(remoteDevice)) {
                 Log.w(TAG, "Unexpected connection from a second Remote Device received. name: " +
@@ -781,11 +781,9 @@ public class BluetoothMapService extends ProfileService {
             } // Else second connection to same device, just continue
         }
 
-
-        if(sendIntent == true) {
-            /* This will trigger */
-            Intent intent = new
-                Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_REQUEST);
+        if (sendIntent) {
+            // This will trigger Settings app's dialog.
+            Intent intent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_REQUEST);
             intent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
             intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                             BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
@@ -796,11 +794,9 @@ public class BluetoothMapService extends ProfileService {
                     + sRemoteDeviceName);
             //Queue USER_TIMEOUT to disconnect MAP OBEX session. If user doesn't
             //accept or reject authorization request
-
-
-
-
-        } else {
+        } else if (cancelConnection) {
+            sendConnectCancelMessage();
+        } else if (mPermission == BluetoothDevice.ACCESS_ALLOWED) {
             /* Signal to the service that we have a incoming connection. */
             sendConnectMessage(masInst.getMasId());
         }
@@ -892,8 +888,8 @@ public class BluetoothMapService extends ProfileService {
                                                BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
                 if (DEBUG) Log.d(TAG, "Received ACTION_CONNECTION_ACCESS_REPLY:" +
                            requestType + "isWaitingAuthorization:" + mIsWaitingAuthorization);
-                if ((!mIsWaitingAuthorization) ||
-                    (requestType != BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS)) {
+                if ((!mIsWaitingAuthorization)
+                        || (requestType != BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS)) {
                     // this reply is not for us
                     return;
                 }
@@ -906,20 +902,31 @@ public class BluetoothMapService extends ProfileService {
                 }
 
                 if (intent.getIntExtra(BluetoothDevice.EXTRA_CONNECTION_ACCESS_RESULT,
-                                       BluetoothDevice.CONNECTION_ACCESS_NO) ==
-                    BluetoothDevice.CONNECTION_ACCESS_YES) {
+                                       BluetoothDevice.CONNECTION_ACCESS_NO)
+                        == BluetoothDevice.CONNECTION_ACCESS_YES) {
                     // Bluetooth connection accepted by user
+                    mPermission = BluetoothDevice.ACCESS_ALLOWED;
                     if (intent.getBooleanExtra(BluetoothDevice.EXTRA_ALWAYS_ALLOWED, false)) {
-                        // Not implemented in BluetoothDevice
-                        //boolean result = mRemoteDevice.setTrust(true);
-                        //if (DEBUG) Log.d(TAG, "setTrust() result=" + result);
+                        boolean result = mRemoteDevice.setMessageAccessPermission(
+                                BluetoothDevice.ACCESS_ALLOWED);
+                        if (DEBUG) {
+                            Log.d(TAG, "setMessageAccessPermission(ACCESS_ALLOWED) result="
+                                    + result);
+                        }
                     }
-                    mTrust = true;
                     sendConnectMessage(-1); // -1 indicates all MAS instances
                 } else {
                     // Auth. declined by user, serverSession should not be running, but
                     // call stop anyway to restart listener.
-                    mTrust = false;
+                    mPermission = BluetoothDevice.ACCESS_REJECTED;
+                    if (intent.getBooleanExtra(BluetoothDevice.EXTRA_ALWAYS_ALLOWED, false)) {
+                        boolean result = mRemoteDevice.setMessageAccessPermission(
+                                BluetoothDevice.ACCESS_REJECTED);
+                        if (DEBUG) {
+                            Log.d(TAG, "setMessageAccessPermission(ACCESS_REJECTED) result="
+                                    + result);
+                        }
+                    }
                     sendConnectCancelMessage();
                 }
             } else if (action.equals(ACTION_SHOW_MAPS_EMAIL_SETTINGS)) {

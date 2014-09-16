@@ -3196,7 +3196,7 @@ final class HeadsetStateMachine extends StateMachine {
     public void handleAccessPermissionResult(Intent intent) {
         log("handleAccessPermissionResult");
         BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-        if(mPhonebook != null) {
+        if (mPhonebook != null) {
             if (!mPhonebook.getCheckingAccessPermission()) {
                 return;
             }
@@ -3208,12 +3208,17 @@ final class HeadsetStateMachine extends StateMachine {
             // has set mCheckingAccessPermission to false
             if (intent.getAction().equals(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY)) {
                 if (intent.getIntExtra(BluetoothDevice.EXTRA_CONNECTION_ACCESS_RESULT,
-                    BluetoothDevice.CONNECTION_ACCESS_NO) ==
-                    BluetoothDevice.CONNECTION_ACCESS_YES) {
+                                       BluetoothDevice.CONNECTION_ACCESS_NO)
+                        == BluetoothDevice.CONNECTION_ACCESS_YES) {
                     if (intent.getBooleanExtra(BluetoothDevice.EXTRA_ALWAYS_ALLOWED, false)) {
-                        mCurrentDevice.setTrust(true);
+                        mCurrentDevice.setPhonebookAccessPermission(BluetoothDevice.ACCESS_ALLOWED);
                     }
                     atCommandResult = mPhonebook.processCpbrCommand(device);
+                } else {
+                    if (intent.getBooleanExtra(BluetoothDevice.EXTRA_ALWAYS_ALLOWED, false)) {
+                        mCurrentDevice.setPhonebookAccessPermission(
+                                BluetoothDevice.ACCESS_REJECTED);
+                    }
                 }
             }
             mPhonebook.setCpbrIndex(-1);
@@ -3221,13 +3226,12 @@ final class HeadsetStateMachine extends StateMachine {
 
             if (atCommandResult >= 0) {
                 atResponseCodeNative(atCommandResult, atCommandErrorCode, getByteAddress(device));
-            }
-            else
+            } else {
                 log("handleAccessPermissionResult - RESULT_NONE");
-        }
-        else {
+            }
+        } else {
             Log.e(TAG, "Phonebook handle null");
-            if(device != null) {
+            if (device != null) {
                 atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0,
                                      getByteAddress(device));
             }
