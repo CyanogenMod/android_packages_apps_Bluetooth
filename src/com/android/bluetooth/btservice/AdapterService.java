@@ -214,10 +214,11 @@ public class AdapterService extends Service {
             hidService.setPriority(device,BluetoothProfile.PRIORITY_ON);
         }
 
+        // If we do not have a stored priority for A2DP then default to on.
         if ((a2dpService != null) &&
             (BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.AudioSink) ||
-                    (BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.AdvAudioDist)) &&
-            (a2dpService.getPriority(device) == BluetoothProfile.PRIORITY_UNDEFINED))){
+            BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.AdvAudioDist)) &&
+            (a2dpService.getPriority(device) == BluetoothProfile.PRIORITY_UNDEFINED)){
             a2dpService.setPriority(device,BluetoothProfile.PRIORITY_ON);
         }
 
