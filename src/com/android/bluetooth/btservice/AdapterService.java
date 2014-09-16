@@ -38,6 +38,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
@@ -106,6 +107,11 @@ public class AdapterService extends Service {
                 android.Manifest.permission.BLUETOOTH_PRIVILEGED;
     static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
     static final String RECEIVE_MAP_PERM = android.Manifest.permission.RECEIVE_BLUETOOTH_MAP;
+
+    private static final String PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE =
+            "phonebook_access_permission";
+    private static final String MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE =
+            "message_access_permission";
 
     private static final int ADAPTER_SERVICE_TYPE=Service.START_STICKY;
 
@@ -962,6 +968,50 @@ public class AdapterService extends Service {
             return service.setPairingConfirmation(device, accept);
         }
 
+        public int getPhonebookAccessPermission(BluetoothDevice device) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "getPhonebookAccessPermission() - Not allowed for non-active user");
+                return BluetoothDevice.ACCESS_UNKNOWN;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return BluetoothDevice.ACCESS_UNKNOWN;
+            return service.getPhonebookAccessPermission(device);
+        }
+
+        public boolean setPhonebookAccessPermission(BluetoothDevice device, int value) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "setPhonebookAccessPermission() - Not allowed for non-active user");
+                return false;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.setPhonebookAccessPermission(device, value);
+        }
+
+        public int getMessageAccessPermission(BluetoothDevice device) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "getMessageAccessPermission() - Not allowed for non-active user");
+                return BluetoothDevice.ACCESS_UNKNOWN;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return BluetoothDevice.ACCESS_UNKNOWN;
+            return service.getMessageAccessPermission(device);
+        }
+
+        public boolean setMessageAccessPermission(BluetoothDevice device, int value) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "setMessageAccessPermission() - Not allowed for non-active user");
+                return false;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.setMessageAccessPermission(device, value);
+        }
+
         public void sendConnectionStateChange(BluetoothDevice
                 device, int profile, int state, int prevState) {
             AdapterService service = getService();
@@ -1477,6 +1527,56 @@ public class AdapterService extends Service {
         byte[] addr = Utils.getBytesFromAddress(device.getAddress());
         return sspReplyNative(addr, AbstractionLayer.BT_SSP_VARIANT_PASSKEY_CONFIRMATION,
                 accept, 0);
+    }
+
+    int getPhonebookAccessPermission(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        SharedPreferences pref = getSharedPreferences(PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE,
+                Context.MODE_PRIVATE);
+        if (!pref.contains(device.getAddress())) {
+            return BluetoothDevice.ACCESS_UNKNOWN;
+        }
+        return pref.getBoolean(device.getAddress(), false)
+                ? BluetoothDevice.ACCESS_ALLOWED : BluetoothDevice.ACCESS_REJECTED;
+    }
+
+    boolean setPhonebookAccessPermission(BluetoothDevice device, int value) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                                       "Need BLUETOOTH PRIVILEGED permission");
+        SharedPreferences pref = getSharedPreferences(PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE,
+                Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        if (value == BluetoothDevice.ACCESS_UNKNOWN) {
+            editor.remove(device.getAddress());
+        } else {
+            editor.putBoolean(device.getAddress(), value == BluetoothDevice.ACCESS_ALLOWED);
+        }
+        return editor.commit();
+    }
+
+    int getMessageAccessPermission(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        SharedPreferences pref = getSharedPreferences(MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE,
+                Context.MODE_PRIVATE);
+        if (!pref.contains(device.getAddress())) {
+            return BluetoothDevice.ACCESS_UNKNOWN;
+        }
+        return pref.getBoolean(device.getAddress(), false)
+                ? BluetoothDevice.ACCESS_ALLOWED : BluetoothDevice.ACCESS_REJECTED;
+    }
+
+    boolean setMessageAccessPermission(BluetoothDevice device, int value) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                                       "Need BLUETOOTH PRIVILEGED permission");
+        SharedPreferences pref = getSharedPreferences(MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE,
+                Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        if (value == BluetoothDevice.ACCESS_UNKNOWN) {
+            editor.remove(device.getAddress());
+        } else {
+            editor.putBoolean(device.getAddress(), value == BluetoothDevice.ACCESS_ALLOWED);
+        }
+        return editor.commit();
     }
 
      void sendConnectionStateChange(BluetoothDevice
