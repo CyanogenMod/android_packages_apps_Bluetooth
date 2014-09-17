@@ -1962,7 +1962,7 @@ public class GattService extends ProfileService {
             return false;
         }
         // Hidden API for onLost/onFound
-        if (settings.getScanMode() != ScanSettings.CALLBACK_TYPE_ALL_MATCHES) {
+        if (settings.getCallbackType() != ScanSettings.CALLBACK_TYPE_ALL_MATCHES) {
             return true;
         }
         // Regular scan, no special permission.
