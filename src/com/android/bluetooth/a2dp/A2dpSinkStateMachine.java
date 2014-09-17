@@ -122,6 +122,7 @@ final class A2dpSinkStateMachine extends StateMachine {
     private BluetoothDevice mCurrentDevice = null;
     private BluetoothDevice mTargetDevice = null;
     private BluetoothDevice mIncomingDevice = null;
+    private BluetoothDevice mPlayingDevice = null;
 
     private final HashMap<BluetoothDevice,BluetoothAudioConfig> mAudioConfigs
             = new HashMap<BluetoothDevice,BluetoothAudioConfig>();
@@ -539,6 +540,7 @@ final class A2dpSinkStateMachine extends StateMachine {
                             informAudioFocusStateNative(AUDIO_FOCUS_LOSS);
                         }
                     }
+                    mPlayingDevice = null;
                     transitionTo(mPending);
                 }
                     break;
@@ -573,6 +575,9 @@ final class A2dpSinkStateMachine extends StateMachine {
             switch (state) {
                 case CONNECTION_STATE_DISCONNECTED:
                     mAudioConfigs.remove(device);
+                    if ((mPlayingDevice != null) && (device.equals(mPlayingDevice))) {
+                        mPlayingDevice = null;
+                    }
                     if (mCurrentDevice.equals(device)) {
                         broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_DISCONNECTED,
                                                  BluetoothProfile.STATE_CONNECTED);
@@ -603,14 +608,19 @@ final class A2dpSinkStateMachine extends StateMachine {
             log(" processAudioStateEvent in state " + state);
             switch (state) {
                 case AUDIO_STATE_STARTED:
+                    if (mPlayingDevice == null) {
+                        mPlayingDevice = device;
+                    }
                     broadcastAudioState(device, BluetoothA2dpSink.STATE_PLAYING,
                                         BluetoothA2dpSink.STATE_NOT_PLAYING);
                     break;
                 case AUDIO_STATE_REMOTE_SUSPEND:
                 case AUDIO_STATE_STOPPED:
+                    mPlayingDevice = null;
                     broadcastAudioState(device, BluetoothA2dpSink.STATE_NOT_PLAYING,
                                         BluetoothA2dpSink.STATE_PLAYING);
-                    if (mAudioFocusAcquired == AUDIO_FOCUS_LOSS_TRANSIENT) {
+                    if ((mAudioFocusAcquired == AUDIO_FOCUS_LOSS_TRANSIENT) ||
+                                     (state == AUDIO_STATE_REMOTE_SUSPEND)) {
                         log(" Dont't Loose audiofocus in case of suspend ");
                         break;
                     }
@@ -629,8 +639,10 @@ final class A2dpSinkStateMachine extends StateMachine {
         private void processAudioFocusRequestEvent(int enable, BluetoothDevice device) {
             if ((mCurrentDevice != null) && (mCurrentDevice.equals(device))
                     && (1 == enable)) {
-                if (mAudioFocusAcquired == AUDIO_FOCUS_GAIN)
+                if (mAudioFocusAcquired == AUDIO_FOCUS_GAIN) {
+                    informAudioFocusStateNative(AUDIO_FOCUS_GAIN);
                     return; /* if we already have focus, don't request again */
+                }
                 int status = mAudioManager.requestAudioFocus(mAudioFocusListener,
                                   AudioManager.STREAM_MUSIC,AudioManager.AUDIOFOCUS_GAIN);
                 log(" Audio Focus Request returned " + status);
@@ -697,7 +709,7 @@ final class A2dpSinkStateMachine extends StateMachine {
 
     boolean isPlaying(BluetoothDevice device) {
         synchronized(this) {
-            if ((mCurrentDevice != null) && (device.equals(mCurrentDevice))) {
+            if ((mPlayingDevice != null) && (device.equals(mPlayingDevice))) {
                 return true;
             }
         }
@@ -803,7 +815,7 @@ final class A2dpSinkStateMachine extends StateMachine {
 
     private void onAudioFocusRequest(int enable, byte[] address) {
         BluetoothDevice device = getDevice(address);
-        logw(" checkaudiofocus for  " + device + "enable" + enable);
+        logw(" checkaudiofocus for  " + device + " enable " + enable);
         if (1 == enable) {
             // send a request for audio_focus
             StackEvent event = new StackEvent(EVENT_TYPE_REQUEST_AUDIO_FOCUS);
@@ -873,6 +885,9 @@ final class A2dpSinkStateMachine extends StateMachine {
         AvrcpControllerService avrcpCtrlService = AvrcpControllerService.getAvrcpControllerService();
         if ((avrcpCtrlService != null) && (mDevice != null) &&
             (avrcpCtrlService.getConnectedDevices().contains(mDevice))){
+            if (mPlayingDevice == null){
+                return true; // don't send Pause if we are not playing already.
+            }
             avrcpCtrlService.sendPassThroughCmd(mDevice, AVRC_ID_PAUSE, KEY_STATE_PRESSED);
             avrcpCtrlService.sendPassThroughCmd(mDevice, AVRC_ID_PAUSE, KEY_STATE_RELEASED);
             log(" SendPassThruPause command sent - ");
@@ -915,7 +930,7 @@ final class A2dpSinkStateMachine extends StateMachine {
 
     private OnAudioFocusChangeListener mAudioFocusListener = new OnAudioFocusChangeListener() {
         public void onAudioFocusChange(int focusChange){
-            log("onAudioFocusChangeListener focuschange" + focusChange);
+            log("onAudioFocusChangeListener focuschange " + focusChange);
             switch(focusChange){
                 case AudioManager.AUDIOFOCUS_LOSS:
                     if (mCurrentDevice != null) {
