@@ -1274,6 +1274,9 @@ public class GattService extends ProfileService {
             List<ScanFilter> filters, List<List<ResultStorageDescriptor>> storages) {
         if (DBG) Log.d(TAG, "start scan with filters");
         enforceAdminPermission();
+        if (needsPrivilegedPermissionForScan(settings)) {
+            enforcePrivilegedPermission();
+        }
         mScanManager.startScan(new ScanClient(appIf, isServer, settings, filters, storages));
     }
 
@@ -1951,6 +1954,23 @@ public class GattService extends ProfileService {
 
     private void enforceAdminPermission() {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+    }
+
+    private boolean needsPrivilegedPermissionForScan(ScanSettings settings) {
+        // Regular scan, no special permission.
+        if (settings == null) {
+            return false;
+        }
+        // Hidden API for onLost/onFound
+        if (settings.getScanMode() != ScanSettings.CALLBACK_TYPE_ALL_MATCHES) {
+            return true;
+        }
+        // Regular scan, no special permission.
+        if (settings.getReportDelayMillis() == 0) {
+            return false;
+        }
+        // Batch scan, truncated mode needs permission.
+        return settings.getScanResultType() == ScanSettings.SCAN_RESULT_TYPE_ABBREVIATED;
     }
 
     // Enforce caller has BLUETOOTH_PRIVILEGED permission. A {@link SecurityException} will be
