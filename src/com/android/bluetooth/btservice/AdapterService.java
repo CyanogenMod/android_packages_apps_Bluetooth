@@ -65,6 +65,7 @@ import com.android.bluetooth.hid.HidService;
 import com.android.bluetooth.hid.HidDevService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hdp.HealthService;
+import com.android.bluetooth.hfpclient.HeadsetClientService;
 import com.android.bluetooth.pan.PanService;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
@@ -409,6 +410,8 @@ public class AdapterService extends Service {
         checkA2dpState();
 
         checkHidState();
+
+        checkHfpState();
 
         //Start profile services
         if (!mProfilesStarted && supportedProfileServices.length >0) {
@@ -2163,4 +2166,34 @@ public class AdapterService extends Service {
         }
     }
 
+    @SuppressWarnings("rawtypes")
+    private synchronized void checkHfpState() {
+        final Class hfp_ag[] = { HeadsetService.class };
+        final Class hfp_hs[] = { HeadsetClientService.class };
+
+        boolean isHfpClientEnabled = SystemProperties.getBoolean("persist.service.bt.hfp.client",
+                false);
+        Log.d(TAG, "checkHfpState: isHfpClientEnabled = " + isHfpClientEnabled);
+
+        if (isHfpClientEnabled) {
+            mDisabledProfiles.add(HeadsetService.class.getName());
+            mDisabledProfiles.remove(HeadsetClientService.class.getName());
+        } else {
+            mDisabledProfiles.remove(HeadsetService.class.getName());
+            mDisabledProfiles.add(HeadsetClientService.class.getName());
+        }
+
+        if (mAdapterStateMachine.isTurningOn() || mAdapterStateMachine.isTurningOff()) {
+            Log.e(TAG, "checkHfpState: returning");
+            return;
+        }
+
+        if (isHfpClientEnabled) {
+            setProfileServiceState(hfp_ag, BluetoothAdapter.STATE_OFF);
+            setProfileServiceState(hfp_hs, BluetoothAdapter.STATE_ON);
+        } else {
+            setProfileServiceState(hfp_hs, BluetoothAdapter.STATE_OFF);
+            setProfileServiceState(hfp_ag, BluetoothAdapter.STATE_ON);
+        }
+    }
 }
