@@ -649,8 +649,9 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     private int createList(final int maxListCount, final int listStartOffset,
         final String searchValue, StringBuilder result, String type, boolean SIM) {
-        int itemsFound = 0;
+        int itemsFound = 0, pos = 0;
         ArrayList<String> nameList = null;
+        ArrayList<String> selectedNameList = new ArrayList<String>();
         //check if current request is for SIM
         if(SIM) {
              nameList = mVcardManager.getSIMPhonebookNameList(mOrderBy);
@@ -675,19 +676,19 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             for (int i = 0; i < names.size(); i++) {
                 compareValue = names.get(i).trim();
                 if (D) Log.d(TAG, "compareValue=" + compareValue);
-                for (int pos = listStartOffset; pos < listSize &&
-                        itemsFound < requestSize; pos++) {
+                for (pos = 0; pos < listSize; pos++) {
                     currentValue = nameList.get(pos);
                     if (D) Log.d(TAG, "currentValue=" + currentValue);
                     if (currentValue.equals(compareValue)) {
-                        itemsFound++;
                         if (currentValue.contains(","))
                             currentValue = currentValue.substring(0, currentValue.lastIndexOf(','));
-                        writeVCardEntry(pos, currentValue,result);
+                            selectedNameList.add(currentValue);
+                            for (int j = listStartOffset; j< selectedNameList.size()&&
+                                itemsFound < requestSize; j++) {
+                                itemsFound++;
+                                writeVCardEntry(pos, selectedNameList.get(j),result);
+                            }
                     }
-                }
-                if (itemsFound >= requestSize) {
-                    break;
                 }
             }
         } else {
@@ -695,16 +696,19 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 compareValue = searchValue.trim();
                 if (D) Log.d(TAG, "compareValue=" + compareValue);
             }
-            for (int pos = listStartOffset; pos < listSize &&
-                    itemsFound < requestSize; pos++) {
+            for (pos = 0; pos < listSize; pos++) {
                 currentValue = nameList.get(pos);
                 if (D) Log.d(TAG, "currentValue=" + currentValue);
                 if (currentValue.contains(","))
                     currentValue = currentValue.substring(0, currentValue.lastIndexOf(','));
 
                 if (searchValue.isEmpty() || ((currentValue.toLowerCase()).equals(compareValue.toLowerCase()))) {
-                    itemsFound++;
-                    writeVCardEntry(pos, currentValue,result);
+                    selectedNameList.add(currentValue);
+                    for (int i = listStartOffset; i < selectedNameList.size()&&
+                       itemsFound < requestSize; i++) {
+                        itemsFound++;
+                        writeVCardEntry(pos, selectedNameList.get(i),result);
+                    }
                 }
             }
         }
