@@ -24,6 +24,9 @@ import android.text.format.Time;
 
 import org.apache.http.util.ByteArrayBuffer;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import android.os.ParcelFileDescriptor;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -43,7 +46,9 @@ import android.text.TextUtils;
 import android.text.format.Time;
 import android.util.TimeFormatException;
 import com.android.emailcommon.provider.EmailContent;
+import com.android.emailcommon.provider.EmailContent.Body;
 import com.android.emailcommon.provider.EmailContent.Message;
+import com.android.emailcommon.provider.EmailContent.BodyColumns;
 import com.android.emailcommon.provider.EmailContent.MessageColumns;
 import com.android.emailcommon.provider.EmailContent.SyncColumns;
 
@@ -1956,6 +1961,32 @@ public class BluetoothMapContent {
         return retVal;
     }
 
+    /*
+     * Read  email body data under content URI.
+     */
+    private String readEmailBodyForMessageFd(ParcelFileDescriptor fd) {
+        StringBuilder email = new StringBuilder("");
+        FileInputStream is = null;
+        try {
+            int len=-1;
+            is = new FileInputStream(fd.getFileDescriptor());
+            byte[] buffer = new byte[1024];
+            while((len = is.read(buffer)) != -1) {
+                email.append(new String(buffer,0,len));
+                if(V) Log.v(TAG, "Email part = " + new String(buffer,0,len) + " len=" + len);
+            }
+        } catch (NullPointerException e) {
+            Log.w(TAG, e);
+        } catch (IOException e) {
+            Log.w(TAG, e);
+        } finally {
+            try {
+                if(is != null)
+                    is.close();
+                } catch (IOException e) {}
+        }
+       return email.toString();
+   }
 
     /**
      * Read out the mms parts and update the bMessage object provided i {@linkplain message}
@@ -1971,11 +2002,9 @@ public class BluetoothMapContent {
         BluetoothMapbMessageMmsEmail.MimePart part;
         Cursor c = null;
         try {
-            c = mResolver.query(
-            uriAddress,
-            null,
-            where,
-            null, null);
+            c = mResolver.query(uriAddress,
+                    Body.CONTENT_PROJECTION, BodyColumns.MESSAGE_KEY + "=?",
+                    new String[] {String.valueOf(id)}, null);
         } catch (Exception e){
 
            Log.w(TAG, " EMAIL BODY QUERY FAILDED " + e);
@@ -1983,53 +2012,87 @@ public class BluetoothMapContent {
         if(c != null) {
            if (V) Log.v(TAG, "cursor not null");
            if (c.moveToFirst()) {
-               emailBody = c.getString(c.getColumnIndex("textContent"));
-               if (emailBody == null || emailBody.length() == 0) {
-                   String msgBody = c.getString(c.getColumnIndex("htmlContent"));
-                   if (msgBody != null) {
-                       msgBody = msgBody.replaceAll("(?s)(<title>)(.*?)(</title>)", "");
-                       msgBody = msgBody.replaceAll("(?s)(<style type=\"text/css\".*?>)(.*?)(</style>)", "");
-                       CharSequence msgText = Html.fromHtml(msgBody);
-                       emailBody = msgText.toString();
-                       emailBody = emailBody.replaceAll("(?s)(<!--)(.*?)(-->)", "");
-                       // Solves problem with Porche Car-kit and Gmails.
-                       // Changes unix style line conclusion to DOS style
-                       emailBody = emailBody.replaceAll("(?s)(\\r)", "");
-                       emailBody = emailBody.replaceAll("(?s)(\\n)", "\r\n");
-                   }
-                   message.setEmailBody(emailBody);
-               }
-
-                Long partId = c.getLong(c.getColumnIndex(BaseColumns._ID));
-                String contentType = "Content-Type: text/plain; charset=\"UTF-8\"";
-                String name = null;//c.getString(c.getColumnIndex("displayName"));
-                  String text = null;
-
-                if(D) Log.d(TAG, "     _id : " + partId +
-                        "\n     ct : " + contentType +
-                        "\n     partname : " + name);
-
-                part = message.addMimePart();
-                part.contentType = contentType;
-                part.partName = name;
-
-                try {
-                    if(emailBody != null) {
-                        part.data = emailBody.getBytes("UTF-8");
-                        part.charsetName = "utf-8";
+                String textContentURI = c.getString(c.getColumnIndex(BodyColumns.TEXT_CONTENT_URI));
+                String htmlContentURI = c.getString(c.getColumnIndex(BodyColumns.HTML_CONTENT_URI));
+                if(textContentURI != null || htmlContentURI != null ) {
+                    if(V) {
+                        Log.v(TAG, " EMAIL BODY textURI " + textContentURI);
+                        Log.v(TAG, " EMAIL BODY htmlURI " + htmlContentURI);
                     }
-                } catch (NumberFormatException e) {
-                    Log.d(TAG,"extractEmailParts",e);
-                    part.data = null;
-                    part.charsetName = null;
-                } catch (UnsupportedEncodingException e) {
-                    Log.d(TAG,"extractEmailParts",e);
-                    part.data = null;
-                    part.charsetName = null;
-                } finally {
+                    // GET FD to parse text or HTML content
+                    ParcelFileDescriptor fd = null;
+                    try {
+                       Log.v(TAG, " TRY EMAIL BODY textURI " + textContentURI);
+                       fd = mResolver.openFileDescriptor(Uri.parse(textContentURI), "r");
+                    } catch (FileNotFoundException e) {
+                      Log.w(TAG, e);
+                    }
+                    if(fd == null ) {
+                       //Try HTML content if  TEXT CONTENT NULL
+                     try {
+                       Log.v(TAG, " TRY EMAIL BODY htmlURI " + htmlContentURI);
+                       fd = mResolver.openFileDescriptor(Uri.parse(htmlContentURI), "r");
+                       } catch (FileNotFoundException e) {
+                           Log.w(TAG, e);
+                       } catch (NullPointerException e) {
+                          Log.w(TAG, e);
+                       }
+                       String msgBody = readEmailBodyForMessageFd(fd);
+                       if (msgBody != null) {
+                          msgBody = msgBody.replaceAll("(?s)(<title>)(.*?)(</title>)", "");
+                          msgBody = msgBody.replaceAll("(?s)(<style type=\"text/css\".*?>)(.*?)(</style>)", "");
+                          CharSequence msgText = Html.fromHtml(msgBody);
+                          emailBody = msgText.toString();
+                          emailBody = emailBody.replaceAll("(?s)(<!--)(.*?)(-->)", "");
+                          // Solves problem with Porche Car-kit and Gmails.
+                          // Changes unix style line conclusion to DOS style
+                          emailBody = emailBody.replaceAll("(?s)(\\r)", "");
+                          emailBody = emailBody.replaceAll("(?s)(\\n)", "\r\n");
+                       }
+                    } else {
+                        emailBody = readEmailBodyForMessageFd(fd);
+                    }
+                    //Set BMessage emailBody
+                    message.setEmailBody(emailBody);
+                    //Parts
+                    Long partId = c.getLong(c.getColumnIndex(BaseColumns._ID));
+                    String contentType = "Content-Type: text/plain; charset=\"UTF-8\"";
+                    String name = null;//c.getString(c.getColumnIndex("displayName"));
+                    String text = null;
+
+                    if(D) Log.d(TAG, "     _id : " + partId +
+                       "\n     ct : " + contentType +
+                       "\n     partname : " + name);
+
+                    part = message.addMimePart();
+                    part.contentType = contentType;
+                    part.partName = name;
+
+                    try {
+                        if(emailBody != null) {
+                            part.data = emailBody.getBytes("UTF-8");
+                            part.charsetName = "utf-8";
+                        }
+                    } catch (NumberFormatException e) {
+                        Log.d(TAG,"extractEmailParts",e);
+                        part.data = null;
+                        part.charsetName = null;
+                    } catch (UnsupportedEncodingException e) {
+                        Log.d(TAG,"extractEmailParts",e);
+                        part.data = null;
+                        part.charsetName = null;
+                    } finally {
+                    }
+                    try {
+                       if(fd != null)
+                         fd.close();
+                    } catch (IOException e) {}
+                } else {
+                    Log.w(TAG, " FETCH Email BODY File URI FAILED");
                 }
            }
-       }
+           c.close();
+        }
         message.updateCharset();
         message.setEncoding("8BIT");
     }
