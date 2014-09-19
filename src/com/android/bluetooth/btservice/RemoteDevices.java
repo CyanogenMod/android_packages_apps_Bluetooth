@@ -190,6 +190,7 @@ final class RemoteDevices {
          */
         void setAlias(String mAlias) {
             synchronized (mObject) {
+                this.mAlias = mAlias;
                 mAdapterService.setDevicePropertyNative(mAddress,
                     AbstractionLayer.BT_PROPERTY_REMOTE_FRIENDLY_NAME, mAlias.getBytes());
             }
