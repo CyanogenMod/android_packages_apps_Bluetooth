@@ -17,9 +17,9 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Acessar o gerenciador de download."</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Permite que o aplicativo acesse e use o gerenciador BluetoothShare para transferir arquivos."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Permite que o app acesse e use o gerenciador BluetoothShare para transferir arquivos."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Colocar o acesso do dispositivo Bluetooth na lista de permissões."</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Permite que o aplicativo adicione um dispositivo Bluetooth à uma lista de permissões temporariamente. Assim, o dispositivo Bluetooth poderá enviar arquivos para este dispositivo sem precisar de confirmação do usuário."</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Permite que o app adicione um dispositivo Bluetooth à uma lista de permissões temporariamente. Assim, o dispositivo Bluetooth poderá enviar arquivos para este dispositivo sem precisar de confirmação do usuário."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Dispositivo desconhecido"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Desconhecido"</string>
@@ -74,7 +74,7 @@
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Fechar"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"OK"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Arquivo desconhecido"</string>
-    <string name="unknown_file_desc" msgid="480434281415453287">"Não há um aplicativo para lidar com este tipo de arquivo. \n"</string>
+    <string name="unknown_file_desc" msgid="480434281415453287">"Não há um app para lidar com este tipo de arquivo. \n"</string>
     <string name="not_exist_file" msgid="3489434189599716133">"Nenhum arquivo"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"O arquivo não existe. \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Aguarde..."</string>
