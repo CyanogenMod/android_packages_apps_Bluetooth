@@ -115,7 +115,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"खोलें"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"सूची से साफ़ करें"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"साफ़ करें"</string>
-    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"सहेजें"</string>
+    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"जोड़ें"</string>
     <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"रहने दें"</string>
     <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"वे ईमेल खाते चुनें जिन्हें आप ब्लूटूथ के द्वारा साझा करना चाहते हैं. फिर भी कनेक्ट करते समय आपको खातों की सभी एक्सेस को स्वीकार करना होगा."</string>
     <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"शेष स्लॉट:"</string>
