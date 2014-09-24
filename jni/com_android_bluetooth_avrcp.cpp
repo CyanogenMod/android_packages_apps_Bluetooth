@@ -721,10 +721,10 @@ static jboolean SendCurrentPlayerValueRspNative(JNIEnv *env, jobject object ,
 
 
 //JNI Method called to Respond to PDU 0x14
-static jboolean SendSetPlayerAppRspNative(JNIEnv *env, jobject object)
+static jboolean SendSetPlayerAppRspNative(JNIEnv *env, jobject object , jint attr_status)
 {
     bt_status_t status;
-    btrc_status_t player_rsp = BTRC_STS_NO_ERROR;
+    btrc_status_t player_rsp = (btrc_status_t) attr_status;
     if ((status = sBluetoothAvrcpInterface->set_player_app_value_rsp(player_rsp)) !=
                                                                    BT_STATUS_SUCCESS) {
         ALOGE("Failed get_element_attr_rsp, status: %d", status);
@@ -1569,7 +1569,7 @@ static JNINativeMethod sMethods[] = {
      (void *) registerNotificationPlayerAppRspNative},
     {"registerNotificationRspTrackChangeNative", "(I[B)Z",
      (void *) registerNotificationRspTrackChangeNative},
-    {"SendSetPlayerAppRspNative", "()Z",
+    {"SendSetPlayerAppRspNative", "(I)Z",
      (void *) SendSetPlayerAppRspNative},
     {"sendSettingsTextRspNative" , "(I[BI[Ljava/lang/String;)Z",
      (void *) sendSettingsTextRspNative},

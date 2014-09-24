@@ -287,6 +287,7 @@ public final class Avrcp {
     public static final int VALUE_REPEATMODE_SINGLE = 2;
     public static final int VALUE_REPEATMODE_ALL = 3;
     public static final int VALUE_INVALID = 0;
+    public static final int ATTRIBUTE_NOTSUPPORTED = -1;
 
     public static final int ATTRIBUTE_EQUALIZER = 1;
     public static final int ATTRIBUTE_REPEATMODE = 2;
@@ -423,18 +424,31 @@ public final class Avrcp {
                         getPlayerAppValueRspNative(numAttr, data);
                     break;
                     case GET_ATTRIBUTE_VALUES:
-                    case NOTIFY_ATTRIBUTE_VALUES:
                         data = intent.getByteArrayExtra(EXTRA_ATTRIB_VALUE_PAIRS);
                         updateLocalPlayerSettings(data);
                         numAttr = (byte) data.length;
                         if (DEBUG) Log.v(TAG,"GET_ATTRIBUTE_VALUES" + numAttr);
-                        if (mPlayerStatusChangeNT == NOTIFICATION_TYPE_INTERIM && getResponse
-                                                                  == NOTIFY_ATTRIBUTE_VALUES) {
-                        mPlayerStatusChangeNT = NOTIFICATION_TYPE_CHANGED;
-                        sendPlayerAppChangedRsp(mPlayerStatusChangeNT);
-                        }
-                        else {
-                            SendCurrentPlayerValueRspNative(numAttr, data);
+                        SendCurrentPlayerValueRspNative(numAttr, data);
+                    break;
+                    case SET_ATTRIBUTE_VALUES:
+                        data = intent.getByteArrayExtra(EXTRA_ATTRIB_VALUE_PAIRS);
+                        updateLocalPlayerSettings(data);
+                        Log.v(TAG,"SET_ATTRIBUTE_VALUES: " + data[0] + ", " + data[1]);
+                        if (data[0] == ATTRIBUTE_EQUALIZER ||
+                            data[0] == ATTRIBUTE_REPEATMODE ||
+                            data[0] == ATTRIBUTE_SHUFFLEMODE) {
+                            if (mPlayerStatusChangeNT == NOTIFICATION_TYPE_INTERIM) {
+                                Log.v(TAG,"Send Player appl attribute changed response");
+                                mPlayerStatusChangeNT = NOTIFICATION_TYPE_CHANGED;
+                                sendPlayerAppChangedRsp(mPlayerStatusChangeNT);
+                            } else {
+                                Log.v(TAG,"Respond to SET_ATTRIBUTE_VALUES request");
+                                if (data[1] == ATTRIBUTE_NOTSUPPORTED) {
+                                   SendSetPlayerAppRspNative(INTERNAL_ERROR);
+                                } else {
+                                   SendSetPlayerAppRspNative(OPERATION_SUCCESSFUL);
+                                }
+                            }
                         }
                     break;
                     case GET_ATTRIBUTE_TEXT:
@@ -746,7 +760,7 @@ public final class Avrcp {
                         SendCurrentPlayerValueRspNative((byte)retVal.length, retVal);
                     break;
                     case SET_ATTRIBUTE_VALUES :
-                        SendSetPlayerAppRspNative();
+                        SendSetPlayerAppRspNative(INTERNAL_ERROR);
                     break;
                     case GET_ATTRIBUTE_TEXT:
                     case GET_VALUE_TEXT:
@@ -3771,7 +3785,7 @@ private void updateLocalPlayerSettings( byte[] data) {
     private native boolean getListPlayerappAttrRspNative(byte attr, byte[] attrIds);
     private native boolean getPlayerAppValueRspNative(byte numberattr, byte[]values );
     private native boolean SendCurrentPlayerValueRspNative(byte numberattr, byte[]attr );
-    private native boolean SendSetPlayerAppRspNative();
+    private native boolean SendSetPlayerAppRspNative(int attr_status);
     private native boolean sendSettingsTextRspNative(int num_attr, byte[] attr,
         int length, String[]text);
     private native boolean sendValueTextRspNative(int num_attr, byte[] attr,
