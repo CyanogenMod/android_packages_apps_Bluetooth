@@ -459,22 +459,12 @@ public class BluetoothMapContent {
             if (fi.mMsgType == FilterInfo.TYPE_MMS) {
                 if(c.getInt(fi.mMmsColTextOnly) == 0) {
                     size = c.getInt(fi.mMmsColAttachmentSize);
-                    if(size <= 0) {
-                        // We know there are attachments, since it is not TextOnly
-                        // Hence the size in the database must be wrong.
-                        // Set size to 1 to indicate to the client, that attachments are present
-                        if (D) Log.d(TAG, "Error in message database, size reported as: " + size
-                                + " Changing size to 1");
-                        size = 1;
-                    }
                 }
             } else if (fi.mMsgType == FilterInfo.TYPE_EMAIL) {
                 int attachment = c.getInt(fi.mEmailColAttachment);
                 size = c.getInt(fi.mEmailColAttachementSize);
                 if(attachment == 1 && size == 0) {
-                    if (D) Log.d(TAG, "Error in message database, attachment size reported as: " + size
-                            + " Changing size to 1");
-                    size = 1; /* Ensure we indicate we have attachments in the size, if the
+                    size = 1; /* Ensure we indicate we have attachments in the size, it the
                                  message has attachments, in case the e-mail client do not
                                  report a size */
                 }
@@ -531,14 +521,6 @@ public class BluetoothMapContent {
                 size = c.getInt(fi.mMmsColSize);
             } else if (fi.mMsgType == FilterInfo.TYPE_EMAIL) {
                 size = c.getInt(fi.mEmailColSize);
-            }
-            if(size <= 0) {
-                // A message cannot have size 0
-                // Hence the size in the database must be wrong.
-                // Set size to 1 to indicate to the client, that the message has content.
-                if (D) Log.d(TAG, "Error in message database, size reported as: " + size
-                        + " Changing size to 1");
-                size = 1;
             }
             if (V) Log.d(TAG, "setSize: " + size);
             e.setSize(size);
