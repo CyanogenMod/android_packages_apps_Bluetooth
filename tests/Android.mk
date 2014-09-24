@@ -5,12 +5,11 @@ include $(CLEAR_VARS)
 LOCAL_MODULE_TAGS := optional
 LOCAL_CERTIFICATE := platform
 
-LOCAL_JAVA_LIBRARIES := android.test.runner telephony-common mms-common
+LOCAL_JAVA_LIBRARIES := android.test.runner
 LOCAL_STATIC_JAVA_LIBRARIES := com.android.emailcommon
 
 # Include all test java files.
 LOCAL_SRC_FILES := $(call all-java-files-under, src)
-# LOCAL_SRC_FILES := src/com/android/bluetooth/tests/BluetoothMapContentTest.java
 
 LOCAL_PACKAGE_NAME := BluetoothProfileTests
 

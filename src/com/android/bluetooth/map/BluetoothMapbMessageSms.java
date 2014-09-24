@@ -24,29 +24,29 @@ import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 
 public class BluetoothMapbMessageSms extends BluetoothMapbMessage {
 
-    private ArrayList<SmsPdu> mSmsBodyPdus = null;
-    private String mSmsBody = null;
+    private ArrayList<SmsPdu> smsBodyPdus = null;
+    private String smsBody = null;
 
     public void setSmsBodyPdus(ArrayList<SmsPdu> smsBodyPdus) {
-        this.mSmsBodyPdus = smsBodyPdus;
-        this.mCharset = null;
+        this.smsBodyPdus = smsBodyPdus;
+        this.charset = null;
         if(smsBodyPdus.size() > 0)
-            this.mEncoding = smsBodyPdus.get(0).getEncodingString();
+            this.encoding = smsBodyPdus.get(0).getEncodingString();
     }
 
     public String getSmsBody() {
-        return mSmsBody;
+        return smsBody;
     }
 
     public void setSmsBody(String smsBody) {
-        this.mSmsBody = smsBody;
-        this.mCharset = "UTF-8";
-        this.mEncoding = null;
+        this.smsBody = smsBody;
+        this.charset = "UTF-8";
+        this.encoding = null;
     }
 
     @Override
     public void parseMsgPart(String msgPart) {
-        if(mAppParamCharset == BluetoothMapAppParams.CHARSET_NATIVE) {
+        if(appParamCharset == BluetoothMapAppParams.CHARSET_NATIVE) {
             if(D) Log.d(TAG, "Decoding \"" + msgPart + "\" as native PDU");
             byte[] msgBytes = decodeBinary(msgPart);
             if(msgBytes.length > 0 &&
@@ -56,16 +56,16 @@ public class BluetoothMapbMessageSms extends BluetoothMapbMessage {
                 throw new IllegalArgumentException("Only submit PDUs are supported");
             }
 
-            mSmsBody += BluetoothMapSmsPdu.decodePdu(msgBytes,
-                    mType == TYPE.SMS_CDMA ? BluetoothMapSmsPdu.SMS_TYPE_CDMA
+            smsBody += BluetoothMapSmsPdu.decodePdu(msgBytes,
+                    type == TYPE.SMS_CDMA ? BluetoothMapSmsPdu.SMS_TYPE_CDMA
                                           : BluetoothMapSmsPdu.SMS_TYPE_GSM);
         } else {
-            mSmsBody += msgPart;
+            smsBody += msgPart;
         }
     }
     @Override
     public void parseMsgInit() {
-        mSmsBody = "";
+        smsBody = "";
     }
 
     public byte[] encode() throws UnsupportedEncodingException
@@ -75,16 +75,16 @@ public class BluetoothMapbMessageSms extends BluetoothMapbMessage {
         /* Store the messages in an ArrayList to be able to handle the different message types in a generic way.
          * We use byte[] since we need to extract the length in bytes.
          */
-        if(mSmsBody != null) {
-            String tmpBody = mSmsBody.replaceAll("END:MSG", "/END\\:MSG"); // Replace any occurrences of END:MSG with \END:MSG
+        if(smsBody != null) {
+            String tmpBody = smsBody.replaceAll("END:MSG", "/END\\:MSG"); // Replace any occurrences of END:MSG with \END:MSG
             bodyFragments.add(tmpBody.getBytes("UTF-8"));
-        }else if (mSmsBodyPdus != null && mSmsBodyPdus.size() > 0) {
-            for (SmsPdu pdu : mSmsBodyPdus) {
+        }else if (smsBodyPdus != null && smsBodyPdus.size() > 0) {
+            for (SmsPdu pdu : smsBodyPdus) {
                 // This cannot(must not) contain END:MSG
                 bodyFragments.add(encodeBinary(pdu.getData(),pdu.getScAddress()).getBytes("UTF-8"));
             }
         } else {
-            bodyFragments.add(new byte[0]); // An empty message - no text
+            bodyFragments.add(new byte[0]); // TODO: Is this allowed? (An empty message)
         }
 
         return encodeGeneric(bodyFragments);

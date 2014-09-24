@@ -27,7 +27,6 @@
         android:layout_height="@android:dimen/app_icon_size"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:contentDescription ="@string/bluetooth_map_email_settings_app_icon"
         android:scaleType="center"
     />
 

@@ -86,45 +86,35 @@ public class BluetoothMapAppParams {
     public static final int STATUS_VALUE_NO = 0;
     public static final int CHARSET_NATIVE = 0;
     public static final int CHARSET_UTF8 = 1;
-    public static final int FRACTION_REQUEST_FIRST = 0;
-    public static final int FRACTION_REQUEST_NEXT = 1;
-    public static final int FRACTION_DELIVER_MORE = 0;
-    public static final int FRACTION_DELIVER_LAST = 1;
-
-
-    public static final int FILTER_NO_SMS_GSM  = 0x01;
-    public static final int FILTER_NO_SMS_CDMA = 0x02;
-    public static final int FILTER_NO_EMAIL    = 0x04;
-    public static final int FILTER_NO_MMS      = 0x08;
 
     /* Default values for omitted application parameters */
     public static final long PARAMETER_MASK_ALL_ENABLED = 0xFFFF; // TODO: Update when bit 16-31 will be used.
 
-    private int mMaxListCount        = INVALID_VALUE_PARAMETER;
-    private int mStartOffset         = INVALID_VALUE_PARAMETER;
-    private int mFilterMessageType   = INVALID_VALUE_PARAMETER;
-    private long mFilterPeriodBegin  = INVALID_VALUE_PARAMETER;
-    private long mFilterPeriodEnd    = INVALID_VALUE_PARAMETER;
-    private int mFilterReadStatus    = INVALID_VALUE_PARAMETER;
-    private String mFilterRecipient   = null;
-    private String mFilterOriginator  = null;
-    private int mFilterPriority      = INVALID_VALUE_PARAMETER;
-    private int mAttachment          = INVALID_VALUE_PARAMETER;
-    private int mTransparent         = INVALID_VALUE_PARAMETER;
-    private int mRetry               = INVALID_VALUE_PARAMETER;
-    private int mNewMessage          = INVALID_VALUE_PARAMETER;
-    private int mNotificationStatus  = INVALID_VALUE_PARAMETER;
-    private int mMasInstanceId       = INVALID_VALUE_PARAMETER;
-    private long mParameterMask      = INVALID_VALUE_PARAMETER;
-    private int mFolderListingSize   = INVALID_VALUE_PARAMETER;
-    private int mMessageListingSize  = INVALID_VALUE_PARAMETER;
-    private int mSubjectLength       = INVALID_VALUE_PARAMETER;
-    private int mCharset             = INVALID_VALUE_PARAMETER;
-    private int mFractionRequest     = INVALID_VALUE_PARAMETER;
-    private int mFractionDeliver     = INVALID_VALUE_PARAMETER;
-    private int mStatusIndicator     = INVALID_VALUE_PARAMETER;
-    private int mStatusValue         = INVALID_VALUE_PARAMETER;
-    private long mMseTime            = INVALID_VALUE_PARAMETER;
+    private int maxListCount        = INVALID_VALUE_PARAMETER;
+    private int startOffset         = INVALID_VALUE_PARAMETER;
+    private int filterMessageType   = INVALID_VALUE_PARAMETER;
+    private long filterPeriodBegin  = INVALID_VALUE_PARAMETER;
+    private long filterPeriodEnd    = INVALID_VALUE_PARAMETER;
+    private int filterReadStatus    = INVALID_VALUE_PARAMETER;
+    private String filterRecipient   = null;
+    private String filterOriginator  = null;
+    private int filterPriority      = INVALID_VALUE_PARAMETER;
+    private int attachment          = INVALID_VALUE_PARAMETER;
+    private int transparent         = INVALID_VALUE_PARAMETER;
+    private int retry               = INVALID_VALUE_PARAMETER;
+    private int newMessage          = INVALID_VALUE_PARAMETER;
+    private int notificationStatus  = INVALID_VALUE_PARAMETER;
+    private int masInstanceId       = INVALID_VALUE_PARAMETER;
+    private long parameterMask      = INVALID_VALUE_PARAMETER;
+    private int folderListingSize   = INVALID_VALUE_PARAMETER;
+    private int messageListingSize  = INVALID_VALUE_PARAMETER;
+    private int subjectLength       = INVALID_VALUE_PARAMETER;
+    private int charset             = INVALID_VALUE_PARAMETER;
+    private int fractionRequest     = INVALID_VALUE_PARAMETER;
+    private int fractionDeliver     = INVALID_VALUE_PARAMETER;
+    private int statusIndicator     = INVALID_VALUE_PARAMETER;
+    private int statusValue         = INVALID_VALUE_PARAMETER;
+    private long mseTime            = INVALID_VALUE_PARAMETER;
 
     /**
      * Default constructor, used to build an application parameter object to be
@@ -222,14 +212,10 @@ public class BluetoothMapAppParams {
                 setFilterReadStatus(appParams[i] & 0x03); // Lower two bits
                 break;
             case FILTER_RECIPIENT:
-                if(tagLength != 0) {
-                    setFilterRecipient(new String(appParams, i, tagLength));
-                }
+                setFilterRecipient(new String(appParams, i, tagLength));
                 break;
             case FILTER_ORIGINATOR:
-                if(tagLength != 0) {
-                    setFilterOriginator(new String(appParams, i, tagLength));
-                }
+                setFilterOriginator(new String(appParams, i, tagLength));
                 break;
             case FILTER_PRIORITY:
                 if (tagLength != FILTER_PRIORITY_LEN) {
@@ -538,263 +524,263 @@ public class BluetoothMapAppParams {
     }
 
     public int getMaxListCount() {
-        return mMaxListCount;
+        return maxListCount;
     }
 
     public void setMaxListCount(int maxListCount) throws IllegalArgumentException {
         if (maxListCount < 0 || maxListCount > 0xFFFF)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0xFFFF");
-        this.mMaxListCount = maxListCount;
+        this.maxListCount = maxListCount;
     }
 
     public int getStartOffset() {
-        return mStartOffset;
+        return startOffset;
     }
 
     public void setStartOffset(int startOffset) throws IllegalArgumentException {
         if (startOffset < 0 || startOffset > 0xFFFF)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0xFFFF");
-        this.mStartOffset = startOffset;
+        this.startOffset = startOffset;
     }
 
     public int getFilterMessageType() {
-        return mFilterMessageType;
+        return filterMessageType;
     }
 
     public void setFilterMessageType(int filterMessageType) throws IllegalArgumentException {
         if (filterMessageType < 0 || filterMessageType > 0x000F)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0x000F");
-        this.mFilterMessageType = filterMessageType;
+        this.filterMessageType = filterMessageType;
     }
 
     public long getFilterPeriodBegin() {
-        return mFilterPeriodBegin;
+        return filterPeriodBegin;
     }
 
     public String getFilterPeriodBeginString() {
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
-        Date date = new Date(mFilterPeriodBegin);
+        Date date = new Date(filterPeriodBegin);
         return format.format(date); // Format to YYYYMMDDTHHMMSS local time
     }
 
     public void setFilterPeriodBegin(long filterPeriodBegin) {
-        this.mFilterPeriodBegin = filterPeriodBegin;
+        this.filterPeriodBegin = filterPeriodBegin;
     }
 
     public void setFilterPeriodBegin(String filterPeriodBegin) throws ParseException {
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
         Date date = format.parse(filterPeriodBegin);
-        this.mFilterPeriodBegin = date.getTime();
+        this.filterPeriodBegin = date.getTime();
     }
 
     public long getFilterPeriodEnd() {
-        return mFilterPeriodEnd;
+        return filterPeriodEnd;
     }
 
     public String getFilterPeriodEndString() {
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
-        Date date = new Date(mFilterPeriodEnd);
+        Date date = new Date(filterPeriodEnd);
         return format.format(date); // Format to YYYYMMDDTHHMMSS local time
     }
 
     public void setFilterPeriodEnd(long filterPeriodEnd) {
-        this.mFilterPeriodEnd = filterPeriodEnd;
+        this.filterPeriodEnd = filterPeriodEnd;
     }
 
     public void setFilterPeriodEnd(String filterPeriodEnd) throws ParseException {
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
         Date date = format.parse(filterPeriodEnd);
-        this.mFilterPeriodEnd = date.getTime();
+        this.filterPeriodEnd = date.getTime();
     }
 
     public int getFilterReadStatus() {
-        return mFilterReadStatus;
+        return filterReadStatus;
     }
 
     public void setFilterReadStatus(int filterReadStatus) throws IllegalArgumentException {
         if (filterReadStatus < 0 || filterReadStatus > 0x0002)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0x0002");
-        this.mFilterReadStatus = filterReadStatus;
+        this.filterReadStatus = filterReadStatus;
     }
 
     public String getFilterRecipient() {
-        return mFilterRecipient;
+        return filterRecipient;
     }
 
     public void setFilterRecipient(String filterRecipient) {
-        this.mFilterRecipient = filterRecipient;
+        this.filterRecipient = filterRecipient;
     }
 
     public String getFilterOriginator() {
-        return mFilterOriginator;
+        return filterOriginator;
     }
 
     public void setFilterOriginator(String filterOriginator) {
-        this.mFilterOriginator = filterOriginator;
+        this.filterOriginator = filterOriginator;
     }
 
     public int getFilterPriority() {
-        return mFilterPriority;
+        return filterPriority;
     }
 
     public void setFilterPriority(int filterPriority) throws IllegalArgumentException {
         if (filterPriority < 0 || filterPriority > 0x0002)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0x0002");
-        this.mFilterPriority = filterPriority;
+        this.filterPriority = filterPriority;
     }
 
     public int getAttachment() {
-        return mAttachment;
+        return attachment;
     }
 
     public void setAttachment(int attachment) throws IllegalArgumentException {
         if (attachment < 0 || attachment > 0x0001)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0x0001");
-        this.mAttachment = attachment;
+        this.attachment = attachment;
     }
 
     public int getTransparent() {
-        return mTransparent;
+        return transparent;
     }
 
     public void setTransparent(int transparent) throws IllegalArgumentException {
         if (transparent < 0 || transparent > 0x0001)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0x0001");
-        this.mTransparent = transparent;
+        this.transparent = transparent;
     }
 
     public int getRetry() {
-        return mRetry;
+        return retry;
     }
 
     public void setRetry(int retry) throws IllegalArgumentException {
         if (retry < 0 || retry > 0x0001)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0x0001");
-        this.mRetry = retry;
+        this.retry = retry;
     }
 
     public int getNewMessage() {
-        return mNewMessage;
+        return newMessage;
     }
 
     public void setNewMessage(int newMessage) throws IllegalArgumentException {
         if (newMessage < 0 || newMessage > 0x0001)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0x0001");
-        this.mNewMessage = newMessage;
+        this.newMessage = newMessage;
     }
 
     public int getNotificationStatus() {
-        return mNotificationStatus;
+        return notificationStatus;
     }
 
     public void setNotificationStatus(int notificationStatus) throws IllegalArgumentException {
         if (notificationStatus < 0 || notificationStatus > 0x0001)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0x0001");
-        this.mNotificationStatus = notificationStatus;
+        this.notificationStatus = notificationStatus;
     }
 
     public int getMasInstanceId() {
-        return mMasInstanceId;
+        return masInstanceId;
     }
 
     public void setMasInstanceId(int masInstanceId) {
         if (masInstanceId < 0 || masInstanceId > 0x00FF)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0x00FF");
-        this.mMasInstanceId = masInstanceId;
+        this.masInstanceId = masInstanceId;
     }
 
     public long getParameterMask() {
-        return mParameterMask;
+        return parameterMask;
     }
 
     public void setParameterMask(long parameterMask) {
         if (parameterMask < 0 || parameterMask > 0xFFFFFFFFL)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0xFFFFFFFF");
-        this.mParameterMask = parameterMask;
+        this.parameterMask = parameterMask;
     }
 
     public int getFolderListingSize() {
-        return mFolderListingSize;
+        return folderListingSize;
     }
 
     public void setFolderListingSize(int folderListingSize) {
         if (folderListingSize < 0 || folderListingSize > 0xFFFF)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0xFFFF");
-        this.mFolderListingSize = folderListingSize;
+        this.folderListingSize = folderListingSize;
     }
 
     public int getMessageListingSize() {
-        return mMessageListingSize;
+        return messageListingSize;
     }
 
     public void setMessageListingSize(int messageListingSize) {
         if (messageListingSize < 0 || messageListingSize > 0xFFFF)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0xFFFF");
-        this.mMessageListingSize = messageListingSize;
+        this.messageListingSize = messageListingSize;
     }
 
     public int getSubjectLength() {
-        return mSubjectLength;
+        return subjectLength;
     }
 
     public void setSubjectLength(int subjectLength) {
         if (subjectLength < 0 || subjectLength > 0xFF)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0x00FF");
-        this.mSubjectLength = subjectLength;
+        this.subjectLength = subjectLength;
     }
 
     public int getCharset() {
-        return mCharset;
+        return charset;
     }
 
     public void setCharset(int charset) {
         if (charset < 0 || charset > 0x1)
             throw new IllegalArgumentException("Out of range: " + charset + ", valid range is 0x0000 to 0x0001");
-        this.mCharset = charset;
+        this.charset = charset;
     }
 
     public int getFractionRequest() {
-        return mFractionRequest;
+        return fractionRequest;
     }
 
     public void setFractionRequest(int fractionRequest) {
         if (fractionRequest < 0 || fractionRequest > 0x1)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0x0001");
-        this.mFractionRequest = fractionRequest;
+        this.fractionRequest = fractionRequest;
     }
 
     public int getFractionDeliver() {
-        return mFractionDeliver;
+        return fractionDeliver;
     }
 
     public void setFractionDeliver(int fractionDeliver) {
         if (fractionDeliver < 0 || fractionDeliver > 0x1)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0x0001");
-        this.mFractionDeliver = fractionDeliver;
+        this.fractionDeliver = fractionDeliver;
     }
 
     public int getStatusIndicator() {
-        return mStatusIndicator;
+        return statusIndicator;
     }
 
     public void setStatusIndicator(int statusIndicator) {
         if (statusIndicator < 0 || statusIndicator > 0x1)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0x0001");
-        this.mStatusIndicator = statusIndicator;
+        this.statusIndicator = statusIndicator;
     }
 
     public int getStatusValue() {
-        return mStatusValue;
+        return statusValue;
     }
 
     public void setStatusValue(int statusValue) {
         if (statusValue < 0 || statusValue > 0x1)
             throw new IllegalArgumentException("Out of range, valid range is 0x0000 to 0x0001");
-        this.mStatusValue = statusValue;
+        this.statusValue = statusValue;
     }
 
     public long getMseTime() {
-        return mMseTime;
+        return mseTime;
     }
 
     public String getMseTimeString() {
@@ -804,12 +790,12 @@ public class BluetoothMapAppParams {
     }
 
     public void setMseTime(long mseTime) {
-        this.mMseTime = mseTime;
+        this.mseTime = mseTime;
     }
 
     public void setMseTime(String mseTime) throws ParseException {
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd'T'HHmmssZ");
         Date date = format.parse(mseTime);
-        this.mMseTime = date.getTime();
+        this.mseTime = date.getTime();
     }
 }

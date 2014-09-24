@@ -20,7 +20,7 @@ import com.android.bluetooth.map.BluetoothMapAppParams;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 import com.android.bluetooth.map.BluetoothMapSmsPdu;
 import com.android.bluetooth.map.BluetoothMapbMessage;
-import com.android.bluetooth.map.BluetoothMapbMessageMms;
+import com.android.bluetooth.map.BluetoothMapbMessageMmsEmail;
 import com.android.bluetooth.map.BluetoothMapbMessageSms;
 import org.apache.http.message.BasicHeaderValueFormatter;
 import org.apache.http.message.BasicHeaderElement;
@@ -421,7 +421,7 @@ public class BluetoothMapbMessageTest extends AndroidTestCase {
      * Test encoding of a simple MMS text message (UTF8). This validates most parameters.
      */
     public void testMmsEncodeText() {
-        BluetoothMapbMessageMms msg = new BluetoothMapbMessageMms();
+        BluetoothMapbMessageMmsEmail msg = new BluetoothMapbMessageMmsEmail();
         String str1 =
                  "BEGIN:BMSG\r\n" +
                     "VERSION:1.0\r\n" +
@@ -467,11 +467,11 @@ public class BluetoothMapbMessageTest extends AndroidTestCase {
         msg.addTo("Jørn Hansen", "bonde@email.add");
         msg.addCc("Jens Hansen", "bonde@email.add");
         msg.addFrom("Jørn Hansen", "bonde@email.add");
-        BluetoothMapbMessageMms.MimePart part = msg.addMimePart();
-        part.mPartName = "partNameText";
-        part.mContentType ="dsfajfdlk/text/asdfafda";
+        BluetoothMapbMessageMmsEmail.MimePart part = msg.addMimePart();
+        part.partName = "partNameText";
+        part.contentType ="dsfajfdlk/text/asdfafda";
         try {
-            part.mData = new String("This is a short message\r\n").getBytes("UTF-8");
+            part.data = new String("This is a short message\r\n").getBytes("UTF-8");
         }
         catch (UnsupportedEncodingException e) {
             if(D) Log.e(TAG, "UnsupportedEncodingException should never happen???", e);
@@ -479,9 +479,9 @@ public class BluetoothMapbMessageTest extends AndroidTestCase {
         }
 
         part = msg.addMimePart();
-        part.mPartName = "partNameimage";
-        part.mContentType = "dsfajfdlk/image/asdfafda";
-        part.mData = null;
+        part.partName = "partNameimage";
+        part.contentType = "dsfajfdlk/image/asdfafda";
+        part.data = null;
 
         msg.setStatus(false);
         msg.setType(TYPE.MMS);

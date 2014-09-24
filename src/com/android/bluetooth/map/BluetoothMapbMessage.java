@@ -33,41 +33,42 @@ import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 public abstract class BluetoothMapbMessage {
 
     protected static String TAG = "BluetoothMapbMessage";
-    protected static final boolean D = BluetoothMapService.DEBUG;
-    protected static final boolean V = BluetoothMapService.VERBOSE;
-
+    protected static final boolean D = false;
+    protected static final boolean V = false;
     private static final String VERSION = "VERSION:1.0";
 
     public static int INVALID_VALUE = -1;
 
-    protected int mAppParamCharset = BluetoothMapAppParams.INVALID_VALUE_PARAMETER;
+    protected int appParamCharset = BluetoothMapAppParams.INVALID_VALUE_PARAMETER;
+
+    // TODO: Reevaluate if strings are the best types for the members.
 
     /* BMSG attributes */
-    private String mStatus = null; // READ/UNREAD
-    protected TYPE mType = null;   // SMS/MMS/EMAIL
+    private String status = null; // READ/UNREAD
+    protected TYPE type = null;   // SMS/MMS/EMAIL
 
-    private String mFolder = null;
+    private String folder = null;
 
     /* BBODY attributes */
-    private long mPartId = INVALID_VALUE;
-    protected String mEncoding = null;
-    protected String mCharset = null;
-    private String mLanguage = null;
+    private long partId = INVALID_VALUE;
+    protected String encoding = null;
+    protected String charset = null;
+    private String language = null;
 
-    private int mBMsgLength = INVALID_VALUE;
+    private int bMsgLength = INVALID_VALUE;
 
-    private ArrayList<vCard> mOriginator = null;
-    private ArrayList<vCard> mRecipient = null;
+    private ArrayList<vCard> originator = null;
+    private ArrayList<vCard> recipient = null;
 
 
     public static class vCard {
         /* VCARD attributes */
-        private String mVersion;
-        private String mName = null;
-        private String mFormattedName = null;
-        private String[] mPhoneNumbers = {};
-        private String[] mEmailAddresses = {};
-        private int mEnvLevel = 0;
+        private String version;
+        private String name = null;
+        private String formattedName = null;
+        private String[] phoneNumbers = {};
+        private String[] emailAddresses = {};
+        private int envLevel = 0;
 
         /**
          * Construct a version 3.0 vCard
@@ -79,13 +80,13 @@ public abstract class BluetoothMapbMessage {
          */
         public vCard(String name, String formattedName, String[] phoneNumbers,
                 String[] emailAddresses, int envLevel) {
-            this.mEnvLevel = envLevel;
-            this.mVersion = "3.0";
-            this.mName = name != null ? name : "";
-            this.mFormattedName = formattedName != null ? formattedName : "";
+            this.envLevel = envLevel;
+            this.version = "3.0";
+            this.name = name != null ? name : "";
+            this.formattedName = formattedName != null ? formattedName : "";
             setPhoneNumbers(phoneNumbers);
             if (emailAddresses != null)
-                this.mEmailAddresses = emailAddresses;
+                this.emailAddresses = emailAddresses;
         }
 
         /**
@@ -97,12 +98,12 @@ public abstract class BluetoothMapbMessage {
          */
         public vCard(String name, String[] phoneNumbers,
                 String[] emailAddresses, int envLevel) {
-            this.mEnvLevel = envLevel;
-            this.mVersion = "2.1";
-            this.mName = name != null ? name : "";
+            this.envLevel = envLevel;
+            this.version = "2.1";
+            this.name = name != null ? name : "";
             setPhoneNumbers(phoneNumbers);
             if (emailAddresses != null)
-                this.mEmailAddresses = emailAddresses;
+                this.emailAddresses = emailAddresses;
         }
 
         /**
@@ -113,12 +114,12 @@ public abstract class BluetoothMapbMessage {
          * @param emailAddresses a String[] of email addresses
          */
         public vCard(String name, String formattedName, String[] phoneNumbers, String[] emailAddresses) {
-            this.mVersion = "3.0";
-            this.mName = (name != null) ? name : "";
-            this.mFormattedName = (formattedName != null) ? formattedName : "";
+            this.version = "3.0";
+            this.name = name != null ? name : "";
+            this.formattedName = formattedName != null ? formattedName : "";
             setPhoneNumbers(phoneNumbers);
             if (emailAddresses != null)
-                this.mEmailAddresses = emailAddresses;
+                this.emailAddresses = emailAddresses;
         }
 
         /**
@@ -128,69 +129,49 @@ public abstract class BluetoothMapbMessage {
          * @param emailAddresses a String[] of email addresses
          */
         public vCard(String name, String[] phoneNumbers, String[] emailAddresses) {
-            this.mVersion = "2.1";
-            this.mName = name != null ? name : "";
+            this.version = "2.1";
+            this.name = name != null ? name : "";
             setPhoneNumbers(phoneNumbers);
             if (emailAddresses != null)
-                this.mEmailAddresses = emailAddresses;
+                this.emailAddresses = emailAddresses;
         }
 
         private void setPhoneNumbers(String[] numbers) {
-            if(numbers != null && numbers.length > 0) {
-                mPhoneNumbers = new String[numbers.length];
+            if(numbers != null && numbers.length > 0)
+            {
+                phoneNumbers = new String[numbers.length];
                 for(int i = 0, n = numbers.length; i < n; i++){
-                    String networkNumber = PhoneNumberUtils.extractNetworkPortion(numbers[i]);
-                    /* extractNetworkPortion can return N if the number is a service "number" = a string
-                     * with the a name in (i.e. "Some-Tele-company" would return N because of the N in compaNy)
-                     * Hence we need to check if the number is actually a string with alpha chars.
-                     * */
-                    Boolean alpha = PhoneNumberUtils.stripSeparators(numbers[i]).matches("[0-9]*[a-zA-Z]+[0-9]*");
-                    if(networkNumber != null && networkNumber.length() > 1 && !alpha) {
-                        mPhoneNumbers[i] = networkNumber;
-                    } else {
-                        mPhoneNumbers[i] = numbers[i];
-                    }
+                    phoneNumbers[i] = PhoneNumberUtils.extractNetworkPortion(numbers[i]);
                 }
             }
         }
 
         public String getFirstPhoneNumber() {
-            if(mPhoneNumbers.length > 0) {
-                return mPhoneNumbers[0];
+            if(phoneNumbers.length > 0) {
+                return phoneNumbers[0];
             } else
-                return null;
+                throw new IllegalArgumentException("No Phone number");
         }
 
         public int getEnvLevel() {
-            return mEnvLevel;
-        }
-
-        public String getName() {
-            return mName;
-        }
-
-        public String getFirstEmail() {
-            if(mEmailAddresses.length > 0) {
-                return mEmailAddresses[0];
-            } else
-                return null;
+            return envLevel;
         }
 
         public void encode(StringBuilder sb)
         {
             sb.append("BEGIN:VCARD").append("\r\n");
-            sb.append("VERSION:").append(mVersion).append("\r\n");
-            if(mVersion.equals("3.0") && mFormattedName != null)
+            sb.append("VERSION:").append(version).append("\r\n");
+            if(version.equals("3.0") && formattedName != null)
             {
-                sb.append("FN:").append(mFormattedName).append("\r\n");
+                sb.append("FN:").append(formattedName).append("\r\n");
             }
-            if (mName != null)
-                sb.append("N:").append(mName).append("\r\n");
-            for(String phoneNumber : mPhoneNumbers)
+            if (name != null)
+                sb.append("N:").append(name).append("\r\n");
+            for(String phoneNumber : phoneNumbers)
             {
                 sb.append("TEL:").append(phoneNumber).append("\r\n");
             }
-            for(String emailAddress : mEmailAddresses)
+            for(String emailAddress : emailAddresses)
             {
                 sb.append("EMAIL:").append(emailAddress).append("\r\n");
             }
@@ -200,7 +181,7 @@ public abstract class BluetoothMapbMessage {
         /**
          * Parse a vCard from a BMgsReader, where a line containing "BEGIN:VCARD" have just been read.
          * @param reader
-         * @param mOriginator
+         * @param originator
          * @return
          */
         public static vCard parseVcard(BMsgReader reader, int envLevel) {
@@ -271,7 +252,6 @@ public abstract class BluetoothMapbMessage {
              * as the Bluetooth MAP spec. illustrates vCards using tab alignment, hence actually
              * showing an invalid vCard format...
              * If we read such a folded line, the folded part will be skipped in the parser
-             * UPDATE: Check if we actually do unfold before parsing the input stream
              */
 
             ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -498,10 +478,8 @@ public abstract class BluetoothMapbMessage {
                         newBMsg = new BluetoothMapbMessageSms();
                         break;
                     case MMS:
-                        newBMsg = new BluetoothMapbMessageMms();
-                        break;
                     case EMAIL:
-                        newBMsg = new BluetoothMapbMessageEmail();
+                        newBMsg = new BluetoothMapbMessageMmsEmail();
                         break;
                     default:
                         break;
@@ -522,7 +500,7 @@ public abstract class BluetoothMapbMessage {
         if(newBMsg == null)
             throw new IllegalArgumentException("Missing bMessage TYPE: - unable to parse body-content");
         newBMsg.setType(type);
-        newBMsg.mAppParamCharset = appParamCharset;
+        newBMsg.appParamCharset = appParamCharset;
         if(folder != null)
             newBMsg.setCompleteFolder(folder);
         if(statusFound)
@@ -541,8 +519,6 @@ public abstract class BluetoothMapbMessage {
 
         /* TODO: Do we need to validate the END:* tags? They are only needed if someone puts additional info
          *        below the END:MSG - in which case we don't handle it.
-         *        We need to parse the message based on the length field, to ensure MAP 1.0 compatibility,
-         *        since this spec. do not suggest to escape the end-tag if it occurs inside the message text.
          */
 
         try {
@@ -561,9 +537,9 @@ public abstract class BluetoothMapbMessage {
 
        while(line.contains("BEGIN:VCARD")){
            if(D) Log.d(TAG,"Decoding recipient vCard level " + level);
-            if(mRecipient == null)
-                mRecipient = new ArrayList<vCard>(1);
-            mRecipient.add(vCard.parseVcard(reader, level));
+            if(recipient == null)
+                recipient = new ArrayList<vCard>(1);
+            recipient.add(vCard.parseVcard(reader, level));
             line = reader.getLineEnforce();
         }
         if(line.contains("BEGIN:BENV")) {
@@ -584,7 +560,7 @@ public abstract class BluetoothMapbMessage {
                 String arg[] = line.split(":");
                 if (arg != null && arg.length == 2) {
                     try {
-                    mPartId = Long.parseLong(arg[1].trim());
+                    partId = Long.parseLong(arg[1].trim());
                     } catch (NumberFormatException e) {
                         throw new IllegalArgumentException("Wrong value in 'PARTID': " + arg[1]);
                     }
@@ -595,8 +571,7 @@ public abstract class BluetoothMapbMessage {
             else if(line.contains("ENCODING:")) {
                 String arg[] = line.split(":");
                 if (arg != null && arg.length == 2) {
-                    mEncoding = arg[1].trim();
-                    // If needed validation will be done when the value is used
+                    encoding = arg[1].trim(); // TODO: Validate ?
                 } else {
                     throw new IllegalArgumentException("Missing value for 'ENCODING': " + line);
                 }
@@ -604,8 +579,7 @@ public abstract class BluetoothMapbMessage {
             else if(line.contains("CHARSET:")) {
                 String arg[] = line.split(":");
                 if (arg != null && arg.length == 2) {
-                    mCharset = arg[1].trim();
-                    // If needed validation will be done when the value is used
+                    charset = arg[1].trim(); // TODO: Validate ?
                 } else {
                     throw new IllegalArgumentException("Missing value for 'CHARSET': " + line);
                 }
@@ -613,8 +587,7 @@ public abstract class BluetoothMapbMessage {
             else if(line.contains("LANGUAGE:")) {
                 String arg[] = line.split(":");
                 if (arg != null && arg.length == 2) {
-                    mLanguage = arg[1].trim();
-                    // If needed validation will be done when the value is used
+                    language = arg[1].trim(); // TODO: Validate ?
                 } else {
                     throw new IllegalArgumentException("Missing value for 'LANGUAGE': " + line);
                 }
@@ -623,7 +596,7 @@ public abstract class BluetoothMapbMessage {
                 String arg[] = line.split(":");
                 if (arg != null && arg.length == 2) {
                     try {
-                        mBMsgLength = Integer.parseInt(arg[1].trim());
+                        bMsgLength = Integer.parseInt(arg[1].trim());
                     } catch (NumberFormatException e) {
                         throw new IllegalArgumentException("Wrong value in 'LENGTH': " + arg[1]);
                     }
@@ -632,23 +605,21 @@ public abstract class BluetoothMapbMessage {
                 }
             }
             else if(line.contains("BEGIN:MSG")) {
-                if(mBMsgLength == INVALID_VALUE)
-                    throw new IllegalArgumentException("Missing value for 'LENGTH'. " +
-                            "Unable to read remaining part of the message");
-                /* For SMS: Encoding of MSG is always UTF-8 compliant, regardless of any properties,
-                   since PDUs are encodes as hex-strings */
+                if(bMsgLength == INVALID_VALUE)
+                    throw new IllegalArgumentException("Missing value for 'LENGTH'. Unable to read remaining part of the message");
+                // For SMS: Encoding of MSG is always UTF-8 compliant, regardless of any properties, since PDUs are encodes as hex-strings
                 /* PTS has a bug regarding the message length, and sets it 2 bytes too short, hence
                  * using the length field to determine the amount of data to read, might not be the
                  * best solution.
                  * Since errata ???(bluetooth.org is down at the moment) introduced escaping of END:MSG
                  * in the actual message content, it is now safe to use the END:MSG tag as terminator,
                  * and simply ignore the length field.*/
-                byte[] rawData = reader.getDataBytes(mBMsgLength - (line.getBytes().length + 2)); // 2 added to compensate for the removed \r\n
+                byte[] rawData = reader.getDataBytes(bMsgLength - (line.getBytes().length + 2)); // 2 added to compensate for the removed \r\n
                 String data;
                 try {
                     data = new String(rawData, "UTF-8");
                     if(V) {
-                        Log.v(TAG,"MsgLength: " + mBMsgLength);
+                        Log.v(TAG,"MsgLength: " + bMsgLength);
                         Log.v(TAG,"line.getBytes().length: " + line.getBytes().length);
                         String debug = line.replaceAll("\\n", "<LF>\n");
                         debug = debug.replaceAll("\\r", "<CR>");
@@ -695,47 +666,47 @@ public abstract class BluetoothMapbMessage {
 
     public void setStatus(boolean read) {
         if(read)
-            this.mStatus = "READ";
+            this.status = "READ";
         else
-            this.mStatus = "UNREAD";
+            this.status = "UNREAD";
     }
 
     public void setType(TYPE type) {
-        this.mType = type;
+        this.type = type;
     }
 
     /**
      * @return the type
      */
     public TYPE getType() {
-        return mType;
+        return type;
     }
 
     public void setCompleteFolder(String folder) {
-        this.mFolder = folder;
+        this.folder = folder;
     }
 
     public void setFolder(String folder) {
-        this.mFolder = "telecom/msg/" + folder;
+        this.folder = "telecom/msg/" + folder;
     }
 
     public String getFolder() {
-        return mFolder;
+        return folder;
     }
 
 
     public void setEncoding(String encoding) {
-        this.mEncoding = encoding;
+        this.encoding = encoding;
     }
 
     public ArrayList<vCard> getOriginators() {
-        return mOriginator;
+        return originator;
     }
 
     public void addOriginator(vCard originator) {
-        if(this.mOriginator == null)
-            this.mOriginator = new ArrayList<vCard>();
-        this.mOriginator.add(originator);
+        if(this.originator == null)
+            this.originator = new ArrayList<vCard>();
+        this.originator.add(originator);
     }
 
     /**
@@ -746,9 +717,9 @@ public abstract class BluetoothMapbMessage {
      * @param emailAddresses
      */
     public void addOriginator(String name, String formattedName, String[] phoneNumbers, String[] emailAddresses) {
-        if(mOriginator == null)
-            mOriginator = new ArrayList<vCard>();
-        mOriginator.add(new vCard(name, formattedName, phoneNumbers, emailAddresses));
+        if(originator == null)
+            originator = new ArrayList<vCard>();
+        originator.add(new vCard(name, formattedName, phoneNumbers, emailAddresses));
     }
 
     /** Add a version 2.1 vCard with only a name.
@@ -758,31 +729,31 @@ public abstract class BluetoothMapbMessage {
      * @param emailAddresses
      */
     public void addOriginator(String name, String[] phoneNumbers, String[] emailAddresses) {
-        if(mOriginator == null)
-            mOriginator = new ArrayList<vCard>();
-        mOriginator.add(new vCard(name, phoneNumbers, emailAddresses));
+        if(originator == null)
+            originator = new ArrayList<vCard>();
+        originator.add(new vCard(name, phoneNumbers, emailAddresses));
     }
 
     public ArrayList<vCard> getRecipients() {
-        return mRecipient;
+        return recipient;
     }
 
     public void setRecipient(vCard recipient) {
-        if(this.mRecipient == null)
-            this.mRecipient = new ArrayList<vCard>();
-        this.mRecipient.add(recipient);
+        if(this.recipient == null)
+            this.recipient = new ArrayList<vCard>();
+        this.recipient.add(recipient);
     }
 
     public void addRecipient(String name, String formattedName, String[] phoneNumbers, String[] emailAddresses) {
-        if(mRecipient == null)
-            mRecipient = new ArrayList<vCard>();
-        mRecipient.add(new vCard(name, formattedName, phoneNumbers, emailAddresses));
+        if(recipient == null)
+            recipient = new ArrayList<vCard>();
+        recipient.add(new vCard(name, formattedName, phoneNumbers, emailAddresses));
     }
 
     public void addRecipient(String name, String[] phoneNumbers, String[] emailAddresses) {
-        if(mRecipient == null)
-            mRecipient = new ArrayList<vCard>();
-        mRecipient.add(new vCard(name, phoneNumbers, emailAddresses));
+        if(recipient == null)
+            recipient = new ArrayList<vCard>();
+        recipient.add(new vCard(name, phoneNumbers, emailAddresses));
     }
 
     /**
@@ -840,32 +811,30 @@ public abstract class BluetoothMapbMessage {
         byte[] msgStart, msgEnd;
         sb.append("BEGIN:BMSG").append("\r\n");
         sb.append(VERSION).append("\r\n");
-        sb.append("STATUS:").append(mStatus).append("\r\n");
-        sb.append("TYPE:").append(mType.name()).append("\r\n");
-        if(mFolder.length() > 512)
-            sb.append("FOLDER:").append(mFolder.substring(mFolder.length()-512, mFolder.length())).append("\r\n");
+        sb.append("STATUS:").append(status).append("\r\n");
+        sb.append("TYPE:").append(type.name()).append("\r\n");
+        if(folder.length() > 512)
+            sb.append("FOLDER:").append(folder.substring(folder.length()-512, folder.length())).append("\r\n");
         else
-            sb.append("FOLDER:").append(mFolder).append("\r\n");
-        if(mOriginator != null){
-            for(vCard element : mOriginator)
+            sb.append("FOLDER:").append(folder).append("\r\n");
+        if(originator != null){
+            for(vCard element : originator)
                 element.encode(sb);
         }
-        /* If we need the three levels of env. at some point - we do have a level in the
-         *  vCards that could be used to determine the levels of the envelope.
+        /* TODO: Do we need the three levels of env? - e.g. for e-mail. - we do have a level in the
+         *  vCards that could be used to determine the the levels of the envelope.
          */
 
         sb.append("BEGIN:BENV").append("\r\n");
-        if(mRecipient != null){
-            for(vCard element : mRecipient) {
-                if(V) Log.v(TAG, "encodeGeneric: recipient email" + element.getFirstEmail());
+        if(recipient != null){
+            for(vCard element : recipient)
                 element.encode(sb);
-            }
         }
         sb.append("BEGIN:BBODY").append("\r\n");
-        if(mEncoding != null && mEncoding != "")
-            sb.append("ENCODING:").append(mEncoding).append("\r\n");
-        if(mCharset != null && mCharset != "")
-            sb.append("CHARSET:").append(mCharset).append("\r\n");
+        if(encoding != null && encoding != "")
+            sb.append("ENCODING:").append(encoding).append("\r\n");
+        if(charset != null && charset != "")
+            sb.append("CHARSET:").append(charset).append("\r\n");
 
 
         int length = 0;

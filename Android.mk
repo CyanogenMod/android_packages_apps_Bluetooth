@@ -4,26 +4,15 @@ include $(CLEAR_VARS)
 LOCAL_MODULE_TAGS := optional
 
 LOCAL_SRC_FILES := \
-        $(call all-java-files-under, lib)
-
-LOCAL_MODULE := bluetooth.mapsapi
-
-include $(BUILD_JAVA_LIBRARY)
-
-include $(CLEAR_VARS)
-
-LOCAL_MODULE_TAGS := optional
-
-LOCAL_SRC_FILES := \
         $(call all-java-files-under, src)
 
 LOCAL_PACKAGE_NAME := Bluetooth
 LOCAL_CERTIFICATE := platform
 
 LOCAL_JNI_SHARED_LIBRARIES := libbluetooth_jni
-LOCAL_JAVA_LIBRARIES := bluetooth.mapsapi
 LOCAL_JAVA_LIBRARIES += javax.btobex
 LOCAL_JAVA_LIBRARIES += telephony-common
+LOCAL_JAVA_LIBRARIES := javax.obex telephony-common
 LOCAL_STATIC_JAVA_LIBRARIES := com.android.vcard
 
 LOCAL_REQUIRED_MODULES := bluetooth.default

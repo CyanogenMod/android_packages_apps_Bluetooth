@@ -30,8 +30,6 @@ import android.util.Xml;
 public class BluetoothMapMessageListing {
     private boolean hasUnread = false;
     private static final String TAG = "BluetoothMapMessageListing";
-    private static final boolean D = BluetoothMapService.DEBUG;
-
     private List<BluetoothMapMessageListingElement> list;
 
     public BluetoothMapMessageListing(){
@@ -40,7 +38,7 @@ public class BluetoothMapMessageListing {
     public void add(BluetoothMapMessageListingElement element) {
         list.add(element);
         /* update info regarding whether the list contains unread messages */
-        if (element.getReadBool())
+        if (element.getRead().equalsIgnoreCase("no"))
         {
             hasUnread = true;
         }
@@ -67,15 +65,6 @@ public class BluetoothMapMessageListing {
         return hasUnread;
     }
 
-
-    /**
-     *  returns the entire list as a list
-     * @return list
-     */
-    public List<BluetoothMapMessageListingElement> getList(){
-        return list;
-    }
-
     /**
      * Encode the list of BluetoothMapMessageListingElement(s) into a UTF-8
      * formatted XML-string in a trimmed byte array
@@ -84,7 +73,7 @@ public class BluetoothMapMessageListing {
      * @throws UnsupportedEncodingException
      *             if UTF-8 encoding is unsupported on the platform.
      */
-    public byte[] encode(boolean includeThreadId) throws UnsupportedEncodingException {
+    public byte[] encode() throws UnsupportedEncodingException {
         StringWriter sw = new StringWriter();
         XmlSerializer xmlMsgElement = new FastXmlSerializer();
         try {
@@ -95,16 +84,16 @@ public class BluetoothMapMessageListing {
             xmlMsgElement.attribute(null, "version", "1.0");
             // Do the XML encoding of list
             for (BluetoothMapMessageListingElement element : list) {
-                element.encode(xmlMsgElement, includeThreadId); // Append the list element
+                element.encode(xmlMsgElement); // Append the list element
             }
             xmlMsgElement.endTag(null, "MAP-msg-listing");
             xmlMsgElement.endDocument();
         } catch (IllegalArgumentException e) {
-            Log.w(TAG, e);
+            Log.w(TAG, e.toString());
         } catch (IllegalStateException e) {
-            Log.w(TAG, e);
+            Log.w(TAG, e.toString());
         } catch (IOException e) {
-            Log.w(TAG, e);
+            Log.w(TAG, e.toString());
         }
         return sw.toString().getBytes("UTF-8");
     }
@@ -114,12 +103,9 @@ public class BluetoothMapMessageListing {
     }
 
     public void segment(int count, int offset) {
-        count = Math.min(count, list.size() - offset);
-        if (count > 0) {
+        count = Math.min(count, list.size());
+        if (offset + count <= list.size()) {
             list = list.subList(offset, offset + count);
-            if(list == null) {
-                list = new ArrayList<BluetoothMapMessageListingElement>(); // Return an empty list
-            }
         } else {
             if(offset > list.size()) {
                list = new ArrayList<BluetoothMapMessageListingElement>();
