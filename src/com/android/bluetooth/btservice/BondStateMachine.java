@@ -298,6 +298,7 @@ final class BondStateMachine extends StateMachine {
             intent.putExtra(BluetoothDevice.EXTRA_PAIRING_KEY, pin);
         }
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, variant);
+        intent.setFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
     }
 
