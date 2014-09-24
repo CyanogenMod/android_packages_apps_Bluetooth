@@ -849,10 +849,19 @@ public class GattService extends ProfileService {
             + ", status=" + status);
 
         ClientMap.App app = mClientMap.getByConnId(connId);
-        if (app != null) {
+        if (app == null) return;
+
+        if (!app.isCongested) {
             app.callback.onCharacteristicWrite(address, status, srvcType,
-                        srvcInstId, new ParcelUuid(srvcUuid),
-                        charInstId, new ParcelUuid(charUuid));
+                    srvcInstId, new ParcelUuid(srvcUuid),
+                    charInstId, new ParcelUuid(charUuid));
+        } else {
+            if (status == BluetoothGatt.GATT_CONNECTION_CONGESTED) {
+                status = BluetoothGatt.GATT_SUCCESS;
+            }
+            CallbackInfo callbackInfo = new CallbackInfo(address, status, srvcType,
+                    srvcInstId, srvcUuid, charInstId, charUuid);
+            app.queueCallback(callbackInfo);
         }
     }
 
@@ -1213,11 +1222,20 @@ public class GattService extends ProfileService {
     }
 
     void onClientCongestion(int connId, boolean congested) throws RemoteException {
-        if (DBG) Log.d(TAG, "onClientCongestion() - connId=" + connId + ", congested=" + congested);
+        if (VDBG) Log.d(TAG, "onClientCongestion() - connId=" + connId + ", congested=" + congested);
 
         ClientMap.App app = mClientMap.getByConnId(connId);
+
         if (app != null) {
-            app.callback.onConnectionCongested(mClientMap.addressByConnId(connId), congested);
+            app.isCongested = congested;
+            while(!app.isCongested) {
+                CallbackInfo callbackInfo = app.popQueuedCallback();
+                if (callbackInfo == null)  return;
+                app.callback.onCharacteristicWrite(callbackInfo.address,
+                        callbackInfo.status, callbackInfo.srvcType,
+                        callbackInfo.srvcInstId, new ParcelUuid(callbackInfo.srvcUuid),
+                        callbackInfo.charInstId, new ParcelUuid(callbackInfo.charUuid));
+            }
         }
     }
 
@@ -1783,15 +1801,27 @@ public class GattService extends ProfileService {
         ServerMap.App app = mServerMap.getByConnId(connId);
         if (app == null) return;
 
-        app.callback.onNotificationSent(address, status);
+        if (!app.isCongested) {
+            app.callback.onNotificationSent(address, status);
+        } else {
+            if (status == BluetoothGatt.GATT_CONNECTION_CONGESTED) {
+                status = BluetoothGatt.GATT_SUCCESS;
+            }
+            app.queueCallback(new CallbackInfo(address, status));
+        }
     }
 
     void onServerCongestion(int connId, boolean congested) throws RemoteException {
         if (DBG) Log.d(TAG, "onServerCongestion() - connId=" + connId + ", congested=" + congested);
 
         ServerMap.App app = mServerMap.getByConnId(connId);
-        if (app != null) {
-            app.callback.onConnectionCongested(mServerMap.addressByConnId(connId), congested);
+        if (app == null) return;
+
+        app.isCongested = congested;
+        while(!app.isCongested) {
+            CallbackInfo callbackInfo = app.popQueuedCallback();
+            if (callbackInfo == null) return;
+            app.callback.onNotificationSent(callbackInfo.address, callbackInfo.status);
         }
     }
 
