@@ -116,7 +116,7 @@
     <string name="transfer_menu_clear" msgid="5854038118831427492">"စာရင်းမှ ရှင်းပစ်မည်"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"ရှင်းလင်းရန်"</string>
     <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"သိမ်းပါ"</string>
-    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"ပယ်ဖျက်ရန်"</string>
+    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"ထားတော့"</string>
     <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"သင်က ဘလူးတုသ် မှတစ်ဆင့် မျှဝေလိုသည့် အီးမေးလ် အကောင့်ကို ရွေးပါ။ သင်သည် အကောင့်အား ရယူသုံးလိုမှု မှန်သမျှကို ချိတ်ဆက်လာသည့် အခါမှာ လက်ခံပေးရန် လိုဦးမည်။"</string>
     <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"ကျန်နေသည့် အပေါက်များ:"</string>
     <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"အပလီကေးရှင်း အိုင်ကွန်"</string>

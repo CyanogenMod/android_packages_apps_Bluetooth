@@ -79,7 +79,7 @@
     <string name="not_exist_file_desc" msgid="4059531573790529229">"फ़ाइल मौजूद नहीं है. \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"कृपया प्रतीक्षा करें..."</string>
     <string name="enabling_progress_content" msgid="4601542238119927904">"ब्लूटूथ चालू कर रहा है…"</string>
-    <string name="bt_toast_1" msgid="972182708034353383">"फ़ाइल प्राप्त होगी. सूचनाएं फलक में प्रगति देखें."</string>
+    <string name="bt_toast_1" msgid="972182708034353383">"फ़ाइल प्राप्त होगी. नोटिफिकेशन फलक में प्रगति देखें."</string>
     <string name="bt_toast_2" msgid="8602553334099066582">"फ़ाइल प्राप्त नहीं की जा सकती."</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" से फ़ाइल प्राप्त करना रोका गया"</string>
     <string name="bt_toast_4" msgid="4678812947604395649">"\"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" को फ़ाइल भेज रहा है"</string>
