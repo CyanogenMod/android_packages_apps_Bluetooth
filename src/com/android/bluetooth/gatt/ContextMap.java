@@ -67,6 +67,12 @@ import java.util.UUID;
         /** Death receipient */
         private IBinder.DeathRecipient mDeathRecipient;
 
+        /** Flag to signal that transport is congested */
+        Boolean isCongested = false;
+
+        /** Internal callback info queue, waiting to be send on congestion clear */
+        private List<CallbackInfo> congestionQueue = new ArrayList<CallbackInfo>();
+
         /**
          * Creates a new app context.
          */
@@ -100,6 +106,15 @@ import java.util.UUID;
                     Log.e(TAG, "Unable to unlink deathRecipient for app id " + id);
                 }
             }
+        }
+
+        void queueCallback(CallbackInfo callbackInfo) {
+            congestionQueue.add(callbackInfo);
+        }
+
+        CallbackInfo popQueuedCallback() {
+            if (congestionQueue.size() == 0) return null;
+            return congestionQueue.remove(0);
         }
     }
 
