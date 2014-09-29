@@ -28,7 +28,7 @@
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"ဘလူးတုသ်ဆားဗစ်ကိုအသုံးပြုရန် ပထမဦးစွာ ဘလူးတုသ်ကိုဖွင့်ပါ"</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"ယခုပင် ဘလူးတုသ်ကိုဖွင့်မည်လား?"</string>
-    <string name="bt_enable_cancel" msgid="1988832367505151727">"နေတော့"</string>
+    <string name="bt_enable_cancel" msgid="1988832367505151727">"ထားတော့"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"ဖွင့်မည်"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"ဖိုင်လွှဲပြောင်းခြင်း"</string>
     <string name="incoming_file_confirm_content" msgid="2752605552743148036">"ဝင်လာသည့် ဖိုင်ကို လက်ခံမလား?"</string>
