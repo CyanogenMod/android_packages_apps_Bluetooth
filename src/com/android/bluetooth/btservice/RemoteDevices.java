@@ -75,9 +75,11 @@ final class RemoteDevices {
     }
 
     BluetoothDevice getDevice(byte[] address) {
-        for (BluetoothDevice dev : mDevices.keySet()) {
-            if (dev.getAddress().equals(Utils.getAddressStringFromByte(address))) {
-                return dev;
+        synchronized (mDevices) {
+            for (BluetoothDevice dev : mDevices.keySet()) {
+                if (dev.getAddress().equals(Utils.getAddressStringFromByte(address))) {
+                    return dev;
+                }
             }
         }
         return null;
