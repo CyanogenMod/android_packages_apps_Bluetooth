@@ -427,7 +427,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             }
         }
 
-        return ResponseCodes.OBEX_HTTP_OK;
+        return ResponseCodes.OBEX_HTTP_NOT_IMPLEMENTED;
     }
 
      private BluetoothMapFolderElement getFolderElementFromName(String folderName) {
