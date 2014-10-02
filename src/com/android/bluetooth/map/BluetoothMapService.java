@@ -460,6 +460,8 @@ public class BluetoothMapService extends ProfileService {
             switch (mState) {
                 case BluetoothMap.STATE_CONNECTED:
                     sendShutdownMessage();
+                    /* Disconnect all connections and restart all MAS instances */
+                    stopObexServerSessions(-1);
                     result = true;
                     break;
                 default:
