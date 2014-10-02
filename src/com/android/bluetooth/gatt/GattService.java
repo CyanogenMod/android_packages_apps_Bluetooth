@@ -546,7 +546,6 @@ public class GattService extends ProfileService {
     void onScanResult(String address, int rssi, byte[] adv_data) {
         if (VDBG) Log.d(TAG, "onScanResult() - address=" + address
                     + ", rssi=" + rssi);
-        ScanRecord record = ScanRecord.parseFromBytes(adv_data);
         List<UUID> remoteUuids = parseUuids(adv_data);
         for (ScanClient client : mScanManager.getRegularScanQueue()) {
             if (client.uuids.length > 0) {
