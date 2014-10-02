@@ -215,7 +215,8 @@ public class AdapterService extends Service {
         // Set profile priorities only for the profiles discovered on the remote device.
         // This avoids needless auto-connect attempts to profiles non-existent on the remote device
         if ((hidService != null) &&
-            (BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.Hid)) &&
+            (BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.Hid) ||
+             BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.Hogp)) &&
             (hidService.getPriority(device) == BluetoothProfile.PRIORITY_UNDEFINED)){
             hidService.setPriority(device,BluetoothProfile.PRIORITY_ON);
         }
