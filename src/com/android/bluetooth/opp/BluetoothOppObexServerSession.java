@@ -118,7 +118,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     boolean mTransferInProgress = false;
 
-    private ContentResolverUpdateThread uiUpdateThread = null;
+    private int position;
 
     public BluetoothOppObexServerSession(Context context, ObexTransport transport) {
         mContext = context;
@@ -194,33 +194,46 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     private class ContentResolverUpdateThread extends Thread {
 
+        private static final int sSleepTime = 1000;
         private Uri contentUri;
         private Context mContext1;
-        private int position;
+        private volatile boolean interrupted = false;
 
-        public ContentResolverUpdateThread(Context context, Uri cntUri, int pos) {
+        public ContentResolverUpdateThread(Context context, Uri cntUri) {
             super("BtOpp Server ContentResolverUpdateThread");
             mContext1 = context;
             contentUri = cntUri;
-            position = pos;
         }
 
         @Override
         public void run() {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-            synchronized (BluetoothOppObexServerSession.this) {
-                if (uiUpdateThread != this) {
-                    throw new IllegalStateException(
-                        "multiple UpdateThreads in BluetoothOppObexServerSession");
+            ContentValues updateValues;
+            while (true) {
+                updateValues = new ContentValues();
+                updateValues.put(BluetoothShare.CURRENT_BYTES, position);
+                mContext1.getContentResolver().update(contentUri, updateValues,
+                        null, null);
+
+                /* Check if the Operation is interrupted before entering sleep */
+                if (interrupted == true) {
+                    if (V) Log.v(TAG, "ContentResolverUpdateThread was interrupted before sleep !, exiting");
+                    return;
+                }
+
+                try {
+                    Thread.sleep(sSleepTime);
+                } catch (InterruptedException e1) {
+                    if (V) Log.v(TAG, "Server ContentResolverUpdateThread was interrupted (1), exiting");
+                    return;
                 }
             }
-            ContentValues updateValues = new ContentValues();
-            updateValues.put(BluetoothShare.CURRENT_BYTES, position);
-            mContext1.getContentResolver().update(contentUri, updateValues,
-                    null, null);
-            synchronized (BluetoothOppObexServerSession.this) {
-                uiUpdateThread = null;
-            }
+        }
+
+        @Override
+        public void interrupt() {
+            interrupted = true;
+            super.interrupt();
         }
     }
 
@@ -540,6 +553,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         long beginTime = 0;
         int status = -1;
         BufferedOutputStream bos = null;
+        ContentResolverUpdateThread uiUpdateThread = null;
 
         InputStream is = null;
         boolean error = false;
@@ -559,7 +573,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             mContext.getContentResolver().update(contentUri, updateValues, null, null);
         }
 
-        int position = 0;
+        position = 0;
         if (!error) {
             bos = new BufferedOutputStream(fileInfo.mOutputStream, 0x10000);
         }
@@ -592,19 +606,15 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                     }
 
                     if (uiUpdateThread == null) {
-                        uiUpdateThread = new ContentResolverUpdateThread (mContext, contentUri, position);
-                        if (V) {
-                            Log.v(TAG, "Worker for Updation : Created");
-                        }
+                        uiUpdateThread = new ContentResolverUpdateThread (mContext, contentUri);
+                        if (V) Log.v(TAG, "Worker for Updation : Created");
                         uiUpdateThread.start();
                     }
                 }
 
                 if (uiUpdateThread != null) {
                     try {
-                        if (V) {
-                            Log.v(TAG, "Worker for Updation : Destroying");
-                        }
+                        if (V) Log.v(TAG, "Worker for Updation : Destroying");
                         uiUpdateThread.interrupt ();
                         uiUpdateThread.join ();
                         uiUpdateThread = null;

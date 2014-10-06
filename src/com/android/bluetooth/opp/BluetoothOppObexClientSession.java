@@ -85,7 +85,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
     private Handler mCallback;
 
-    private ContentResolverUpdateThread uiUpdateThread = null;
+    private long position;
 
     public BluetoothOppObexClientSession(Context context, ObexTransport transport) {
         if (transport == null) {
@@ -133,33 +133,47 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
     }
     private class ContentResolverUpdateThread extends Thread {
 
+        private static final int sSleepTime = 1000;
         private Uri contentUri;
         private Context mContext1;
-        private long position;
+        private volatile boolean interrupted = false;
 
-        public ContentResolverUpdateThread(Context context, Uri cntUri, long pos) {
+        public ContentResolverUpdateThread(Context context, Uri cntUri) {
             super("BtOpp ContentResolverUpdateThread");
             mContext1 = context;
             contentUri = cntUri;
-            position = pos;
         }
 
         @Override
         public void run() {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-            synchronized (BluetoothOppObexClientSession.this) {
-                if (uiUpdateThread != this) {
-                    throw new IllegalStateException(
-                        "multiple UpdateThreads in BluetoothOppObexClientSession");
+            ContentValues updateValues;
+
+            while (true) {
+                updateValues = new ContentValues();
+                updateValues.put(BluetoothShare.CURRENT_BYTES, position);
+                mContext1.getContentResolver().update(contentUri, updateValues,
+                        null, null);
+
+                /* Check if the Operation is interrupted before entering sleep */
+                if (interrupted == true) {
+                    if (V) Log.v(TAG, "ContentResolverUpdateThread was interrupted before sleep !, exiting");
+                    return;
+                }
+
+                try {
+                    Thread.sleep(sSleepTime);
+                } catch (InterruptedException e1) {
+                    if (V) Log.v(TAG, "ContentResolverUpdateThread was interrupted (1), exiting");
+                    return;
                 }
             }
-            ContentValues updateValues = new ContentValues();
-            updateValues.put(BluetoothShare.CURRENT_BYTES, position);
-            mContext1.getContentResolver().update(contentUri, updateValues,
-                    null, null);
-            synchronized (BluetoothOppObexClientSession.this) {
-                uiUpdateThread = null;
-            }
+        }
+
+        @Override
+        public void interrupt() {
+            interrupted = true;
+            super.interrupt();
         }
     }
 
@@ -397,8 +411,9 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             int status = BluetoothShare.STATUS_SUCCESS;
             Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + mInfo.mId);
             ContentValues updateValues;
+            ContentResolverUpdateThread uiUpdateThread = null;
             HeaderSet reply;
-            long position = 0;
+            position = 0;
             reply = new HeaderSet();
             HeaderSet request;
             request = new HeaderSet();
@@ -612,9 +627,10 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                                 }
 
                                 if (uiUpdateThread == null) {
-                                    uiUpdateThread = new ContentResolverUpdateThread (mContext1,
-                                                                    contentUri, position);
-                                    uiUpdateThread.start ( );
+                                    uiUpdateThread = new ContentResolverUpdateThread(mContext1,
+                                        contentUri);
+                                    if (V) Log.v(TAG, "Worker for Updation : Created");
+                                    uiUpdateThread.start();
                                 }
 
                             }
@@ -623,6 +639,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
                     if (uiUpdateThread != null) {
                         try {
+                            if (V) Log.v(TAG, "Worker for Updation : Destroying");
                             uiUpdateThread.interrupt ();
                             uiUpdateThread.join ();
                             uiUpdateThread = null;
