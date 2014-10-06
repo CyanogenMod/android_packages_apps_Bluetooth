@@ -28,13 +28,13 @@
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"ដើម្បី​ប្រើ​​សេវា​ប៊្លូ​ធូ​ស ​ជា​ដំបូង​អ្នក​ត្រូវ​តែ​បើក​​ប៊្លូ​ធូ​ស​សិន​។"</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"បើក​ប៊្លូធូស​ឥឡូវ​នេះ?"</string>
-    <string name="bt_enable_cancel" msgid="1988832367505151727">"បោះ​បង់​"</string>
+    <string name="bt_enable_cancel" msgid="1988832367505151727">"បោះ​បង់"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"បើក"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"ការ​ផ្ទេរ​ឯកសារ"</string>
     <string name="incoming_file_confirm_content" msgid="2752605552743148036">"ទទួល​ឯកសារ​ចូល?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"បោះបង់"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"ទទួល"</string>
-    <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"យល់​ព្រម​"</string>
+    <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"យល់​ព្រម"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"អស់​ពេល​ទទួល​​ឯកសារ​ចូល​ពី \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"ការ​ចែក​រំលែក​ប៊្លូ​ធូ​ស៖ ឯកសារ​ចូល"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"តើ​អ្នក​ចង់​ទទួល​ឯកសារ​នេះ​ឬ​?"</string>
@@ -60,19 +60,19 @@
     <string name="download_fail_line1" msgid="3846450148862894552">"មិន​​បាន​ទទួល​​​ឯកសារ"</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"ឯកសារ៖ <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_fail_line3" msgid="3451040656154861722">"មូលហេតុ៖ <xliff:g id="REASON">%1$s</xliff:g>"</string>
-    <string name="download_fail_ok" msgid="1521733664438320300">"យល់​ព្រម​"</string>
+    <string name="download_fail_ok" msgid="1521733664438320300">"យល់​ព្រម"</string>
     <string name="download_succ_line5" msgid="4509944688281573595">"បាន​ទទួល​​ឯកសារ"</string>
     <string name="download_succ_ok" msgid="7053688246357050216">"បើក"</string>
     <string name="upload_line1" msgid="2055952074059709052">"ទៅ៖ \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="upload_line3" msgid="4920689672457037437">"ប្រភេទ​ឯកសារ៖ <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
     <string name="upload_line5" msgid="7759322537674229752">"កំពុង​ផ្ញើ​ឯកសារ…"</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"បាន​ផ្ញើ​ឯកសារ"</string>
-    <string name="upload_succ_ok" msgid="7705428476405478828">"យល់​ព្រម​"</string>
+    <string name="upload_succ_ok" msgid="7705428476405478828">"យល់​ព្រម"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"មិន​បាន​ផ្ញើ​ឯកសារ​ទៅ \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" ។"</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"ឯកសារ៖ <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="upload_fail_ok" msgid="5807702461606714296">"ព្យាយាម​ម្ដង​ទៀត"</string>
-    <string name="upload_fail_cancel" msgid="9118496285835687125">"បិទ​"</string>
-    <string name="bt_error_btn_ok" msgid="5965151173011534240">"យល់​ព្រម​"</string>
+    <string name="upload_fail_cancel" msgid="9118496285835687125">"បិទ"</string>
+    <string name="bt_error_btn_ok" msgid="5965151173011534240">"យល់​ព្រម"</string>
     <string name="unknown_file" msgid="6092727753965095366">"មិន​ស្គាល់​ឯកសារ"</string>
     <string name="unknown_file_desc" msgid="480434281415453287">"គ្មាន​កម្មវិធី​​សម្រាប់​គ្រប់គ្រង​ប្រភេទ​ឯកសារ​នេះ​ទេ។ \n"</string>
     <string name="not_exist_file" msgid="3489434189599716133">"គ្មាន​ឯកសារ"</string>
