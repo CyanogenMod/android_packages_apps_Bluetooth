@@ -30,11 +30,11 @@ public class BluetoothMapUtils {
      *       in stead of a bit to indicate the message type. Then 4
      *       bit can be use for 16 different message types.
      */
-    private static final long HANDLE_TYPE_MASK            = (((long)0xf)<<56);
-    private static final long HANDLE_TYPE_MMS_MASK        = (((long)0x1)<<56);
-    private static final long HANDLE_TYPE_EMAIL_MASK      = (((long)0x2)<<56);
-    private static final long HANDLE_TYPE_SMS_GSM_MASK    = (((long)0x4)<<56);
-    private static final long HANDLE_TYPE_SMS_CDMA_MASK   = (((long)0x8)<<56);
+    private static final long HANDLE_TYPE_MASK            = (((long)0xf)<<60);
+    private static final long HANDLE_TYPE_MMS_MASK        = (((long)0x1)<<60);
+    private static final long HANDLE_TYPE_EMAIL_MASK      = (((long)0x2)<<60);
+    private static final long HANDLE_TYPE_SMS_GSM_MASK    = (((long)0x4)<<60);
+    private static final long HANDLE_TYPE_SMS_CDMA_MASK   = (((long)0x8)<<60);
 
     /**
      * This enum is used to convert from the bMessage type property to a type safe
