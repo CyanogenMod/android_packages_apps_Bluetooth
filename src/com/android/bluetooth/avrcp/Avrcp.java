@@ -1318,13 +1318,15 @@ public final class Avrcp {
                                                     cursor, attr);
                         attIds[(7 * index) + attIndex] = attr;
                     }
-                    cursor.close();
                 }
             } catch(Exception e) {
                 Log.i(TAG, "Exception e"+ e);
-                cursor.close();
                 getFolderItemsRspNative((byte)INTERNAL_ERROR, numItems, itemType,
                             uid, type, playable, displayName, numAtt, attValues, attIds);
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
             }
         }
         numItems = index;
@@ -1617,11 +1619,13 @@ public final class Avrcp {
                             status = NOT_A_DIRECTORY;
                         else
                             status = DOES_NOT_EXIST;
-                        cursor.close();
                     } catch (Exception e) {
                         Log.e(TAG, "Exception " + e);
-                        cursor.close();
                         changePathRspNative(INTERNAL_ERROR, numberOfItems);
+                    } finally {
+                        if (cursor != null) {
+                            cursor.close();
+                        }
                     }
                     break;
                 default:
@@ -1656,12 +1660,14 @@ public final class Avrcp {
                             } else{
                                 numberOfItems = cursor.getCount();
                                 mCurrentPathUid = String.valueOf(folderUid);
-                                cursor.close();
                             }
                         } catch (Exception e) {
                             Log.e(TAG, "Exception " + e);
-                            cursor.close();
                             changePathRspNative(INTERNAL_ERROR, numberOfItems);
+                        } finally {
+                            if (cursor != null) {
+                                cursor.close();
+                            }
                         }
                     } else { // Path @ Individual Album id
                         Cursor cursor = null;
@@ -1677,11 +1683,13 @@ public final class Avrcp {
                                 status = NOT_A_DIRECTORY;
                             else
                                 status = DOES_NOT_EXIST;
-                            cursor.close();
                         } catch (Exception e) {
                             Log.e(TAG, "Exception " + e);
-                            cursor.close();
                             changePathRspNative(INTERNAL_ERROR, numberOfItems);
+                        } finally {
+                            if (cursor != null) {
+                                cursor.close();
+                            }
                         }
                     }
                     break;
@@ -1718,12 +1726,14 @@ public final class Avrcp {
                                 numberOfItems = cursor.getCount();
                                 mCurrentPathUid = String.valueOf(folderUid);
                                 mCurrentPath = PATH_ARTISTS;
-                                cursor.close();
                             }
                         } catch (Exception e) {
                             Log.e(TAG, "Exception " + e);
-                            cursor.close();
                             changePathRspNative(INTERNAL_ERROR, numberOfItems);
+                        } finally {
+                            if (cursor != null) {
+                                cursor.close();
+                            }
                         }
                     } else {
                         Cursor cursor = null;
@@ -1737,11 +1747,13 @@ public final class Avrcp {
                                 status = NOT_A_DIRECTORY;
                             else
                                 status = DOES_NOT_EXIST;
-                            cursor.close();
                         } catch (Exception e) {
                             Log.e(TAG, "Exception " + e);
-                            cursor.close();
                             changePathRspNative(INTERNAL_ERROR, numberOfItems);
+                        } finally {
+                            if (cursor != null) {
+                                cursor.close();
+                            }
                         }
                     }
                     break;
@@ -1784,12 +1796,14 @@ public final class Avrcp {
                                 numberOfItems = cursor.getCount();
                                 mCurrentPathUid = String.valueOf(folderUid);
                                 mCurrentPath = PATH_PLAYLISTS;
-                                cursor.close();
                             }
                         } catch (Exception e) {
                             Log.e(TAG, "Exception " + e);
-                            cursor.close();
                             changePathRspNative(INTERNAL_ERROR, numberOfItems);
+                        } finally {
+                            if (cursor != null) {
+                                cursor.close();
+                            }
                         }
                     } else {
                         numberOfItems = 0;
@@ -1824,13 +1838,15 @@ public final class Avrcp {
                 return 0;
             } else {
                 long count = cursor.getCount();
-                cursor.close();
                 return count;
             }
         } catch (Exception e) {
             Log.e(TAG, "Exception " + e);
-            cursor.close();
             return 0;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
         }
     }
 
@@ -1848,7 +1864,6 @@ public final class Avrcp {
                 return 0;
             } else if (path.equals(PATH_TITLES)) {
                 long count = cursor.getCount();
-                cursor.close();
                 return count;
             } else if (path.equals(PATH_ALBUMS) || path.equals(PATH_ARTISTS)){
                 long elemCount = 0;
@@ -1867,12 +1882,14 @@ public final class Avrcp {
                     count--;
                 }
                 Log.i(TAG, "element Count is "+ elemCount);
-                cursor.close();
                 return elemCount;
             }
         } catch (Exception e) {
             Log.e(TAG, "Exception " + e);
-            cursor.close();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
         }
         return 0;
     }
@@ -1919,13 +1936,15 @@ public final class Avrcp {
                         playItemRspNative(DOES_NOT_EXIST);
                     } else {
                         Log.i(TAG, "Play uid:" + uid);
-                        cursor.close();
                         mRemoteController.setRemoteControlClientPlayItem(uid, scope);
                     }
                 } catch (Exception e) {
                     Log.e(TAG, "Exception " + e);
-                    cursor.close();
                     playItemRspNative(INTERNAL_ERROR);
+                } finally {
+                    if (cursor != null) {
+                        cursor.close();
+                    }
                 }
             } else if (mCurrentPath.equals(PATH_ALBUMS)) {
                 if (mCurrentPathUid == null) {
@@ -1944,13 +1963,15 @@ public final class Avrcp {
                             playItemRspNative(DOES_NOT_EXIST);
                         } else {
                             Log.i(TAG, "Play uid:" + uid);
-                            cursor.close();
                             mRemoteController.setRemoteControlClientPlayItem(uid, scope);
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Exception " + e);
-                        cursor.close();
                         playItemRspNative(INTERNAL_ERROR);
+                    } finally {
+                        if (cursor != null) {
+                            cursor.close();
+                        }
                     }
                 }
             } else if (mCurrentPath.equals(PATH_ARTISTS)) {
@@ -1970,13 +1991,15 @@ public final class Avrcp {
                             playItemRspNative(DOES_NOT_EXIST);
                         } else {
                             Log.i(TAG, "Play uid:" + uid);
-                            cursor.close();
                             mRemoteController.setRemoteControlClientPlayItem(uid, scope);
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Exception " + e);
-                        cursor.close();
                         playItemRspNative(INTERNAL_ERROR);
+                    } finally {
+                        if (cursor != null) {
+                            cursor.close();
+                        }
                     }
                 }
             } else if (mCurrentPath.equals(PATH_PLAYLISTS)) {
@@ -2009,13 +2032,15 @@ public final class Avrcp {
                             playItemRspNative(DOES_NOT_EXIST);
                         } else {
                             Log.i(TAG, "Play uid:" + uid);
-                            cursor.close();
                             mRemoteController.setRemoteControlClientPlayItem(uid, scope);
                         }
                     } catch (Exception e) {
                         Log.e(TAG, "Exception " + e);
-                        cursor.close();
                         playItemRspNative(INTERNAL_ERROR);
+                    } finally {
+                        if (cursor != null) {
+                            cursor.close();
+                        }
                     }
                 }
             } else {
@@ -2083,11 +2108,14 @@ public final class Avrcp {
                         textArray[i] = getAttributeStringFromCursor(cursor, attrs[i]);
                     }
                     getItemAttrRspNative(numAttr, attrs, textArray);
-                    cursor.close();
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Exception " + e); cursor.close();
+                Log.e(TAG, "Exception " + e);
                 getItemAttrRspNative((byte)0, attrs, textArray);
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
             }
         } else {
             Log.i(TAG, "Invalid scope");
@@ -2345,7 +2373,6 @@ public final class Avrcp {
                             getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS, numItems,
                             itemType, uid, type, playable, displayName, numAtt, attValues,
                                                                                     attIds);
-                            cursor.close();
                             return;
                         }
                         cursor.moveToFirst();
@@ -2388,12 +2415,14 @@ public final class Avrcp {
                     numItems = index;
                     getFolderItemsRspNative((byte)OPERATION_SUCCESSFUL, numItems, itemType, uid,
                                         type, playable, displayName, numAtt, attValues, attIds);
-                    cursor.close();
                 } catch(Exception e) {
                     Log.i(TAG, "Exception e" + e);
-                    cursor.close();
                     getFolderItemsRspNative((byte)INTERNAL_ERROR, numItems, itemType, uid, type,
                                             playable, displayName, numAtt, attValues, attIds);
+                } finally {
+                    if (cursor != null) {
+                        cursor.close();
+                    }
                 }
             } else if (mCurrentPath.equals(PATH_ALBUMS)) {
                 if (mCurrentPathUid == null) {
@@ -2472,12 +2501,14 @@ public final class Avrcp {
                                 itemType, uid, type, playable, displayName, numAtt, attValues,
                                 attIds);
                         }
-                        cursor.close();
                     } catch(Exception e) {
                         Log.i(TAG, "Exception e" + e);
-                        cursor.close();
                         getFolderItemsRspNative((byte)INTERNAL_ERROR, numItems, itemType, uid, type,
                                         playable, displayName, numAtt, attValues, attIds);
+                    } finally {
+                        if (cursor != null) {
+                            cursor.close();
+                        }
                     }
                 } else {
                     long folderUid = Long.valueOf(mCurrentPathUid);
@@ -2497,7 +2528,6 @@ public final class Avrcp {
                                 getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS, numItems,
                                     itemType, uid, type, playable, displayName, numAtt,
                                     attValues, attIds);
-                                cursor.close();
                                 return;
                             }
                             cursor.moveToFirst();
@@ -2542,12 +2572,14 @@ public final class Avrcp {
                         numItems = index;
                         getFolderItemsRspNative((byte)OPERATION_SUCCESSFUL, numItems, itemType, uid,
                                             type, playable, displayName, numAtt, attValues, attIds);
-                        cursor.close();
                     } catch(Exception e) {
                         Log.i(TAG, "Exception e" + e);
-                        cursor.close();
                         getFolderItemsRspNative((byte)INTERNAL_ERROR, numItems, itemType, uid, type,
                                         playable, displayName, numAtt, attValues, attIds);
+                    } finally {
+                        if (cursor != null) {
+                        cursor.close();
+                        }
                     }
                 }
             } else if (mCurrentPath.equals(PATH_ARTISTS)) {
@@ -2625,12 +2657,14 @@ public final class Avrcp {
                             getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS, numItems, itemType,
                                 uid, type, playable, displayName, numAtt, attValues, attIds);
                         }
-                        cursor.close();
                     } catch(Exception e) {
                         Log.i(TAG, "Exception e" + e);
-                        cursor.close();
                         getFolderItemsRspNative((byte)INTERNAL_ERROR, numItems, itemType, uid, type,
                                         playable, displayName, numAtt, attValues, attIds);
+                    } finally {
+                        if (cursor != null) {
+                            cursor.close();
+                        }
                     }
                 } else {
                     long folderUid = Long.valueOf(mCurrentPathUid);
@@ -2650,7 +2684,6 @@ public final class Avrcp {
                                 getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS, numItems,
                                 itemType, uid, type, playable, displayName, numAtt, attValues,
                                                                                         attIds);
-                                cursor.close();
                                 return;
                             }
                             cursor.moveToFirst();
@@ -2694,12 +2727,14 @@ public final class Avrcp {
                         numItems = index;
                         getFolderItemsRspNative((byte)OPERATION_SUCCESSFUL, numItems, itemType,
                             uid, type, playable, displayName, numAtt, attValues, attIds);
-                        cursor.close();
                     } catch(Exception e) {
                         Log.i(TAG, "Exception e" + e);
-                        cursor.close();
                         getFolderItemsRspNative((byte)INTERNAL_ERROR, numItems, itemType, uid,
                                         type, playable, displayName, numAtt, attValues, attIds);
+                    } finally {
+                        if (cursor != null) {
+                            cursor.close();
+                        }
                     }
                 }
             } else if (mCurrentPath.equals(PATH_PLAYLISTS)) {
@@ -2771,12 +2806,14 @@ public final class Avrcp {
                                 itemType, uid, type, playable, displayName, numAtt,
                                 attValues, attIds);
                         }
-                        cursor.close();
                     } catch(Exception e) {
                         Log.i(TAG, "Exception e" + e);
-                        cursor.close();
                         getFolderItemsRspNative((byte)INTERNAL_ERROR, numItems, itemType,
                             uid, type, playable, displayName, numAtt, attValues, attIds);
+                    } finally {
+                        if (cursor != null) {
+                            cursor.close();
+                        }
                     }
                 } else {
                     long folderUid = Long.valueOf(mCurrentPathUid);
@@ -2811,7 +2848,6 @@ public final class Avrcp {
                                 getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS, numItems,
                                     itemType, uid, type, playable, displayName, numAtt,
                                     attValues, attIds);
-                                cursor.close();
                                 return;
                             }
                             cursor.moveToFirst();
@@ -2856,12 +2892,14 @@ public final class Avrcp {
                         numItems = index;
                         getFolderItemsRspNative((byte)OPERATION_SUCCESSFUL, numItems, itemType, uid,
                                             type, playable, displayName, numAtt, attValues, attIds);
-                        cursor.close();
                     } catch(Exception e) {
                         Log.e(TAG, "Exception e" + e);
-                        cursor.close();
                         getFolderItemsRspNative((byte)INTERNAL_ERROR, numItems, itemType, uid, type,
                                         playable, displayName, numAtt, attValues, attIds);
+                    } finally {
+                        if (cursor != null) {
+                            cursor.close();
+                        }
                     }
                 }
             } else {
