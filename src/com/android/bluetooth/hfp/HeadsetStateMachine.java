@@ -990,8 +990,6 @@ final class HeadsetStateMachine extends StateMachine {
             switch (state) {
                 case HeadsetHalConstants.CONNECTION_STATE_DISCONNECTED:
                     if (mConnectedDevicesList.contains(device)) {
-                        broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED,
-                                                 BluetoothProfile.STATE_CONNECTED);
                         processWBSEvent(0, device); /* disable WBS audio parameters */
                         synchronized (HeadsetStateMachine.this) {
                             mConnectedDevicesList.remove(device);
@@ -1008,6 +1006,8 @@ final class HeadsetStateMachine extends StateMachine {
                                 processMultiHFConnected(device);
                             }
                         }
+                        broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED,
+                                                 BluetoothProfile.STATE_CONNECTED);
                     } else {
                         Log.e(TAG, "Disconnected from unknown device: " + device);
                     }
