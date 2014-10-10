@@ -1934,9 +1934,9 @@ final class HeadsetStateMachine extends StateMachine {
                     mAudioState = BluetoothHeadset.STATE_AUDIO_CONNECTED;
                     setAudioParameters(device); /* Set proper Audio Parameters. */
                     mAudioManager.setBluetoothScoOn(true);
-                    broadcastAudioState(device, BluetoothHeadset.STATE_AUDIO_CONNECTED,
-                                        BluetoothHeadset.STATE_AUDIO_CONNECTING);
                     mActiveScoDevice = device;
+                    broadcastAudioState(device, BluetoothHeadset.STATE_AUDIO_CONNECTED,
+                            BluetoothHeadset.STATE_AUDIO_CONNECTING);
                     /* The state should be still in MultiHFPending state when
                        audio connected since other device is still connecting/
                        disconnecting */
