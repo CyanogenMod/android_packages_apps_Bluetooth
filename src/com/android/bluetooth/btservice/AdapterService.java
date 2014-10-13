@@ -54,14 +54,16 @@ import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
 import android.util.Pair;
+
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.hid.HidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hdp.HealthService;
 import com.android.bluetooth.pan.PanService;
-import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
+import com.android.internal.R;
+
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -71,6 +73,7 @@ import java.util.Map;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.List;
+
 import android.content.pm.PackageManager;
 import android.os.ServiceManager;
 
@@ -547,7 +550,7 @@ public class AdapterService extends Service {
             String serviceName = services[i].getName();
             Integer serviceState = mProfileServicesState.get(serviceName);
             if(serviceState != null && serviceState != expectedCurrentState) {
-                debugLog("setProfileServiceState() - Unable to " 
+                debugLog("setProfileServiceState() - Unable to "
                     + (state == BluetoothAdapter.STATE_OFF ? "start" : "stop" )
                     + " service " + serviceName
                     + ". Invalid state: " + serviceState);
@@ -1071,8 +1074,13 @@ public class AdapterService extends Service {
          public boolean isMultiAdvertisementSupported() {
              AdapterService service = getService();
              if (service == null) return false;
-             int val = service.getNumOfAdvertisementInstancesSupported();
-             return (val >= MIN_ADVT_INSTANCES_FOR_MA);
+             return service.isMultiAdvertisementSupported();
+         }
+
+         public boolean isPeripheralModeSupported() {
+             AdapterService service = getService();
+             if (service == null) return false;
+             return service.isPeripheralModeSupported();
          }
 
          public boolean isOffloadedFilteringSupported() {
@@ -1632,6 +1640,11 @@ public class AdapterService extends Service {
         return mAdapterProperties.getNumOfAdvertisementInstancesSupported();
     }
 
+    public boolean isMultiAdvertisementSupported() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return getNumOfAdvertisementInstancesSupported() >= MIN_ADVT_INSTANCES_FOR_MA;
+    }
+
     public boolean isRpaOffloadSupported() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         return mAdapterProperties.isRpaOffloadSupported();
@@ -1645,6 +1658,10 @@ public class AdapterService extends Service {
     public int getNumOfOffloadedScanFilterSupported() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         return mAdapterProperties.getNumOfOffloadedScanFilterSupported();
+    }
+
+    public boolean isPeripheralModeSupported() {
+        return getResources().getBoolean(R.bool.config_bluetooth_le_peripheral_mode_supported);
     }
 
     public int getOffloadedScanResultStorage() {

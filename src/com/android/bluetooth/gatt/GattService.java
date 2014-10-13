@@ -40,6 +40,7 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 
 import java.util.ArrayList;
@@ -160,7 +161,7 @@ public class GattService extends ProfileService {
     protected boolean start() {
         if (DBG) Log.d(TAG, "start()");
         initializeNative();
-        mAdvertiseManager = new AdvertiseManager(this);
+        mAdvertiseManager = new AdvertiseManager(this, AdapterService.getAdapterService());
         mAdvertiseManager.start();
 
         mScanManager = new ScanManager(this);
@@ -546,7 +547,6 @@ public class GattService extends ProfileService {
     void onScanResult(String address, int rssi, byte[] adv_data) {
         if (VDBG) Log.d(TAG, "onScanResult() - address=" + address
                     + ", rssi=" + rssi);
-        ScanRecord record = ScanRecord.parseFromBytes(adv_data);
         List<UUID> remoteUuids = parseUuids(adv_data);
         for (ScanClient client : mScanManager.getRegularScanQueue()) {
             if (client.uuids.length > 0) {
@@ -1175,6 +1175,7 @@ public class GattService extends ProfileService {
     // Callback for standard advertising instance.
     void onAdvertiseCallback(int status, int clientIf) {
         if (DBG) Log.d(TAG, "onAdvertiseCallback,- clientIf=" + clientIf + ", status=" + status);
+        mAdvertiseManager.callbackDone(clientIf, status);
     }
 
     // Followings are callbacks for Bluetooth LE Advertise operations.
@@ -2274,16 +2275,10 @@ public class GattService extends ProfileService {
     private native void gattClientReadRemoteRssiNative(int clientIf,
             String address);
 
-    private native void gattAdvertiseNative(int client_if, boolean start);
-
     private native void gattClientConfigureMTUNative(int conn_id, int mtu);
 
     private native void gattConnectionParameterUpdateNative(int client_if, String address,
             int minInterval, int maxInterval, int latency, int timeout);
-
-    private native void gattSetAdvDataNative(int serverIf, boolean setScanRsp, boolean inclName,
-            boolean inclTxPower, int minInterval, int maxInterval,
-            int appearance, byte[] manufacturerData, byte[] serviceData, byte[] serviceUuid);
 
     private native void gattServerRegisterAppNative(long app_uuid_lsb,
                                                     long app_uuid_msb);
