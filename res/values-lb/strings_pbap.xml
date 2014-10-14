@@ -8,6 +8,7 @@
   <string name="auth_notif_ticker">Obex-Authentifizéierungs-Ufro</string>
   <string name="auth_notif_title">Sëtzungsschlëssel</string>
   <string name="auth_notif_message">Tipp de Sëtzungsschlëssel fir %1$s an</string>
+  <string name="defaultname">Fräispriechanlag</string>
   <string name="unknownName">Onbekannten Numm</string>
   <string name="localPhoneName">Mäin Numm</string>
   <string name="defaultnumber">000000</string>
