@@ -40,7 +40,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Manages Bluetooth LE advertising operations and interacts with bluedroid stack.
+ * Manages Bluetooth LE advertising operations and interacts with bluedroid stack. TODO: add tests.
  *
  * @hide
  */
@@ -56,6 +56,7 @@ class AdvertiseManager {
     private static final int MSG_STOP_ADVERTISING = 1;
 
     private final GattService mService;
+    private final AdapterService mAdapterService;
     private final Set<AdvertiseClient> mAdvertiseClients;
     private final AdvertiseNative mAdvertiseNative;
 
@@ -68,9 +69,10 @@ class AdvertiseManager {
     /**
      * Constructor of {@link AdvertiseManager}.
      */
-    AdvertiseManager(GattService service) {
-        mService = service;
+    AdvertiseManager(GattService service, AdapterService adapterService) {
         logd("advertise manager created");
+        mService = service;
+        mAdapterService = adapterService;
         mAdvertiseClients = new HashSet<AdvertiseClient>();
         mAdvertiseNative = new AdvertiseNative();
     }
@@ -218,13 +220,17 @@ class AdvertiseManager {
         }
 
         // Returns maximum advertise instances supported by controller.
-        private int maxAdvertiseInstances() {
-            AdapterService adapter = AdapterService.getAdapterService();
-            int numOfAdvtInstances = adapter.getNumOfAdvertisementInstancesSupported();
+        int maxAdvertiseInstances() {
             // Note numOfAdvtInstances includes the standard advertising instance.
             // TODO: remove - 1 once the stack is able to include standard instance for multiple
             // advertising.
-            return numOfAdvtInstances - 1;
+            if (mAdapterService.isMultiAdvertisementSupported()) {
+                return mAdapterService.getNumOfAdvertisementInstancesSupported() - 1;
+            }
+            if (mAdapterService.isPeripheralModeSupported()) {
+                return 1;
+            }
+            return 0;
         }
     }
 
@@ -258,21 +264,33 @@ class AdvertiseManager {
         private static final int ADVERTISING_EVENT_TYPE_SCANNABLE = 2;
         private static final int ADVERTISING_EVENT_TYPE_NON_CONNECTABLE = 3;
 
+        // TODO: Extract advertising logic into interface as we have multiple implementations now.
         boolean startAdverising(AdvertiseClient client) {
-            int clientIf = client.clientIf;
+            if (!mAdapterService.isMultiAdvertisementSupported() &&
+                    !mAdapterService.isPeripheralModeSupported()) {
+                return false;
+            }
+            if (mAdapterService.isMultiAdvertisementSupported()) {
+                return startMultiAdvertising(client);
+            }
+            return startSingleAdvertising(client);
+        }
+
+        boolean startMultiAdvertising(AdvertiseClient client) {
+            logd("starting multi advertising");
             resetCountDownLatch();
-            mAdvertiseNative.enableAdvertising(client);
+            enableAdvertising(client);
             if (!waitForCallback()) {
                 return false;
             }
             resetCountDownLatch();
-            mAdvertiseNative.setAdvertisingData(clientIf, client.advertiseData, false);
+            setAdvertisingData(client, client.advertiseData, false);
             if (!waitForCallback()) {
                 return false;
             }
             if (client.scanResponse != null) {
                 resetCountDownLatch();
-                mAdvertiseNative.setAdvertisingData(clientIf, client.scanResponse, true);
+                setAdvertisingData(client, client.scanResponse, true);
                 if (!waitForCallback()) {
                     return false;
                 }
@@ -280,8 +298,29 @@ class AdvertiseManager {
             return true;
         }
 
+        boolean startSingleAdvertising(AdvertiseClient client) {
+            logd("starting single advertising");
+            resetCountDownLatch();
+            enableAdvertising(client);
+            if (!waitForCallback()) {
+                return false;
+            }
+            setAdvertisingData(client, client.advertiseData, false);
+            return true;
+        }
+
         void stopAdvertising(AdvertiseClient client) {
-            gattClientDisableAdvNative(client.clientIf);
+            if (mAdapterService.isMultiAdvertisementSupported()) {
+                gattClientDisableAdvNative(client.clientIf);
+            } else {
+                gattAdvertiseNative(client.clientIf, false);
+                try {
+                    mService.onAdvertiseInstanceDisabled(
+                            AdvertiseCallback.ADVERTISE_SUCCESS, client.clientIf);
+                } catch (RemoteException e) {
+                    Log.d(TAG, "failed onAdvertiseInstanceDisabled", e);
+                }
+            }
         }
 
         private void resetCountDownLatch() {
@@ -305,16 +344,21 @@ class AdvertiseManager {
             int txPowerLevel = getTxPowerLevel(client.settings);
             int advertiseTimeoutSeconds = (int) TimeUnit.MILLISECONDS.toSeconds(
                     client.settings.getTimeout());
-            gattClientEnableAdvNative(
-                    clientIf,
-                    minAdvertiseUnit, maxAdvertiseUnit,
-                    advertiseEventType,
-                    ADVERTISING_CHANNEL_ALL,
-                    txPowerLevel,
-                    advertiseTimeoutSeconds);
+            if (mAdapterService.isMultiAdvertisementSupported()) {
+                gattClientEnableAdvNative(
+                        clientIf,
+                        minAdvertiseUnit, maxAdvertiseUnit,
+                        advertiseEventType,
+                        ADVERTISING_CHANNEL_ALL,
+                        txPowerLevel,
+                        advertiseTimeoutSeconds);
+            } else {
+                gattAdvertiseNative(client.clientIf, true);
+            }
         }
 
-        private void setAdvertisingData(int clientIf, AdvertiseData data, boolean isScanResponse) {
+        private void setAdvertisingData(AdvertiseClient client, AdvertiseData data,
+                boolean isScanResponse) {
             if (data == null) {
                 return;
             }
@@ -340,9 +384,15 @@ class AdvertiseManager {
                 }
                 serviceUuids = advertisingUuidBytes.array();
             }
-            gattClientSetAdvDataNative(clientIf, isScanResponse, includeName, includeTxPower,
-                    appearance,
-                    manufacturerData, serviceData, serviceUuids);
+            if (mAdapterService.isMultiAdvertisementSupported()) {
+                gattClientSetAdvDataNative(client.clientIf, isScanResponse, includeName,
+                        includeTxPower, appearance,
+                        manufacturerData, serviceData, serviceUuids);
+            } else {
+                gattSetAdvDataNative(client.clientIf, isScanResponse, includeName,
+                        includeTxPower, 0, 0, appearance,
+                        manufacturerData, serviceData, serviceUuids);
+            }
         }
 
         // Combine manufacturer id and manufacturer data.
@@ -441,6 +491,12 @@ class AdvertiseManager {
         private native void gattClientSetAdvDataNative(int client_if,
                 boolean set_scan_rsp, boolean incl_name, boolean incl_txpower, int appearance,
                 byte[] manufacturer_data, byte[] service_data, byte[] service_uuid);
+
+        private native void gattSetAdvDataNative(int serverIf, boolean setScanRsp, boolean inclName,
+                boolean inclTxPower, int minSlaveConnectionInterval, int maxSlaveConnectionInterval,
+                int appearance, byte[] manufacturerData, byte[] serviceData, byte[] serviceUuid);
+
+        private native void gattAdvertiseNative(int client_if, boolean start);
     }
 
     private void logd(String s) {
