@@ -2623,14 +2623,28 @@ final class HeadsetStateMachine extends StateMachine {
         log("mNumActive: " + callState.mNumActive + " mNumHeld: " +
             callState.mNumHeld +" mCallState: " + callState.mCallState);
         log("mNumber: " + callState.mNumber + " mType: " + callState.mType);
-        if(!isVirtualCall) {
-            /* Not a Virtual call request. End the virtual call, if running,
-            before sending phoneStateChangeNative to BTIF */
-            terminateScoUsingVirtualVoiceCall();
-        }
-        if (getCurrentState() != mDisconnected) {
-            phoneStateChangeNative(callState.mNumActive, callState.mNumHeld,
-                callState.mCallState, callState.mNumber, callState.mType);
+
+        if (isVirtualCall) {
+            // virtual call state update
+            if (getCurrentState() != mDisconnected) {
+                phoneStateChangeNative(callState.mNumActive, callState.mNumHeld,
+                    callState.mCallState, callState.mNumber, callState.mType);
+            }
+        } else {
+            // circuit-switch voice call update
+            // stop virtual voice call if there is a CSV call ongoing
+            if (callState.mNumActive > 0 || callState.mNumHeld > 0
+                    || callState.mCallState != HeadsetHalConstants.CALL_STATE_IDLE) {
+                terminateScoUsingVirtualVoiceCall();
+            }
+            // at this step: if there is virtual call ongoing, it means there is no CSV call
+            // let virtual call continue and skip phone state update
+            if (!isVirtualCallInProgress()) {
+                if (getCurrentState() != mDisconnected) {
+                    phoneStateChangeNative(callState.mNumActive, callState.mNumHeld,
+                        callState.mCallState, callState.mNumber, callState.mType);
+                }
+            }
         }
     }
 
