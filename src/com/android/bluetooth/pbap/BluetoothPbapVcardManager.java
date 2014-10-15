@@ -850,8 +850,10 @@ public class BluetoothPbapVcardManager {
                     String vcard = composer.createOneEntry(vcardType21);
                     Log.v (TAG , "vCard from composer: " + vcard);
                     if (!ignorefilter) {
-                        vcard = vcardfilter.applyFilter(vcard, vcardType21);
-                        Log.v (TAG , "vCard on applying filter: " + vcard);
+                        if (vcard != null) {
+                            vcard = vcardfilter.applyFilter(vcard, vcardType21);
+                            Log.v (TAG , "vCard on applying filter: " + vcard);
+                        }
                     }
                     if (vcard == null) {
                         Log.e(TAG, "Failed to read a contact. Error reason: "

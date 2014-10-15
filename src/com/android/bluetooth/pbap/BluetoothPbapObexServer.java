@@ -703,12 +703,14 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 if (currentValue.contains(","))
                     currentValue = currentValue.substring(0, currentValue.lastIndexOf(','));
 
-                if (searchValue.isEmpty() || ((currentValue.toLowerCase()).equals(compareValue.toLowerCase()))) {
-                    selectedNameList.add(currentValue);
-                    for (int i = listStartOffset; i < selectedNameList.size()&&
-                       itemsFound < requestSize; i++) {
-                        itemsFound++;
-                        writeVCardEntry(pos, selectedNameList.get(i),result);
+                if (searchValue != null) {
+                    if (searchValue.isEmpty() || ((currentValue.toLowerCase()).equals(compareValue.toLowerCase()))) {
+                        selectedNameList.add(currentValue);
+                        for (int i = listStartOffset; i < selectedNameList.size()&&
+                            itemsFound < requestSize; i++) {
+                            itemsFound++;
+                            writeVCardEntry(pos, selectedNameList.get(i),result);
+                        }
                     }
                 }
                 selectedNameList.clear();
