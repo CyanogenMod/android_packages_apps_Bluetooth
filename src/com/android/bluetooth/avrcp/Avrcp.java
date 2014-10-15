@@ -471,6 +471,9 @@ public final class Avrcp {
     private void updateA2dpAudioState(int state) {
         boolean isPlaying = (state == BluetoothA2dp.STATE_PLAYING);
         if (isPlaying != isPlayingState(mCurrentPlayState)) {
+            /* if a2dp is streaming, check to make sure music is active */
+            if ( (isPlaying) && !mAudioManager.isMusicActive())
+                return;
             updatePlayPauseState(isPlaying ? RemoteControlClient.PLAYSTATE_PLAYING :
                                  RemoteControlClient.PLAYSTATE_PAUSED,
                                  RemoteControlClient.PLAYBACK_POSITION_INVALID);
