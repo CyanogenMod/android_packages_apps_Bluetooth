@@ -235,6 +235,7 @@ public class PanService extends ProfileService {
         private boolean isPanUOn() {
             if(DBG) Log.d(TAG, "isTetheringOn call getPanLocalRoleNative");
             PanService service = getService();
+            if (service == null) return false;
             return service.isPanUOn();
         }
         public boolean isTetheringOn() {
