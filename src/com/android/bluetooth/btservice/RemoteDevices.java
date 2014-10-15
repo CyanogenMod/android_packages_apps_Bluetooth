@@ -302,7 +302,7 @@ final class RemoteDevices {
         Intent intent = new Intent(BluetoothDevice.ACTION_UUID);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothDevice.EXTRA_UUID, prop == null? null: prop.mUuids);
-        mAdapterService.initProfilePriorities(device, prop.mUuids);
+        mAdapterService.initProfilePriorities(device, prop == null? null: prop.mUuids);
         mAdapterService.sendBroadcast(intent, AdapterService.BLUETOOTH_ADMIN_PERM);
 
         //Remove the outstanding UUID request
@@ -440,6 +440,7 @@ final class RemoteDevices {
         BluetoothDevice bdDevice = getDevice(address);
         if (bdDevice == null) {
             addDeviceProperties(address);
+            bdDevice = getDevice(address);
         }
         BluetoothClass btClass = bdDevice.getBluetoothClass();
         int btDeviceClass = btClass.getDeviceClass();
