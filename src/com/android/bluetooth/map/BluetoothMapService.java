@@ -1046,6 +1046,12 @@ public class BluetoothMapService extends ProfileService {
                                        BluetoothDevice.CONNECTION_ACCESS_NO) ==
                     BluetoothDevice.CONNECTION_ACCESS_YES) {
                     //bluetooth connection accepted by user
+                    if (intent.getBooleanExtra(BluetoothDevice.EXTRA_ALWAYS_ALLOWED, false)) {
+                        boolean result = mRemoteDevice.setMessageAccessPermission(
+                                BluetoothDevice.ACCESS_ALLOWED);
+                        if( DEBUG) Log.d(TAG, "setMessageAccessPermission(ACCESS_ALLOWED) result="
+                           + result);
+                    }
 
                     if(mIsEmailEnabled) {
                       //  todo updateEmailAccount();
@@ -1053,9 +1059,15 @@ public class BluetoothMapService extends ProfileService {
                     if (DEBUG) Log.d(TAG, "calling initiateObexServerSession");
                     mConnectionManager.initiateObexServerSession(mRemoteDevice);
 
-                        } else {
-                    Log.d(TAG, "calling stopObexServerSessionWaiting");
-                    mConnectionManager.stopObexServerSessionWaiting();
+                } else {
+                    if (intent.getBooleanExtra(BluetoothDevice.EXTRA_ALWAYS_ALLOWED, false)) {
+                        boolean result = mRemoteDevice.setMessageAccessPermission(
+                               BluetoothDevice.ACCESS_REJECTED);
+                        if(DEBUG) Log.d(TAG, "setMessageAccessPermission(ACCESS_REJECTED) result="
+                            +result);
+                    }
+                   Log.d(TAG, "calling stopObexServerSessionWaiting");
+                   mConnectionManager.stopObexServerSessionWaiting();
                 }
             } else if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED) &&
                     isWaitingAuthorization) {
