@@ -110,7 +110,7 @@ public class BluetoothPbapVcardManager {
     // here.
     static final String CALLLOG_SORT_ORDER = Calls._ID + " DESC";
 
-    private static final String CLAUSE_ONLY_VISIBLE = Contacts.IN_VISIBLE_GROUP + "=1";
+    private static final String CLAUSE_ONLY_VISIBLE = null;
 
     public BluetoothPbapVcardManager(final Context context) {
         mContext = context;
@@ -583,10 +583,10 @@ public class BluetoothPbapVcardManager {
 
         final String selection;
         if (startPoint == endPoint) {
-            selection = Contacts._ID + "=" + startPointId + " AND " + CLAUSE_ONLY_VISIBLE;
+            selection = Contacts._ID + "=" + startPointId;
         } else {
             selection = Contacts._ID + ">=" + startPointId + " AND " + Contacts._ID + "<="
-                    + endPointId + " AND " + CLAUSE_ONLY_VISIBLE;
+                    + endPointId;
         }
 
         if (V) Log.v(TAG, "Query selection is: " + selection);

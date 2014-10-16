@@ -689,6 +689,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                                 writeVCardEntry(pos, selectedNameList.get(j),result);
                             }
                     }
+                    selectedNameList.clear();
                 }
             }
         } else {
@@ -710,6 +711,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                         writeVCardEntry(pos, selectedNameList.get(i),result);
                     }
                 }
+                selectedNameList.clear();
             }
         }
         return itemsFound;
