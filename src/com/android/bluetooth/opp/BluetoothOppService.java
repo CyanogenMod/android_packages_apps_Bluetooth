@@ -182,7 +182,10 @@ public class BluetoothOppService extends Service {
                 startListener();
             }
         }
-        if (V) BluetoothOppPreference.getInstance(this).dump();
+        if (V) {
+            BluetoothOppPreference mPreference = BluetoothOppPreference.getInstance(this);
+            if (mPreference != null) mPreference.dump();
+        }
         updateFromProvider();
     }
 
@@ -496,7 +499,15 @@ public class BluetoothOppService extends Service {
                 keepService = false;
                 boolean isAfterLast = cursor.isAfterLast();
 
-                int idColumn = cursor.getColumnIndexOrThrow(BluetoothShare._ID);
+                int idColumn;
+                try {
+                    idColumn = cursor.getColumnIndexOrThrow(BluetoothShare._ID);
+                } catch (IllegalArgumentException e) {
+                    cursor.close();
+                    cursor = null;
+                    Log.e (TAG, "Invalid share ID");
+                    return;
+                }
                 /*
                  * Walk the cursor and the local array to keep them in sync. The
                  * key to the algorithm is that the ids are unique and sorted
@@ -808,10 +819,11 @@ public class BluetoothOppService extends Service {
                 && (BluetoothShare.isStatusCompleted(newStatus))) {
             if (V) Log.v(TAG," UpdateShare: Share Completed: oldStatus = " + oldStatus + " newStatus = " + newStatus);
             try {
-                if(info.mDirection == BluetoothShare.DIRECTION_OUTBOUND)
+                if((info.mDirection == BluetoothShare.DIRECTION_OUTBOUND) && (mTransfer != null)) {
                     mTransfer.markShareComplete(newStatus);
-                else
+                } else if (mServerTransfer != null) {
                     mServerTransfer.markShareComplete(newStatus);
+                }
             } catch (Exception e) {
                 Log.e(TAG, "Exception: updateShare: oldStatus: " + oldStatus + " newStatus: " + newStatus);
             }
@@ -971,8 +983,9 @@ public class BluetoothOppService extends Service {
                         mServerTransfer = new BluetoothOppTransfer(this, mPowerManager, nextBatch,
                                                                    mServerSession);
                         mServerTransfer.start();
-                        if (nextBatch.getPendingShare().mConfirm ==
-                                BluetoothShare.USER_CONFIRMATION_CONFIRMED) {
+                        BluetoothOppShareInfo mPendingShare = nextBatch.getPendingShare();
+                        if ((mPendingShare != null) && (mPendingShare.mConfirm ==
+                                BluetoothShare.USER_CONFIRMATION_CONFIRMED)) {
                             mServerTransfer.setConfirmed();
                         }
                         return;
@@ -1071,6 +1084,8 @@ public class BluetoothOppService extends Service {
                              WHERE_INBOUND_INTERRUPTED_ON_POWER_OFF, null);
                 if (V) Log.v(TAG, "Delete aborted inbound share, number = " + delNum);
             }
+            cursorToFile.close();
+            cursorToFile = null;
         }
 
         // on boot : remove unconfirmed inbound shares.
@@ -1105,7 +1120,15 @@ public class BluetoothOppService extends Service {
             int numToDelete = recordNum - Constants.MAX_RECORDS_IN_DATABASE;
 
             if (cursor.moveToPosition(numToDelete)) {
-                int columnId = cursor.getColumnIndexOrThrow(BluetoothShare._ID);
+                int columnId;
+                try {
+                    columnId = cursor.getColumnIndexOrThrow(BluetoothShare._ID);
+                } catch (IllegalArgumentException e) {
+                    cursor.close();
+                    cursor = null;
+                    Log.e(TAG, "Invalid share ID");
+                    return;
+                }
                 long id = cursor.getLong(columnId);
                 delNum = contentResolver.delete(BluetoothShare.CONTENT_URI,
                         BluetoothShare._ID + " < " + id, null);

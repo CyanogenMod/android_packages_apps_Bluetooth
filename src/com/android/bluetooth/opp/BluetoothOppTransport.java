@@ -47,6 +47,7 @@ import javax.btobex.ObexHelper;
 
 public class BluetoothOppTransport implements ObexTransport {
 
+    private static final String TAG = "BluetoothOppTransport";
     public static final int TYPE_RFCOMM = 0;
     public static final int TYPE_L2CAP = 1;
 
@@ -87,7 +88,7 @@ public class BluetoothOppTransport implements ObexTransport {
     public int setPutSockMTUSize(int size) throws IOException {
        ByteBuffer bb = ByteBuffer.allocate(4);
        int status;
-       Log.v("srinu", "Interrupted waiting for size"+ size);
+       Log.v(TAG, "Interrupted waiting for size "+ size);
        bb.order(ByteOrder.LITTLE_ENDIAN);
        bb.putInt(0, size);
        try {

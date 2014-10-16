@@ -42,6 +42,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.CursorWindowAllocationException;
 import android.database.sqlite.SQLiteException;
+import android.content.res.Resources.NotFoundException;
 import android.net.Uri;
 import android.util.Log;
 import android.os.Handler;
@@ -282,66 +283,84 @@ class BluetoothOppNotification {
         }
 
         // Collate the notifications
-        final int timestampIndex = cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP);
-        final int directionIndex = cursor.getColumnIndexOrThrow(BluetoothShare.DIRECTION);
-        final int idIndex = cursor.getColumnIndexOrThrow(BluetoothShare._ID);
-        final int totalBytesIndex = cursor.getColumnIndexOrThrow(BluetoothShare.TOTAL_BYTES);
-        final int currentBytesIndex = cursor.getColumnIndexOrThrow(BluetoothShare.CURRENT_BYTES);
-        final int dataIndex = cursor.getColumnIndexOrThrow(BluetoothShare._DATA);
-        final int filenameHintIndex = cursor.getColumnIndexOrThrow(BluetoothShare.FILENAME_HINT);
-        final int confirmIndex = cursor.getColumnIndexOrThrow(BluetoothShare.USER_CONFIRMATION);
-        final int destinationIndex = cursor.getColumnIndexOrThrow(BluetoothShare.DESTINATION);
+        final int timestampIndex;
+        final int directionIndex;
+        final int idIndex;
+        final int totalBytesIndex;
+        final int currentBytesIndex;
+        final int dataIndex;
+        final int filenameHintIndex;
+        final int confirmIndex;
+        final int destinationIndex;
 
-        mNotifications.clear();
-        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-            long timeStamp = cursor.getLong(timestampIndex);
-            int dir = cursor.getInt(directionIndex);
-            int id = cursor.getInt(idIndex);
-            long total = cursor.getLong(totalBytesIndex);
-            long current = cursor.getLong(currentBytesIndex);
-            int confirmation = cursor.getInt(confirmIndex);
-
-            String destination = cursor.getString(destinationIndex);
-            String fileName = cursor.getString(dataIndex);
-            if (fileName == null) {
-                fileName = cursor.getString(filenameHintIndex);
-            }
-            if (fileName == null) {
-                fileName = mContext.getString(R.string.unknown_file);
-            }
-
-            String batchID = Long.toString(timeStamp);
-
-            // sending objects in one batch has same timeStamp
-            if (mNotifications.containsKey(batchID)) {
-                // NOTE: currently no such case
-                // Batch sending case
-            } else {
-                NotificationItem item = new NotificationItem();
-                item.timeStamp = timeStamp;
-                item.id = id;
-                item.direction = dir;
-                if (item.direction == BluetoothShare.DIRECTION_OUTBOUND) {
-                    item.description = mContext.getString(R.string.notification_sending, fileName);
-                } else if (item.direction == BluetoothShare.DIRECTION_INBOUND) {
-                    item.description = mContext
-                            .getString(R.string.notification_receiving, fileName);
-                } else {
-                    if (V) Log.v(TAG, "mDirection ERROR!");
-                }
-                item.totalCurrent = current;
-                item.totalTotal = total;
-                item.handoverInitiated =
-                        confirmation == BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED;
-                item.destination = destination;
-                mNotifications.put(batchID, item);
-
-                if (V) Log.v(TAG, "ID=" + item.id + "; batchID=" + batchID + "; totoalCurrent"
-                            + item.totalCurrent + "; totalTotal=" + item.totalTotal);
-            }
+        try {
+            timestampIndex = cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP);
+            directionIndex = cursor.getColumnIndexOrThrow(BluetoothShare.DIRECTION);
+            idIndex = cursor.getColumnIndexOrThrow(BluetoothShare._ID);
+            totalBytesIndex = cursor.getColumnIndexOrThrow(BluetoothShare.TOTAL_BYTES);
+            currentBytesIndex = cursor.getColumnIndexOrThrow(BluetoothShare.CURRENT_BYTES);
+            dataIndex = cursor.getColumnIndexOrThrow(BluetoothShare._DATA);
+            filenameHintIndex = cursor.getColumnIndexOrThrow(BluetoothShare.FILENAME_HINT);
+            confirmIndex = cursor.getColumnIndexOrThrow(BluetoothShare.USER_CONFIRMATION);
+            destinationIndex = cursor.getColumnIndexOrThrow(BluetoothShare.DESTINATION);
+        } catch (IllegalArgumentException e) {
+            cursor.close();
+            cursor = null;
+            Log.e(TAG, "Invalid share info");
+            return;
         }
-        cursor.close();
-        cursor = null;
+        mNotifications.clear();
+        if (cursor != null) {
+            for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+                long timeStamp = cursor.getLong(timestampIndex);
+                int dir = cursor.getInt(directionIndex);
+                int id = cursor.getInt(idIndex);
+                long total = cursor.getLong(totalBytesIndex);
+                long current = cursor.getLong(currentBytesIndex);
+                int confirmation = cursor.getInt(confirmIndex);
+
+                String destination = cursor.getString(destinationIndex);
+                String fileName = cursor.getString(dataIndex);
+                if (fileName == null) {
+                    fileName = cursor.getString(filenameHintIndex);
+                }
+                if (fileName == null) {
+                    fileName = mContext.getString(R.string.unknown_file);
+                }
+
+                String batchID = Long.toString(timeStamp);
+
+                // sending objects in one batch has same timeStamp
+                if (mNotifications.containsKey(batchID)) {
+                    // NOTE: currently no such case
+                    // Batch sending case
+                } else {
+                    NotificationItem item = new NotificationItem();
+                    item.timeStamp = timeStamp;
+                    item.id = id;
+                    item.direction = dir;
+                    if (item.direction == BluetoothShare.DIRECTION_OUTBOUND) {
+                        item.description = mContext.getString(R.string.notification_sending, fileName);
+                    } else if (item.direction == BluetoothShare.DIRECTION_INBOUND) {
+                        item.description = mContext
+                                .getString(R.string.notification_receiving, fileName);
+                    } else {
+                        if (V) Log.v(TAG, "mDirection ERROR!");
+                    }
+                    item.totalCurrent = current;
+                    item.totalTotal = total;
+                    item.handoverInitiated =
+                        confirmation == BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED;
+                    item.destination = destination;
+                    mNotifications.put(batchID, item);
+
+                    if (V) Log.v(TAG, "ID=" + item.id + "; batchID=" + batchID + "; totoalCurrent"
+                            + item.totalCurrent + "; totalTotal=" + item.totalTotal);
+                }
+            }
+            cursor.close();
+            cursor = null;
+        }
 
         // Add the notifications
         for (NotificationItem item : mNotifications.values()) {
@@ -452,8 +471,17 @@ class BluetoothOppNotification {
             return;
         }
 
-        final int timestampIndex = cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP);
-        final int statusIndex = cursor.getColumnIndexOrThrow(BluetoothShare.STATUS);
+        final int timestampIndex;
+        final int statusIndex;
+        try {
+            timestampIndex = cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP);
+            statusIndex = cursor.getColumnIndexOrThrow(BluetoothShare.STATUS);
+        } catch (IllegalArgumentException e) {
+            cursor.close();
+            cursor = null;
+            Log.e(TAG, "Invalid share info");
+            return;
+        }
 
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
             if (cursor.isFirst()) {
@@ -474,7 +502,7 @@ class BluetoothOppNotification {
 
         outboundNum = outboundSuccNumber + outboundFailNumber;
         // create the outbound notification
-        if (outboundNum > 0) {
+        if ((outboundNum > 0) && (mNotificationMgr != null)) {
             Notification outNoti = new Notification();
             outNoti.icon = android.R.drawable.stat_sys_upload_done;
             title = mContext.getString(R.string.outbound_noti_title);
@@ -530,7 +558,7 @@ class BluetoothOppNotification {
 
         inboundNum = inboundSuccNumber + inboundFailNumber;
         // create the inbound notification
-        if (inboundNum > 0) {
+        if ((inboundNum > 0) && (mNotificationMgr != null)) {
             Notification inNoti = new Notification();
             inNoti.icon = android.R.drawable.stat_sys_download_done;
             title = mContext.getString(R.string.inbound_noti_title);
@@ -574,8 +602,15 @@ class BluetoothOppNotification {
                     mContext.getText(R.string.incoming_file_confirm_Notification_title);
             CharSequence caption = mContext
                     .getText(R.string.incoming_file_confirm_Notification_caption);
-            int id = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID));
-            long timeStamp = cursor.getLong(cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP));
+            int id;
+            long timeStamp;
+            try {
+                id = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID));
+                timeStamp = cursor.getLong(cursor.getColumnIndexOrThrow(BluetoothShare.TIMESTAMP));
+            } catch (IllegalArgumentException e) {
+                Log.e(TAG, "Invalid share info");
+                continue;
+            }
             Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + id);
 
             if (mIncomingShownId != id) {
@@ -591,8 +626,12 @@ class BluetoothOppNotification {
                 intent.setDataAndNormalize(contentUri);
 
                 n.when = timeStamp;
-                n.color = mContext.getResources().getColor(
-                        com.android.internal.R.color.system_notification_accent_color);
+                try {
+                    n.color = mContext.getResources().getColor(
+                            com.android.internal.R.color.system_notification_accent_color);
+                } catch (NotFoundException e) {
+                    Log.e(TAG, "Resource not found");
+                }
                 n.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(mContext, 0,
                         intent, 0));
 
@@ -630,7 +669,13 @@ class BluetoothOppNotification {
         }
 
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-            int id = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID));
+            int id;
+            try {
+                id = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID));
+            } catch (IllegalArgumentException e) {
+                Log.e(TAG, "Invalid share info");
+                continue;
+            }
             if (V) Log.v(TAG, "Cancelling incoming notification " + id);
 
             mNotificationMgr.cancel(id);

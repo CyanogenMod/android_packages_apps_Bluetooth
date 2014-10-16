@@ -312,7 +312,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                 ((ServerOperation)op).mSrmServerSession.setLocalSrmStatus(ObexHelper.LOCAL_SRM_DISABLED);
             }
 
-             if (length == null ||  length == 0) {
+            if (length == null || length == 0) {
                 if (D) Log.w(TAG, "length is 0, reject the transfer");
                 pre_reject = true;
                 obexResponse = ResponseCodes.OBEX_HTTP_LENGTH_REQUIRED;
@@ -380,7 +380,11 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         ContentValues values = new ContentValues();
 
         values.put(BluetoothShare.FILENAME_HINT, name);
-        values.put(BluetoothShare.TOTAL_BYTES, length.intValue());
+
+        if (length != null) {
+            values.put(BluetoothShare.TOTAL_BYTES, length.intValue());
+        }
+
         values.put(BluetoothShare.MIMETYPE, mimeType);
 
         values.put(BluetoothShare.DESTINATION, destination);

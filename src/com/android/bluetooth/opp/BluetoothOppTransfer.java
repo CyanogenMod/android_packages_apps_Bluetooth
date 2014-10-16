@@ -487,7 +487,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         if (V) Log.v(TAG, "Start session for info " + mCurrentShare.mId + " for batch " +
                 mBatch.mId);
 
-        if (mBatch.mDirection == BluetoothShare.DIRECTION_OUTBOUND) {
+        if ((mBatch.mDirection == BluetoothShare.DIRECTION_OUTBOUND) && (mTransport != null)) {
             if (V) Log.v(TAG, "Create Client session with transport " + mTransport.toString());
             mSession = new BluetoothOppObexClientSession(mContext, mTransport);
         } else if (mBatch.mDirection == BluetoothShare.DIRECTION_INBOUND) {
@@ -506,8 +506,10 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             if (V) Log.v(TAG, "Transfer has Server session" + mSession.toString());
         }
 
-        mSession.start(mSessionHandler, mBatch.getNumShares());
-        processCurrentShare();
+        if (mSession != null) {
+            mSession.start(mSessionHandler, mBatch.getNumShares());
+            processCurrentShare();
+        }
 
         /* OBEX channel need to be monitored for unexpected ACL disconnection
          * such as Remote Battery removal
@@ -692,7 +694,10 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 if (V) Log.v(TAG, "BluetoothSocket connection attempt took " +
                      (System.currentTimeMillis() - timestamp) + " ms");
                 BluetoothOppTransport transport= new BluetoothOppTransport(btSocket, btOppTransportType);
-                BluetoothOppPreference.getInstance(mContext).setName(device, device.getName());
+                BluetoothOppPreference mPreference = BluetoothOppPreference.getInstance(mContext);
+                if (mPreference != null) {
+                    mPreference.setName(device, device.getName());
+                }
                 if (V) Log.v(TAG, "Send RFCOMM transport message " + transport.toString());
                 mSessionHandler.obtainMessage(TRANSPORT_CONNECTED, transport).sendToTarget();
            } catch (IOException e) {
@@ -786,7 +791,10 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                             (System.currentTimeMillis() - timestamp) + " ms");
 
                     BluetoothOppTransport transport= new BluetoothOppTransport(btSocket, btOppTransportType);
-                    BluetoothOppPreference.getInstance(mContext).setName(device, device.getName());
+                    BluetoothOppPreference mPreference = BluetoothOppPreference.getInstance(mContext);
+                    if (mPreference != null) {
+                        mPreference.setName(device, device.getName());
+                    }
                     if (V) Log.v(TAG, "Send transport message " + transport.toString());
                     mSessionHandler.obtainMessage(TRANSPORT_CONNECTED, transport).sendToTarget();
                 } catch (IOException e2) {
@@ -846,7 +854,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
      */
     public void onShareAdded(int id) {
         BluetoothOppShareInfo info = mBatch.getPendingShare();
-        if (info.mDirection == BluetoothShare.DIRECTION_INBOUND) {
+        if ((info != null) && (info.mDirection == BluetoothShare.DIRECTION_INBOUND)) {
             mCurrentShare = mBatch.getPendingShare();
             /*
              * TODO what if it's not auto confirmed?

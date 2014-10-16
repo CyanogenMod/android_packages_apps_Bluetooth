@@ -215,20 +215,24 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
 
             if (cursor != null) {
                 if (cursor.moveToFirst()) {
-                    int statusColumn = cursor.getColumnIndexOrThrow(BluetoothShare.STATUS);
-                    int status = cursor.getInt(statusColumn);
-                    int visibilityColumn = cursor.getColumnIndexOrThrow(BluetoothShare.VISIBILITY);
-                    int visibility = cursor.getInt(visibilityColumn);
-                    int userConfirmationColumn = cursor
-                            .getColumnIndexOrThrow(BluetoothShare.USER_CONFIRMATION);
-                    int userConfirmation = cursor.getInt(userConfirmationColumn);
-                    if (((userConfirmation == BluetoothShare.USER_CONFIRMATION_PENDING))
-                            && visibility == BluetoothShare.VISIBILITY_VISIBLE) {
-                        ContentValues values = new ContentValues();
-                        values.put(BluetoothShare.VISIBILITY, BluetoothShare.VISIBILITY_HIDDEN);
-                        context.getContentResolver().update(intent.getData(), values, null, null);
-                        if (V) Log.v(TAG, "Action_hide received and db updated");
+                    try {
+                        int statusColumn = cursor.getColumnIndexOrThrow(BluetoothShare.STATUS);
+                        int status = cursor.getInt(statusColumn);
+                        int visibilityColumn = cursor.getColumnIndexOrThrow(BluetoothShare.VISIBILITY);
+                        int visibility = cursor.getInt(visibilityColumn);
+                        int userConfirmationColumn = cursor
+                                .getColumnIndexOrThrow(BluetoothShare.USER_CONFIRMATION);
+                        int userConfirmation = cursor.getInt(userConfirmationColumn);
+                        if (((userConfirmation == BluetoothShare.USER_CONFIRMATION_PENDING))
+                                && visibility == BluetoothShare.VISIBILITY_VISIBLE) {
+                            ContentValues values = new ContentValues();
+                            values.put(BluetoothShare.VISIBILITY, BluetoothShare.VISIBILITY_HIDDEN);
+                            context.getContentResolver().update(intent.getData(), values, null, null);
+                            if (V) Log.v(TAG, "Action_hide received and db updated");
                         }
+                    } catch (IllegalArgumentException e) {
+                        Log.e(TAG, "Invalid share info");
+                    }
                 }
                 cursor.close();
                 cursor = null;
