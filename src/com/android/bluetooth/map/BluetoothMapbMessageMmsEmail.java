@@ -648,7 +648,8 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
             }
         }
         // Now for the body
-        newPart.data = decodeBody(body, partEncoding);
+        if (newPart != null)
+           newPart.data = decodeBody(body, partEncoding);
     }
     private static String parseSubjectEmail(String body) {
        int pos = body.indexOf("Subject:");
@@ -663,7 +664,9 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
 
     private void parseMmsMimeBody(String body) {
         MimePart newPart = addMimePart();
-        newPart.data = decodeBody(body, encoding);
+        if(newPart != null) {
+           newPart.data = decodeBody(body, encoding);
+        }
     }
 
     private byte[] decodeBody(String body, String encoding) {

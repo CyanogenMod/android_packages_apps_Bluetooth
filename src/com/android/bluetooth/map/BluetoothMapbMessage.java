@@ -323,10 +323,13 @@ public abstract class BluetoothMapbMessage {
         public String getLineTerminator() {
             try {
                 byte[] line = getLineTerminatorAsBytes();
-                if (line.length == 0)
+                if (line == null) {
                     return null;
-                else
+                } else if (line.length == 0){
+                    return null;
+                } else {
                     return new String(line, "UTF-8");
+                }
             } catch (UnsupportedEncodingException e) {
                 Log.w(TAG, e);
                 return null;
@@ -339,10 +342,13 @@ public abstract class BluetoothMapbMessage {
         public String getLine() {
             try {
                 byte[] line = getLineAsBytes();
-                if (line.length == 0)
-                    return null;
-                else
-                    return new String(line, "UTF-8");
+                if (line == null) {
+                   return null;
+                } else if (line.length == 0) {
+                   return null;
+                } else {
+                   return new String(line, "UTF-8");
+                }
             } catch (UnsupportedEncodingException e) {
                 Log.w(TAG, e);
                 return null;
@@ -389,9 +395,13 @@ public abstract class BluetoothMapbMessage {
          */
         public void expect(String subString, String subString2) throws IllegalArgumentException{
             String line = getLine();
-            if(!line.toUpperCase().contains(subString.toUpperCase()))
+            if(line == null || subString == null) {
+                throw new IllegalArgumentException("Line or substring is null");
+            } else if(!line.toUpperCase().contains(subString.toUpperCase()))
                 throw new IllegalArgumentException("Expected \"" + subString + "\" in: \"" + line + "\"");
-            if(!line.toUpperCase().contains(subString2.toUpperCase()))
+            if(line == null || subString2 == null) {
+                throw new IllegalArgumentException("Line or substring is null");
+            } else if(!line.toUpperCase().contains(subString2.toUpperCase()))
                 throw new IllegalArgumentException("Expected \"" + subString + "\" in: \"" + line + "\"");
         }
 

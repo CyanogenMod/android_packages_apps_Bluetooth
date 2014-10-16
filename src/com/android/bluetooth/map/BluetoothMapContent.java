@@ -291,6 +291,7 @@ public class BluetoothMapContent {
                 }
 
             } while(c.moveToNext());
+            c.close();
         }
     }
 
@@ -355,6 +356,7 @@ public class BluetoothMapContent {
                 /*     printMmsPartImage(partid); */
                 /* } */
             } while(c.moveToNext());
+            c.close();
         }
     }
 
@@ -460,22 +462,30 @@ public class BluetoothMapContent {
         dumpMmsTable();
 
         BluetoothMapAppParams ap = buildAppParams();
-        if (D) Log.d(TAG, "message listing size = " + msgListingSize("inbox", ap));
-        BluetoothMapMessageListing mList = msgListing("inbox", ap);
-        try {
-            mList.encode();
-        } catch (UnsupportedEncodingException ex) {
-            /* do nothing */
-        }
-        mList = msgListing("sent", ap);
-        try {
-            mList.encode();
-        } catch (UnsupportedEncodingException ex) {
-            /* do nothing */
+        if(ap != null ){
+            if (D) Log.d(TAG, "message listing size = " + msgListingSize("inbox", ap));
+            BluetoothMapMessageListing mList = msgListing("inbox", ap);
+            try {
+               mList.encode();
+            } catch (UnsupportedEncodingException ex) {
+               /* do nothing */
+            }
+            mList = msgListing("sent", ap);
+            try {
+                mList.encode();
+            } catch (UnsupportedEncodingException ex) {
+               /* do nothing */
+            }
+        } else {
+            if (D) Log.d(TAG, "dumPMessage AppParams not available ");
         }
     }
 
     public static String decodeEncodedWord(String checkEncoded) {
+        if (checkEncoded == null) {
+            if(V) Log.v(TAG, " Decode Invalid Input");
+            return null;
+        }
         if (checkEncoded != null && (checkEncoded.contains("=?") == false)) {
             if(V) Log.v(TAG, " Decode NotRequired" + checkEncoded);
             return checkEncoded;
@@ -1047,7 +1057,8 @@ public class BluetoothMapContent {
         } else {
             type = TYPE.EMAIL;
         }
-        if (D) Log.d(TAG, "setHandle: " + handle + " - Type: " + type.name());
+        if (D && type != null)
+           Log.d(TAG, "setHandle: " + handle + " - Type: " + type.name());
         e.setHandle(handle, type);
     }
 
@@ -1905,11 +1916,11 @@ public class BluetoothMapContent {
                           Log.v(TAG, " recepientStr[1] " + recepientStr[1].trim());
                           Log.v(TAG, " recepientStr[0] " + recepientStr[0].trim());
                       }
-                } else if(recipientName.contains("")){
-                      multiRecepients = recipientName.replace('', ';');
                       setVCardFromEmailAddress(message, recepientStr[1].trim(), false);
                       message.addCc(recepientStr[1].trim(), recepientStr[0].trim());
                    }
+                } else if(recipientName.contains("")){
+                      multiRecepients = recipientName.replace('', ';');
                       if(multiRecepients != null){
                          if (V){
                              Log.v(TAG, " Setting ::Recepient name :: " + multiRecepients.trim());
@@ -1950,6 +1961,7 @@ public class BluetoothMapContent {
                       }
               }
              }
+            c.close();
         }
     }
 
@@ -1970,8 +1982,10 @@ public class BluetoothMapContent {
         try {
             is = mResolver.openInputStream(uriAddress);
             int len = 0;
-            while ((len = is.read(buffer)) != -1) {
-              os.write(buffer, 0, len); // We need to specify the len, as it can be != bufferSize
+            if ((is != null) && (os != null)) {
+                while ((len = is.read(buffer)) != -1) {
+                  os.write(buffer, 0, len); // We need to specify the len, as it can be != bufferSize
+                }
             }
             retVal = os.toByteArray();
         } catch (IOException e) {
@@ -1980,7 +1994,8 @@ public class BluetoothMapContent {
         } finally {
             try {
                 os.close();
-                is.close();
+                if(is != null)
+                   is.close();
             } catch (IOException e) {
             }
         }
@@ -2065,7 +2080,12 @@ public class BluetoothMapContent {
                             } catch (NullPointerException e) {
                                 if(V) Log.w(TAG, e);
                             }
-                            String msgBody = readEmailBodyForMessageFd(fd);
+                            String msgBody = null ;
+                            if(fd != null ) {
+                               msgBody = readEmailBodyForMessageFd(fd);
+                            } else {
+                               Log.w(TAG, " FETCH Email BODY File HTML URI FAILED");
+                            }
                             if (msgBody != null) {
                                 msgBody = msgBody.replaceAll("(?s)(<title>)(.*?)(</title>)", "");
                                 msgBody = msgBody.replaceAll("(?s)(<style type=\"text/css\".*?>)(.*?)(</style>)", "");
@@ -2469,6 +2489,9 @@ public class BluetoothMapContent {
     public byte[] getMessage(String handle, BluetoothMapAppParams appParams) throws UnsupportedEncodingException{
         TYPE type = BluetoothMapUtils.getMsgTypeFromHandle(handle);
         long id = BluetoothMapUtils.getCpHandle(handle);
+        if(appParams == null){
+                throw new IllegalArgumentException("Invalid No appParams Charset");
+        }
         switch(type) {
         case SMS_GSM:
         case SMS_CDMA:
@@ -2599,6 +2622,9 @@ public class BluetoothMapContent {
                 message.setType(TYPE.SMS_GSM);
             } else if (tm.getPhoneType() == TelephonyManager.PHONE_TYPE_CDMA) {
                 message.setType(TYPE.SMS_CDMA);
+            } else {
+                // set SMS_GSM by default
+                message.setType(TYPE.SMS_GSM);
             }
 
             String read = c.getString(c.getColumnIndex(Sms.READ));
@@ -2672,6 +2698,7 @@ public class BluetoothMapContent {
                     break;
                 }
             } while(c.moveToNext());
+            c.close();
         }
     }
 
@@ -2709,9 +2736,9 @@ public class BluetoothMapContent {
         } finally {
             try {
                 if (os !=null)
-                os.close();
+                    os.close();
                 if (is!=null)
-                is.close();
+                    is.close();
             } catch (IOException e) {
             }
         }
@@ -2791,6 +2818,7 @@ public class BluetoothMapContent {
                 }
                 part.fileName = filename;
             } while(c.moveToNext());
+            c.close();
         }
         message.updateCharset();
     }

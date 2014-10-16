@@ -257,17 +257,17 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             return ResponseCodes.OBEX_HTTP_NOT_IMPLEMENTED;
             }
         }else if(type.equals(TYPE_SET_NOTIFICATION_REGISTRATION)) {
-            if(V) {
+            if(V && appParams != null) {
                 Log.d(TAG,"TYPE_SET_NOTIFICATION_REGISTRATION: NotificationStatus: " + appParams.getNotificationStatus());
             }
             return setNotificationRegistration(appParams);
         }else if(type.equals(TYPE_SET_MESSAGE_STATUS)) {
-            if(V) {
+            if(V && appParams != null) {
                 Log.d(TAG,"TYPE_SET_MESSAGE_STATUS: StatusIndicator: " + appParams.getStatusIndicator() + ", StatusValue: " + appParams.getStatusValue());
             }
             return setMessageStatus(name, appParams);
         } else if (type.equals(TYPE_MESSAGE)) {
-            if(V) {
+            if(V && appParams != null) {
                 Log.d(TAG,"TYPE_MESSAGE: Transparet: " + appParams.getTransparent() +  ", Retry: " + appParams.getRetry());
                 Log.d(TAG,"              charset: " + appParams.getCharset());
             }
@@ -279,6 +279,10 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
     }
 
     private int setNotificationRegistration(BluetoothMapAppParams appParams) {
+        if(appParams == null ){
+            if(D) Log.d(TAG, "Missing mandatory appParams charset - ");
+            return ResponseCodes.OBEX_HTTP_PRECON_FAILED;
+        }
         // Forward the request to the MNS thread as a message - including the MAS instance ID.
         Handler mns = mMnsClient.getMessageHandler();
         if(mns != null) {
@@ -295,6 +299,10 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
     }
 
     private int pushMessage(final Operation op, String folderName, BluetoothMapAppParams appParams) {
+        if(appParams == null ){
+            if(D) Log.d(TAG, "Missing mandatory appParams charset - ");
+            return ResponseCodes.OBEX_HTTP_PRECON_FAILED;
+        }
         if(appParams.getCharset() == BluetoothMapAppParams.INVALID_VALUE_PARAMETER) {
             if(D) Log.d(TAG, "Missing charset - unable to decode message content. appParams.getCharset() = " + appParams.getCharset());
             return ResponseCodes.OBEX_HTTP_PRECON_FAILED;
@@ -346,6 +354,10 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
     }
 
     private int setMessageStatus(String msgHandle, BluetoothMapAppParams appParams) {
+        if(appParams == null ){
+            if(D) Log.d(TAG, "Missing mandatory appParams ");
+            return ResponseCodes.OBEX_HTTP_PRECON_FAILED;
+        }
         int indicator = appParams.getStatusIndicator();
         int value = appParams.getStatusValue();
         long handle;

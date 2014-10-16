@@ -140,8 +140,9 @@ public class BluetoothMapContentObserver {
 
         @Override
         public void onChange(boolean selfChange, Uri uri) {
-            if (V) Log.d(TAG, "onChange on thread: " + Thread.currentThread().getId()
-                + " Uri: " + uri.toString() + " selfchange: " + selfChange);
+            if (V && uri!= null)
+                Log.d(TAG, "onChange on thread: " + Thread.currentThread().getId()
+                   + " Uri: " + uri.toString() + " selfchange: " + selfChange);
 
             handleMsgListChanges();
         }
@@ -676,6 +677,7 @@ public class BluetoothMapContentObserver {
     public boolean setMessageStatusRead(long handle, TYPE type, int statusValue) {
         boolean res = true;
 
+        Cursor c = null;
         if (D) Log.d(TAG, "setMessageStatusRead: handle " + handle
             + " type " + type + " value " + statusValue);
 
@@ -684,20 +686,22 @@ public class BluetoothMapContentObserver {
 
         if (type == TYPE.SMS_GSM || type == TYPE.SMS_CDMA) {
             Uri uri = ContentUris.withAppendedId(Sms.CONTENT_URI, handle);
-            Cursor c = mResolver.query(uri, null, null, null, null);
+            c = mResolver.query(uri, null, null, null, null);
 
             ContentValues contentValues = new ContentValues();
             contentValues.put(Sms.READ, statusValue);
             mResolver.update(uri, contentValues, null, null);
         } else if (type == TYPE.MMS) {
             Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI, handle);
-            Cursor c = mResolver.query(uri, null, null, null, null);
+            c = mResolver.query(uri, null, null, null, null);
 
             ContentValues contentValues = new ContentValues();
             contentValues.put(Mms.READ, statusValue);
             mResolver.update(uri, contentValues, null, null);
         }
 
+        if (c !=null)
+            c.close();
         return res;
     }
 

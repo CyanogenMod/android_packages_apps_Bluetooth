@@ -124,7 +124,7 @@ public class BluetoothMapMessageListing {
                 int line1 = 0;
                 line1 = str1.indexOf("\n");
                 str2 += str1.substring(line1 + 1);
-                if (list.size() > 0) {
+                if (list != null  && list.size() > 0) {
                     int indxHandle = str2.indexOf("msg handle");
                     str1 = "<" + str2.substring(indxHandle);
                     str2 = str2.substring(0, (indxHandle - 1)) + str1;

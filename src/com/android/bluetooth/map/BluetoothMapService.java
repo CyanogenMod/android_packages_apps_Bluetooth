@@ -662,14 +662,16 @@ public class BluetoothMapService extends ProfileService {
                   if (VERBOSE) Log.v(TAG, "Allow Connection request from " +remoteAddress
                                      + "when no other device is connected");
                    return true;
-               } else if(MapClientList.get((masId^1)).equalsIgnoreCase(remoteAddress)) {
+               } else {
+                   if(MapClientList.get((masId^1)).equalsIgnoreCase(remoteAddress)) {
                          Log.d(TAG, "Allow Connection request from " +remoteAddress);
                          Log.d(TAG, "when mas" +(masId^1) +"is connected to " +MapClientList.get((masId^1)));
                                 return true;
-               } else {
+                   } else {
                          Log.d(TAG, "Dont Allow Connection request from " +remoteAddress
                                + "when mas" +(masId^1) +"is connected to" +MapClientList.get((masId^1)));
                          return false;
+                   }
                }
             }
             Log.d(TAG,"connection not allowed from " + remoteAddress);
@@ -1134,7 +1136,7 @@ public class BluetoothMapService extends ProfileService {
             if (VERBOSE) Log.v(TAG, "getState()");
             BluetoothMapService service = getService();
             if (service == null) return BluetoothMap.STATE_DISCONNECTED;
-            return getService().getState();
+            return service.getState();
         }
 
         public BluetoothDevice getClient() {

@@ -172,8 +172,9 @@ public class BluetoothMapContentEmailObserver extends BluetoothMapContentObserve
 
         @Override
         public void onChange(boolean selfChange, Uri uri) {
-            if (V) Log.v(TAG, "onChange on thread: " + Thread.currentThread().getId()
-                + " Uri: " + uri.toString() + " selfchange: " + selfChange);
+            if (V && uri!= null)
+                Log.v(TAG, "onChange on thread: " + Thread.currentThread().getId()
+                    + " Uri: " + uri.toString() + " selfchange: " + selfChange);
 
              if (mHandler.hasMessages(UPDATE)) {
                  mHandler.removeMessages(UPDATE);
