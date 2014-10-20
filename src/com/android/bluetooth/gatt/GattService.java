@@ -615,9 +615,7 @@ public class GattService extends ProfileService {
         if (client.filters == null || client.filters.isEmpty()) {
             return true;
         }
-        if (DBG) Log.d(TAG, "result: " + scanResult.toString());
         for (ScanFilter filter : client.filters) {
-            if (DBG) Log.d(TAG, "filter: " + filter.toString());
             if (filter.matches(scanResult)) {
                 return true;
             }
