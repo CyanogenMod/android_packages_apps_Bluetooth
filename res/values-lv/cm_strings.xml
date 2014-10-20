@@ -17,6 +17,6 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="empty_file_notification_sent">藍芽分享：遠端拒絕了長度為零的檔案 <xliff:g id="file">%1$s</xliff:g></string>
+  <string name="empty_file_notification_sent">Bluetooth kopīgošana: attālinātā vieta noraidīja nulles garuma failu <xliff:g id="file">%1$s</xliff:g></string>
   <string name="format_progress_text">%1$d%%</string>
 </resources>
