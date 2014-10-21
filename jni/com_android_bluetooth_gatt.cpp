@@ -954,6 +954,11 @@ static void gattClientWriteCharacteristicNative(JNIEnv* env, jobject object,
 {
     if (!sGattIf) return;
 
+    if (value == NULL) {
+        warn("gattClientWriteCharacteristicNative() ignoring NULL array");
+        return;
+    }
+
     btgatt_srvc_id_t srvc_id;
     srvc_id.id.inst_id = (uint8_t) service_id_inst_id;
     srvc_id.is_primary = (service_type == BTGATT_SERVICE_TYPE_PRIMARY ? 1 : 0);
