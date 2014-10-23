@@ -56,7 +56,7 @@ static const btsock_interface_t *sBluetoothSocketInterface = NULL;
 static const btmce_interface_t *sBluetoothMceInterface = NULL;
 static JNIEnv *callbackEnv = NULL;
 
-static jobject sJniAdapterServiceObj;
+static jobject sJniAdapterServiceObj = NULL;
 static jobject sJniCallbacksObj = NULL;
 static jfieldID sJniCallbacksField;
 
@@ -475,9 +475,13 @@ static void energy_info_recv_callback(bt_activity_energy_info *p_energy_info)
        return;
     }
 
-    callbackEnv->CallVoidMethod(sJniAdapterServiceObj, method_energyInfo, p_energy_info->status,
-        p_energy_info->ctrl_state, p_energy_info->tx_time, p_energy_info->rx_time,
-        p_energy_info->idle_time, p_energy_info->energy_used);
+    if (sJniAdapterServiceObj) {
+        callbackEnv->CallVoidMethod(sJniAdapterServiceObj, method_energyInfo, p_energy_info->status,
+            p_energy_info->ctrl_state, p_energy_info->tx_time, p_energy_info->rx_time,
+            p_energy_info->idle_time, p_energy_info->energy_used);
+    } else {
+       ALOGE("JNI ERROR : JNI reference already cleaned : energy_info_recv_callback", __FUNCTION__);
+    }
 
     checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
 }
@@ -520,6 +524,7 @@ static bool set_wake_alarm_callout(uint64_t delay_millis, bool should_wake, alar
     JNIEnv *env;
     JavaVM *vm = AndroidRuntime::getJavaVM();
     jint status = vm->GetEnv((void **)&env, JNI_VERSION_1_6);
+    jboolean ret = JNI_FALSE;
 
     if (status != JNI_OK && status != JNI_EDETACHED) {
         ALOGE("%s unable to get environment for JNI call", __func__);
@@ -535,7 +540,12 @@ static bool set_wake_alarm_callout(uint64_t delay_millis, bool should_wake, alar
     sAlarmCallbackData = data;
 
     jboolean jshould_wake = should_wake ? JNI_TRUE : JNI_FALSE;
-    jboolean ret = env->CallBooleanMethod(sJniAdapterServiceObj, method_setWakeAlarm, (jlong)delay_millis, jshould_wake);
+    if (sJniAdapterServiceObj) {
+        ret = env->CallBooleanMethod(sJniAdapterServiceObj, method_setWakeAlarm, (jlong)delay_millis, jshould_wake);
+    } else {
+       ALOGE("JNI ERROR : JNI reference already cleaned : set_wake_alarm_callout", __FUNCTION__);
+    }
+
     if (!ret) {
         sAlarmCallback = NULL;
         sAlarmCallbackData = NULL;
@@ -566,8 +576,12 @@ static int acquire_wake_lock_callout(const char *lock_name) {
     jboolean ret = JNI_FALSE;
     jstring lock_name_jni = env->NewStringUTF(lock_name);
     if (lock_name_jni) {
-        ret = env->CallBooleanMethod(sJniAdapterServiceObj, method_acquireWakeLock, lock_name_jni);
-        env->DeleteLocalRef(lock_name_jni);
+        if (sJniAdapterServiceObj) {
+            ret = env->CallBooleanMethod(sJniAdapterServiceObj, method_acquireWakeLock, lock_name_jni);
+            env->DeleteLocalRef(lock_name_jni);
+        } else {
+            ALOGE("JNI ERROR : JNI reference already cleaned : acquire_wake_lock_callout", __FUNCTION__);
+        }
     } else {
         ALOGE("%s unable to allocate string: %s", __func__, lock_name);
     }
@@ -597,8 +611,12 @@ static int release_wake_lock_callout(const char *lock_name) {
     jboolean ret = JNI_FALSE;
     jstring lock_name_jni = env->NewStringUTF(lock_name);
     if (lock_name_jni) {
-        ret = env->CallBooleanMethod(sJniAdapterServiceObj, method_releaseWakeLock, lock_name_jni);
-        env->DeleteLocalRef(lock_name_jni);
+        if (sJniAdapterServiceObj) {
+            ret = env->CallBooleanMethod(sJniAdapterServiceObj, method_releaseWakeLock, lock_name_jni);
+            env->DeleteLocalRef(lock_name_jni);
+        } else {
+            ALOGE("JNI ERROR : JNI reference already cleaned : release_wake_lock_callout", __FUNCTION__);
+        }
     } else {
         ALOGE("%s unable to allocate string: %s", __func__, lock_name);
     }
