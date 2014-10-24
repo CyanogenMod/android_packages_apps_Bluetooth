@@ -185,13 +185,13 @@ public class HidService extends ProfileService {
                     } else {
                         broadcastConnectionState(device, convertHalState(halState));
                     }
-                    if (halState != CONN_STATE_CONNECTING) {
+                    if (halState == CONN_STATE_CONNECTED &&
+                        (mTargetDevice != null && mTargetDevice.equals(device))) {
                         mTargetDevice = null;
-                    }
-                    else {
-                        // CONN_STATE_CONNECTING is received only during
-                        // local initiated connection.
-                        mTargetDevice = device;
+                        // local device originated connection to hid device, move out
+                        // of quiet mode
+                        AdapterService adapterService = AdapterService.getAdapterService();
+                        adapterService.enable(false);
                     }
                 }
                     break;
