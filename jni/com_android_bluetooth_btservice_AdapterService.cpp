@@ -812,7 +812,10 @@ static bool cleanupNative(JNIEnv *env, jobject obj) {
     sBluetoothInterface->cleanup();
     ALOGI("%s: return from cleanup",__FUNCTION__);
 
-    env->DeleteGlobalRef(sJniAdapterServiceObj);
+    if (sJniAdapterServiceObj) {
+        env->DeleteGlobalRef(sJniAdapterServiceObj);
+        sJniAdapterServiceObj = NULL;
+    }
 
     if (sJniCallbacksObj) {
         env->DeleteGlobalRef(sJniCallbacksObj);
@@ -821,7 +824,7 @@ static bool cleanupNative(JNIEnv *env, jobject obj) {
     return JNI_TRUE;
 }
 
-static bool ssrcleanupNative(JNIEnv *env, jobject obj) {
+static bool ssrcleanupNative(JNIEnv *env, jobject obj, jboolean cleanup) {
     ALOGV("%s:",__FUNCTION__);
 
     jboolean result = JNI_FALSE;
@@ -829,8 +832,17 @@ static bool ssrcleanupNative(JNIEnv *env, jobject obj) {
 
     sBluetoothInterface->ssrcleanup();
     ALOGI("%s: return from cleanup",__FUNCTION__);
-
-    env->DeleteGlobalRef(sJniCallbacksObj);
+    if (cleanup == JNI_TRUE) {
+        ALOGI("%s: SSR Cleanup - DISABLE Timeout   ",__FUNCTION__);
+        if (sJniCallbacksObj) {
+            env->DeleteGlobalRef(sJniCallbacksObj);
+            sJniCallbacksObj = NULL;
+        }
+        if (sJniAdapterServiceObj) {
+            env->DeleteGlobalRef(sJniAdapterServiceObj);
+            sJniAdapterServiceObj = NULL;
+        }
+    }
     return JNI_TRUE;
 }
 
@@ -1323,7 +1335,7 @@ static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
     {"initNative", "()Z", (void *) initNative},
     {"cleanupNative", "()V", (void*) cleanupNative},
-    {"ssrcleanupNative", "()V", (void*) ssrcleanupNative},
+    {"ssrcleanupNative", "(Z)V", (void*) ssrcleanupNative},
     {"enableNative", "()Z",  (void*) enableNative},
     {"disableNative", "()Z",  (void*) disableNative},
     {"setAdapterPropertyNative", "(I[B)Z", (void*) setAdapterPropertyNative},

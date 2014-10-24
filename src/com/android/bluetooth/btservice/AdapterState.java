@@ -330,7 +330,7 @@ final class AdapterState extends StateMachine {
                 case ENABLE_TIMEOUT:
                     if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = ENABLE_TIMEOUT, isTurningOn=" + isTurningOn + ", isTurningOff=" + isTurningOff);
                     errorLog("Error enabling Bluetooth");
-                    adapterService.ssrcleanupNative();
+                    adapterService.ssrcleanupNative(false);
                     mPendingCommandState.setTurningOn(false);
                     transitionTo(mOffState);
                     notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
@@ -346,7 +346,7 @@ final class AdapterState extends StateMachine {
                     if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = DISABLE_TIMEOUT, isTurningOn=" + isTurningOn + ", isTurningOff=" + isTurningOff);
                     errorLog("Error disabling Bluetooth");
                     mPendingCommandState.setTurningOff(false);
-                    adapterService.ssrcleanupNative();
+                    adapterService.ssrcleanupNative(true);
                     transitionTo(mOffState);
                     notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
                     errorLog("Killing the process to force a restart as part cleanup");
