@@ -123,7 +123,7 @@ class HeadsetPhoneState extends BroadcastReceiver{
     private void startListenForPhoneState() {
         if (!mListening && mSlcReady) {
 
-            long subId = SubscriptionManager.getDefaultSubId();
+            int subId = SubscriptionManager.getDefaultSubId();
 
             if (SubscriptionManager.isValidSubId(subId)) {
                 mPhoneStateListener = getPhoneStateListener(subId);
@@ -231,7 +231,7 @@ class HeadsetPhoneState extends BroadcastReceiver{
         }
     }
 
-    private PhoneStateListener getPhoneStateListener(long subId) {
+    private PhoneStateListener getPhoneStateListener(int subId) {
         PhoneStateListener mPhoneStateListener = new PhoneStateListener(subId) {
             @Override
             public void onServiceStateChanged(ServiceState serviceState) {
