@@ -2180,6 +2180,24 @@ public class GattService extends ProfileService {
         return uuids;
     }
 
+    @Override
+    public void dump(StringBuilder sb) {
+        super.dump(sb);
+        println(sb, "mAdvertisingServiceUuids:");
+        for (UUID uuid : mAdvertisingServiceUuids) {
+            println(sb, "  " + uuid);
+        }
+        println(sb, "mOnFoundResults:");
+        for (ScanResult result : mOnFoundResults.values()) {
+            println(sb, "  " + result);
+        }
+        println(sb, "mOnFoundResults:");
+        for (ServiceDeclaration declaration : mServiceDeclarations) {
+            println(sb, "  " + declaration);
+        }
+        println(sb, "mMaxScanFilters: " + mMaxScanFilters);
+    }
+
     /**************************************************************************
      * GATT Test functions
      *************************************************************************/

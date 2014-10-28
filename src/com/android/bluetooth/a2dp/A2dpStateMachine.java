@@ -134,7 +134,6 @@ final class A2dpStateMachine extends StateMachine {
         mIntentBroadcastHandler = new IntentBroadcastHandler();
 
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-
     }
 
     static A2dpStateMachine make(A2dpService svc, Context context) {
@@ -753,6 +752,13 @@ final class A2dpStateMachine extends StateMachine {
         }
     }
 
+    public void dump(StringBuilder sb) {
+        ProfileService.println(sb, "mCurrentDevice: " + mCurrentDevice);
+        ProfileService.println(sb, "mTargetDevice: " + mTargetDevice);
+        ProfileService.println(sb, "mIncomingDevice: " + mIncomingDevice);
+        ProfileService.println(sb, "mPlayingA2dpDevice: " + mPlayingA2dpDevice);
+        ProfileService.println(sb, "StateMachine: " + this.toString());
+    }
 
     // Event types for STACK_EVENT message
     final private static int EVENT_TYPE_NONE = 0;
