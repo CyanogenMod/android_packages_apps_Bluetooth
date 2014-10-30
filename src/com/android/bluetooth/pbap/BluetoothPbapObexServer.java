@@ -650,6 +650,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     private int createList(final int maxListCount, final int listStartOffset,
         final String searchValue, StringBuilder result, String type, boolean SIM) {
         int itemsFound = 0, pos = 0;
+        ArrayList<Integer> savedPosList = new ArrayList<>();
         ArrayList<String> nameList = null;
         ArrayList<String> selectedNameList = new ArrayList<String>();
         //check if current request is for SIM
@@ -682,16 +683,21 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                     if (currentValue.equals(compareValue)) {
                         if (currentValue.contains(","))
                             currentValue = currentValue.substring(0, currentValue.lastIndexOf(','));
-                            selectedNameList.add(currentValue);
-                            for (int j = listStartOffset; j< selectedNameList.size()&&
-                                itemsFound < requestSize; j++) {
-                                itemsFound++;
-                                writeVCardEntry(pos, selectedNameList.get(j),result);
-                            }
+                        selectedNameList.add(currentValue);
+                        savedPosList.add(pos);
                     }
-                    selectedNameList.clear();
                 }
             }
+
+            for (int j = listStartOffset; j< selectedNameList.size()&&
+                itemsFound < requestSize; j++) {
+                itemsFound++;
+                writeVCardEntry(savedPosList.get(j), selectedNameList.get(j),result);
+            }
+
+            selectedNameList.clear();
+            savedPosList.clear();
+
         } else {
             if (searchValue != null) {
                 compareValue = searchValue.trim();
@@ -706,15 +712,19 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 if (searchValue != null) {
                     if (searchValue.isEmpty() || ((currentValue.toLowerCase()).equals(compareValue.toLowerCase()))) {
                         selectedNameList.add(currentValue);
-                        for (int i = listStartOffset; i < selectedNameList.size()&&
-                            itemsFound < requestSize; i++) {
-                            itemsFound++;
-                            writeVCardEntry(pos, selectedNameList.get(i),result);
-                        }
+                        savedPosList.add(pos);
                     }
                 }
-                selectedNameList.clear();
             }
+
+            for (int i = listStartOffset; i < selectedNameList.size()&&
+                        itemsFound < requestSize; i++) {
+                itemsFound++;
+                writeVCardEntry(savedPosList.get(i), selectedNameList.get(i),result);
+            }
+
+            selectedNameList.clear();
+            savedPosList.clear();
         }
         return itemsFound;
     }
