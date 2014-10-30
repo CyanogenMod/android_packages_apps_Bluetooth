@@ -343,24 +343,16 @@ public class BluetoothMapContentObserver {
         Log.d(TAG, "msgHandle is "+msgHandle);
         location = findLocationMceInitiatedOperation(Long.toString(evt.handle));
         Log.d(TAG, "location is "+location);
-        if(evt.eventType.equalsIgnoreCase("SendingSuccess")) {
-           if(location != -1) {
-              try {
-                  mMnsClient.sendEvent(evt.encode(), mMasId);
-              } catch (UnsupportedEncodingException ex) {
-                  Log.w(TAG, ex);
-              }
-           } else {
-                  Log.d(TAG, "not sending success event");
-                  return;
-           }
-        } else if (location == -1) {
-           try {
-               Log.d(TAG, "sending mns event");
-               mMnsClient.sendEvent(evt.encode(), mMasId);
-           } catch (UnsupportedEncodingException ex) {
-               Log.w(TAG, ex);
-           }
+        // 'SendingSuccess' is triggered only for MCE initiated case
+        if(location == -1 || evt.eventType.equalsIgnoreCase("SendingSuccess")) {
+            try {
+                mMnsClient.sendEvent(evt.encode(), mMasId);
+            } catch (UnsupportedEncodingException ex) {
+                Log.w(TAG, ex);
+            }
+        } else {
+            Log.d(TAG, "Not MCE initiated operation" +location);
+            return;
         }
     }
 
@@ -499,7 +491,7 @@ public class BluetoothMapContentObserver {
                             sendEvent(evt);
                             msg.type = type;
 
-                            // SendingSuccess for MMS ONLY when local initiated
+                            // Trigger 'SendingSuccess' for MMS ONLY when local initiated
                             int loc = findLocationMceInitiatedOperation(Long.toString(id));
                             if (folderMms[type].equals("sent")&& loc != -1) {
                                 evt = new Event("SendingSuccess", id,
