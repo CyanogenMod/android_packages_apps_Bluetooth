@@ -42,6 +42,8 @@ import android.util.Log;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.util.NumberUtils;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1029,27 +1031,26 @@ public class GattService extends ProfileService {
     private Set<ScanResult> parseTruncatedResults(int numRecords, byte[] batchRecord) {
         if (DBG) Log.d(TAG, "batch record " + Arrays.toString(batchRecord));
         Set<ScanResult> results = new HashSet<ScanResult>(numRecords);
+        long now = SystemClock.elapsedRealtimeNanos();
         for (int i = 0; i < numRecords; ++i) {
             byte[] record = extractBytes(batchRecord, i * TRUNCATED_RESULT_SIZE,
                     TRUNCATED_RESULT_SIZE);
             byte[] address = extractBytes(record, 0, 6);
-            // TODO: remove temp hack.
             reverse(address);
             BluetoothDevice device = mAdapter.getRemoteDevice(address);
             int rssi = record[8];
-            // Timestamp is in every 50 ms.
-            long timestampNanos = parseTimestampNanos(extractBytes(record, 9, 2));
+            long timestampNanos = now - parseTimestampNanos(extractBytes(record, 9, 2));
             results.add(new ScanResult(device, ScanRecord.parseFromBytes(new byte[0]),
                     rssi, timestampNanos));
         }
         return results;
     }
 
-    private long parseTimestampNanos(byte[] data) {
-        long timestampUnit = data[1] & 0xFF << 8 + data[0];
-        long timestampNanos = SystemClock.elapsedRealtimeNanos() -
-                TimeUnit.MILLISECONDS.toNanos(timestampUnit * 50);
-        return timestampNanos;
+    @VisibleForTesting
+    long parseTimestampNanos(byte[] data) {
+        long timestampUnit = NumberUtils.littleEndianByteArrayToInt(data);
+        // Timestamp is in every 50 ms.
+        return TimeUnit.MILLISECONDS.toNanos(timestampUnit * 50);
     }
 
     private Set<ScanResult> parseFullResults(int numRecords, byte[] batchRecord) {
