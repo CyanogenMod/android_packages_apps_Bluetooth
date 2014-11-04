@@ -27,6 +27,7 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothCallback;
 import android.bluetooth.IBluetoothManager;
@@ -78,6 +79,7 @@ public class AdapterService extends Service {
     private static final String TAG = "BluetoothAdapterService";
     private static final boolean DBG = true;
     private static final boolean TRACE_REF = true;
+    private static final String delayConnectTimeoutDevice[] = {"00:23:3D"}; // volkswagen carkit
     //For Debugging only
     private static int sRefCount=0;
 
@@ -89,6 +91,10 @@ public class AdapterService extends Service {
     public static final int PROFILE_CONN_CONNECTED  = 1;
     public static final int PROFILE_CONN_REJECTED  = 2;
 
+    static final ParcelUuid[] A2DP_SOURCE_SINK_UUIDS = {
+        BluetoothUuid.AudioSource,
+        BluetoothUuid.AudioSink
+    };
     static final String BLUETOOTH_ADMIN_PERM =
         android.Manifest.permission.BLUETOOTH_ADMIN;
     static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
@@ -414,12 +420,13 @@ public class AdapterService extends Service {
         if (DBG)debugLog("cleanup() done");
     }
 
-    private static final int MESSAGE_PROFILE_SERVICE_STATE_CHANGED =1;
-    private static final int MESSAGE_PROFILE_CONNECTION_STATE_CHANGED=20;
+    private static final int MESSAGE_PROFILE_SERVICE_STATE_CHANGED = 1;
+    private static final int MESSAGE_PROFILE_CONNECTION_STATE_CHANGED = 20;
     private static final int MESSAGE_CONNECT_OTHER_PROFILES = 30;
-    private static final int CONNECT_OTHER_PROFILES_TIMEOUT= 6000;
+    private static final int CONNECT_OTHER_PROFILES_TIMEOUT = 6000;
+    private static final int CONNECT_OTHER_PROFILES_TIMEOUT_DEYALED = 10000;
     private static final int MESSAGE_AUTO_CONNECT_PROFILES = 50;
-    private static final int AUTO_CONNECT_PROFILES_TIMEOUT= 500;
+    private static final int AUTO_CONNECT_PROFILES_TIMEOUT = 500;
 
     private final Handler mHandler = new Handler() {
         @Override
@@ -488,6 +495,7 @@ public class AdapterService extends Service {
             Intent intent = new Intent(this,services[i]);
             intent.putExtra(EXTRA_ACTION,ACTION_SERVICE_STATE_CHANGED);
             intent.putExtra(BluetoothAdapter.EXTRA_STATE,state);
+            intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
             startService(intent);
         }
     }
@@ -1218,12 +1226,31 @@ public class AdapterService extends Service {
     }
 
      public void connectOtherProfile(BluetoothDevice device, int firstProfileStatus){
-        if ((mHandler.hasMessages(MESSAGE_CONNECT_OTHER_PROFILES) == false) &&
-            (isQuietModeEnabled()== false)){
+        String deviceAddress = device.getAddress();
+        boolean isConnectionTimeoutDelayed = false;
+
+        for (int i = 0; i < delayConnectTimeoutDevice.length;i++) {
+            if (deviceAddress.indexOf(delayConnectTimeoutDevice[i]) == 0) {
+                isConnectionTimeoutDelayed = true;
+            }
+        }
+        if (mHandler.hasMessages(MESSAGE_CONNECT_OTHER_PROFILES) == false) {
+            ParcelUuid[] featureUuids = device.getUuids();
+            // Some Carkits disconnect just after pairing,Initiate SDP for missing UUID's support
+            if ((!(BluetoothUuid.containsAnyUuid(featureUuids, A2DP_SOURCE_SINK_UUIDS))) ||
+                    (!(BluetoothUuid.isUuidPresent(featureUuids, BluetoothUuid.Handsfree)))) {
+                Log.v(TAG,"Initiate SDP for Missing UUID's support in remote");
+                device.fetchUuidsWithSdp();
+            }
             Message m = mHandler.obtainMessage(MESSAGE_CONNECT_OTHER_PROFILES);
             m.obj = device;
             m.arg1 = (int)firstProfileStatus;
-            mHandler.sendMessageDelayed(m,CONNECT_OTHER_PROFILES_TIMEOUT);
+            if (isConnectionTimeoutDelayed) {
+                mHandler.sendMessageDelayed(m,CONNECT_OTHER_PROFILES_TIMEOUT_DEYALED);
+            }
+            else {
+                mHandler.sendMessageDelayed(m,CONNECT_OTHER_PROFILES_TIMEOUT);
+            }
         }
     }
 
@@ -1556,6 +1583,7 @@ public class AdapterService extends Service {
     private native static void classInitNative();
     private native boolean initNative();
     private native void cleanupNative();
+    /*package*/ native void ssrcleanupNative();
     /*package*/ native boolean enableNative();
     /*package*/ native boolean disableNative();
     /*package*/ native boolean setAdapterPropertyNative(int type, byte[] val);

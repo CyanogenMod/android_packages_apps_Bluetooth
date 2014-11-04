@@ -342,11 +342,14 @@ final class AdapterState extends StateMachine {
                     mPendingCommandState.setTurningOff(false);
                     transitionTo(mOffState);
                     notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
+                    errorLog("STOP_TIMEOUT:Killing the process to force a restart as part cleanup");
+                    android.os.Process.killProcess(android.os.Process.myPid());
                     break;
                 case DISABLE_TIMEOUT:
                     if (DBG) Log.d(TAG,"CURRENT_STATE=PENDING, MESSAGE = DISABLE_TIMEOUT, isTurningOn=" + isTurningOn + ", isTurningOff=" + isTurningOff);
                     errorLog("Error disabling Bluetooth");
                     mPendingCommandState.setTurningOff(false);
+                    adapterService.ssrcleanupNative();
                     transitionTo(mOffState);
                     notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
                     errorLog("Killing the process to force a restart as part cleanup");
