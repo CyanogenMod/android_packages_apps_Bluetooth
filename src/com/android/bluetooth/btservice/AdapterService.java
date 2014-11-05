@@ -685,7 +685,7 @@ public class AdapterService extends Service {
 
         public String getAddress() {
             if ((Binder.getCallingUid() != Process.SYSTEM_UID) &&
-                (!Utils.checkCaller())) {
+                (!Utils.checkCallerAllowManagedProfiles(mService))) {
                 Log.w(TAG, "getAddress() - Not allowed for non-active user and non system user");
                 return null;
             }
@@ -730,7 +730,7 @@ public class AdapterService extends Service {
         }
 
         public int getScanMode() {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "getScanMode() - Not allowed for non-active user");
                 return BluetoothAdapter.SCAN_MODE_NONE;
             }
@@ -795,7 +795,7 @@ public class AdapterService extends Service {
             return service.cancelDiscovery();
         }
         public boolean isDiscovering() {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "isDiscovering() - Not allowed for non-active user");
                 return false;
             }
@@ -820,7 +820,7 @@ public class AdapterService extends Service {
         }
 
         public int getProfileConnectionState(int profile) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "getProfileConnectionState- Not allowed for non-active user");
                 return BluetoothProfile.STATE_DISCONNECTED;
             }
@@ -879,7 +879,7 @@ public class AdapterService extends Service {
         }
 
         public String getRemoteName(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "getRemoteName() - Not allowed for non-active user");
                 return null;
             }
@@ -890,7 +890,7 @@ public class AdapterService extends Service {
         }
 
         public int getRemoteType(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "getRemoteType() - Not allowed for non-active user");
                 return BluetoothDevice.DEVICE_TYPE_UNKNOWN;
             }
@@ -901,7 +901,7 @@ public class AdapterService extends Service {
         }
 
         public String getRemoteAlias(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "getRemoteAlias() - Not allowed for non-active user");
                 return null;
             }
@@ -923,7 +923,7 @@ public class AdapterService extends Service {
         }
 
         public int getRemoteClass(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "getRemoteClass() - Not allowed for non-active user");
                 return 0;
             }
@@ -934,7 +934,7 @@ public class AdapterService extends Service {
         }
 
         public ParcelUuid[] getRemoteUuids(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "getRemoteUuids() - Not allowed for non-active user");
                 return new ParcelUuid[0];
             }
@@ -945,7 +945,7 @@ public class AdapterService extends Service {
         }
 
         public boolean fetchRemoteUuids(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "fetchRemoteUuids() - Not allowed for non-active user");
                 return false;
             }
@@ -1052,7 +1052,7 @@ public class AdapterService extends Service {
 
         public ParcelFileDescriptor connectSocket(BluetoothDevice device, int type,
                                                   ParcelUuid uuid, int port, int flag) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "connectSocket() - Not allowed for non-active user");
                 return null;
             }
@@ -1064,7 +1064,7 @@ public class AdapterService extends Service {
 
         public ParcelFileDescriptor createSocketChannel(int type, String serviceName,
                                                         ParcelUuid uuid, int port, int flag) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "createSocketChannel() - Not allowed for non-active user");
                 return null;
             }
