@@ -63,7 +63,7 @@
     <string name="download_fail_ok" msgid="1521733664438320300">"ঠিক আছে"</string>
     <string name="download_succ_line5" msgid="4509944688281573595">"ফাইল প্রাপ্ত করা হয়েছে"</string>
     <string name="download_succ_ok" msgid="7053688246357050216">"খুলুন"</string>
-    <string name="upload_line1" msgid="2055952074059709052">"প্রতি: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
+    <string name="upload_line1" msgid="2055952074059709052">"প্রাপক: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="upload_line3" msgid="4920689672457037437">"ফাইল প্রকার: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
     <string name="upload_line5" msgid="7759322537674229752">"ফাইল পাঠানো হচ্ছে..."</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"ফাইল পাঠানো হয়েছে"</string>
