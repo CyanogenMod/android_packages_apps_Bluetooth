@@ -749,7 +749,8 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
                if (beginMsg == -1) {
                    throw new IllegalArgumentException("Ill-formatted bMessage, no BEGIN:MSG");
                }
-               int endMsg = body.lastIndexOf("END:MSG", beginMsg);
+               //Last occurence of END:MSG
+               int endMsg = body.lastIndexOf("END:MSG");
                if (endMsg == -1) {
                    throw new IllegalArgumentException("Ill-formatted bMessage, no END:MSG");
                }
@@ -764,7 +765,8 @@ public class BluetoothMapbMessageMmsEmail extends BluetoothMapbMessage {
        int endVersionPos;
        if(rfc822Flag == 0){
           if(mimeFlag == 0) {
-             endVersionPos = body.lastIndexOf("END:MSG", beginVersionPos) ;
+             //Last occurence of END:MSG
+             endVersionPos = body.lastIndexOf("END:MSG") ;
              if (endVersionPos != -1) {
                  setEmailBody(body.substring(beginVersionPos, (endVersionPos - CRLF.length())));
              } else {
