@@ -717,7 +717,9 @@ public class BluetoothOppService extends Service {
         info.mVisibility = newVisibility;
 
         if (info.mConfirm == BluetoothShare.USER_CONFIRMATION_PENDING
-                && newConfirm != BluetoothShare.USER_CONFIRMATION_PENDING) {
+            && (newConfirm == BluetoothShare.USER_CONFIRMATION_CONFIRMED ||
+                newConfirm == BluetoothShare.USER_CONFIRMATION_AUTO_CONFIRMED ||
+                newConfirm == BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED)) {
             confirmed = true;
         }
         info.mConfirm = cursor.getInt(cursor
