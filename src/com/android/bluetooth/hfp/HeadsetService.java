@@ -557,4 +557,11 @@ public class HeadsetService extends ProfileService {
         return true;
     }
 
+    @Override
+    public void dump(StringBuilder sb) {
+        super.dump(sb);
+        if (mStateMachine != null) {
+            mStateMachine.dump(sb);
+        }
+    }
 }

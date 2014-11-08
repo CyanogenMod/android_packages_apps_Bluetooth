@@ -297,4 +297,15 @@ public class A2dpService extends ProfileService {
             return service.isA2dpPlaying(device);
         }
     };
+
+    @Override
+    public void dump(StringBuilder sb) {
+        super.dump(sb);
+        if (mStateMachine != null) {
+            mStateMachine.dump(sb);
+        }
+        if (mAvrcp != null) {
+            mAvrcp.dump(sb);
+        }
+    }
 }

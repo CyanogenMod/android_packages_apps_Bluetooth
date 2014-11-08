@@ -93,6 +93,8 @@ public class AdapterService extends Service {
     private int mIdleTimeTotalMs;
     private int mEnergyUsedTotalVoltAmpSecMicro;
 
+    private final ArrayList<ProfileService> mProfiles = new ArrayList<ProfileService>();
+
     public static final String ACTION_LOAD_ADAPTER_PROPERTIES =
         "com.android.bluetooth.btservice.action.LOAD_ADAPTER_PROPERTIES";
     public static final String ACTION_SERVICE_STATE_CHANGED =
@@ -254,6 +256,18 @@ public class AdapterService extends Service {
             } catch (RemoteException re) {
                 errorLog("" + re);
             }
+        }
+    }
+
+    public void addProfile(ProfileService profile) {
+        synchronized (mProfiles) {
+            mProfiles.add(profile);
+        }
+    }
+
+    public void removeProfile(ProfileService profile) {
+        synchronized (mProfiles) {
+            mProfiles.remove(profile);
         }
     }
 
@@ -1114,6 +1128,14 @@ public class AdapterService extends Service {
              if (service == null) return null;
              return service.reportActivityInfo();
          }
+
+         public String dump() {
+            AdapterService service = getService();
+            if (service == null) {
+                return "AdapterService is null";
+            }
+            return service.dump();
+         }
     };
 
 
@@ -1694,6 +1716,16 @@ public class AdapterService extends Service {
         mIdleTimeTotalMs = 0;
         mEnergyUsedTotalVoltAmpSecMicro = 0;
         return info;
+    }
+
+    private String dump() {
+        StringBuilder sb = new StringBuilder();
+        synchronized (mProfiles) {
+            for (ProfileService profile : mProfiles) {
+                profile.dump(sb);
+            }
+        }
+        return sb.toString();
     }
 
     private static int convertScanModeToHal(int mode) {

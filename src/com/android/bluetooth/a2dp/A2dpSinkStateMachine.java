@@ -156,7 +156,14 @@ final class A2dpSinkStateMachine extends StateMachine {
         mAudioConfigs.clear();
     }
 
-        private class Disconnected extends State {
+    public void dump(StringBuilder sb) {
+        ProfileService.println(sb, "mCurrentDevice: " + mCurrentDevice);
+        ProfileService.println(sb, "mTargetDevice: " + mTargetDevice);
+        ProfileService.println(sb, "mIncomingDevice: " + mIncomingDevice);
+        ProfileService.println(sb, "StateMachine: " + this.toString());
+    }
+
+    private class Disconnected extends State {
         @Override
         public void enter() {
             log("Enter Disconnected: " + getCurrentMessage().what);
