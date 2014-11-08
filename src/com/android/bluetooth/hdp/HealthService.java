@@ -788,6 +788,23 @@ public class HealthService extends ProfileService {
         return healthDevices;
     }
 
+    @Override
+    public void dump(StringBuilder sb) {
+        super.dump(sb);
+        println(sb, "mHealthChannels:");
+        for (HealthChannel channel : mHealthChannels) {
+            println(sb, "  " + channel);
+        }
+        println(sb, "mApps:");
+        for (BluetoothHealthAppConfiguration conf : mApps.keySet()) {
+            println(sb, "  " + conf + " : " + mApps.get(conf));
+        }
+        println(sb, "mHealthDevices:");
+        for (BluetoothDevice device : mHealthDevices.keySet()) {
+            println(sb, "  " + device + " : " + mHealthDevices.get(device));
+        }
+    }
+
     private static class AppInfo {
         private IBluetoothHealthCallback mCallback;
         private BluetoothHealthDeathRecipient mRcpObj;

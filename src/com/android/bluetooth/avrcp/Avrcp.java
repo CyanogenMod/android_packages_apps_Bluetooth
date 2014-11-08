@@ -832,6 +832,33 @@ public final class Avrcp {
         mHandler.sendMessage(msg);
     }
 
+    public void dump(StringBuilder sb) {
+        sb.append("AVRCP:\n");
+        ProfileService.println(sb, "mMetadata: " + mMetadata);
+        ProfileService.println(sb, "mTransportControlFlags: " + mTransportControlFlags);
+        ProfileService.println(sb, "mCurrentPlayState: " + mCurrentPlayState);
+        ProfileService.println(sb, "mPlayStatusChangedNT: " + mPlayStatusChangedNT);
+        ProfileService.println(sb, "mTrackChangedNT: " + mTrackChangedNT);
+        ProfileService.println(sb, "mTrackNumber: " + mTrackNumber);
+        ProfileService.println(sb, "mCurrentPosMs: " + mCurrentPosMs);
+        ProfileService.println(sb, "mPlayStartTimeMs: " + mPlayStartTimeMs);
+        ProfileService.println(sb, "mSongLengthMs: " + mSongLengthMs);
+        ProfileService.println(sb, "mPlaybackIntervalMs: " + mPlaybackIntervalMs);
+        ProfileService.println(sb, "mPlayPosChangedNT: " + mPlayPosChangedNT);
+        ProfileService.println(sb, "mNextPosMs: " + mNextPosMs);
+        ProfileService.println(sb, "mPrevPosMs: " + mPrevPosMs);
+        ProfileService.println(sb, "mSkipStartTime: " + mSkipStartTime);
+        ProfileService.println(sb, "mFeatures: " + mFeatures);
+        ProfileService.println(sb, "mAbsoluteVolume: " + mAbsoluteVolume);
+        ProfileService.println(sb, "mLastSetVolume: " + mLastSetVolume);
+        ProfileService.println(sb, "mLastDirection: " + mLastDirection);
+        ProfileService.println(sb, "mVolumeStep: " + mVolumeStep);
+        ProfileService.println(sb, "mAudioStreamMax: " + mAudioStreamMax);
+        ProfileService.println(sb, "mVolCmdInProgress: " + mVolCmdInProgress);
+        ProfileService.println(sb, "mAbsVolRetryTimes: " + mAbsVolRetryTimes);
+        ProfileService.println(sb, "mSkipAmount: " + mSkipAmount);
+    }
+
     // Do not modify without updating the HAL bt_rc.h files.
 
     // match up with btrc_play_status_t enum of bt_rc.h

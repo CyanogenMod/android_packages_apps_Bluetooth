@@ -53,6 +53,8 @@ public abstract class ProfileService extends Service {
     protected boolean mStartError=false;
     private boolean mCleaningUp = false;
 
+    private AdapterService mAdapterService;
+
     protected String getName() {
         return getClass().getSimpleName();
     }
@@ -105,6 +107,8 @@ public abstract class ProfileService extends Service {
         super.onCreate();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mBinder = initBinder();
+        mAdapterService = AdapterService.getAdapterService();
+        mAdapterService.addProfile(this);
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -149,9 +153,22 @@ public abstract class ProfileService extends Service {
         return super.onUnbind(intent);
     }
 
+    // for dumpsys support
+    public void dump(StringBuilder sb) {
+        sb.append("Profile: " + mName + "\n");
+    }
+
+    // with indenting for subclasses
+    public static void println(StringBuilder sb, String s) {
+        sb.append("  ");
+        sb.append(s);
+        sb.append("\n");
+    }
+
     @Override
     public void onDestroy() {
         if (DBG) log("Destroying service.");
+        mAdapterService.removeProfile(this);
         if (mCleaningUp) {
             if (DBG) log("Cleanup already started... Skipping cleanup()...");
         } else {
@@ -194,17 +211,15 @@ public abstract class ProfileService extends Service {
 
     protected void notifyProfileServiceStateChanged(int state) {
         //Notify adapter service
-        AdapterService sAdapter = AdapterService.getAdapterService();
-        if (sAdapter!= null) {
-            sAdapter.onProfileServiceStateChanged(getClass().getName(), state);
+        if (mAdapterService != null) {
+            mAdapterService.onProfileServiceStateChanged(getClass().getName(), state);
         }
     }
 
     public void notifyProfileConnectionStateChanged(BluetoothDevice device,
             int profileId, int newState, int prevState) {
-        AdapterService svc = AdapterService.getAdapterService();
-        if (svc != null) {
-            svc.onProfileConnectionStateChanged(device, profileId, newState, prevState);
+        if (mAdapterService != null) {
+            mAdapterService.onProfileConnectionStateChanged(device, profileId, newState, prevState);
         }
     }
 
