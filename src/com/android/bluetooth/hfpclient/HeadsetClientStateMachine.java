@@ -2149,6 +2149,32 @@ final class HeadsetClientStateMachine extends StateMachine {
                                     + event.valueInt);
                             processAudioEvent(event.valueInt, event.device);
                             break;
+                        case EVENT_TYPE_RING_INDICATION:
+                            /* PTS test case TC_HF_ICA_BV_05_I creates SCO even
+                             * after disabling in-band ringtone, disconnect SCO
+                             * if inband ringtone is disabled */
+                            Log.i(TAG,"Ring Indication in Audio connected state " +
+                                    "mInBandRingtone " + mInBandRingtone);
+                            if (mInBandRingtone !=
+                                    HeadsetClientHalConstants.IN_BAND_RING_NOT_PROVIDED) {
+                                break;
+                            }
+                            if (disconnectAudioNative(getByteAddress(mCurrentDevice))) {
+                                mAudioState = BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED;
+                                //abandon audio focus
+                                if (mAudioManager.getMode() != AudioManager.MODE_NORMAL) {
+                                    mAudioManager.setMode(AudioManager.MODE_NORMAL);
+                                    Log.d(TAG, "abandonAudioFocus");
+                                    //abandon audio focus after the mode has been set back to normal
+                                    mAudioManager.abandonAudioFocusForCall();
+                                }
+                                Log.d(TAG,"hfp_enable=false");
+                                mAudioManager.setParameters("hfp_enable=false");
+                                broadcastAudioState(mCurrentDevice,
+                                        BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED,
+                                        BluetoothHeadsetClient.STATE_AUDIO_CONNECTED);
+                            }
+                            break;
                         default:
                             return NOT_HANDLED;
                     }
