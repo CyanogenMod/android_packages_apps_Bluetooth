@@ -576,6 +576,22 @@ public class PanService extends ProfileService {
         return panDevice.mState;
     }
 
+    @Override
+    public void dump(StringBuilder sb) {
+        super.dump(sb);
+        println(sb, "mMaxPanDevices: " + mMaxPanDevices);
+        println(sb, "mPanIfName: " + mPanIfName);
+        println(sb, "mTetherOn: " + mTetherOn);
+        println(sb, "mPanDevices:");
+        for (BluetoothDevice device : mPanDevices.keySet()) {
+            println(sb, "  " + device + " : " + mPanDevices.get(device));
+        }
+        println(sb, "mBluetoothIfaceAddresses:");
+        for (String address : mBluetoothIfaceAddresses) {
+            println(sb, "  " + address);
+        }
+    }
+
     private class BluetoothPanDevice {
         private int mState;
         private String mIfaceAddr;

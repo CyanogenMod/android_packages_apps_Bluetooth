@@ -210,4 +210,12 @@ public class A2dpSinkService extends ProfileService {
             return service.getAudioConfig(device);
         }
     };
+
+    @Override
+    public void dump(StringBuilder sb) {
+        super.dump(sb);
+        if (mStateMachine != null) {
+            mStateMachine.dump(sb);
+        }
+    }
 }
