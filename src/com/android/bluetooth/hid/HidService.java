@@ -680,6 +680,16 @@ public class HidService extends ProfileService {
         }
     }
 
+    @Override
+    public void dump(StringBuilder sb) {
+        super.dump(sb);
+        println(sb, "mTargetDevice: " + mTargetDevice);
+        println(sb, "mInputDevices:");
+        for (BluetoothDevice device : mInputDevices.keySet()) {
+            println(sb, "  " + device + " : " + mInputDevices.get(device));
+        }
+    }
+
     // Constants matching Hal header file bt_hh.h
     // bthh_connection_state_t
     private final static int CONN_STATE_CONNECTED = 0;

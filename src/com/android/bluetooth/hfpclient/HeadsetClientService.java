@@ -734,4 +734,12 @@ public class HeadsetClientService extends ProfileService {
         }
         return mStateMachine.getCurrentAgFeatures();
     }
+
+    @Override
+    public void dump(StringBuilder sb) {
+        super.dump(sb);
+        if (mStateMachine != null) {
+            mStateMachine.dump(sb);
+        }
+    }
 }

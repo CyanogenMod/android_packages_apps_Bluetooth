@@ -58,6 +58,7 @@ import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.util.IState;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -295,6 +296,20 @@ final class HeadsetStateMachine extends StateMachine {
             cleanupNative();
             mNativeAvailable = false;
         }
+    }
+
+    public void dump(StringBuilder sb) {
+        ProfileService.println(sb, "mCurrentDevice: " + mCurrentDevice);
+        ProfileService.println(sb, "mTargetDevice: " + mTargetDevice);
+        ProfileService.println(sb, "mIncomingDevice: " + mIncomingDevice);
+        ProfileService.println(sb, "mActiveScoDevice: " + mActiveScoDevice);
+        ProfileService.println(sb, "mMultiDisconnectDevice: " + mMultiDisconnectDevice);
+        ProfileService.println(sb, "mVirtualCallStarted: " + mVirtualCallStarted);
+        ProfileService.println(sb, "mVoiceRecognitionStarted: " + mVoiceRecognitionStarted);
+        ProfileService.println(sb, "mWaitingForVoiceRecognition: " + mWaitingForVoiceRecognition);
+        ProfileService.println(sb, "StateMachine: " + this.toString());
+        ProfileService.println(sb, "mPhoneState: " + mPhoneState);
+        ProfileService.println(sb, "mAudioState: " + mAudioState);
     }
 
     private class Disconnected extends State {
