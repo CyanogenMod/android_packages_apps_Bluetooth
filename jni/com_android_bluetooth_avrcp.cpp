@@ -304,8 +304,8 @@ static void btavrcp_volume_change_callback(uint8_t volume, uint8_t ctype) {
 
 static void btavrcp_get_folder_items_callback(btrc_browse_folderitem_t scope ,
                                                         btrc_getfolderitem_t *param) {
-    jint start = param->start_item;
-    jint end = param->end_item;
+    jlong start = param->start_item;
+    jlong end = param->end_item;
     jint size = param->size;
     jint num_attr = param->attr_count;
     jintArray attrs;
@@ -516,7 +516,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
         env->GetMethodID(clazz, "setAddressedPlayer", "(I)V");
     //getFolderItems: attributes to pass: Scope, Start, End, Attr Cnt
     method_getFolderItems =
-        env->GetMethodID(clazz, "getFolderItems", "(BIIII[I)V");
+        env->GetMethodID(clazz, "getFolderItems", "(BJJII[I)V");
     method_setBrowsedPlayer =
         env->GetMethodID(clazz, "setBrowsedPlayer", "(I)V");
     method_changePath =
@@ -1081,7 +1081,7 @@ static jboolean registerNotificationRspNowPlayingContentChangedNative(JNIEnv *en
 }
 
 static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statusCode,
-                            jint numItems, jintArray itemType, jlongArray uid, jintArray type,
+                            jlong numItems, jintArray itemType, jlongArray uid, jintArray type,
                             jbyteArray playable, jobjectArray displayName, jbyteArray numAtt,
                                                     jobjectArray attValues, jintArray attIds) {
     bt_status_t status = BT_STATUS_SUCCESS;
@@ -1158,6 +1158,10 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
             param.p_item_list[count].u.folder.playable = playableElements[count];
 
             text = (jstring) env->GetObjectArrayElement(displayName, count);
+            if (text == NULL) {
+                ALOGE("getFolderItemsRspNative: App string is NULL, bail out");
+                break;
+            }
             utfStringLength = env->GetStringUTFLength(text);
             if (!utfStringLength) {
                 ALOGE("getFolderItemsRspNative: GetStringUTFLength return NULL");
@@ -1186,6 +1190,10 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
             param.p_item_list[count].u.media.type = (uint8_t)typeElements[count];
             ALOGI("getFolderItemsRspNative: type: %d", param.p_item_list[count].u.folder.type);
             text = (jstring) env->GetObjectArrayElement(displayName, count);
+            if (text == NULL) {
+                ALOGE("getFolderItemsRspNative: App string is NULL, bail out");
+                break;
+            }
             utfStringLength = env->GetStringUTFLength(text);
             if (!utfStringLength) {
                 ALOGE("getFolderItemsRspNative: GetStringUTFLength return NULL");
@@ -1213,6 +1221,10 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
 
             for (int i = 0; i < numAttElements[count]; i++) {
                 text = (jstring) env->GetObjectArrayElement(attValues, (7 * count) + i);
+                if (text == NULL) {
+                    ALOGE("getFolderItemsRspNative: Attribute string is NULL, continue to next");
+                    continue;
+                }
                 utfStringLength = env->GetStringUTFLength(text);
                 if (!utfStringLength) {
                     ALOGE("getFolderItemsRspNative: GetStringUTFLength return NULL");
@@ -1594,7 +1606,7 @@ static JNINativeMethod sMethods[] = {
     {"changePathRspNative", "(IJ)Z", (void *) changePathRspNative},
     {"playItemRspNative", "(I)Z", (void *) playItemRspNative},
     {"getItemAttrRspNative", "(B[I[Ljava/lang/String;)Z", (void *) getItemAttrRspNative},
-    {"getFolderItemsRspNative", "(BI[I[J[I[B[Ljava/lang/String;[B[Ljava/lang/String;[I)Z",
+    {"getFolderItemsRspNative", "(BJ[I[J[I[B[Ljava/lang/String;[B[Ljava/lang/String;[I)Z",
                                                             (void *) getFolderItemsRspNative},
 };
 
