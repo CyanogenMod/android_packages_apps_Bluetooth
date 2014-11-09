@@ -748,7 +748,7 @@ public class ScanManager {
             if (client.filters == null || client.filters.isEmpty()) {
                 return true;
             }
-            return client.filters.size() < mClientFilterIndexMap.size();
+            return false;
         }
 
         private void addFilterToController(int clientIf, ScanFilterQueue.Entry entry,
