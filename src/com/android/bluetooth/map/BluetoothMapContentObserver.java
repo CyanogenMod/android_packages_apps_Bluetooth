@@ -1045,13 +1045,13 @@ public class BluetoothMapContentObserver {
             Intent intent;
             intent = new Intent(ACTION_MESSAGE_DELIVERY, null);
             intent.putExtra("HANDLE", msgInfo.id);
-            deliveryIntents.add(PendingIntent.getBroadcast(mContext, 0, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT));
+            deliveryIntents.add(PendingIntent.getBroadcast(mContext,(int)System.currentTimeMillis(),
+                intent, PendingIntent.FLAG_UPDATE_CURRENT));
 
             intent = new Intent(ACTION_MESSAGE_SENT, null);
             intent.putExtra("HANDLE", msgInfo.id);
-            sentIntents.add(PendingIntent.getBroadcast(mContext, 0, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT));
+            sentIntents.add(PendingIntent.getBroadcast(mContext, (int)System.currentTimeMillis(),
+                intent,PendingIntent.FLAG_UPDATE_CURRENT));
         }
 
         Log.d(TAG, "sendMessage to " + msgInfo.phone);
