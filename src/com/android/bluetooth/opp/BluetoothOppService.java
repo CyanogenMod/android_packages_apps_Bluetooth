@@ -609,8 +609,20 @@ public class BluetoothOppService extends Service {
                     return;
                 }
 
-                if (V) Log.v(TAG, "Batch size= " + mBatchs.size());
-            } while ((mBatchs.size() > 0) && mPowerManager.isScreenOn());
+                if (V) {
+                    if (mServerSession != null) {
+                        Log.v(TAG, "Server Session is active");
+                    } else {
+                        Log.v(TAG, "No active Server Session");
+                    }
+
+                    if (mTransfer != null) {
+                        Log.v(TAG, "Client Session is active");
+                    } else {
+                        Log.v(TAG, "No active Client Session");
+                    }
+                }
+            } while (mPowerManager.isScreenOn() && ((mServerSession != null) || (mTransfer != null)));
 
             synchronized (BluetoothOppService.this) {
                 mUpdateThread = null;
@@ -822,19 +834,6 @@ public class BluetoothOppService extends Service {
 
         if (V) Log.v(TAG," UpdateShare: oldStatus = " + oldStatus + " newStatus = " + newStatus);
         info.mStatus = newStatus;
-        if ((!BluetoothShare.isStatusCompleted(oldStatus))
-                && (BluetoothShare.isStatusCompleted(newStatus))) {
-            if (V) Log.v(TAG," UpdateShare: Share Completed: oldStatus = " + oldStatus + " newStatus = " + newStatus);
-            try {
-                if((info.mDirection == BluetoothShare.DIRECTION_OUTBOUND) && (mTransfer != null)) {
-                    mTransfer.markShareComplete(newStatus);
-                } else if (mServerTransfer != null) {
-                    mServerTransfer.markShareComplete(newStatus);
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Exception: updateShare: oldStatus: " + oldStatus + " newStatus: " + newStatus);
-            }
-        }
         info.mTotalBytes = cursor.getLong(cursor.getColumnIndexOrThrow(BluetoothShare.TOTAL_BYTES));
         info.mCurrentBytes = cursor.getLong(cursor
                 .getColumnIndexOrThrow(BluetoothShare.CURRENT_BYTES));
