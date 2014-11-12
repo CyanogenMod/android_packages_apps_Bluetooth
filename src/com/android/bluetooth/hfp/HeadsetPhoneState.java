@@ -20,6 +20,7 @@ import android.content.Context;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.SignalStrength;
+import android.telephony.SubscriptionListener;
 import android.telephony.TelephonyManager;
 import android.telephony.SubscriptionManager;
 import android.content.IntentFilter;
@@ -37,7 +38,7 @@ import android.bluetooth.BluetoothDevice;
 // All methods in this class are not thread safe, donot call them from
 // multiple threads. Call them from the HeadsetPhoneStateMachine message
 // handler only.
-class HeadsetPhoneState extends BroadcastReceiver{
+class HeadsetPhoneState {
     private static final String TAG = "HeadsetPhoneState";
 
     private HeadsetStateMachine mStateMachine;
@@ -78,34 +79,32 @@ class HeadsetPhoneState extends BroadcastReceiver{
 
     private PhoneStateListener mPhoneStateListener = null;
 
-    HeadsetPhoneState(Context context, HeadsetStateMachine stateMachine) {
-        mStateMachine = stateMachine;
-        mTelephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(TelephonyIntents.ACTION_SUBINFO_RECORD_UPDATED);
-
-        mContext = context;
-        mContext.registerReceiver(this, filter);
-
-    }
-
-    public void cleanup() {
-        mContext.unregisterReceiver(this);
-        listenForPhoneState(false);
-        mTelephonyManager = null;
-        mStateMachine = null;
-    }
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        final String action = intent.getAction();
-        Log.d(TAG, "onReceive, intent action = " + action);
-
-        if (action.equals(TelephonyIntents.ACTION_SUBINFO_RECORD_UPDATED)) {
+    private final SubscriptionListener mSubscriptionListener = new SubscriptionListener() {
+        @Override
+        public void onSubscriptionInfoChanged() {
             listenForPhoneState(false);
             listenForPhoneState(true);
         }
+    };
+
+    HeadsetPhoneState(Context context, HeadsetStateMachine stateMachine) {
+        mStateMachine = stateMachine;
+        mTelephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        mContext = context;
+
+        // Register for SubscriptionInfo list changes which is guaranteed
+        // to invoke onSubscriptionInfoChanged and which in turns calls
+        // loadInBackgroud.
+        SubscriptionManager.register(mContext, mSubscriptionListener,
+                SubscriptionListener.LISTEN_SUBSCRIPTION_INFO_LIST_CHANGED);
+    }
+
+    public void cleanup() {
+        listenForPhoneState(false);
+        SubscriptionManager.unregister(mContext, mSubscriptionListener);
+
+        mTelephonyManager = null;
+        mStateMachine = null;
     }
 
     void listenForPhoneState(boolean start) {
