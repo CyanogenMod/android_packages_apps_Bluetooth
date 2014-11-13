@@ -667,8 +667,10 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     } else if (!mInterrupted && position == fileInfo.mLength) {
                         long endTime = System.currentTimeMillis();
                         Log.i(TAG, "SendFile finished sending file " + fileInfo.mFileName
-                                + " length " + fileInfo.mLength
-                                + "Bytes in " + (endTime - beginTime) + "ms"  );
+                                + " length " + fileInfo.mLength + " Bytes. Approx. throughput is "
+                                + BluetoothShare.throughputInKbps(fileInfo.mLength,
+                                        (endTime - beginTime))
+                                + " Kbps");
                         status = BluetoothShare.STATUS_SUCCESS;
                         outputStream.close();
                     } else {
