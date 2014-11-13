@@ -384,9 +384,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
         values.put(BluetoothShare.FILENAME_HINT, name);
 
-        if (length != null) {
-            values.put(BluetoothShare.TOTAL_BYTES, length.intValue());
-        }
+        values.put(BluetoothShare.TOTAL_BYTES, length);
 
         values.put(BluetoothShare.MIMETYPE, mimeType);
 
@@ -664,8 +662,9 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             if (position == fileInfo.mLength) {
                 long endTime = System.currentTimeMillis();
                 Log.i(TAG, "Receiving file completed for " + fileInfo.mFileName
-                        + " length " + fileInfo.mLength
-                        + " Bytes in " + (endTime - beginTime) + "ms"  );
+                        + " length " + fileInfo.mLength + " Bytes. Approx. throughput is "
+                        + BluetoothShare.throughputInKbps(fileInfo.mLength, (endTime - beginTime))
+                        + " Kbps");
                 status = BluetoothShare.STATUS_SUCCESS;
             } else {
                 Log.i(TAG, "Reading file failed at " + position + " of " + fileInfo.mLength);

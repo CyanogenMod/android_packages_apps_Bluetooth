@@ -113,7 +113,7 @@ public class BluetoothOppReceiveFileInfo {
             try {
                 if (metadataCursor.moveToFirst()) {
                     hint = metadataCursor.getString(0);
-                    length = metadataCursor.getInt(1);
+                    length = metadataCursor.getLong(1);
                     mimeType = metadataCursor.getString(2);
                 }
             } finally {
