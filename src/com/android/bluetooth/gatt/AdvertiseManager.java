@@ -229,12 +229,16 @@ class AdvertiseManager {
 
         // Returns maximum advertise instances supported by controller.
         private int maxAdvertiseInstances() {
-            AdapterService adapter = AdapterService.getAdapterService();
-            int numOfAdvtInstances = adapter.getNumOfAdvertisementInstancesSupported();
-            // Note numOfAdvtInstances includes the standard advertising instance.
-            // TODO: remove - 1 once the stack is able to include standard instance for multiple
-            // advertising.
-            return numOfAdvtInstances - 1;
+            AdapterService adapter;
+            int numOfAdvtInstances = 0;
+            if (null != (adapter = AdapterService.getAdapterService())){
+                numOfAdvtInstances = adapter.getNumOfAdvertisementInstancesSupported();
+                // Note numOfAdvtInstances includes the standard advertising instance.
+                // TODO: remove - 1 once the stack is able to include standard instance for multiple
+                // advertising.
+                return numOfAdvtInstances - 1;
+            }
+            return numOfAdvtInstances;
         }
     }
 
