@@ -229,11 +229,21 @@ final class BondStateMachine extends StateMachine {
                 case SSP_REQUEST:
                     int passkey = msg.arg1;
                     int variant = msg.arg2;
+                    if(devProp == null)
+                    {
+                        Log.e(TAG,"Received msg from an unknown device");
+                        return false;
+                    }
                     sendDisplayPinIntent(devProp.getAddress(), passkey, variant);
                     break;
                 case PIN_REQUEST:
                     BluetoothClass btClass = dev.getBluetoothClass();
                     int btDeviceClass = btClass.getDeviceClass();
+                    if(devProp == null)
+                    {
+                        Log.e(TAG,"Received msg from an unknown device");
+                        return false;
+                    }
                     if (btDeviceClass == BluetoothClass.Device.PERIPHERAL_KEYBOARD ||
                          btDeviceClass == BluetoothClass.Device.PERIPHERAL_KEYBOARD_POINTING) {
                         // Its a keyboard. Follow the HID spec recommendation of creating the
