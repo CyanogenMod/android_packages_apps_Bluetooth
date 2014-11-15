@@ -1721,10 +1721,14 @@ public class GattService extends ProfileService {
             case HandleMap.TYPE_CHARACTERISTIC:
             {
                 HandleMap.Entry serviceEntry = mHandleMap.getByHandle(entry.serviceHandle);
+                if (null != serviceEntry) {
                 app.callback.onCharacteristicReadRequest(address, transId, offset, isLong,
                     serviceEntry.serviceType, serviceEntry.instance,
                     new ParcelUuid(serviceEntry.uuid), entry.instance,
                     new ParcelUuid(entry.uuid));
+                }else {
+                    Log.d(TAG, "null == serviceEntry");
+                }
                 break;
             }
 
@@ -1732,11 +1736,15 @@ public class GattService extends ProfileService {
             {
                 HandleMap.Entry serviceEntry = mHandleMap.getByHandle(entry.serviceHandle);
                 HandleMap.Entry charEntry = mHandleMap.getByHandle(entry.charHandle);
-                app.callback.onDescriptorReadRequest(address, transId, offset, isLong,
+                if (null != serviceEntry && null != charEntry) {
+                    app.callback.onDescriptorReadRequest(address, transId, offset, isLong,
                     serviceEntry.serviceType, serviceEntry.instance,
                     new ParcelUuid(serviceEntry.uuid), charEntry.instance,
                     new ParcelUuid(charEntry.uuid),
                     new ParcelUuid(entry.uuid));
+                } else {
+                 Log.d(TAG, "null == serviceEntry || null == charEntry");
+                }
                 break;
             }
 
@@ -1771,11 +1779,15 @@ public class GattService extends ProfileService {
             case HandleMap.TYPE_CHARACTERISTIC:
             {
                 HandleMap.Entry serviceEntry = mHandleMap.getByHandle(entry.serviceHandle);
+                if (null != serviceEntry) {
                 app.callback.onCharacteristicWriteRequest(address, transId,
                             offset, length, isPrep, needRsp,
                             serviceEntry.serviceType, serviceEntry.instance,
                             new ParcelUuid(serviceEntry.uuid), entry.instance,
                             new ParcelUuid(entry.uuid), data);
+                }else {
+                    Log.d(TAG, "null == serviceEntry");
+                }
                 break;
             }
 
@@ -1783,12 +1795,16 @@ public class GattService extends ProfileService {
             {
                 HandleMap.Entry serviceEntry = mHandleMap.getByHandle(entry.serviceHandle);
                 HandleMap.Entry charEntry = mHandleMap.getByHandle(entry.charHandle);
+                if (null != serviceEntry && null != charEntry) {
                 app.callback.onDescriptorWriteRequest(address, transId,
                             offset, length, isPrep, needRsp,
                             serviceEntry.serviceType, serviceEntry.instance,
                             new ParcelUuid(serviceEntry.uuid), charEntry.instance,
                             new ParcelUuid(charEntry.uuid),
                             new ParcelUuid(entry.uuid), data);
+                } else {
+                    Log.d(TAG, "null == serviceEntry || null == charEntry");
+                }
                 break;
             }
 
@@ -1893,8 +1909,12 @@ public class GattService extends ProfileService {
         if (DBG) Log.d(TAG, "beginServiceDeclaration() - uuid=" + srvcUuid +
                                                        " serverIf=" + serverIf);
         ServiceDeclaration serviceDeclaration = addToActiveDeclaration(serverIf);
-        serviceDeclaration.addService(srvcUuid, srvcType, srvcInstanceId, minHandles,
+        if (null != serviceDeclaration ) {
+            serviceDeclaration.addService(srvcUuid, srvcType, srvcInstanceId, minHandles,
             advertisePreferred);
+        } else {
+            if (DBG) Log.d(TAG, "beginServiceDeclaration: Got null from addToActiveDeclaration()");
+        }
     }
 
     void addIncludedService(int serverIf, int srvcType, int srvcInstanceId,
@@ -1902,7 +1922,12 @@ public class GattService extends ProfileService {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         if (DBG) Log.d(TAG, "addIncludedService() - uuid=" + srvcUuid);
-        getActiveDeclaration(serverIf).addIncludedService(srvcUuid, srvcType, srvcInstanceId);
+        ServiceDeclaration serviceDeclaration = getActiveDeclaration(serverIf);
+        if (null != serviceDeclaration) {
+            serviceDeclaration.addIncludedService(srvcUuid, srvcType, srvcInstanceId);
+        } else {
+            Log.d(TAG,"getActiveDeclaration(serverIf) is null");
+        }
     }
 
     void addCharacteristic(int serverIf, UUID charUuid, int properties,
@@ -1910,14 +1935,24 @@ public class GattService extends ProfileService {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         if (DBG) Log.d(TAG, "addCharacteristic() - uuid=" + charUuid);
-        getActiveDeclaration(serverIf).addCharacteristic(charUuid, properties, permissions);
+        ServiceDeclaration serviceDeclaration = getActiveDeclaration(serverIf);
+        if (null != serviceDeclaration) {
+            serviceDeclaration.addCharacteristic(charUuid, properties, permissions);
+        } else {
+            Log.d(TAG,"getActiveDeclaration(serverIf) is null");
+        }
     }
 
     void addDescriptor(int serverIf, UUID descUuid, int permissions) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         if (DBG) Log.d(TAG, "addDescriptor() - uuid=" + descUuid);
-        getActiveDeclaration(serverIf).addDescriptor(descUuid, permissions);
+        ServiceDeclaration serviceDeclaration = getActiveDeclaration(serverIf);
+        if (null != serviceDeclaration) {
+            serviceDeclaration.addDescriptor(descUuid, permissions);
+        } else {
+            Log.d(TAG,"getActiveDeclaration(serverIf) is null");
+        }
     }
 
     void endServiceDeclaration(int serverIf) {
@@ -1965,9 +2000,11 @@ public class GattService extends ProfileService {
         HandleMap.Entry entry = mHandleMap.getByRequestId(requestId);
         if (entry != null) handle = entry.handle;
 
-        int connId = mServerMap.connIdByAddress(serverIf, address);
-        gattServerSendResponseNative(serverIf, connId, requestId, (byte)status,
+        Integer connId;
+        if(null != (connId = mServerMap.connIdByAddress(serverIf, address))) {
+            gattServerSendResponseNative(serverIf, connId, requestId, (byte)status,
                                      handle, offset, value, (byte)0);
+        }
         mHandleMap.deleteRequest(requestId);
     }
 
@@ -1985,9 +2022,8 @@ public class GattService extends ProfileService {
         int charHandle = mHandleMap.getCharacteristicHandle(srvcHandle, charUuid, charInstanceId);
         if (charHandle == 0) return;
 
-        int connId = mServerMap.connIdByAddress(serverIf, address);
-        if (connId == 0) return;
-
+        Integer connId = mServerMap.connIdByAddress(serverIf, address);
+        if (connId == null) return;
         if (confirm) {
             gattServerSendIndicationNative(serverIf, charHandle, connId, value);
         } else {
@@ -2060,12 +2096,14 @@ public class GattService extends ProfileService {
     private void continueServiceDeclaration(int serverIf, int status, int srvcHandle) throws RemoteException {
         if (mServiceDeclarations.size() == 0) return;
         if (DBG) Log.d(TAG, "continueServiceDeclaration() - srvcHandle=" + srvcHandle);
-
+        ServiceDeclaration serviceDeclaration;
         boolean finished = false;
 
         ServiceDeclaration.Entry entry = null;
-        if (status == 0)
-            entry = getPendingDeclaration().getNext();
+        if (status == 0) {
+            if (null != (serviceDeclaration = getPendingDeclaration()))
+            entry = serviceDeclaration.getNext();
+        }
 
         if (entry != null) {
             if (DBG) Log.d(TAG, "continueServiceDeclaration() - next entry type="
@@ -2075,11 +2113,13 @@ public class GattService extends ProfileService {
                     if (entry.advertisePreferred) {
                         mAdvertisingServiceUuids.add(entry.uuid);
                     }
-                    gattServerAddServiceNative(serverIf, entry.serviceType,
+                    if (null != (serviceDeclaration = getPendingDeclaration())) {
+                        gattServerAddServiceNative(serverIf, entry.serviceType,
                         entry.instance,
                         entry.uuid.getLeastSignificantBits(),
                         entry.uuid.getMostSignificantBits(),
-                        getPendingDeclaration().getNumHandles());
+                        serviceDeclaration.getNumHandles());
+                    }
                     break;
 
                 case ServiceDeclaration.TYPE_CHARACTERISTIC:
