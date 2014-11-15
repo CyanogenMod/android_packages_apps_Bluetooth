@@ -1218,6 +1218,12 @@ final class HeadsetStateMachine extends StateMachine {
 
             switch (state) {
                 case HeadsetHalConstants.AUDIO_STATE_CONNECTED:
+                    if (!isScoAcceptable()) {
+                        Log.e(TAG,"Audio Connected without any listener");
+                        disconnectAudioNative(getByteAddress(device));
+                        break;
+                    }
+
                     // TODO(BT) should I save the state for next broadcast as the prevState?
                     mAudioState = BluetoothHeadset.STATE_AUDIO_CONNECTED;
                     setAudioParameters(device); /*Set proper Audio Paramters.*/
@@ -2191,6 +2197,11 @@ final class HeadsetStateMachine extends StateMachine {
 
             switch (state) {
                 case HeadsetHalConstants.AUDIO_STATE_CONNECTED:
+                    if (!isScoAcceptable()) {
+                        Log.e(TAG,"Audio Connected without any listener");
+                        disconnectAudioNative(getByteAddress(device));
+                        break;
+                    }
                     mAudioState = BluetoothHeadset.STATE_AUDIO_CONNECTED;
                     setAudioParameters(device); /* Set proper Audio Parameters. */
                     mAudioManager.setBluetoothScoOn(true);
@@ -3047,7 +3058,7 @@ final class HeadsetStateMachine extends StateMachine {
                 removeMessages(DIALING_OUT_TIMEOUT);
             } else if (callState.mCallState ==
                 HeadsetHalConstants.CALL_STATE_ACTIVE || callState.mCallState
-                == HeadsetHalConstants.CALL_STATE_IDLE) {				
+                == HeadsetHalConstants.CALL_STATE_IDLE) {
                 mDialingOut = false;
             } 
         }
@@ -3655,6 +3666,14 @@ final class HeadsetStateMachine extends StateMachine {
     private boolean isInCall() {
         return ((mPhoneState.getNumActiveCall() > 0) || (mPhoneState.getNumHeldCall() > 0) ||
                 (mPhoneState.getCallState() != HeadsetHalConstants.CALL_STATE_IDLE));
+    }
+
+    // Accept incoming SCO only when there is active call, VR activated,
+    // active VOIP call and Incoming call with inband ringtone supported
+    private boolean isScoAcceptable() {
+        return (((mPhoneState.getCallState() == HeadsetHalConstants.CALL_STATE_INCOMING) &&
+                ((mLocalBrsf & BRSF_AG_IN_BAND_RING) != 0)) || mVoiceRecognitionStarted ||
+                 isInCall());
     }
 
     boolean isConnected() {
