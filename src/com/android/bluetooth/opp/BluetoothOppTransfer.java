@@ -561,7 +561,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         if (V) Log.v(TAG, "processCurrentShare" + mCurrentShare.mId);
         mSession.addShare(mCurrentShare);
         if (mCurrentShare.mConfirm == BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED) {
-            setConfirmed();
+            confirmStatusChanged();
         }
     }
 
@@ -569,7 +569,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
      * Set transfer confirmed status. It should only be called for inbound
      * transfer
      */
-    public void setConfirmed() {
+    public void confirmStatusChanged() {
         /* unblock server session */
         final Thread notifyThread = new Thread("Server Unblock thread") {
             public void run() {
@@ -579,7 +579,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 }
             }
         };
-        if (V) Log.v(TAG, "setConfirmed to unblock mSession" + mSession.toString());
+        if (V) Log.v(TAG, "confirmStatusChanged to unblock mSession" + mSession.toString());
         notifyThread.start();
     }
 
@@ -843,7 +843,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 if (V) Log.v(TAG, "Transfer continue session for info " + mCurrentShare.mId +
                         " from batch " + mBatch.mId);
                 processCurrentShare();
-                setConfirmed();
+                confirmStatusChanged();
             }
         }
     }
