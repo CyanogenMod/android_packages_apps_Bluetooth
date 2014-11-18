@@ -1029,7 +1029,7 @@ public class BluetoothMapService extends ProfileService {
                 }
             } else if (action.equals(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY)) {
                 int requestType = intent.getIntExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
-                                               BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
+                                               BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
                 if (DEBUG) Log.d(TAG, "Received ACTION_CONNECTION_ACCESS_REPLY:" +
                            requestType + "isWaitingAuthorization:" + isWaitingAuthorization);
                 if ((!isWaitingAuthorization) ||

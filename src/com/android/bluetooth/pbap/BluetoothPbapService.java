@@ -178,6 +178,9 @@ public class BluetoothPbapService extends Service {
 
     private int mStartId = -1;
 
+    // PBAP Client has sent pbap connection request
+    private final static int PBAP_CONNECT_RECEIVED = 3;
+
     //private IBluetooth mBluetoothService;
 
     private boolean mIsWaitingAuthorization = false;
@@ -295,9 +298,9 @@ public class BluetoothPbapService extends Service {
 
                 if (intent.getBooleanExtra(BluetoothDevice.EXTRA_ALWAYS_ALLOWED, false)) {
                     boolean result = mRemoteDevice.setPhonebookAccessPermission(
-                            BluetoothDevice.ACCESS_ALLOWED);
+                            PBAP_CONNECT_RECEIVED);
                     if (VERBOSE) {
-                        Log.v(TAG, "setPhonebookAccessPermission(ACCESS_ALLOWED) result="
+                        Log.v(TAG, "setPhonebookAccessPermission(PBAP_CONNECT_RECEIVED) result="
                                 + result);
                     }
                 }
@@ -614,12 +617,15 @@ public class BluetoothPbapService extends Service {
                     int permission = mRemoteDevice.getPhonebookAccessPermission();
                     if (VERBOSE) Log.v(TAG, "getPhonebookAccessPermission() = " + permission);
 
-                    if (permission == BluetoothDevice.ACCESS_ALLOWED) {
+                    if (permission == BluetoothDevice.ACCESS_ALLOWED ||
+                        permission == PBAP_CONNECT_RECEIVED) {
                         try {
                             if (VERBOSE) {
                                 Log.v(TAG, "incoming connection accepted from: " + sRemoteDeviceName
                                         + " automatically as already allowed device");
                             }
+                            // update permission access request
+                            mRemoteDevice.setPhonebookAccessPermission(PBAP_CONNECT_RECEIVED);
                             startObexServerSession();
                         } catch (IOException ex) {
                             Log.e(TAG, "Caught exception starting obex server session"
@@ -756,8 +762,8 @@ public class BluetoothPbapService extends Service {
             int prevState = mState;
             mState = state;
             Intent intent = new Intent(BluetoothPbap.PBAP_STATE_CHANGED_ACTION);
-            intent.putExtra(BluetoothPbap.PBAP_PREVIOUS_STATE, prevState);
-            intent.putExtra(BluetoothPbap.PBAP_STATE, mState);
+            intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
+            intent.putExtra(BluetoothProfile.EXTRA_STATE, mState);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
             sendBroadcast(intent, BLUETOOTH_PERM);
             AdapterService s = AdapterService.getAdapterService();
