@@ -1768,8 +1768,7 @@ public class AdapterService extends Service {
         if (!pref.contains(device.getAddress())) {
             return BluetoothDevice.ACCESS_UNKNOWN;
         }
-        return pref.getBoolean(device.getAddress(), false)
-                ? BluetoothDevice.ACCESS_ALLOWED : BluetoothDevice.ACCESS_REJECTED;
+        return pref.getInt(device.getAddress(), BluetoothDevice.ACCESS_UNKNOWN);
     }
 
     boolean setPhonebookAccessPermission(BluetoothDevice device, int value) {
@@ -1781,7 +1780,7 @@ public class AdapterService extends Service {
         if (value == BluetoothDevice.ACCESS_UNKNOWN) {
             editor.remove(device.getAddress());
         } else {
-            editor.putBoolean(device.getAddress(), value == BluetoothDevice.ACCESS_ALLOWED);
+            editor.putInt(device.getAddress(), value);
         }
         return editor.commit();
     }
