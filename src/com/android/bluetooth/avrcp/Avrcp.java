@@ -776,8 +776,13 @@ public final class Avrcp {
                         for (int i = 0; i < mPlayerSettings.attrIds.length; i++) {
                             values[i] = "";
                         }
-                        sendSettingsTextRspNative(mPlayerSettings.attrIds.length ,
-                                                    mPlayerSettings.attrIds, values.length,values);
+                        if (msg.arg1 == GET_ATTRIBUTE_TEXT) {
+                            sendSettingsTextRspNative(mPlayerSettings.attrIds.length,
+                                                    mPlayerSettings.attrIds, values.length, values);
+                        } else {
+                            sendValueTextRspNative(mPlayerSettings.attrIds.length,
+                                                   mPlayerSettings.attrIds, values.length, values);
+                        }
                     break;
                     case GET_VALUE_TEXT:
                         String [] valText= new String [mPlayerSettings.attrIds.length];
@@ -3523,7 +3528,7 @@ public final class Avrcp {
         mHandler.sendMessageDelayed(msg, 130);
    }
 
-    //PDU 0x15
+    //PDU 0x16
     private void getplayervalue_text(byte attr_id , byte num_value , byte [] value)
     {
         if(DEBUG) Log.d(TAG, "getplayervalue_text id" + attr_id +"num_value" + num_value
