@@ -905,10 +905,17 @@ public final class Avrcp {
                         for (int i = 0; i < mPlayerSettings.attrIds.length; i++) {
                             attribText[i] = "";
                         }
-                        sendSettingsTextRspNative(mPlayerSettings.attrIds.length ,
-                                mPlayerSettings.attrIds, attribText.length,
-                                attribText, getByteAddress(mAdapter.getRemoteDevice(
-                                (String) msg.obj)));
+                        if (msg.arg1 == GET_ATTRIBUTE_TEXT) {
+                            sendSettingsTextRspNative(mPlayerSettings.attrIds.length ,
+                                    mPlayerSettings.attrIds, attribText.length,
+                                    attribText, getByteAddress(mAdapter.getRemoteDevice(
+                                    (String) msg.obj)));
+                        } else {
+                            sendValueTextRspNative(mPlayerSettings.attrIds.length,
+                                    mPlayerSettings.attrIds, attribText.length,
+                                    attribText, getByteAddress(mAdapter.getRemoteDevice(
+                                    (String) msg.obj)));
+                        }
                     break;
                     case GET_VALUE_TEXT:
                         String [] valueText = new String [mPlayerSettings.attrIds.length];
@@ -4528,7 +4535,7 @@ public final class Avrcp {
         mHandler.sendMessageDelayed(msg, 500);
    }
 
-    //PDU 0x15
+    //PDU 0x16
     private void getplayervalue_text(byte attr_id , byte num_value , byte [] value,
             byte[] address)
     {
