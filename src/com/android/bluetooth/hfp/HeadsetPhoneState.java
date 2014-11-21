@@ -20,9 +20,16 @@ import android.content.Context;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.SignalStrength;
+import android.telephony.SubscriptionListener;
 import android.telephony.TelephonyManager;
 import android.telephony.SubscriptionManager;
-import android.telephony.SubscriptionManager.OnSubscriptionsChangedListener;
+import android.content.IntentFilter;
+import android.content.Intent;
+import android.content.BroadcastReceiver;
+
+import com.android.internal.telephony.TelephonyIntents;
+import com.android.internal.telephony.PhoneConstants;
+
 import android.util.Log;
 import android.bluetooth.BluetoothDevice;
 
@@ -72,17 +79,13 @@ class HeadsetPhoneState {
 
     private PhoneStateListener mPhoneStateListener = null;
 
-    private SubscriptionManager mSubMgr;
-
-    private OnSubscriptionsChangedListener mOnSubscriptionsChangedListener =
-            new OnSubscriptionsChangedListener() {
+    private final SubscriptionListener mSubscriptionListener = new SubscriptionListener() {
         @Override
-        public void onSubscriptionsChanged() {
+        public void onSubscriptionInfoChanged() {
             listenForPhoneState(false);
             listenForPhoneState(true);
         }
     };
-
 
     HeadsetPhoneState(Context context, HeadsetStateMachine stateMachine) {
         mStateMachine = stateMachine;
@@ -92,13 +95,13 @@ class HeadsetPhoneState {
         // Register for SubscriptionInfo list changes which is guaranteed
         // to invoke onSubscriptionInfoChanged and which in turns calls
         // loadInBackgroud.
-        mSubMgr = SubscriptionManager.from(mContext);
-        mSubMgr.registerOnSubscriptionsChangedListener(mOnSubscriptionsChangedListener);
+        SubscriptionManager.register(mContext, mSubscriptionListener,
+                SubscriptionListener.LISTEN_SUBSCRIPTION_INFO_LIST_CHANGED);
     }
 
     public void cleanup() {
         listenForPhoneState(false);
-        mSubMgr.unregisterOnSubscriptionsChangedListener(mOnSubscriptionsChangedListener);
+        SubscriptionManager.unregister(mContext, mSubscriptionListener);
 
         mTelephonyManager = null;
         mStateMachine = null;
