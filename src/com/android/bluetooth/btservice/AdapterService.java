@@ -495,6 +495,8 @@ public class AdapterService extends Service {
     private static final int MESSAGE_PROFILE_CONNECTION_STATE_CHANGED=20;
     private static final int MESSAGE_CONNECT_OTHER_PROFILES = 30;
     private static final int MESSAGE_PROFILE_INIT_PRIORITIES=40;
+    private static final int MESSAGE_SET_WAKE_ALARM = 100;
+    private static final int MESSAGE_RELEASE_WAKE_ALARM = 110;
     private static final int CONNECT_OTHER_PROFILES_TIMEOUT= 6000;
 
     private final Handler mHandler = new Handler() {
@@ -526,6 +528,17 @@ public class AdapterService extends Service {
                 case MESSAGE_CONNECT_OTHER_PROFILES: {
                     debugLog( "handleMessage() - MESSAGE_CONNECT_OTHER_PROFILES");
                     processConnectOtherProfiles((BluetoothDevice) msg.obj,msg.arg1);
+                }
+                    break;
+                case MESSAGE_SET_WAKE_ALARM: {
+                    debugLog( "handleMessage() - MESSAGE_SET_WAKE_ALARM");
+                    processSetWakeAlarm((Long) msg.obj, msg.arg1);
+                }
+                    break;
+                case MESSAGE_RELEASE_WAKE_ALARM: {
+                    debugLog( "handleMessage() - MESSAGE_RELEASE_WAKE_ALARM");
+                    mPendingAlarm = null;
+                    alarmFiredNative();
                 }
                     break;
             }
@@ -1723,24 +1736,30 @@ public class AdapterService extends Service {
     }
 
     // This function is called from JNI. It allows native code to set a single wake
-    // alarm. If an alarm is already pending and a new request comes in, the alarm
-    // will be rescheduled (i.e. the previously set alarm will be cancelled).
+    // alarm.
     private boolean setWakeAlarm(long delayMillis, boolean shouldWake) {
-        synchronized (this) {
-            if (mPendingAlarm != null) {
-                mAlarmManager.cancel(mPendingAlarm);
-            }
+        Message m = mHandler.obtainMessage(MESSAGE_SET_WAKE_ALARM);
+        m.obj = new Long(delayMillis);
+        // alarm type
+        m.arg1 = shouldWake ? AlarmManager.ELAPSED_REALTIME_WAKEUP
+            : AlarmManager.ELAPSED_REALTIME;
+        mHandler.sendMessage(m);
 
-            long wakeupTime = SystemClock.elapsedRealtime() + delayMillis;
-            int type = shouldWake
-                ? AlarmManager.ELAPSED_REALTIME_WAKEUP
-                : AlarmManager.ELAPSED_REALTIME;
+        return true;
+    }
 
-            Intent intent = new Intent(ACTION_ALARM_WAKEUP);
-            mPendingAlarm = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
-            mAlarmManager.setExact(type, wakeupTime, mPendingAlarm);
-            return true;
+    // If an alarm is already pending and a new request comes in, the alarm
+    // will be rescheduled (i.e. the previously set alarm will be cancelled).
+    private void processSetWakeAlarm(long delayMillis, int alarmType) {
+        if (mPendingAlarm != null) {
+            mAlarmManager.cancel(mPendingAlarm);
         }
+
+        long wakeupTime = SystemClock.elapsedRealtime() + delayMillis;
+
+        Intent intent = new Intent(ACTION_ALARM_WAKEUP);
+        mPendingAlarm = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+        mAlarmManager.setExact(alarmType, wakeupTime, mPendingAlarm);
     }
 
     // This function is called from JNI. It allows native code to acquire a single wake lock.
@@ -1818,10 +1837,7 @@ public class AdapterService extends Service {
     private final BroadcastReceiver mAlarmBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            synchronized (AdapterService.this) {
-                mPendingAlarm = null;
-                alarmFiredNative();
-            }
+            mHandler.sendMessage(mHandler.obtainMessage(MESSAGE_RELEASE_WAKE_ALARM));
         }
     };
 
