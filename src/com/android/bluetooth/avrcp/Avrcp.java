@@ -1436,11 +1436,16 @@ public final class Avrcp {
                 final MediaPlayerInfo di = rccIterator.next();
                 if (di.GetPlayerFocus()) {
                     if (DEBUG) Log.v(TAG, "resetting current MetaData");
-                    mMetadata = di.GetMetadata();
+                    mMetadata.artist = di.GetMetadata().artist;
+                    mMetadata.trackTitle = di.GetMetadata().trackTitle;
+                    mMetadata.albumTitle = di.GetMetadata().albumTitle;
+                    mMetadata.genre = di.GetMetadata().genre;
+                    mMetadata.tracknum = di.GetMetadata().tracknum;
                     break;
                 }
             }
         }
+
         String oldMetadata = mMetadata.toString();
         mMetadata.artist = data.getString(MediaMetadataRetriever.METADATA_KEY_ARTIST, null);
         mMetadata.trackTitle = data.getString(MediaMetadataRetriever.METADATA_KEY_TITLE, null);
@@ -1449,7 +1454,8 @@ public final class Avrcp {
         mTrackNumber = data.getLong(MediaMetadataRetriever.METADATA_KEY_NUM_TRACKS, -1L);
         mMetadata.tracknum = data.getLong(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER, -1L);
 
-        Log.v(TAG,"mMetadata.toString() = " + mMetadata.toString());
+        Log.v(TAG,"old Metadata = " + oldMetadata);
+        Log.v(TAG,"new MetaData " + mMetadata.toString());
 
         if (mMediaPlayers.size() > 0) {
             final Iterator<MediaPlayerInfo> rccIterator = mMediaPlayers.iterator();
@@ -1462,6 +1468,7 @@ public final class Avrcp {
                 }
             }
         }
+
         if (!oldMetadata.equals(mMetadata.toString())) {
             updateTrackNumber();
             Log.v(TAG,"new mMetadata, mTrackNumber update to " + mTrackNumber);
@@ -3974,6 +3981,8 @@ private void updateLocalPlayerSettings( byte[] data) {
             mMetadata.albumTitle = metaData.albumTitle;
             mMetadata.artist = metaData.artist;
             mMetadata.trackTitle = metaData.trackTitle;
+            mMetadata.genre = metaData.genre;
+            mMetadata.tracknum = metaData.tracknum;
         }
         public byte GetPlayState() {
             return mPlayState;
