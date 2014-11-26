@@ -727,9 +727,7 @@ public class BluetoothOppService extends Service {
         info.mConfirm = cursor.getInt(cursor
                 .getColumnIndexOrThrow(BluetoothShare.USER_CONFIRMATION));
         int newStatus = cursor.getInt(statusColumn);
-
-        if (!BluetoothShare.isStatusCompleted(info.mStatus)
-                && BluetoothShare.isStatusCompleted(newStatus)) {
+        if (BluetoothShare.isStatusCompleted(info.mStatus)) {
             mNotifier.mNotificationMgr.cancel(info.mId);
         }
 

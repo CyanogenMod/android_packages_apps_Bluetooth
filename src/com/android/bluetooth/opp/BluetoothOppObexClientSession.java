@@ -330,6 +330,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             if (status == BluetoothShare.STATUS_SUCCESS) {
                 Message msg = Message.obtain(mCallback);
                 msg.what = BluetoothOppObexSession.MSG_SHARE_COMPLETE;
+                mInfo.mStatus = status;
                 msg.obj = mInfo;
                 msg.sendToTarget();
             } else {
