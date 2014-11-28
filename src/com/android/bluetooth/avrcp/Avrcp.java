@@ -310,6 +310,7 @@ public final class Avrcp {
     private final String UPDATE_ATTRIB_TEXT = "UpdateAttributesText";
     private final String UPDATE_VALUE_TEXT = "UpdateValuesText";
     private ArrayList <Integer> mPendingCmds;
+    private ArrayList <Integer> mPendingSetAttributes;
 
     static {
         classInitNative();
@@ -359,6 +360,7 @@ public final class Avrcp {
         Looper looper = thread.getLooper();
         mHandler = new AvrcpMessageHandler(looper);
         mPendingCmds = new ArrayList<Integer>();
+        mPendingSetAttributes = new ArrayList<Integer>();
         mCurrentPath = PATH_INVALID;
         mCurrentPathUid = null;
         mMediaUri = Uri.EMPTY;
@@ -438,25 +440,21 @@ public final class Avrcp {
                     case SET_ATTRIBUTE_VALUES:
                         data = intent.getByteArrayExtra(EXTRA_ATTRIB_VALUE_PAIRS);
                         updateLocalPlayerSettings(data);
-                        Log.v(TAG,"SET_ATTRIBUTE_VALUES: " + data[0] + ", " + data[1]);
-                        if (data[0] == ATTRIBUTE_EQUALIZER ||
-                            data[0] == ATTRIBUTE_REPEATMODE ||
-                            data[0] == ATTRIBUTE_SHUFFLEMODE) {
-                            if (isSetAttrValRsp){
-                                isSetAttrValRsp = false;
-                                Log.v(TAG,"Respond to SET_ATTRIBUTE_VALUES request");
-                                if (data[1] == ATTRIBUTE_NOTSUPPORTED) {
-                                   SendSetPlayerAppRspNative(INTERNAL_ERROR);
-                                } else {
-                                   SendSetPlayerAppRspNative(OPERATION_SUCCESSFUL);
-                                }
-                            } else if (mPlayerStatusChangeNT == NOTIFICATION_TYPE_INTERIM) {
-                                Log.v(TAG,"Send Player appl attribute changed response");
-                                mPlayerStatusChangeNT = NOTIFICATION_TYPE_CHANGED;
-                                sendPlayerAppChangedRsp(mPlayerStatusChangeNT);
+                        Log.v(TAG,"SET_ATTRIBUTE_VALUES: ");
+                        if (isSetAttrValRsp){
+                            isSetAttrValRsp = false;
+                            Log.v(TAG,"Respond to SET_ATTRIBUTE_VALUES request");
+                            if (checkPlayerAttributeResponse(data)) {
+                               SendSetPlayerAppRspNative(OPERATION_SUCCESSFUL);
                             } else {
-                                Log.v(TAG,"Drop Set Attr Val update from media player");
+                               SendSetPlayerAppRspNative(INTERNAL_ERROR);
                             }
+                        } else if (mPlayerStatusChangeNT == NOTIFICATION_TYPE_INTERIM) {
+                            Log.v(TAG,"Send Player appl attribute changed response");
+                            mPlayerStatusChangeNT = NOTIFICATION_TYPE_CHANGED;
+                            sendPlayerAppChangedRsp(mPlayerStatusChangeNT);
+                        } else {
+                            Log.v(TAG,"Drop Set Attr Val update from media player");
                         }
                     break;
                     case GET_ATTRIBUTE_TEXT:
@@ -3370,8 +3368,10 @@ public final class Avrcp {
         return (int) Math.ceil((double) volume*AVRCP_MAX_VOL/mAudioStreamMax);
     }
 
-private void updateLocalPlayerSettings( byte[] data) {
+    private void updateLocalPlayerSettings( byte[] data) {
+        if (DEBUG) Log.v(TAG, "updateLocalPlayerSettings");
         for (int i = 0; i < data.length; i += 2) {
+            if (DEBUG) Log.v(TAG, "ID: " + data[i] + " Value: " + data[i+1]);
             switch (data[i]) {
                 case ATTRIBUTE_EQUALIZER:
                     settingValues.eq_value = data[i+1];
@@ -3387,6 +3387,45 @@ private void updateLocalPlayerSettings( byte[] data) {
                 break;
             }
         }
+    }
+
+    private boolean checkPlayerAttributeResponse( byte[] data) {
+        boolean ret = false;
+        if (DEBUG) Log.v(TAG, "checkPlayerAttributeResponse");
+        for (int i = 0; i < data.length; i += 2) {
+            if (DEBUG) Log.v(TAG, "ID: " + data[i] + " Value: " + data[i+1]);
+            switch (data[i]) {
+                case ATTRIBUTE_EQUALIZER:
+                    if (mPendingSetAttributes.contains(new Integer(ATTRIBUTE_EQUALIZER))) {
+                        if(data[i+1] == ATTRIBUTE_NOTSUPPORTED) {
+                            ret = false;
+                        } else {
+                            ret = true;
+                        }
+                    }
+                break;
+                case ATTRIBUTE_REPEATMODE:
+                    if (mPendingSetAttributes.contains(new Integer(ATTRIBUTE_REPEATMODE))) {
+                        if(data[i+1] == ATTRIBUTE_NOTSUPPORTED) {
+                            ret = false;
+                        } else {
+                            ret = true;
+                        }
+                    }
+                break;
+                case ATTRIBUTE_SHUFFLEMODE:
+                    if (mPendingSetAttributes.contains(new Integer(ATTRIBUTE_SHUFFLEMODE))) {
+                        if(data[i+1] == ATTRIBUTE_NOTSUPPORTED) {
+                            ret = false;
+                        } else {
+                            ret = true;
+                        }
+                    }
+                break;
+            }
+        }
+        mPendingSetAttributes.clear();
+        return ret;
     }
 
     //PDU ID 0x11
@@ -3451,6 +3490,7 @@ private void updateLocalPlayerSettings( byte[] data) {
         {
             array[i] = attr_id[i] ;
             array[i+1] = attr_val[i];
+            mPendingSetAttributes.add(new Integer(attr_id[i]));
         }
         Intent intent = new Intent(PLAYERSETTINGS_REQUEST);
         intent.putExtra(COMMAND, CMDSET);
