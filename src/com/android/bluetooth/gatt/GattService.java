@@ -2197,6 +2197,15 @@ public class GattService extends ProfileService {
             println(sb, "  " + declaration);
         }
         println(sb, "mMaxScanFilters: " + mMaxScanFilters);
+
+        sb.append("\nGATT Client Map\n");
+        mClientMap.dump(sb);
+
+        sb.append("\nGATT Server Map\n");
+        mServerMap.dump(sb);
+
+        sb.append("\nGATT Handle Map\n");
+        mHandleMap.dump(sb);
     }
 
     /**************************************************************************

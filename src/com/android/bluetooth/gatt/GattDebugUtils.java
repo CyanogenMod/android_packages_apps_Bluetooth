@@ -28,13 +28,6 @@ import java.util.UUID;
     private static final String TAG = GattServiceConfig.TAG_PREFIX + "DebugUtils";
     private static final boolean DEBUG_ADMIN = GattServiceConfig.DEBUG_ADMIN;
 
-    private static final String ACTION_DEBUG_DUMP_CLIENTMAP =
-                                "android.bluetooth.action.DEBUG_DUMP_CLIENTMAP";
-    private static final String ACTION_DEBUG_DUMP_SERVERMAP =
-                                "android.bluetooth.action.DEBUG_DUMP_SERVERMAP";
-    private static final String ACTION_DEBUG_DUMP_HANDLEMAP =
-                                "android.bluetooth.action.DEBUG_DUMP_HANDLEMAP";
-
     private static final String ACTION_GATT_PAIRING_CONFIG =
                                 "android.bluetooth.action.GATT_PAIRING_CONFIG";
 
@@ -82,23 +75,10 @@ import java.util.UUID;
         Log.d(TAG, "handleDebugAction() action=" + action);
 
         /*
-         * Debug log functinos
-         */
-
-        if (ACTION_DEBUG_DUMP_CLIENTMAP.equals(action)) {
-            svc.mClientMap.dump();
-
-        } else if (ACTION_DEBUG_DUMP_SERVERMAP.equals(action)) {
-            svc.mServerMap.dump();
-
-        } else if (ACTION_DEBUG_DUMP_HANDLEMAP.equals(action)) {
-            svc.mHandleMap.dump();
-
-        /*
          * PTS test commands
          */
 
-        } else if (ACTION_GATT_TEST_USAGE.equals(action)) {
+        if (ACTION_GATT_TEST_USAGE.equals(action)) {
             logUsageInfo();
 
         } else if (ACTION_GATT_TEST_ENABLE.equals(action)) {
