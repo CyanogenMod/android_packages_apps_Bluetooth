@@ -67,6 +67,7 @@ public class BluetoothOppBtEnablingActivity extends AlertActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.Theme_Material_Settings_Floating);
         super.onCreate(savedInstanceState);
 
         // If BT is already enabled jus return.
