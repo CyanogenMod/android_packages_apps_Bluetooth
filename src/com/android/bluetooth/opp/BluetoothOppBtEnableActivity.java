@@ -56,6 +56,7 @@ public class BluetoothOppBtEnableActivity extends AlertActivity implements
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.Theme_Material_Settings_Floating);
         super.onCreate(savedInstanceState);
 
         // Set up the "dialog"
@@ -75,8 +76,7 @@ public class BluetoothOppBtEnableActivity extends AlertActivity implements
     private View createView() {
         View view = getLayoutInflater().inflate(R.layout.confirm_dialog, null);
         TextView contentView = (TextView)view.findViewById(R.id.content);
-        contentView.setText(getString(R.string.bt_enable_line1) + "\n\n"
-                + getString(R.string.bt_enable_line2) + "\n");
+        contentView.setText(getString(R.string.bt_enable_line2));
 
         return view;
     }
@@ -87,9 +87,6 @@ public class BluetoothOppBtEnableActivity extends AlertActivity implements
                 mOppManager.enableBluetooth(); // this is an asyn call
                 mOppManager.mSendingFlag = true;
                 mBtEnabled = true;
-
-                Toast.makeText(this, getString(R.string.enabling_progress_content),
-                        Toast.LENGTH_SHORT).show();
 
                 Intent in = new Intent(this, BluetoothOppBtEnablingActivity.class);
                 in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
