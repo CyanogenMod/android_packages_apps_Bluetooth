@@ -132,7 +132,7 @@
         </receiver>
         <activity android:name=".opp.BluetoothOppLauncherActivity"
             android:process="@string/process"
-            android:theme="@android:style/Theme.Holo.Dialog"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:label="@string/bt_share_picker_label"
             android:enabled="@bool/profile_supported_opp">
             <intent-filter>

@@ -45,4 +45,25 @@
         <item name="android:textColor">@*android:color/primary_text_default_material_light</item>
     </style>
 
+    <style name="confirm_dialog_item_text">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">24dip</item>
+        <item name="android:layout_marginEnd">24dip</item>
+        <item name="android:layout_marginTop">24dip</item>
+        <item name="android:layout_marginBottom">16dip</item>
+        <item name="android:textAlignment">viewStart</item>
+        <item name="android:textAppearance">@android:style/TextAppearance.Material.Body1</item>
+        <item name="android:textColor">@*android:color/secondary_text_default_material_light</item>
+    </style>
+
+    <style name="turning_on_item_text">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textAlignment">viewStart</item>
+        <item name="android:textAppearance">@android:style/TextAppearance.Material.Body1</item>
+        <item name="android:textColor">@*android:color/secondary_text_default_material_light</item>
+        <item name="android:layout_gravity">center_vertical</item>
+    </style>
+
 </resources>
