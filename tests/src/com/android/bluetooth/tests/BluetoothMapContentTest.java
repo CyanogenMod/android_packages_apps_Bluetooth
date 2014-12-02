@@ -23,8 +23,14 @@ public class BluetoothMapContentTest extends AndroidTestCase {
     private static final boolean D = true;
     private static final boolean V = true;
 
-    private Context mContext;
     private ContentResolver mResolver;
+
+    @Override
+    public void setUp() {
+        mResolver = mContext.getContentResolver();
+        // For init of Message.CONTENT_URI.
+        Message.initMessage();
+    }
 
     static final String[] EMAIL_PROJECTION = new String[] {
         EmailContent.RECORD_ID,
@@ -84,9 +90,9 @@ public class BluetoothMapContentTest extends AndroidTestCase {
             while (c.moveToNext()) {
                 printEmail(c);
             }
+            c.close();
         } else {
             Log.d(TAG, "query failed");
-            c.close();
         }
     }
 
@@ -95,8 +101,6 @@ public class BluetoothMapContentTest extends AndroidTestCase {
     }
 
     public void testDumpMessages() {
-        mContext = this.getContext();
-        mResolver = mContext.getContentResolver();
         dumpEmailMessageTable();
     }
 }

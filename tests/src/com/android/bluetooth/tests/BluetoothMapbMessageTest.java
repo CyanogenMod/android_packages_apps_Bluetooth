@@ -448,10 +448,13 @@ public class BluetoothMapbMessageTest extends AndroidTestCase {
                             "EMAIL:bonde@email.add\r\n" +
                         "END:VCARD\r\n" +
                         "BEGIN:BBODY\r\n" +
-                            "CHARSET:UTF-8\r\n" +
-                            "LENGTH:45\r\n" +
+                            "LENGTH:184\r\n" +
                             "BEGIN:MSG\r\n" +
-                                "This is a short message\r\n" +
+                                "From: \"Jørn Hansen\" <bonde@email.add>;\r\n" +
+                                "To: \"Jørn Hansen\" <bonde@email.add>;\r\n" +
+                                "Cc: Jens Hansen <bonde@email.add>;\r\n\r\n" +
+                                "This is a short message\r\n\r\n" +
+                                "<partNameimage>\r\n\r\n" +
                             "END:MSG\r\n" +
                         "END:BBODY\r\n" +
                     "END:BENV\r\n" +
