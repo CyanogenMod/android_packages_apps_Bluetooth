@@ -1688,9 +1688,6 @@ public class GattService extends ProfileService {
         HandleMap.Entry entry = mHandleMap.getByHandle(attrHandle);
         if (entry == null) return;
 
-        if (DBG) Log.d(TAG, "onAttributeRead() UUID=" + entry.uuid
-            + ", serverIf=" + entry.serverIf + ", type=" + entry.type);
-
         mHandleMap.addRequest(transId, attrHandle);
 
         ServerMap.App app = mServerMap.getById(entry.serverIf);
@@ -1737,9 +1734,6 @@ public class GattService extends ProfileService {
 
         HandleMap.Entry entry = mHandleMap.getByHandle(attrHandle);
         if (entry == null) return;
-
-        if (DBG) Log.d(TAG, "onAttributeWrite() UUID=" + entry.uuid
-            + ", serverIf=" + entry.serverIf + ", type=" + entry.type);
 
         mHandleMap.addRequest(transId, attrHandle);
 
@@ -1793,7 +1787,7 @@ public class GattService extends ProfileService {
     }
 
     void onNotificationSent(int connId, int status) throws RemoteException {
-        if (DBG) Log.d(TAG, "onNotificationSent() connId=" + connId + ", status=" + status);
+        if (VDBG) Log.d(TAG, "onNotificationSent() connId=" + connId + ", status=" + status);
 
         String address = mServerMap.addressByConnId(connId);
         if (address == null) return;
@@ -1823,6 +1817,18 @@ public class GattService extends ProfileService {
             if (callbackInfo == null) return;
             app.callback.onNotificationSent(callbackInfo.address, callbackInfo.status);
         }
+    }
+
+    void onMtuChanged(int connId, int mtu) throws RemoteException {
+        if (DBG) Log.d(TAG, "onMtuChanged() - connId=" + connId + ", mtu=" + mtu);
+
+        String address = mServerMap.addressByConnId(connId);
+        if (address == null) return;
+
+        ServerMap.App app = mServerMap.getByConnId(connId);
+        if (app == null) return;
+
+        app.callback.onMtuChanged(address, mtu);
     }
 
     /**************************************************************************
