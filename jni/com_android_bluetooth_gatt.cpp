@@ -191,6 +191,7 @@ static jmethodID method_onAttributeWrite;
 static jmethodID method_onExecuteWrite;
 static jmethodID method_onNotificationSent;
 static jmethodID method_onServerCongestion;
+static jmethodID method_onServerMtuChanged;
 
 /**
  * Static variables
@@ -774,6 +775,13 @@ void btgatts_congestion_cb(int conn_id, bool congested)
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
+void btgatts_mtu_changed_cb(int conn_id, int mtu)
+{
+    CHECK_CALLBACK_ENV
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServerMtuChanged, conn_id, mtu);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+}
+
 static const btgatt_server_callbacks_t sGattServerCallbacks = {
     btgatts_register_app_cb,
     btgatts_connection_cb,
@@ -789,7 +797,8 @@ static const btgatt_server_callbacks_t sGattServerCallbacks = {
     btgatts_request_exec_write_cb,
     btgatts_response_confirmation_cb,
     btgatts_indication_sent_cb,
-    btgatts_congestion_cb
+    btgatts_congestion_cb,
+    btgatts_mtu_changed_cb
 };
 
 /**
@@ -859,6 +868,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onExecuteWrite= env->GetMethodID(clazz, "onExecuteWrite", "(Ljava/lang/String;III)V");
     method_onNotificationSent = env->GetMethodID(clazz, "onNotificationSent", "(II)V");
     method_onServerCongestion = env->GetMethodID(clazz, "onServerCongestion", "(IZ)V");
+    method_onServerMtuChanged = env->GetMethodID(clazz, "onMtuChanged", "(II)V");
 
     info("classInitNative: Success!");
 }
