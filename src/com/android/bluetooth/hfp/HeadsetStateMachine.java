@@ -3046,8 +3046,7 @@ final class HeadsetStateMachine extends StateMachine {
         mPhoneState.setCallState(callState.mCallState);
         mPhoneState.setNumber(callState.mNumber);
         mPhoneState.setType(callState.mType);
-        if (mDialingOut) {
-            if (callState.mCallState ==
+        if (mDialingOut && callState.mCallState ==
                 HeadsetHalConstants.CALL_STATE_DIALING) {
                 BluetoothDevice device = getDeviceForMessage(DIALING_OUT_TIMEOUT);
                 if (device == null) {
@@ -3056,11 +3055,7 @@ final class HeadsetStateMachine extends StateMachine {
                 atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK,
                                                        0, getByteAddress(device));
                 removeMessages(DIALING_OUT_TIMEOUT);
-            } else if (callState.mCallState ==
-                HeadsetHalConstants.CALL_STATE_ACTIVE || callState.mCallState
-                == HeadsetHalConstants.CALL_STATE_IDLE) {
                 mDialingOut = false;
-            } 
         }
 
         /* Set ActiveScoDevice to null when call ends */
