@@ -416,6 +416,17 @@ public class BluetoothOppService extends Service {
                         break;
                     case BluetoothAdapter.STATE_TURNING_OFF:
                         if (V) Log.v(TAG, "Receiver DISABLED_ACTION ");
+
+                        if (mUpdateThread != null) {
+                            try {
+                                mUpdateThread.interrupt();
+                                mUpdateThread.join();
+                                mUpdateThread = null;
+                            } catch (InterruptedException ie) {
+                                Log.e(TAG, "OPPService Thread join interrupted");
+                            }
+                        }
+
                         mNotifier.btOffNotification();
                         //FIX: Don't block main thread
                         /*
@@ -600,15 +611,6 @@ public class BluetoothOppService extends Service {
                 cursor.close();
                 cursor = null;
 
-                try {
-                    if (mPowerManager.isScreenOn()) {
-                        Thread.sleep(BluetoothShare.UI_UPDATE_INTERVAL);
-                    }
-                } catch (InterruptedException e) {
-                    if (V) Log.v(TAG, "OppService UpdateThread was interrupted (1), exiting");
-                    return;
-                }
-
                 if (V) {
                     if (mServerSession != null) {
                         Log.v(TAG, "Server Session is active");
@@ -621,6 +623,16 @@ public class BluetoothOppService extends Service {
                     } else {
                         Log.v(TAG, "No active Client Session");
                     }
+                }
+
+                try {
+                    if (((mServerSession != null) || (mTransfer != null))
+                            && mPowerManager.isScreenOn()) {
+                        Thread.sleep(BluetoothShare.UI_UPDATE_INTERVAL);
+                    }
+                } catch (InterruptedException e) {
+                    if (V) Log.v(TAG, "OppService Thread sleep is interrupted (1), exiting");
+                    return;
                 }
             } while (mPowerManager.isScreenOn() && ((mServerSession != null) || (mTransfer != null)));
 
