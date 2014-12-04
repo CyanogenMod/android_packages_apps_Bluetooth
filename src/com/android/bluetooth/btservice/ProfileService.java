@@ -32,6 +32,8 @@ import android.util.Log;
 
 public abstract class ProfileService extends Service {
     private static final boolean DBG = false;
+    private static final String TAG = "BluetoothProfileService";
+
     //For Debugging only
     private static HashMap<String, Integer> sReferenceCount = new HashMap<String,Integer>();
 
@@ -108,7 +110,11 @@ public abstract class ProfileService extends Service {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mBinder = initBinder();
         mAdapterService = AdapterService.getAdapterService();
-        mAdapterService.addProfile(this);
+        if (mAdapterService != null) {
+            mAdapterService.addProfile(this);
+        } else {
+            Log.w(TAG, "onCreate, null mAdapterService");
+        }
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
