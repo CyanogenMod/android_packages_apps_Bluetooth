@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2012 The Android Open Source Project
+ * Copyright (C) 2014 The Linux Foundation. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +29,7 @@ import android.content.Intent;
 import android.os.Message;
 import android.os.UserHandle;
 import android.util.Log;
+import android.os.PowerManager;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
@@ -63,13 +65,17 @@ final class BondStateMachine extends StateMachine {
     private RemoteDevices mRemoteDevices;
     private BluetoothAdapter mAdapter;
 
+    /* The WakeLock is used for bringing up the LCD during a pairing request
+     * from remote device when Android is in Suspend state.*/
+    private PowerManager.WakeLock mWakeLock;
+
     private PendingCommandState mPendingCommandState = new PendingCommandState();
     private StableState mStableState = new StableState();
 
     private final ArrayList<BluetoothDevice> mDevices =
         new ArrayList<BluetoothDevice>();
 
-    private BondStateMachine(AdapterService service,
+    private BondStateMachine(PowerManager pm, AdapterService service,
             AdapterProperties prop, RemoteDevices remoteDevices) {
         super("BondStateMachine:");
         addState(mStableState);
@@ -79,12 +85,17 @@ final class BondStateMachine extends StateMachine {
         mAdapterProperties = prop;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         setInitialState(mStableState);
+
+        //WakeLock instantiation in RemoteDevices class
+        mWakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP
+                       | PowerManager.ON_AFTER_RELEASE, TAG);
+        mWakeLock.setReferenceCounted(false);
     }
 
-    public static BondStateMachine make(AdapterService service,
+    public static BondStateMachine make(PowerManager pm, AdapterService service,
             AdapterProperties prop, RemoteDevices remoteDevices) {
         Log.d(TAG, "make");
-        BondStateMachine bsm = new BondStateMachine(service, prop, remoteDevices);
+        BondStateMachine bsm = new BondStateMachine(pm, service, prop, remoteDevices);
         bsm.start();
         return bsm;
     }
@@ -320,6 +331,9 @@ final class BondStateMachine extends StateMachine {
     }
 
     private void sendDisplayPinIntent(byte[] address, int pin, int variant) {
+
+        // Acquire wakelock during PIN code request to bring up LCD display
+        mWakeLock.acquire();
         Intent intent = new Intent(BluetoothDevice.ACTION_PAIRING_REQUEST);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevices.getDevice(address));
         if (pin != 0) {
@@ -328,6 +342,8 @@ final class BondStateMachine extends StateMachine {
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, variant);
         intent.setFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
+        // Release wakelock to allow the LCD to go off after the PIN popup notification.
+        mWakeLock.release();
     }
 
     private void sendIntent(BluetoothDevice device, int newState, int reason) {
