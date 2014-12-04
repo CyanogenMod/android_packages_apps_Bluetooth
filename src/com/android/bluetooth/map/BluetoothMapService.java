@@ -74,9 +74,9 @@ public class BluetoothMapService extends ProfileService {
      * DEBUG log: "setprop log.tag.BluetoothMapService VERBOSE"
      */
 
-    public static final boolean DEBUG = true; //TODO: set to false
+    public static final boolean DEBUG = true;
 
-    public static final boolean VERBOSE = true; //TODO: set to false
+    public static final boolean VERBOSE = false;
 
     /**
      * Intent indicating timeout for user confirmation, which is sent to
