@@ -66,6 +66,7 @@ import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 import com.android.internal.R;
 
 import java.io.FileDescriptor;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1141,12 +1142,10 @@ public class AdapterService extends Service {
              return service.reportActivityInfo();
          }
 
-         public String dump() {
+         public void dump(ParcelFileDescriptor fd) {
             AdapterService service = getService();
-            if (service == null) {
-                return "AdapterService is null";
-            }
-            return service.dump();
+            if (service == null) return;
+            service.dump(fd.getFileDescriptor());
          }
     };
 
@@ -1730,14 +1729,27 @@ public class AdapterService extends Service {
         return info;
     }
 
-    private String dump() {
+    private void dump(FileDescriptor fd) {
+        // Collect profile information
         StringBuilder sb = new StringBuilder();
         synchronized (mProfiles) {
             for (ProfileService profile : mProfiles) {
                 profile.dump(sb);
             }
         }
-        return sb.toString();
+
+        // Dump Java based profiles first
+        try {
+            FileWriter fw = new FileWriter(fd);
+            fw.write(sb.toString());
+            fw.flush();
+            fw.close();
+        } catch (IOException ex) {
+            errorLog("IOException writing profile status!");
+        }
+
+        // Add native logs
+        dumpNative(fd);
     }
 
     private static int convertScanModeToHal(int mode) {
@@ -1911,6 +1923,7 @@ public class AdapterService extends Service {
     /*package*/ native boolean configHciSnoopLogNative(boolean enable);
 
     private native void alarmFiredNative();
+    private native void dumpNative(FileDescriptor fd);
 
     protected void finalize() {
         cleanup();

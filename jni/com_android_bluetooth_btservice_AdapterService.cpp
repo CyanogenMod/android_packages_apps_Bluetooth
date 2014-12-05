@@ -1214,6 +1214,17 @@ static int readEnergyInfo()
     return result;
 }
 
+static void dumpNative(JNIEnv *env, jobject obj, jobject fdObj)
+{
+    ALOGV("%s()", __FUNCTION__);
+    if (!sBluetoothInterface) return;
+
+    int fd = jniGetFDFromFileDescriptor(env, fdObj);
+    if (fd < 0) return;
+
+    sBluetoothInterface->dump(fd);
+}
+
 static JNINativeMethod sMethods[] = {
     /* name, signature, funcPtr */
     {"classInitNative", "()V", (void *) classInitNative},
@@ -1242,6 +1253,7 @@ static JNINativeMethod sMethods[] = {
     {"configHciSnoopLogNative", "(Z)Z", (void*) configHciSnoopLogNative},
     {"alarmFiredNative", "()V", (void *) alarmFiredNative},
     {"readEnergyInfo", "()I", (void*) readEnergyInfo},
+    {"dumpNative", "(Ljava/io/FileDescriptor;)V", (void*) dumpNative},
 };
 
 int register_com_android_bluetooth_btservice_AdapterService(JNIEnv* env)
