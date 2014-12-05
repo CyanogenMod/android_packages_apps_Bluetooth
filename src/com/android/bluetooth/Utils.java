@@ -17,6 +17,7 @@
 package com.android.bluetooth;
 
 import android.app.ActivityManager;
+import android.app.ActivityThread;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
@@ -24,7 +25,6 @@ import android.content.ContextWrapper;
 import android.content.pm.UserInfo;
 import android.os.Binder;
 import android.os.ParcelUuid;
-import android.os.Process;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.util.Log;
@@ -197,12 +197,19 @@ final public class Utils {
         // Get the caller's user id then clear the calling identity
         // which will be restored in the finally clause.
         int callingUser = UserHandle.getCallingUserId();
+        int callingUid = Binder.getCallingUid();
         long ident = Binder.clearCallingIdentity();
 
         try {
             // With calling identity cleared the current user is the foreground user.
             int foregroundUser = ActivityManager.getCurrentUser();
             ok = (foregroundUser == callingUser);
+            if (!ok) {
+                // Always allow SystemUI access.
+                int systemUiUid = ActivityThread.getPackageManager().getPackageUid(
+                        "com.android.systemui", UserHandle.USER_OWNER);
+                ok = systemUiUid == callingUid;
+            }
         } catch (Exception ex) {
             Log.e(TAG, "checkIfCallerIsSelfOrForegroundUser: Exception ex=" + ex);
             ok = false;
@@ -221,6 +228,7 @@ final public class Utils {
         // id, then clear the calling identity
         // which will be restored in the finally clause.
         int callingUser = UserHandle.getCallingUserId();
+        int callingUid = Binder.getCallingUid();
         long ident = Binder.clearCallingIdentity();
         try {
             UserManager um = (UserManager) mContext.getSystemService(Context.USER_SERVICE);
@@ -230,6 +238,12 @@ final public class Utils {
             int foregroundUser = ActivityManager.getCurrentUser();
             ok = (foregroundUser == callingUser) ||
                     (foregroundUser == parentUser);
+            if (!ok) {
+                // Always allow SystemUI access.
+                int systemUiUid = ActivityThread.getPackageManager().getPackageUid(
+                        "com.android.systemui", UserHandle.USER_OWNER);
+                ok = systemUiUid == callingUid;
+            }
         } catch (Exception ex) {
             Log.e(TAG, "checkCallerAllowManagedProfiles: Exception ex=" + ex);
             ok = false;
