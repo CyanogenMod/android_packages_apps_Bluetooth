@@ -66,6 +66,7 @@ import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 import com.android.internal.R;
 
 import java.io.FileDescriptor;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1141,12 +1142,10 @@ public class AdapterService extends Service {
              return service.reportActivityInfo();
          }
 
-         public String dump() {
+         public void dump(ParcelFileDescriptor fd) {
             AdapterService service = getService();
-            if (service == null) {
-                return "AdapterService is null";
-            }
-            return service.dump();
+            if (service == null) return;
+            service.dump(fd.getFileDescriptor());
          }
     };
 
@@ -1730,16 +1729,6 @@ public class AdapterService extends Service {
         return info;
     }
 
-    private String dump() {
-        StringBuilder sb = new StringBuilder();
-        synchronized (mProfiles) {
-            for (ProfileService profile : mProfiles) {
-                profile.dump(sb);
-            }
-        }
-        return sb.toString();
-    }
-
     private static int convertScanModeToHal(int mode) {
         switch (mode) {
             case BluetoothAdapter.SCAN_MODE_NONE:
@@ -1857,6 +1846,36 @@ public class AdapterService extends Service {
         }
     }
 
+    private void dump(FileDescriptor fd) {
+        // Collect profile information
+        StringBuilder sb = new StringBuilder();
+        synchronized (mProfiles) {
+            for (ProfileService profile : mProfiles) {
+                profile.dump(sb);
+            }
+        }
+
+        // Dump Java based profiles first
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter(fd);
+            fw.write(sb.toString());
+        } catch (IOException ex) {
+            errorLog("IOException writing profile status!");
+        } finally {
+            if (fw != null) {
+                try {
+                    fw.close();
+                } catch (IOException ex) {
+                    debugLog("IOException closing a file after writing the profile status");
+                }
+            }
+        }
+
+        // Add native logs
+        dumpNative(fd);
+    }
+
     private void debugLog(String msg) {
         if (DBG) Log.d(TAG +"(" +hashCode()+")", msg);
     }
@@ -1911,6 +1930,7 @@ public class AdapterService extends Service {
     /*package*/ native boolean configHciSnoopLogNative(boolean enable);
 
     private native void alarmFiredNative();
+    private native void dumpNative(FileDescriptor fd);
 
     protected void finalize() {
         cleanup();
