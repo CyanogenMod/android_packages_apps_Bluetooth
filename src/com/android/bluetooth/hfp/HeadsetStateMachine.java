@@ -53,6 +53,7 @@ import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.PowerManager;
+import android.os.UserHandle;
 import android.os.PowerManager.WakeLock;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
@@ -2310,7 +2311,8 @@ final class HeadsetStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        mService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
+        mService.sendBroadcastAsUser(intent, UserHandle.ALL,
+                HeadsetService.BLUETOOTH_PERM);
     }
 
     private void broadcastAudioState(BluetoothDevice device, int newState, int prevState) {
@@ -2323,7 +2325,8 @@ final class HeadsetStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        mService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
+        mService.sendBroadcastAsUser(intent, UserHandle.ALL,
+                HeadsetService.BLUETOOTH_PERM);
         log("Audio state " + device + ": " + prevState + "->" + newState);
     }
 
@@ -2348,7 +2351,8 @@ final class HeadsetStateMachine extends StateMachine {
         intent.addCategory(BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_COMPANY_ID_CATEGORY
             + "." + Integer.toString(companyId));
 
-        mService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
+        mService.sendBroadcastAsUser(intent, UserHandle.ALL,
+                HeadsetService.BLUETOOTH_PERM);
     }
 
     private void configAudioParameters(BluetoothDevice device)
