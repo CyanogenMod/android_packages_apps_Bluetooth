@@ -1057,6 +1057,7 @@ public class GattService extends ProfileService {
         Log.d(TAG, "Batch record : " + Arrays.toString(batchRecord));
         Set<ScanResult> results = new HashSet<ScanResult>(numRecords);
         int position = 0;
+        long now = SystemClock.elapsedRealtimeNanos();
         while (position < batchRecord.length) {
             byte[] address = extractBytes(batchRecord, position, 6);
             // TODO: remove temp hack.
@@ -1068,7 +1069,7 @@ public class GattService extends ProfileService {
             // Skip tx power level.
             position++;
             int rssi = batchRecord[position++];
-            long timestampNanos = parseTimestampNanos(extractBytes(batchRecord, position, 2));
+            long timestampNanos = now - parseTimestampNanos(extractBytes(batchRecord, position, 2));
             position += 2;
 
             // Combine advertise packet and scan response packet.
