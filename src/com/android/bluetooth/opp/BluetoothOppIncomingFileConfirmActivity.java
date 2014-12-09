@@ -75,8 +75,6 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity imple
 
     private ContentValues mUpdateValues;
 
-    private TextView mContentView;
-
     private boolean mTimeout = false;
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -200,7 +198,7 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity imple
 
     private void onTimeout() {
         mTimeout = true;
-        mContentView.setText(getString(R.string.incoming_file_confirm_timeout_content,
+        mAlert.setTitle(getString(R.string.incoming_file_confirm_timeout_content,
                 mTransInfo.mDeviceName));
         mAlert.getButton(DialogInterface.BUTTON_NEGATIVE).setVisibility(View.GONE);
         mAlert.getButton(DialogInterface.BUTTON_POSITIVE).setText(
