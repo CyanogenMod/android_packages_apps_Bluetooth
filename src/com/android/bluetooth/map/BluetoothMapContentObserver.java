@@ -14,6 +14,7 @@
 */
 package com.android.bluetooth.map;
 
+import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -115,6 +116,13 @@ public class BluetoothMapContentObserver {
     private static final int CONVERT_MMS_TO_SMS_PART_COUNT = 10;
 
     private TYPE mSmsType;
+
+    private static void close(Closeable c) {
+        try {
+            if (c != null) c.close();
+        } catch (IOException e) {
+        }
+    }
 
     static final String[] SMS_PROJECTION = new String[] {
         Sms._ID,
@@ -452,17 +460,19 @@ public class BluetoothMapContentObserver {
             Cursor c = mResolver.query(Sms.CONTENT_URI,
                 SMS_PROJECTION_SHORT, null, null, null);
 
-            if (c != null && c.moveToFirst()) {
-                do {
+            try {
+                while (c != null && c.moveToNext()) {
                     long id = c.getLong(c.getColumnIndex(Sms._ID));
                     int type = c.getInt(c.getColumnIndex(Sms.TYPE));
                     int threadId = c.getInt(c.getColumnIndex(Sms.THREAD_ID));
 
                     Msg msg = new Msg(id, type, threadId);
                     msgListSms.put(id, msg);
-                } while (c.moveToNext());
-                c.close();
+                }
+            } finally {
+                close(c);
             }
+
             synchronized(mMsgListSms) {
                 mMsgListSms.clear();
                 mMsgListSms = msgListSms;
@@ -472,17 +482,19 @@ public class BluetoothMapContentObserver {
 
             c = mResolver.query(Mms.CONTENT_URI, MMS_PROJECTION_SHORT, null, null, null);
 
-            if (c != null && c.moveToFirst()) {
-                do {
+            try {
+                while (c != null && c.moveToNext()) {
                     long id = c.getLong(c.getColumnIndex(Mms._ID));
                     int type = c.getInt(c.getColumnIndex(Mms.MESSAGE_BOX));
                     int threadId = c.getInt(c.getColumnIndex(Mms.THREAD_ID));
 
                     Msg msg = new Msg(id, type, threadId);
                     msgListMms.put(id, msg);
-                } while (c.moveToNext());
-                c.close();
+                }
+            } finally {
+                close(c);
             }
+
             synchronized(mMsgListMms) {
                 mMsgListMms.clear();
                 mMsgListMms = msgListMms;
@@ -494,16 +506,18 @@ public class BluetoothMapContentObserver {
             Uri uri = mMessageUri;
             Cursor c = mProviderClient.query(uri, EMAIL_PROJECTION_SHORT, null, null, null);
 
-            if (c != null && c.moveToFirst()) {
-                do {
+            try {
+                while (c != null && c.moveToNext()) {
                     long id = c.getLong(c.getColumnIndex(MessageColumns._ID));
                     long folderId = c.getInt(c.getColumnIndex(BluetoothMapContract.MessageColumns.FOLDER_ID));
 
                     Msg msg = new Msg(id, folderId);
                     msgListEmail.put(id, msg);
-                } while (c.moveToNext());
-                c.close();
+                }
+            } finally {
+                close(c);
             }
+
             synchronized(mMsgListEmail) {
                 mMsgListEmail.clear();
                 mMsgListEmail = msgListEmail;
@@ -520,8 +534,8 @@ public class BluetoothMapContentObserver {
             SMS_PROJECTION_SHORT, null, null, null);
 
         synchronized(mMsgListSms) {
-            if (c != null && c.moveToFirst()) {
-                do {
+            try {
+                while (c != null && c.moveToNext()) {
                     long id = c.getLong(c.getColumnIndex(Sms._ID));
                     int type = c.getInt(c.getColumnIndex(Sms.TYPE));
                     int threadId = c.getInt(c.getColumnIndex(Sms.THREAD_ID));
@@ -570,8 +584,9 @@ public class BluetoothMapContentObserver {
                         }
                         msgListSms.put(id, msg);
                     }
-                } while (c.moveToNext());
-                c.close();
+                }
+            } finally {
+                close(c);
             }
 
             for (Msg msg : mMsgListSms.values()) {
@@ -594,8 +609,8 @@ public class BluetoothMapContentObserver {
             MMS_PROJECTION_SHORT, null, null, null);
 
         synchronized(mMsgListMms) {
-            if (c != null && c.moveToFirst()) {
-                do {
+            try {
+                while (c != null && c.moveToNext()) {
                     long id = c.getLong(c.getColumnIndex(Mms._ID));
                     int type = c.getInt(c.getColumnIndex(Mms.MESSAGE_BOX));
                     int mtype = c.getInt(c.getColumnIndex(Mms.MESSAGE_TYPE));
@@ -657,8 +672,9 @@ public class BluetoothMapContentObserver {
                         }
                         msgListMms.put(id, msg);
                     }
-                } while (c.moveToNext());
-                c.close();
+                }
+            } finally {
+                close(c);
             }
 
             for (Msg msg : mMsgListMms.values()) {
@@ -681,8 +697,8 @@ public class BluetoothMapContentObserver {
         Cursor c = mProviderClient.query(mMessageUri, EMAIL_PROJECTION_SHORT, null, null, null);
 
         synchronized(mMsgListEmail) {
-            if (c != null && c.moveToFirst()) {
-                do {
+            try {
+                while (c != null && c.moveToNext()) {
                     long id = c.getLong(c.getColumnIndex(BluetoothMapContract.MessageColumns._ID));
                     int folderId = c.getInt(c.getColumnIndex(
                             BluetoothMapContract.MessageColumns.FOLDER_ID));
@@ -750,8 +766,9 @@ public class BluetoothMapContentObserver {
                         }
                         msgListEmail.put(id, msg);
                     }
-                } while (c.moveToNext());
-                c.close();
+                }
+            } finally {
+                close(c);
             }
 
             // For all messages no longer in the database send a delete notification
@@ -893,31 +910,34 @@ public class BluetoothMapContentObserver {
         boolean res = false;
         Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI, handle);
         Cursor c = mResolver.query(uri, null, null, null, null);
-        if (c != null && c.moveToFirst()) {
-            /* Move to deleted folder, or delete if already in deleted folder */
-            int threadId = c.getInt(c.getColumnIndex(Mms.THREAD_ID));
-            if (threadId != DELETED_THREAD_ID) {
-                /* Set deleted thread id */
-                synchronized(mMsgListMms) {
-                    Msg msg = mMsgListMms.get(handle);
-                    if(msg != null) { // This will always be the case
-                        msg.threadId = DELETED_THREAD_ID;
+
+        try {
+            if (c != null && c.moveToFirst()) {
+                /* Move to deleted folder, or delete if already in deleted folder */
+                int threadId = c.getInt(c.getColumnIndex(Mms.THREAD_ID));
+                if (threadId != DELETED_THREAD_ID) {
+                    /* Set deleted thread id */
+                    synchronized(mMsgListMms) {
+                        Msg msg = mMsgListMms.get(handle);
+                        if(msg != null) { // This will always be the case
+                            msg.threadId = DELETED_THREAD_ID;
+                        }
                     }
+                    updateThreadId(uri, Mms.THREAD_ID, DELETED_THREAD_ID);
+                } else {
+                    /* Delete from observer message list to avoid delete notifications */
+                    synchronized(mMsgListMms) {
+                        mMsgListMms.remove(handle);
+                    }
+                    /* Delete message */
+                    mResolver.delete(uri, null, null);
                 }
-                updateThreadId(uri, Mms.THREAD_ID, DELETED_THREAD_ID);
-            } else {
-                /* Delete from observer message list to avoid delete notifications */
-                synchronized(mMsgListMms) {
-                    mMsgListMms.remove(handle);
-                }
-                /* Delete message */
-                mResolver.delete(uri, null, null);
+                res = true;
             }
-            res = true;
+        } finally {
+            close(c);
         }
-        if (c != null) {
-            c.close();
-        }
+
         return res;
     }
 
@@ -926,40 +946,42 @@ public class BluetoothMapContentObserver {
         Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI, handle);
         Cursor c = mResolver.query(uri, null, null, null, null);
 
-        if (c != null && c.moveToFirst()) {
-            int threadId = c.getInt(c.getColumnIndex(Mms.THREAD_ID));
-            if (threadId == DELETED_THREAD_ID) {
-                /* Restore thread id from address, or if no thread for address
-                 * create new thread by insert and remove of fake message */
-                String address;
-                long id = c.getLong(c.getColumnIndex(Mms._ID));
-                int msgBox = c.getInt(c.getColumnIndex(Mms.MESSAGE_BOX));
-                if (msgBox == Mms.MESSAGE_BOX_INBOX) {
-                    address = BluetoothMapContent.getAddressMms(mResolver, id,
-                        BluetoothMapContent.MMS_FROM);
-                } else {
-                    address = BluetoothMapContent.getAddressMms(mResolver, id,
-                        BluetoothMapContent.MMS_TO);
-                }
-                Set<String> recipients = new HashSet<String>();
-                recipients.addAll(Arrays.asList(address));
-                Long oldThreadId = Telephony.Threads.getOrCreateThreadId(mContext, recipients);
-                synchronized(mMsgListMms) {
-                    Msg msg = mMsgListMms.get(handle);
-                    if(msg != null) { // This will always be the case
-                        msg.threadId = oldThreadId.intValue();
+        try {
+            if (c != null && c.moveToFirst()) {
+                int threadId = c.getInt(c.getColumnIndex(Mms.THREAD_ID));
+                if (threadId == DELETED_THREAD_ID) {
+                    /* Restore thread id from address, or if no thread for address
+                    * create new thread by insert and remove of fake message */
+                    String address;
+                    long id = c.getLong(c.getColumnIndex(Mms._ID));
+                    int msgBox = c.getInt(c.getColumnIndex(Mms.MESSAGE_BOX));
+                    if (msgBox == Mms.MESSAGE_BOX_INBOX) {
+                        address = BluetoothMapContent.getAddressMms(mResolver, id,
+                            BluetoothMapContent.MMS_FROM);
+                    } else {
+                        address = BluetoothMapContent.getAddressMms(mResolver, id,
+                            BluetoothMapContent.MMS_TO);
                     }
+                    Set<String> recipients = new HashSet<String>();
+                    recipients.addAll(Arrays.asList(address));
+                    Long oldThreadId = Telephony.Threads.getOrCreateThreadId(mContext, recipients);
+                    synchronized(mMsgListMms) {
+                        Msg msg = mMsgListMms.get(handle);
+                        if(msg != null) { // This will always be the case
+                            msg.threadId = oldThreadId.intValue();
+                        }
+                    }
+                    updateThreadId(uri, Mms.THREAD_ID, oldThreadId);
+                } else {
+                    Log.d(TAG, "Message not in deleted folder: handle " + handle
+                        + " threadId " + threadId);
                 }
-                updateThreadId(uri, Mms.THREAD_ID, oldThreadId);
-            } else {
-                Log.d(TAG, "Message not in deleted folder: handle " + handle
-                    + " threadId " + threadId);
+                res = true;
             }
-            res = true;
+        } finally {
+            close(c);
         }
-        if (c != null) {
-            c.close();
-        }
+
         return res;
     }
 
@@ -968,31 +990,33 @@ public class BluetoothMapContentObserver {
         Uri uri = ContentUris.withAppendedId(Sms.CONTENT_URI, handle);
         Cursor c = mResolver.query(uri, null, null, null, null);
 
-        if (c != null && c.moveToFirst()) {
-            /* Move to deleted folder, or delete if already in deleted folder */
-            int threadId = c.getInt(c.getColumnIndex(Sms.THREAD_ID));
-            if (threadId != DELETED_THREAD_ID) {
-                synchronized(mMsgListSms) {
-                    Msg msg = mMsgListSms.get(handle);
-                    if(msg != null) { // This will always be the case
-                        msg.threadId = DELETED_THREAD_ID;
+        try {
+            if (c != null && c.moveToFirst()) {
+                /* Move to deleted folder, or delete if already in deleted folder */
+                int threadId = c.getInt(c.getColumnIndex(Sms.THREAD_ID));
+                if (threadId != DELETED_THREAD_ID) {
+                    synchronized(mMsgListSms) {
+                        Msg msg = mMsgListSms.get(handle);
+                        if(msg != null) { // This will always be the case
+                            msg.threadId = DELETED_THREAD_ID;
+                        }
                     }
+                    /* Set deleted thread id */
+                    updateThreadId(uri, Sms.THREAD_ID, DELETED_THREAD_ID);
+                } else {
+                    /* Delete from observer message list to avoid delete notifications */
+                    synchronized(mMsgListSms) {
+                        mMsgListSms.remove(handle);
+                    }
+                    /* Delete message */
+                    mResolver.delete(uri, null, null);
                 }
-                /* Set deleted thread id */
-                updateThreadId(uri, Sms.THREAD_ID, DELETED_THREAD_ID);
-            } else {
-                /* Delete from observer message list to avoid delete notifications */
-                synchronized(mMsgListSms) {
-                    mMsgListSms.remove(handle);
-                }
-                /* Delete message */
-                mResolver.delete(uri, null, null);
+                res = true;
             }
-            res = true;
+        } finally {
+            close(c);
         }
-        if (c != null) {
-            c.close();
-        }
+
         return res;
     }
 
@@ -1001,29 +1025,31 @@ public class BluetoothMapContentObserver {
         Uri uri = ContentUris.withAppendedId(Sms.CONTENT_URI, handle);
         Cursor c = mResolver.query(uri, null, null, null, null);
 
-        if (c != null && c.moveToFirst()) {
-            int threadId = c.getInt(c.getColumnIndex(Sms.THREAD_ID));
-            if (threadId == DELETED_THREAD_ID) {
-                String address = c.getString(c.getColumnIndex(Sms.ADDRESS));
-                Set<String> recipients = new HashSet<String>();
-                recipients.addAll(Arrays.asList(address));
-                Long oldThreadId = Telephony.Threads.getOrCreateThreadId(mContext, recipients);
-                synchronized(mMsgListSms) {
-                    Msg msg = mMsgListSms.get(handle);
-                    if(msg != null) { // This will always be the case
-                        msg.threadId = oldThreadId.intValue(); // The threadId is specified as an int, so it is safe to truncate
+        try {
+            if (c != null && c.moveToFirst()) {
+                int threadId = c.getInt(c.getColumnIndex(Sms.THREAD_ID));
+                if (threadId == DELETED_THREAD_ID) {
+                    String address = c.getString(c.getColumnIndex(Sms.ADDRESS));
+                    Set<String> recipients = new HashSet<String>();
+                    recipients.addAll(Arrays.asList(address));
+                    Long oldThreadId = Telephony.Threads.getOrCreateThreadId(mContext, recipients);
+                    synchronized(mMsgListSms) {
+                        Msg msg = mMsgListSms.get(handle);
+                        if(msg != null) { // This will always be the case
+                            msg.threadId = oldThreadId.intValue(); // The threadId is specified as an int, so it is safe to truncate
+                        }
                     }
+                    updateThreadId(uri, Sms.THREAD_ID, oldThreadId);
+                } else {
+                    Log.d(TAG, "Message not in deleted folder: handle " + handle
+                        + " threadId " + threadId);
                 }
-                updateThreadId(uri, Sms.THREAD_ID, oldThreadId);
-            } else {
-                Log.d(TAG, "Message not in deleted folder: handle " + handle
-                    + " threadId " + threadId);
+                res = true;
             }
-            res = true;
+        } finally {
+            close(c);
         }
-        if (c != null) {
-            c.close();
-        }
+
         return res;
     }
 
@@ -1073,7 +1099,6 @@ public class BluetoothMapContentObserver {
 
         if (type == TYPE.SMS_GSM || type == TYPE.SMS_CDMA) {
             Uri uri = Sms.Inbox.CONTENT_URI;//ContentUris.withAppendedId(Sms.CONTENT_URI, handle);
-            Cursor c = mResolver.query(uri, null, null, null, null);
             ContentValues contentValues = new ContentValues();
             contentValues.put(Sms.READ, statusValue);
             contentValues.put(Sms.SEEN, statusValue);
@@ -1082,15 +1107,15 @@ public class BluetoothMapContentObserver {
             if (D) Log.d(TAG, " -> SMS Uri: " + uri.toString() + " Where " + where + " values " + values);
             count = mResolver.update(uri, contentValues, where, null);
             if (D) Log.d(TAG, " -> "+count +" rows updated!");
+
         } else if (type == TYPE.MMS) {
             Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI, handle);
-            Cursor c = mResolver.query(uri, null, null, null, null);
             if (D) Log.d(TAG, " -> MMS Uri: " + uri.toString());
             ContentValues contentValues = new ContentValues();
             contentValues.put(Mms.READ, statusValue);
             count = mResolver.update(uri, contentValues, null, null);
-
             if (D) Log.d(TAG, " -> "+count +" rows updated!");
+
         } if (type == TYPE.EMAIL) {
             Uri uri = mMessageUri;
             ContentValues contentValues = new ContentValues();
@@ -1098,10 +1123,8 @@ public class BluetoothMapContentObserver {
             contentValues.put(BluetoothMapContract.MessageColumns._ID, handle);
             count = mProviderClient.update(uri, contentValues, null, null);
         }
-        if(count < 1) {
-            return false;
-        }
-        return true;
+
+        return (count > 0);
     }
 
     private class PushMsgInfo {
@@ -1267,18 +1290,20 @@ public class BluetoothMapContentObserver {
                                 return -1;
                             }
                             Cursor c = mResolver.query(uri, SMS_PROJECTION_SHORT, null, null, null);
-
-                            /* Extract the data for the inserted message, and store in local mirror, to
-                             * avoid sending a NewMessage Event. */
-                            if (c != null && c.moveToFirst()) {
-                                long id = c.getLong(c.getColumnIndex(Sms._ID));
-                                int type = c.getInt(c.getColumnIndex(Sms.TYPE));
-                                int threadId = c.getInt(c.getColumnIndex(Sms.THREAD_ID));
-                                Msg newMsg = new Msg(id, type, threadId);
-                                mMsgListSms.put(id, newMsg);
-                                c.close();
-                            } else {
-                                return -1; // This can only happen, if the message is deleted just as it is added
+                            try {
+                                /* Extract the data for the inserted message, and store in local mirror, to
+                                * avoid sending a NewMessage Event. */
+                                if (c != null && c.moveToFirst()) {
+                                    long id = c.getLong(c.getColumnIndex(Sms._ID));
+                                    int type = c.getInt(c.getColumnIndex(Sms.TYPE));
+                                    int threadId = c.getInt(c.getColumnIndex(Sms.THREAD_ID));
+                                    Msg newMsg = new Msg(id, type, threadId);
+                                    mMsgListSms.put(id, newMsg);
+                                } else {
+                                    return -1; // This can only happen, if the message is deleted just as it is added
+                                }
+                            } finally {
+                                close(c);
                             }
 
                             handle = Long.parseLong(uri.getLastPathSegment());
@@ -1335,28 +1360,28 @@ public class BluetoothMapContentObserver {
         }
     }
 
-
     private void moveDraftToOutbox(long handle) {
         /*Move message by changing the msg_box value in the content provider database */
-        if (handle != -1) {
-            String whereClause = " _id= " + handle;
-            Uri uri = Mms.CONTENT_URI;
-            Cursor queryResult = mResolver.query(uri, null, whereClause, null, null);
-            if (queryResult != null) {
-                if (queryResult.getCount() > 0) {
-                    queryResult.moveToFirst();
-                    ContentValues data = new ContentValues();
-                    /* set folder to be outbox */
-                    data.put(Mms.MESSAGE_BOX, Mms.MESSAGE_BOX_OUTBOX);
-                    mResolver.update(uri, data, whereClause, null);
-                    if (D) Log.d(TAG, "moved draft MMS to outbox");
-                }
-                queryResult.close();
-            }else {
+        if (handle != -1) return;
+
+        String whereClause = " _id= " + handle;
+        Uri uri = Mms.CONTENT_URI;
+        Cursor queryResult = mResolver.query(uri, null, whereClause, null, null);
+        try {
+            if (queryResult != null && queryResult.moveToFirst()) {
+                ContentValues data = new ContentValues();
+                /* set folder to be outbox */
+                data.put(Mms.MESSAGE_BOX, Mms.MESSAGE_BOX_OUTBOX);
+                mResolver.update(uri, data, whereClause, null);
+                if (D) Log.d(TAG, "Moved draft MMS to outbox");
+            } else {
                 if (D) Log.d(TAG, "Could not move draft to outbox ");
             }
+        } finally {
+            queryResult.close();
         }
     }
+
     private long pushMmsToFolder(int folder, String to_address, BluetoothMapbMessageMms msg) {
         /**
          * strategy:
@@ -1400,7 +1425,6 @@ public class BluetoothMapContentObserver {
         Uri uri = Mms.CONTENT_URI;
 
         synchronized (mMsgListMms) {
-
             uri = mResolver.insert(uri, values);
 
             if (uri == null) {
@@ -1412,19 +1436,21 @@ public class BluetoothMapContentObserver {
                doing the query ensures we get any changes made by the content provider
                at insert. */
             Cursor c = mResolver.query(uri, MMS_PROJECTION_SHORT, null, null, null);
+            try {
+                if (c != null && c.moveToFirst()) {
+                    long id = c.getLong(c.getColumnIndex(Mms._ID));
+                    int type = c.getInt(c.getColumnIndex(Mms.MESSAGE_BOX));
+                    int threadId = c.getInt(c.getColumnIndex(Mms.THREAD_ID));
 
-            if (c != null && c.moveToFirst()) {
-                long id = c.getLong(c.getColumnIndex(Mms._ID));
-                int type = c.getInt(c.getColumnIndex(Mms.MESSAGE_BOX));
-                int threadId = c.getInt(c.getColumnIndex(Mms.THREAD_ID));
+                    /* We must filter out any actions made by the MCE. Add the new message to
+                     * the list of known messages. */
 
-                /* We must filter out any actions made by the MCE. Add the new message to
-                 * the list of known messages. */
-
-                Msg newMsg = new Msg(id, type, threadId);
-                newMsg.localInitiatedSend = true;
-                mMsgListMms.put(id, newMsg);
-                c.close();
+                    Msg newMsg = new Msg(id, type, threadId);
+                    newMsg.localInitiatedSend = true;
+                    mMsgListMms.put(id, newMsg);
+                }
+            } finally {
+                close(c);
             }
         } // Done adding changes, unlock access to mMsgListMms to allow sending MMS events again
 
@@ -1437,9 +1463,9 @@ public class BluetoothMapContentObserver {
                 Log.w(TAG, "No MMS parts present...");
             } else {
                 if(V) Log.v(TAG, "Adding " + msg.getMimeParts().size() + " parts to the data base.");
+                int count = 0;
                 for(MimePart part : msg.getMimeParts()) {
-                    int count = 0;
-                    count++;
+                    ++count;
                     values.clear();
                     if(part.mContentType != null &&  part.mContentType.toUpperCase().contains("TEXT")) {
                         values.put(Mms.Part.CONTENT_TYPE, "text/plain");
@@ -1912,11 +1938,10 @@ public class BluetoothMapContentObserver {
     private void resendPendingMessages() {
         /* Send pending messages in outbox */
         String where = "type = " + Sms.MESSAGE_TYPE_OUTBOX;
-        Cursor c = mResolver.query(Sms.CONTENT_URI, SMS_PROJECTION, where, null,
-            null);
+        Cursor c = mResolver.query(Sms.CONTENT_URI, SMS_PROJECTION, where, null, null);
 
-        if (c != null && c.moveToFirst()) {
-            do {
+        try {
+            while (c!= null && c.moveToNext()) {
                 long id = c.getLong(c.getColumnIndex(Sms._ID));
                 String msgBody = c.getString(c.getColumnIndex(Sms.BODY));
                 PushMsgInfo msgInfo = mPushMsgList.get(id);
@@ -1925,19 +1950,20 @@ public class BluetoothMapContentObserver {
                 }
                 msgInfo.sendInProgress = true;
                 sendMessage(msgInfo, msgBody);
-            } while (c.moveToNext());
-            c.close();
+            }
+        } finally {
+            close(c);
         }
     }
 
     private void failPendingMessages() {
         /* Move pending messages from outbox to failed */
         String where = "type = " + Sms.MESSAGE_TYPE_OUTBOX;
-        Cursor c = mResolver.query(Sms.CONTENT_URI, SMS_PROJECTION, where, null,
-            null);
+        Cursor c = mResolver.query(Sms.CONTENT_URI, SMS_PROJECTION, where, null, null);
+        if (c == null) return;
 
-        if (c != null && c.moveToFirst()) {
-            do {
+        try {
+            while (c!= null && c.moveToNext()) {
                 long id = c.getLong(c.getColumnIndex(Sms._ID));
                 String msgBody = c.getString(c.getColumnIndex(Sms.BODY));
                 PushMsgInfo msgInfo = mPushMsgList.get(id);
@@ -1946,9 +1972,10 @@ public class BluetoothMapContentObserver {
                 }
                 Sms.moveMessageToFolder(mContext, msgInfo.uri,
                     Sms.MESSAGE_TYPE_FAILED, 0);
-            } while (c.moveToNext());
+            }
+        } finally {
+            close(c);
         }
-        if (c != null) c.close();
     }
 
     private void removeDeletedMessages() {
@@ -1989,5 +2016,4 @@ public class BluetoothMapContentObserver {
         }
         return false;
     }
-
 }

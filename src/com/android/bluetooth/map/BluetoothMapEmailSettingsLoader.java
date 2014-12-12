@@ -151,28 +151,16 @@ public class BluetoothMapEmailSettingsLoader {
              }
              mProviderClient.setDetectNotResponding(PROVIDER_ANR_TIMEOUT);
 
-
-             Uri uri = Uri.parse(app.mBase_uri_no_account + "/" + BluetoothMapContract.TABLE_ACCOUNT);
-
-             c = mProviderClient.query(uri, BluetoothMapContract.BT_ACCOUNT_PROJECTION, null, null, BluetoothMapContract.AccountColumns._ID+" DESC");
-        } catch (RemoteException e){
-            if(D)Log.d(TAG,"Could not establish ContentProviderClient for "+app.getPackageName()+
-                    " - returning empty account list" );
-            return children;
-        }
-
-        if (c != null) {
-            c.moveToPosition(-1);
-            while (c.moveToNext()) {
-                if(D)Log.d(TAG,"Adding account " +c.getString(c.getColumnIndex(BluetoothMapContract.AccountColumns.ACCOUNT_DISPLAY_NAME))+
-                        " with ID "+String.valueOf((c.getInt(c.getColumnIndex(BluetoothMapContract.AccountColumns._ID)))));
-
+            Uri uri = Uri.parse(app.mBase_uri_no_account + "/" + BluetoothMapContract.TABLE_ACCOUNT);
+            c = mProviderClient.query(uri, BluetoothMapContract.BT_ACCOUNT_PROJECTION, null, null,
+                    BluetoothMapContract.AccountColumns._ID+" DESC");
+            while (c != null && c.moveToNext()) {
                 BluetoothMapEmailSettingsItem child = new BluetoothMapEmailSettingsItem(
-                        /*id*/           String.valueOf((c.getInt(c.getColumnIndex(BluetoothMapContract.AccountColumns._ID)))),
-                        /*name*/         c.getString(c.getColumnIndex(BluetoothMapContract.AccountColumns.ACCOUNT_DISPLAY_NAME)) ,
-                        /*package name*/ app.getPackageName(),
-                        /*providerMeta*/ app.getProviderAuthority(),
-                        /*icon*/         null);
+                    String.valueOf((c.getInt(c.getColumnIndex(BluetoothMapContract.AccountColumns._ID)))),
+                    c.getString(c.getColumnIndex(BluetoothMapContract.AccountColumns.ACCOUNT_DISPLAY_NAME)) ,
+                    app.getPackageName(),
+                    app.getProviderAuthority(),
+                    null);
 
                 child.mIsChecked = (c.getInt(c.getColumnIndex(BluetoothMapContract.AccountColumns.FLAG_EXPOSE))!=0);
                 /*update the account counter so we can make sure that not to many accounts are checked. */
@@ -182,9 +170,11 @@ public class BluetoothMapEmailSettingsLoader {
                 }
                 children.add(child);
             }
-            c.close();
-        } else {
-            if(D)Log.d(TAG, "query failed");
+        } catch (RemoteException e){
+            if(D)Log.d(TAG,"Could not establish ContentProviderClient for "+app.getPackageName()+
+                    " - returning empty account list" );
+        } finally {
+            if (c != null) c.close();
         }
         return children;
     }
@@ -198,5 +188,4 @@ public class BluetoothMapEmailSettingsLoader {
         if(D)Log.d(TAG,"Enabled Accounts count:"+ mAccountsEnabledCount);
         return mAccountsEnabledCount;
     }
-
 }
