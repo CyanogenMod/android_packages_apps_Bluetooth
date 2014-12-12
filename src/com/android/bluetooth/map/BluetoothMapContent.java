@@ -14,8 +14,6 @@
 */
 package com.android.bluetooth.map;
 
-import org.apache.http.util.ByteArrayBuffer;
-
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;

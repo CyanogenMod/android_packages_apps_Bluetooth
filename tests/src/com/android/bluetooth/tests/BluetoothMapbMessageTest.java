@@ -8,8 +8,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.apache.http.message.BasicHeaderValueFormatter;
-
 import android.preference.PreferenceFragment;
 import android.test.AndroidTestCase;
 import android.util.Log;
@@ -22,8 +20,6 @@ import com.android.bluetooth.map.BluetoothMapSmsPdu;
 import com.android.bluetooth.map.BluetoothMapbMessage;
 import com.android.bluetooth.map.BluetoothMapbMessageMms;
 import com.android.bluetooth.map.BluetoothMapbMessageSms;
-import org.apache.http.message.BasicHeaderValueFormatter;
-import org.apache.http.message.BasicHeaderElement;
 
 /***
  *
@@ -494,12 +490,5 @@ public class BluetoothMapbMessageTest extends AndroidTestCase {
             assertTrue("Encoding failed.", true);
         }
     }
-
-    public void testHeaderEncode() {
-        BasicHeaderElement header = new BasicHeaderElement("To","Jørgen <joergen@hest.com>");
-        String headerStr = BasicHeaderValueFormatter.formatHeaderElement(header, true, BasicHeaderValueFormatter.DEFAULT);
-        if(D) Log.i(TAG, "The encoded header: " + headerStr);
-    }
-
 }
 
