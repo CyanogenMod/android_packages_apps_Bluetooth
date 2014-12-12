@@ -121,7 +121,7 @@ class HeadsetPhoneState {
 
             int subId = SubscriptionManager.getDefaultSubId();
 
-            if (SubscriptionManager.isValidSubId(subId)) {
+            if (SubscriptionManager.isValidSubscriptionId(subId)) {
                 mPhoneStateListener = getPhoneStateListener(subId);
 
                 mTelephonyManager.listen(mPhoneStateListener,
