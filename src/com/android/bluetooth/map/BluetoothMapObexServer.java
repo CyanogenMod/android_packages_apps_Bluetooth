@@ -212,17 +212,15 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                         " = " + parentFolder.getEmailFolderId();
         Cursor c = mProviderClient.query(mEmailFolderUri,
                         BluetoothMapContract.BT_FOLDER_PROJECTION, where, null, null);
-        if (c != null) {
-            c.moveToPosition(-1);
-            while (c.moveToNext()) {
+        try {
+            while (c != null && c.moveToNext()) {
                 String name = c.getString(c.getColumnIndex(BluetoothMapContract.FolderColumns.NAME));
                 long id = c.getLong(c.getColumnIndex(BluetoothMapContract.FolderColumns._ID));
                 newFolder = parentFolder.addEmailFolder(name, id);
                 addEmailFolders(newFolder); // Use recursion to add any sub folders
             }
-            c.close();
-        } else {
-            if (D) Log.d(TAG, "addEmailFolders(): no elements found");
+        } finally {
+            if (c != null) c.close();
         }
     }
 
