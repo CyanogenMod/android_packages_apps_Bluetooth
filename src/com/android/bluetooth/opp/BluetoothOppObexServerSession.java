@@ -416,7 +416,8 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
         boolean needConfirm = true;
         /** It's not first put if !serverBlocking, so we auto accept it */
-        if (!mServerBlocking && mAccepted == BluetoothShare.USER_CONFIRMATION_CONFIRMED) {
+        if (!mServerBlocking && (mAccepted == BluetoothShare.USER_CONFIRMATION_CONFIRMED ||
+                mAccepted == BluetoothShare.USER_CONFIRMATION_AUTO_CONFIRMED)) {
             values.put(BluetoothShare.USER_CONFIRMATION,
                     BluetoothShare.USER_CONFIRMATION_AUTO_CONFIRMED);
             needConfirm = false;
