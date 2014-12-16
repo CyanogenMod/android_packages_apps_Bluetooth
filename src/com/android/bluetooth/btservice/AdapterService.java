@@ -1062,9 +1062,8 @@ public class AdapterService extends Service {
         }
 
         public boolean configHciSnoopLog(boolean enable) {
-            if ((Binder.getCallingUid() != Process.SYSTEM_UID) &&
-                (!Utils.checkCaller())) {
-                Log.w(TAG, "configHciSnoopLog() - Not allowed for non-active user");
+            if (Binder.getCallingUid() != Process.SYSTEM_UID) {
+                Log.w(TAG, "configHciSnoopLog() - Not allowed for non-system user");
                 return false;
             }
 
