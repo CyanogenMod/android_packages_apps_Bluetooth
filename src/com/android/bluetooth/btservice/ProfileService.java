@@ -174,7 +174,8 @@ public abstract class ProfileService extends Service {
     @Override
     public void onDestroy() {
         if (DBG) log("Destroying service.");
-        mAdapterService.removeProfile(this);
+        if (mAdapterService != null) mAdapterService.removeProfile(this);
+
         if (mCleaningUp) {
             if (DBG) log("Cleanup already started... Skipping cleanup()...");
         } else {
