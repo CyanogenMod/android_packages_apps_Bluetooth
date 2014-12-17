@@ -52,6 +52,7 @@ import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.provider.Settings;
+import android.util.EventLog;
 import android.util.Log;
 import android.util.Pair;
 
@@ -1076,7 +1077,8 @@ public class AdapterService extends Service {
 
         public boolean configHciSnoopLog(boolean enable) {
             if (Binder.getCallingUid() != Process.SYSTEM_UID) {
-                Log.w(TAG, "configHciSnoopLog() - Not allowed for non-system user");
+                EventLog.writeEvent(0x534e4554 /* SNET */, "Bluetooth", Binder.getCallingUid(),
+                        "configHciSnoopLog() - Not allowed for non-active user b/18643224");
                 return false;
             }
 
