@@ -78,6 +78,13 @@ public class GattService extends ProfileService {
     private static final int ADVT_STATE_ONFOUND = 0;
     private static final int ADVT_STATE_ONLOST = 1;
 
+    private static final UUID[] HID_UUIDS = {
+        UUID.fromString("00002A4A-0000-1000-8000-00805F9B34FB"),
+        UUID.fromString("00002A4B-0000-1000-8000-00805F9B34FB"),
+        UUID.fromString("00002A4C-0000-1000-8000-00805F9B34FB"),
+        UUID.fromString("00002A4D-0000-1000-8000-00805F9B34FB")
+    };
+
     /**
      * Search queue to serialize remote onbject inspection.
      */
@@ -807,6 +814,12 @@ public class GattService extends ProfileService {
         if (VDBG) Log.d(TAG, "onNotify() - address=" + address
             + ", charUuid=" + charUuid + ", length=" + data.length);
 
+
+        if (isHidUuid(charUuid) &&
+               (0 != checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED))) {
+            return;
+        }
+
         ClientMap.App app = mClientMap.getByConnId(connId);
         if (app != null) {
             app.callback.onNotify(address, srvcType,
@@ -1405,6 +1418,7 @@ public class GattService extends ProfileService {
                             int srvcInstanceId, UUID srvcUuid,
                             int charInstanceId, UUID charUuid, int authReq) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (isHidUuid(charUuid)) enforcePrivilegedPermission();
 
         if (VDBG) Log.d(TAG, "readCharacteristic() - address=" + address);
 
@@ -1424,6 +1438,7 @@ public class GattService extends ProfileService {
                              int charInstanceId, UUID charUuid, int writeType,
                              int authReq, byte[] value) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (isHidUuid(charUuid)) enforcePrivilegedPermission();
 
         if (VDBG) Log.d(TAG, "writeCharacteristic() - address=" + address);
 
@@ -1446,6 +1461,7 @@ public class GattService extends ProfileService {
                             int descrInstanceId, UUID descrUuid,
                             int authReq) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (isHidUuid(charUuid)) enforcePrivilegedPermission();
 
         if (VDBG) Log.d(TAG, "readDescriptor() - address=" + address);
 
@@ -1469,6 +1485,7 @@ public class GattService extends ProfileService {
                             int descrInstanceId, UUID descrUuid,
                             int writeType, int authReq, byte[] value) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (isHidUuid(charUuid)) enforcePrivilegedPermission();
 
         if (VDBG) Log.d(TAG, "writeDescriptor() - address=" + address);
 
@@ -1509,6 +1526,7 @@ public class GattService extends ProfileService {
                 int charInstanceId, UUID charUuid,
                 boolean enable) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (isHidUuid(charUuid)) enforcePrivilegedPermission();
 
         if (DBG) Log.d(TAG, "registerForNotification() - address=" + address + " enable: " + enable);
 
@@ -1981,6 +1999,13 @@ public class GattService extends ProfileService {
     /**************************************************************************
      * Private functions
      *************************************************************************/
+
+    private boolean isHidUuid(final UUID uuid) {
+        for (UUID hid_uuid : HID_UUIDS) {
+            if (hid_uuid.equals(uuid)) return true;
+        }
+        return false;
+    }
 
     private int getDeviceType(BluetoothDevice device) {
         int type = gattClientGetDeviceTypeNative(device.getAddress());
