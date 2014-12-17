@@ -25,6 +25,7 @@ import android.content.ContextWrapper;
 import android.content.pm.UserInfo;
 import android.os.Binder;
 import android.os.ParcelUuid;
+import android.os.Process;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.util.Log;
@@ -205,10 +206,10 @@ final public class Utils {
             int foregroundUser = ActivityManager.getCurrentUser();
             ok = (foregroundUser == callingUser);
             if (!ok) {
-                // Always allow SystemUI access.
+                // Always allow SystemUI/System access.
                 int systemUiUid = ActivityThread.getPackageManager().getPackageUid(
                         "com.android.systemui", UserHandle.USER_OWNER);
-                ok = systemUiUid == callingUid;
+                ok = (systemUiUid == callingUid) || (Process.SYSTEM_UID == callingUid);
             }
         } catch (Exception ex) {
             Log.e(TAG, "checkIfCallerIsSelfOrForegroundUser: Exception ex=" + ex);
@@ -239,10 +240,10 @@ final public class Utils {
             ok = (foregroundUser == callingUser) ||
                     (foregroundUser == parentUser);
             if (!ok) {
-                // Always allow SystemUI access.
+                // Always allow SystemUI/System access.
                 int systemUiUid = ActivityThread.getPackageManager().getPackageUid(
                         "com.android.systemui", UserHandle.USER_OWNER);
-                ok = systemUiUid == callingUid;
+                ok = (systemUiUid == callingUid) || (Process.SYSTEM_UID == callingUid);
             }
         } catch (Exception ex) {
             Log.e(TAG, "checkCallerAllowManagedProfiles: Exception ex=" + ex);
