@@ -1218,6 +1218,12 @@ final class HeadsetStateMachine extends StateMachine {
 
             switch (state) {
                 case HeadsetHalConstants.AUDIO_STATE_CONNECTED:
+                    if (!isScoAcceptable()) {
+                        Log.e(TAG,"Audio Connected without any listener");
+                        disconnectAudioNative(getByteAddress(device));
+                        break;
+                    }
+
                     // TODO(BT) should I save the state for next broadcast as the prevState?
                     mAudioState = BluetoothHeadset.STATE_AUDIO_CONNECTED;
                     setAudioParameters(device); /*Set proper Audio Paramters.*/
@@ -1458,7 +1464,9 @@ final class HeadsetStateMachine extends StateMachine {
                     processLocalVrEvent(HeadsetHalConstants.VR_STATE_STOPPED);
                     break;
                 case INTENT_SCO_VOLUME_CHANGED:
-                    processIntentScoVolume((Intent) message.obj, mActiveScoDevice);
+                    if (mActiveScoDevice != null) {
+                        processIntentScoVolume((Intent) message.obj, mActiveScoDevice);
+                    }
                     break;
                 case CALL_STATE_CHANGED:
                     processCallState((HeadsetCallState) message.obj, ((message.arg1 == 1)?true:false));
@@ -1839,6 +1847,11 @@ final class HeadsetStateMachine extends StateMachine {
                         processLocalVrEvent(HeadsetHalConstants.VR_STATE_STOPPED);
                     }
                     break;
+                case INTENT_SCO_VOLUME_CHANGED:
+                    if (mActiveScoDevice != null) {
+                        processIntentScoVolume((Intent) message.obj, mActiveScoDevice);
+                    }
+                    break;
                 case INTENT_BATTERY_CHANGED:
                     processIntentBatteryChanged((Intent) message.obj);
                     break;
@@ -2184,6 +2197,11 @@ final class HeadsetStateMachine extends StateMachine {
 
             switch (state) {
                 case HeadsetHalConstants.AUDIO_STATE_CONNECTED:
+                    if (!isScoAcceptable()) {
+                        Log.e(TAG,"Audio Connected without any listener");
+                        disconnectAudioNative(getByteAddress(device));
+                        break;
+                    }
                     mAudioState = BluetoothHeadset.STATE_AUDIO_CONNECTED;
                     setAudioParameters(device); /* Set proper Audio Parameters. */
                     mAudioManager.setBluetoothScoOn(true);
@@ -2250,6 +2268,16 @@ final class HeadsetStateMachine extends StateMachine {
                 Log.e(TAG, "Handsfree phone proxy null for query phone state");
             }
         }
+
+        private void processIntentScoVolume(Intent intent, BluetoothDevice device) {
+            int volumeValue = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE, 0);
+            if (mPhoneState.getSpeakerVolume() != volumeValue) {
+                mPhoneState.setSpeakerVolume(volumeValue);
+                setVolumeNative(HeadsetHalConstants.VOLUME_TYPE_SPK,
+                                    volumeValue, getByteAddress(device));
+            }
+        }
+
         private void processMultiHFDisconnect(BluetoothDevice device) {
             log("MultiHFPending state: processMultiHFDisconnect");
             if (mActiveScoDevice != null && mActiveScoDevice.equals(device)) {
@@ -2390,10 +2418,16 @@ final class HeadsetStateMachine extends StateMachine {
     }
 
     public boolean isBluetoothVoiceDialingEnabled( BluetoothDevice device) {
-        int RemoteBrsf = mHeadsetBrsf.get(device);
-        Log.d(TAG, "isBluetoothVoiceDialingEnabled mRemoteBrsf: " + RemoteBrsf +
-                    "supported: " + (RemoteBrsf & BRSF_HF_VOICE_REG_ACT));
-        return ((RemoteBrsf & BRSF_HF_VOICE_REG_ACT) != 0x0) ? true : false;
+        int remoteBrsf = 0;
+        if (mHeadsetBrsf != null && !mHeadsetBrsf.isEmpty()) {
+            remoteBrsf = mHeadsetBrsf.get(device);
+        } else {
+            Log.e(TAG,"remote device supported features not found");
+            return false;
+        }
+        Log.d(TAG, "isBluetoothVoiceDialingEnabled mRemoteBrsf: " + remoteBrsf +
+                    "supported: " + (remoteBrsf & BRSF_HF_VOICE_REG_ACT));
+        return ((remoteBrsf & BRSF_HF_VOICE_REG_ACT) != 0x0) ? true : false;
     }
 
     int getAudioState(BluetoothDevice device) {
@@ -2495,7 +2529,11 @@ final class HeadsetStateMachine extends StateMachine {
                 // Whereas for VoiceDial we want to activate the SCO connection but we are still
                 // in MODE_NORMAL and hence the need to explicitly suspend the A2DP stream
                 mAudioManager.setParameters("A2dpSuspended=true");
-                connectAudioNative(getByteAddress(device));
+                if (device != null) {
+                    connectAudioNative(getByteAddress(device));
+                } else {
+                    Log.e(TAG, "device not found for VR");
+                }
             }
 
             if (mStartVoiceRecognitionWakeLock.isHeld()) {
@@ -2663,9 +2701,15 @@ final class HeadsetStateMachine extends StateMachine {
     {
         // 1. update nrec value
         // 2. update headset name
+        int mCodec = 0;
+        int mNrec = 0;
         HashMap<String, Integer> AudioParam = mHeadsetAudioParam.get(device);
-        int mCodec = AudioParam.get("codec");
-        int mNrec = AudioParam.get("NREC");
+        if (AudioParam != null && !AudioParam.isEmpty()) {
+            mCodec = AudioParam.get("codec");
+            mNrec = AudioParam.get("NREC");
+        } else {
+            Log.e(TAG,"setAudioParameters: AudioParam not found");
+        }
         if (mCodec != WBS_CODEC) {
             Log.d(TAG, "Use NBS PCM samples:" + device);
             mAudioManager.setParameters(HEADSET_WBS + "=off");
@@ -3002,8 +3046,7 @@ final class HeadsetStateMachine extends StateMachine {
         mPhoneState.setCallState(callState.mCallState);
         mPhoneState.setNumber(callState.mNumber);
         mPhoneState.setType(callState.mType);
-        if (mDialingOut) {
-            if (callState.mCallState ==
+        if (mDialingOut && callState.mCallState ==
                 HeadsetHalConstants.CALL_STATE_DIALING) {
                 BluetoothDevice device = getDeviceForMessage(DIALING_OUT_TIMEOUT);
                 if (device == null) {
@@ -3012,11 +3055,7 @@ final class HeadsetStateMachine extends StateMachine {
                 atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK,
                                                        0, getByteAddress(device));
                 removeMessages(DIALING_OUT_TIMEOUT);
-            } else if (callState.mCallState ==
-                HeadsetHalConstants.CALL_STATE_ACTIVE || callState.mCallState
-                == HeadsetHalConstants.CALL_STATE_IDLE) {				
                 mDialingOut = false;
-            } 
         }
 
         /* Set ActiveScoDevice to null when call ends */
@@ -3087,18 +3126,27 @@ final class HeadsetStateMachine extends StateMachine {
     // 0 disable noice reduction
     private void processNoiceReductionEvent(int enable, BluetoothDevice device) {
         HashMap<String, Integer> AudioParamNrec = mHeadsetAudioParam.get(device);
-        if (enable == 1)
-            AudioParamNrec.put("NREC", 1);
-        else
-            AudioParamNrec.put("NREC", 0);
-        log("NREC value for device :" + device + " is: " + AudioParamNrec.get("NREC"));
+        if (AudioParamNrec != null && !AudioParamNrec.isEmpty()) {
+            if (enable == 1)
+                AudioParamNrec.put("NREC", 1);
+            else
+                AudioParamNrec.put("NREC", 0);
+            log("NREC value for device :" + device + " is: " +
+                    AudioParamNrec.get("NREC"));
+        } else {
+            Log.e(TAG,"processNoiceReductionEvent: AudioParamNrec is null ");
+        }
     }
 
     // 2 - WBS on
     // 1 - NBS on
     private void processWBSEvent(int enable, BluetoothDevice device) {
         HashMap<String, Integer> AudioParamCodec = mHeadsetAudioParam.get(device);
-        AudioParamCodec.put("codec", enable);
+        if (AudioParamCodec != null && !AudioParamCodec.isEmpty()) {
+            AudioParamCodec.put("codec", enable);
+        } else {
+            Log.e(TAG,"processWBSEvent: AudioParamNrec is null ");
+        }
         if (enable == 2) {
             Log.d(TAG, "AudioManager.setParameters bt_wbs=on for " +
                         device.getName() + " - " + device.getAddress());
@@ -3613,6 +3661,14 @@ final class HeadsetStateMachine extends StateMachine {
     private boolean isInCall() {
         return ((mPhoneState.getNumActiveCall() > 0) || (mPhoneState.getNumHeldCall() > 0) ||
                 (mPhoneState.getCallState() != HeadsetHalConstants.CALL_STATE_IDLE));
+    }
+
+    // Accept incoming SCO only when there is active call, VR activated,
+    // active VOIP call and Incoming call with inband ringtone supported
+    private boolean isScoAcceptable() {
+        return (((mPhoneState.getCallState() == HeadsetHalConstants.CALL_STATE_INCOMING) &&
+                ((mLocalBrsf & BRSF_AG_IN_BAND_RING) != 0)) || mVoiceRecognitionStarted ||
+                 isInCall());
     }
 
     boolean isConnected() {

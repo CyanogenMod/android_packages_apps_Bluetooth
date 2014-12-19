@@ -351,7 +351,7 @@ final class RemoteDevices {
             device = getDeviceProperties(bdDevice);
         }
 
-        for (int j = 0; j < types.length; j++) {
+        for (int j = 0; j < types.length && device != null; j++) {
             type = types[j];
             val = values[j];
             if(val.length <= 0)

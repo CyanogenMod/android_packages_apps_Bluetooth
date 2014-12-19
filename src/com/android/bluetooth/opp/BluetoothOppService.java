@@ -96,8 +96,6 @@ public class BluetoothOppService extends Service {
     /** Class to handle Notification Manager updates */
     private BluetoothOppNotification mNotifier;
 
-    private boolean mPendingUpdate;
-
     private UpdateThread mUpdateThread;
 
     private ArrayList<BluetoothOppShareInfo> mShares;
@@ -418,6 +416,17 @@ public class BluetoothOppService extends Service {
                         break;
                     case BluetoothAdapter.STATE_TURNING_OFF:
                         if (V) Log.v(TAG, "Receiver DISABLED_ACTION ");
+
+                        if (mUpdateThread != null) {
+                            try {
+                                mUpdateThread.interrupt();
+                                mUpdateThread.join();
+                                mUpdateThread = null;
+                            } catch (InterruptedException ie) {
+                                Log.e(TAG, "OPPService Thread join interrupted");
+                            }
+                        }
+
                         mNotifier.btOffNotification();
                         //FIX: Don't block main thread
                         /*
@@ -439,10 +448,10 @@ public class BluetoothOppService extends Service {
 
     private void updateFromProvider() {
         synchronized (BluetoothOppService.this) {
-            mPendingUpdate = true;
             if ((mUpdateThread == null) && (mAdapter != null)
                 && mAdapter.isEnabled()) {
                 if (V) Log.v(TAG, "Starting a new thread");
+                mPowerManager = (PowerManager)this.getSystemService(Context.POWER_SERVICE);
                 mUpdateThread = new UpdateThread();
                 mUpdateThread.start();
             }
@@ -459,25 +468,14 @@ public class BluetoothOppService extends Service {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
             boolean keepService = false;
-            for (;;) {
+            do {
                 synchronized (BluetoothOppService.this) {
                     if (mUpdateThread != this) {
                         throw new IllegalStateException(
                                 "multiple UpdateThreads in BluetoothOppService");
                     }
-                    if (V) Log.v(TAG, "pendingUpdate is " + mPendingUpdate + " keepUpdateThread is "
-                                + keepService + " sListenStarted is " + mListenStarted);
-                    if (!mPendingUpdate) {
-                        mUpdateThread = null;
-                        if (!keepService && !mListenStarted) {
-                            if (V) Log.v(TAG, "Need to stop self");
-                            stopSelf();
-                            break;
-                        }
-                        if (V) Log.v(TAG, "***returning from updatethread***");
-                        return;
-                    }
-                    mPendingUpdate = false;
+                    if (V) Log.v(TAG, "keepUpdateThread is " + keepService + " sListenStarted is "
+                            + mListenStarted);
                 }
                 Cursor cursor;
                 try {
@@ -612,6 +610,39 @@ public class BluetoothOppService extends Service {
 
                 cursor.close();
                 cursor = null;
+
+                if (V) {
+                    if (mServerSession != null) {
+                        Log.v(TAG, "Server Session is active");
+                    } else {
+                        Log.v(TAG, "No active Server Session");
+                    }
+
+                    if (mTransfer != null) {
+                        Log.v(TAG, "Client Session is active");
+                    } else {
+                        Log.v(TAG, "No active Client Session");
+                    }
+                }
+
+                try {
+                    if (((mServerSession != null) || (mTransfer != null))
+                            && mPowerManager.isScreenOn()) {
+                        Thread.sleep(BluetoothShare.UI_UPDATE_INTERVAL);
+                    }
+                } catch (InterruptedException e) {
+                    if (V) Log.v(TAG, "OppService Thread sleep is interrupted (1), exiting");
+                    return;
+                }
+            } while (mPowerManager.isScreenOn() && ((mServerSession != null) || (mTransfer != null)));
+
+            synchronized (BluetoothOppService.this) {
+                mUpdateThread = null;
+                if (!keepService && !mListenStarted) {
+                    if (V) Log.v(TAG, "Need to stop self");
+                    stopSelf();
+                }
+                if (V) Log.v(TAG, "***returning from updatethread***");
             }
         }
 
@@ -808,26 +839,12 @@ public class BluetoothOppService extends Service {
         info.mConfirm = newConfirm;
         int newStatus = cursor.getInt(statusColumn);
         int oldStatus = info.mStatus;
-        if (!BluetoothShare.isStatusCompleted(info.mStatus)
-                && BluetoothShare.isStatusCompleted(newStatus)) {
+        if (BluetoothShare.isStatusCompleted(info.mStatus)) {
             mNotifier.mNotificationMgr.cancel(info.mId);
         }
 
         if (V) Log.v(TAG," UpdateShare: oldStatus = " + oldStatus + " newStatus = " + newStatus);
         info.mStatus = newStatus;
-        if ((!BluetoothShare.isStatusCompleted(oldStatus))
-                && (BluetoothShare.isStatusCompleted(newStatus))) {
-            if (V) Log.v(TAG," UpdateShare: Share Completed: oldStatus = " + oldStatus + " newStatus = " + newStatus);
-            try {
-                if((info.mDirection == BluetoothShare.DIRECTION_OUTBOUND) && (mTransfer != null)) {
-                    mTransfer.markShareComplete(newStatus);
-                } else if (mServerTransfer != null) {
-                    mServerTransfer.markShareComplete(newStatus);
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Exception: updateShare: oldStatus: " + oldStatus + " newStatus: " + newStatus);
-            }
-        }
         info.mTotalBytes = cursor.getLong(cursor.getColumnIndexOrThrow(BluetoothShare.TOTAL_BYTES));
         info.mCurrentBytes = cursor.getLong(cursor
                 .getColumnIndexOrThrow(BluetoothShare.CURRENT_BYTES));

@@ -101,6 +101,16 @@ public class ScanManager {
         mRegularScanClients.clear();
         mBatchClients.clear();
         mScanNative.cleanup();
+
+        if (mHandler != null) {
+            // Shut down the thread
+            mHandler.removeCallbacksAndMessages(null);
+            Looper looper = mHandler.getLooper();
+            if (looper != null) {
+                looper.quit();
+            }
+            mHandler = null;
+        }
     }
 
     /**
@@ -351,14 +361,15 @@ public class ScanManager {
                     @Override
                 public void onReceive(Context context, Intent intent) {
                     Log.d(TAG, "awakened up at time " + SystemClock.elapsedRealtime());
-                    String action = intent.getAction();
-
-                    if (action.equals(ACTION_REFRESH_BATCHED_SCAN)) {
-                        if (mBatchClients.isEmpty()) {
-                            return;
+                    String action;
+                    if (null != (action = intent.getAction())) {
+                        if (action.equals(ACTION_REFRESH_BATCHED_SCAN)) {
+                            if (mBatchClients.isEmpty()) {
+                                return;
+                            }
+                            // Note this actually flushes all pending batch data.
+                            flushBatchScanResults(mBatchClients.iterator().next());
                         }
-                        // Note this actually flushes all pending batch data.
-                        flushBatchScanResults(mBatchClients.iterator().next());
                     }
                 }
             };
@@ -649,20 +660,24 @@ public class ScanManager {
                 waitForCallback();
             } else {
                 Deque<Integer> clientFilterIndices = new ArrayDeque<Integer>();
+                int featureSelection;
+                int filterIndex;
                 for (ScanFilter filter : client.filters) {
                     ScanFilterQueue queue = new ScanFilterQueue();
-                    queue.addScanFilter(filter);
-                    int featureSelection = queue.getFeatureSelection();
-                    int filterIndex = mFilterIndexStack.pop();
-                    while (!queue.isEmpty()) {
+                    if (null != queue) {
+                        queue.addScanFilter(filter);
+                        featureSelection = queue.getFeatureSelection();
+                        filterIndex = mFilterIndexStack.pop();
+                        while (!queue.isEmpty()) {
+                            resetCountDownLatch();
+                            addFilterToController(clientIf, queue.pop(), filterIndex);
+                            waitForCallback();
+                        }
                         resetCountDownLatch();
-                        addFilterToController(clientIf, queue.pop(), filterIndex);
+                        configureFilterParamter(clientIf, client, featureSelection, filterIndex);
                         waitForCallback();
+                        clientFilterIndices.add(filterIndex);
                     }
-                    resetCountDownLatch();
-                    configureFilterParamter(clientIf, client, featureSelection, filterIndex);
-                    waitForCallback();
-                    clientFilterIndices.add(filterIndex);
                 }
                 mClientFilterIndexMap.put(clientIf, clientFilterIndices);
             }
@@ -748,7 +763,7 @@ public class ScanManager {
             if (client.filters == null || client.filters.isEmpty()) {
                 return true;
             }
-            return client.filters.size() < mClientFilterIndexMap.size();
+            return false;
         }
 
         private void addFilterToController(int clientIf, ScanFilterQueue.Entry entry,
@@ -797,14 +812,16 @@ public class ScanManager {
         }
 
         private void initFilterIndexStack() {
-            int maxFiltersSupported =
-                    AdapterService.getAdapterService().getNumOfOffloadedScanFilterSupported();
-            // Start from index 3 as:
-            // index 0 is reserved for ALL_PASS filter in Settings app.
-            // index 1 is reserved for ALL_PASS filter for regular scan apps.
-            // index 2 is reserved for ALL_PASS filter for batch scan apps.
-            for (int i = 3; i < maxFiltersSupported; ++i) {
-                mFilterIndexStack.add(i);
+            AdapterService adapterService;
+            if (null != (adapterService = AdapterService.getAdapterService())) {
+                int maxFiltersSupported = adapterService.getNumOfOffloadedScanFilterSupported();
+                // Start from index 3 as:
+                // index 0 is reserved for ALL_PASS filter in Settings app.
+                // index 1 is reserved for ALL_PASS filter for regular scan apps.
+                // index 2 is reserved for ALL_PASS filter for batch scan apps.
+                for (int i = 3; i < maxFiltersSupported; ++i) {
+                    mFilterIndexStack.add(i);
+                }
             }
         }
 

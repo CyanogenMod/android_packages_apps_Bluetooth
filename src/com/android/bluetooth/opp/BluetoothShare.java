@@ -421,4 +421,16 @@ public final class BluetoothShare implements BaseColumns {
      */
     public static final int STATUS_CONNECTION_ERROR = 497;
 
+    /**
+     * Ongoing transfer progress update interval to 1 second
+     */
+    public static final int UI_UPDATE_INTERVAL = 1000;
+
+    /**
+     * Returns the throughput of the file transfer
+     */
+    public static float throughputInKbps(long fileSize, long timeDuration) {
+        float throughput = (float)(fileSize * 8 * 1000) / (timeDuration * 1024);
+        return throughput;
+    }
 }

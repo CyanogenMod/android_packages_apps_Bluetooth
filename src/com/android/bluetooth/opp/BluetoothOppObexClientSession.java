@@ -85,6 +85,8 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
     private Handler mCallback;
 
+    private PowerManager pm;
+
     private long position;
 
     public BluetoothOppObexClientSession(Context context, ObexTransport transport) {
@@ -133,7 +135,6 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
     }
     private class ContentResolverUpdateThread extends Thread {
 
-        private static final int sSleepTime = 1000;
         private Uri contentUri;
         private Context mContext1;
         private volatile boolean interrupted = false;
@@ -150,10 +151,12 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             ContentValues updateValues;
 
             while (true) {
-                updateValues = new ContentValues();
-                updateValues.put(BluetoothShare.CURRENT_BYTES, position);
-                mContext1.getContentResolver().update(contentUri, updateValues,
-                        null, null);
+                if (pm.isScreenOn()) {
+                    updateValues = new ContentValues();
+                    updateValues.put(BluetoothShare.CURRENT_BYTES, position);
+                    mContext1.getContentResolver().update(contentUri, updateValues,
+                            null, null);
+                }
 
                 /* Check if the Operation is interrupted before entering sleep */
                 if (interrupted == true) {
@@ -162,7 +165,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                 }
 
                 try {
-                    Thread.sleep(sSleepTime);
+                    Thread.sleep(BluetoothShare.UI_UPDATE_INTERVAL);
                 } catch (InterruptedException e1) {
                     if (V) Log.v(TAG, "ContentResolverUpdateThread was interrupted (1), exiting");
                     return;
@@ -208,7 +211,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             waitingForShare = true;
             mWaitingForRemote = false;
             mNumShares = initialNumShares;
-            PowerManager pm = (PowerManager)mContext1.getSystemService(Context.POWER_SERVICE);
+            pm = (PowerManager)mContext1.getSystemService(Context.POWER_SERVICE);
             wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
         }
 
@@ -362,6 +365,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             if (status == BluetoothShare.STATUS_SUCCESS) {
                 Message msg = Message.obtain(mCallback);
                 msg.what = BluetoothOppObexSession.MSG_SHARE_COMPLETE;
+                mInfo.mStatus = status;
                 msg.obj = mInfo;
                 msg.sendToTarget();
             } else {
@@ -628,7 +632,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
                                 if (uiUpdateThread == null) {
                                     uiUpdateThread = new ContentResolverUpdateThread(mContext1,
-                                        contentUri);
+                                            contentUri);
                                     if (V) Log.v(TAG, "Worker for Updation : Created");
                                     uiUpdateThread.start();
                                 }
@@ -664,8 +668,11 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     } else if (!mInterrupted && position == fileInfo.mLength) {
                         long endTime = System.currentTimeMillis();
                         Log.i(TAG, "SendFile finished sending file " + fileInfo.mFileName
-                                + " length " + fileInfo.mLength
-                                + "Bytes in " + (endTime - beginTime) + "ms"  );
+                                + " length " + fileInfo.mLength + " Bytes. Approx. throughput is "
+                                + BluetoothShare.throughputInKbps(fileInfo.mLength,
+                                        (endTime - beginTime))
+                                + " Kbps");
+                        status = BluetoothShare.STATUS_SUCCESS;
                         outputStream.close();
                     } else {
                         error = true;

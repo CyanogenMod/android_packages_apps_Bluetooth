@@ -619,7 +619,7 @@ final class A2dpSinkStateMachine extends StateMachine {
                     mPlayingDevice = null;
                     broadcastAudioState(device, BluetoothA2dpSink.STATE_NOT_PLAYING,
                                         BluetoothA2dpSink.STATE_PLAYING);
-                    if ((mAudioFocusAcquired == AUDIO_FOCUS_LOSS_TRANSIENT) ||
+                    if ((mAudioFocusAcquired == AUDIO_FOCUS_LOSS_TRANSIENT) &&
                                      (state == AUDIO_STATE_REMOTE_SUSPEND)) {
                         log(" Dont't Loose audiofocus in case of suspend ");
                         break;

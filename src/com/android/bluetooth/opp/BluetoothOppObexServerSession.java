@@ -110,20 +110,22 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     private BluetoothOppReceiveFileInfo mFileInfo;
 
+    private PowerManager pm;
+
     private WakeLock mWakeLock;
 
     private WakeLock mPartialWakeLock;
+
+    private long position;
 
     boolean mTimeoutMsgSent = false;
 
     boolean mTransferInProgress = false;
 
-    private int position;
-
     public BluetoothOppObexServerSession(Context context, ObexTransport transport) {
         mContext = context;
         mTransport = transport;
-        PowerManager pm = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
+        pm = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
         mWakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP
                 | PowerManager.ON_AFTER_RELEASE, TAG);
         mPartialWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
@@ -194,7 +196,6 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     private class ContentResolverUpdateThread extends Thread {
 
-        private static final int sSleepTime = 1000;
         private Uri contentUri;
         private Context mContext1;
         private volatile boolean interrupted = false;
@@ -210,10 +211,12 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             ContentValues updateValues;
             while (true) {
-                updateValues = new ContentValues();
-                updateValues.put(BluetoothShare.CURRENT_BYTES, position);
-                mContext1.getContentResolver().update(contentUri, updateValues,
-                        null, null);
+                if (pm.isScreenOn()) {
+                    updateValues = new ContentValues();
+                    updateValues.put(BluetoothShare.CURRENT_BYTES, position);
+                    mContext1.getContentResolver().update(contentUri, updateValues,
+                            null, null);
+                }
 
                 /* Check if the Operation is interrupted before entering sleep */
                 if (interrupted == true) {
@@ -222,7 +225,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                 }
 
                 try {
-                    Thread.sleep(sSleepTime);
+                    Thread.sleep(BluetoothShare.UI_UPDATE_INTERVAL);
                 } catch (InterruptedException e1) {
                     if (V) Log.v(TAG, "Server ContentResolverUpdateThread was interrupted (1), exiting");
                     return;
@@ -381,9 +384,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
         values.put(BluetoothShare.FILENAME_HINT, name);
 
-        if (length != null) {
-            values.put(BluetoothShare.TOTAL_BYTES, length.intValue());
-        }
+        values.put(BluetoothShare.TOTAL_BYTES, length);
 
         values.put(BluetoothShare.MIMETYPE, mimeType);
 
@@ -661,8 +662,9 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             if (position == fileInfo.mLength) {
                 long endTime = System.currentTimeMillis();
                 Log.i(TAG, "Receiving file completed for " + fileInfo.mFileName
-                        + " length " + fileInfo.mLength
-                        + " Bytes in " + (endTime - beginTime) + "ms"  );
+                        + " length " + fileInfo.mLength + " Bytes. Approx. throughput is "
+                        + BluetoothShare.throughputInKbps(fileInfo.mLength, (endTime - beginTime))
+                        + " Kbps");
                 status = BluetoothShare.STATUS_SUCCESS;
             } else {
                 Log.i(TAG, "Reading file failed at " + position + " of " + fileInfo.mLength);

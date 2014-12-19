@@ -45,6 +45,7 @@ import android.database.sqlite.SQLiteException;
 import android.content.res.Resources.NotFoundException;
 import android.net.Uri;
 import android.util.Log;
+import android.os.PowerManager;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Process;
@@ -102,7 +103,7 @@ class BluetoothOppNotification {
 
     private NotificationUpdateThread mUpdateNotificationThread;
 
-    private int mPendingUpdate = 0;
+    private PowerManager mPowerManager;
 
     private static final int NOTIFICATION_ID_OUTBOUND = -1000005;
 
@@ -111,8 +112,10 @@ class BluetoothOppNotification {
     private boolean mOutboundUpdateCompleteNotification = true;
     private boolean mInboundUpdateCompleteNotification = true;
 
+    private int confirmation = 0;
     private int mInboundActiveNotificationId = 0;
     private int mOutboundActiveNotificationId = 0;
+    private int mRunning = 0;
 
     private int mIncomingShownId = 0;
 
@@ -148,6 +151,7 @@ class BluetoothOppNotification {
         mNotificationMgr = (NotificationManager)mContext
                 .getSystemService(Context.NOTIFICATION_SERVICE);
         mNotifications = new HashMap<String, NotificationItem>();
+        mPowerManager = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
     }
 
     /**
@@ -155,14 +159,10 @@ class BluetoothOppNotification {
      */
     public void updateNotification() {
         synchronized (BluetoothOppNotification.this) {
-            mPendingUpdate++;
-            if (mPendingUpdate > 1) {
-                if (V) Log.v(TAG, "update too frequent, put in queue");
-                return;
-            }
-            if (!mHandler.hasMessages(NOTIFY)) {
-                if (V) Log.v(TAG, "send message");
-                mHandler.sendMessage(mHandler.obtainMessage(NOTIFY));
+            if (mUpdateNotificationThread == null) {
+                if (V) Log.v(TAG, "new notify thread!!!");
+                mUpdateNotificationThread = new NotificationUpdateThread();
+                mUpdateNotificationThread.start();
             }
         }
     }
@@ -170,44 +170,23 @@ class BluetoothOppNotification {
     public void btOffNotification() {
         if (V) Log.v(TAG, "Update Notification while BT is Turning OFF");
         synchronized (BluetoothOppNotification.this) {
+            if (mUpdateNotificationThread != null) {
+                try {
+                    mUpdateNotificationThread.interrupt();
+                    mUpdateNotificationThread.join();
+                    mUpdateNotificationThread = null;
+                } catch (InterruptedException ie) {
+                    Log.e(TAG, "Notification thread join interrupted");
+                }
+            }
+
             updateActiveNotification();
-            mPendingUpdate = 0;
             mInboundUpdateCompleteNotification = true;
             mOutboundUpdateCompleteNotification = true;
             updateCompletedNotification();
-            mPendingUpdate = 0;
             cancelIncomingFileConfirmNotification();
         }
     }
-
-    private static final int NOTIFY = 0;
-    // Use 1 second timer to limit notification frequency.
-    // 1. On the first notification, create the update thread.
-    //    Buffer other updates.
-    // 2. Update thread will clear mPendingUpdate.
-    // 3. Handler sends a delayed message to self
-    // 4. Handler checks if there are any more updates after 1 second.
-    // 5. If there is an update, update it else stop.
-    private Handler mHandler = new Handler() {
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case NOTIFY:
-                    synchronized (BluetoothOppNotification.this) {
-                        if (mPendingUpdate > 0 && mUpdateNotificationThread == null) {
-                            if (V) Log.v(TAG, "new notify threadi!");
-                            mUpdateNotificationThread = new NotificationUpdateThread();
-                            mUpdateNotificationThread.start();
-                            if (V) Log.v(TAG, "send delay message");
-                            mHandler.sendMessageDelayed(mHandler.obtainMessage(NOTIFY), 1000);
-                        } else if (mPendingUpdate > 0) {
-                            if (V) Log.v(TAG, "previous thread is not finished yet");
-                            mHandler.sendMessageDelayed(mHandler.obtainMessage(NOTIFY), 1000);
-                        }
-                        break;
-                    }
-              }
-         }
-    };
 
     private class NotificationUpdateThread extends Thread {
 
@@ -218,18 +197,35 @@ class BluetoothOppNotification {
         @Override
         public void run() {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-            synchronized (BluetoothOppNotification.this) {
-                if (mUpdateNotificationThread != this) {
-                    throw new IllegalStateException(
-                            "multiple UpdateThreads in BluetoothOppNotification");
+            do {
+                synchronized (BluetoothOppNotification.this) {
+                    if (mUpdateNotificationThread != this) {
+                        throw new IllegalStateException(
+                                "multiple UpdateThreads in BluetoothOppNotification");
+                    }
                 }
-                mPendingUpdate = 0;
-            }
-            updateActiveNotification();
-            updateCompletedNotification();
-            updateIncomingFileConfirmNotification();
+
+                updateActiveNotification();
+                updateCompletedNotification();
+                updateIncomingFileConfirmNotification();
+
+                try {
+                    if ((confirmation == BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED)
+                            || mPowerManager.isScreenOn()) {
+                        Thread.sleep(BluetoothShare.UI_UPDATE_INTERVAL);
+                    }
+                } catch (InterruptedException e) {
+                    if (V) Log.v(TAG, "NotificationThread sleep is interrupted (1), exiting");
+                    return;
+                }
+
+                if (V) Log.v(TAG, "Running = " + mRunning);
+            } while ((mRunning > 0) && (mPowerManager.isScreenOn()
+                    || (confirmation == BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED)));
+
             synchronized (BluetoothOppNotification.this) {
                 mUpdateNotificationThread = null;
+                if (V) Log.v(TAG, "NotificationThread is stopped!!!");
             }
         }
     }
@@ -258,6 +254,7 @@ class BluetoothOppNotification {
 
             cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
                     WHERE_RUNNING, null, BluetoothShare._ID);
+            mRunning  = cursor.getCount();
         } catch (SQLiteException e) {
             cursor = null;
             Log.e(TAG, "SQLite exception: " + e);
@@ -317,7 +314,7 @@ class BluetoothOppNotification {
                 int id = cursor.getInt(idIndex);
                 long total = cursor.getLong(totalBytesIndex);
                 long current = cursor.getLong(currentBytesIndex);
-                int confirmation = cursor.getInt(confirmIndex);
+                confirmation = cursor.getInt(confirmIndex);
 
                 String destination = cursor.getString(destinationIndex);
                 String fileName = cursor.getString(dataIndex);
@@ -385,6 +382,7 @@ class BluetoothOppNotification {
                 intent.putExtra(Constants.EXTRA_BT_OPP_TRANSFER_PROGRESS, progress);
                 intent.putExtra(Constants.EXTRA_BT_OPP_ADDRESS, item.destination);
                 mContext.sendBroadcast(intent, Constants.HANDOVER_STATUS_PERMISSION);
+                if (V) Log.v(TAG, "Handover OPP transfer is inprogress");
                 continue;
             }
             // Build the notification object
