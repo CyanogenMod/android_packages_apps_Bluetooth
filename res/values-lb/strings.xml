@@ -40,8 +40,8 @@
   <string name="incoming_file_confirm_Notification_caption">Wëlls du dëse Fichier emfänken?</string>
   <string name="incoming_file_toast_msg">Et kënnt e Fichier vun engem aneren Apparat eran.
         Bestäteg datt s du dëse Fichier empfänke wëlls.</string>
-  <string name="notification_receiving">Bluetooth-Fräigab: <xliff:g id="file">%1$s</xliff:g> gëtt emfaangen</string>
-  <string name="notification_received">Bluetooth-Fräigab: <xliff:g id="file">%1$s</xliff:g> emfaangen</string>
+  <string name="notification_receiving">Bluetooth-Fräigab: <xliff:g id="file">%1$s</xliff:g> gëtt empfaangen</string>
+  <string name="notification_received">Bluetooth-Fräigab: <xliff:g id="file">%1$s</xliff:g> empfaangen</string>
   <string name="notification_received_fail">Bluetooth-Fräigab: Fichier <xliff:g id="file">%1$s</xliff:g> net empfaangen</string>
   <string name="notification_sending">Bluetooth-Fräigab: <xliff:g id="file">%1$s</xliff:g> gëtt geschéckt</string>
   <string name="notification_sent">Bluetooth-Fräigab: <xliff:g id="file">%1$s</xliff:g> geschéckt</string>
@@ -51,7 +51,7 @@
   <string name="download_line1">Vum: \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022</string>
   <string name="download_line2">Fichier: <xliff:g id="file">%1$s</xliff:g></string>
   <string name="download_line3">Fichiersgréisst: <xliff:g id="size">%1$s</xliff:g></string>
-  <string name="download_line5">Fichier gëtt emfaangen\u2026</string>
+  <string name="download_line5">Fichier gëtt empfaangen\u2026</string>
   <string name="download_cancel">Stoppen</string>
   <string name="download_ok">Verstoppen</string>
   <string name="download_fail_line1">Fichier net empfaangen</string>
