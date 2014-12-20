@@ -449,7 +449,8 @@ public final class Avrcp {
                             } else {
                                SendSetPlayerAppRspNative(INTERNAL_ERROR);
                             }
-                        } else if (mPlayerStatusChangeNT == NOTIFICATION_TYPE_INTERIM) {
+                        }
+                        if (mPlayerStatusChangeNT == NOTIFICATION_TYPE_INTERIM) {
                             Log.v(TAG,"Send Player appl attribute changed response");
                             mPlayerStatusChangeNT = NOTIFICATION_TYPE_CHANGED;
                             sendPlayerAppChangedRsp(mPlayerStatusChangeNT);
