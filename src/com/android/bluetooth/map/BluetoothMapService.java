@@ -368,7 +368,8 @@ public class BluetoothMapService extends ProfileService {
                         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
                         intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                         BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
-                        sendBroadcast(intent);
+                        intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+                        sendBroadcast(intent, BLUETOOTH_PERM);
                         cancelUserTimeoutAlarm();
                         mIsWaitingAuthorization = false;
                         stopObexServerSessions(-1);
@@ -887,6 +888,7 @@ public class BluetoothMapService extends ProfileService {
             intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                             BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+            intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
             sendOrderedBroadcast(intent, BLUETOOTH_ADMIN_PERM);
 
             if (VERBOSE) Log.v(TAG, "waiting for authorization for connection from: "
@@ -1146,9 +1148,11 @@ public class BluetoothMapService extends ProfileService {
 
                     Intent timeoutIntent =
                             new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
+                    timeoutIntent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
                     timeoutIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
                     timeoutIntent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                            BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
+                    timeoutIntent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
                     sendBroadcast(timeoutIntent, BLUETOOTH_PERM);
                     mIsWaitingAuthorization = false;
                     cancelUserTimeoutAlarm();
