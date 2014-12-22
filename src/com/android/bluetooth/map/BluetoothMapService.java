@@ -246,6 +246,7 @@ public class BluetoothMapService extends ProfileService {
                     intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
                     intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                     BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
+                    intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
                     sendBroadcast(intent, BLUETOOTH_PERM);
                     isWaitingAuthorization = false;
                     removeTimeoutMsg = false;
@@ -967,6 +968,7 @@ public class BluetoothMapService extends ProfileService {
                       intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                       BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
                       intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+                      intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
                       sendBroadcast(intent, BLUETOOTH_ADMIN_PERM);
 
                       if (DEBUG) Log.d(TAG, "waiting for authorization for connection from: "
@@ -1014,6 +1016,7 @@ public class BluetoothMapService extends ProfileService {
                         timeoutIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
                         timeoutIntent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                                BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
+                        intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
                         sendBroadcast(timeoutIntent, BLUETOOTH_PERM);
                         isWaitingAuthorization = false;
                         removeTimeoutMsg = false;
@@ -1091,6 +1094,7 @@ public class BluetoothMapService extends ProfileService {
                     timeoutIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
                     timeoutIntent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                            BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
+                    intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
                     sendBroadcast(timeoutIntent, BLUETOOTH_PERM);
                     isWaitingAuthorization = false;
                     removeTimeoutMsg = false;
