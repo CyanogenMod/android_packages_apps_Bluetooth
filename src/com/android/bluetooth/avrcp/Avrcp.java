@@ -327,7 +327,7 @@ public final class Avrcp {
         mAvailablePlayersChangedNT = NOTIFICATION_TYPE_CHANGED;
         mNowPlayingContentChangedNT = NOTIFICATION_TYPE_CHANGED;
         mTrackNumber = -1L;
-        mCurrentPosMs = 0L;
+        mCurrentPosMs = -1L;
         mPlayStartTimeMs = -1L;
         mSongLengthMs = 0L;
         mPlaybackIntervalMs = 0L;
@@ -676,8 +676,10 @@ public final class Avrcp {
                 }
                 mMediaUri = uri;
                 if (handler != null) {
+                     // Don't send the complete path to CK as few gets confused by that
+                    // Send only the name of the root folder
                     handler.obtainMessage(MSG_UPDATE_BROWSED_PLAYER_FOLDER, NUM_ROOT_ELEMENTS,
-                                                SplitPath.length, SplitPath).sendToTarget();
+                                                1, SplitPath).sendToTarget();
                 }
             } else {
                 handler.obtainMessage(MSG_UPDATE_BROWSED_PLAYER_FOLDER, 0, 0, null)
@@ -1404,7 +1406,7 @@ public final class Avrcp {
             trackTitle = null;
             albumTitle = null;
             genre = null;
-            tracknum = 0;
+            tracknum = -1L;
         }
 
         public String toString() {
@@ -3143,11 +3145,9 @@ public final class Avrcp {
         long TrackNumberRsp = -1L;
 
         if(DEBUG) Log.v(TAG,"mCurrentPlayState" + mCurrentPlayState );
-        /*As per spec 6.7.2 Register Notification
-          If no track is currently selected, then return
-         0xFFFFFFFFFFFFFFFF in the interim response */
-        if (mCurrentPlayState == RemoteControlClient.PLAYSTATE_PLAYING)
+
             TrackNumberRsp = mMetadata.tracknum ;
+
         /* track is stored in big endian format */
         for (int i = 0; i < TRACK_ID_SIZE; ++i) {
             track[i] = (byte) (TrackNumberRsp >> (56 - 8 * i));
