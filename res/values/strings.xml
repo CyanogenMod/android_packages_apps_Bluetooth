@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (C) 2007 The Android Open Source Project
-     Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -98,8 +97,6 @@
     <string name="notification_sending">Bluetooth share: Sending <xliff:g id="file">%1$s</xliff:g></string>
     <!-- label for the notification item of sent file -->
     <string name="notification_sent">Bluetooth share: Sent <xliff:g id="file">%1$s</xliff:g></string>
-    <!-- label for the notification if the zero length file is rejected by the remote device -->
-    <string name="empty_file_notification_sent">Bluetooth share: Remote rejected zero length file <xliff:g id="file">%1$s</xliff:g></string>
     <!-- label for the notification item of sent file -status -->
     <string name="notification_sent_complete">100% complete</string>
     <!-- label for the notification item of failed sending file -->
@@ -233,6 +230,4 @@
     <!-- Do not translate. android:process of this application. -->
     <string name="process" translate="false"><xliff:g id="x" /></string>
 
-    <string name="upload_fail_waiting">Ongoing send file preparation, automatic retransmission later</string>
-    <string name="bluetooth_in_airplane_mode">In Airplane mode</string>
 </resources>
