@@ -15,11 +15,11 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="permlab_bluetoothShareManager">Zougrëff op den Download-Manager.</string>
-  <string name="permdesc_bluetoothShareManager">Erlaabt der App op de BluetoothShare-Manager zouzegräifen an e fir Fichiersiwwerdroungen ze notzen.</string>
-  <string name="permlab_bluetoothWhitelist">Bluetooth-Apparat op d\'Zougrëffslëscht setzen.</string>
-  <string name="permdesc_bluetoothWhitelist">Erlaabt der App temporär e Bluetooth-Apparat op d\'wäiss Lëscht ze setzen, sou datt vun deem Apparat e Fichier kann empfaange ginn ouni datt de Benotzer d\'Iwwerdroung bestätege muss.</string>
-  <string name="permlab_handoverStatus">Bluetooth-Broadcasts fir d\'Iwwerdroung empfänken.</string>
+  <string name="permlab_bluetoothShareManager">Zougrëff op den Download-Manager</string>
+  <string name="permdesc_bluetoothShareManager">Erlaabt der App, op de BluetoothShare-Manager zouzegräifen an e fir Fichiersiwwerdroungen ze benotzen.</string>
+  <string name="permlab_bluetoothWhitelist">Bluetooth-Apparat op d\'Zougrëffslëscht setzen</string>
+  <string name="permdesc_bluetoothWhitelist">Erlaabt der App, temporär e Bluetooth-Apparat op d\'wäiss Lëscht ze setzen, sou datt vun deem Apparat e Fichier kann empfaange ginn ouni datt de Benotzer d\'Iwwerdroung bestätege muss.</string>
+  <string name="permlab_handoverStatus">Bluetooth-Broadcasts fir d\'Iwwerdroung empfänken</string>
   <string name="permdesc_handoverStatus">Erméiglecht den Empfang vu Statusinformatioune fir d\'Iwwerdroung per Bluetooth.</string>
   <string name="bt_share_picker_label">Bluetooth</string>
   <string name="unknown_device">Onbekannten Apparat</string>
