@@ -19,6 +19,5 @@
     <!-- label for the notification if the zero length file is rejected by the remote device -->
     <string name="empty_file_notification_sent">Bluetooth share: Remote rejected zero length file <xliff:g id="file">%1$s</xliff:g></string>
 
-    <string name="upload_fail_waiting">Ongoing send file preparation, automatic retransmission later</string>
-    <string name="bluetooth_in_airplane_mode">In Airplane mode</string>
+    <string name="upload_fail_waiting">Unable to send file, retrying\u2026</string>
 </resources>
