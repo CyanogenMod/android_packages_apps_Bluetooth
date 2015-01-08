@@ -20,5 +20,5 @@
     <string name="empty_file_notification_sent">Bluetooth share: Remote rejected zero length file <xliff:g id="file">%1$s</xliff:g></string>
 
     <string name="upload_fail_waiting">Ongoing send file preparation, automatic retransmission later</string>
-    <string name="bluetooth_in_airplane_mode">In Airplane mode</string>
+    <string name="bluetooth_in_airplane_mode">In airplane mode</string>
 </resources>
