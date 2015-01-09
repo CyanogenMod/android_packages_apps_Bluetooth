@@ -1,4 +1,7 @@
 /*
+ * Copyright (c) 2013, 2015  The Linux Foundation. All rights reserved.
+ * Not a Contribution.
+ *
  * Copyright (C) 2012 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,6 +53,8 @@ static jmethodID method_onAtCops;
 static jmethodID method_onAtClcc;
 static jmethodID method_onUnknownAt;
 static jmethodID method_onKeyPressed;
+static jmethodID method_onAtBind;
+static jmethodID method_onAtBiev;
 
 static const bthf_interface_t *sBluetoothHfpInterface = NULL;
 static jobject mCallbacksObj = NULL;
@@ -377,6 +382,45 @@ static void key_pressed_callback(bt_bdaddr_t* bd_addr) {
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
+static void at_bind_callback(char* hf_ind, bthf_bind_type_t type, bt_bdaddr_t* bd_addr) {
+    jbyteArray addr;
+
+    CHECK_CALLBACK_ENV
+    addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+    if (!addr) {
+        ALOGE("Fail to new jbyteArray bd addr for audio state");
+        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+        return;
+    }
+
+    sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
+    jstring js_hf_ind = sCallbackEnv->NewStringUTF(hf_ind);
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtBind, js_hf_ind, type, addr);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+    sCallbackEnv->DeleteLocalRef(js_hf_ind);
+    sCallbackEnv->DeleteLocalRef(addr);
+}
+
+static void at_biev_callback(char* hf_ind_val, bt_bdaddr_t* bd_addr) {
+    jbyteArray addr;
+
+    CHECK_CALLBACK_ENV
+    addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+    if (!addr) {
+        ALOGE("Fail to new jbyteArray bd addr for audio state");
+        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+        return;
+    }
+
+    sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
+    jstring js_hf_ind_val = sCallbackEnv->NewStringUTF(hf_ind_val);
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtBiev, js_hf_ind_val, addr);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+    sCallbackEnv->DeleteLocalRef(js_hf_ind_val);
+    sCallbackEnv->DeleteLocalRef(addr);
+}
+
+
 static bthf_callbacks_t sBluetoothHfpCallbacks = {
     sizeof(sBluetoothHfpCallbacks),
     connection_state_callback,
@@ -395,7 +439,9 @@ static bthf_callbacks_t sBluetoothHfpCallbacks = {
     at_cops_callback,
     at_clcc_callback,
     unknown_at_callback,
-    key_pressed_callback
+    key_pressed_callback,
+    at_bind_callback,
+    at_biev_callback
 };
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
@@ -423,6 +469,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onAtClcc = env->GetMethodID(clazz, "onAtClcc", "([B)V");
     method_onUnknownAt = env->GetMethodID(clazz, "onUnknownAt", "(Ljava/lang/String;[B)V");
     method_onKeyPressed = env->GetMethodID(clazz, "onKeyPressed", "([B)V");
+    method_onAtBind = env->GetMethodID(clazz, "onAtBind", "(Ljava/lang/String;I[B)V");
+    method_onAtBiev = env->GetMethodID(clazz, "onAtBiev", "(Ljava/lang/String;[B)V");
 
     /*
     if ( (btInf = getBluetoothInterface()) == NULL) {
@@ -820,6 +868,53 @@ static jboolean configureWBSNative(JNIEnv *env, jobject object, jbyteArray addre
 }
 
 
+static jboolean bindResponseNative(JNIEnv *env, jobject object, jint anum,
+                                    jboolean hf_ind_status, jbyteArray address) {
+    jbyte *addr;
+    bt_status_t status;
+
+    if (!sBluetoothHfpInterface) return JNI_FALSE;
+
+    addr = env->GetByteArrayElements(address, NULL);
+    if (!addr) {
+        jniThrowIOException(env, EINVAL);
+        return JNI_FALSE;
+    }
+    if ( (status = sBluetoothHfpInterface->bind_response(anum,
+            hf_ind_status ? BTHF_HF_INDICATOR_STATE_ENABLED: BTHF_HF_INDICATOR_STATE_DISABLED,
+            (bt_bdaddr_t *)addr)) != BT_STATUS_SUCCESS) {
+        ALOGE("Failed sending BIND response, status: %d", status);
+    }
+    env->ReleaseByteArrayElements(address, addr, 0);
+    return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+}
+
+static jboolean bindStringResponseNative(JNIEnv *env, jobject object, jstring result,
+                                         jbyteArray address) {
+    jbyte *addr;
+    bt_status_t status;
+    const char *res = NULL;
+    if (!sBluetoothHfpInterface) return JNI_FALSE;
+
+    addr = env->GetByteArrayElements(address, NULL);
+    if (!addr) {
+        jniThrowIOException(env, EINVAL);
+        return JNI_FALSE;
+    }
+
+    if (result)
+        res = env->GetStringUTFChars(result, NULL);
+
+    if ( (status = sBluetoothHfpInterface->bind_string_response(res,
+            (bt_bdaddr_t *)addr)) != BT_STATUS_SUCCESS) {
+        ALOGE("Failed sending BIND response, status: %d", status);
+    }
+    env->ReleaseByteArrayElements(address, addr, 0);
+    if (res)
+        env->ReleaseStringUTFChars(result, res);
+    return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+}
+
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
     {"initializeNative", "(I)V", (void *) initializeNative},
@@ -839,6 +934,8 @@ static JNINativeMethod sMethods[] = {
     {"clccResponseNative", "(IIIIZLjava/lang/String;I[B)Z", (void *) clccResponseNative},
     {"phoneStateChangeNative", "(IIILjava/lang/String;I)Z", (void *) phoneStateChangeNative},
     {"configureWBSNative", "([BI)Z", (void *) configureWBSNative},
+    {"bindResponseNative", "(IZ[B)Z", (void *)bindResponseNative},
+    {"bindStringResponseNative", "(Ljava/lang/String;[B)Z", (void *)bindStringResponseNative}
 };
 
 int register_com_android_bluetooth_hfp(JNIEnv* env)
