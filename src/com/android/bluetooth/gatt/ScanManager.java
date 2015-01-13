@@ -441,7 +441,8 @@ public class ScanManager {
         }
 
         void startRegularScan(ScanClient client) {
-            if (mFilterIndexStack.isEmpty() && isFilteringSupported()) {
+            if (isFilteringSupported() && mFilterIndexStack.isEmpty() &&
+                    mClientFilterIndexMap.isEmpty()) {
                 initFilterIndexStack();
             }
             if (isFilteringSupported()) {
@@ -748,7 +749,7 @@ public class ScanManager {
             if (client.filters == null || client.filters.isEmpty()) {
                 return true;
             }
-            return client.filters.size() < mClientFilterIndexMap.size();
+            return client.filters.size() > mFilterIndexStack.size();
         }
 
         private void addFilterToController(int clientIf, ScanFilterQueue.Entry entry,
