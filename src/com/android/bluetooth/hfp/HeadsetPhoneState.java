@@ -93,12 +93,12 @@ class HeadsetPhoneState {
         // to invoke onSubscriptionInfoChanged and which in turns calls
         // loadInBackgroud.
         mSubMgr = SubscriptionManager.from(mContext);
-        mSubMgr.registerOnSubscriptionsChangedListener(mOnSubscriptionsChangedListener);
+        mSubMgr.addOnSubscriptionsChangedListener(mOnSubscriptionsChangedListener);
     }
 
     public void cleanup() {
         listenForPhoneState(false);
-        mSubMgr.unregisterOnSubscriptionsChangedListener(mOnSubscriptionsChangedListener);
+        mSubMgr.removeOnSubscriptionsChangedListener(mOnSubscriptionsChangedListener);
 
         mTelephonyManager = null;
         mStateMachine = null;
