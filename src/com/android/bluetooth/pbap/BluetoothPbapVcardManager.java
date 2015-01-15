@@ -520,10 +520,8 @@ public class BluetoothPbapVcardManager {
 
         if (isContacts) {
             VCardComposer composer = null;
-            FilterVcard vcardfilter= new FilterVcard();
-            if (!ignorefilter) {
-                vcardfilter.setFilter(filter);
-            }
+            VCardFilter vcardfilter= new VCardFilter(ignorefilter ? null : filter);
+
             HandlerForStringBuffer buffer = null;
             try {
                 // Currently only support Generic Vcard 2.1 and 3.0
@@ -575,15 +573,11 @@ public class BluetoothPbapVcardManager {
                         return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
                     }
                     if (V) Log.v (TAG , "vCard from composer: " + vcard);
-                    if (!ignorefilter) {
-                        vcard = vcardfilter.applyFilter(vcard, vcardType21);
-                        if (V) Log.v (TAG , "vCard on applying filter: " + vcard);
-                    }
+
+                    vcard = vcardfilter.apply(vcard, vcardType21);
                     vcard = StripTelephoneNumber(vcard);
-                    if (V) {
-                        Log.v(TAG, "Vcard Entry:");
-                        Log.v(TAG,vcard);
-                    }
+
+                    if (V) Log.v (TAG, "vCard after cleanup: " + vcard);
 
                     if (!buffer.onEntryCreated(vcard)) {
                         // onEntryCreate() already emits error.
@@ -724,288 +718,84 @@ public class BluetoothPbapVcardManager {
         }
     }
 
-    public class FilterVcard{
+    public static class VCardFilter {
+        private static enum FilterBit {
+            //       bit  property    onlyCheckV21  excludeForV21
+            FN (       1, "FN",       true,         false),
+            PHOTO(     3, "PHOTO",    false,        false),
+            BDAY(      4, "BDAY",     false,        false),
+            ADR(       5, "ADR",      false,        false),
+            EMAIL(     8, "EMAIL",    false,        false),
+            TITLE(    12, "TITLE",    false,        false),
+            ORG(      16, "ORG",      false,        false),
+            NOTES(    17, "NOTES",    false,        false),
+            URL(      20, "URL",      false,        false),
+            NICKNAME( 23, "NICKNAME", false,        true);
 
-        public FilterVcard(){
-        };
+            public final int pos;
+            public final String prop;
+            public final boolean onlyCheckV21;
+            public final boolean excludeForV21;
 
-        private final int FN_BIT = 1;
-
-        private boolean fn = true;
-
-        private final int PHOTO_BIT = 3;
-
-        private boolean photo = true;
-
-        //BDAY falls under events
-        private final int BDAY_BIT = 4;
-
-        private boolean bday = true;
-
-        private final int ADR_BIT = 5;
-
-        private boolean adr = true;
-
-        private final int EMAIL_BIT = 8;
-
-        private boolean email = true;
-
-        private final int TITLE_BIT = 12;
-
-        private boolean title = true;
-
-        private final int ORG_BIT = 16;
-
-        private boolean org = true;
-
-        private final int NOTES_BIT = 17;
-
-        private boolean notes = true;
-
-        private final int URL_BIT = 20;
-
-        private boolean url = true;
-
-        private final int NICKNAME_BIT = 23;
-
-        private boolean nickname = true;
-
-        public void setFilter(byte[] filter){
-
-           fn = checkbit(FN_BIT, filter);
-           photo = checkbit(PHOTO_BIT, filter);
-           bday = checkbit(BDAY_BIT, filter);
-           adr = checkbit(ADR_BIT, filter);
-           email = checkbit(EMAIL_BIT, filter);
-           title = checkbit(TITLE_BIT, filter);
-           org = checkbit(ORG_BIT, filter);
-           notes = checkbit(NOTES_BIT, filter);
-           url = checkbit(URL_BIT, filter);
-           nickname = checkbit(NICKNAME_BIT, filter);
+            FilterBit(int pos, String prop, boolean onlyCheckV21, boolean excludeForV21) {
+                this.pos = pos;
+                this.prop = prop;
+                this.onlyCheckV21 = onlyCheckV21;
+                this.excludeForV21 = excludeForV21;
+            }
         }
 
-        private boolean checkbit (int attr_bit, byte[] filter){
-            int filterlen = filter.length;
-            if( ((filter[filterlen -1 -((int)attr_bit/8)] >> (attr_bit%8)) & 0x01) == 0) {
-                return false;
-            }
-            return true;
+        private static final String SEPARATOR = System.getProperty("line.separator");
+        private final byte[] filter;
+
+        private boolean isFilteredOut(FilterBit bit, boolean vCardType21) {
+            final int offset = (bit.pos / 8) + 1;
+            final int bit_pos = bit.pos % 8;
+            if (!vCardType21 && bit.onlyCheckV21) return false;
+            if (vCardType21 && bit.excludeForV21) return true;
+            if (filter == null || offset >= filter.length) return false;
+            return ((filter[filter.length - offset] >> bit_pos) & 0x01) != 0;
         }
 
-        public boolean isPhotoEnabled(){
-            return photo;
+        VCardFilter(byte[] filter) {
+            this.filter = filter;
         }
 
-        private boolean checkValidFilter (String attr) {
-            if((attr.startsWith("N:")) || (attr.startsWith("TEL"))
-                || (attr.startsWith("VERSION")) || (attr.startsWith("URL"))
-                || (attr.startsWith("FN")) || (attr.startsWith("BDAY"))
-                || (attr.startsWith("ADR")) || (attr.startsWith("EMAIL"))
-                || (attr.startsWith("TITLE")) || (attr.startsWith("ORG"))
-                || (attr.startsWith("NOTE")) || (attr.startsWith("NICKNAME"))) {
-                return true;
-            }
-            return false;
+        public boolean isPhotoEnabled() {
+            return !isFilteredOut(FilterBit.PHOTO, false);
         }
 
-        public String applyFilter ( String vCard, boolean vCardType21){
-            String attr [] = vCard.split(System.getProperty("line.separator"));
-            String filteredVcard = "";
+        public String apply(String vCard, boolean vCardType21){
+            if (filter == null) return vCard;
+            String lines[] = vCard.split(SEPARATOR);
+            StringBuilder filteredVCard = new StringBuilder();
+            boolean filteredOut = false;
 
-            //FN is not the mandatory field in 2.1 vCard
-            if(((!fn) && (vCardType21)) && (vCard.contains("FN"))) {
-                for (int i=0; i < attr.length; i++) {
-                    if(attr[i].startsWith("FN")){
-                        attr[i] = "";
-                        /** Remove multiline Content, if any */
-                        /** End traversal before END:VCARD */
-                        for (int j = i+1; j < attr.length - 1; j++) {
-                            if (checkValidFilter(attr[j])) {
-                                break;
-                            } else {
-                                /** Continuation of above attribute, remove */
-                                attr[j] = "";
-                            }
+            for (String line : lines) {
+                // Check whether the current property is changing (ignoring multi-line properties)
+                // and determine if the current property is filtered in.
+                if (!Character.isWhitespace(line.charAt(0)) && !line.startsWith("=")) {
+                    String currentProp = line.split("[;:]")[0];
+                    filteredOut = false;
+
+                    for (FilterBit bit : FilterBit.values()) {
+                        if (bit.prop.equals(currentProp)) {
+                            filteredOut = isFilteredOut(bit, vCardType21);
+                            break;
                         }
                     }
+
+                    // Since PBAP does not have filter bits for IM and SIP,
+                    // exclude them by default. Easiest way is to exclude all
+                    // X- fields....
+                    if (currentProp.startsWith("X-")) filteredOut = true;
                 }
+
+                // Build filtered vCard
+                if (!filteredOut) filteredVCard.append(line + SEPARATOR);
             }
 
-          //NOTE: No need to check photo, we already refrained it if it is not set in the filter
-            if((!bday) && (vCard.contains("BDAY"))) {
-                for (int i=0; i < attr.length; i++) {
-                    if(attr[i].startsWith("BDAY")){
-                        attr[i] = "";
-                        /** Remove multiline Content, if any */
-                        /** End traversal before END:VCARD */
-                        for (int j = i+1; j < attr.length - 1; j++) {
-                            if (checkValidFilter(attr[j])) {
-                                break;
-                            } else {
-                                /** Continuation of above attribute, remove */
-                                attr[j] = "";
-                            }
-                        }
-                    }
-                }
-            }
-
-            if((!adr) && (vCard.contains("ADR"))) {
-                for (int i=0; i < attr.length; i++) {
-                    if(attr[i].startsWith("ADR")){
-                        attr[i] = "";
-                        /** Remove multiline Content, if any */
-                        /** End traversal before END:VCARD */
-                        for (int j = i+1; j < attr.length - 1; j++) {
-                            if (checkValidFilter(attr[j])) {
-                                break;
-                            } else {
-                                /** Continuation of above attribute, remove */
-                                attr[j] = "";
-                            }
-                        }
-                    }
-                }
-            }
-
-            if((!email) && (vCard.contains("EMAIL"))) {
-                for (int i=0; i < attr.length; i++) {
-                    if(attr[i].startsWith("EMAIL")){
-                        attr[i] = "";
-                        /** Remove multiline Content, if any */
-                        /** End traversal before END:VCARD */
-                        for (int j = i+1; j < attr.length - 1; j++) {
-                            if (checkValidFilter(attr[j])) {
-                                break;
-                            } else {
-                                /** Continuation of above attribute, remove */
-                                attr[j] = "";
-                            }
-                        }
-                    }
-                }
-            }
-
-            if((!title) && (vCard.contains("TITLE"))) {
-                for (int i=0; i < attr.length; i++) {
-                    if(attr[i].startsWith("TITLE")){
-                        attr[i] = "";
-                        /** Remove multiline Content, if any */
-                        /** End traversal before END:VCARD */
-                        for (int j = i+1; j < attr.length - 1; j++) {
-                            if (checkValidFilter(attr[j])) {
-                                break;
-                            } else {
-                                /** Continuation of above attribute, remove */
-                                attr[j] = "";
-                            }
-                        }
-                    }
-                }
-            }
-
-            if((!org) && (vCard.contains("ORG"))) {
-                for (int i=0; i < attr.length; i++) {
-                    if(attr[i].startsWith("ORG")){
-                        attr[i] = "";
-                        /** Remove multiline Content, if any */
-                        /** End traversal before END:VCARD */
-                        for (int j = i+1; j < attr.length - 1; j++) {
-                            if (checkValidFilter(attr[j])) {
-                                break;
-                            } else {
-                                /** Continuation of above attribute, remove */
-                                attr[j] = "";
-                            }
-                        }
-                    }
-                }
-            }
-
-            if((!notes) && (vCard.contains("NOTE"))) {
-                for (int i=0; i < attr.length; i++) {
-                    if(attr[i].startsWith("NOTE")){
-                        attr[i] = "";
-                        /** Remove multiline Content, if any */
-                        /** End traversal before END:VCARD */
-                        for (int j = i+1; j < attr.length - 1; j++) {
-                            if (checkValidFilter(attr[j])) {
-                                break;
-                            } else {
-                                /** Continuation of above attribute, remove */
-                                attr[j] = "";
-                            }
-                        }
-                    }
-                }
-            }
-            /*Nickname is not supported in 2.1 version.
-             *Android still ads it for 2.1 with nickname mentioned in lower case, and therefore
-             *we need to check for both cases.
-             */
-            if(((!nickname) || (vCardType21)) && (vCard.contains("NICKNAME"))) {
-                for (int i=0; i < attr.length; i++) {
-                    if(attr[i].startsWith("NICKNAME")){
-                        attr[i] = "";
-                        /** Remove multiline Content, if any */
-                        /** End traversal before END:VCARD */
-                        for (int j = i+1; j < attr.length - 1; j++) {
-                            if (checkValidFilter(attr[j])) {
-                                break;
-                            } else {
-                                /** Continuation of above attribute, remove */
-                                attr[j] = "";
-                            }
-                        }
-                    }
-                }
-            }
-
-            if((!url) && (vCard.contains("URL"))) {
-                for (int i=0; i < attr.length; i++) {
-                    if(attr[i].startsWith("URL")){
-                        attr[i] = "";
-                        /** Remove multiline Content, if any */
-                        /** End traversal before END:VCARD */
-                        for (int j = i+1; j < attr.length - 1; j++) {
-                            if (checkValidFilter(attr[j])) {
-                                break;
-                            } else {
-                                /** Continuation of above attribute, remove */
-                                attr[j] = "";
-                            }
-                        }
-                    }
-                }
-            }
-            /*Since PBAP does not have filter bit for IM and SIP,
-             *removing them by default.
-            */
-            if(vCard.toUpperCase().contains("IM")) {
-                for (int i=0; i < attr.length; i++) {
-                    if(attr[i].toUpperCase().contains("IM")){
-                        vCard = vCard.replace(attr[i] + "\n", "");
-                    }
-                }
-            }
-
-            if(vCard.toUpperCase().contains("SIP")) {
-                for (int i=0; i < attr.length; i++) {
-                    if(attr[i].toUpperCase().contains("SIP")){
-                        vCard = vCard.replace(attr[i] + "\n", "");
-                    }
-                }
-            }
-
-            Log.v(TAG, "Tokens after applying filter: ");
-
-            for (int i=0; i < attr.length; i++) {
-                if(!attr[i].equals("")){
-                    filteredVcard = filteredVcard.concat(attr[i] + "\n");
-                }
-            }
-
-            return filteredVcard;
+            return filteredVCard.toString();
         }
     }
 }
