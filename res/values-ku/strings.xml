@@ -31,6 +31,7 @@
   <string name="bt_share_picker_label">بلوتوس</string>
   <string name="unknown_device">ئامێری نەناسراو</string>
   <string name="unknownNumber">نەناسراو</string>
+  <string name="airplane_error_title">شێوازی فڕۆکە</string>
   <string name="airplane_error_msg">ناتوانی بلوتوس بەکاربهێنی لە باری فڕۆکە.</string>
   <string name="bt_enable_line1">بۆ بەکارهێنانی خزمەتگوزاری بلوتوس ئەبێت بلوتوسەکە بکەیتەوە.</string>
   <string name="bt_enable_line2">ئێستا چالاککردنی بلوتوس?</string>
@@ -63,15 +64,19 @@
   <string name="download_fail_line1">فایلەکە نەگەیشت</string>
   <string name="download_fail_line2">پەڕگە: <xliff:g id="file">%1$s</xliff:g></string>
   <string name="download_fail_line3">هۆکار: <xliff:g id="reason">%1$s</xliff:g></string>
+  <string name="download_fail_ok">باشه‌</string>
   <string name="download_succ_line5">فایلەکە گەیشت</string>
   <string name="download_succ_ok">کردنه‌وه‌</string>
   <string name="upload_line1">بۆ: \u0022<xliff:g id="recipient">%1$s</xliff:g>\u0022</string>
   <string name="upload_line3">جۆری پەڕگە: <xliff:g id="type">%1$s</xliff:g> (<xliff:g id="size">%2$s</xliff:g>)</string>
   <string name="upload_line5">ناردنی پەڕگە\u2026</string>
   <string name="upload_succ_line5">فایلەکە نێردرا</string>
+  <string name="upload_succ_ok">باشه‌</string>
   <string name="upload_fail_line1">فایلەکە نەنێردرا بۆ \u0022<xliff:g id="recipient">%1$s</xliff:g>\u0022.</string>
+  <string name="upload_fail_line1_2">پەڕگە: <xliff:g id="file">%1$s</xliff:g></string>
   <string name="upload_fail_ok">دوبارە هەوڵبدەرەوە</string>
   <string name="upload_fail_cancel">داخستن</string>
+  <string name="bt_error_btn_ok">باشه‌</string>
   <string name="unknown_file">فایلی نەناسراو</string>
   <string name="unknown_file_desc">بەرنامەیەک نیە بۆ هەڵگرتنی ئەم جۆرە فایلە. \n</string>
   <string name="not_exist_file">پەڕگە نیە</string>
@@ -87,6 +92,7 @@
   <string name="bt_sm_2_1" product="nosdcard">بیرگەی تەواو لەبەردەست نیە بۆ پاشەکەوتکردنی فایلەکە لە \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022</string>
   <string name="bt_sm_2_1" product="default">بیرگەی تەواو لەبەردەست نیە بۆ پاشەکەوتکردنی فایلەکە لە \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022</string>
   <string name="bt_sm_2_2">بۆشایی پێوستە: <xliff:g id="size">%1$s</xliff:g></string>
+  <string name="ErrorTooManyRequests">زۆر داواکاری لە ڕێکخەریدان. دواتر هەوڵبدەوە.</string>
   <string name="status_pending">گواستنەوەی فایلەکە دەستی پێ نەکردوە هێشتا.</string>
   <string name="status_running">ڕۆیشتنی پەڕگە ناردنەکە.</string>
   <string name="status_success">گواستنەوەی فایلەکە بەسەرکەوتوی تەواوبوو.</string>
@@ -110,6 +116,8 @@
   <string name="inbound_noti_title">بەشداری بلوتوس: فایلەکە گەیشت</string>
   <string name="noti_caption"> <xliff:g id="successful_number">%1$s</xliff:g> سەرکەوتوبوو, <xliff:g id="unsuccessful_number">%2$s</xliff:g> سەرکەوتونەبو.</string>
   <string name="transfer_menu_clear_all">پاکردنەوەی خشتەکە</string>
+  <string name="transfer_menu_open">کردنه‌وه‌</string>
   <string name="transfer_menu_clear">پاکردنەوە لە خشتەکە</string>
+  <string name="transfer_clear_dlg_title">پاککردنه‌وه‌</string>
   <string name="bluetooth_share_file_name" translate="false">بەشداری_ناوەڕۆکی_بلوتوس</string>
 </resources>
