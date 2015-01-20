@@ -638,8 +638,12 @@ public class GattService extends ProfileService {
         if (DBG) Log.d(TAG, "onClientRegistered() - UUID=" + uuid + ", clientIf=" + clientIf);
         ClientMap.App app = mClientMap.getByUuid(uuid);
         if (app != null) {
-            app.id = clientIf;
-            app.linkToDeath(new ClientDeathRecipient(clientIf));
+            if (status == 0) {
+                app.id = clientIf;
+                app.linkToDeath(new ClientDeathRecipient(clientIf));
+            } else {
+                mClientMap.remove(uuid);
+            }
             app.callback.onClientRegistered(status, clientIf);
         }
     }

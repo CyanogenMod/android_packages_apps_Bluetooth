@@ -134,6 +134,23 @@ import java.util.UUID;
     }
 
     /**
+     * Remove the context for a given UUID
+     */
+    void remove(UUID uuid) {
+        synchronized (mApps) {
+            Iterator<App> i = mApps.iterator();
+            while(i.hasNext()) {
+                App entry = i.next();
+                if (entry.uuid.equals(uuid)) {
+                    entry.unlinkToDeath();
+                    i.remove();
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
      * Remove the context for a given application ID.
      */
     void remove(int id) {
