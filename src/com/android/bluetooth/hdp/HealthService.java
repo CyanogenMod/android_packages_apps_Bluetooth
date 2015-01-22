@@ -266,9 +266,10 @@ public class HealthService extends ProfileService {
                     HealthChannel chan = findChannelById(channelStateEvent.mChannelId);
                     BluetoothHealthAppConfiguration appConfig =
                             findAppConfigByAppId(channelStateEvent.mAppId);
+                    if (appConfig == null) break;
                     int newState;
                     newState = convertHalChannelState(channelStateEvent.mState);
-                    if (newState  ==  BluetoothHealth.STATE_CHANNEL_DISCONNECTED ||
+                    if (newState  ==  BluetoothHealth.STATE_CHANNEL_DISCONNECTED &&
                         appConfig == null) {
                         Log.e(TAG,"Disconnected for non existing app");
                         break;
