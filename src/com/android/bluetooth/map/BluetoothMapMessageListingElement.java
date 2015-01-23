@@ -116,7 +116,7 @@ public class BluetoothMapMessageListingElement
          */
         this.senderAddressing = PhoneNumberUtils.extractNetworkPortion(senderAddressing);
         if(this.senderAddressing == null || this.senderAddressing.length() < 2){
-            this.senderAddressing = "11"; // Ensure we have at least two digits to
+            this.senderAddressing = ""; // Set empty value
         }
     }
 
