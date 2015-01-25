@@ -1768,7 +1768,21 @@ public class AdapterService extends Service {
         if (!pref.contains(device.getAddress())) {
             return BluetoothDevice.ACCESS_UNKNOWN;
         }
-        return pref.getInt(device.getAddress(), BluetoothDevice.ACCESS_UNKNOWN);
+        try {
+            return pref.getInt(device.getAddress(), BluetoothDevice.ACCESS_UNKNOWN);
+        } catch (ClassCastException e) {
+            // Handle and change old boolean preferences to the int-based values
+            boolean currentPref = pref.getBoolean(device.getAddress(), false);
+            int newPref = currentPref ?
+                BluetoothDevice.ACCESS_ALLOWED : BluetoothDevice.ACCESS_REJECTED;
+
+            SharedPreferences.Editor editor = pref.edit();
+            editor.putInt(device.getAddress(), newPref);
+            if (editor.commit()) {
+                return newPref;
+            }
+            return BluetoothDevice.ACCESS_UNKNOWN;
+        }
     }
 
     boolean setPhonebookAccessPermission(BluetoothDevice device, int value) {
