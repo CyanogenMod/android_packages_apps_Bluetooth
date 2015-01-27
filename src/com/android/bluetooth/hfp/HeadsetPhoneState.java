@@ -249,7 +249,15 @@ class HeadsetPhoneState {
                 if (mService == HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE) {
                     mSignal = 0;
                 } else if (signalStrength.isGsm()) {
-                    mSignal = gsmAsuToSignal(signalStrength);
+                    mSignal = signalStrength.getLteLevel();
+                    if (mSignal == SignalStrength.SIGNAL_STRENGTH_NONE_OR_UNKNOWN) {
+                        mSignal = gsmAsuToSignal(signalStrength);
+                    } else {
+                        // SignalStrength#getLteLevel returns the scale from 0-4
+                        // Bluetooth signal scales at 0-5
+                        // Let's match up the larger side
+                        mSignal++;
+                    }
                 } else {
                     mSignal = cdmaDbmEcioToSignal(signalStrength);
                 }
