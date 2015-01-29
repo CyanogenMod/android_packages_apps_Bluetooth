@@ -87,7 +87,7 @@ import android.os.SystemProperties;
  * support metadata, play status and event notification
  */
 public final class Avrcp {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final String TAG = "Avrcp";
     private static final String ABSOLUTE_VOLUME_BLACKLIST = "absolute_volume_blacklist";
 

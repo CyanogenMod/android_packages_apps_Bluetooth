@@ -19,7 +19,7 @@
 
 #define LOG_TAG "BluetoothAvrcpServiceJni"
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 
 #include "com_android_bluetooth.h"
 #include "hardware/bt_rc.h"
@@ -68,7 +68,7 @@ static bool checkCallbackThread() {
 }
 
 static void btavrcp_remote_features_callback(bt_bdaddr_t* bd_addr, btrc_remote_features_t features) {
-    ALOGI("%s", __FUNCTION__);
+    ALOGV("%s", __FUNCTION__);
     jbyteArray addr;
 
     if (!checkCallbackThread()) {
@@ -95,7 +95,7 @@ static void btavrcp_remote_features_callback(bt_bdaddr_t* bd_addr, btrc_remote_f
 }
 
 static void btavrcp_get_play_status_callback(bt_bdaddr_t* bd_addr) {
-    ALOGI("%s", __FUNCTION__);
+    ALOGV("%s", __FUNCTION__);
     jbyteArray addr;
 
     if (!checkCallbackThread()) {
@@ -121,7 +121,7 @@ static void btavrcp_get_play_status_callback(bt_bdaddr_t* bd_addr) {
 
 static void btavrcp_get_player_seeting_value_callback(btrc_player_attr_t player_att,
                                                      bt_bdaddr_t* bd_addr) {
-    ALOGI("%s", __FUNCTION__);
+    ALOGV("%s", __FUNCTION__);
     jbyteArray addr;
 
     if (!checkCallbackThread()) {
@@ -147,7 +147,7 @@ static void btavrcp_get_player_seeting_value_callback(btrc_player_attr_t player_
 }
 
 static void btavrcp_get_player_attribute_id_callback(bt_bdaddr_t* bd_addr) {
-    ALOGI("%s", __FUNCTION__);
+    ALOGV("%s", __FUNCTION__);
     jbyteArray addr;
 
     if (!checkCallbackThread()) {
@@ -175,7 +175,7 @@ static void btavrcp_getcurrent_player_app_setting_values( uint8_t num_attr,
                                                           btrc_player_attr_t *p_attrs,
                                                           bt_bdaddr_t* bd_addr) {
     jintArray attrs;
-    ALOGI("%s", __FUNCTION__);
+    ALOGV("%s", __FUNCTION__);
     jbyteArray addr;
 
     if (!checkCallbackThread()) {
@@ -214,7 +214,7 @@ static void btavrcp_set_playerapp_setting_value_callback(btrc_player_settings_t 
 {
     jbyteArray attrs_ids;
     jbyteArray attrs_value;
-    ALOGI("%s", __FUNCTION__);
+    ALOGV("%s", __FUNCTION__);
     jbyteArray addr;
 
     if (!checkCallbackThread()) {
@@ -257,7 +257,7 @@ static void btavrcp_getPlayer_app_attribute_text(uint8_t num , btrc_player_attr_
                                                  bt_bdaddr_t* bd_addr)
 {
     jbyteArray attrs;
-    ALOGI("%s", __FUNCTION__);
+    ALOGV("%s", __FUNCTION__);
     jbyteArray addr;
 
     if (!checkCallbackThread()) {
@@ -292,7 +292,7 @@ static void btavrcp_getPlayer_app_value_text(uint8_t attr_id , uint8_t num_val ,
                                              bt_bdaddr_t* bd_addr)
 {
     jbyteArray Attr_Value ;
-    ALOGI("%s", __FUNCTION__);
+    ALOGV("%s", __FUNCTION__);
     jbyteArray addr;
 
     if (!checkCallbackThread()) {
@@ -327,7 +327,7 @@ static void btavrcp_get_element_attr_callback(uint8_t num_attr, btrc_media_attr_
     jintArray attrs;
     jbyteArray addr;
 
-    ALOGI("%s", __FUNCTION__);
+    ALOGV("%s", __FUNCTION__);
 
     if (!checkCallbackThread()) {
         ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
@@ -361,7 +361,7 @@ static void btavrcp_get_element_attr_callback(uint8_t num_attr, btrc_media_attr_
 static void btavrcp_register_notification_callback(btrc_event_id_t event_id, uint32_t param,
                                                    bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
-    ALOGI("%s", __FUNCTION__);
+    ALOGV("%s", __FUNCTION__);
 
     if (!checkCallbackThread()) {
         ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
@@ -387,7 +387,7 @@ static void btavrcp_register_notification_callback(btrc_event_id_t event_id, uin
 static void btavrcp_volume_change_callback(uint8_t volume, uint8_t ctype, bt_bdaddr_t* bd_addr) {
 
     jbyteArray addr;
-    ALOGI("%s", __FUNCTION__);
+    ALOGV("%s", __FUNCTION__);
 
     if (!checkCallbackThread()) {
         ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
@@ -446,7 +446,7 @@ static void btavrcp_get_folder_items_callback(btrc_browse_folderitem_t scope ,
     }
     sCallbackEnv->SetIntArrayRegion(attrs, 0, num_attr, (jint *)param->attrs);
 
-    ALOGI("%s", __FUNCTION__);
+    ALOGV("%s", __FUNCTION__);
     ALOGI("scope: %d", scope);
     ALOGI("start entry: %d", start);
     ALOGI("end entry: %d", end);
@@ -466,7 +466,7 @@ static void btavrcp_get_folder_items_callback(btrc_browse_folderitem_t scope ,
 
 static void btavrcp_passthrough_command_callback(int id, int pressed , bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
-    ALOGI("%s", __FUNCTION__);
+    ALOGV("%s", __FUNCTION__);
 
     if (!checkCallbackThread()) {
         ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
@@ -491,8 +491,8 @@ static void btavrcp_passthrough_command_callback(int id, int pressed , bt_bdaddr
 
 static void btavrcp_set_addressed_player_callback(uint32_t player_id, bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
-    ALOGI("%s", __FUNCTION__);
-    ALOGI("player id: %d", player_id);
+    ALOGV("%s", __FUNCTION__);
+    ALOGV("player id: %d", player_id);
 
     if (!checkCallbackThread()) {
         ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
@@ -519,8 +519,8 @@ static void btavrcp_set_addressed_player_callback(uint32_t player_id, bt_bdaddr_
 
 static void btavrcp_set_browsed_player_callback(uint32_t player_id, bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
-    ALOGI("%s", __FUNCTION__);
-    ALOGI("player id: %d", player_id);
+    ALOGV("%s", __FUNCTION__);
+    ALOGV("player id: %d", player_id);
 
     if (!checkCallbackThread()) {
         ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
@@ -545,8 +545,8 @@ static void btavrcp_set_browsed_player_callback(uint32_t player_id, bt_bdaddr_t*
 
 static void btavrcp_change_path_callback(uint8_t direction, uint64_t uid, bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
-    ALOGI("%s", __FUNCTION__);
-    ALOGI("direction: %d, uid: %lu", direction, uid);
+    ALOGV("%s", __FUNCTION__);
+    ALOGV("direction: %d, uid: %lu", direction, uid);
 
     if (!checkCallbackThread()) {
         ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
@@ -571,8 +571,8 @@ static void btavrcp_change_path_callback(uint8_t direction, uint64_t uid, bt_bda
 
 static void btavrcp_play_item_callback(uint8_t scope, uint64_t uid, bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
-    ALOGI("%s", __FUNCTION__);
-    ALOGI("scope: %d, uid: %lu", scope, uid);
+    ALOGV("%s", __FUNCTION__);
+    ALOGV("scope: %d, uid: %lu", scope, uid);
 
     if (!checkCallbackThread()) {
         ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
@@ -608,7 +608,7 @@ static void btavrcp_get_item_attr_callback(uint8_t scope, uint64_t uid,
         num_attr = 8; // 0x00 signifies all attributes required in response
     }
 
-    ALOGI("%s", __FUNCTION__);
+    ALOGV("%s", __FUNCTION__);
 
     if (!checkCallbackThread()) {
         ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
@@ -765,7 +765,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
         env->GetMethodID(clazz, "onConnectionStateChanged", "(Z[B)V");
     method_getTotalNumberOfItems =
         env->GetMethodID(clazz, "getTotalNumberOfItems", "(B[B)V");
-    ALOGI("%s: succeeds", __FUNCTION__);
+    ALOGV("%s: succeeds", __FUNCTION__);
 }
 
 static void initNative(JNIEnv *env, jobject object,
@@ -831,7 +831,7 @@ static jboolean getPlayStatusRspNative(JNIEnv *env, jobject object, jint playSta
     bt_status_t status;
     jbyte *addr;
 
-    ALOGI("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
+    ALOGV("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
     if (!sBluetoothMultiAvrcpInterface) return JNI_FALSE;
 
     addr = env->GetByteArrayElements(address, NULL);
@@ -1281,7 +1281,7 @@ static jboolean registerNotificationRspPlayStatusNative(JNIEnv *env, jobject obj
     jbyte *addr;
     btrc_register_notification_t param;
 
-    ALOGI("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
+    ALOGV("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
     if (!sBluetoothMultiAvrcpInterface) return JNI_FALSE;
 
     addr = env->GetByteArrayElements(address, NULL);
@@ -1310,7 +1310,7 @@ static jboolean registerNotificationRspTrackChangeNative(JNIEnv *env, jobject ob
     jbyte *trk;
     int i;
 
-    ALOGI("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
+    ALOGV("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
     if (!sBluetoothMultiAvrcpInterface) return JNI_FALSE;
 
     addr = env->GetByteArrayElements(address, NULL);
@@ -1346,7 +1346,7 @@ static jboolean registerNotificationRspPlayPosNative(JNIEnv *env, jobject object
 
     btrc_register_notification_t param;
 
-    ALOGI("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
+    ALOGV("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
     if (!sBluetoothMultiAvrcpInterface) return JNI_FALSE;
 
     addr = env->GetByteArrayElements(address, NULL);
@@ -1371,9 +1371,9 @@ static jboolean setVolumeNative(JNIEnv *env, jobject object, jint volume,
     jbyte *addr;
 
     //TODO: delete test code
-    ALOGI("%s: jint: %d, uint8_t: %u", __FUNCTION__, volume, (uint8_t) volume);
+    ALOGV("%s: jint: %d, uint8_t: %u", __FUNCTION__, volume, (uint8_t) volume);
 
-    ALOGI("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
+    ALOGV("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
     if (!sBluetoothMultiAvrcpInterface) return JNI_FALSE;
 
     addr = env->GetByteArrayElements(address, NULL);
@@ -1397,8 +1397,8 @@ static jboolean registerNotificationRspAddressedPlayerChangedNative (JNIEnv *env
     jbyte *addr;
     btrc_register_notification_t param;
 
-    ALOGI("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
-    ALOGI("playerId: %d", playerId);
+    ALOGV("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
+    ALOGV("playerId: %d", playerId);
     if (!sBluetoothMultiAvrcpInterface) return JNI_FALSE;
 
     addr = env->GetByteArrayElements(address, NULL);
@@ -1424,7 +1424,7 @@ static jboolean registerNotificationRspAvailablePlayersChangedNative (JNIEnv *en
     jbyte *addr;
     btrc_register_notification_t param;
 
-    ALOGI("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
+    ALOGV("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
     if (!sBluetoothMultiAvrcpInterface) return JNI_FALSE;
 
     addr = env->GetByteArrayElements(address, NULL);
@@ -1448,7 +1448,7 @@ static jboolean registerNotificationRspNowPlayingContentChangedNative(JNIEnv *en
     jbyte *addr;
     btrc_register_notification_t param;
 
-    ALOGI("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
+    ALOGV("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
     if (!sBluetoothMultiAvrcpInterface) return JNI_FALSE;
 
     addr = env->GetByteArrayElements(address, NULL);
@@ -1487,7 +1487,7 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
     int num_attr;
     int total_len = BTRC_BROWSE_PDU_HEADER + BTRC_AVCTP_HEADER + BTRC_BROWSE_PKT_3TO7OCT_LEN;
 
-    ALOGI("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
+    ALOGV("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
     if (!sBluetoothMultiAvrcpInterface) return JNI_FALSE;
 
     addr = env->GetByteArrayElements(address, NULL);
@@ -1719,7 +1719,7 @@ static jboolean getMediaPlayerListRspNative(JNIEnv *env, jobject object, jbyte s
     int32_t checkLength = 0;
     btrc_folder_list_entries_t param;
 
-    ALOGI("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
+    ALOGV("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
     if (!sBluetoothMultiAvrcpInterface) return JNI_FALSE;
 
     addr = env->GetByteArrayElements(address, NULL);
@@ -1822,7 +1822,7 @@ static jboolean setAdressedPlayerRspNative(JNIEnv *env, jobject object, jbyte st
     bt_status_t status;
     jbyte *addr;
 
-    ALOGI("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
+    ALOGV("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
     if (!sBluetoothMultiAvrcpInterface) return JNI_FALSE;
 
     addr = env->GetByteArrayElements(address, NULL);
@@ -1931,7 +1931,7 @@ static jboolean setBrowsedPlayerRspNative(JNIEnv *env, jobject object,
 
     btrc_set_browsed_player_rsp_t param;
 
-    ALOGI("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
+    ALOGV("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
     if (!sBluetoothMultiAvrcpInterface) return JNI_FALSE;
 
     addr = env->GetByteArrayElements(address, NULL);
@@ -1998,8 +1998,8 @@ static jboolean changePathRspNative(JNIEnv *env, jobject object, jint errStatus,
         jniThrowIOException(env, EINVAL);
         return JNI_FALSE;
     }
-    ALOGI("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
-    ALOGI("status: %d, itemCount: %l", errStatus, itemCount);
+    ALOGV("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
+    ALOGV("status: %d, itemCount: %l", errStatus, itemCount);
 
     if ((status = sBluetoothMultiAvrcpInterface->change_path_rsp((uint8_t)errStatus,
                                         (uint32_t)itemCount,
@@ -2022,8 +2022,8 @@ static jboolean playItemRspNative(JNIEnv *env, jobject object, jint errStatus,
         jniThrowIOException(env, EINVAL);
         return JNI_FALSE;
     }
-    ALOGI("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
-    ALOGI("status: %d", errStatus);
+    ALOGV("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
+    ALOGV("status: %d", errStatus);
 
     if ((status = sBluetoothMultiAvrcpInterface->play_item_rsp((uint8_t)errStatus,
                                             (bt_bdaddr_t *)addr))!= BT_STATUS_SUCCESS) {
