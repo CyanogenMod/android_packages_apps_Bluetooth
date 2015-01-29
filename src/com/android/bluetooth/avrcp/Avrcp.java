@@ -80,7 +80,7 @@ import android.app.NotificationManager;
  * support metadata, play status and event notification
  */
 public final class Avrcp {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final String TAG = "Avrcp";
 
     private Context mContext;
