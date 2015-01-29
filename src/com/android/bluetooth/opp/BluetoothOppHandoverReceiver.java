@@ -36,7 +36,7 @@ public class BluetoothOppHandoverReceiver extends BroadcastReceiver {
 
         if (action.equals(Constants.ACTION_HANDOVER_SEND) ||
                action.equals(Constants.ACTION_HANDOVER_SEND_MULTIPLE)) {
-
+            if (V) Log.v(TAG, "Transfer initiated from HANDOVER");
             BluetoothDevice device =
                     (BluetoothDevice)intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
             if (device == null) {
