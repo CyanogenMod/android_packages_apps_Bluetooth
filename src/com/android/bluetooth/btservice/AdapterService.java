@@ -545,6 +545,7 @@ public class AdapterService extends Service {
         }
 
         debugLog("cleanup() - Bluetooth process exited normally.");
+        System.exit(0);
     }
 
     private static final int MESSAGE_PROFILE_SERVICE_STATE_CHANGED = 1;
