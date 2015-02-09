@@ -1705,8 +1705,8 @@ public class AdapterService extends Service {
     private BluetoothActivityEnergyInfo reportActivityInfo() {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED, "Need BLUETOOTH permission");
         BluetoothActivityEnergyInfo info =
-            new BluetoothActivityEnergyInfo(mStackReportedState, mTxTimeTotalMs,
-                    mRxTimeTotalMs, mIdleTimeTotalMs, mEnergyUsedTotalVoltAmpSecMicro);
+            new BluetoothActivityEnergyInfo(SystemClock.elapsedRealtime(), mStackReportedState,
+                    mTxTimeTotalMs, mRxTimeTotalMs, mIdleTimeTotalMs, mEnergyUsedTotalVoltAmpSecMicro);
         // Read on clear values; a record of data is created with
         // timstamp and new samples are collected until read again
         mStackReportedState = 0;
