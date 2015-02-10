@@ -657,6 +657,8 @@ public class ScanManager {
         private void configureScanFilters(ScanClient client) {
             int clientIf = client.clientIf;
             int deliveryMode = getDeliveryMode(client);
+            // TBD - The value needs to be handled appropriately
+            int trackEntries = 5;
             if (!shouldAddAllPassFilterToController(client, deliveryMode)) {
                 return;
             }
@@ -669,7 +671,8 @@ public class ScanManager {
                 int filterIndex = (deliveryMode == DELIVERY_MODE_BATCH) ?
                         ALL_PASS_FILTER_INDEX_BATCH_SCAN : ALL_PASS_FILTER_INDEX_REGULAR_SCAN;
                 resetCountDownLatch();
-                configureFilterParamter(clientIf, client, ALL_PASS_FILTER_SELECTION, filterIndex);
+                configureFilterParamter(clientIf, client, ALL_PASS_FILTER_SELECTION, filterIndex,
+                                        trackEntries);
                 waitForCallback();
             } else {
                 Deque<Integer> clientFilterIndices = new ArrayDeque<Integer>();
@@ -684,7 +687,8 @@ public class ScanManager {
                         waitForCallback();
                     }
                     resetCountDownLatch();
-                    configureFilterParamter(clientIf, client, featureSelection, filterIndex);
+                    configureFilterParamter(clientIf, client, featureSelection, filterIndex,
+                                            trackEntries);
                     waitForCallback();
                     clientFilterIndices.add(filterIndex);
                 }
@@ -834,14 +838,14 @@ public class ScanManager {
 
         // Configure filter parameters.
         private void configureFilterParamter(int clientIf, ScanClient client, int featureSelection,
-                int filterIndex) {
+                int filterIndex, int num_of_tracking_entries) {
             int deliveryMode = getDeliveryMode(client);
             int rssiThreshold = Byte.MIN_VALUE;
             int timeout = getOnfoundLostTimeout(client);
-            gattClientScanFilterParamAddNative(
-                    clientIf, filterIndex, featureSelection, LIST_LOGIC_TYPE,
-                    FILTER_LOGIC_TYPE, rssiThreshold, rssiThreshold, deliveryMode,
-                    timeout, timeout, ONFOUND_SIGHTINGS);
+            FilterParams FiltValue = new FilterParams(clientIf, filterIndex, featureSelection,
+                    LIST_LOGIC_TYPE, FILTER_LOGIC_TYPE, rssiThreshold, rssiThreshold, deliveryMode,
+                    timeout, timeout, ONFOUND_SIGHTINGS, num_of_tracking_entries);
+            gattClientScanFilterParamAddNative(FiltValue);
         }
 
         // Get delivery mode based on scan settings.
@@ -892,11 +896,7 @@ public class ScanManager {
                 long uuid_mask_lsb, long uuid_mask_msb, String name,
                 String address, byte addr_type, byte[] data, byte[] mask);
 
-        private native void gattClientScanFilterParamAddNative(
-                int client_if, int filt_index, int feat_seln,
-                int list_logic_type, int filt_logic_type, int rssi_high_thres,
-                int rssi_low_thres, int dely_mode, int found_timeout,
-                int lost_timeout, int found_timeout_cnt);
+        private native void gattClientScanFilterParamAddNative(FilterParams FiltValue);
 
         // Note this effectively remove scan filters for ALL clients.
         private native void gattClientScanFilterParamClearAllNative(

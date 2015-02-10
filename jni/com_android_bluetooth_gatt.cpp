@@ -171,7 +171,10 @@ static jmethodID method_onBatchScanStorageConfigured;
 static jmethodID method_onBatchScanStartStopped;
 static jmethodID method_onBatchScanReports;
 static jmethodID method_onBatchScanThresholdCrossed;
+
+static jmethodID method_CreateonTrackAdvFoundLostObject;
 static jmethodID method_onTrackAdvFoundLost;
+
 
 /**
  * Server callback methods
@@ -549,18 +552,42 @@ void btgattc_batchscan_threshold_cb(int client_if)
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
-void btgattc_track_adv_event_cb(int client_if, int filt_index, int addr_type,
-                                        bt_bdaddr_t* bda, int adv_state)
+void btgattc_track_adv_event_cb(btgatt_track_adv_info_t *p_adv_track_info)
 {
     CHECK_CALLBACK_ENV
     char c_address[32];
+    jobject trackadv_obj = NULL;
+
     snprintf(c_address, sizeof(c_address),"%02X:%02X:%02X:%02X:%02X:%02X",
-        bda->address[0], bda->address[1], bda->address[2],
-        bda->address[3], bda->address[4], bda->address[5]);
+        p_adv_track_info->bd_addr.address[0], p_adv_track_info->bd_addr.address[1],
+        p_adv_track_info->bd_addr.address[2], p_adv_track_info->bd_addr.address[3],
+        p_adv_track_info->bd_addr.address[4], p_adv_track_info->bd_addr.address[5]);
+
     jstring address = sCallbackEnv->NewStringUTF(c_address);
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onTrackAdvFoundLost,
-                                    filt_index, addr_type, address, adv_state, client_if);
+
+    jbyteArray jb_adv_pkt = sCallbackEnv->NewByteArray(p_adv_track_info->adv_pkt_len);
+    jbyteArray jb_scan_rsp = sCallbackEnv->NewByteArray(p_adv_track_info->scan_rsp_len);
+
+    sCallbackEnv->SetByteArrayRegion(jb_adv_pkt, 0, p_adv_track_info->adv_pkt_len,
+                                     (jbyte *) p_adv_track_info->p_adv_pkt_data);
+
+    sCallbackEnv->SetByteArrayRegion(jb_scan_rsp, 0, p_adv_track_info->scan_rsp_len,
+                                     (jbyte *) p_adv_track_info->p_scan_rsp_data);
+
+    trackadv_obj = sCallbackEnv->CallObjectMethod(mCallbacksObj, method_CreateonTrackAdvFoundLostObject,
+                    p_adv_track_info->client_if, p_adv_track_info->adv_pkt_len, jb_adv_pkt,
+                    p_adv_track_info->scan_rsp_len, jb_scan_rsp, p_adv_track_info->filt_index,
+                    p_adv_track_info->advertiser_state, p_adv_track_info->advertiser_info_present,
+                    address, p_adv_track_info->addr_type, p_adv_track_info->tx_power,
+                    p_adv_track_info->rssi_value, p_adv_track_info->time_stamp);
+
+    if (NULL != trackadv_obj)
+        sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onTrackAdvFoundLost, trackadv_obj);
+
     sCallbackEnv->DeleteLocalRef(address);
+    sCallbackEnv->DeleteLocalRef(jb_adv_pkt);
+    sCallbackEnv->DeleteLocalRef(jb_scan_rsp);
+
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
@@ -849,9 +876,11 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onBatchScanStartStopped = env->GetMethodID(clazz, "onBatchScanStartStopped", "(III)V");
     method_onBatchScanReports = env->GetMethodID(clazz, "onBatchScanReports", "(IIII[B)V");
     method_onBatchScanThresholdCrossed = env->GetMethodID(clazz, "onBatchScanThresholdCrossed", "(I)V");
-    method_onTrackAdvFoundLost = env->GetMethodID(clazz, "onTrackAdvFoundLost", "(IILjava/lang/String;II)V");
+    method_CreateonTrackAdvFoundLostObject = env->GetMethodID(clazz, "CreateonTrackAdvFoundLostObject", "(II[BI[BIIILjava/lang/String;IIII)Lcom/android/bluetooth/gatt/AdvtFilterOnFoundOnLostInfo;");
+    method_onTrackAdvFoundLost = env->GetMethodID(clazz, "onTrackAdvFoundLost",
+                                                         "(Lcom/android/bluetooth/gatt/AdvtFilterOnFoundOnLostInfo;)V");
 
-     // Server callbacks
+    // Server callbacks
 
     method_onServerRegistered = env->GetMethodID(clazz, "onServerRegistered", "(IIJJ)V");
     method_onClientConnected = env->GetMethodID(clazz, "onClientConnected", "(Ljava/lang/String;ZII)V");
@@ -1285,18 +1314,55 @@ static void gattSetScanParametersNative(JNIEnv* env, jobject object,
     sGattIf->client->set_scan_parameters(scan_interval_unit, scan_window_unit);
 }
 
-static void gattClientScanFilterParamAddNative(JNIEnv* env, jobject object,
-        jint client_if, jint filt_index,
-        jint feat_seln, jint list_logic_type, jint filt_logic_type,
-        jint rssi_high_thres, jint rssi_low_thres,
-        jint dely_mode, jint found_timeout, jint lost_timeout, jint found_timeout_cnt)
+static void gattClientScanFilterParamAddNative(JNIEnv* env, jobject object, jobject params)
 {
     if (!sGattIf) return;
     const int add_scan_filter_params_action = 0;
-    sGattIf->client->scan_filter_param_setup(client_if, add_scan_filter_params_action, filt_index,
-            feat_seln, list_logic_type, filt_logic_type,
-            rssi_high_thres, rssi_low_thres,
-            dely_mode, found_timeout, lost_timeout, found_timeout_cnt);
+    btgatt_filt_param_setup_t filt_params;
+
+    jmethodID methodId = 0;
+    jclass filtparam = env->GetObjectClass(params);
+
+    methodId = env->GetMethodID(filtparam, "getClientIf", "()I");
+    filt_params.client_if = env->CallIntMethod(params, methodId);;
+
+    filt_params.action = add_scan_filter_params_action;
+
+    methodId = env->GetMethodID(filtparam, "getFiltIndex", "()I");
+    filt_params.filt_index = env->CallIntMethod(params, methodId);;
+
+    methodId = env->GetMethodID(filtparam, "getFeatSeln", "()I");
+    filt_params.feat_seln = env->CallIntMethod(params, methodId);;
+
+    methodId = env->GetMethodID(filtparam, "getListLogicType", "()I");
+    filt_params.list_logic_type = env->CallIntMethod(params, methodId);
+
+    methodId = env->GetMethodID(filtparam, "getFiltLogicType", "()I");
+    filt_params.filt_logic_type = env->CallIntMethod(params, methodId);
+
+    methodId = env->GetMethodID(filtparam, "getDelyMode", "()I");
+    filt_params.dely_mode = env->CallIntMethod(params, methodId);
+
+    methodId = env->GetMethodID(filtparam, "getFoundTimeout", "()I");
+    filt_params.found_timeout = env->CallIntMethod(params, methodId);
+
+    methodId = env->GetMethodID(filtparam, "getLostTimeout", "()I");
+    filt_params.lost_timeout = env->CallIntMethod(params, methodId);
+
+    methodId = env->GetMethodID(filtparam, "getFoundTimeOutCnt", "()I");
+    filt_params.found_timeout_cnt = env->CallIntMethod(params, methodId);
+
+    methodId = env->GetMethodID(filtparam, "getNumOfTrackEntries", "()I");
+    filt_params.num_of_tracking_entries = env->CallIntMethod(params, methodId);
+
+    methodId = env->GetMethodID(filtparam, "getRSSIHighValue", "()I");
+    filt_params.rssi_high_thres = env->CallIntMethod(params, methodId);
+
+    methodId = env->GetMethodID(filtparam, "getRSSILowValue", "()I");
+    filt_params.rssi_low_thres = env->CallIntMethod(params, methodId);
+
+    env->DeleteLocalRef(filtparam);
+    sGattIf->client->scan_filter_param_setup(filt_params);
 }
 
 static void gattClientScanFilterParamDeleteNative(JNIEnv* env, jobject object,
@@ -1304,16 +1370,23 @@ static void gattClientScanFilterParamDeleteNative(JNIEnv* env, jobject object,
 {
     if (!sGattIf) return;
     const int delete_scan_filter_params_action = 1;
-    sGattIf->client->scan_filter_param_setup(client_if, delete_scan_filter_params_action,
-            filt_index, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    btgatt_filt_param_setup_t filt_params;
+    memset(&filt_params, 0, sizeof(btgatt_filt_param_setup_t));
+    filt_params.client_if = client_if;
+    filt_params.action = delete_scan_filter_params_action;
+    filt_params.filt_index = filt_index;
+    sGattIf->client->scan_filter_param_setup(filt_params);
 }
 
 static void gattClientScanFilterParamClearAllNative(JNIEnv* env, jobject object, jint client_if)
 {
     if (!sGattIf) return;
     const int clear_scan_filter_params_action = 2;
-    sGattIf->client->scan_filter_param_setup(client_if, clear_scan_filter_params_action,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    btgatt_filt_param_setup_t filt_params;
+    memset(&filt_params, 0, sizeof(btgatt_filt_param_setup_t));
+    filt_params.client_if = client_if;
+    filt_params.action = clear_scan_filter_params_action;
+    sGattIf->client->scan_filter_param_setup(filt_params);
 }
 
 static void gattClientScanFilterAddRemoveNative(JNIEnv* env, jobject object,
@@ -1738,7 +1811,7 @@ static JNINativeMethod sScanMethods[] = {
     {"gattClientStopBatchScanNative", "(I)V", (void *) gattClientStopBatchScanNative},
     {"gattClientReadScanReportsNative", "(II)V", (void *) gattClientReadScanReportsNative},
     // Scan filter JNI functions.
-    {"gattClientScanFilterParamAddNative", "(IIIIIIIIIII)V", (void *) gattClientScanFilterParamAddNative},
+    {"gattClientScanFilterParamAddNative", "(Lcom/android/bluetooth/gatt/FilterParams;)V", (void *) gattClientScanFilterParamAddNative},
     {"gattClientScanFilterParamDeleteNative", "(II)V", (void *) gattClientScanFilterParamDeleteNative},
     {"gattClientScanFilterParamClearAllNative", "(I)V", (void *) gattClientScanFilterParamClearAllNative},
     {"gattClientScanFilterAddNative", "(IIIIIJJJJLjava/lang/String;Ljava/lang/String;B[B[B)V", (void *) gattClientScanFilterAddNative},
