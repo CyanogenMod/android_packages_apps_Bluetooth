@@ -871,12 +871,10 @@ public class AdapterService extends Service {
             return service.getBondState(device);
         }
 
-        public boolean isConnected(BluetoothDevice device) {
+        public int getConnectionState(BluetoothDevice device) {
             AdapterService service = getService();
-            if (service == null) {
-                return false;
-            }
-            return service.isConnected(device);
+            if (service == null) return 0;
+            return service.getConnectionState(device);
         }
 
         public String getRemoteName(BluetoothDevice device) {
@@ -1475,10 +1473,10 @@ public class AdapterService extends Service {
         return deviceProp.getBondState();
     }
 
-    boolean isConnected(BluetoothDevice device) {
+    int getConnectionState(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         byte[] addr = Utils.getBytesFromAddress(device.getAddress());
-        return isConnectedNative(addr);
+        return getConnectionStateNative(addr);
     }
 
      String getRemoteName(BluetoothDevice device) {
@@ -1891,7 +1889,7 @@ public class AdapterService extends Service {
     /*package*/ native boolean removeBondNative(byte[] address);
     /*package*/ native boolean cancelBondNative(byte[] address);
 
-    /*package*/ native boolean isConnectedNative(byte[] address);
+    /*package*/ native int getConnectionStateNative(byte[] address);
 
     private native boolean startDiscoveryNative();
     private native boolean cancelDiscoveryNative();
