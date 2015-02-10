@@ -772,15 +772,20 @@ public final class Avrcp {
                         SendSetPlayerAppRspNative(INTERNAL_ERROR);
                     break;
                     case GET_ATTRIBUTE_TEXT:
-                    case GET_VALUE_TEXT:
                         String [] values = new String [mPlayerSettings.attrIds.length];
-                        String msgVal = (msg.what == GET_ATTRIBUTE_TEXT) ? UPDATE_ATTRIB_TEXT :
-                                                                                 UPDATE_VALUE_TEXT;
                         for (int i = 0; i < mPlayerSettings.attrIds.length; i++) {
                             values[i] = "";
                         }
                         sendSettingsTextRspNative(mPlayerSettings.attrIds.length ,
                                                     mPlayerSettings.attrIds, values.length,values);
+                    break;
+                    case GET_VALUE_TEXT:
+                        String [] valText= new String [mPlayerSettings.attrIds.length];
+                        for (int i = 0; i < mPlayerSettings.attrIds.length; i++) {
+                            valText[i] = "";
+                        }
+                        sendValueTextRspNative(mPlayerSettings.attrIds.length ,
+                                               mPlayerSettings.attrIds, valText.length, valText);
                     break;
                     default :
                     break;
