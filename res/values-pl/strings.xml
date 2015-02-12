@@ -40,12 +40,12 @@
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Chcesz odebrać ten plik?"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Przesłano plik z innego urządzenia. Potwierdź, że chcesz go odebrać."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Udostępnianie Bluetooth: odbieranie <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received" msgid="3324588019186687985">"Udostępnianie Bluetooth: odebrano <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received" msgid="3324588019186687985">"Udostępnianie Bluetooth: odebrano plik <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Udostępnianie Bluetooth: nie odebrano pliku <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Udostępnianie Bluetooth: wysyłanie <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"Udostępnianie Bluetooth: wysłano <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"Udostępnianie Bluetooth: wysłano plik <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"Ukończono w 100%"</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"Udostępnianie Bluetooth: plik <xliff:g id="FILE">%1$s</xliff:g> nie został wysłany"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"Udostępnianie Bluetooth: nie wysłano pliku <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_title" msgid="3353228219772092586">"Przesyłanie pliku"</string>
     <string name="download_line1" msgid="4926604799202134144">"Od: „<xliff:g id="SENDER">%1$s</xliff:g>”"</string>
     <string name="download_line2" msgid="5876973543019417712">"Plik: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -93,8 +93,8 @@
     <string name="status_running" msgid="6562808920311008696">"Trwa przesyłanie pliku."</string>
     <string name="status_success" msgid="239573225847565868">"Przesyłanie pliku zostało ukończone."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"Treść nie jest obsługiwana."</string>
-    <string name="status_forbidden" msgid="613956401054050725">"Przesyłanie zabronione przez urządzenie docelowe"</string>
-    <string name="status_canceled" msgid="6664490318773098285">"Przesyłanie anulowane przez użytkownika"</string>
+    <string name="status_forbidden" msgid="613956401054050725">"Przesyłanie zabronione przez urządzenie docelowe."</string>
+    <string name="status_canceled" msgid="6664490318773098285">"Przesyłanie anulowane przez użytkownika."</string>
     <string name="status_file_error" msgid="3671917770630165299">"Problem z pamięcią masową"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Brak nośnika USB."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Brak karty SD. Włóż kartę SD, aby zapisać przesłane pliki."</string>
@@ -102,7 +102,7 @@
     <string name="status_protocol_error" msgid="3245444473429269539">"Nie można poprawnie obsłużyć żądania."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Nieznany błąd."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Odebrane przez Bluetooth"</string>
-    <string name="download_success" msgid="7036160438766730871">"Odbiór <xliff:g id="FILE_SIZE">%1$s</xliff:g> zakończony."</string>
+    <string name="download_success" msgid="7036160438766730871">"Odbieranie <xliff:g id="FILE_SIZE">%1$s</xliff:g> zakończono."</string>
     <string name="upload_success" msgid="4014469387779648949">"Wysyłanie <xliff:g id="FILE_SIZE">%1$s</xliff:g> zakończono."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Transmisje przychodzące"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Transmisje wychodzące"</string>

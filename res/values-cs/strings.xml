@@ -47,7 +47,7 @@
     <string name="notification_sent_complete" msgid="302943281067557969">"Dokončeno 100 %"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Sdílení Bluetooth: Soubor <xliff:g id="FILE">%1$s</xliff:g> nebyl odeslán"</string>
     <string name="download_title" msgid="3353228219772092586">"Přenos souborů"</string>
-    <string name="download_line1" msgid="4926604799202134144">"Od uživatele: <xliff:g id="SENDER">%1$s</xliff:g>"</string>
+    <string name="download_line1" msgid="4926604799202134144">"Od: <xliff:g id="SENDER">%1$s</xliff:g>"</string>
     <string name="download_line2" msgid="5876973543019417712">"Soubor: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_line3" msgid="4384821622908676061">"Velikost souboru: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="download_line4" msgid="8535996869722666525"></string>
