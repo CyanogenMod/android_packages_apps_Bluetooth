@@ -37,7 +37,7 @@
   <string name="incoming_file_confirm_timeout_ok">OK</string>
   <string name="incoming_file_confirm_timeout_content">D\'Zäit ass beim Empfänke vun engem Fichier vum \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022 ofgelaf</string>
   <string name="incoming_file_confirm_Notification_title">Bluetooth-Fräigab: Erakommende Fichier</string>
-  <string name="incoming_file_confirm_Notification_caption">Wëlls du dëse Fichier emfänken?</string>
+  <string name="incoming_file_confirm_Notification_caption">Wëlls du dëse Fichier empfänken?</string>
   <string name="incoming_file_toast_msg">Et kënnt e Fichier vun engem aneren Apparat eran.
         Bestäteg datt s du dëse Fichier empfänke wëlls.</string>
   <string name="notification_receiving">Bluetooth-Fräigab: <xliff:g id="file">%1$s</xliff:g> gëtt empfaangen</string>
