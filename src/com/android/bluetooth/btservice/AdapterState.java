@@ -443,6 +443,7 @@ final class AdapterState extends StateMachine {
                     errorLog("Error enabling Bluetooth (enable timeout)");
                     mPendingCommandState.setBleTurningOn(false);
                     transitionTo(mOffState);
+                    adapterService.stopProfileServices();
                     notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
                     break;
 
