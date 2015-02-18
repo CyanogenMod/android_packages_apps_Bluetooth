@@ -18,4 +18,5 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <string name="empty_file_notification_sent">Compartición Bluetooth: La parte remota refugó\'l ficheru de tamañu cero <xliff:g id="file">%1$s</xliff:g></string>
+  <string name="upload_fail_waiting">Imposible unviar el ficheru, reintentando\u2026</string>
 </resources>
