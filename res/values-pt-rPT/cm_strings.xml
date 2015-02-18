@@ -17,6 +17,6 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="empty_file_notification_sent">Compartición Bluetooth: La parte remota refugó\'l ficheru de tamañu cero <xliff:g id="file">%1$s</xliff:g></string>
-  <string name="upload_fail_waiting">Imposible unviar el ficheru, reintentando\u2026</string>
+  <string name="empty_file_notification_sent">Partilha bluetooth: O dispositivo remoto rejeitou o ficheiro <xliff:g id="file">%1$s</xliff:g></string>
+  <string name="upload_fail_waiting">Não foi possível enviar o ficheiro, a tentar novamente\u2026</string>
 </resources>

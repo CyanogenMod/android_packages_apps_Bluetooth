@@ -18,4 +18,5 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <string name="empty_file_notification_sent">Bluetooth: Ha sido rechazado el archivo vacío <xliff:g id="file">%1$s</xliff:g></string>
+  <string name="upload_fail_waiting">Imposible enviar el archivo, reintentando\u2026</string>
 </resources>
