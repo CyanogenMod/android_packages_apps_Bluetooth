@@ -383,7 +383,6 @@ public class BluetoothMapContentObserver {
                 while (c != null && c.moveToNext()) {
                     long id = c.getLong(c.getColumnIndex(Sms._ID));
                     int type = c.getInt(c.getColumnIndex(Sms.TYPE));
-                   
 
                     Msg msg = new Msg(id, type);
                     msgListSms.put(id, msg);
@@ -557,9 +556,9 @@ public class BluetoothMapContentObserver {
                 mResolver.update(uri, contentValues, null, null);
             } else {
                 /* Delete from observer message list to avoid delete notifications */
-				synchronized(mMsgListMms) {
+                synchronized(mMsgListMms) {
                     mMsgListMms.remove(handle);
-				}
+                }
                 /* Delete message */
                 mResolver.delete(uri, null, null);
             }
@@ -628,9 +627,9 @@ public class BluetoothMapContentObserver {
                 mResolver.update(uri, contentValues, null, null);
             } else {
                 /* Delete from observer message list to avoid delete notifications */
-				synchronized(mMsgListSms) {
+                synchronized(mMsgListSms) {
                     mMsgListSms.remove(handle);
-			    }
+                }
                 /* Delete message */
                 mResolver.delete(uri, null, null);
             }
@@ -904,7 +903,7 @@ public class BluetoothMapContentObserver {
                     contentResolver.update(uri, data, whereClause, null);
                     Log.d(TAG, "moved draft MMS to outbox");
                 }
-                
+
                 addMceInitiatedOperation(Long.toString(handle));
               } else {
                 Log.d(TAG, "Could not move draft to outbox ");
@@ -968,7 +967,6 @@ public class BluetoothMapContentObserver {
                 if (c != null && c.moveToFirst()) {
                     long id = c.getLong(c.getColumnIndex(Mms._ID));
                     int type = c.getInt(c.getColumnIndex(Mms.MESSAGE_BOX));
-                   
 
                     /* We must filter out any actions made by the MCE. Add the new message to
                      * the list of known messages. */
@@ -1045,7 +1043,7 @@ public class BluetoothMapContentObserver {
                     }
                 }
                 addMceInitiatedOperation("+");
-            } 
+            }
         }
             catch (UnsupportedEncodingException e) {
                 Log.w(TAG, e);

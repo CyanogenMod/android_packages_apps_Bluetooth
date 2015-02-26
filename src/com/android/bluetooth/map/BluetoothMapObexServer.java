@@ -148,25 +148,6 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         tmpFolder.addFolder("drafts");
     }
 
-    private void addEmailFolders(BluetoothMapFolderElement parentFolder) throws RemoteException {
-        // Select all parent folders
-        BluetoothMapFolderElement newFolder;
-
-        String where = BluetoothMapContract.FolderColumns.PARENT_FOLDER_ID +
-                        " = " + parentFolder.getEmailFolderId();
-        Cursor c = mProviderClient.query(mEmailFolderUri,
-                        BluetoothMapContract.BT_FOLDER_PROJECTION, where, null, null);
-        try {
-            while (c != null && c.moveToNext()) {
-                String name = c.getString(c.getColumnIndex(BluetoothMapContract.FolderColumns.NAME));
-                long id = c.getLong(c.getColumnIndex(BluetoothMapContract.FolderColumns._ID));
-                newFolder = parentFolder.addEmailFolder(name, id);
-                addEmailFolders(newFolder); // Use recursion to add any sub folders
-            }
-        } finally {
-            if (c != null) c.close();
-        }
-    }
 
     @Override
     public int onConnect(final HeaderSet request, HeaderSet reply) {

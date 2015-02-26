@@ -2233,8 +2233,18 @@ public class BluetoothMapContent {
             fi.msgType = FilterInfo.TYPE_EMAIL;
 
             String where = setWhereFilter(folder, fi, ap);
+            where+= " AND "+ Message.FLAG_LOADED_SELECTION;
             Log.d(TAG, "where clause is = " + where);
-            try {
+            where+= " order by timeStamp desc ";
+           //Fetch only maxListCount emails from  startOffset
+           if(ap.getMaxListCount() > 0 && ap.getMaxListCount() < 65536) {
+                where+=" LIMIT "+ap.getMaxListCount();
+           }
+           if(ap.getStartOffset() > 0 && ap.getStartOffset() < 65536) {
+                where+=" OFFSET "+ap.getStartOffset();
+           }
+           if (V) Log.d(TAG, "where clause is = " + where);
+           try {
                 Cursor c = mResolver.query(uriEmail,
                 EMAIL_PROJECTION, where + " AND " + Message.FLAG_LOADED_SELECTION, null, "timeStamp desc");
                 if(c == null) {
@@ -2259,7 +2269,8 @@ public class BluetoothMapContent {
 
         /* Enable this if post sorting and segmenting needed */
         bmList.sort();
-        bmList.segment(ap.getMaxListCount(), ap.getStartOffset());
+        //Handle OFFSET and MAXLISTCOUNT from DB query
+//        bmList.segment(ap.getMaxListCount(), ap.getStartOffset());
 
         return bmList;
     }

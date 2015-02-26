@@ -1206,25 +1206,4 @@ public class BluetoothMapService extends ProfileService {
         }
     };
 
-    @Override
-    public void dump(StringBuilder sb) {
-        super.dump(sb);
-        println(sb, "mRemoteDevice: " + mRemoteDevice);
-        println(sb, "sRemoteDeviceName: " + sRemoteDeviceName);
-        println(sb, "mState: " + mState);
-        println(sb, "mAppObserver: " + mAppObserver);
-        println(sb, "mIsWaitingAuthorization: " + mIsWaitingAuthorization);
-        println(sb, "mRemoveTimeoutMsg: " + mRemoveTimeoutMsg);
-        println(sb, "mPermission: " + mPermission);
-        println(sb, "mAccountChanged: " + mAccountChanged);
-        println(sb, "mBluetoothMnsObexClient: " + mBluetoothMnsObexClient);
-        println(sb, "mMasInstanceMap:");
-        for (BluetoothMapEmailSettingsItem key : mMasInstanceMap.keySet()) {
-            println(sb, "  " + key + " : " + mMasInstanceMap.get(key));
-        }
-        println(sb, "mEnabledAccounts:");
-        for (BluetoothMapEmailSettingsItem account : mEnabledAccounts) {
-            println(sb, "  " + account);
-        }
-    }
 }
