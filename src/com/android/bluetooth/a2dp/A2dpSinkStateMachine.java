@@ -182,6 +182,10 @@ final class A2dpSinkStateMachine extends StateMachine {
                 " mPlayingDevice " + mPlayingDevice + "mOutPortSpeaker" + mOutPortSpeaker);
             if((mA2dpSinkAudioPatch == null) && (mPlayingDevice != null) &&
                (mOutPortSpeaker != null) && (mInPortA2dpSink != null)) {
+                if((mAudioConfigs == null)||(!mAudioConfigs.containsKey(mPlayingDevice))) {
+                    log(" AudioConfigs not yet received, returning");
+                    return;
+                }
                 int sampleRate = getAudioConfig(mPlayingDevice).getSampleRate();
                 int channelMask = getAudioConfig(mPlayingDevice).getChannelConfig();
                 int format = getAudioConfig(mPlayingDevice).getAudioFormat();

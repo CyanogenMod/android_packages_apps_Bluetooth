@@ -11,6 +11,11 @@
         android:description="@string/permdesc_bluetoothShareManager"
         android:protectionLevel="signature" />
 
+        <permission android:name="android.permission.ACCESS_BLUETOOTH_AVRCP_CT_DATA"
+        android:label="@string/permlab_bluetoothAvrcpDataManager"
+        android:description="@string/permdesc_bluetoothAvrcpDataManager"
+        android:protectionLevel="signature" />
+
     <!--  Allows temporarily whitelisting Bluetooth addresses for sharing -->
     <permission android:name="com.android.permission.WHITELIST_BLUETOOTH_DEVICE"
         android:label="@string/permlab_bluetoothWhitelist"
@@ -20,6 +25,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.ACCESS_BLUETOOTH_SHARE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BLUETOOTH_AVRCP_CT_DATA" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
@@ -82,6 +88,14 @@
             <path-permission
                     android:pathPrefix="/btopp"
                     android:permission="android.permission.ACCESS_BLUETOOTH_SHARE" />
+        </provider>
+        <provider android:name=".avrcp.BluetoothAvrcpDataProvider"
+            android:authorities="com.android.bluetooth.avrcp"
+            android:exported="true"
+            android:process="@string/process">
+            <path-permission
+                    android:pathPrefix="/btavrcp_ct"
+                    android:permission="android.permission.ACCESS_BLUETOOTH_AVRCP_CT_DATA" />
         </provider>
         <service
             android:process="@string/process"
@@ -297,6 +311,7 @@
         <service
             android:process="@string/process"
             android:name = ".avrcp.AvrcpControllerService"
+            android:permission="android.permission.ACCESS_BLUETOOTH_AVRCP_CT_DATA"
             android:enabled="@bool/profile_supported_avrcp_controller">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothAvrcpController" />
