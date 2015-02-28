@@ -17,6 +17,6 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="empty_file_notification_sent">Bluetooth-deling: Fjernenhed afviste nullængde fil <xliff:g id="file">%1$s</xliff:g></string>
-  <string name="upload_fail_waiting">Kunne ikke sende filen, prøver igen\u2026</string>
+  <string name="empty_file_notification_sent">Bluetooth share: Remote rejected zero length file <xliff:g id="file">%1$s</xliff:g></string>
+  <string name="upload_fail_waiting">Unable to send file, retrying\u2026</string>
 </resources>
