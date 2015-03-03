@@ -82,14 +82,6 @@
         <activity android:name=".opp.BluetoothOppTransferActivity"
             android:process="@string/process">
         </activity>
-        <activity android:name=".opp.BluetoothOppLiveFolder"
-            android:process="@string/process"
-            android:label="@string/btopp_live_folder">
-            <intent-filter>
-                <action android:name="android.intent.action.CREATE_LIVE_FOLDER" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
         <activity android:name=".pbap.BluetoothPbapActivity"
             android:process="@string/process"
             android:label=" "

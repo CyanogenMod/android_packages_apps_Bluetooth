@@ -90,22 +90,9 @@ public final class BluetoothOppProvider extends ContentProvider {
     /** URI matcher constant for the URI of an individual share */
     private static final int SHARES_ID = 2;
 
-    /** URI matcher constant for the URI of live folder */
-    private static final int LIVE_FOLDER_RECEIVED_FILES = 3;
     static {
         sURIMatcher.addURI("com.android.bluetooth.opp", "btopp", SHARES);
         sURIMatcher.addURI("com.android.bluetooth.opp", "btopp/#", SHARES_ID);
-        sURIMatcher.addURI("com.android.bluetooth.opp", "live_folders/received",
-                LIVE_FOLDER_RECEIVED_FILES);
-    }
-
-    private static final HashMap<String, String> LIVE_FOLDER_PROJECTION_MAP;
-    static {
-        LIVE_FOLDER_PROJECTION_MAP = new HashMap<String, String>();
-        LIVE_FOLDER_PROJECTION_MAP.put(LiveFolders._ID, BluetoothShare._ID + " AS "
-                + LiveFolders._ID);
-        LIVE_FOLDER_PROJECTION_MAP.put(LiveFolders.NAME, BluetoothShare.FILENAME_HINT + " AS "
-                + LiveFolders.NAME);
     }
 
     /** The database that lies underneath this content provider */
@@ -316,14 +303,6 @@ public final class BluetoothOppProvider extends ContentProvider {
                 qb.setTables(DB_TABLE);
                 qb.appendWhere(BluetoothShare._ID + "=");
                 qb.appendWhere(uri.getPathSegments().get(1));
-                break;
-            }
-            case LIVE_FOLDER_RECEIVED_FILES: {
-                qb.setTables(DB_TABLE);
-                qb.setProjectionMap(LIVE_FOLDER_PROJECTION_MAP);
-                qb.appendWhere(BluetoothShare.DIRECTION + "=" + BluetoothShare.DIRECTION_INBOUND
-                        + " AND " + BluetoothShare.STATUS + "=" + BluetoothShare.STATUS_SUCCESS);
-                sortOrder = "_id DESC, " + sortOrder;
                 break;
             }
             default: {

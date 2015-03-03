@@ -182,16 +182,6 @@
                   android:theme="@*android:style/Theme.Holo.Dialog.Alert"
                   android:enabled="@bool/profile_supported_opp">
         </activity>
-        <activity android:name=".opp.BluetoothOppLiveFolder"
-            android:process="@string/process"
-            android:icon="@drawable/ic_launcher_folder_bluetooth"
-            android:label="@string/btopp_live_folder"
-            android:enabled="@bool/profile_supported_opp">
-            <intent-filter>
-                <action android:name="android.intent.action.CREATE_LIVE_FOLDER" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
         <activity android:name=".opp.BluetoothOppTransferHistory"
                   android:process="@string/process"
                   android:label=""
