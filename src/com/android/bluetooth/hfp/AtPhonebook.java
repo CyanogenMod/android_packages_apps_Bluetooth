@@ -99,6 +99,9 @@ public class AtPhonebook {
     final int TYPE_SET = 1;
     final int TYPE_TEST = 2;
 
+    // PBAP Client has sent pbap connection request
+    private final static int PBAP_CONNECT_RECEIVED = 3;
+
     public AtPhonebook(Context context, HeadsetStateMachine headsetState) {
         mContext = context;
         mContentResolver = context.getContentResolver();
@@ -352,7 +355,8 @@ public class AtPhonebook {
                 mCheckingAccessPermission = true;
 
                 int permission = checkAccessPermission(remoteDevice);
-                if (permission == BluetoothDevice.ACCESS_ALLOWED) {
+                if (permission == BluetoothDevice.ACCESS_ALLOWED ||
+                    permission == PBAP_CONNECT_RECEIVED) {
                     mCheckingAccessPermission = false;
                     atCommandResult = processCpbrCommand(remoteDevice);
                     mCpbrIndex1 = mCpbrIndex2 = -1;
