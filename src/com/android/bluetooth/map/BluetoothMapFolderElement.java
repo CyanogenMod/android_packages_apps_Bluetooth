@@ -38,6 +38,7 @@ public class BluetoothMapFolderElement {
     private String mName;
     private BluetoothMapFolderElement mParent = null;
     private boolean mHasSmsMmsContent = false;
+    private boolean mHasEmailContent = false;
     private long mEmailFolderId = -1;
     private HashMap<String, BluetoothMapFolderElement> mSubFolders;
 
@@ -63,6 +64,9 @@ public class BluetoothMapFolderElement {
     public long getEmailFolderId(){
         return mEmailFolderId;
     }
+    public boolean hasEmailContent(){
+        return mHasEmailContent;
+    }
 
     public void setEmailFolderId(long emailFolderId) {
         this.mEmailFolderId = emailFolderId;
@@ -70,6 +74,10 @@ public class BluetoothMapFolderElement {
 
     public void setHasSmsMmsContent(boolean hasSmsMmsContent) {
         this.mHasSmsMmsContent = hasSmsMmsContent;
+    }
+
+    public void setHasEmailContent(boolean hasEmailContent) {
+        this.mHasEmailContent = hasEmailContent;
     }
 
     /**
