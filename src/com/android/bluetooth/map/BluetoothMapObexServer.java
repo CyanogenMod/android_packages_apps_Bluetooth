@@ -1290,10 +1290,13 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             {
                 outBytes = mCurrentFolder.encode(listStartOffset, maxListCount);
                 outStream = op.openOutputStream();
+            } else {
+                // ESR08 specified that this shall only be included for MaxListCount=0
+                outAppParams.setFolderListingSize(mCurrentFolder.getSubFolderCount());
+                op.noBodyHeader();
             }
 
             // Build and set the application parameter header
-            outAppParams.setFolderListingSize(mCurrentFolder.getSubFolderCount());
             replyHeaders.setHeader(HeaderSet.APPLICATION_PARAMETER, outAppParams.EncodeParams());
             op.sendHeaders(replyHeaders);
 
