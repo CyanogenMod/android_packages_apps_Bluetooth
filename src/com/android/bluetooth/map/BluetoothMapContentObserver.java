@@ -154,6 +154,24 @@ public class BluetoothMapContentObserver {
 
     private TYPE mSmsType;
 
+    private static final String ACTION_MESSAGE_DELIVERY =
+            "com.android.bluetooth.BluetoothMapContentObserver.action.MESSAGE_DELIVERY";
+    /*package*/ static final String ACTION_MESSAGE_SENT =
+        "com.android.bluetooth.BluetoothMapContentObserver.action.MESSAGE_SENT";
+
+    public static final String EXTRA_MESSAGE_SENT_HANDLE = "HANDLE";
+    public static final String EXTRA_MESSAGE_SENT_RESULT = "result";
+    public static final String EXTRA_MESSAGE_SENT_MSG_TYPE = "type";
+    public static final String EXTRA_MESSAGE_SENT_URI = "uri";
+    public static final String EXTRA_MESSAGE_SENT_RETRY = "retry";
+    public static final String EXTRA_MESSAGE_SENT_TRANSPARENT = "transparent";
+    public static final String EXTRA_MESSAGE_SENT_TIMESTAMP = "timestamp";
+
+    private SmsBroadcastReceiver mSmsBroadcastReceiver = new SmsBroadcastReceiver();
+
+    private boolean mInitialized = false;
+
+
     static final String[] SMS_PROJECTION = new String[] {
         Sms._ID,
         Sms.THREAD_ID,
@@ -308,7 +326,6 @@ public class BluetoothMapContentObserver {
     private Map<Long, Msg> getMsgListSms() {
         return mMsgListSms;
     }
-
 
     private void setMsgListSms(Map<Long, Msg> msgListSms, boolean changesDetected) {
         mMsgListSms = msgListSms;
@@ -2476,7 +2493,8 @@ public class BluetoothMapContentObserver {
 
                     if (msg.getType().equals(TYPE.MMS)) {
                         /* Send message if folder is outbox else just store in draft*/
-                        handle = sendMmsMessage(folder, phone, (BluetoothMapbMessageMime)msg);
+                        handle = sendMmsMessage(folder, phone, (BluetoothMapbMessageMime)msg,
+                                transparent, retry);
                     } else if (msg.getType().equals(TYPE.SMS_GSM) ||
                             msg.getType().equals(TYPE.SMS_CDMA) ) {
                         /* Add the message to the database */
@@ -2549,7 +2567,8 @@ public class BluetoothMapContentObserver {
         return handle;
     }
 
-    public long sendMmsMessage(String folder, String to_address, BluetoothMapbMessageMime msg) {
+    public long sendMmsMessage(String folder, String to_address, BluetoothMapbMessageMime msg,
+            int transparent, int retry) {
         /*
          *strategy:
          *1) parse message into parts
@@ -2568,10 +2587,21 @@ public class BluetoothMapContentObserver {
              * - else continue sending (if folder is outbox) */
             if (BluetoothMapAppParams.INVALID_VALUE_PARAMETER != handle &&
                     folder.equalsIgnoreCase(BluetoothMapContract.FOLDER_NAME_OUTBOX)) {
-                moveDraftToOutbox(handle);
-                Intent sendIntent = new Intent("android.intent.action.MMS_SEND_OUTBOX_MSG");
-                if (D) Log.d(TAG, "broadcasting intent: "+sendIntent.toString());
-                mContext.sendBroadcast(sendIntent);
+                Uri btMmsUri = MmsFileProvider.CONTENT_URI.buildUpon()
+                        .appendPath(Long.toString(handle)).build();
+                Intent sentIntent = new Intent(ACTION_MESSAGE_SENT);
+                // TODO: update the mmsMsgList <- done in pushMmsToFolder() but check
+                sentIntent.setType("message/" + Long.toString(handle));
+                sentIntent.putExtra(EXTRA_MESSAGE_SENT_MSG_TYPE, TYPE.MMS.ordinal());
+                sentIntent.putExtra(EXTRA_MESSAGE_SENT_HANDLE, handle); // needed for notification
+                sentIntent.putExtra(EXTRA_MESSAGE_SENT_TRANSPARENT, transparent);
+                sentIntent.putExtra(EXTRA_MESSAGE_SENT_RETRY, retry);
+                //sentIntent.setDataAndNormalize(btMmsUri);
+                PendingIntent pendingSendIntent = PendingIntent.getBroadcast(mContext, 0,
+                        sentIntent, 0);
+                SmsManager.getDefault().sendMultimediaMessage(mContext,
+                        btMmsUri, null/*locationUrl*/, null/*configOverrides*/,
+                        pendingSendIntent);
             }
             return handle;
         } else {
@@ -2582,23 +2612,33 @@ public class BluetoothMapContentObserver {
     }
 
     private void moveDraftToOutbox(long handle) {
+        moveMmsToFolder(handle, mResolver, Mms.MESSAGE_BOX_OUTBOX);
+    }
+
+    /**
+     * Move a MMS to another folder.
+     * @param handle the CP handle of the message to move
+     * @param resolver the ContentResolver to use
+     * @param folder the destination folder - use Mms.MESSAGE_BOX_xxx
+     */
+    private static void moveMmsToFolder(long handle, ContentResolver resolver, int folder) {
         /*Move message by changing the msg_box value in the content provider database */
         if (handle != -1) {
             String whereClause = " _id= " + handle;
             Uri uri = Mms.CONTENT_URI;
-            Cursor queryResult = mResolver.query(uri, null, whereClause, null, null);
+            Cursor queryResult = resolver.query(uri, null, whereClause, null, null);
             try {
                 if (queryResult != null) {
                     if (queryResult.getCount() > 0) {
                         queryResult.moveToFirst();
                         ContentValues data = new ContentValues();
                         /* set folder to be outbox */
-                        data.put(Mms.MESSAGE_BOX, Mms.MESSAGE_BOX_OUTBOX);
-                        mResolver.update(uri, data, whereClause, null);
-                        if (D) Log.d(TAG, "moved draft MMS to outbox");
+                        data.put(Mms.MESSAGE_BOX, folder);
+                        resolver.update(uri, data, whereClause, null);
+                        if (D) Log.d(TAG, "moved MMS message to " + getMmsFolderName(folder));
                     }
                 } else {
-                    if (D) Log.d(TAG, "Could not move draft to outbox ");
+                    Log.w(TAG, "Could not move MMS message to " + getMmsFolderName(folder));
                 }
             } finally {
                 if (queryResult != null) queryResult.close();
@@ -2665,11 +2705,12 @@ public class BluetoothMapContentObserver {
                     long id = c.getLong(c.getColumnIndex(Mms._ID));
                     int type = c.getInt(c.getColumnIndex(Mms.MESSAGE_BOX));
                     int threadId = c.getInt(c.getColumnIndex(Mms.THREAD_ID));
+                    int readStatus = c.getInt(c.getColumnIndex(Mms.READ));
 
                     /* We must filter out any actions made by the MCE. Add the new message to
                      * the list of known messages. */
 
-                    Msg newMsg = new Msg(id, type, threadId);
+                    Msg newMsg = new Msg(id, type, threadId, readStatus);
                     newMsg.localInitiatedSend = true;
                     getMsgListMms().put(id, newMsg);
                     c.close();
@@ -2908,22 +2949,6 @@ public class BluetoothMapContentObserver {
                 deliveryIntents);
     }
 
-    private static final String ACTION_MESSAGE_DELIVERY =
-            "com.android.bluetooth.BluetoothMapContentObserver.action.MESSAGE_DELIVERY";
-    public static final String ACTION_MESSAGE_SENT =
-            "com.android.bluetooth.BluetoothMapContentObserver.action.MESSAGE_SENT";
-
-    public static final String EXTRA_MESSAGE_SENT_HANDLE = "HANDLE";
-    public static final String EXTRA_MESSAGE_SENT_RESULT = "result";
-    public static final String EXTRA_MESSAGE_SENT_URI = "uri";
-    public static final String EXTRA_MESSAGE_SENT_RETRY = "retry";
-    public static final String EXTRA_MESSAGE_SENT_TRANSPARENT = "transparent";
-    public static final String EXTRA_MESSAGE_SENT_TIMESTAMP = "timestamp";
-
-    private SmsBroadcastReceiver mSmsBroadcastReceiver = new SmsBroadcastReceiver();
-
-    private boolean mInitialized = false;
-
     private class SmsBroadcastReceiver extends BroadcastReceiver {
         private final String[] ID_PROJECTION = new String[] { Sms._ID };
         private final Uri UPDATE_STATUS_URI = Uri.withAppendedPath(Sms.CONTENT_URI, "/status");
@@ -3111,7 +3136,77 @@ public class BluetoothMapContentObserver {
         }
     }
 
+    /**
+     * Handle MMS sent intents in disconnected(MNS) state, where we do not need to send any
+     * notifications.
+     * @param context The context to use for provider operations
+     * @param intent The intent received
+     * @param result The result
+     */
+    static public void actionMmsSent(Context context, Intent intent, int result,
+            Map<Long, Msg> mmsMsgList) {
+        /*
+         * if transparent:
+         *   delete message and send notification(regardless of result)
+         * else
+         *   Result == Success:
+         *     move to sent folder (will trigger notification)
+         *   Result == Fail:
+         *     move to outbox (send delivery fail notification)
+         */
+        if(D) Log.d(TAG,"actionMmsSent()");
+        int transparent = intent.getIntExtra(EXTRA_MESSAGE_SENT_TRANSPARENT, 0);
+        long handle = intent.getLongExtra(EXTRA_MESSAGE_SENT_HANDLE, -1);
+        if(handle < 0) {
+            Log.w(TAG, "Intent received for an invalid handle");
+            return;
+        }
+        ContentResolver resolver = context.getContentResolver();
+        if(transparent == 1) {
+            /* The specification is a bit unclear about the transparent flag. If it is set
+             * no copy of the message shall be kept in the send folder after the message
+             * was send, but in the case of a send error, it is unclear what to do.
+             * As it will not be transparent if we keep the message in any folder,
+             * we delete the message regardless of the result.
+             * If we however do have a MNS connection we need to send a notification. */
+            Uri uri = ContentUris.withAppendedId(Mms.CONTENT_URI, handle);
+            /* Delete from observer message list to avoid delete notifications */
+            if(mmsMsgList != null) {
+                synchronized(mmsMsgList) {
+                    mmsMsgList.remove(handle);
+                }
+            }
+            /* Delete message */
+            if(D) Log.d(TAG,"Transparent in use - delete");
+            resolver.delete(uri, null, null);
+        } else if (result == Activity.RESULT_OK) {
+            /* This will trigger a notification */
+            moveMmsToFolder(handle, resolver, Mms.MESSAGE_BOX_SENT);
+        } else {
+            if(mmsMsgList != null) {
+                synchronized(mmsMsgList) {
+                    Msg msg = mmsMsgList.get(handle);
+                    if(msg != null) {
+                    msg.type=Mms.MESSAGE_BOX_OUTBOX;
+                    }
+                }
+            }
+            /* Hand further retries over to the MMS application */
+            moveMmsToFolder(handle, resolver, Mms.MESSAGE_BOX_OUTBOX);
+        }
+    }
+
     static public void actionMessageSentDisconnected(Context context, Intent intent, int result) {
+        TYPE type = TYPE.fromOrdinal(
+        intent.getIntExtra(EXTRA_MESSAGE_SENT_MSG_TYPE, TYPE.NONE.ordinal()));
+        if(type == TYPE.MMS) {
+        actionMmsSent(context, intent, result, null);
+        } else {
+        actionSmsSentDisconnected(context, intent, result);
+        }
+    }
+
+    static public void actionSmsSentDisconnected(Context context, Intent intent, int result) {
         boolean delete = false;
         //int retry = intent.getIntExtra(EXTRA_MESSAGE_SENT_RETRY, 0);
         int transparent = intent.getIntExtra(EXTRA_MESSAGE_SENT_TRANSPARENT, 0);
@@ -3253,10 +3348,50 @@ public class BluetoothMapContentObserver {
     }
 
     public boolean handleSmsSendIntent(Context context, Intent intent){
-        if(mInitialized) {
-            mSmsBroadcastReceiver.onReceive(context, intent);
-            return true;
+        TYPE type = TYPE.fromOrdinal(
+            intent.getIntExtra(EXTRA_MESSAGE_SENT_MSG_TYPE, TYPE.NONE.ordinal()));
+        if(type == TYPE.MMS) {
+            return handleMmsSendIntent(context, intent);
+        } else {
+            if(mInitialized) {
+                mSmsBroadcastReceiver.onReceive(context, intent);
+                return true;
+            }
         }
         return false;
     }
+
+    public boolean handleMmsSendIntent(Context context, Intent intent){
+        if(D) Log.w(TAG, "handleMmsSendIntent()");
+        if(mMnsClient.isConnected() == false) {
+            // No need to handle notifications, just use default handling
+            if(D) Log.w(TAG, "MNS not connected - use static handling");
+            return false;
+        }
+        long handle = intent.getLongExtra(EXTRA_MESSAGE_SENT_HANDLE, -1);
+        int result = intent.getIntExtra(EXTRA_MESSAGE_SENT_RESULT, Activity.RESULT_CANCELED);
+        actionMmsSent(context, intent, result, getMsgListMms());
+        if(handle < 0) {
+            Log.w(TAG, "Intent received for an invalid handle");
+            return true;
+        }
+        if(result != Activity.RESULT_OK) {
+            if(mObserverRegistered) {
+                Event evt = new Event(EVENT_TYPE_SENDING_FAILURE, handle,
+                        getMmsFolderName(Mms.MESSAGE_BOX_OUTBOX), null, TYPE.MMS);
+                sendEvent(evt);
+            }
+        } else {
+            int transparent = intent.getIntExtra(EXTRA_MESSAGE_SENT_TRANSPARENT, 0);
+            if(transparent != 0) {
+                if(mObserverRegistered) {
+                    Event evt = new Event(EVENT_TYPE_SENDING_SUCCESS, handle,
+                            getMmsFolderName(Mms.MESSAGE_BOX_OUTBOX), null, TYPE.MMS);
+                    sendEvent(evt);
+                }
+            }
+        }
+        return true;
+    }
+
 }
