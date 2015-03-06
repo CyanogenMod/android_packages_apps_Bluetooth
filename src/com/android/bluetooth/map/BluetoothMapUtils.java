@@ -106,7 +106,13 @@ public class BluetoothMapUtils {
         SMS_GSM,
         SMS_CDMA,
         MMS,
-        IM
+        IM;
+        private static TYPE[] allValues = values();
+        public static TYPE fromOrdinal(int n) {
+            if(n < allValues.length)
+               return allValues[n];
+            return NONE;
+        }
     }
 
     static public String getDateTimeString(long timestamp) {
