@@ -16,7 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Åtkomst till hämtningshanterare."</string>
+    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Åtkomst till nedladdningshanterare."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Tillåter att appen använder BluetoothShare-hanteraren vid överföring av filer."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Lägga till åtkomst för Bluetooth-enheter på den godkända listan"</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Appen tillåts lägga till en Bluetooth-enhet tillfälligt på den godkända listan, vilket gör det möjligt att skicka filer mellan olika enheter utan bekräftelse från användaren."</string>
