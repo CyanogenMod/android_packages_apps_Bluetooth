@@ -99,6 +99,21 @@ public class BluetoothOppTransport implements ObexTransport {
        return status;
     }
 
+    /**
+     * Returns the Congestion status of the Socket
+     */
+    public int getSockCongStatus() {
+        ByteBuffer bb = ByteBuffer.allocate(4);
+        bb.order(ByteOrder.LITTLE_ENDIAN);
+        int status;
+        try {
+            status = mSocket.getSocketOpt(5, bb.array());
+        } catch (IOException ex) {
+            return -1;
+        }
+        return bb.getInt();
+    }
+
     public void connect() throws IOException {
     }
 
