@@ -17,7 +17,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Dostop do upravitelja prenosov."</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Aplikaciji omogoča dostop do upravitelja BluetoothShare in njegovo uporabo za prenašanje datotek."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Programu omogoča dostop do upravitelja BluetoothShare in njegovo uporabo za prenašanje datotek."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Doda napravo Bluetooth na seznam z dovoljenim dostopom."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Aplikaciji omogoča, da začasno uvrsti napravo Bluetooth na seznam dovoljenih, kar omogoči napravi pošiljanje datotek v to napravo brez potrditve uporabnika."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
@@ -74,7 +74,7 @@
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Zapri"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"V redu"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Neznana datoteka"</string>
-    <string name="unknown_file_desc" msgid="480434281415453287">"Ni aplikacije, s katero bi bilo mogoče odpreti to vrsto datoteke. \n"</string>
+    <string name="unknown_file_desc" msgid="480434281415453287">"Ni programa, s katerim bi bilo mogoče odpreti to vrsto datoteke. \n"</string>
     <string name="not_exist_file" msgid="3489434189599716133">"Ni datoteke"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"Datoteka ne obstaja. \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Počakajte ..."</string>

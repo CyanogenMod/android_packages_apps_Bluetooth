@@ -141,7 +141,7 @@ public class HeadsetService extends ProfileService {
         }
 
         private HeadsetService getService() {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG,"Headset call not allowed for non-active user");
                 return null;
             }
@@ -581,4 +581,11 @@ public class HeadsetService extends ProfileService {
         return true;
     }
 
+    @Override
+    public void dump(StringBuilder sb) {
+        super.dump(sb);
+        if (mStateMachine != null) {
+            mStateMachine.dump(sb);
+        }
+    }
 }

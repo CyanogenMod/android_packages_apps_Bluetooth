@@ -40,7 +40,10 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.util.NumberUtils;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,6 +77,13 @@ public class GattService extends ProfileService {
     // onFoundLost related constants
     private static final int ADVT_STATE_ONFOUND = 0;
     private static final int ADVT_STATE_ONLOST = 1;
+
+    private static final UUID[] HID_UUIDS = {
+        UUID.fromString("00002A4A-0000-1000-8000-00805F9B34FB"),
+        UUID.fromString("00002A4B-0000-1000-8000-00805F9B34FB"),
+        UUID.fromString("00002A4C-0000-1000-8000-00805F9B34FB"),
+        UUID.fromString("00002A4D-0000-1000-8000-00805F9B34FB")
+    };
 
     /**
      * Search queue to serialize remote onbject inspection.
@@ -180,7 +190,7 @@ public class GattService extends ProfileService {
     protected boolean start() {
         if (DBG) Log.d(TAG, "start()");
         initializeNative();
-        mAdvertiseManager = new AdvertiseManager(this);
+        mAdvertiseManager = new AdvertiseManager(this, AdapterService.getAdapterService());
         mAdvertiseManager.start();
 
         mScanManager = new ScanManager(this);
@@ -567,7 +577,6 @@ public class GattService extends ProfileService {
     void onScanResult(String address, int rssi, byte[] adv_data) {
         if (VDBG) Log.d(TAG, "onScanResult() - address=" + address
                     + ", rssi=" + rssi);
-        ScanRecord record = ScanRecord.parseFromBytes(adv_data);
         List<UUID> remoteUuids = parseUuids(adv_data);
         for (ScanClient client : mScanManager.getRegularScanQueue()) {
             if (client.uuids.length > 0) {
@@ -636,9 +645,7 @@ public class GattService extends ProfileService {
         if (client.filters == null || client.filters.isEmpty()) {
             return true;
         }
-        if (DBG) Log.d(TAG, "result: " + scanResult.toString());
         for (ScanFilter filter : client.filters) {
-            if (DBG) Log.d(TAG, "filter: " + filter.toString());
             if (filter.matches(scanResult)) {
                 return true;
             }
@@ -652,8 +659,12 @@ public class GattService extends ProfileService {
         if (DBG) Log.d(TAG, "onClientRegistered() - UUID=" + uuid + ", clientIf=" + clientIf);
         ClientMap.App app = mClientMap.getByUuid(uuid);
         if (app != null) {
-            app.id = clientIf;
-            app.linkToDeath(new ClientDeathRecipient(clientIf));
+            if (status == 0) {
+                app.id = clientIf;
+                app.linkToDeath(new ClientDeathRecipient(clientIf));
+            } else {
+                mClientMap.remove(uuid);
+            }
             app.callback.onClientRegistered(status, clientIf);
         }
     }
@@ -827,6 +838,12 @@ public class GattService extends ProfileService {
 
         if (VDBG) Log.d(TAG, "onNotify() - address=" + address
             + ", charUuid=" + charUuid + ", length=" + data.length);
+
+
+        if (isHidUuid(charUuid) &&
+               (0 != checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED))) {
+            return;
+        }
 
         ClientMap.App app = mClientMap.getByConnId(connId);
         if (app != null) {
@@ -1052,33 +1069,33 @@ public class GattService extends ProfileService {
     private Set<ScanResult> parseTruncatedResults(int numRecords, byte[] batchRecord) {
         if (DBG) Log.d(TAG, "batch record " + Arrays.toString(batchRecord));
         Set<ScanResult> results = new HashSet<ScanResult>(numRecords);
+        long now = SystemClock.elapsedRealtimeNanos();
         for (int i = 0; i < numRecords; ++i) {
             byte[] record = extractBytes(batchRecord, i * TRUNCATED_RESULT_SIZE,
                     TRUNCATED_RESULT_SIZE);
             byte[] address = extractBytes(record, 0, 6);
-            // TODO: remove temp hack.
             reverse(address);
             BluetoothDevice device = mAdapter.getRemoteDevice(address);
             int rssi = record[8];
-            // Timestamp is in every 50 ms.
-            long timestampNanos = parseTimestampNanos(extractBytes(record, 9, 2));
+            long timestampNanos = now - parseTimestampNanos(extractBytes(record, 9, 2));
             results.add(new ScanResult(device, ScanRecord.parseFromBytes(new byte[0]),
                     rssi, timestampNanos));
         }
         return results;
     }
 
-    private long parseTimestampNanos(byte[] data) {
-        long timestampUnit = data[1] & 0xFF << 8 + data[0];
-        long timestampNanos = SystemClock.elapsedRealtimeNanos() -
-                TimeUnit.MILLISECONDS.toNanos(timestampUnit * 50);
-        return timestampNanos;
+    @VisibleForTesting
+    long parseTimestampNanos(byte[] data) {
+        long timestampUnit = NumberUtils.littleEndianByteArrayToInt(data);
+        // Timestamp is in every 50 ms.
+        return TimeUnit.MILLISECONDS.toNanos(timestampUnit * 50);
     }
 
     private Set<ScanResult> parseFullResults(int numRecords, byte[] batchRecord) {
         Log.d(TAG, "Batch record : " + Arrays.toString(batchRecord));
         Set<ScanResult> results = new HashSet<ScanResult>(numRecords);
         int position = 0;
+        long now = SystemClock.elapsedRealtimeNanos();
         while (position < batchRecord.length) {
             byte[] address = extractBytes(batchRecord, position, 6);
             // TODO: remove temp hack.
@@ -1090,7 +1107,7 @@ public class GattService extends ProfileService {
             // Skip tx power level.
             position++;
             int rssi = batchRecord[position++];
-            long timestampNanos = parseTimestampNanos(extractBytes(batchRecord, position, 2));
+            long timestampNanos = now - parseTimestampNanos(extractBytes(batchRecord, position, 2));
             position += 2;
 
             // Combine advertise packet and scan response packet.
@@ -1196,6 +1213,7 @@ public class GattService extends ProfileService {
     // Callback for standard advertising instance.
     void onAdvertiseCallback(int status, int clientIf) {
         if (DBG) Log.d(TAG, "onAdvertiseCallback,- clientIf=" + clientIf + ", status=" + status);
+        mAdvertiseManager.callbackDone(clientIf, status);
     }
 
     // Followings are callbacks for Bluetooth LE Advertise operations.
@@ -1425,6 +1443,7 @@ public class GattService extends ProfileService {
                             int srvcInstanceId, UUID srvcUuid,
                             int charInstanceId, UUID charUuid, int authReq) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (isHidUuid(charUuid)) enforcePrivilegedPermission();
 
         if (VDBG) Log.d(TAG, "readCharacteristic() - address=" + address);
 
@@ -1444,6 +1463,7 @@ public class GattService extends ProfileService {
                              int charInstanceId, UUID charUuid, int writeType,
                              int authReq, byte[] value) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (isHidUuid(charUuid)) enforcePrivilegedPermission();
 
         if (VDBG) Log.d(TAG, "writeCharacteristic() - address=" + address);
 
@@ -1466,6 +1486,7 @@ public class GattService extends ProfileService {
                             int descrInstanceId, UUID descrUuid,
                             int authReq) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (isHidUuid(charUuid)) enforcePrivilegedPermission();
 
         if (VDBG) Log.d(TAG, "readDescriptor() - address=" + address);
 
@@ -1489,6 +1510,7 @@ public class GattService extends ProfileService {
                             int descrInstanceId, UUID descrUuid,
                             int writeType, int authReq, byte[] value) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (isHidUuid(charUuid)) enforcePrivilegedPermission();
 
         if (VDBG) Log.d(TAG, "writeDescriptor() - address=" + address);
 
@@ -1529,6 +1551,7 @@ public class GattService extends ProfileService {
                 int charInstanceId, UUID charUuid,
                 boolean enable) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (isHidUuid(charUuid)) enforcePrivilegedPermission();
 
         if (DBG) Log.d(TAG, "registerForNotification() - address=" + address + " enable: " + enable);
 
@@ -1709,9 +1732,6 @@ public class GattService extends ProfileService {
         HandleMap.Entry entry = mHandleMap.getByHandle(attrHandle);
         if (entry == null) return;
 
-        if (DBG) Log.d(TAG, "onAttributeRead() UUID=" + entry.uuid
-            + ", serverIf=" + entry.serverIf + ", type=" + entry.type);
-
         mHandleMap.addRequest(transId, attrHandle);
 
         ServerMap.App app = mServerMap.getById(entry.serverIf);
@@ -1766,9 +1786,6 @@ public class GattService extends ProfileService {
 
         HandleMap.Entry entry = mHandleMap.getByHandle(attrHandle);
         if (entry == null) return;
-
-        if (DBG) Log.d(TAG, "onAttributeWrite() UUID=" + entry.uuid
-            + ", serverIf=" + entry.serverIf + ", type=" + entry.type);
 
         mHandleMap.addRequest(transId, attrHandle);
 
@@ -1830,7 +1847,7 @@ public class GattService extends ProfileService {
     }
 
     void onNotificationSent(int connId, int status) throws RemoteException {
-        if (DBG) Log.d(TAG, "onNotificationSent() connId=" + connId + ", status=" + status);
+        if (VDBG) Log.d(TAG, "onNotificationSent() connId=" + connId + ", status=" + status);
 
         String address = mServerMap.addressByConnId(connId);
         if (address == null) return;
@@ -1860,6 +1877,18 @@ public class GattService extends ProfileService {
             if (callbackInfo == null) return;
             app.callback.onNotificationSent(callbackInfo.address, callbackInfo.status);
         }
+    }
+
+    void onMtuChanged(int connId, int mtu) throws RemoteException {
+        if (DBG) Log.d(TAG, "onMtuChanged() - connId=" + connId + ", mtu=" + mtu);
+
+        String address = mServerMap.addressByConnId(connId);
+        if (address == null) return;
+
+        ServerMap.App app = mServerMap.getByConnId(connId);
+        if (app == null) return;
+
+        app.callback.onMtuChanged(address, mtu);
     }
 
     /**************************************************************************
@@ -2035,6 +2064,13 @@ public class GattService extends ProfileService {
     /**************************************************************************
      * Private functions
      *************************************************************************/
+
+    private boolean isHidUuid(final UUID uuid) {
+        for (UUID hid_uuid : HID_UUIDS) {
+            if (hid_uuid.equals(uuid)) return true;
+        }
+        return false;
+    }
 
     private int getDeviceType(BluetoothDevice device) {
         int type = gattClientGetDeviceTypeNative(device.getAddress());
@@ -2246,6 +2282,33 @@ public class GattService extends ProfileService {
         return uuids;
     }
 
+    @Override
+    public void dump(StringBuilder sb) {
+        super.dump(sb);
+        println(sb, "mAdvertisingServiceUuids:");
+        for (UUID uuid : mAdvertisingServiceUuids) {
+            println(sb, "  " + uuid);
+        }
+        println(sb, "mOnFoundResults:");
+        for (ScanResult result : mOnFoundResults.values()) {
+            println(sb, "  " + result);
+        }
+        println(sb, "mOnFoundResults:");
+        for (ServiceDeclaration declaration : mServiceDeclarations) {
+            println(sb, "  " + declaration);
+        }
+        println(sb, "mMaxScanFilters: " + mMaxScanFilters);
+
+        sb.append("\nGATT Client Map\n");
+        mClientMap.dump(sb);
+
+        sb.append("\nGATT Server Map\n");
+        mServerMap.dump(sb);
+
+        sb.append("\nGATT Handle Map\n");
+        mHandleMap.dump(sb);
+    }
+
     /**************************************************************************
      * GATT Test functions
      *************************************************************************/
@@ -2339,16 +2402,10 @@ public class GattService extends ProfileService {
     private native void gattClientReadRemoteRssiNative(int clientIf,
             String address);
 
-    private native void gattAdvertiseNative(int client_if, boolean start);
-
     private native void gattClientConfigureMTUNative(int conn_id, int mtu);
 
     private native void gattConnectionParameterUpdateNative(int client_if, String address,
             int minInterval, int maxInterval, int latency, int timeout);
-
-    private native void gattSetAdvDataNative(int serverIf, boolean setScanRsp, boolean inclName,
-            boolean inclTxPower, int minInterval, int maxInterval,
-            int appearance, byte[] manufacturerData, byte[] serviceData, byte[] serviceUuid);
 
     private native void gattServerRegisterAppNative(long app_uuid_lsb,
                                                     long app_uuid_msb);

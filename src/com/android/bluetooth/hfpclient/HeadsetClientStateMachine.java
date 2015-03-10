@@ -158,6 +158,35 @@ final class HeadsetClientStateMachine extends StateMachine {
         classInitNative();
     }
 
+    public void dump(StringBuilder sb) {
+        ProfileService.println(sb, "mCurrentDevice: " + mCurrentDevice);
+        ProfileService.println(sb, "mAudioOn: " + mAudioOn);
+        ProfileService.println(sb, "mAudioState: " + mAudioState);
+        ProfileService.println(sb, "mAudioWbs: " + mAudioWbs);
+        ProfileService.println(sb, "mIndicatorNetworkState: " + mIndicatorNetworkState);
+        ProfileService.println(sb, "mIndicatorNetworkType: " + mIndicatorNetworkType);
+        ProfileService.println(sb, "mIndicatorNetworkSignal: " + mIndicatorNetworkSignal);
+        ProfileService.println(sb, "mIndicatorBatteryLevel: " + mIndicatorBatteryLevel);
+        ProfileService.println(sb, "mIndicatorCall: " + mIndicatorCall);
+        ProfileService.println(sb, "mIndicatorCallSetup: " + mIndicatorCallSetup);
+        ProfileService.println(sb, "mIndicatorCallHeld: " + mIndicatorCallHeld);
+        ProfileService.println(sb, "mVgsFromStack: " + mVgsFromStack);
+        ProfileService.println(sb, "mVgmFromStack: " + mVgmFromStack);
+        ProfileService.println(sb, "mRingtone: " + mRingtone);
+        ProfileService.println(sb, "mOperatorName: " + mOperatorName);
+        ProfileService.println(sb, "mSubscriberInfo: " + mSubscriberInfo);
+        ProfileService.println(sb, "mVoiceRecognitionActive: " + mVoiceRecognitionActive);
+        ProfileService.println(sb, "mInBandRingtone: " + mInBandRingtone);
+        ProfileService.println(sb, "mCalls:");
+        for (BluetoothHeadsetClientCall call : mCalls.values()) {
+            ProfileService.println(sb, "  " + call);
+        }
+        ProfileService.println(sb, "mCallsUpdate:");
+        for (BluetoothHeadsetClientCall call : mCallsUpdate.values()) {
+            ProfileService.println(sb, "  " + call);
+        }
+    }
+
     private void clearPendingAction() {
         mPendingAction = new Pair<Integer, Object>(NO_ACTION, 0);
     }

@@ -21,6 +21,8 @@ import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
+import android.telephony.SubscriptionManager;
+import android.telephony.SubscriptionManager.OnSubscriptionsChangedListener;
 import android.util.Log;
 import android.bluetooth.BluetoothDevice;
 
@@ -69,30 +71,78 @@ class HeadsetPhoneState {
 
     private boolean mListening = false;
 
+    // when HFP Service Level Connection is established
+    private boolean mSlcReady = false;
+
+    private Context mContext = null;
+
+    private PhoneStateListener mPhoneStateListener = null;
+
+    private SubscriptionManager mSubMgr;
+
+    private OnSubscriptionsChangedListener mOnSubscriptionsChangedListener =
+            new OnSubscriptionsChangedListener() {
+        @Override
+        public void onSubscriptionsChanged() {
+            listenForPhoneState(false);
+            listenForPhoneState(true);
+        }
+    };
+
+
     HeadsetPhoneState(Context context, HeadsetStateMachine stateMachine) {
         mStateMachine = stateMachine;
         mTelephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        mContext = context;
+
+        // Register for SubscriptionInfo list changes which is guaranteed
+        // to invoke onSubscriptionInfoChanged and which in turns calls
+        // loadInBackgroud.
+        mSubMgr = SubscriptionManager.from(mContext);
+        mSubMgr.addOnSubscriptionsChangedListener(mOnSubscriptionsChangedListener);
     }
 
     public void cleanup() {
         listenForPhoneState(false);
+        mSubMgr.removeOnSubscriptionsChangedListener(mOnSubscriptionsChangedListener);
+
         mTelephonyManager = null;
         mStateMachine = null;
     }
 
     void listenForPhoneState(boolean start) {
+
+        mSlcReady = start;
+
         if (start) {
-            if (!mListening) {
+            startListenForPhoneState();
+        } else {
+            stopListenForPhoneState();
+        }
+
+    }
+
+    private void startListenForPhoneState() {
+        if (!mListening && mSlcReady) {
+
+            int subId = SubscriptionManager.getDefaultSubId();
+
+            if (SubscriptionManager.isValidSubscriptionId(subId)) {
+                mPhoneStateListener = getPhoneStateListener(subId);
+
                 mTelephonyManager.listen(mPhoneStateListener,
                                          PhoneStateListener.LISTEN_SERVICE_STATE |
                                          PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
                 mListening = true;
             }
-        } else {
-            if (mListening) {
-                mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
-                mListening = false;
-            }
+        }
+    }
+
+    private void stopListenForPhoneState() {
+        if (mListening) {
+
+            mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
+            mListening = false;
         }
     }
 
@@ -203,31 +253,37 @@ class HeadsetPhoneState {
         }
     }
 
-    private PhoneStateListener mPhoneStateListener = new PhoneStateListener() {
-        @Override
-        public void onServiceStateChanged(ServiceState serviceState) {
-            mServiceState = serviceState;
-            mService = (serviceState.getState() == ServiceState.STATE_IN_SERVICE) ?
-                HeadsetHalConstants.NETWORK_STATE_AVAILABLE :
-                HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE;
-            setRoam(serviceState.getRoaming() ? HeadsetHalConstants.SERVICE_TYPE_ROAMING
-                                              : HeadsetHalConstants.SERVICE_TYPE_HOME);
-            sendDeviceStateChanged();
-        }
+    private PhoneStateListener getPhoneStateListener(int subId) {
+        PhoneStateListener mPhoneStateListener = new PhoneStateListener(subId) {
+            @Override
+            public void onServiceStateChanged(ServiceState serviceState) {
 
-        @Override
-        public void onSignalStrengthsChanged(SignalStrength signalStrength) {
-            int prevSignal = mSignal;
-            if (mService == HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE)
-                mSignal = 0;
-            else
-                mSignal = (signalStrength.getLevel() == 4) ? 5 : signalStrength.getLevel();
-            // network signal strength is scaled to BT 1-5 levels.
-            // This results in a lot of duplicate messages, hence this check
-            if (prevSignal != mSignal)
-                sendDeviceStateChanged();
-        }
-    };
+                mServiceState = serviceState;
+                mService = (serviceState.getState() == ServiceState.STATE_IN_SERVICE) ?
+                    HeadsetHalConstants.NETWORK_STATE_AVAILABLE :
+                    HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE;
+                setRoam(serviceState.getRoaming() ? HeadsetHalConstants.SERVICE_TYPE_ROAMING
+                                                  : HeadsetHalConstants.SERVICE_TYPE_HOME);
+
+            }
+
+            @Override
+            public void onSignalStrengthsChanged(SignalStrength signalStrength) {
+
+                int prevSignal = mSignal;
+                if (mService == HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE)
+                    mSignal = 0;
+                else
+                    mSignal = (signalStrength.getLevel() == 4) ? 5 : signalStrength.getLevel();
+
+                // network signal strength is scaled to BT 1-5 levels.
+                // This results in a lot of duplicate messages, hence this check
+                if (prevSignal != mSignal)
+                    sendDeviceStateChanged();
+            }
+        };
+        return mPhoneStateListener;
+    }
 
 }
 
