@@ -81,7 +81,7 @@ import android.os.ServiceManager;
 
 public class AdapterService extends Service {
     private static final String TAG = "BluetoothAdapterService";
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
     private static final boolean TRACE_REF = true;
     private static final int MIN_ADVT_INSTANCES_FOR_MA = 5;
     private static final int MIN_OFFLOADED_FILTERS = 10;
@@ -287,6 +287,8 @@ public class AdapterService extends Service {
 
     private void processProfileServiceStateChanged(String serviceName, int state) {
         boolean doUpdate=false;
+        boolean isBleTurningOn;
+        boolean isBleTurningOff;
         boolean isTurningOn;
         boolean isTurningOff;
 
@@ -307,15 +309,41 @@ public class AdapterService extends Service {
         synchronized (mAdapterStateMachine) {
             isTurningOff = mAdapterStateMachine.isTurningOff();
             isTurningOn = mAdapterStateMachine.isTurningOn();
+            isBleTurningOn = mAdapterStateMachine.isBleTurningOn();
+            isBleTurningOff = mAdapterStateMachine.isBleTurningOff();
         }
 
-        if (isTurningOff) {
+        debugLog("processProfileServiceStateChanged() - serviceName=" + serviceName +
+                 " isTurningOn=" + isTurningOn + " isTurningOff=" + isTurningOff +
+                 " isBleTurningOn=" + isBleTurningOn + " isBleTurningOff=" + isBleTurningOff);
+
+        if (isBleTurningOn) {
+            if (serviceName.equals("com.android.bluetooth.gatt.GattService")) {
+                debugLog("GattService is started");
+                mAdapterStateMachine.sendMessage(mAdapterStateMachine.obtainMessage(AdapterState.BLE_STARTED));
+                return;
+            }
+
+        } else if(isBleTurningOff) {
+            if (serviceName.equals("com.android.bluetooth.gatt.GattService")) {
+                debugLog("GattService stopped");
+                mAdapterStateMachine.sendMessage(mAdapterStateMachine.obtainMessage(AdapterState.BLE_STOPPED));
+                return;
+            }
+
+        } else if (isTurningOff) {
+            //On to BLE_ON
             //Process stop or disable pending
             //Check if all services are stopped if so, do cleanup
             synchronized (mProfileServicesState) {
                 Iterator<Map.Entry<String,Integer>> i = mProfileServicesState.entrySet().iterator();
                 while (i.hasNext()) {
                     Map.Entry<String,Integer> entry = i.next();
+                    debugLog("Service: " + entry.getKey());
+                    if (entry.getKey().equals("com.android.bluetooth.gatt.GattService")) {
+                        debugLog("Skip GATT service - already started before");
+                        continue;
+                    }
                     if (BluetoothAdapter.STATE_OFF != entry.getValue()) {
                         debugLog("onProfileServiceStateChange() - Profile still running: "
                             + entry.getKey());
@@ -326,7 +354,8 @@ public class AdapterService extends Service {
             debugLog("onProfileServiceStateChange() - All profile services stopped...");
             //Send message to state machine
             mProfilesStarted=false;
-            mAdapterStateMachine.sendMessage(mAdapterStateMachine.obtainMessage(AdapterState.STOPPED));
+            mAdapterStateMachine.sendMessage(mAdapterStateMachine.obtainMessage(AdapterState.BREDR_STOPPED));
+
         } else if (isTurningOn) {
             //Process start pending
             //Check if all services are started if so, update state
@@ -334,6 +363,11 @@ public class AdapterService extends Service {
                 Iterator<Map.Entry<String,Integer>> i = mProfileServicesState.entrySet().iterator();
                 while (i.hasNext()) {
                     Map.Entry<String,Integer> entry = i.next();
+                    debugLog("Service: " + entry.getKey());
+                    if (entry.getKey().equals("com.android.bluetooth.gatt.GattService")) {
+                        debugLog("Skip GATT service - already started before");
+                        continue;
+                    }
                     if (BluetoothAdapter.STATE_ON != entry.getValue()) {
                         debugLog("onProfileServiceStateChange() - Profile still not running:"
                             + entry.getKey());
@@ -344,7 +378,7 @@ public class AdapterService extends Service {
             debugLog("onProfileServiceStateChange() - All profile services started.");
             mProfilesStarted=true;
             //Send message to state machine
-            mAdapterStateMachine.sendMessage(mAdapterStateMachine.obtainMessage(AdapterState.STARTED));
+            mAdapterStateMachine.sendMessage(mAdapterStateMachine.obtainMessage(AdapterState.BREDR_STARTED));
         }
     }
 
@@ -387,8 +421,8 @@ public class AdapterService extends Service {
         debugLog("onDestroy()");
     }
 
-    void processStart() {
-        debugLog("processStart()");
+    void BleOnProcessStart() {
+        debugLog("BleOnProcessStart()");
         Class[] supportedProfileServices = Config.getSupportedProfiles();
         //Initialize data objects
         for (int i=0; i < supportedProfileServices.length;i++) {
@@ -397,7 +431,7 @@ public class AdapterService extends Service {
         mRemoteDevices = new RemoteDevices(this);
         mAdapterProperties.init(mRemoteDevices);
 
-        debugLog("processStart() - Make Bond State Machine");
+        debugLog("BleOnProcessStart() - Make Bond State Machine");
         mBondStateMachine = BondStateMachine.make(this, mAdapterProperties, mRemoteDevices);
 
         mJniCallbacks.init(mBondStateMachine,mRemoteDevices);
@@ -405,13 +439,22 @@ public class AdapterService extends Service {
         //FIXME: Set static instance here???
         setAdapterService(this);
 
+        //Start Gatt service
+        setGattProfileServiceState(supportedProfileServices,BluetoothAdapter.STATE_ON);
+    }
+
+    void startCoreServices()
+    {
+        debugLog("startCoreServices()");
+        Class[] supportedProfileServices = Config.getSupportedProfiles();
+
         //Start profile services
         if (!mProfilesStarted && supportedProfileServices.length >0) {
             //Startup all profile services
             setProfileServiceState(supportedProfileServices,BluetoothAdapter.STATE_ON);
         }else {
-            debugLog("processStart() - Profile Services alreay started");
-            mAdapterStateMachine.sendMessage(mAdapterStateMachine.obtainMessage(AdapterState.STARTED));
+            debugLog("startCoreProfiles(): Profile Services alreay started");
+            mAdapterStateMachine.sendMessage(mAdapterStateMachine.obtainMessage(AdapterState.BREDR_STARTED));
         }
     }
 
@@ -428,6 +471,16 @@ public class AdapterService extends Service {
         debugLog("stopProfileServices() - No profiles services to stop or already stopped.");
         return false;
     }
+
+    boolean stopGattProfileService() {
+        //TODO: can optimize this instead of looping around all supported profiles
+        debugLog("stopGattProfileService()");
+        Class[] supportedProfileServices = Config.getSupportedProfiles();
+
+        setGattProfileServiceState(supportedProfileServices,BluetoothAdapter.STATE_OFF);
+        return true;
+    }
+
 
      void updateAdapterState(int prevState, int newState){
         if (mCallbacks !=null) {
@@ -517,7 +570,6 @@ public class AdapterService extends Service {
             mCallbacks.kill();
         }
 
-        debugLog("cleanup() - Bluetooth process exited normally.");
         System.exit(0);
     }
 
@@ -576,6 +628,51 @@ public class AdapterService extends Service {
     };
 
     @SuppressWarnings("rawtypes")
+    private void setGattProfileServiceState(Class[] services, int state) {
+        if (state != BluetoothAdapter.STATE_ON && state != BluetoothAdapter.STATE_OFF) {
+            Log.w(TAG,"setGattProfileServiceState(): invalid state...Leaving...");
+            return;
+        }
+
+        int expectedCurrentState= BluetoothAdapter.STATE_OFF;
+        int pendingState = BluetoothAdapter.STATE_TURNING_ON;
+
+        if (state == BluetoothAdapter.STATE_OFF) {
+            expectedCurrentState= BluetoothAdapter.STATE_ON;
+            pendingState = BluetoothAdapter.STATE_TURNING_OFF;
+        }
+
+        for (int i=0; i <services.length;i++) {
+            String serviceName = services[i].getName();
+            String simpleName = services[i].getSimpleName();
+
+            if (simpleName.equals("GattService")) {
+                if (DBG) Log.d(TAG, "It is gaTT service");
+                Integer serviceState = mProfileServicesState.get(serviceName);
+
+                if(serviceState != null && serviceState != expectedCurrentState) {
+                    debugLog("setProfileServiceState() - Unable to "
+                        + (state == BluetoothAdapter.STATE_OFF ? "start" : "stop" )
+                        + " service " + serviceName
+                        + ". Invalid state: " + serviceState);
+                        continue;
+                }
+                debugLog("setProfileServiceState() - "
+                    + (state == BluetoothAdapter.STATE_OFF ? "Stopping" : "Starting")
+                    + " service " + serviceName);
+
+                mProfileServicesState.put(serviceName,pendingState);
+                Intent intent = new Intent(this,services[i]);
+                intent.putExtra(EXTRA_ACTION,ACTION_SERVICE_STATE_CHANGED);
+                intent.putExtra(BluetoothAdapter.EXTRA_STATE,state);
+                startService(intent);
+                return;
+            }
+        }
+    }
+
+
+    @SuppressWarnings("rawtypes")
     private void setProfileServiceState(Class[] services, int state) {
         if (state != BluetoothAdapter.STATE_ON && state != BluetoothAdapter.STATE_OFF) {
             debugLog("setProfileServiceState() - Invalid state, leaving...");
@@ -591,6 +688,12 @@ public class AdapterService extends Service {
 
         for (int i=0; i <services.length;i++) {
             String serviceName = services[i].getName();
+            String simpleName = services[i].getSimpleName();
+
+            if (simpleName.equals("GattService")) {
+                if (DBG) Log.d(TAG, "It is gaTT service. SKIP IT");
+                continue;
+            }
             Integer serviceState = mProfileServicesState.get(serviceName);
             if(serviceState != null && serviceState != expectedCurrentState) {
                 debugLog("setProfileServiceState() - Unable to "
@@ -1171,54 +1274,56 @@ public class AdapterService extends Service {
             }
             return service.dump();
          }
+
+         public void onLeServiceUp(){
+             AdapterService service = getService();
+             if (service == null) return;
+             service.onLeServiceUp();
+         }
+
+         public void onBrEdrDown(){
+             AdapterService service = getService();
+             if (service == null) return;
+             service.onBrEdrDown();
+         }
     };
 
+    // ----API Methods--------
 
-    //----API Methods--------
      boolean isEnabled() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-
         return mAdapterProperties.getState() == BluetoothAdapter.STATE_ON;
-    }
+     }
 
      int getState() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-
-        if (mAdapterProperties == null){
-            return  BluetoothAdapter.STATE_OFF;
-        }
-        else {
-            debugLog("getState() - mAdapterProperties: " + mAdapterProperties);
-            return mAdapterProperties.getState();
-        }
-    }
+        if (mAdapterProperties != null) return mAdapterProperties.getState();
+        return  BluetoothAdapter.STATE_OFF;
+     }
 
      boolean enable() {
         return enable (false);
-    }
+     }
 
       public boolean enableNoAutoConnect() {
          return enable (true);
      }
 
      public synchronized boolean enable(boolean quietMode) {
-         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                                        "Need BLUETOOTH ADMIN permission");
+         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+
          debugLog("enable() - Enable called with quiet mode status =  " + mQuietmode);
-         mQuietmode  = quietMode;
-         Message m =
-                 mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_ON);
+         mQuietmode = quietMode;
+         Message m = mAdapterStateMachine.obtainMessage(AdapterState.BLE_TURN_ON);
          mAdapterStateMachine.sendMessage(m);
          return true;
      }
 
      boolean disable() {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
-                                       "Need BLUETOOTH ADMIN permission");
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
 
         debugLog("disable() called...");
-        Message m =
-                mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_OFF);
+        Message m = mAdapterStateMachine.obtainMessage(AdapterState.BLE_TURN_OFF);
         mAdapterStateMachine.sendMessage(m);
         return true;
     }
@@ -1768,6 +1873,16 @@ public class AdapterService extends Service {
         return sb.toString();
     }
 
+    public void onLeServiceUp() {
+        Message m = mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_ON);
+        mAdapterStateMachine.sendMessage(m);
+    }
+
+    public void onBrEdrDown() {
+        Message m = mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_OFF);
+        mAdapterStateMachine.sendMessage(m);
+    }
+
     private static int convertScanModeToHal(int mode) {
         switch (mode) {
             case BluetoothAdapter.SCAN_MODE_NONE:
@@ -1907,11 +2022,11 @@ public class AdapterService extends Service {
     }
 
     private void debugLog(String msg) {
-        if (DBG) Log.d(TAG +"(" +hashCode()+")", msg);
+        if (DBG) Log.d(TAG, msg);
     }
 
     private void errorLog(String msg) {
-        Log.e(TAG +"(" +hashCode()+")", msg);
+        Log.e(TAG, msg);
     }
 
     private final BroadcastReceiver mAlarmBroadcastReceiver = new BroadcastReceiver() {

@@ -546,6 +546,20 @@ public class GattService extends ProfileService {
             if (service == null) return;
             service.stopMultiAdvertising(new AdvertiseClient(clientIf));
         }
+
+        @Override
+        public void disconnectAll() {
+            GattService service = getService();
+            if (service == null) return;
+            service.disconnectAll();
+        }
+
+        @Override
+        public void unregAll() {
+            GattService service = getService();
+            if (service == null) return;
+            service.unregAll();
+        }
     };
 
     /**************************************************************************
@@ -1331,6 +1345,23 @@ public class GattService extends ProfileService {
                 mScanManager.getRegularScanQueue().size();
         if (DBG) Log.d(TAG, "stopScan() - queue size =" + scanQueueSize);
         mScanManager.stopScan(client);
+    }
+
+    void disconnectAll() {
+        if (DBG) Log.d(TAG, "disconnectAll()");
+        Map<Integer, String> connMap = mClientMap.getConnectedMap();
+        for(Map.Entry<Integer, String> entry:connMap.entrySet()){
+            if (DBG) Log.d(TAG, "disconnecting addr:" + entry.getValue());
+            clientDisconnect(entry.getKey(), entry.getValue());
+            //clientDisconnect(int clientIf, String address)
+        }
+    }
+
+    void unregAll() {
+        for(ClientMap.App app:mClientMap.mApps){
+            if (DBG) Log.d(TAG, "unreg:" + app.id);
+            unregisterClient(app.id);
+        }
     }
 
     /**************************************************************************

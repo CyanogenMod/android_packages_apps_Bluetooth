@@ -604,9 +604,20 @@ class AdapterProperties {
         }
     }
 
-    private boolean mBluetoothDisabling=false;
+    private boolean mBluetoothDisabling = false;
+
+    void onBleDisable() {
+        // Sequence BLE_ON to STATE_OFF - that is _complete_ OFF state.
+        // When BT disable is invoked, set the scan_mode to NONE
+        // so no incoming connections are possible
+        debugLog("onBleDisable");
+        if (getState() == BluetoothAdapter.STATE_BLE_TURNING_OFF) {
+           setScanMode(AbstractionLayer.BT_SCAN_MODE_NONE);
+        }
+    }
 
     void onBluetoothDisable() {
+        // From STATE_ON to BLE_ON
         // When BT disable is invoked, set the scan_mode to NONE
         // so no incoming connections are possible
 
@@ -618,6 +629,7 @@ class AdapterProperties {
             setScanMode(AbstractionLayer.BT_SCAN_MODE_NONE);
         }
     }
+
     void discoveryStateChangeCallback(int state) {
         infoLog("Callback:discoveryStateChangeCallback with state:" + state);
         synchronized (mObject) {
