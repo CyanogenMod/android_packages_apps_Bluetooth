@@ -27,7 +27,6 @@ import android.net.NetworkFactory;
 import android.net.NetworkInfo;
 import android.net.NetworkInfo.DetailedState;
 import android.net.NetworkRequest;
-import android.net.NetworkStateTracker;
 import android.net.NetworkUtils;
 import android.os.Looper;
 import android.os.Message;
