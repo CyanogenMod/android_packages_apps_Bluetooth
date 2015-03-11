@@ -134,14 +134,19 @@ static void initializeNative(JNIEnv *env, jobject object) {
         return;
     }
 
+    mCallbacksObj = env->NewGlobalRef(object);
+
     bt_status_t status;
     if ( (status = sPanIf->init(&sBluetoothPanCallbacks)) != BT_STATUS_SUCCESS) {
         error("Failed to initialize Bluetooth PAN, status: %d", status);
         sPanIf = NULL;
+        if (mCallbacksObj != NULL) {
+            ALOGW("initialization failed: Cleaning up Bluetooth PAN callback object");
+            env->DeleteGlobalRef(mCallbacksObj);
+            mCallbacksObj = NULL;
+        }
         return;
     }
-
-    mCallbacksObj = env->NewGlobalRef(object);
 }
 
 static void cleanupNative(JNIEnv *env, jobject object) {

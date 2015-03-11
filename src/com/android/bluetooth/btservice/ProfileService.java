@@ -231,7 +231,10 @@ public abstract class ProfileService extends Service {
     }
 
     protected BluetoothDevice getDevice(byte[] address) {
-        return mAdapter.getRemoteDevice(Utils.getAddressStringFromByte(address));
+        if(mAdapter != null){
+            return mAdapter.getRemoteDevice(Utils.getAddressStringFromByte(address));
+        }
+        return null;
     }
 
     protected void log(String msg) {

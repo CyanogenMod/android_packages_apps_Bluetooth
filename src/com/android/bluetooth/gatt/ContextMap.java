@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Helper class that keeps track of registered GATT applications.
@@ -303,6 +305,17 @@ import java.util.UUID;
         synchronized (mConnections) {
             mConnections.clear();
         }
+    }
+
+    /**
+     * Returns connect device map with addr and appid
+     */
+    Map<Integer, String> getConnectedMap(){
+        Map<Integer, String> connectedmap = new HashMap<Integer, String>();
+        for(Connection conn: mConnections){
+            connectedmap.put(conn.appId, conn.address);
+        }
+        return connectedmap;
     }
 
     /**
