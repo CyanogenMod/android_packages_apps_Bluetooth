@@ -1205,4 +1205,5 @@ public class BluetoothMapService extends ProfileService {
             return service.getPriority(device);
         }
     };
+
 }

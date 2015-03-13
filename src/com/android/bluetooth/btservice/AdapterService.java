@@ -57,8 +57,10 @@ import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.provider.Settings;
+import android.util.EventLog;
 import android.util.Log;
 import android.util.Pair;
+
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.a2dp.A2dpSinkService;
 import com.android.bluetooth.hid.HidService;
@@ -67,9 +69,10 @@ import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hdp.HealthService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
 import com.android.bluetooth.pan.PanService;
-import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
+import com.android.internal.R;
+
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -80,6 +83,7 @@ import java.util.Map;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.List;
+
 import android.content.pm.PackageManager;
 import android.os.ServiceManager;
 
@@ -99,6 +103,8 @@ public class AdapterService extends Service {
     private int mRxTimeTotalMs;
     private int mIdleTimeTotalMs;
     private int mEnergyUsedTotalVoltAmpSecMicro;
+
+    private final ArrayList<ProfileService> mProfiles = new ArrayList<ProfileService>();
 
     public static final String ACTION_LOAD_ADAPTER_PROPERTIES =
         "com.android.bluetooth.btservice.action.LOAD_ADAPTER_PROPERTIES";
@@ -277,6 +283,18 @@ public class AdapterService extends Service {
             } catch (RemoteException re) {
                 errorLog("" + re);
             }
+        }
+    }
+
+    public void addProfile(ProfileService profile) {
+        synchronized (mProfiles) {
+            mProfiles.add(profile);
+        }
+    }
+
+    public void removeProfile(ProfileService profile) {
+        synchronized (mProfiles) {
+            mProfiles.remove(profile);
         }
     }
 
@@ -533,6 +551,8 @@ public class AdapterService extends Service {
     private static final int MESSAGE_PROFILE_CONNECTION_STATE_CHANGED = 20;
     private static final int MESSAGE_CONNECT_OTHER_PROFILES = 30;
     private static final int MESSAGE_PROFILE_INIT_PRIORITIES=40;
+    private static final int MESSAGE_SET_WAKE_ALARM = 100;
+    private static final int MESSAGE_RELEASE_WAKE_ALARM = 110;
     private static final int CONNECT_OTHER_PROFILES_TIMEOUT= 6000;
     private static final int CONNECT_OTHER_PROFILES_TIMEOUT_DEYALED = 10000;
     private static final int MESSAGE_AUTO_CONNECT_PROFILES = 50;
@@ -574,6 +594,17 @@ public class AdapterService extends Service {
                     autoConnectProfilesDelayed();
                     break;
                 }
+                case MESSAGE_SET_WAKE_ALARM: {
+                    debugLog( "handleMessage() - MESSAGE_SET_WAKE_ALARM");
+                    processSetWakeAlarm((Long) msg.obj, msg.arg1);
+                }
+                    break;
+                case MESSAGE_RELEASE_WAKE_ALARM: {
+                    debugLog( "handleMessage() - MESSAGE_RELEASE_WAKE_ALARM");
+                    mPendingAlarm = null;
+                    alarmFiredNative();
+                }
+                    break;
             }
         }
     };
@@ -596,7 +627,7 @@ public class AdapterService extends Service {
             String serviceName = services[i].getName();
             Integer serviceState = mProfileServicesState.get(serviceName);
             if(serviceState != null && serviceState != expectedCurrentState) {
-                debugLog("setProfileServiceState() - Unable to " 
+                debugLog("setProfileServiceState() - Unable to "
                     + (state == BluetoothAdapter.STATE_OFF ? "start" : "stop" )
                     + " service " + serviceName
                     + ". Invalid state: " + serviceState);
@@ -715,7 +746,7 @@ public class AdapterService extends Service {
 
         public String getAddress() {
             if ((Binder.getCallingUid() != Process.SYSTEM_UID) &&
-                (!Utils.checkCaller())) {
+                (!Utils.checkCallerAllowManagedProfiles(mService))) {
                 Log.w(TAG, "getAddress() - Not allowed for non-active user and non system user");
                 return null;
             }
@@ -760,7 +791,7 @@ public class AdapterService extends Service {
         }
 
         public int getScanMode() {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "getScanMode() - Not allowed for non-active user");
                 return BluetoothAdapter.SCAN_MODE_NONE;
             }
@@ -825,7 +856,7 @@ public class AdapterService extends Service {
             return service.cancelDiscovery();
         }
         public boolean isDiscovering() {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "isDiscovering() - Not allowed for non-active user");
                 return false;
             }
@@ -850,7 +881,7 @@ public class AdapterService extends Service {
         }
 
         public int getProfileConnectionState(int profile) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "getProfileConnectionState- Not allowed for non-active user");
                 return BluetoothProfile.STATE_DISCONNECTED;
             }
@@ -900,16 +931,14 @@ public class AdapterService extends Service {
             return service.getBondState(device);
         }
 
-        public boolean isConnected(BluetoothDevice device) {
+        public int getConnectionState(BluetoothDevice device) {
             AdapterService service = getService();
-            if (service == null) {
-                return false;
-            }
-            return service.isConnected(device);
+            if (service == null) return 0;
+            return service.getConnectionState(device);
         }
 
         public String getRemoteName(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "getRemoteName() - Not allowed for non-active user");
                 return null;
             }
@@ -920,7 +949,7 @@ public class AdapterService extends Service {
         }
 
         public int getRemoteType(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "getRemoteType() - Not allowed for non-active user");
                 return BluetoothDevice.DEVICE_TYPE_UNKNOWN;
             }
@@ -931,7 +960,7 @@ public class AdapterService extends Service {
         }
 
         public String getRemoteAlias(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "getRemoteAlias() - Not allowed for non-active user");
                 return null;
             }
@@ -978,7 +1007,7 @@ public class AdapterService extends Service {
         }
 
         public int getRemoteClass(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "getRemoteClass() - Not allowed for non-active user");
                 return 0;
             }
@@ -989,7 +1018,7 @@ public class AdapterService extends Service {
         }
 
         public ParcelUuid[] getRemoteUuids(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "getRemoteUuids() - Not allowed for non-active user");
                 return new ParcelUuid[0];
             }
@@ -1000,7 +1029,7 @@ public class AdapterService extends Service {
         }
 
         public boolean fetchRemoteUuids(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "fetchRemoteUuids() - Not allowed for non-active user");
                 return false;
             }
@@ -1107,7 +1136,7 @@ public class AdapterService extends Service {
 
         public ParcelFileDescriptor connectSocket(BluetoothDevice device, int type,
                                                   ParcelUuid uuid, int port, int flag) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "connectSocket() - Not allowed for non-active user");
                 return null;
             }
@@ -1119,7 +1148,7 @@ public class AdapterService extends Service {
 
         public ParcelFileDescriptor createSocketChannel(int type, String serviceName,
                                                         ParcelUuid uuid, int port, int flag) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "createSocketChannel() - Not allowed for non-active user");
                 return null;
             }
@@ -1164,9 +1193,9 @@ public class AdapterService extends Service {
 
 
         public boolean configHciSnoopLog(boolean enable) {
-            if ((Binder.getCallingUid() != Process.SYSTEM_UID) &&
-                (!Utils.checkCaller())) {
-                Log.w(TAG, "configHciSnoopLog() - Not allowed for non-active user");
+            if (Binder.getCallingUid() != Process.SYSTEM_UID) {
+                EventLog.writeEvent(0x534e4554 /* SNET */, "Bluetooth", Binder.getCallingUid(),
+                        "configHciSnoopLog() - Not allowed for non-active user b/18643224");
                 return false;
             }
 
@@ -1190,8 +1219,13 @@ public class AdapterService extends Service {
          public boolean isMultiAdvertisementSupported() {
              AdapterService service = getService();
              if (service == null) return false;
-             int val = service.getNumOfAdvertisementInstancesSupported();
-             return (val >= MIN_ADVT_INSTANCES_FOR_MA);
+             return service.isMultiAdvertisementSupported();
+         }
+
+         public boolean isPeripheralModeSupported() {
+             AdapterService service = getService();
+             if (service == null) return false;
+             return service.isPeripheralModeSupported();
          }
 
          public boolean isOffloadedFilteringSupported() {
@@ -1224,6 +1258,14 @@ public class AdapterService extends Service {
              AdapterService service = getService();
              if (service == null) return null;
              return service.reportActivityInfo();
+         }
+
+         public String dump() {
+            AdapterService service = getService();
+            if (service == null) {
+                return "AdapterService is null";
+            }
+            return service.dump();
          }
     };
 
@@ -1674,10 +1716,10 @@ public class AdapterService extends Service {
         return deviceProp.getBondState();
     }
 
-    boolean isConnected(BluetoothDevice device) {
+    int getConnectionState(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         byte[] addr = Utils.getBytesFromAddress(device.getAddress());
-        return isConnectedNative(addr);
+        return getConnectionStateNative(addr);
     }
 
      String getRemoteName(BluetoothDevice device) {
@@ -1909,6 +1951,11 @@ public class AdapterService extends Service {
         return mAdapterProperties.getNumOfAdvertisementInstancesSupported();
     }
 
+    public boolean isMultiAdvertisementSupported() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return getNumOfAdvertisementInstancesSupported() >= MIN_ADVT_INSTANCES_FOR_MA;
+    }
+
     public boolean isRpaOffloadSupported() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         return mAdapterProperties.isRpaOffloadSupported();
@@ -1922,6 +1969,10 @@ public class AdapterService extends Service {
     public int getNumOfOffloadedScanFilterSupported() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         return mAdapterProperties.getNumOfOffloadedScanFilterSupported();
+    }
+
+    public boolean isPeripheralModeSupported() {
+        return getResources().getBoolean(R.bool.config_bluetooth_le_peripheral_mode_supported);
     }
 
     public int getOffloadedScanResultStorage() {
@@ -1956,6 +2007,16 @@ public class AdapterService extends Service {
         return info;
     }
 
+    private String dump() {
+        StringBuilder sb = new StringBuilder();
+        synchronized (mProfiles) {
+            for (ProfileService profile : mProfiles) {
+                profile.dump(sb);
+            }
+        }
+        return sb.toString();
+    }
+
     private static int convertScanModeToHal(int mode) {
         switch (mode) {
             case BluetoothAdapter.SCAN_MODE_NONE:
@@ -1983,24 +2044,30 @@ public class AdapterService extends Service {
     }
 
     // This function is called from JNI. It allows native code to set a single wake
-    // alarm. If an alarm is already pending and a new request comes in, the alarm
-    // will be rescheduled (i.e. the previously set alarm will be cancelled).
+    // alarm.
     private boolean setWakeAlarm(long delayMillis, boolean shouldWake) {
-        synchronized (this) {
-            if (mPendingAlarm != null) {
-                mAlarmManager.cancel(mPendingAlarm);
-            }
+        Message m = mHandler.obtainMessage(MESSAGE_SET_WAKE_ALARM);
+        m.obj = new Long(delayMillis);
+        // alarm type
+        m.arg1 = shouldWake ? AlarmManager.ELAPSED_REALTIME_WAKEUP
+            : AlarmManager.ELAPSED_REALTIME;
+        mHandler.sendMessage(m);
 
-            long wakeupTime = SystemClock.elapsedRealtime() + delayMillis;
-            int type = shouldWake
-                ? AlarmManager.ELAPSED_REALTIME_WAKEUP
-                : AlarmManager.ELAPSED_REALTIME;
+        return true;
+    }
 
-            Intent intent = new Intent(ACTION_ALARM_WAKEUP);
-            mPendingAlarm = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
-            mAlarmManager.setExact(type, wakeupTime, mPendingAlarm);
-            return true;
+    // If an alarm is already pending and a new request comes in, the alarm
+    // will be rescheduled (i.e. the previously set alarm will be cancelled).
+    private void processSetWakeAlarm(long delayMillis, int alarmType) {
+        if (mPendingAlarm != null) {
+            mAlarmManager.cancel(mPendingAlarm);
         }
+
+        long wakeupTime = SystemClock.elapsedRealtime() + delayMillis;
+
+        Intent intent = new Intent(ACTION_ALARM_WAKEUP);
+        mPendingAlarm = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+        mAlarmManager.setExact(alarmType, wakeupTime, mPendingAlarm);
     }
 
     // This function is called from JNI. It allows native code to acquire a single wake lock.
@@ -2078,10 +2145,7 @@ public class AdapterService extends Service {
     private final BroadcastReceiver mAlarmBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            synchronized (AdapterService.this) {
-                mPendingAlarm = null;
-                alarmFiredNative();
-            }
+            mHandler.sendMessage(mHandler.obtainMessage(MESSAGE_RELEASE_WAKE_ALARM));
         }
     };
 
@@ -2103,7 +2167,7 @@ public class AdapterService extends Service {
     /*package*/ native boolean removeBondNative(byte[] address);
     /*package*/ native boolean cancelBondNative(byte[] address);
 
-    /*package*/ native boolean isConnectedNative(byte[] address);
+    /*package*/ native int getConnectionStateNative(byte[] address);
 
     private native boolean startDiscoveryNative();
     private native boolean cancelDiscoveryNative();

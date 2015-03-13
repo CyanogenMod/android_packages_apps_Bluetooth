@@ -196,31 +196,28 @@ class HandleMap {
     /**
      * Logs debug information.
      */
-    void dump() {
-        StringBuilder b = new StringBuilder();
-        b.append(  "-------------- GATT Handle Map -----------------");
-        b.append("\nEntries: " + mEntries.size());
-        b.append("\nRequests: " + mRequestMap.size());
+    void dump(StringBuilder sb) {
+        sb.append("  Entries: " + mEntries.size() + "\n");
+        sb.append("  Requests: " + mRequestMap.size() + "\n");
 
         for (Entry entry : mEntries) {
-            b.append("\n" + entry.serverIf + ": [" + entry.handle + "] ");
+            sb.append("  " + entry.serverIf + ": [" + entry.handle + "] ");
             switch(entry.type) {
                 case TYPE_SERVICE:
-                    b.append("Service " + entry.uuid);
-                    b.append(", started " + entry.started);
+                    sb.append("Service " + entry.uuid);
+                    sb.append(", started " + entry.started);
                     break;
 
                 case TYPE_CHARACTERISTIC:
-                    b.append("  Characteristic " + entry.uuid);
+                    sb.append("  Characteristic " + entry.uuid);
                     break;
 
                 case TYPE_DESCRIPTOR:
-                    b.append("    Descriptor " + entry.uuid);
+                    sb.append("    Descriptor " + entry.uuid);
                     break;
             }
-        }
 
-        b.append("\n------------------------------------------------");
-        Log.d(TAG, b.toString());
+            sb.append("\n");
+        }
     }
 }

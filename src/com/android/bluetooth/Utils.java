@@ -17,12 +17,17 @@
 package com.android.bluetooth;
 
 import android.app.ActivityManager;
+import android.app.ActivityThread;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.pm.UserInfo;
 import android.os.Binder;
 import android.os.ParcelUuid;
+import android.os.Process;
 import android.os.UserHandle;
+import android.os.UserManager;
 import android.util.Log;
 
 import java.io.IOException;
@@ -193,14 +198,55 @@ final public class Utils {
         // Get the caller's user id then clear the calling identity
         // which will be restored in the finally clause.
         int callingUser = UserHandle.getCallingUserId();
+        int callingUid = Binder.getCallingUid();
         long ident = Binder.clearCallingIdentity();
 
         try {
             // With calling identity cleared the current user is the foreground user.
             int foregroundUser = ActivityManager.getCurrentUser();
             ok = (foregroundUser == callingUser);
+            if (!ok) {
+                // Always allow SystemUI/System access.
+                int systemUiUid = ActivityThread.getPackageManager().getPackageUid(
+                        "com.android.systemui", UserHandle.USER_OWNER);
+                ok = (systemUiUid == callingUid) || (Process.SYSTEM_UID == callingUid);
+            }
         } catch (Exception ex) {
             Log.e(TAG, "checkIfCallerIsSelfOrForegroundUser: Exception ex=" + ex);
+            ok = false;
+        } finally {
+            Binder.restoreCallingIdentity(ident);
+        }
+        return ok;
+    }
+
+    public static boolean checkCallerAllowManagedProfiles(Context mContext) {
+        if (mContext == null) {
+            return checkCaller();
+        }
+        boolean ok;
+        // Get the caller's user id and if it's a managed profile, get it's parents
+        // id, then clear the calling identity
+        // which will be restored in the finally clause.
+        int callingUser = UserHandle.getCallingUserId();
+        int callingUid = Binder.getCallingUid();
+        long ident = Binder.clearCallingIdentity();
+        try {
+            UserManager um = (UserManager) mContext.getSystemService(Context.USER_SERVICE);
+            UserInfo ui = um.getProfileParent(callingUser);
+            int parentUser = (ui != null) ? ui.id : UserHandle.USER_NULL;
+            // With calling identity cleared the current user is the foreground user.
+            int foregroundUser = ActivityManager.getCurrentUser();
+            ok = (foregroundUser == callingUser) ||
+                    (foregroundUser == parentUser);
+            if (!ok) {
+                // Always allow SystemUI/System access.
+                int systemUiUid = ActivityThread.getPackageManager().getPackageUid(
+                        "com.android.systemui", UserHandle.USER_OWNER);
+                ok = (systemUiUid == callingUid) || (Process.SYSTEM_UID == callingUid);
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "checkCallerAllowManagedProfiles: Exception ex=" + ex);
             ok = false;
         } finally {
             Binder.restoreCallingIdentity(ident);

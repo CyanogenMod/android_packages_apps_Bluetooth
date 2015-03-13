@@ -452,7 +452,8 @@ public class ScanManager {
         }
 
         void startRegularScan(ScanClient client) {
-            if (mFilterIndexStack.isEmpty() && isFilteringSupported()) {
+            if (isFilteringSupported() && mFilterIndexStack.isEmpty() &&
+                    mClientFilterIndexMap.isEmpty()) {
                 initFilterIndexStack();
             }
             if (isFilteringSupported()) {

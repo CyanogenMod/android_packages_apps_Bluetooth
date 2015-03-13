@@ -23,15 +23,15 @@
     <string name="bt_share_picker_label" msgid="6268100924487046932">"ဘလူးတုသ်"</string>
     <string name="unknown_device" msgid="9221903979877041009">"မသိသော စက်"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"အကြောင်းအရာ မသိရှိ"</string>
-    <string name="airplane_error_title" msgid="2683839635115739939">"လေယာဉ်ပျံပေါ်သုံးစနစ်"</string>
+    <string name="airplane_error_title" msgid="2683839635115739939">"လေယာဉ်ပျံပေါ်အသုံးပြုစနစ်"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"လေယာဥ်ပျံပေါ်သုံးစနစ်တွင် ဘလူးတုသ်အသုံးပြုမရပါ"</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"ဘလူးတုသ်ဆားဗစ်ကိုအသုံးပြုရန် ပထမဦးစွာ ဘလူးတုသ်ကိုဖွင့်ပါ"</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"ယခုပင် ဘလူးတုသ်ကိုဖွင့်မည်လား?"</string>
-    <string name="bt_enable_cancel" msgid="1988832367505151727">"ထားတော့"</string>
+    <string name="bt_enable_cancel" msgid="1988832367505151727">"ပယ်ဖျက်သည်"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"ဖွင့်မည်"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"ဖိုင်လွှဲပြောင်းခြင်း"</string>
-    <string name="incoming_file_confirm_content" msgid="2752605552743148036">"ဝင်လာသည့် ဖိုင်ကို လက်ခံမလား?"</string>
+    <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" မှ သင်ထံပို့ချင်ပါသည်<xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>). \n\nဖိုင်ကိုလက်ခံမည်လား?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"လက်မခံပါ"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"လက်ခံရန်"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ကောင်းပြီ"</string>
@@ -54,9 +54,6 @@
     <string name="download_line5" msgid="3069560415845295386">"ဖိုင် လက်ခံနေပြီ"</string>
     <string name="download_cancel" msgid="9177305996747500768">"ရပ်ဆိုင်းရန်"</string>
     <string name="download_ok" msgid="5000360731674466039">"ဖျောက်ထားမည်"</string>
-    <string name="incoming_line1" msgid="2127419875681087545">"မှ"</string>
-    <string name="incoming_line2" msgid="3348994249285315873">"ဖိုင်အမည်"</string>
-    <string name="incoming_line3" msgid="7954237069667474024">"ဆိုက်"</string>
     <string name="download_fail_line1" msgid="3846450148862894552">"ဖိုင် မရရှိပါ"</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"ဖိုင် - <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_fail_line3" msgid="3451040656154861722">"အကြောင်းပြချက် - <xliff:g id="REASON">%1$s</xliff:g>"</string>
@@ -102,7 +99,7 @@
     <string name="status_protocol_error" msgid="3245444473429269539">"တောင်းခံခြင်းကို မှန်ကန်စွာကိုင်တွယ်မရပါ"</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"အမည်မသိသော မှားယွင်းမှု"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"ဘလူးတုသ် လက်ခံရပြီး"</string>
-    <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> လက်ခံရရှိပြီး"</string>
+    <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> လက်ခံရပြီး"</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ပို့ခြင်း ပြီးဆုံးပြီး"</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"ပြန်လည်ရောက်လာသော လွှဲမှုများ"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"ပြန်လည်ထွက်မည့် လွှဲမှုများ"</string>
@@ -115,8 +112,8 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"ဖွင့်ရန်"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"စာရင်းမှ ရှင်းပစ်မည်"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"ရှင်းလင်းရန်"</string>
-    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"သိမ်းပါ"</string>
-    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"ထားတော့"</string>
+    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"သိမ်းဆည်းရန်"</string>
+    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"ပယ်ဖျက်ရန်"</string>
     <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"သင်က ဘလူးတုသ် မှတစ်ဆင့် မျှဝေလိုသည့် အီးမေးလ် အကောင့်ကို ရွေးပါ။ သင်သည် အကောင့်အား ရယူသုံးလိုမှု မှန်သမျှကို ချိတ်ဆက်လာသည့် အခါမှာ လက်ခံပေးရန် လိုဦးမည်။"</string>
     <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"ကျန်နေသည့် အပေါက်များ:"</string>
     <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"အပလီကေးရှင်း အိုင်ကွန်"</string>
