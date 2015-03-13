@@ -4,7 +4,7 @@
     <string name="hello" msgid="1740533743008967039">"नमस्ते दुनिया, परीक्षण गतिविधि"</string>
     <string name="app_name" msgid="1203877025577761792">"ब्लूटूथ शेयर"</string>
     <string name="insert_record" msgid="1450997173838378132">"रिकॉर्ड सम्मिलित करें"</string>
-    <string name="update_record" msgid="2480425402384910635">"रिकॉर्ड की दुबारा पूछें"</string>
+    <string name="update_record" msgid="2480425402384910635">"रिकॉर्ड की पुष्टि करें"</string>
     <string name="ack_record" msgid="6716152390978472184">"रिकॉर्ड अभिस्वीकृत करें"</string>
     <string name="deleteAll_record" msgid="4383349788485210582">"सभी रिकॉर्ड हटाएं"</string>
     <string name="ok_button" msgid="6519033415223065454">"ठीक है"</string>

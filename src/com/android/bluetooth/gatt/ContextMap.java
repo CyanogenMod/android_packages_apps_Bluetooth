@@ -134,6 +134,23 @@ import java.util.UUID;
     }
 
     /**
+     * Remove the context for a given UUID
+     */
+    void remove(UUID uuid) {
+        synchronized (mApps) {
+            Iterator<App> i = mApps.iterator();
+            while(i.hasNext()) {
+                App entry = i.next();
+                if (entry.uuid.equals(uuid)) {
+                    entry.unlinkToDeath();
+                    i.remove();
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
      * Remove the context for a given application ID.
      */
     void remove(int id) {
@@ -299,28 +316,23 @@ import java.util.UUID;
     /**
      * Logs debug information.
      */
-    void dump() {
-        StringBuilder b = new StringBuilder();
-        b.append(  "-------------- GATT Context Map ----------------");
-        b.append("\nEntries: " + mApps.size());
+    void dump(StringBuilder sb) {
+        sb.append("  Entries: " + mApps.size() + "\n");
 
         Iterator<App> i = mApps.iterator();
         while(i.hasNext()) {
             App entry = i.next();
             List<Connection> connections = getConnectionByApp(entry.id);
 
-            b.append("\n\nApplication Id: " + entry.id);
-            b.append("\nUUID: " + entry.uuid);
-            b.append("\nConnections: " + connections.size());
+            sb.append("\n  Application Id: " + entry.id + "\n");
+            sb.append("  UUID: " + entry.uuid + "\n");
+            sb.append("  Connections: " + connections.size() + "\n");
 
             Iterator<Connection> ii = connections.iterator();
             while(ii.hasNext()) {
                 Connection connection = ii.next();
-                b.append("\n  " + connection.connId + ": " + connection.address);
+                sb.append("    " + connection.connId + ": " + connection.address + "\n");
             }
         }
-
-        b.append("\n------------------------------------------------");
-        Log.d(TAG, b.toString());
     }
 }

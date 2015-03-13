@@ -57,11 +57,13 @@ import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.PowerManager;
+import android.os.UserHandle;
 import android.os.PowerManager.WakeLock;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.util.IState;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -368,6 +370,20 @@ final class HeadsetStateMachine extends StateMachine {
             cleanupNative();
             mNativeAvailable = false;
         }
+    }
+
+    public void dump(StringBuilder sb) {
+        ProfileService.println(sb, "mCurrentDevice: " + mCurrentDevice);
+        ProfileService.println(sb, "mTargetDevice: " + mTargetDevice);
+        ProfileService.println(sb, "mIncomingDevice: " + mIncomingDevice);
+        ProfileService.println(sb, "mActiveScoDevice: " + mActiveScoDevice);
+        ProfileService.println(sb, "mMultiDisconnectDevice: " + mMultiDisconnectDevice);
+        ProfileService.println(sb, "mVirtualCallStarted: " + mVirtualCallStarted);
+        ProfileService.println(sb, "mVoiceRecognitionStarted: " + mVoiceRecognitionStarted);
+        ProfileService.println(sb, "mWaitingForVoiceRecognition: " + mWaitingForVoiceRecognition);
+        ProfileService.println(sb, "StateMachine: " + this.toString());
+        ProfileService.println(sb, "mPhoneState: " + mPhoneState);
+        ProfileService.println(sb, "mAudioState: " + mAudioState);
     }
 
     private class Disconnected extends State {
@@ -2643,7 +2659,8 @@ final class HeadsetStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        mService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
+        mService.sendBroadcastAsUser(intent, UserHandle.ALL,
+                HeadsetService.BLUETOOTH_PERM);
     }
 
     private void broadcastAudioState(BluetoothDevice device, int newState, int prevState) {
@@ -2656,7 +2673,7 @@ final class HeadsetStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        mService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
+        mService.sendBroadcastAsUser(intent, UserHandle.ALL, HeadsetService.BLUETOOTH_PERM);
         Log.d(TAG, "Audio state " + device + ": " + prevState + "->" + newState);
     }
 
@@ -2681,7 +2698,8 @@ final class HeadsetStateMachine extends StateMachine {
         intent.addCategory(BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_COMPANY_ID_CATEGORY
             + "." + Integer.toString(companyId));
 
-        mService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
+        mService.sendBroadcastAsUser(intent, UserHandle.ALL,
+                HeadsetService.BLUETOOTH_PERM);
     }
 
     private void configAudioParameters(BluetoothDevice device)
@@ -3196,14 +3214,14 @@ final class HeadsetStateMachine extends StateMachine {
                 String number = mPhoneProxy.getSubscriberNumber();
                 if (number != null) {
                     atResponseStringNative("+CNUM: ,\"" + number + "\"," +
-                                           PhoneNumberUtils.toaFromString(number) +
-                                             ",,4", getByteAddress(device));
+                                                PhoneNumberUtils.toaFromString(number) +
+                                                ",,4", getByteAddress(device));
                     atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK,
-                                                 0, getByteAddress(device));
+                                                0, getByteAddress(device));
                 } else {
-                    log("number is null");
-                    atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK, 0,
-                            getByteAddress(device));
+                    Log.e(TAG, "getSubscriberNumber returns null");
+                    atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK,
+                                                0, getByteAddress(device));
                 }
             } catch (RemoteException e) {
                 Log.e(TAG, Log.getStackTraceString(new Throwable()));

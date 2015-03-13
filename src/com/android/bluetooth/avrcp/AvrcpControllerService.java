@@ -265,6 +265,11 @@ public class AvrcpControllerService extends ProfileService {
         return Utils.getBytesFromAddress(device.getAddress());
     }
 
+    @Override
+    public void dump(StringBuilder sb) {
+        super.dump(sb);
+    }
+
     private native static void classInitNative();
     private native void initNative();
     private native void cleanupNative();

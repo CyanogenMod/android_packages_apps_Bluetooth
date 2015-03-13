@@ -148,6 +148,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         tmpFolder.addFolder("drafts");
     }
 
+
     @Override
     public int onConnect(final HeaderSet request, HeaderSet reply) {
         if (D) Log.d(TAG, "onConnect():");

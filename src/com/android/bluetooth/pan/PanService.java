@@ -50,9 +50,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
-
 /**
  * Provides Bluetooth Pan Device profile, as a service in
  * the Bluetooth application.
@@ -76,8 +73,6 @@ public class PanService extends ProfileService {
     private static final int MESSAGE_DISCONNECT = 2;
     private static final int MESSAGE_CONNECT_STATE_CHANGED = 11;
     private boolean mTetherOn = false;
-    private static final String PAN_PREFERENCE_FILE = "PANMGR";
-    private static final String PAN_TETHER_SETTING = "TETHERSTATE";
 
     private BluetoothTetheringNetworkFactory mNetworkFactory;
 
@@ -108,10 +103,6 @@ public class PanService extends ProfileService {
 
         mNetworkFactory = new BluetoothTetheringNetworkFactory(getBaseContext(), getMainLooper(),
                 this);
-
-        // Set mTetherOn based on the last saved tethering preference while starting the Pan service
-        SharedPreferences tetherSetting = getSharedPreferences(PAN_PREFERENCE_FILE, 0);
-        mTetherOn = tetherSetting.getBoolean(PAN_TETHER_SETTING, false);
 
         return true;
     }
@@ -239,6 +230,7 @@ public class PanService extends ProfileService {
             return service.isPanUOn();
         }
         public boolean isTetheringOn() {
+            // TODO(BT) have a variable marking the on/off state
             PanService service = getService();
             if (service == null) return false;
             return service.isTetheringOn();
@@ -298,6 +290,7 @@ public class PanService extends ProfileService {
         return (getPanLocalRoleNative() & BluetoothPan.LOCAL_PANU_ROLE) != 0;
     }
      boolean isTetheringOn() {
+        // TODO(BT) have a variable marking the on/off state
         return mTetherOn;
     }
 
@@ -310,14 +303,6 @@ public class PanService extends ProfileService {
             throw new SecurityException("DISALLOW_CONFIG_TETHERING is enabled for this user.");
         }
         if(mTetherOn != value) {
-
-            SharedPreferences tetherSetting = getSharedPreferences(PAN_PREFERENCE_FILE, 0);
-            SharedPreferences.Editor editor = tetherSetting.edit();
-
-            editor.putBoolean(PAN_TETHER_SETTING, value);
-
-            // Commit the edit!
-            editor.commit();
             //drop any existing panu or pan-nap connection when changing the tethering state
             mTetherOn = value;
             List<BluetoothDevice> DevList = getConnectedDevices();
@@ -575,6 +560,22 @@ public class PanService extends ProfileService {
             return BluetoothProfile.STATE_DISCONNECTED;
         }
         return panDevice.mState;
+    }
+
+    @Override
+    public void dump(StringBuilder sb) {
+        super.dump(sb);
+        println(sb, "mMaxPanDevices: " + mMaxPanDevices);
+        println(sb, "mPanIfName: " + mPanIfName);
+        println(sb, "mTetherOn: " + mTetherOn);
+        println(sb, "mPanDevices:");
+        for (BluetoothDevice device : mPanDevices.keySet()) {
+            println(sb, "  " + device + " : " + mPanDevices.get(device));
+        }
+        println(sb, "mBluetoothIfaceAddresses:");
+        for (String address : mBluetoothIfaceAddresses) {
+            println(sb, "  " + address);
+        }
     }
 
     private class BluetoothPanDevice {

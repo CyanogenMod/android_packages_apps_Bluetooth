@@ -31,7 +31,7 @@
     <string name="bt_enable_cancel" msgid="1988832367505151727">"Bekor qilish"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"Yoqish"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"Fayl uzatish"</string>
-    <string name="incoming_file_confirm_content" msgid="2752605552743148036">"Yuborilgan faylni qabul qilasizmi?"</string>
+    <string name="incoming_file_confirm_content" msgid="6673812334377911289">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" sizga <xliff:g id="FILE">%2$s</xliff:g> (<xliff:g id="SIZE">%3$s</xliff:g>)ni jo‘natmoqchi. \n\n Fayl qabul qilinsinmi?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Rad qilish"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Roziman"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
@@ -54,9 +54,6 @@
     <string name="download_line5" msgid="3069560415845295386">"Fayl qabul qilinmoqda…"</string>
     <string name="download_cancel" msgid="9177305996747500768">"To‘xtatish"</string>
     <string name="download_ok" msgid="5000360731674466039">"Yashirish"</string>
-    <string name="incoming_line1" msgid="2127419875681087545">"Kimdan"</string>
-    <string name="incoming_line2" msgid="3348994249285315873">"Fayl nomi"</string>
-    <string name="incoming_line3" msgid="7954237069667474024">"Hajmi"</string>
     <string name="download_fail_line1" msgid="3846450148862894552">"Fayl qabul qilinmadi"</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"Fayl: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_fail_line3" msgid="3451040656154861722">"Sababi: <xliff:g id="REASON">%1$s</xliff:g>"</string>
