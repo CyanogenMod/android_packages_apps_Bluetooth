@@ -7,8 +7,8 @@ LOCAL_SRC_FILES := \
         $(call all-java-files-under, lib/mapapi)
 
 LOCAL_MODULE := bluetooth.mapsapi
-
-include $(BUILD_JAVA_LIBRARY)
+LOCAL_MULTILIB := 32
+include $(BUILD_STATIC_JAVA_LIBRARY)
 
 include $(CLEAR_VARS)
 
@@ -21,8 +21,8 @@ LOCAL_PACKAGE_NAME := Bluetooth
 LOCAL_CERTIFICATE := platform
 
 LOCAL_JNI_SHARED_LIBRARIES := libbluetooth_jni
-LOCAL_JAVA_LIBRARIES := javax.obex telephony-common bluetooth.mapsapi
-LOCAL_STATIC_JAVA_LIBRARIES := com.android.vcard
+LOCAL_JAVA_LIBRARIES := javax.obex telephony-common
+LOCAL_STATIC_JAVA_LIBRARIES := com.android.vcard  bluetooth.mapsapi
 
 LOCAL_REQUIRED_MODULES := bluetooth.default
 LOCAL_MULTILIB := 32

@@ -259,7 +259,7 @@ public class BluetoothMnsObexClient {
             }
             mConnected = connected;
         }
-            synchronized (this) {
+        synchronized (this) {
                 mWaitingForRemote = false;
         }
     }

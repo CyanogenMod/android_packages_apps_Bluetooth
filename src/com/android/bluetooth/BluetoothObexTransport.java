@@ -73,14 +73,14 @@ public class BluetoothObexTransport implements ObexTransport {
     }
 
     public int getMaxTransmitPacketSize() {
-        if(mSocket.getConnectionType() != BluetoothSocket.TYPE_L2CAP) {
-            return -1;
+        if (mSocket.getConnectionType() != BluetoothSocket.TYPE_L2CAP) {
+           return -1;
         }
         return mSocket.getMaxTransmitPacketSize();
     }
 
     public int getMaxReceivePacketSize() {
-        if(mSocket.getConnectionType() != BluetoothSocket.TYPE_L2CAP) {
+        if (mSocket.getConnectionType() != BluetoothSocket.TYPE_L2CAP) {
             return -1;
         }
         return mSocket.getMaxReceivePacketSize();

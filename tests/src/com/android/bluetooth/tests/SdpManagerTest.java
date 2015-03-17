@@ -34,8 +34,8 @@ public class SdpManagerTest extends AndroidTestCase {
     public static final int SDP_RECORD_COUNT = 12; /* Maximum number of records to create */
     public static final int SDP_ITERATIONS = 2000;
 
-    public static final String SDP_SERVER_NAME = "SDP test Server";
-    public static final String SDP_CLIENT_NAME = "SDP test Client";
+    public static final String SDP_SERVER_NAME = "SDP test server";
+    public static final String SDP_CLIENT_NAME = "SDP test client";
 
     public static final long SDP_FEATURES   = 0x87654321L;  /* 32 bit */
     public static final int  SDP_MSG_TYPES  = 0xf1;         /*  8 bit */
@@ -51,7 +51,7 @@ public class SdpManagerTest extends AndroidTestCase {
             Log.e(TAG,"No Bluetooth Device!");
             assertTrue(false);
         }
-        ObexTest.enableBt(bt);
+        BluetoothTestUtils.enableBt(bt);
         mManager = SdpManager.getDefaultManager();
         addRemoveRecords(SDP_RECORD_COUNT);
     }
@@ -62,7 +62,7 @@ public class SdpManagerTest extends AndroidTestCase {
             Log.e(TAG,"No Bluetooth Device!");
             assertTrue(false);
         }
-        ObexTest.enableBt(bt);
+        BluetoothTestUtils.enableBt(bt);
         mManager = SdpManager.getDefaultManager();
 
         int handles[] = new int[SDP_RECORD_COUNT];
@@ -175,7 +175,7 @@ public class SdpManagerTest extends AndroidTestCase {
             mClientSession = new ClientSession(clientTransport);
             { // Connect
                 HeaderSet reqHeaders = new HeaderSet();
-                reqHeaders.setHeader(ObexTest.STEP_INDEX_HEADER, (long)0);
+                reqHeaders.setHeader(TestSequencer.STEP_INDEX_HEADER, (long)0);
                 HeaderSet response = mClientSession.connect(reqHeaders);
                 assertEquals(response.responseCode, ResponseCodes.OBEX_HTTP_OK);
             }
@@ -186,7 +186,7 @@ public class SdpManagerTest extends AndroidTestCase {
 
                 { // get operation to trigger SDP search on peer device
                     HeaderSet reqHeaders = new HeaderSet();
-                    reqHeaders.setHeader(ObexTest.STEP_INDEX_HEADER, (long)iteration);
+                    reqHeaders.setHeader(TestSequencer.STEP_INDEX_HEADER, (long)iteration);
                     reqHeaders.setHeader(HeaderSet.COUNT, (long)count);
                     reqHeaders.setHeader(HeaderSet.NAME, uuids_str);
                     Operation op = mClientSession.get(reqHeaders);
@@ -201,7 +201,7 @@ public class SdpManagerTest extends AndroidTestCase {
             }
             { // disconnect to end test
                 HeaderSet reqHeaders = new HeaderSet();
-                reqHeaders.setHeader(ObexTest.STEP_INDEX_HEADER, 0L); // signals end of test
+                reqHeaders.setHeader(TestSequencer.STEP_INDEX_HEADER, 0L); // signals end of test
                 HeaderSet response = mClientSession.disconnect(reqHeaders);
                 assertEquals(response.responseCode, ResponseCodes.OBEX_HTTP_OK);
             }

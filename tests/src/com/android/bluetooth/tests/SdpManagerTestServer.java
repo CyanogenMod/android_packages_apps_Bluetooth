@@ -1,9 +1,6 @@
 package com.android.bluetooth.tests;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
@@ -13,9 +10,12 @@ import javax.obex.ResponseCodes;
 import javax.obex.ServerRequestHandler;
 
 import junit.framework.Assert;
-
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothUuid;
+import android.bluetooth.SdpMasRecord;
+import android.bluetooth.SdpMnsRecord;
+import android.bluetooth.SdpOppOpsRecord;
+import android.bluetooth.SdpPseRecord;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -25,11 +25,6 @@ import android.util.Log;
 
 import com.android.bluetooth.btservice.AbstractionLayer;
 import com.android.bluetooth.sdp.SdpManager;
-import com.android.bluetooth.sdp.SdpMasRecord;
-import com.android.bluetooth.sdp.SdpMnsRecord;
-import com.android.bluetooth.sdp.SdpOppOpsRecord;
-import com.android.bluetooth.sdp.SdpPseRecord;
-import com.android.bluetooth.tests.ObexTest.TestSequencer.SeqStep;
 
 /**
  * We use an OBEX server to execute SDP search operations, and validate results.
@@ -64,7 +59,7 @@ public class SdpManagerTestServer extends ServerRequestHandler {
         int index;
         int result = ResponseCodes.OBEX_HTTP_OK;
         try {
-            index = ((Long)request.getHeader(ObexTest.STEP_INDEX_HEADER)).intValue();
+            index = ((Long)request.getHeader(TestSequencer.STEP_INDEX_HEADER)).intValue();
             mOperationIndex = index;
         } catch (IOException e) {
             Log.e(TAG, "Exception in onConnect - aborting...");
@@ -80,7 +75,7 @@ public class SdpManagerTestServer extends ServerRequestHandler {
         int index;
         int result = ResponseCodes.OBEX_HTTP_OK;
         try {
-            index = ((Long)request.getHeader(ObexTest.STEP_INDEX_HEADER)).intValue();
+            index = ((Long)request.getHeader(TestSequencer.STEP_INDEX_HEADER)).intValue();
             mOperationIndex = index;
         } catch (IOException e) {
             Log.e(TAG, "Exception in onDisconnect...");
@@ -122,7 +117,7 @@ public class SdpManagerTestServer extends ServerRequestHandler {
         mResult = ResponseCodes.OBEX_HTTP_OK;
         try{
             HeaderSet reqHeaders = operation.getReceivedHeader();
-            int index = ((Long)reqHeaders.getHeader(ObexTest.STEP_INDEX_HEADER)).intValue();
+            int index = ((Long)reqHeaders.getHeader(TestSequencer.STEP_INDEX_HEADER)).intValue();
             mOperationIndex = index;
             /* Get the expected number of records to read. */
             int count = ((Long)reqHeaders.getHeader(HeaderSet.COUNT)).intValue();

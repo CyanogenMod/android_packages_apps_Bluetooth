@@ -13,8 +13,6 @@ import javax.obex.ServerRequestHandler;
 
 import android.util.Log;
 
-import com.android.bluetooth.tests.ObexTest.TestSequencer.SeqStep;
-
 public class ObexTestServer extends ServerRequestHandler {
 
     private static final String TAG = "ObexTestServer";
@@ -40,7 +38,7 @@ public class ObexTestServer extends ServerRequestHandler {
         int index;
         int result = ResponseCodes.OBEX_HTTP_OK;
         try {
-            index = ((Long)request.getHeader(ObexTest.STEP_INDEX_HEADER)).intValue();
+            index = ((Long)request.getHeader(TestSequencer.STEP_INDEX_HEADER)).intValue();
             mOperationIndex = index;
         } catch (IOException e) {
             Log.e(TAG, "Exception in onConnect - aborting...");
@@ -58,7 +56,7 @@ public class ObexTestServer extends ServerRequestHandler {
         int index;
         int result = ResponseCodes.OBEX_HTTP_OK;
         try {
-            index = ((Long)request.getHeader(ObexTest.STEP_INDEX_HEADER)).intValue();
+            index = ((Long)request.getHeader(TestSequencer.STEP_INDEX_HEADER)).intValue();
             mOperationIndex = index;
         } catch (IOException e) {
             Log.e(TAG, "Exception in onDisconnect...");
@@ -89,7 +87,7 @@ public class ObexTestServer extends ServerRequestHandler {
         try{
             inStream = operation.openInputStream();
             HeaderSet reqHeaders = operation.getReceivedHeader();
-            int index = ((Long)reqHeaders.getHeader(ObexTest.STEP_INDEX_HEADER)).intValue();
+            int index = ((Long)reqHeaders.getHeader(TestSequencer.STEP_INDEX_HEADER)).intValue();
             mOperationIndex = index;
             mDataHandler.readData(inStream, mSequence.get(index).mParams);
         } catch (IOException e) {
@@ -121,7 +119,7 @@ public class ObexTestServer extends ServerRequestHandler {
         try{
             outStream = operation.openOutputStream();
             HeaderSet reqHeaders = operation.getReceivedHeader();
-            int index = ((Long)reqHeaders.getHeader(ObexTest.STEP_INDEX_HEADER)).intValue();
+            int index = ((Long)reqHeaders.getHeader(TestSequencer.STEP_INDEX_HEADER)).intValue();
             mOperationIndex = index;
             mDataHandler.writeData(outStream, mSequence.get(index).mParams);
         } catch (IOException e) {

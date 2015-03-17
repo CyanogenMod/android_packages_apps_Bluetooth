@@ -174,7 +174,8 @@ public class AdapterService extends Service {
     private boolean mNativeAvailable;
     private boolean mCleaningUp;
     private HashMap<String,Integer> mProfileServicesState = new HashMap<String,Integer>();
-    private RemoteCallbackList<IBluetoothCallback> mCallbacks;//Only BluetoothManagerService should be registered
+    //Only BluetoothManagerService should be registered
+    private RemoteCallbackList<IBluetoothCallback> mCallbacks;
     private int mCurrentRequestId;
     private boolean mQuietmode = false;
 

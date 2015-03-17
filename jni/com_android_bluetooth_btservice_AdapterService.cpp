@@ -22,9 +22,10 @@
 #include "cutils/properties.h"
 #include "android_runtime/AndroidRuntime.h"
 #include "android_runtime/Log.h"
+
 #include <string.h>
 #include <pthread.h>
-#include <binder/Parcel.h>
+
 #include <sys/stat.h>
 #include <fcntl.h>
 
@@ -471,7 +472,6 @@ static bt_callbacks_t sBluetoothCallbacks = {
     acl_state_changed_callback,
     callback_thread_event,
     dut_mode_recv_callback,
-
     le_test_mode_recv_callback,
     energy_info_recv_callback
 };
@@ -488,7 +488,8 @@ static JavaVMAttachArgs sAttachArgs = {
   .group = NULL
 };
 
-static bool set_wake_alarm_callout(uint64_t delay_millis, bool should_wake, alarm_cb cb, void *data) {
+static bool set_wake_alarm_callout(uint64_t delay_millis, bool should_wake,
+        alarm_cb cb, void *data) {
     JNIEnv *env;
     JavaVM *vm = AndroidRuntime::getJavaVM();
     jint status = vm->GetEnv((void **)&env, JNI_VERSION_1_6);
@@ -507,7 +508,8 @@ static bool set_wake_alarm_callout(uint64_t delay_millis, bool should_wake, alar
     sAlarmCallbackData = data;
 
     jboolean jshould_wake = should_wake ? JNI_TRUE : JNI_FALSE;
-    jboolean ret = env->CallBooleanMethod(sJniAdapterServiceObj, method_setWakeAlarm, (jlong)delay_millis, jshould_wake);
+    jboolean ret = env->CallBooleanMethod(sJniAdapterServiceObj, method_setWakeAlarm,
+            (jlong)delay_millis, jshould_wake);
     if (!ret) {
         sAlarmCallback = NULL;
         sAlarmCallbackData = NULL;
@@ -1042,7 +1044,8 @@ Fail:
 }
 
 static int createSocketChannelNative(JNIEnv *env, jobject object, jint type,
-                                     jstring name_str, jbyteArray uuidObj, jint channel, jint flag) {
+                                     jstring name_str, jbyteArray uuidObj, 
+                                     jint channel, jint flag) {
     const char *service_name = NULL;
     jbyte *uuid = NULL;
     int socket_fd;

@@ -23,30 +23,50 @@ import android.util.Log;
  * It can be used for both Email Apps (group Parent item) and Accounts (Group child Item).
  *
  */
-public class BluetoothMapEmailSettingsItem implements Comparable<BluetoothMapEmailSettingsItem>{
-    private static final String TAG = "BluetoothMapEmailSettingsItem";
+public class BluetoothMapAccountItem implements Comparable<BluetoothMapAccountItem>{
+    private static final String TAG = "BluetoothMapAccountItem";
 
     private static final boolean D = BluetoothMapService.DEBUG;
     private static final boolean V = BluetoothMapService.VERBOSE;
 
     protected boolean mIsChecked;
-    private String mName;
-    private String mPackageName;
-    private String mId;
-    private String mProviderAuthority;
-    private Drawable mIcon;
-    public String mBase_uri;
-    public String mBase_uri_no_account;
-    public BluetoothMapEmailSettingsItem(String id, String name, String packageName, String authority, Drawable icon) {
+    private final String mName;
+    private final String mPackageName;
+    private final String mId;
+    private final String mProviderAuthority;
+    private final Drawable mIcon;
+    private final BluetoothMapUtils.TYPE mType;
+    public final String mBase_uri;
+    public final String mBase_uri_no_account;
+    private final String mUci;
+    private final String mUciPrefix;
+
+    public BluetoothMapAccountItem(String id, String name, String packageName, String authority,
+            Drawable icon, BluetoothMapUtils.TYPE appType, String uci, String uciPrefix) {
         this.mName = name;
         this.mIcon = icon;
         this.mPackageName = packageName;
         this.mId = id;
         this.mProviderAuthority = authority;
+        this.mType = appType;
         this.mBase_uri_no_account = "content://" + authority;
         this.mBase_uri = mBase_uri_no_account + "/"+id;
+        this.mUci = uci;
+        this.mUciPrefix = uciPrefix;
     }
 
+    public static BluetoothMapAccountItem create(String id, String name, String packageName,
+            String authority, Drawable icon, BluetoothMapUtils.TYPE appType) {
+        return new BluetoothMapAccountItem(id, name, packageName, authority,
+                icon, appType, null, null);
+    }
+
+    public static BluetoothMapAccountItem create(String id, String name, String packageName,
+            String authority, Drawable icon, BluetoothMapUtils.TYPE appType, String uci,
+            String uciPrefix) {
+        return new BluetoothMapAccountItem(id, name, packageName, authority,
+                icon, appType, uci, uciPrefix);
+    }
     public long getAccountId() {
         if(mId != null) {
             return Long.parseLong(mId);
@@ -54,8 +74,24 @@ public class BluetoothMapEmailSettingsItem implements Comparable<BluetoothMapEma
         return -1;
     }
 
+    public String getUci() {
+        return mUci;
+    }
+
+    public String getUciPrefix(){
+        return mUciPrefix;
+    }
+
+    public String getUciFull(){
+        if(mUci == null)
+            return null;
+        if(mUciPrefix == null)
+            return null;
+        return new StringBuilder(mUciPrefix).append(":").append(mUci).toString();
+    }
+
     @Override
-    public int compareTo(BluetoothMapEmailSettingsItem other) {
+    public int compareTo(BluetoothMapAccountItem other) {
 
         if(!other.mId.equals(this.mId)){
             if(V) Log.d(TAG, "Wrong id : " + this.mId + " vs " + other.mId);
@@ -66,16 +102,22 @@ public class BluetoothMapEmailSettingsItem implements Comparable<BluetoothMapEma
             return -1;
         }
         if(!other.mPackageName.equals(this.mPackageName)){
-            if(V) Log.d(TAG, "Wrong packageName : " + this.mPackageName + " vs " + other.mPackageName);
+            if(V) Log.d(TAG, "Wrong packageName : " + this.mPackageName + " vs "
+                    + other.mPackageName);
              return -1;
         }
         if(!other.mProviderAuthority.equals(this.mProviderAuthority)){
-            if(V) Log.d(TAG, "Wrong providerName : " + this.mProviderAuthority + " vs " + other.mProviderAuthority);
+            if(V) Log.d(TAG, "Wrong providerName : " + this.mProviderAuthority + " vs " 
+                    + other.mProviderAuthority);
             return -1;
         }
         if(other.mIsChecked != this.mIsChecked){
             if(V) Log.d(TAG, "Wrong isChecked : " + this.mIsChecked + " vs " + other.mIsChecked);
             return -1;
+        }
+        if(!other.mType.equals(this.mType)){
+            if(V) Log.d(TAG, "Wrong appType : " + this.mType + " vs " + other.mType);
+             return -1;
         }
         return 0;
     }
@@ -101,7 +143,7 @@ public class BluetoothMapEmailSettingsItem implements Comparable<BluetoothMapEma
             return false;
         if (getClass() != obj.getClass())
             return false;
-        BluetoothMapEmailSettingsItem other = (BluetoothMapEmailSettingsItem) obj;
+        BluetoothMapAccountItem other = (BluetoothMapAccountItem) obj;
         if (mId == null) {
             if (other.mId != null)
                 return false;
@@ -122,6 +164,11 @@ public class BluetoothMapEmailSettingsItem implements Comparable<BluetoothMapEma
                 return false;
         } else if (!mProviderAuthority.equals(other.mProviderAuthority))
             return false;
+        if (mType == null) {
+            if (other.mType != null)
+                return false;
+        } else if (!mType.equals(other.mType))
+            return false;
         return true;
     }
 
@@ -134,39 +181,24 @@ public class BluetoothMapEmailSettingsItem implements Comparable<BluetoothMapEma
         return mIcon;
     }
 
-    public void setIcon(Drawable icon) {
-        this.mIcon = icon;
-    }
-
     public String getName() {
         return mName;
-    }
-
-    public void setName(String name) {
-        this.mName = name;
     }
 
     public String getId() {
         return mId;
     }
 
-    public void setId(String id) {
-        this.mId = id;
-    }
-
     public String getPackageName() {
         return mPackageName;
-    }
-
-    public void setPackageName(String packageName) {
-        this.mPackageName = packageName;
     }
 
     public String getProviderAuthority() {
         return mProviderAuthority;
     }
 
-    public void setProviderAuthority(String providerAuthority) {
-        this.mProviderAuthority = providerAuthority;
+    public BluetoothMapUtils.TYPE getType() {
+        return mType;
     }
+
 }

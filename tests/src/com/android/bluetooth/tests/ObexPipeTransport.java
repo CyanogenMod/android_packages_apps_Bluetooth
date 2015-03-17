@@ -26,12 +26,12 @@ import java.io.PipedOutputStream;
 import javax.obex.ObexTransport;
 
 public class ObexPipeTransport implements ObexTransport {
-    PipedInputStream mInStream;
-    PipedOutputStream mOutStream;
+    InputStream mInStream;
+    OutputStream mOutStream;
     boolean mEnableSrm;
 
-    public ObexPipeTransport(PipedInputStream inStream, 
-            PipedOutputStream outStream, boolean enableSrm) {
+    public ObexPipeTransport(InputStream inStream, 
+            OutputStream outStream, boolean enableSrm) {
         mInStream = inStream;
         mOutStream = outStream;
         mEnableSrm = enableSrm;
@@ -74,12 +74,12 @@ public class ObexPipeTransport implements ObexTransport {
         return true;
     }
 
-    public int getMaxTxPacketSize() {
-        return 15432;
+    public int getMaxTransmitPacketSize() {
+        return 3*15432;
     }
 
-    public int getMaxRxPacketSize() {
-        return 23450;
+    public int getMaxReceivePacketSize() {
+        return 2*23450;
     }
 
     @Override
@@ -88,3 +88,4 @@ public class ObexPipeTransport implements ObexTransport {
     }
 
 }
+

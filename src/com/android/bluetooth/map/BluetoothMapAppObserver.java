@@ -16,7 +16,7 @@ package com.android.bluetooth.map;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.Set;
+import java.util.List;
 
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -39,38 +39,39 @@ import android.util.Log;
  *
  */
 
-public class BluetoothMapEmailAppObserver{
+public class BluetoothMapAppObserver{
 
-    private static final String TAG = "BluetoothMapEmailAppObserver";
+    private static final String TAG = "BluetoothMapAppObserver";
 
     private static final boolean D = BluetoothMapService.DEBUG;
     private static final boolean V = BluetoothMapService.VERBOSE;
     /*  */
-    private LinkedHashMap<BluetoothMapEmailSettingsItem, ArrayList<BluetoothMapEmailSettingsItem>> mFullList;
-    private LinkedHashMap<String,ContentObserver> mObserverMap = new LinkedHashMap<String,ContentObserver>();
+    private LinkedHashMap<BluetoothMapAccountItem, ArrayList<BluetoothMapAccountItem>> mFullList;
+    private LinkedHashMap<String,ContentObserver> mObserverMap =
+            new LinkedHashMap<String,ContentObserver>();
     private ContentResolver mResolver;
     private Context mContext;
     private BroadcastReceiver mReceiver;
     private PackageManager mPackageManager = null;
-    BluetoothMapEmailSettingsLoader mLoader;
+    BluetoothMapAccountLoader mLoader;
     BluetoothMapService mMapService = null;
 
-    public BluetoothMapEmailAppObserver(final Context context, BluetoothMapService mapService) {
-        mContext  = context;
+    public BluetoothMapAppObserver(final Context context, BluetoothMapService mapService) {
+        mContext    = context;
         mMapService = mapService;
-        mResolver = context.getContentResolver();
-        mLoader    = new BluetoothMapEmailSettingsLoader(mContext);
-        mFullList = mLoader.parsePackages(false); /* Get the current list of apps */
+        mResolver   = context.getContentResolver();
+        mLoader     = new BluetoothMapAccountLoader(mContext);
+        mFullList   = mLoader.parsePackages(false); /* Get the current list of apps */
         createReceiver();
         initObservers();
     }
 
 
-    private BluetoothMapEmailSettingsItem getApp(String packageName) {
-        if(V) Log.d(TAG, "getApp(): Looking for " + packageName);
-        for(BluetoothMapEmailSettingsItem app:mFullList.keySet()){
-            if(V) Log.d(TAG, "  Comparing: " + app.getPackageName());
-            if(app.getPackageName().equals(packageName)) {
+    private BluetoothMapAccountItem getApp(String authoritiesName) {
+        if(V) Log.d(TAG, "getApp(): Looking for " + authoritiesName);
+        for(BluetoothMapAccountItem app:mFullList.keySet()){
+            if(V) Log.d(TAG, "  Comparing: " + app.getProviderAuthority());
+            if(app.getProviderAuthority().equals(authoritiesName)) {
                 if(V) Log.d(TAG, "  found " + app.mBase_uri_no_account);
                 return app;
             }
@@ -81,38 +82,45 @@ public class BluetoothMapEmailAppObserver{
 
     private void handleAccountChanges(String packageNameWithProvider) {
 
-        if(D)Log.d(TAG,"handleAccountChanges (packageNameWithProvider: "+packageNameWithProvider+"\n");
-        String packageName = packageNameWithProvider.replaceFirst("\\.[^\\.]+$", "");
-        BluetoothMapEmailSettingsItem app = getApp(packageName);
+        if(D)Log.d(TAG,"handleAccountChanges (packageNameWithProvider: "
+                        +packageNameWithProvider+"\n");
+        //String packageName = packageNameWithProvider.replaceFirst("\\.[^\\.]+$", "");
+        BluetoothMapAccountItem app = getApp(packageNameWithProvider);
         if(app != null) {
-            ArrayList<BluetoothMapEmailSettingsItem> newAccountList = mLoader.parseAccounts(app);
-            ArrayList<BluetoothMapEmailSettingsItem> oldAccountList = mFullList.get(app);
-            ArrayList<BluetoothMapEmailSettingsItem> addedAccountList =
-                    (ArrayList<BluetoothMapEmailSettingsItem>)newAccountList.clone();
-            ArrayList<BluetoothMapEmailSettingsItem> removedAccountList = mFullList.get(app); // Same as oldAccountList.clone
+            ArrayList<BluetoothMapAccountItem> newAccountList = mLoader.parseAccounts(app);
+            ArrayList<BluetoothMapAccountItem> oldAccountList = mFullList.get(app);
+            ArrayList<BluetoothMapAccountItem> addedAccountList =
+                    (ArrayList<BluetoothMapAccountItem>)newAccountList.clone();
+            ArrayList<BluetoothMapAccountItem> removedAccountList = mFullList.get(app);
+            // Same as oldAccountList.clone
 
             mFullList.put(app, newAccountList);
-            for(BluetoothMapEmailSettingsItem newAcc: newAccountList){
-                for(BluetoothMapEmailSettingsItem oldAcc: oldAccountList){
+            for(BluetoothMapAccountItem newAcc: newAccountList){
+                for(BluetoothMapAccountItem oldAcc: oldAccountList){
                     if(newAcc.getId() == oldAcc.getId()){
                         // For each match remove from both removed and added lists
                         removedAccountList.remove(oldAcc);
                         addedAccountList.remove(newAcc);
                         if(!newAcc.getName().equals(oldAcc.getName()) && newAcc.mIsChecked){
                             // Name Changed and the acc is visible - Change Name in SDP record
-                            mMapService.updateMasInstances(BluetoothMapService.UPDATE_MAS_INSTANCES_ACCOUNT_RENAMED);
+                            mMapService.updateMasInstances(
+                                    BluetoothMapService.UPDATE_MAS_INSTANCES_ACCOUNT_RENAMED);
                             if(V)Log.d(TAG, "    UPDATE_MAS_INSTANCES_ACCOUNT_RENAMED");
                         }
                         if(newAcc.mIsChecked != oldAcc.mIsChecked) {
                             // Visibility changed
                             if(newAcc.mIsChecked){
                                 // account added - create SDP record
-                                mMapService.updateMasInstances(BluetoothMapService.UPDATE_MAS_INSTANCES_ACCOUNT_ADDED);
-                                if(V)Log.d(TAG, "    UPDATE_MAS_INSTANCES_ACCOUNT_ADDED isChecked changed");
+                                mMapService.updateMasInstances(
+                                        BluetoothMapService.UPDATE_MAS_INSTANCES_ACCOUNT_ADDED);
+                                if(V)Log.d(TAG, "UPDATE_MAS_INSTANCES_ACCOUNT_ADDED " +
+                                        "isChecked changed");
                             } else {
                                 // account removed - remove SDP record
-                                mMapService.updateMasInstances(BluetoothMapService.UPDATE_MAS_INSTANCES_ACCOUNT_REMOVED);
-                                if(V)Log.d(TAG, "    UPDATE_MAS_INSTANCES_ACCOUNT_REMOVED isChecked changed");
+                                mMapService.updateMasInstances(
+                                        BluetoothMapService.UPDATE_MAS_INSTANCES_ACCOUNT_REMOVED);
+                                if(V)Log.d(TAG, "    UPDATE_MAS_INSTANCES_ACCOUNT_REMOVED " +
+                                        "isChecked changed");
                             }
                         }
                         break;
@@ -120,13 +128,15 @@ public class BluetoothMapEmailAppObserver{
                 }
             }
             // Notify on any removed accounts
-            for(BluetoothMapEmailSettingsItem removedAcc: removedAccountList){
-                mMapService.updateMasInstances(BluetoothMapService.UPDATE_MAS_INSTANCES_ACCOUNT_REMOVED);
+            for(BluetoothMapAccountItem removedAcc: removedAccountList){
+                mMapService.updateMasInstances(
+                        BluetoothMapService.UPDATE_MAS_INSTANCES_ACCOUNT_REMOVED);
                 if(V)Log.d(TAG, "    UPDATE_MAS_INSTANCES_ACCOUNT_REMOVED " + removedAcc);
             }
             // Notify on any new accounts
-            for(BluetoothMapEmailSettingsItem addedAcc: addedAccountList){
-                mMapService.updateMasInstances(BluetoothMapService.UPDATE_MAS_INSTANCES_ACCOUNT_ADDED);
+            for(BluetoothMapAccountItem addedAcc: addedAccountList){
+                mMapService.updateMasInstances(
+                        BluetoothMapService.UPDATE_MAS_INSTANCES_ACCOUNT_ADDED);
                 if(V)Log.d(TAG, "    UPDATE_MAS_INSTANCES_ACCOUNT_ADDED " + addedAcc);
             }
 
@@ -142,7 +152,7 @@ public class BluetoothMapEmailAppObserver{
      * @param uri uri for the package that supports MAP email
      */
 
-    public void registerObserver(BluetoothMapEmailSettingsItem app) {
+    public void registerObserver(BluetoothMapAccountItem app) {
         Uri uri = BluetoothMapContract.buildAccountUri(app.getProviderAuthority());
         if (V) Log.d(TAG, "registerObserver for URI "+uri.toString()+"\n");
         ContentObserver observer = new ContentObserver(new Handler()) {
@@ -167,7 +177,7 @@ public class BluetoothMapEmailAppObserver{
         mResolver.registerContentObserver(uri, true, observer);
     }
 
-    public void unregisterObserver(BluetoothMapEmailSettingsItem app) {
+    public void unregisterObserver(BluetoothMapAccountItem app) {
         Uri uri = BluetoothMapContract.buildAccountUri(app.getProviderAuthority());
         if (V) Log.d(TAG, "unregisterObserver("+uri.toString()+")\n");
         mResolver.unregisterContentObserver(mObserverMap.get(uri.toString()));
@@ -176,14 +186,14 @@ public class BluetoothMapEmailAppObserver{
 
     private void initObservers(){
         if(D)Log.d(TAG,"initObservers()");
-        for(BluetoothMapEmailSettingsItem app: mFullList.keySet()){
+        for(BluetoothMapAccountItem app: mFullList.keySet()){
             registerObserver(app);
         }
     }
 
     private void deinitObservers(){
         if(D)Log.d(TAG,"deinitObservers()");
-        for(BluetoothMapEmailSettingsItem app: mFullList.keySet()){
+        for(BluetoothMapAccountItem app: mFullList.keySet()){
             unregisterObserver(app);
         }
     }
@@ -194,31 +204,73 @@ public class BluetoothMapEmailAppObserver{
         intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
         intentFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
         intentFilter.addDataScheme("package");
-        mReceiver= new BroadcastReceiver() {
+        mReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if(D)Log.d(TAG,"onReceive\n");
                 String action = intent.getAction();
+
                 if (Intent.ACTION_PACKAGE_ADDED.equals(action)) {
                     Uri data = intent.getData();
                     String packageName = data.getEncodedSchemeSpecificPart();
                     if(D)Log.d(TAG,"The installed package is: "+ packageName);
-                  //  PackageInfo pInfo = getPackageInfo(packageName);
-                    ResolveInfo rInfo = mPackageManager.resolveActivity(intent, 0);
-                    BluetoothMapEmailSettingsItem app = mLoader.createAppItem(rInfo, false);
-                    if(app != null) {
-                        registerObserver(app);
-                        // Add all accounts to mFullList
-                        ArrayList<BluetoothMapEmailSettingsItem> newAccountList = mLoader.parseAccounts(app);
-                        mFullList.put(app, newAccountList);
+
+                    BluetoothMapUtils.TYPE msgType = BluetoothMapUtils.TYPE.NONE;
+                    ResolveInfo resolveInfo = null;
+                    Intent[] searchIntents = new Intent[2];
+                    //Array <Intent> searchIntents = new Array <Intent>();
+                    searchIntents[0] = new Intent(BluetoothMapContract.PROVIDER_INTERFACE_EMAIL);
+                    searchIntents[1] = new Intent(BluetoothMapContract.PROVIDER_INTERFACE_IM);
+                    // Find all installed packages and filter out those that support Bluetooth Map.
+
+                    mPackageManager = mContext.getPackageManager();
+
+                    for (Intent searchIntent : searchIntents) {
+                        List<ResolveInfo> resInfos =
+                                mPackageManager.queryIntentContentProviders(searchIntent, 0);
+                        if (resInfos != null ) {
+                            if(D) Log.d(TAG,"Found " + resInfos.size()
+                                    + " application(s) with intent "
+                                    + searchIntent.getAction().toString());
+                            for (ResolveInfo rInfo : resInfos) {
+                                if(rInfo != null) {
+                                    // Find out if package contain Bluetooth MAP support
+                                    if (packageName.equals(rInfo.providerInfo.packageName)) {
+                                        resolveInfo = rInfo;
+                                        if(searchIntent.getAction() ==
+                                                BluetoothMapContract.PROVIDER_INTERFACE_EMAIL){
+                                            msgType = BluetoothMapUtils.TYPE.EMAIL;
+                                        } else if (searchIntent.getAction() ==
+                                                BluetoothMapContract.PROVIDER_INTERFACE_IM){
+                                            msgType = BluetoothMapUtils.TYPE.IM;
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                     }
+                    // if application found with Bluetooth MAP support add to list
+                    if(resolveInfo != null) {
+                        if(D) Log.d(TAG,"Found " + resolveInfo.providerInfo.packageName
+                                + " application of type " + msgType);
+                        BluetoothMapAccountItem app = mLoader.createAppItem(resolveInfo,
+                                false, msgType);
+                        if(app != null) {
+                            registerObserver(app);
+                            // Add all accounts to mFullList
+                            ArrayList<BluetoothMapAccountItem> newAccountList =
+                                    mLoader.parseAccounts(app);
+                            mFullList.put(app, newAccountList);
+                        }
+                    }
+
                 }
                 else if (Intent.ACTION_PACKAGE_REMOVED.equals(action)) {
-
                     Uri data = intent.getData();
                     String packageName = data.getEncodedSchemeSpecificPart();
                     if(D)Log.d(TAG,"The removed package is: "+ packageName);
-                    BluetoothMapEmailSettingsItem app = getApp(packageName);
+                    BluetoothMapAccountItem app = getApp(packageName);
                     /* Find the object and remove from fullList */
                     if(app != null) {
                         unregisterObserver(app);
@@ -227,33 +279,25 @@ public class BluetoothMapEmailAppObserver{
                 }
             }
         };
-        mContext.registerReceiver(mReceiver,new IntentFilter(Intent.ACTION_PACKAGE_ADDED));
+        mContext.registerReceiver(mReceiver,intentFilter);
     }
+
     private void removeReceiver(){
         if(D)Log.d(TAG,"removeReceiver()\n");
         mContext.unregisterReceiver(mReceiver);
-    }
-    private PackageInfo getPackageInfo(String packageName){
-        mPackageManager = mContext.getPackageManager();
-        try {
-            return mPackageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA|PackageManager.GET_SERVICES);
-        } catch (NameNotFoundException e) {
-            Log.e(TAG,"Error getting package metadata", e);
-        }
-        return null;
     }
 
     /**
      * Method to get a list of the accounts (across all apps) that are set to be shared
      * through MAP.
-     * @return Arraylist<BluetoothMapEmailSettingsItem> containing all enabled accounts
+     * @return Arraylist<BluetoothMapAccountItem> containing all enabled accounts
      */
-    public ArrayList<BluetoothMapEmailSettingsItem> getEnabledAccountItems(){
+    public ArrayList<BluetoothMapAccountItem> getEnabledAccountItems(){
         if(D)Log.d(TAG,"getEnabledAccountItems()\n");
-        ArrayList<BluetoothMapEmailSettingsItem> list = new ArrayList<BluetoothMapEmailSettingsItem>();
-        for(BluetoothMapEmailSettingsItem app:mFullList.keySet()){
-            ArrayList<BluetoothMapEmailSettingsItem> accountList = mFullList.get(app);
-            for(BluetoothMapEmailSettingsItem acc: accountList){
+        ArrayList<BluetoothMapAccountItem> list = new ArrayList<BluetoothMapAccountItem>();
+        for(BluetoothMapAccountItem app:mFullList.keySet()){
+            ArrayList<BluetoothMapAccountItem> accountList = mFullList.get(app);
+            for(BluetoothMapAccountItem acc: accountList){
                 if(acc.mIsChecked) {
                     list.add(acc);
                 }
@@ -264,13 +308,13 @@ public class BluetoothMapEmailAppObserver{
 
     /**
      * Method to get a list of the accounts (across all apps).
-     * @return Arraylist<BluetoothMapEmailSettingsItem> containing all accounts
+     * @return Arraylist<BluetoothMapAccountItem> containing all accounts
      */
-    public ArrayList<BluetoothMapEmailSettingsItem> getAllAccountItems(){
+    public ArrayList<BluetoothMapAccountItem> getAllAccountItems(){
         if(D)Log.d(TAG,"getAllAccountItems()\n");
-        ArrayList<BluetoothMapEmailSettingsItem> list = new ArrayList<BluetoothMapEmailSettingsItem>();
-        for(BluetoothMapEmailSettingsItem app:mFullList.keySet()){
-            ArrayList<BluetoothMapEmailSettingsItem> accountList = mFullList.get(app);
+        ArrayList<BluetoothMapAccountItem> list = new ArrayList<BluetoothMapAccountItem>();
+        for(BluetoothMapAccountItem app:mFullList.keySet()){
+            ArrayList<BluetoothMapAccountItem> accountList = mFullList.get(app);
             list.addAll(accountList);
         }
         return list;

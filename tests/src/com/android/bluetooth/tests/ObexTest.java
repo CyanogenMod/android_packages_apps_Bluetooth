@@ -22,41 +22,35 @@ import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 
-import javax.obex.ClientSession;
 import javax.obex.HeaderSet;
-import javax.obex.ObexPacket;
 import javax.obex.ObexTransport;
 import javax.obex.Operation;
 import javax.obex.ResponseCodes;
-import javax.obex.ServerSession;
+import javax.obex.ServerRequestHandler;
 
+import junit.framework.Assert;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.bluetooth.BluetoothUuid;
+import android.bluetooth.SdpMasRecord;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.nfc.cardemulation.OffHostApduService;
+import android.net.LocalServerSocket;
+import android.net.LocalSocket;
 import android.os.Build;
 import android.os.Debug;
-import android.os.Handler;
-import android.os.Handler.Callback;
-import android.os.HandlerThread;
-import android.os.Looper;
-import android.os.Message;
 import android.os.ParcelUuid;
 import android.test.AndroidTestCase;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
 import com.android.bluetooth.sdp.SdpManager;
-import com.android.bluetooth.sdp.SdpMasRecord;
-import com.android.bluetooth.tests.ObexTest.TestSequencer.OPTYPE;
-import com.android.bluetooth.tests.ObexTest.TestSequencer.SeqStep;
+import com.android.bluetooth.tests.TestSequencer.OPTYPE;
 
 /**
  * Test either using the reference ril without a modem, or using a RIL implementing the
@@ -64,42 +58,47 @@ import com.android.bluetooth.tests.ObexTest.TestSequencer.SeqStep;
  *
  */
 @TargetApi(Build.VERSION_CODES.KITKAT)
-public class ObexTest extends AndroidTestCase {
+public class ObexTest extends AndroidTestCase implements ITestSequenceConfigurator {
     protected static String TAG = "ObexTest";
     protected static final boolean D = true;
     protected static final boolean TRACE = false;
     protected static final boolean DELAY_PASS_30_SEC = false;
     public static final long PROGRESS_INTERVAL_MS = 1000;
     private static final ObexTestParams defaultParams =
-            new ObexTestParams(2*8092, 0, 2*1024*1024/10);
+            new ObexTestParams(2*8092, 0, 2*1024*1024);
 
     private static final ObexTestParams throttle100Params =
-            new ObexTestParams(2*8092, 100000, 2*1024*1024/10);
+            new ObexTestParams(2*8092, 100000, 1024*1024);
 
     private static final ObexTestParams smallParams =
             new ObexTestParams(2*8092, 0, 2*1024);
 
     private static final ObexTestParams hugeParams =
-            new ObexTestParams(2*8092, 0, 100*1024*1024/1000);
+            new ObexTestParams(2*8092, 0, 100*1024*1024);
 
-    private static final int SMALL_OPERATION_COUNT = 1000/100;
+    private static final int SMALL_OPERATION_COUNT = 1000;
     private static final int CONNECT_OPERATION_COUNT = 4500;
 
     private static final int L2CAP_PSM = 29; /* If SDP is not used */
     private static final int RFCOMM_CHANNEL = 29; /* If SDP is not used */
 
-    public static final String SERVER_ADDRESS = "10:68:3F:5E:F9:2E";
+    //public static final String SERVER_ADDRESS = "10:68:3F:5E:F9:2E";
+    public static final String SERVER_ADDRESS = "F8:CF:C5:A8:70:7E";
 
     private static final String SDP_SERVER_NAME = "Samsung Server";
     private static final String SDP_CLIENT_NAME = "Samsung Client";
 
-    private static final long SDP_FEATURES   = 0x87654321L; /* 32 bit */
+    private static final long SDP_FEATURES  = 0x87654321L; /* 32 bit */
     private static final int SDP_MSG_TYPES  = 0xf1;       /*  8 bit */
     private static final int SDP_MAS_ID     = 0xCA;       /*  8 bit */
     private static final int SDP_VERSION    = 0xF0C0;     /* 16 bit */
     public static final ParcelUuid SDP_UUID_OBEX_MAS = BluetoothUuid.MAS;
 
     private static int sSdpHandle = -1;
+    private static final ObexTestDataHandler sDataHandler = new ObexTestDataHandler("(Client)");
+    private static final ISeqStepValidator sResponseCodeValidator = new ResponseCodeValidator();
+    private static final ISeqStepValidator sDataValidator = new DataValidator();
+
 
     private enum SequencerType {
         SEQ_TYPE_PAYLOAD,
@@ -109,10 +108,6 @@ public class ObexTest extends AndroidTestCase {
     private Context mContext = null;
     private int mChannelType = 0;
 
-    public static final int STEP_INDEX_HEADER = 0xF1; /*0xFE*/
-    private static final int ENABLE_TIMEOUT = 5000;
-    private static final int POLL_TIME = 500;
-
     public ObexTest() {
         super();
     }
@@ -121,6 +116,8 @@ public class ObexTest extends AndroidTestCase {
      * Test that a connection can be established.
      * WARNING: The performance of the pipe implementation is not good. I'm only able to get a
      * throughput of around 220 kbyte/sec - less that when using Bluetooth :-)
+     * UPDATE: Did a local socket implementation below to replace this...
+     *         This has a throughput of more than 4000 kbyte/s
      */
     public void testLocalPipes() {
         mContext = this.getContext();
@@ -147,8 +144,46 @@ public class ObexTest extends AndroidTestCase {
             TestSequencer sequencer = createBtPayloadTestSequence(clientTransport, serverTransport);
 
             //Debug.startMethodTracing("ObexTrace");
-            assertTrue(sequencer.run());
+            assertTrue(sequencer.run(mContext));
             //Debug.stopMethodTracing();
+        } catch (IOException e) {
+            Log.e(TAG, "IOException", e);
+        }
+    }
+
+    /**
+     * Run the test sequence using a local socket.
+     * Throughput around 4000 kbyte/s - with a larger OBEX package size.
+     */
+    public void testLocalSockets() {
+        mContext = this.getContext();
+        System.out.println("Setting up sockets...");
+
+        try {
+            /* Create and interconnect local pipes for transport */
+            LocalServerSocket serverSock = new LocalServerSocket("com.android.bluetooth.tests.sock");
+            LocalSocket clientSock = new LocalSocket();
+            LocalSocket acceptSock;
+
+            clientSock.connect(serverSock.getLocalSocketAddress());
+
+            acceptSock = serverSock.accept();
+
+            /* Create the OBEX transport objects to wrap the pipes - enable SRM */
+            ObexPipeTransport clientTransport = new ObexPipeTransport(clientSock.getInputStream(),
+                    clientSock.getOutputStream(), true);
+            ObexPipeTransport serverTransport = new ObexPipeTransport(acceptSock.getInputStream(),
+                    acceptSock.getOutputStream(), true);
+
+            TestSequencer sequencer = createBtPayloadTestSequence(clientTransport, serverTransport);
+
+            //Debug.startMethodTracing("ObexTrace");
+            assertTrue(sequencer.run(mContext));
+            //Debug.stopMethodTracing();
+
+            clientSock.close();
+            acceptSock.close();
+            serverSock.close();
         } catch (IOException e) {
             Log.e(TAG, "IOException", e);
         }
@@ -158,47 +193,48 @@ public class ObexTest extends AndroidTestCase {
     private TestSequencer createBtPayloadTestSequence(ObexTransport clientTransport,
             ObexTransport serverTransport)
             throws IOException {
-        TestSequencer sequencer = new TestSequencer(clientTransport, serverTransport);
+        TestSequencer sequencer = new TestSequencer(clientTransport, serverTransport, this);
         SeqStep step;
 
-        step = sequencer.addStep(OPTYPE.CONNECT);
+        step = sequencer.addStep(OPTYPE.CONNECT, sResponseCodeValidator);
+        if(false){
 
-        step = sequencer.addStep(OPTYPE.PUT);
+        step = sequencer.addStep(OPTYPE.PUT, sDataValidator);
         step.mParams = defaultParams;
         step.mUseSrm = true;
 
-        step = sequencer.addStep(OPTYPE.GET);
+        step = sequencer.addStep(OPTYPE.GET, sDataValidator);
         step.mParams = defaultParams;
         step.mUseSrm = true;
-if(true){
-        step = sequencer.addStep(OPTYPE.PUT);
+
+        step = sequencer.addStep(OPTYPE.PUT, sDataValidator);
         step.mParams = throttle100Params;
         step.mUseSrm = true;
 
-        step = sequencer.addStep(OPTYPE.GET);
+        step = sequencer.addStep(OPTYPE.GET, sDataValidator);
         step.mParams = throttle100Params;
         step.mUseSrm = true;
 
         for(int i=0; i<SMALL_OPERATION_COUNT; i++){
-            step = sequencer.addStep(OPTYPE.PUT);
+            step = sequencer.addStep(OPTYPE.PUT, sDataValidator);
             step.mParams = smallParams;
             step.mUseSrm = true;
 
-            step = sequencer.addStep(OPTYPE.GET);
+            step = sequencer.addStep(OPTYPE.GET, sDataValidator);
             step.mParams = smallParams;
             step.mUseSrm = true;
 
         }
+}
 
-        step = sequencer.addStep(OPTYPE.PUT);
+        step = sequencer.addStep(OPTYPE.PUT, sDataValidator);
         step.mParams = hugeParams;
         step.mUseSrm = true;
 
-        step = sequencer.addStep(OPTYPE.GET);
+        step = sequencer.addStep(OPTYPE.GET, sDataValidator);
         step.mParams = hugeParams;
         step.mUseSrm = true;
-    }
-        step = sequencer.addStep(OPTYPE.DISCONNECT);
+        step = sequencer.addStep(OPTYPE.DISCONNECT, sResponseCodeValidator);
 
         return sequencer;
     }
@@ -206,22 +242,96 @@ if(true){
     private TestSequencer createBtConnectTestSequence(ObexTransport clientTransport,
             ObexTransport serverTransport)
             throws IOException {
-        TestSequencer sequencer = new TestSequencer(clientTransport, serverTransport);
+        TestSequencer sequencer = new TestSequencer(clientTransport, serverTransport, this);
         SeqStep step;
 
-            step = sequencer.addStep(OPTYPE.CONNECT);
+            step = sequencer.addStep(OPTYPE.CONNECT, sResponseCodeValidator);
 
-            step = sequencer.addStep(OPTYPE.PUT);
+            step = sequencer.addStep(OPTYPE.PUT, sDataValidator);
             step.mParams = smallParams;
             step.mUseSrm = true;
 
-            step = sequencer.addStep(OPTYPE.GET);
+            step = sequencer.addStep(OPTYPE.GET, sDataValidator);
             step.mParams = smallParams;
             step.mUseSrm = true;
 
-            step = sequencer.addStep(OPTYPE.DISCONNECT);
+            step = sequencer.addStep(OPTYPE.DISCONNECT, sResponseCodeValidator);
 
         return sequencer;
+    }
+
+
+    /**
+     * Use this validator to validate operation response codes. E.g. for OBEX CONNECT and
+     * DISCONNECT operations.
+     * Expects HeaderSet to be valid, and Operation to be null.
+     */
+    public static ISeqStepValidator getResponsecodevalidator() {
+        return sResponseCodeValidator;
+    }
+
+    /**
+     * Use this validator to validate (and read/write data) for OBEX PUT and GET operations.
+     * Expects Operation to be valid, and HeaderSet to be null.
+     */
+    public static ISeqStepValidator getDatavalidator() {
+        return sDataValidator;
+    }
+
+    /**
+     * Use this validator to validate operation response codes. E.g. for OBEX CONNECT and
+     * DISCONNECT operations.
+     * Expects HeaderSet to be valid, and Operation to be null.
+     */
+    private static class ResponseCodeValidator implements ISeqStepValidator {
+
+        protected static boolean validateHeaderSet(HeaderSet headers, HeaderSet expected)
+                throws IOException {
+            if(headers.getResponseCode() != ResponseCodes.OBEX_HTTP_OK) {
+                Log.e(TAG,"Wrong ResponseCode: " + headers.getResponseCode());
+                Assert.assertTrue(false);
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        public boolean validate(SeqStep step, HeaderSet response, Operation op)
+                throws IOException {
+            if(response == null) {
+                if(op.getResponseCode() != ResponseCodes.OBEX_HTTP_OK) {
+                    Log.e(TAG,"Wrong ResponseCode: " + op.getResponseCode());
+                    Assert.assertTrue(false);
+                    return false;
+                }
+                return true;
+            }
+            return validateHeaderSet(response, step.mResHeaders);
+        }
+    }
+
+    /**
+     * Use this validator to validate (and read/write data) for OBEX PUT and GET operations.
+     * Expects Operation to ve valid, and HeaderSet to be null.
+     */
+    private static class DataValidator implements ISeqStepValidator {
+        @Override
+        public boolean validate(SeqStep step, HeaderSet notUsed, Operation op)
+        throws IOException {
+            Assert.assertNotNull(op);
+            if(step.mType == OPTYPE.GET) {
+                op.noBodyHeader();
+                sDataHandler.readData(op.openDataInputStream(), step.mParams);
+            } else if (step.mType == OPTYPE.PUT) {
+                sDataHandler.writeData(op.openDataOutputStream(), step.mParams);
+            }
+            int responseCode = op.getResponseCode();
+            Log.i(TAG, "response code: " + responseCode);
+            HeaderSet response = op.getReceivedHeader();
+            ResponseCodeValidator.validateHeaderSet(response, step.mResHeaders);
+            op.close();
+            return true;
+        }
     }
 
     public void testBtServerL2cap() {
@@ -276,7 +386,7 @@ if(true){
                     SequencerType.SEQ_TYPE_CONNECT_DISCONNECT);
             try {
                 // We give the server 100ms to allow adding SDP record
-                Thread.sleep(100);
+                Thread.sleep(150);
             } catch (InterruptedException e) {
                 Log.e(TAG,"Exception while waiting...",e);
             }
@@ -303,7 +413,7 @@ if(true){
                     SequencerType.SEQ_TYPE_CONNECT_DISCONNECT);
             try {
                 // We give the server 100ms to allow adding SDP record
-                Thread.sleep(100);
+                Thread.sleep(250);
             } catch (InterruptedException e) {
                 Log.e(TAG,"Exception while waiting...",e);
             }
@@ -327,16 +437,17 @@ if(true){
             Log.e(TAG,"No Bluetooth Device!");
             assertTrue(false);
         }
-        enableBt(bt);
+        BluetoothTestUtils.enableBt(bt);
         BluetoothServerSocket serverSocket=null;
         if(type == BluetoothSocket.TYPE_L2CAP) {
             if(useSdp == true) {
-                serverSocket = bt.listenUsingL2capOn(L2CAP_PSM);
-            } else {
                 serverSocket = bt.listenUsingL2capOn(
                         BluetoothAdapter.SOCKET_CHANNEL_AUTO_STATIC_NO_SDP);
+            } else {
+                serverSocket = bt.listenUsingL2capOn(L2CAP_PSM);
             }
             l2capPsm = serverSocket.getChannel();
+            Log.d(TAG, "L2CAP createde, PSM: " + l2capPsm);
         } else if(type == BluetoothSocket.TYPE_RFCOMM) {
             if(useSdp == true) {
                 serverSocket = bt.listenUsingInsecureRfcommOn(
@@ -345,19 +456,25 @@ if(true){
                 serverSocket = bt.listenUsingInsecureRfcommOn(RFCOMM_CHANNEL);
             }
             rfcommChannel = serverSocket.getChannel();
+            Log.d(TAG, "RFCOMM createde, Channel: " + rfcommChannel);
         } else {
             fail("Invalid transport type!");
         }
         if(useSdp == true) {
-            /* We use the MAP service record to be able to  */
+            /* We use the MAP service record to be able to set rfcomm and l2cap channels */
             // TODO: We need to free this
-            if(sSdpHandle < 0) {
-                sSdpHandle = SdpManager.getDefaultManager().createMapMasRecord(SDP_SERVER_NAME,
-                        SDP_MAS_ID, rfcommChannel, l2capPsm,
-                        SDP_VERSION, SDP_MSG_TYPES, (int)(SDP_FEATURES & 0xffffffff));
+            if(sSdpHandle >= 0) {
+                SdpManager.getDefaultManager().removeSdpRecord(sSdpHandle);
             }
+            Log.d(TAG, "Creating record with rfcomm channel: " + rfcommChannel +
+                    " and l2cap channel: " + l2capPsm);
+            sSdpHandle = SdpManager.getDefaultManager().createMapMasRecord(SDP_SERVER_NAME,
+                    SDP_MAS_ID, rfcommChannel, l2capPsm,
+                    SDP_VERSION, SDP_MSG_TYPES, (int)(SDP_FEATURES & 0xffffffff));
+        } else {
+            Log.d(TAG, "SKIP creation of record with rfcomm channel: " + rfcommChannel +
+                    " and l2cap channel: " + l2capPsm);
         }
-
         return serverSocket;
     }
 
@@ -373,7 +490,7 @@ if(true){
      */
     private void testBtServer(int type, boolean useSdp, SequencerType sequencerType) {
         mContext = this.getContext();
-        System.out.println("Starting BT Server...");
+        Log.d(TAG,"Starting BT Server...");
 
         if(TRACE) Debug.startMethodTracing("ServerSide");
         try {
@@ -398,7 +515,7 @@ if(true){
 
             }
             //Debug.startMethodTracing("ObexTrace");
-            assertTrue(sequencer.run());
+            assertTrue(sequencer.run(mContext));
             //Debug.stopMethodTracing();
             // Same as below... serverTransport.close();
             // This is done by the obex server socket.close();
@@ -436,7 +553,7 @@ if(true){
             Log.e(TAG,"No Bluetooth Device!");
             assertTrue(false);
         }
-        enableBt(bt);
+        BluetoothTestUtils.enableBt(bt);
         BluetoothDevice serverDevice = bt.getRemoteDevice(SERVER_ADDRESS);
 
         if(useSdp == true) {
@@ -487,9 +604,9 @@ if(true){
 
             }
             //Debug.startMethodTracing("ObexTrace");
-            assertTrue(sequencer.run());
+            assertTrue(sequencer.run(mContext));
             //Debug.stopMethodTracing();
-            // socket.close(); shall be closed by the obex client
+            socket.close(); // Only the streams are closed by the obex client
             sequencer.shutdown();
 
         } catch (IOException e) {
@@ -591,336 +708,13 @@ if(true){
         return broadcastReceiver.getMasRecord();
     }
 
-    /** Helper to turn BT on.
-     * This method will either fail on an assert, or return with BT turned on.
-     * Behavior of getState() and isEnabled() are validated along the way.
-     */
-    public static void enableBt(BluetoothAdapter adapter) {
-        if (adapter.getState() == BluetoothAdapter.STATE_ON) {
-            assertTrue(adapter.isEnabled());
-            return;
-        }
-        assertEquals(BluetoothAdapter.STATE_OFF, adapter.getState());
-        assertFalse(adapter.isEnabled());
-        adapter.enable();
-        for (int i=0; i<ENABLE_TIMEOUT/POLL_TIME; i++) {
-            switch (adapter.getState()) {
-            case BluetoothAdapter.STATE_ON:
-                assertTrue(adapter.isEnabled());
-                return;
-            case BluetoothAdapter.STATE_OFF:
-                Log.i(TAG, "STATE_OFF: Still waiting for enable to begin...");
-                break;
-            default:
-                assertEquals(BluetoothAdapter.STATE_TURNING_ON, adapter.getState());
-                assertFalse(adapter.isEnabled());
-                break;
-            }
-            try {
-                Thread.sleep(POLL_TIME);
-            } catch (InterruptedException e) {}
-        }
-        fail("enable() timeout");
-        Log.i(TAG, "Bluetooth enabled...");
+    @Override
+    public ServerRequestHandler getObexServer(ArrayList<SeqStep> sequence,
+            CountDownLatch stopLatch) {
+        return new ObexTestServer(sequence, stopLatch);
     }
 
-    public static class TestSequencer implements Callback {
 
-        private final static int MSG_ID_TIMEOUT = 0x01;
-        private final static int TIMEOUT_VALUE = 100*2000; // ms
-        private ArrayList<SeqStep> mSequence = null;
-        private HandlerThread mHandlerThread = null;
-        private Handler mMessageHandler = null;
-        private ObexTransport mClientTransport;
-        private ObexTransport mServerTransport;
-
-        private ClientSession mClientSession;
-        private ServerSession mServerSession;
-        ObexTestDataHandler mDataHandler;
-
-        public enum OPTYPE {CONNECT, PUT, GET, DISCONNECT};
-
-
-        public class SeqStep {
-            /**
-             * Test step class to define the operations to be tested.
-             * Some of the data in these test steps will be modified during
-             * test - e.g. the HeaderSets will be modified to enable SRM
-             * and/or carry test information
-             */
-            /* Operation type - Connect, Get, Put etc. */
-            public OPTYPE mType;
-            /* The headers to send in the request - and validate on server side */
-            public HeaderSet mReqHeaders = null;
-            /* The headers to send in the response - and validate on client side */
-            public HeaderSet mResHeaders = null;
-            /* Use SRM */
-            public boolean mUseSrm = false;
-            /* The amount of data to include in the body */
-            public ObexTestParams mParams = null;
-            /* The offset into the data where the un-pause signal is to be sent */
-            public int mUnPauseOffset = -1;
-            /* The offset into the data where the Abort request is to be sent */
-            public int mAbortOffset = -1;
-            /* The side to perform Abort */
-            public boolean mServerSideAbout = false;
-            /* The ID of the test step */
-            private int mId;
-
-            /* Arrays to hold expected sequence of request/response packets. */
-            public ArrayList<ObexPacket> mRequestPackets = null;
-            public ArrayList<ObexPacket> mResponsePackets = null;
-
-            public int index = 0; /* requests with same index are executed in parallel
-                                     (without waiting for a response) */
-
-            public SeqStep(OPTYPE type) {
-                mRequestPackets = new ArrayList<ObexPacket>();
-                mResponsePackets = new ArrayList<ObexPacket>();
-                mType = type;
-            }
-
-            /* TODO: Consider to build these automatically based on the operations
-             *       to be performed. Validate using utility functions - not strict
-             *       binary compare.*/
-            public void addObexPacketSet(ObexPacket request, ObexPacket response) {
-                mRequestPackets.add(request);
-                mResponsePackets.add(response);
-            }
-        }
-
-        public TestSequencer(ObexTransport clientTransport, ObexTransport serverTransport)
-                throws IOException {
-            /* Setup the looper thread to handle messages */
-//            mHandlerThread = new HandlerThread("TestTimeoutHandler",
-//                      android.os.Process.THREAD_PRIORITY_BACKGROUND);
-//            mHandlerThread.start();
-//            Looper testLooper = mHandlerThread.getLooper();
-//            mMessageHandler = new Handler(testLooper, this);
-            mClientTransport = clientTransport;
-            mServerTransport = serverTransport;
-
-            //TODO: fix looper cleanup on server - crash after 464 iterations - related to prepare?
-
-            /* Initialize members */
-            mSequence = new ArrayList<SeqStep>();
-            mDataHandler = new ObexTestDataHandler("(Client)");
-        }
-
-        /**
-         * Add a test step to the sequencer.
-         * @param type the OBEX operation to perform.
-         * @return the created step, which can be decorated before execution.
-         */
-        public SeqStep addStep(OPTYPE type) {
-            SeqStep newStep = new SeqStep(type);
-            mSequence.add(newStep);
-            return newStep;
-        }
-
-        /**
-         * Add a sub-step to a sequencer step. All requests added to the same index will be send to
-         * the SapServer in the order added before listening for the response.
-         * The response order is not validated - hence for each response received the entire list of
-         * responses in the step will be searched for a match.
-         * @param index the index returned from addStep() to which the sub-step is to be added.
-         * @param request The request to send to the SAP server
-         * @param response The response to EXPECT from the SAP server
-
-        public void addSubStep(int index, SapMessage request, SapMessage response) {
-            SeqStep step = sequence.get(index);
-            step.add(request, response);
-        }*/
-
-
-        /**
-         * Run the sequence.
-         * Validate the response is either the expected response or one of the expected events.
-         *
-         * @return true when done - asserts at error/fail
-         */
-        public boolean run() throws IOException {
-            CountDownLatch stopLatch = new CountDownLatch(1);
-
-            /* TODO:
-             * First create sequencer to validate using BT-snoop
-             * 1) Create the transports (this could include a validation sniffer on each side)
-             * 2) Create a server thread with a link to the transport
-             * 3) execute the client operation
-             * 4) validate response
-             *
-             * On server:
-             * 1) validate the request contains the expected content
-             * 2) send response.
-             * */
-
-            /* Create the server */
-            if(mServerTransport != null) {
-                mServerSession = new ServerSession(mServerTransport, new ObexTestServer(mSequence,
-                        stopLatch), null);
-            }
-
-            /* Create the client */
-            if(mClientTransport != null) {
-                mClientSession = new ClientSession(mClientTransport);
-
-                for(SeqStep step : mSequence) {
-                    long stepIndex = mSequence.indexOf(step);
-
-                    Log.i(TAG, "Executing step " + stepIndex + " of type: " + step.mType);
-
-                    switch(step.mType) {
-                    case CONNECT: {
-                        HeaderSet reqHeaders = step.mReqHeaders;
-                        if(reqHeaders == null) {
-                            reqHeaders = new HeaderSet();
-                        }
-                        reqHeaders.setHeader(STEP_INDEX_HEADER, stepIndex);
-                        HeaderSet response = mClientSession.connect(reqHeaders);
-                        validateHeaderSet(response, step.mResHeaders);
-                        break;
-                    }
-                    case GET:{
-                        HeaderSet reqHeaders = step.mReqHeaders;
-                        if(reqHeaders == null) {
-                            reqHeaders = new HeaderSet();
-                        }
-                        reqHeaders.setHeader(STEP_INDEX_HEADER, stepIndex);
-                        Operation op = mClientSession.get(reqHeaders);
-                        if(op != null) {
-                            op.noBodyHeader();
-                            mDataHandler.readData(op.openDataInputStream(), step.mParams);
-                            int responseCode = op.getResponseCode();
-                            Log.i(TAG, "response code: " + responseCode);
-                            HeaderSet response = op.getReceivedHeader();
-                            validateHeaderSet(response, step.mResHeaders);
-                            op.close();
-                        }
-                        break;
-                    }
-                    case PUT: {
-                        HeaderSet reqHeaders = step.mReqHeaders;
-                        if(reqHeaders == null) {
-                            reqHeaders = new HeaderSet();
-                        }
-                        reqHeaders.setHeader(STEP_INDEX_HEADER, stepIndex);
-                        Operation op = mClientSession.put(reqHeaders);
-                        if(op != null) {
-                            mDataHandler.writeData(op.openDataOutputStream(), step.mParams);
-                            int responseCode = op.getResponseCode();
-                            Log.i(TAG, "response code: " + responseCode);
-                            HeaderSet response = op.getReceivedHeader();
-                            validateHeaderSet(response, step.mResHeaders);
-                            op.close();
-                        }
-                        break;
-                    }
-                    case DISCONNECT: {
-                        Log.i(TAG,"Requesting disconnect...");
-                        HeaderSet reqHeaders = step.mReqHeaders;
-                        if(reqHeaders == null) {
-                            reqHeaders = new HeaderSet();
-                        }
-                        reqHeaders.setHeader(STEP_INDEX_HEADER, stepIndex);
-                        try{
-                            HeaderSet response = mClientSession.disconnect(reqHeaders);
-                            Log.i(TAG,"Received disconnect response...");
-                            // For some reason this returns -1 -> EOS
-                            // Maybe increase server timeout.
-                            validateHeaderSet(response, step.mResHeaders);
-                        } catch (IOException e) {
-                            Log.e(TAG, "Error getting response code", e);
-                        }
-                        break;
-                    }
-                    default:
-                        assertTrue("Unknown type: " + step.mType, false);
-                        break;
-
-                    }
-                }
-                mClientSession.close();
-            }
-            /* All done, close down... */
-            if(mServerSession != null) {
-                boolean interrupted = false;
-                do {
-                    try {
-                        interrupted = false;
-                        Log.i(TAG,"Waiting for stopLatch signal...");
-                        stopLatch.await();
-                    } catch (InterruptedException e) {
-                        Log.w(TAG,e);
-                        interrupted = true;
-                    }
-                } while (interrupted == true);
-                Log.i(TAG,"stopLatch signal received closing down...");
-                try {
-                    interrupted = false;
-                    Log.i(TAG,"  Sleep 50ms to allow disconnect signal to be send before closing.");
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    Log.w(TAG,e);
-                    interrupted = true;
-                }
-                mServerSession.close();
-            }
-            // this will close the I/O streams as well.
-            return true;
-        }
-
-        public void shutdown() {
-//            mMessageHandler.removeCallbacksAndMessages(null);
-//            mMessageHandler.quit();
-//            mMessageHandler = null;
-        }
-
-
-        void validateHeaderSet(HeaderSet headers, HeaderSet expected) throws IOException {
-            /* TODO: Implement and assert if different */
-            if(headers.getResponseCode() != ResponseCodes.OBEX_HTTP_OK) {
-                Log.e(TAG,"Wrong ResponseCode: " + headers.getResponseCode());
-                assertTrue(false);
-            }
-        }
-
-//        private void startTimer() {
-//            Message timeoutMessage = mMessageHandler.obtainMessage(MSG_ID_TIMEOUT);
-//            mMessageHandler.sendMessageDelayed(timeoutMessage, TIMEOUT_VALUE);
-//        }
-//
-//        private void stopTimer() {
-//            mMessageHandler.removeMessages(MSG_ID_TIMEOUT);
-//        }
-
-        @Override
-        public boolean handleMessage(Message msg) {
-
-            Log.i(TAG,"Handling message ID: " + msg.what);
-
-            switch(msg.what) {
-            case MSG_ID_TIMEOUT:
-                Log.w(TAG, "Timeout occured!");
-/*                try {
-                    //inStream.close();
-                } catch (IOException e) {
-                    Log.e(TAG, "failed to close inStream", e);
-                }
-                try {
-                    //outStream.close();
-                } catch (IOException e) {
-                    Log.e(TAG, "failed to close outStream", e);
-                }*/
-                break;
-            default:
-                /* Message not handled */
-                return false;
-            }
-            return true; // Message handles
-        }
-
-
-
-    }
 
 }
+

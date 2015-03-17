@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2014 Samsung System LSI
+* Copyright (C) 2015 Samsung System LSI
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
@@ -15,7 +15,7 @@
 
 package com.android.bluetooth.map;
 import com.android.bluetooth.R;
-import com.android.bluetooth.map.BluetoothMapEmailSettingsItem;
+import com.android.bluetooth.map.BluetoothMapAccountItem;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -25,30 +25,32 @@ import android.os.Bundle;
 import android.widget.ExpandableListView;
 
 
-public class BluetoothMapEmailSettings extends Activity {
+public class BluetoothMapSettings extends Activity {
 
-    private static final String TAG = "BluetoothMapEmailSettings";
+    private static final String TAG = "BluetoothMapSettings";
     private static final boolean D = BluetoothMapService.DEBUG;
     private static final boolean V = BluetoothMapService.VERBOSE;
 
 
 
-    BluetoothMapEmailSettingsLoader mLoader = new BluetoothMapEmailSettingsLoader(this);
-    LinkedHashMap<BluetoothMapEmailSettingsItem,ArrayList<BluetoothMapEmailSettingsItem>> mGroups;
+    BluetoothMapAccountLoader mLoader = new BluetoothMapAccountLoader(this);
+    LinkedHashMap<BluetoothMapAccountItem,ArrayList<BluetoothMapAccountItem>> mGroups;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         /* set UI */
-        setContentView(R.layout.bluetooth_map_email_settings);
+        setContentView(R.layout.bluetooth_map_settings);
         /* create structure for list of groups + items*/
         mGroups = mLoader.parsePackages(true);
 
 
         /* update expandable listview with correct items */
-        ExpandableListView listView = (ExpandableListView) findViewById(R.id.bluetooth_map_email_settings_list_view);
+        ExpandableListView listView = 
+            (ExpandableListView) findViewById(R.id.bluetooth_map_settings_list_view);
 
-        BluetoothMapEmailSettingsAdapter adapter = new BluetoothMapEmailSettingsAdapter(this,listView, mGroups, mLoader.getAccountsEnabledCount());
+        BluetoothMapSettingsAdapter adapter = new BluetoothMapSettingsAdapter(this,
+                listView, mGroups, mLoader.getAccountsEnabledCount());
         listView.setAdapter(adapter);
     }
 

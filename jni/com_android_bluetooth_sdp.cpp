@@ -148,7 +148,7 @@ static jboolean sdpSearchNative(JNIEnv *env, jobject obj, jbyteArray address, jb
     ALOGD("%s UUID %.*X",__FUNCTION__,16, (uint8_t*)uuid);
 
 
-    if ( (ret = sBluetoothSdpInterface->sdp_search((bt_bdaddr_t *)addr,
+    if ((ret = sBluetoothSdpInterface->sdp_search((bt_bdaddr_t *)addr,
                     (const uint8_t*)uuid)) != BT_STATUS_SUCCESS) {
         ALOGE("SDP Search initialization failed: %d", ret);
         goto Fail;
