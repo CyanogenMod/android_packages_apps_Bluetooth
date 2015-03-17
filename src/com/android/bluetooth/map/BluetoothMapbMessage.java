@@ -225,6 +225,7 @@ public abstract class BluetoothMapbMessage {
                         // Empty phone number - ignore
                 }
                 else if(line.startsWith("EMAIL:")){
+                    line = line.replace("&lt;", "<").replace("&gt;", ">");
                     parts = line.split("[^\\\\]:"); // Split on "un-escaped" :
                     if(parts.length == 2) {
                         String[] subParts = parts[1].split("[^\\\\];");
