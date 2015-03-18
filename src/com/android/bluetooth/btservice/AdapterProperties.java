@@ -694,6 +694,9 @@ class AdapterProperties {
 
     private boolean mBluetoothDisabling=false;
 
+    void onBluetoothEnable()  {
+         mBluetoothDisabling=false;
+    }
     void onBluetoothDisable() {
         // When BT disable is invoked, set the scan_mode to NONE
         // so no incoming connections are possible
