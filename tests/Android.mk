@@ -5,7 +5,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE_TAGS := optional
 LOCAL_CERTIFICATE := platform
 
-LOCAL_JAVA_LIBRARIES := javax.obex android.test.runner telephony-common mms-common
+LOCAL_JAVA_LIBRARIES := javax.obex android.test.runner telephony-common mms-common libprotobuf-java-2.3.0-micro
 LOCAL_STATIC_JAVA_LIBRARIES := com.android.emailcommon
 
 # Include all test java files.

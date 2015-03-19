@@ -119,6 +119,8 @@ public class AdapterService extends Service {
             "phonebook_access_permission";
     private static final String MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE =
             "message_access_permission";
+    private static final String SIM_ACCESS_PERMISSION_PREFERENCE_FILE =
+            "sim_access_permission";
 
     private static final int ADAPTER_SERVICE_TYPE=Service.START_STICKY;
 
@@ -1150,6 +1152,28 @@ public class AdapterService extends Service {
             return service.setMessageAccessPermission(device, value);
         }
 
+        public int getSimAccessPermission(BluetoothDevice device) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "getSimAccessPermission() - Not allowed for non-active user");
+                return BluetoothDevice.ACCESS_UNKNOWN;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return BluetoothDevice.ACCESS_UNKNOWN;
+            return service.getSimAccessPermission(device);
+        }
+
+        public boolean setSimAccessPermission(BluetoothDevice device, int value) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "setSimAccessPermission() - Not allowed for non-active user");
+                return false;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.setSimAccessPermission(device, value);
+        }
+
         public void sendConnectionStateChange(BluetoothDevice
                 device, int profile, int state, int prevState) {
             AdapterService service = getService();
@@ -1745,6 +1769,31 @@ public class AdapterService extends Service {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                                        "Need BLUETOOTH PRIVILEGED permission");
         SharedPreferences pref = getSharedPreferences(MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE,
+                Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        if (value == BluetoothDevice.ACCESS_UNKNOWN) {
+            editor.remove(device.getAddress());
+        } else {
+            editor.putBoolean(device.getAddress(), value == BluetoothDevice.ACCESS_ALLOWED);
+        }
+        return editor.commit();
+    }
+
+    int getSimAccessPermission(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        SharedPreferences pref = getSharedPreferences(SIM_ACCESS_PERMISSION_PREFERENCE_FILE,
+                Context.MODE_PRIVATE);
+        if (!pref.contains(device.getAddress())) {
+            return BluetoothDevice.ACCESS_UNKNOWN;
+        }
+        return pref.getBoolean(device.getAddress(), false)
+                ? BluetoothDevice.ACCESS_ALLOWED : BluetoothDevice.ACCESS_REJECTED;
+    }
+
+    boolean setSimAccessPermission(BluetoothDevice device, int value) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                                       "Need BLUETOOTH PRIVILEGED permission");
+        SharedPreferences pref = getSharedPreferences(SIM_ACCESS_PERMISSION_PREFERENCE_FILE,
                 Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         if (value == BluetoothDevice.ACCESS_UNKNOWN) {

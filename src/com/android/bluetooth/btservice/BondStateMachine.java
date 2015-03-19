@@ -85,7 +85,7 @@ final class BondStateMachine extends StateMachine {
         bsm.start();
         return bsm;
     }
-            
+
     public void doQuit() {
         quitNow();
     }
@@ -195,6 +195,8 @@ final class BondStateMachine extends StateMachine {
                             mAdapterService.setPhonebookAccessPermission(dev,
                                     BluetoothDevice.ACCESS_UNKNOWN);
                             mAdapterService.setMessageAccessPermission(dev,
+                                    BluetoothDevice.ACCESS_UNKNOWN);
+                            mAdapterService.setSimAccessPermission(dev,
                                     BluetoothDevice.ACCESS_UNKNOWN);
                             // Set the profile Priorities to undefined
                             clearProfilePriorty(dev);

@@ -21,8 +21,8 @@ LOCAL_PACKAGE_NAME := Bluetooth
 LOCAL_CERTIFICATE := platform
 
 LOCAL_JNI_SHARED_LIBRARIES := libbluetooth_jni
-LOCAL_JAVA_LIBRARIES := javax.obex telephony-common
-LOCAL_STATIC_JAVA_LIBRARIES := com.android.vcard  bluetooth.mapsapi
+LOCAL_JAVA_LIBRARIES := javax.obex telephony-common libprotobuf-java-2.3.0-micro
+LOCAL_STATIC_JAVA_LIBRARIES := com.android.vcard  bluetooth.mapsapi sap-api-java-static
 
 LOCAL_REQUIRED_MODULES := bluetooth.default
 LOCAL_MULTILIB := 32
