@@ -17,6 +17,6 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="empty_file_notification_sent">Partajare Bluetooth: Dispozitivul la distanță a respins fișierul de lungime zero <xliff:g id="file">%1$s</xliff:g></string>
-  <string name="upload_fail_waiting">Imposibil de transmis fișierul, se reîncearcă\u2026</string>
+  <string name="empty_file_notification_sent">كۆكچىش ھەمبەھىر: يىراقتىكى ئۈسكۈنە سىغىمى نۆل بولغان <xliff:g id="file">%1$s</xliff:g> ھۆججەتنى رەت قىلدى</string>
+  <string name="upload_fail_waiting">ھۆججەتنى يوللىيالمىدى، قايتا سىناۋاتىدۇ\u2026</string>
 </resources>
