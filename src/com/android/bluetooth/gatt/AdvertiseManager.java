@@ -49,7 +49,7 @@ class AdvertiseManager {
     private static final String TAG = GattServiceConfig.TAG_PREFIX + "AdvertiseManager";
 
     // Timeout for each controller operation.
-    private static final int OPERATION_TIME_OUT_MILLIS = 500;
+    private static final int OPERATION_TIME_OUT_MILLIS = 1000;
 
     // Message for advertising operations.
     private static final int MSG_START_ADVERTISING = 0;
