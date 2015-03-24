@@ -210,7 +210,9 @@ public class ScanManager {
             } else {
                 mRegularScanClients.add(client);
                 mScanNative.startRegularScan(client);
-                mScanNative.configureRegularScanParams();
+                if (!mScanNative.isOpportunisticScanClient(client)) {
+                    mScanNative.configureRegularScanParams();
+                }
             }
         }
 
@@ -219,7 +221,9 @@ public class ScanManager {
             if (client == null) return;
             if (mRegularScanClients.contains(client)) {
                 mScanNative.stopRegularScan(client);
-                mScanNative.configureRegularScanParams();
+                if (!mScanNative.isOpportunisticScanClient(client)) {
+                    mScanNative.configureRegularScanParams();
+                }
             } else {
                 mScanNative.stopBatchScan(client);
             }
@@ -390,7 +394,8 @@ public class ScanManager {
             logd("configureRegularScanParams() - ScanSetting Scan mode=" + curScanSetting +
                     " mLastConfiguredScanSetting=" + mLastConfiguredScanSetting);
 
-            if (curScanSetting != Integer.MIN_VALUE) {
+            if (curScanSetting != Integer.MIN_VALUE &&
+                    curScanSetting != ScanSettings.SCAN_MODE_OPPORTUNISTIC) {
                 if (curScanSetting != mLastConfiguredScanSetting) {
                     int scanWindow, scanInterval;
                     switch (curScanSetting) {
@@ -441,17 +446,27 @@ public class ScanManager {
         }
 
         void startRegularScan(ScanClient client) {
-            if (isFilteringSupported() && mFilterIndexStack.isEmpty() &&
-                    mClientFilterIndexMap.isEmpty()) {
+            if (isFilteringSupported() && mFilterIndexStack.isEmpty()
+                    && mClientFilterIndexMap.isEmpty()) {
                 initFilterIndexStack();
             }
             if (isFilteringSupported()) {
                 configureScanFilters(client);
             }
             // Start scan native only for the first client.
-            if (mRegularScanClients.size() == 1) {
+            if (numRegularScanClients() == 1) {
                 gattClientScanNative(true);
             }
+        }
+
+        private int numRegularScanClients() {
+            int num = 0;
+            for (ScanClient client: mRegularScanClients) {
+                if (client.settings.getScanMode() != ScanSettings.SCAN_MODE_OPPORTUNISTIC) {
+                    num++;
+                }
+            }
+            return num;
         }
 
         void startBatchScan(ScanClient client) {
@@ -459,8 +474,14 @@ public class ScanManager {
                 initFilterIndexStack();
             }
             configureScanFilters(client);
-            // Reset batch scan. May need to stop the existing batch scan and update scan params.
-            resetBatchScan(client);
+            if (!isOpportunisticScanClient(client)) {
+                // Reset batch scan. May need to stop the existing batch scan and update scan params.
+                resetBatchScan(client);
+            }
+        }
+
+        private boolean isOpportunisticScanClient(ScanClient client) {
+            return client.settings.getScanMode() == ScanSettings.SCAN_MODE_OPPORTUNISTIC;
         }
 
         private void resetBatchScan(ScanClient client) {
@@ -579,7 +600,7 @@ public class ScanManager {
             // Remove scan filters and recycle filter indices.
             removeScanFilters(client.clientIf);
             mRegularScanClients.remove(client);
-            if (mRegularScanClients.isEmpty()) {
+            if (numRegularScanClients() == 0) {
                 logd("stop scan");
                 gattClientScanNative(false);
             }
@@ -588,7 +609,9 @@ public class ScanManager {
         void stopBatchScan(ScanClient client) {
             mBatchClients.remove(client);
             removeScanFilters(client.clientIf);
-            resetBatchScan(client);
+            if (!isOpportunisticScanClient(client)) {
+                resetBatchScan(client);
+            }
         }
 
         void flushBatchResults(int clientIf) {

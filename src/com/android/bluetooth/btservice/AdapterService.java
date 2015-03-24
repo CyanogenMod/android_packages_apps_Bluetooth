@@ -1819,14 +1819,19 @@ public class AdapterService extends Service {
     private void energyInfoCallback (int status, int ctrl_state,
         long tx_time, long rx_time, long idle_time, long energy_used)
         throws RemoteException {
-        // ToDo: Update only status is valid
         if (ctrl_state >= BluetoothActivityEnergyInfo.BT_STACK_STATE_INVALID &&
                 ctrl_state <= BluetoothActivityEnergyInfo.BT_STACK_STATE_STATE_IDLE) {
             mStackReportedState = ctrl_state;
             mTxTimeTotalMs += tx_time;
             mRxTimeTotalMs += rx_time;
             mIdleTimeTotalMs += idle_time;
-            // Energy is product of mA, V and ms
+            // Energy is product of mA, V and ms. If the chipset doesn't
+            // report it, we have to compute it from time
+            if (energy_used == 0) {
+                energy_used = ((mTxTimeTotalMs * getTxCurrentMa()
+                    + mRxTimeTotalMs * getRxCurrentMa()
+                    + mIdleTimeTotalMs * getIdleCurrentMa()) * getOperatingMilliVolt())/1000;
+            }
             mEnergyUsedTotalVoltAmpSecMicro += energy_used;
         }
 
@@ -1836,6 +1841,22 @@ public class AdapterService extends Service {
             "idle_time = " + idle_time + "energy_used = " + energy_used +
             "ctrl_state = " + ctrl_state);
         }
+    }
+
+    private int getIdleCurrentMa() {
+        return getResources().getInteger(R.integer.config_bluetooth_idle_cur_ma);
+    }
+
+    private int getTxCurrentMa() {
+        return getResources().getInteger(R.integer.config_bluetooth_tx_cur_ma);
+    }
+
+    private int getRxCurrentMa() {
+        return getResources().getInteger(R.integer.config_bluetooth_rx_cur_ma);
+    }
+
+    private int getOperatingMilliVolt() {
+        return getResources().getInteger(R.integer.config_bluetooth_operating_voltage_mv);
     }
 
     private void debugLog(String msg) {
