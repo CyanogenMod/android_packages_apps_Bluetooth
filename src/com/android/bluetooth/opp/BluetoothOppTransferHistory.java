@@ -297,7 +297,6 @@ public class BluetoothOppTransferHistory extends Activity implements
         if (transInfo.mDirection == BluetoothShare.DIRECTION_INBOUND
                 && BluetoothShare.isStatusSuccess(transInfo.mStatus)) {
             // if received file successfully, open this file
-            BluetoothOppUtility.updateVisibilityToHidden(this, contentUri);
             BluetoothOppUtility.openReceivedFile(this, transInfo.mFileName, transInfo.mFileType,
                     transInfo.mTimeStamp, contentUri);
         } else {
