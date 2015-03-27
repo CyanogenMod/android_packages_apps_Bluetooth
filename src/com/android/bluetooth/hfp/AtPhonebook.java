@@ -32,6 +32,7 @@ import android.telephony.PhoneNumberUtils;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.util.DevicePolicyUtils;
 
 import java.util.HashMap;
 
@@ -429,7 +430,8 @@ public class AtPhonebook {
             pbr.typeColumn = -1;
             pbr.nameColumn = -1;
         } else {
-            pbr.cursor = mContentResolver.query(Phone.ENTERPRISE_CONTENT_URI, PHONES_PROJECTION,
+            final Uri phoneContentUri = DevicePolicyUtils.getEnterprisePhoneUri(mContext);
+            pbr.cursor = mContentResolver.query(phoneContentUri, PHONES_PROJECTION,
                     where, null, Phone.NUMBER + " LIMIT " + MAX_PHONEBOOK_SIZE);
             if (pbr.cursor == null) return false;
 

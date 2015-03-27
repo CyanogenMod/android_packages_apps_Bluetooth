@@ -67,6 +67,7 @@ import javax.obex.Operation;
 import javax.obex.ResponseCodes;
 
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.util.DevicePolicyUtils;
 
 public class BluetoothPbapVcardManager {
     private static final String TAG = "BluetoothPbapVcardManager";
@@ -161,7 +162,7 @@ public class BluetoothPbapVcardManager {
     }
 
     public final int getContactsSize() {
-        final Uri myUri = getPhoneUri();
+        final Uri myUri = DevicePolicyUtils.getEnterprisePhoneUri(mContext);
         Cursor contactCursor = null;
         try {
             contactCursor = mResolver.query(myUri, new String[] {Phone.CONTACT_ID},
@@ -258,7 +259,7 @@ public class BluetoothPbapVcardManager {
         nameList.add(ownerName);
         //End enhancement
 
-        final Uri myUri = getPhoneUri();
+        final Uri myUri = DevicePolicyUtils.getEnterprisePhoneUri(mContext);
         Cursor contactCursor = null;
         try {
             contactCursor = mResolver.query(myUri, PHONES_CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
@@ -295,7 +296,7 @@ public class BluetoothPbapVcardManager {
         String[] projection = null;
 
         if (TextUtils.isEmpty(phoneNumber)) {
-            uri = getPhoneUri();
+            uri = DevicePolicyUtils.getEnterprisePhoneUri(mContext);
             projection = PHONES_CONTACTS_PROJECTION;
         } else {
             uri = Uri.withAppendedPath(getPhoneLookupFilterUri(),
@@ -412,7 +413,7 @@ public class BluetoothPbapVcardManager {
             Phone.CONTACT_ID
         });
 
-        final Uri myUri = getPhoneUri();
+        final Uri myUri = DevicePolicyUtils.getEnterprisePhoneUri(mContext);
         Cursor contactCursor = null;
         try {
             contactCursor = mResolver.query(myUri, PHONES_CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
@@ -454,7 +455,7 @@ public class BluetoothPbapVcardManager {
             Log.e(TAG, "Internal error: offset is not correct.");
             return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
         }
-        final Uri myUri = getPhoneUri();
+        final Uri myUri = DevicePolicyUtils.getEnterprisePhoneUri(mContext);
         Cursor contactCursor = null;
         try {
             contactCursor = mResolver.query(myUri, PHONES_CONTACTS_PROJECTION,
@@ -810,10 +811,6 @@ public class BluetoothPbapVcardManager {
 
             return filteredVCard.toString();
         }
-    }
-
-    private static final Uri getPhoneUri() {
-        return Phone.ENTERPRISE_CONTENT_URI;
     }
 
     private static final Uri getPhoneLookupFilterUri() {
