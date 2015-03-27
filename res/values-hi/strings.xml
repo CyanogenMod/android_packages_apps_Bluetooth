@@ -28,7 +28,7 @@
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"ब्लूटूथ सेवाओं के उपयोग के लिए, आपको पहले ब्लूटूथ चालू करना चाहिए."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"अभी ब्लूटूथ चालू करें?"</string>
-    <string name="bt_enable_cancel" msgid="1988832367505151727">"रहने दें"</string>
+    <string name="bt_enable_cancel" msgid="1988832367505151727">"अभी नहीं"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"चालू करें"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"फ़ाइल स्थानांतरण"</string>
     <string name="incoming_file_confirm_content" msgid="2752605552743148036">"आवक फ़ाइल स्वीकार करें?"</string>
@@ -116,7 +116,7 @@
     <string name="transfer_menu_clear" msgid="5854038118831427492">"सूची से साफ़ करें"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"साफ़ करें"</string>
     <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"जोड़ें"</string>
-    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"रहने दें"</string>
+    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"अभी नहीं"</string>
     <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"वे ईमेल खाते चुनें जिन्हें आप ब्लूटूथ के द्वारा साझा करना चाहते हैं. फिर भी कनेक्ट करते समय आपको खातों की सभी एक्सेस को स्वीकार करना होगा."</string>
     <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"शेष स्लॉट:"</string>
     <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"ऐप्लिकेशन आइकन"</string>
