@@ -340,8 +340,6 @@ public class BluetoothMapContentEmailObserver extends BluetoothMapContentObserve
                                 if(V) Log.v(TAG,"Putting in deleted list id "+id);
                                 mEmailDeletedList.put(id, msg);
                             }
-                        } else if (box.mType == TYPE_OUTBOX) {
-                                // Do nothing got outbox folder
                         } else {
                                 emailList.put(id, msg);
                                 if (!oldEmailList.containsKey(id) && !init &&
@@ -356,6 +354,12 @@ public class BluetoothMapContentEmailObserver extends BluetoothMapContentObserve
                                             Event evt;
                                             evt = new Event("MessageShift", id, msg.mFolderName,
                                                       oldEmailList.get(id).mFolderName, TYPE.EMAIL);
+                                            if (msg.mFolderName.equalsIgnoreCase("sent") &&
+                                                ( findLocationMceInitiatedOperation(
+                                                    Long.toString(id))) != -1) {
+                                                    evt = new Event("SendingSuccess", id,
+                                                        msg.mFolderName, null, TYPE.EMAIL);
+                                            }
                                             sendEvent(evt);
                                         }
                                     }
