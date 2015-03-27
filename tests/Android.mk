@@ -5,7 +5,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE_TAGS := optional
 LOCAL_CERTIFICATE := platform
 
-LOCAL_JAVA_LIBRARIES := android.test.runner telephony-common mms-common
+LOCAL_JAVA_LIBRARIES := android.test.runner telephony-common
 LOCAL_STATIC_JAVA_LIBRARIES := com.android.emailcommon
 
 # Include all test java files.
