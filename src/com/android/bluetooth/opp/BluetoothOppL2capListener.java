@@ -129,10 +129,18 @@ public class BluetoothOppL2capListener {
                                 serverOK = false;
                             }
                             if (!serverOK) {
+                                // Need to break out of this loop if BT is being turned off.
+                                if (mAdapter == null) break;
+                                int state = mAdapter.getState();
+                                if ((state != BluetoothAdapter.STATE_TURNING_ON) &&
+                                    (state != BluetoothAdapter.STATE_ON)) {
+                                    Log.w(TAG, "L2cap listener failed as BT is (being) turned off");
+                                    break;
+                                }
                                 synchronized (this) {
                                     try {
-                                        if (V) Log.v(TAG, "wait 3 seconds");
-                                        Thread.sleep(3000);
+                                        if (V) Log.v(TAG, "wait 300ms");
+                                        Thread.sleep(300);
                                     } catch (InterruptedException e) {
                                         Log.e(TAG, "socketAcceptThread thread was interrupted (3)");
                                         mInterrupted = true;

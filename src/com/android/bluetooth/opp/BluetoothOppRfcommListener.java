@@ -123,6 +123,14 @@ public class BluetoothOppRfcommListener {
                             }
 
                             if (!serverOK) {
+                                // Need to break out of this loop if BT is being turned off.
+                                if (mAdapter == null) break;
+                                int state = mAdapter.getState();
+                                if ((state != BluetoothAdapter.STATE_TURNING_ON) &&
+                                    (state != BluetoothAdapter.STATE_ON)) {
+                                    Log.w(TAG, "RFCOMM listener failed as BT is being turned off");
+                                    break;
+                                }
                                 synchronized (this) {
                                     try {
                                         if (V) Log.v(TAG, "Wait 300 ms");
