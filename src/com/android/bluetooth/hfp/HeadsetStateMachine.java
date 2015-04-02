@@ -2229,7 +2229,11 @@ final class HeadsetStateMachine extends StateMachine {
                 // Whereas for VoiceDial we want to activate the SCO connection but we are still
                 // in MODE_NORMAL and hence the need to explicitly suspend the A2DP stream
                 mAudioManager.setParameters("A2dpSuspended=true");
-                connectAudioNative(getByteAddress(device));
+                if (device != null) {
+                    connectAudioNative(getByteAddress(device));
+                } else {
+                    Log.e(TAG, "device not found for VR");
+                }
             }
 
             if (mStartVoiceRecognitionWakeLock.isHeld()) {
@@ -2397,8 +2401,13 @@ final class HeadsetStateMachine extends StateMachine {
     {
         // 1. update nrec value
         // 2. update headset name
+        int mNrec = 0;
         HashMap<String, Integer> AudioParam = mHeadsetAudioParam.get(device);
-        int mNrec = AudioParam.get("NREC");
+        if (AudioParam != null && !AudioParam.isEmpty()) {
+            mNrec = AudioParam.get("NREC");
+        } else {
+            Log.e(TAG,"setAudioParameters: AudioParam not found");
+        }
 
         if (mNrec == 1) {
             Log.d(TAG, "Set NREC: 1 for device:" + device);
@@ -2713,11 +2722,16 @@ final class HeadsetStateMachine extends StateMachine {
     // 0 disable noice reduction
     private void processNoiceReductionEvent(int enable, BluetoothDevice device) {
         HashMap<String, Integer> AudioParamNrec = mHeadsetAudioParam.get(device);
-        if (enable == 1)
-            AudioParamNrec.put("NREC", 1);
-        else
-            AudioParamNrec.put("NREC", 0);
-        Log.d(TAG, "NREC value for device :" + device + " is: " + AudioParamNrec.get("NREC"));
+        if (AudioParamNrec != null && !AudioParamNrec.isEmpty()) {
+            if (enable == 1)
+                AudioParamNrec.put("NREC", 1);
+            else
+                AudioParamNrec.put("NREC", 0);
+            log("NREC value for device :" + device + " is: " +
+                    AudioParamNrec.get("NREC"));
+        } else {
+            Log.e(TAG,"processNoiceReductionEvent: AudioParamNrec is null ");
+        }
     }
 
     // 2 - WBS on
