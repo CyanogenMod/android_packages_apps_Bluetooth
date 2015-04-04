@@ -2971,7 +2971,7 @@ public final class Avrcp {
                 while (rccIterator.hasNext()) {
                     final MediaPlayerInfo di = rccIterator.next();
                     if (di.GetPlayerFocus()) {
-                        if (!di.IsRemoteAddressable()) {
+                        if (!di.IsRemoteAddressable() || mCurrentPath.equals(PATH_INVALID)) {
                             getFolderItemsRspNative((byte)INTERNAL_ERROR, numItems, itemType,
                                 uid, type, playable, displayName, numAtt, attValues, attIds);
                             Log.e(TAG, "GetFolderItems fails: addressed player is not browsable");
