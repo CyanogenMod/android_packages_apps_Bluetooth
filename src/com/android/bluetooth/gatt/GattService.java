@@ -110,7 +110,6 @@ public class GattService extends ProfileService {
     private List<UUID> mAdvertisingServiceUuids = new ArrayList<UUID>();
 
     private int mMaxScanFilters;
-    private Map<ScanClient, ScanResult> mOnFoundResults = new HashMap<ScanClient, ScanResult>();
 
     /**
      * Pending service declaration queue
@@ -582,17 +581,6 @@ public class GattService extends ProfileService {
                     if (matchesFilters(client, result)) {
                         try {
                             ScanSettings settings = client.settings;
-                            // framework detects the first match, hw signal is
-                            // used to detect the onlost
-                            // ToDo: make scanClient+result, 1 to many when hw
-                            // support is available
-                            if ((settings.getCallbackType() &
-                                    ScanSettings.CALLBACK_TYPE_FIRST_MATCH) != 0) {
-                                synchronized (mOnFoundResults) {
-                                    mOnFoundResults.put(client, result);
-                                }
-                                app.callback.onFoundOrLost(true, result);
-                            }
                             if ((settings.getCallbackType() &
                                     ScanSettings.CALLBACK_TYPE_ALL_MATCHES) != 0) {
                                 app.callback.onScanResult(result);
@@ -1144,11 +1132,9 @@ public class GattService extends ProfileService {
     }
 
     void onTrackAdvFoundLost(AdvtFilterOnFoundOnLostInfo trackingInfo) throws RemoteException {
-        if (DBG) Log.d(TAG, "onTrackAdvFoundLost() - clientIf="
-                       + trackingInfo.getClientIf() + "address = " + trackingInfo.getAddress() +
-                       "adv_state = " + trackingInfo.getAdvState()+ "address type=" +
-                       trackingInfo.getAddressType()
-                       + "ADV packet data =" + trackingInfo.getAdvPacketLen());
+        if (DBG) Log.d(TAG, "onTrackAdvFoundLost() - clientIf= " + trackingInfo.getClientIf()
+                    + " address = " + trackingInfo.getAddress()
+                    + " adv_state = " + trackingInfo.getAdvState());
 
         ClientMap.App app = mClientMap.getById(trackingInfo.getClientIf());
         if (app == null || app.callback == null) {
@@ -1156,24 +1142,28 @@ public class GattService extends ProfileService {
             return;
         }
 
-        // use hw signal for only onlost reporting
-        if (trackingInfo.getAdvState() != ADVT_STATE_ONLOST) {
-            return;
-        }
+        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter()
+                        .getRemoteDevice(trackingInfo.getAddress());
+        int advertiserState = trackingInfo.getAdvState();
+        ScanResult result = new ScanResult(device,
+                        ScanRecord.parseFromBytes(trackingInfo.getResult()),
+                        trackingInfo.getRSSIValue(), SystemClock.elapsedRealtimeNanos());
 
         for (ScanClient client : mScanManager.getRegularScanQueue()) {
             if (client.clientIf == trackingInfo.getClientIf()) {
                 ScanSettings settings = client.settings;
-                if ((settings.getCallbackType() &
-                            ScanSettings.CALLBACK_TYPE_MATCH_LOST) != 0) {
-
-                    while (!mOnFoundResults.isEmpty()) {
-                        ScanResult result = mOnFoundResults.get(client);
-                        app.callback.onFoundOrLost(false, result);
-                        synchronized (mOnFoundResults) {
-                            mOnFoundResults.remove(client);
-                        }
-                    }
+                if ((advertiserState == ADVT_STATE_ONFOUND)
+                        && ((settings.getCallbackType()
+                                & ScanSettings.CALLBACK_TYPE_FIRST_MATCH) != 0)) {
+                    app.callback.onFoundOrLost(true, result);
+                } else if ((advertiserState == ADVT_STATE_ONLOST)
+                                && ((settings.getCallbackType()
+                                        & ScanSettings.CALLBACK_TYPE_MATCH_LOST) != 0)) {
+                    app.callback.onFoundOrLost(false, result);
+                } else {
+                    Log.d(TAG, "Not reporting onlost/onfound : " + advertiserState
+                                + " clientIf = " + client.clientIf
+                                + " callbackType " + settings.getCallbackType());
                 }
             }
         }
@@ -2237,11 +2227,6 @@ public class GattService extends ProfileService {
         for (UUID uuid : mAdvertisingServiceUuids) {
             println(sb, "  " + uuid);
         }
-        println(sb, "mOnFoundResults:");
-        for (ScanResult result : mOnFoundResults.values()) {
-            println(sb, "  " + result);
-        }
-        println(sb, "mOnFoundResults:");
         for (ServiceDeclaration declaration : mServiceDeclarations) {
             println(sb, "  " + declaration);
         }

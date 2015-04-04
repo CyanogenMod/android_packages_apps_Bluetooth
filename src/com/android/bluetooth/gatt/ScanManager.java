@@ -299,8 +299,8 @@ public class ScanManager {
         private static final int DELIVERY_MODE_ON_FOUND_LOST = 1;
         private static final int DELIVERY_MODE_BATCH = 2;
 
-        private static final int DEFAULT_ONLOST_ONFOUND_TIMEOUT_MILLIS = 1000;
-        private static final int ONFOUND_SIGHTINGS = 2;
+        private static final int ONFOUND_SIGHTINGS_AGGRESSIVE = 2;
+        private static final int ONFOUND_SIGHTINGS_STICKY = 5;
 
         private static final int ALL_PASS_FILTER_INDEX_REGULAR_SCAN = 1;
         private static final int ALL_PASS_FILTER_INDEX_BATCH_SCAN = 2;
@@ -317,6 +317,16 @@ public class ScanManager {
         private static final int SCAN_MODE_BALANCED_INTERVAL_MS = 5000;
         private static final int SCAN_MODE_LOW_LATENCY_WINDOW_MS = 5000;
         private static final int SCAN_MODE_LOW_LATENCY_INTERVAL_MS = 5000;
+
+        /**
+         * Onfound/onlost timeouts are factors of scan settings
+         * To scan the three advertisement channels, it requires 3 scan
+         * intervals
+         * ToDo: Tuning these values for the platform
+         */
+        private static final int MATCH_MODE_AGGRESSIVE_TIMEOUT_FACTOR = (3*1);
+        private static final int MATCH_MODE_STICKY_TIMEOUT_FACTOR = (3*5);
+        private static final int ONLOST_FACTOR = 2;
 
         /**
          * Scan params corresponding to batch scan setting
@@ -397,26 +407,8 @@ public class ScanManager {
             if (curScanSetting != Integer.MIN_VALUE &&
                     curScanSetting != ScanSettings.SCAN_MODE_OPPORTUNISTIC) {
                 if (curScanSetting != mLastConfiguredScanSetting) {
-                    int scanWindow, scanInterval;
-                    switch (curScanSetting) {
-                        case ScanSettings.SCAN_MODE_LOW_POWER:
-                            scanWindow = SCAN_MODE_LOW_POWER_WINDOW_MS;
-                            scanInterval = SCAN_MODE_LOW_POWER_INTERVAL_MS;
-                            break;
-                        case ScanSettings.SCAN_MODE_BALANCED:
-                            scanWindow = SCAN_MODE_BALANCED_WINDOW_MS;
-                            scanInterval = SCAN_MODE_BALANCED_INTERVAL_MS;
-                            break;
-                        case ScanSettings.SCAN_MODE_LOW_LATENCY:
-                            scanWindow = SCAN_MODE_LOW_LATENCY_WINDOW_MS;
-                            scanInterval = SCAN_MODE_LOW_LATENCY_INTERVAL_MS;
-                            break;
-                        default:
-                            Log.e(TAG, "Invalid value for curScanSetting " + curScanSetting);
-                            scanWindow = SCAN_MODE_LOW_POWER_WINDOW_MS;
-                            scanInterval = SCAN_MODE_LOW_POWER_INTERVAL_MS;
-                            break;
-                    }
+                    int scanWindow = getScanWindowMillis(client.settings);
+                    int scanInterval = getScanIntervalMillis(client.settings);
                     // convert scanWindow and scanInterval from ms to LE scan units(0.625ms)
                     scanWindow = Utils.millsToUnit(scanWindow);
                     scanInterval = Utils.millsToUnit(scanInterval);
@@ -657,8 +649,7 @@ public class ScanManager {
         private void configureScanFilters(ScanClient client) {
             int clientIf = client.clientIf;
             int deliveryMode = getDeliveryMode(client);
-            // TBD - The value needs to be handled appropriately
-            int trackEntries = 5;
+            int trackEntries = 0;
             if (!shouldAddAllPassFilterToController(client, deliveryMode)) {
                 return;
             }
@@ -671,8 +662,9 @@ public class ScanManager {
                 int filterIndex = (deliveryMode == DELIVERY_MODE_BATCH) ?
                         ALL_PASS_FILTER_INDEX_BATCH_SCAN : ALL_PASS_FILTER_INDEX_REGULAR_SCAN;
                 resetCountDownLatch();
-                configureFilterParamter(clientIf, client, ALL_PASS_FILTER_SELECTION, filterIndex,
-                                        trackEntries);
+                // Don't allow Onfound/onlost with all pass
+                configureFilterParamter(clientIf, client, ALL_PASS_FILTER_SELECTION,
+                                filterIndex, 0);
                 waitForCallback();
             } else {
                 Deque<Integer> clientFilterIndices = new ArrayDeque<Integer>();
@@ -687,6 +679,13 @@ public class ScanManager {
                         waitForCallback();
                     }
                     resetCountDownLatch();
+                    if (deliveryMode == DELIVERY_MODE_ON_FOUND_LOST) {
+                        trackEntries = getNumOfTrackingAdvertisements(client.settings);
+                        if (trackEntries == 0) {
+                            Log.e(TAG, "No hardware resources for onfound/onlost filter");
+                            return;
+                        }
+                    }
                     configureFilterParamter(clientIf, client, featureSelection, filterIndex,
                                             trackEntries);
                     waitForCallback();
@@ -838,13 +837,18 @@ public class ScanManager {
 
         // Configure filter parameters.
         private void configureFilterParamter(int clientIf, ScanClient client, int featureSelection,
-                int filterIndex, int num_of_tracking_entries) {
+                int filterIndex, int numOfTrackingEntries) {
             int deliveryMode = getDeliveryMode(client);
             int rssiThreshold = Byte.MIN_VALUE;
-            int timeout = getOnfoundLostTimeout(client);
+            ScanSettings settings = client.settings;
+            int onFoundTimeout = getOnFoundOnLostTimeoutMillis(settings, true);
+            int onLostTimeout = getOnFoundOnLostTimeoutMillis(settings, false);
+            int onFoundCount = getOnFoundOnLostSightings(settings);
+            logd("configureFilterParamter " + onFoundTimeout + " " + onLostTimeout + " "
+                    + onFoundCount + " " + numOfTrackingEntries);
             FilterParams FiltValue = new FilterParams(clientIf, filterIndex, featureSelection,
                     LIST_LOGIC_TYPE, FILTER_LOGIC_TYPE, rssiThreshold, rssiThreshold, deliveryMode,
-                    timeout, timeout, ONFOUND_SIGHTINGS, num_of_tracking_entries);
+                    onFoundTimeout, onLostTimeout, onFoundCount, numOfTrackingEntries);
             gattClientScanFilterParamAddNative(FiltValue);
         }
 
@@ -865,17 +869,89 @@ public class ScanManager {
                     : DELIVERY_MODE_BATCH;
         }
 
-        // Get onfound and onlost timeouts in ms
-        private int getOnfoundLostTimeout(ScanClient client) {
-            if (client == null) {
-                return DEFAULT_ONLOST_ONFOUND_TIMEOUT_MILLIS;
-            }
-            ScanSettings settings = client.settings;
+        private int getScanWindowMillis(ScanSettings settings) {
             if (settings == null) {
-                return DEFAULT_ONLOST_ONFOUND_TIMEOUT_MILLIS;
+                return SCAN_MODE_LOW_POWER_WINDOW_MS;
             }
-            return (int) settings.getReportDelayMillis();
+            switch (settings.getScanMode()) {
+                case ScanSettings.SCAN_MODE_LOW_LATENCY:
+                    return SCAN_MODE_LOW_LATENCY_WINDOW_MS;
+                case ScanSettings.SCAN_MODE_BALANCED:
+                    return SCAN_MODE_BALANCED_WINDOW_MS;
+                case ScanSettings.SCAN_MODE_LOW_POWER:
+                    return SCAN_MODE_LOW_POWER_WINDOW_MS;
+                default:
+                    return SCAN_MODE_LOW_POWER_WINDOW_MS;
+            }
         }
+
+        private int getScanIntervalMillis(ScanSettings settings) {
+            if (settings == null)
+                return SCAN_MODE_LOW_POWER_INTERVAL_MS;
+            switch (settings.getScanMode()) {
+                case ScanSettings.SCAN_MODE_LOW_LATENCY:
+                    return SCAN_MODE_LOW_LATENCY_INTERVAL_MS;
+                case ScanSettings.SCAN_MODE_BALANCED:
+                    return SCAN_MODE_BALANCED_INTERVAL_MS;
+                case ScanSettings.SCAN_MODE_LOW_POWER:
+                    return SCAN_MODE_LOW_POWER_INTERVAL_MS;
+                default:
+                    return SCAN_MODE_LOW_POWER_INTERVAL_MS;
+            }
+        }
+
+        private int getOnFoundOnLostTimeoutMillis(ScanSettings settings, boolean onFound) {
+            int factor;
+            int timeout = getScanIntervalMillis(settings);
+
+            // ToDo: This tuning is still work in progress.
+            // How is onfound and onlost timeout computed?
+            // scanning occurs 1 channel per scan interval. Assuming all the
+            // channels are required to be scanned, thats 3 intervals.
+            // For aggressive onfound, we thus have timeout of 3x of
+            // scan interval. At least a factor for 'k' between onfound
+            // and onlost timeout to reduce hysterisis.
+            if (settings.getMatchMode() == ScanSettings.MATCH_MODE_AGGRESSIVE) {
+                factor = MATCH_MODE_AGGRESSIVE_TIMEOUT_FACTOR;
+            } else {
+                factor = MATCH_MODE_STICKY_TIMEOUT_FACTOR;
+            }
+            if (!onFound) factor = factor * ONLOST_FACTOR;
+            return (timeout*factor);
+        }
+
+        private int getOnFoundOnLostSightings(ScanSettings settings) {
+            if (settings == null)
+                return ONFOUND_SIGHTINGS_AGGRESSIVE;
+            if (settings.getMatchMode() == ScanSettings.MATCH_MODE_AGGRESSIVE) {
+                return ONFOUND_SIGHTINGS_AGGRESSIVE;
+            } else {
+                return ONFOUND_SIGHTINGS_STICKY;
+            }
+        }
+
+        private int getNumOfTrackingAdvertisements(ScanSettings settings) {
+            if (settings == null)
+                return 0;
+            int val=0;
+            switch (settings.getNumOfMatches()) {
+                case ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT:
+                    val = 1;
+                    break;
+                case ScanSettings.MATCH_NUM_FEW_ADVERTISEMENT:
+                    val = 2;
+                    break;
+                case ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT:
+                    val = 4;
+                    break;
+                default:
+                    val = 1;
+            }
+            // ToDo: Reserve few tracking advertisements in hw and report
+            // or scale down the request based on ask and availibility.
+            return val;
+        }
+
 
         /************************** Regular scan related native methods **************************/
         private native void gattClientScanNative(boolean start);
