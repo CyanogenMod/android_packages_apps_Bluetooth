@@ -587,6 +587,20 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                             }
 
                             readLength = a.read(buffer, 0, outputBufferSize);
+
+                            while (true) {
+                                int congStatus = ((BluetoothOppTransport)mTransport1).getSockCongStatus();
+                                if ((congStatus == 0) || (congStatus == -1)) {
+                                    break;
+                                }
+                                try {
+                                    Thread.sleep(5);
+                                } catch (InterruptedException slpe) {
+                                    Log.v(TAG, "Interrupted while checking the socket congestion evt");
+                                    break;
+                                }
+                            }
+
                             int writtenLength = 0;
                             while (writtenLength != readLength) {
                                 //SET MTU SIZE BEFORE WRITE

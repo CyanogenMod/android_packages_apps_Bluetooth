@@ -475,6 +475,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
     private void startObexSession() {
 
         mBatch.mStatus = Constants.BATCH_STATUS_RUNNING;
+        BluetoothOppManager mOppManager = BluetoothOppManager.getInstance(mContext);
 
         mCurrentShare = mBatch.getPendingShare();
         if (mCurrentShare == null) {
@@ -507,7 +508,11 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         }
 
         if (mSession != null) {
-            mSession.start(mSessionHandler, mBatch.getNumShares());
+            /* Read the number of files are sharing from OPP Manager instead of getting
+             * the number of files from Batch before OBEX session start.
+             */
+            if (V) Log.v(TAG, "Sharing files = " + mOppManager.getBatchSize());
+            mSession.start(mSessionHandler, mOppManager.getBatchSize());
             processCurrentShare();
         }
 

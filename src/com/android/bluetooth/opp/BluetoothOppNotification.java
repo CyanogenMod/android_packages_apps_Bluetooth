@@ -109,10 +109,11 @@ class BluetoothOppNotification {
 
     private static final int NOTIFICATION_ID_INBOUND = -1000006;
 
+    private boolean mPendingUpdate = true;
     private boolean mOutboundUpdateCompleteNotification = true;
     private boolean mInboundUpdateCompleteNotification = true;
 
-    private int confirmation = 0;
+    private int mConfirmation = 0;
     private int mInboundActiveNotificationId = 0;
     private int mOutboundActiveNotificationId = 0;
     private int mRunning = 0;
@@ -158,7 +159,9 @@ class BluetoothOppNotification {
      * Update the notification ui.
      */
     public void updateNotification() {
+        if (V) Log.v(TAG, "Updating the notification");
         synchronized (BluetoothOppNotification.this) {
+            mPendingUpdate = true;
             if (mUpdateNotificationThread == null) {
                 if (V) Log.v(TAG, "new notify thread!!!");
                 mUpdateNotificationThread = new NotificationUpdateThread();
@@ -203,6 +206,7 @@ class BluetoothOppNotification {
                         throw new IllegalStateException(
                                 "multiple UpdateThreads in BluetoothOppNotification");
                     }
+                mPendingUpdate = false;
                 }
 
                 updateActiveNotification();
@@ -210,7 +214,7 @@ class BluetoothOppNotification {
                 updateIncomingFileConfirmNotification();
 
                 try {
-                    if ((confirmation == BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED)
+                    if ((mConfirmation == BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED)
                             || mPowerManager.isScreenOn()) {
                         Thread.sleep(BluetoothShare.UI_UPDATE_INTERVAL);
                     }
@@ -219,9 +223,12 @@ class BluetoothOppNotification {
                     return;
                 }
 
-                if (V) Log.v(TAG, "Running = " + mRunning);
-            } while ((mRunning > 0) && (mPowerManager.isScreenOn()
-                    || (confirmation == BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED)));
+                if (V) {
+                    Log.v(TAG, "Running = " + mRunning + " Pending notification is "
+                        + mPendingUpdate);
+                }
+            } while ((mPendingUpdate || (mRunning > 0)) && (mPowerManager.isScreenOn()
+                    || (mConfirmation == BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED)));
 
             synchronized (BluetoothOppNotification.this) {
                 mUpdateNotificationThread = null;
@@ -314,7 +321,7 @@ class BluetoothOppNotification {
                 int id = cursor.getInt(idIndex);
                 long total = cursor.getLong(totalBytesIndex);
                 long current = cursor.getLong(currentBytesIndex);
-                confirmation = cursor.getInt(confirmIndex);
+                mConfirmation = cursor.getInt(confirmIndex);
 
                 String destination = cursor.getString(destinationIndex);
                 String fileName = cursor.getString(dataIndex);
@@ -347,7 +354,7 @@ class BluetoothOppNotification {
                     item.totalCurrent = current;
                     item.totalTotal = total;
                     item.handoverInitiated =
-                        confirmation == BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED;
+                        mConfirmation == BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED;
                     item.destination = destination;
                     mNotifications.put(batchID, item);
 

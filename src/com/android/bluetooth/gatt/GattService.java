@@ -208,16 +208,28 @@ public class GattService extends ProfileService {
         mServiceDeclarations.clear();
         mActiveServiceDeclarations.clear();
         mReliableQueue.clear();
-        if (mAdvertiseManager != null) mAdvertiseManager.cleanup();
-        if (mScanManager != null) mScanManager.cleanup();
+        if (mAdvertiseManager != null) {
+            mAdvertiseManager.cleanup();
+            mAdvertiseManager = null;
+        }
+        if (mScanManager != null) {
+            mScanManager.cleanup();
+            mScanManager = null;
+        }
         return true;
     }
 
     protected boolean cleanup() {
         if (DBG) Log.d(TAG, "cleanup()");
         cleanupNative();
-        if (mAdvertiseManager != null) mAdvertiseManager.cleanup();
-        if (mScanManager != null) mScanManager.cleanup();
+        if (mAdvertiseManager != null) {
+            mAdvertiseManager.cleanup();
+            mAdvertiseManager = null;
+        }
+        if (mScanManager != null) {
+            mScanManager.cleanup();
+            mScanManager = null;
+        }
         return true;
     }
 
