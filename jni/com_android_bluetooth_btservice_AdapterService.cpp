@@ -498,7 +498,8 @@ static bt_callbacks_t sBluetoothCallbacks = {
     callback_thread_event,
     dut_mode_recv_callback,
     le_test_mode_recv_callback,
-    energy_info_recv_callback
+    energy_info_recv_callback,
+    NULL
 };
 
 // The callback to call when the wake alarm fires.
