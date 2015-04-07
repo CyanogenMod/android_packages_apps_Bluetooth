@@ -697,8 +697,8 @@ public class BluetoothMapContent {
     private String getContactNameFromPhone(String phone) {
         String name = null;
 
-        Uri uri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI,
-            Uri.encode(phone));
+        Uri uri = Uri.withAppendedPath(PhoneLookup.ENTERPRISE_CONTENT_FILTER_URI,
+                Uri.encode(phone));
 
         String[] projection = {Contacts._ID, Contacts.DISPLAY_NAME};
         String selection = Contacts.IN_VISIBLE_GROUP + "=1";
@@ -1021,52 +1021,6 @@ public class BluetoothMapContent {
             }
         }
 
-
-        return where;
-    }
-
-    private String setWhereFilterPhones(String str) {
-        String where = "";
-        str = str.replace("*", "%");
-
-        Cursor c = mResolver.query(ContactsContract.Contacts.CONTENT_URI, null,
-            ContactsContract.Contacts.DISPLAY_NAME + " like ?",
-            new String[]{str},
-            ContactsContract.Contacts.DISPLAY_NAME + " ASC");
-
-        try {
-            while (c != null && c.moveToNext()) {
-                String contactId = c.getString(c.getColumnIndex(ContactsContract.Contacts._ID));
-
-                Cursor p = mResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
-                    ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
-                    new String[]{contactId},
-                    null);
-
-                try {
-                    while (p != null && p.moveToNext()) {
-                        String number = p.getString(
-                            p.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-
-                        where += " address = " + "'" + number + "'";
-                        if (!p.isLast()) where += " OR ";
-                    }
-                } finally {
-                    close(p);
-                }
-
-                if (!c.isLast()) where += " OR ";
-            }
-        } finally {
-            close(c);
-        }
-
-        if (str != null && str.length() > 0) {
-            if (where.length() > 0) {
-                where += " OR ";
-            }
-            where += " address like " + "'" + str + "'";
-        }
 
         return where;
     }
@@ -1556,7 +1510,8 @@ public class BluetoothMapContent {
         String[] phoneNumbers = null;
         String[] emailAddresses = null;
 
-        Uri uri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI,
+        Uri uri = Uri
+                .withAppendedPath(PhoneLookup.ENTERPRISE_CONTENT_FILTER_URI,
                 Uri.encode(phone));
 
         String[] projection = {Contacts._ID, Contacts.DISPLAY_NAME};
@@ -1583,6 +1538,7 @@ public class BluetoothMapContent {
 
                 // Fetch contact e-mail addresses
                 close (p);
+                // TODO: Fetch enterprise email
                 p = mResolver.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, null,
                         ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
                         new String[]{contactId},
