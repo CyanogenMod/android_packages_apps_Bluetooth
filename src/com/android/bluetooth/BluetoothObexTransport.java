@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2013 Samsung System LSI
+* Copyright (C) 2014 Samsung System LSI
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
@@ -12,7 +12,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.android.bluetooth.map;
+
+package com.android.bluetooth;
 
 import android.bluetooth.BluetoothSocket;
 
@@ -24,12 +25,14 @@ import java.io.OutputStream;
 
 import javax.obex.ObexTransport;
 
-public class BluetoothMnsRfcommTransport implements ObexTransport {
+/**
+ * Generic Obex Transport class, to be used in OBEX based Bluetooth
+ * Profiles.
+ */
+public class BluetoothObexTransport implements ObexTransport {
+    private BluetoothSocket mSocket = null;
 
-    private final BluetoothSocket mSocket;
-
-    public BluetoothMnsRfcommTransport(BluetoothSocket socket) {
-        super();
+    public BluetoothObexTransport(BluetoothSocket socket) {
         this.mSocket = socket;
     }
 
@@ -66,8 +69,21 @@ public class BluetoothMnsRfcommTransport implements ObexTransport {
     }
 
     public boolean isConnected() throws IOException {
-        // TODO: add implementation
         return true;
+    }
+
+    public int getMaxTransmitPacketSize() {
+        if(mSocket.getConnectionType() != BluetoothSocket.TYPE_L2CAP) {
+            return -1;
+        }
+        return mSocket.getMaxTransmitPacketSize();
+    }
+
+    public int getMaxReceivePacketSize() {
+        if(mSocket.getConnectionType() != BluetoothSocket.TYPE_L2CAP) {
+            return -1;
+        }
+        return mSocket.getMaxReceivePacketSize();
     }
 
     public String getRemoteAddress() {
@@ -76,4 +92,11 @@ public class BluetoothMnsRfcommTransport implements ObexTransport {
         return mSocket.getRemoteDevice().getAddress();
     }
 
+    @Override
+    public boolean isSrmSupported() {
+        if(mSocket.getConnectionType() == BluetoothSocket.TYPE_L2CAP) {
+            return true;
+        }
+        return false;
+    }
 }

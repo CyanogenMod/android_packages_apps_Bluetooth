@@ -16,6 +16,7 @@ package com.android.bluetooth.map;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.bluetooth.SdpMnsRecord;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -23,6 +24,8 @@ import android.os.Message;
 import android.os.ParcelUuid;
 import android.util.Log;
 import android.util.SparseBooleanArray;
+
+import com.android.bluetooth.BluetoothObexTransport;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -57,7 +60,7 @@ public class BluetoothMnsObexClient {
 
     private HeaderSet mHsConnect = null;
     private Handler mCallback = null;
-
+    private final SdpMnsRecord mMnsRecord;
     // Used by the MAS to forward notification registrations
     public static final int MSG_MNS_NOTIFICATION_REGISTRATION = 1;
     public static final int MSG_MNS_SEND_EVENT = 2;
@@ -67,7 +70,8 @@ public class BluetoothMnsObexClient {
             ParcelUuid.fromString("00001133-0000-1000-8000-00805F9B34FB");
 
 
-    public BluetoothMnsObexClient(BluetoothDevice remoteDevice, Handler callback) {
+    public BluetoothMnsObexClient(BluetoothDevice remoteDevice,
+            SdpMnsRecord mnsRecord, Handler callback) {
         if (remoteDevice == null) {
             throw new NullPointerException("Obex transport is null");
         }
@@ -79,6 +83,7 @@ public class BluetoothMnsObexClient {
         Looper looper = thread.getLooper();
         mHandler = new MnsObexClientHandler(looper);
         mCallback = callback;
+        mMnsRecord = mnsRecord;
     }
 
     public Handler getMessageHandler() {
@@ -201,9 +206,21 @@ public class BluetoothMnsObexClient {
 
         BluetoothSocket btSocket = null;
         try {
-            // TODO: Why insecure? - is it because the link is already encrypted?
-            btSocket = mRemoteDevice.createInsecureRfcommSocketToServiceRecord(
-                    BLUETOOTH_UUID_OBEX_MNS.getUuid());
+            // TODO: Do SDP record search again?
+            if(mMnsRecord != null && mMnsRecord.getL2capPsm() > 0) {
+                // Do L2CAP connect
+                btSocket = mRemoteDevice.createL2capSocket(mMnsRecord.getL2capPsm());
+
+            } else if (mMnsRecord != null && mMnsRecord.getRfcommChannelNumber() > 0) {
+                // Do Rfcomm connect
+                btSocket = mRemoteDevice.createRfcommSocket(mMnsRecord.getRfcommChannelNumber());
+            } else {
+                // This should not happen...
+                Log.e(TAG, "Invalid SDP content - attempt a connect to UUID...");
+                // TODO: Why insecure? - is it because the link is already encrypted?
+              btSocket = mRemoteDevice.createInsecureRfcommSocketToServiceRecord(
+                      BLUETOOTH_UUID_OBEX_MNS.getUuid());
+            }
             btSocket.connect();
         } catch (IOException e) {
             Log.e(TAG, "BtSocket Connect error " + e.getMessage(), e);
@@ -212,7 +229,7 @@ public class BluetoothMnsObexClient {
             return;
         }
 
-        mTransport = new BluetoothMnsRfcommTransport(btSocket);
+        mTransport = new BluetoothObexTransport(btSocket);
 
         try {
             mClientSession = new ClientSession(mTransport);

@@ -52,6 +52,8 @@ int register_com_android_bluetooth_pan(JNIEnv* env);
 
 int register_com_android_bluetooth_gatt (JNIEnv* env);
 
+int register_com_android_bluetooth_sdp (JNIEnv* env);
+
 }
 
 #endif /* COM_ANDROID_BLUETOOTH_H */

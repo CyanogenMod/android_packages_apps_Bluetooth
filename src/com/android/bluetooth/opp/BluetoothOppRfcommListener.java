@@ -36,6 +36,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import com.android.bluetooth.BluetoothObexTransport;
+
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
@@ -148,17 +150,17 @@ public class BluetoothOppRfcommListener {
                             try {
                                 if (V) Log.v(TAG, "Accepting connection...");
                                 if (mBtServerSocket == null) {
-                                    
+
                                 }
                                 BluetoothServerSocket sSocket = mBtServerSocket;
                                 if (sSocket ==null) {
                                     mInterrupted = true;
-                                    
+
                                 } else {
                                     clientSocket = sSocket.accept();
                                     if (V) Log.v(TAG, "Accepted connection from "
                                         + clientSocket.getRemoteDevice());
-                                    BluetoothOppRfcommTransport transport = new BluetoothOppRfcommTransport(
+                                    BluetoothObexTransport transport = new BluetoothObexTransport(
                                         clientSocket);
                                     Message msg = Message.obtain();
                                     msg.setTarget(mCallback);

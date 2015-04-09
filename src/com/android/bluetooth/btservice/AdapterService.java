@@ -61,9 +61,10 @@ import com.android.bluetooth.hid.HidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hdp.HealthService;
 import com.android.bluetooth.pan.PanService;
+import com.android.bluetooth.sdp.SdpManager;
+import com.android.internal.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
-import com.android.internal.R;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -107,7 +108,7 @@ public class AdapterService extends Service {
     private static final String ACTION_ALARM_WAKEUP =
         "com.android.bluetooth.btservice.action.ALARM_WAKEUP";
 
-    static final String BLUETOOTH_ADMIN_PERM =
+    public static final String BLUETOOTH_ADMIN_PERM =
         android.Manifest.permission.BLUETOOTH_ADMIN;
     public static final String BLUETOOTH_PRIVILEGED =
                 android.Manifest.permission.BLUETOOTH_PRIVILEGED;
@@ -165,6 +166,10 @@ public class AdapterService extends Service {
     private BondStateMachine mBondStateMachine;
     private JniCallbacks mJniCallbacks;
     private RemoteDevices mRemoteDevices;
+
+    /* TODO: Consider to remove the search API from this class, if changed to use call-back */
+    private SdpManager mSdpManager = null;
+
     private boolean mProfilesStarted;
     private boolean mNativeAvailable;
     private boolean mCleaningUp;
@@ -359,7 +364,11 @@ public class AdapterService extends Service {
         mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
 
+        mSdpManager = SdpManager.init(this);
         registerReceiver(mAlarmBroadcastReceiver, new IntentFilter(ACTION_ALARM_WAKEUP));
+
+
+
     }
 
     @Override
@@ -471,6 +480,11 @@ public class AdapterService extends Service {
 
         if (mRemoteDevices != null) {
             mRemoteDevices.cleanup();
+        }
+
+        if(mSdpManager != null) {
+            mSdpManager.cleanup();
+            mSdpManager = null;
         }
 
         if (mNativeAvailable) {
@@ -654,7 +668,6 @@ public class AdapterService extends Service {
                 Log.w(TAG, "enable() - Not allowed for non-active user and non system user");
                 return false;
             }
-
             AdapterService service = getService();
             if (service == null) return false;
             return service.enable();
@@ -954,16 +967,7 @@ public class AdapterService extends Service {
             return service.fetchRemoteUuids(device);
         }
 
-        public boolean fetchRemoteMasInstances(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG,"fetchMasInstances(): not allowed for non-active user");
-                return false;
-            }
 
-            AdapterService service = getService();
-            if (service == null) return false;
-            return service.fetchRemoteMasInstances(device);
-        }
 
         public boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode) {
             if (!Utils.checkCaller()) {
@@ -1071,6 +1075,16 @@ public class AdapterService extends Service {
             AdapterService service = getService();
             if (service == null) return null;
             return service.createSocketChannel(type, serviceName, uuid, port, flag);
+        }
+        public boolean sdpSearch(BluetoothDevice device, ParcelUuid uuid) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG,"sdpSea(): not allowed for non-active user");
+                return false;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.sdpSearch(device,uuid);
         }
 
         public boolean configHciSnoopLog(boolean enable) {
@@ -1303,6 +1317,16 @@ public class AdapterService extends Service {
 
         return mAdapterProperties.getProfileConnectionState(profile);
     }
+     boolean sdpSearch(BluetoothDevice device,ParcelUuid uuid) {
+         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+         if(mSdpManager != null) {
+             mSdpManager.sdpSearch(device,uuid);
+             return true;
+         } else {
+             return false;
+         }
+     }
+
 
      boolean createBond(BluetoothDevice device, int transport) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
@@ -1537,11 +1561,6 @@ public class AdapterService extends Service {
         return true;
     }
 
-      boolean fetchRemoteMasInstances(BluetoothDevice device) {
-         enforceCallingOrSelfPermission(RECEIVE_MAP_PERM, "Need RECEIVE BLUETOOTH MAP permission");
-         mRemoteDevices.fetchMasInstances(device);
-         return true;
-     }
 
      boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
@@ -1917,6 +1936,7 @@ public class AdapterService extends Service {
     /*package*/ native boolean createBondNative(byte[] address, int transport);
     /*package*/ native boolean removeBondNative(byte[] address);
     /*package*/ native boolean cancelBondNative(byte[] address);
+    /*package*/ native boolean sdpSearchNative(byte[] address, byte[] uuid);
 
     /*package*/ native int getConnectionStateNative(byte[] address);
 

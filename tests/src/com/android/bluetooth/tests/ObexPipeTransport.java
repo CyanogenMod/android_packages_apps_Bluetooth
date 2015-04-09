@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2013 Samsung System LSI
+* Copyright (C) 2015 Samsung System LSI
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
@@ -13,28 +13,33 @@
 * limitations under the License.
 */
 
-package com.android.bluetooth.map;
-
-import android.bluetooth.BluetoothSocket;
+package com.android.bluetooth.tests;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 
 import javax.obex.ObexTransport;
 
-public class BluetoothMapRfcommTransport implements ObexTransport {
-    private BluetoothSocket mSocket = null;
+public class ObexPipeTransport implements ObexTransport {
+    PipedInputStream mInStream;
+    PipedOutputStream mOutStream;
+    boolean mEnableSrm;
 
-    public BluetoothMapRfcommTransport(BluetoothSocket rfs) {
-        super();
-        this.mSocket = rfs;
+    public ObexPipeTransport(PipedInputStream inStream, 
+            PipedOutputStream outStream, boolean enableSrm) {
+        mInStream = inStream;
+        mOutStream = outStream;
+        mEnableSrm = enableSrm;
     }
 
     public void close() throws IOException {
-        mSocket.close();
+        mInStream.close();
+        mOutStream.close();
     }
 
     public DataInputStream openDataInputStream() throws IOException {
@@ -46,11 +51,11 @@ public class BluetoothMapRfcommTransport implements ObexTransport {
     }
 
     public InputStream openInputStream() throws IOException {
-        return mSocket.getInputStream();
+        return mInStream;
     }
 
     public OutputStream openOutputStream() throws IOException {
-        return mSocket.getOutputStream();
+        return mOutStream;
     }
 
     public void connect() throws IOException {
@@ -67,6 +72,19 @@ public class BluetoothMapRfcommTransport implements ObexTransport {
 
     public boolean isConnected() throws IOException {
         return true;
+    }
+
+    public int getMaxTxPacketSize() {
+        return 15432;
+    }
+
+    public int getMaxRxPacketSize() {
+        return 23450;
+    }
+
+    @Override
+    public boolean isSrmSupported() {
+        return mEnableSrm;
     }
 
 }

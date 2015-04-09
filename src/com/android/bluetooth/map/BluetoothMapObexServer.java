@@ -92,6 +92,8 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
     private Uri mEmailFolderUri = null;
 
     private int mMasId = 0;
+    // updated during connect if remote has alternative value
+    private int mRemoteFeatureMask = BluetoothMapUtils.MAP_FEATURE_DEFAULT_BITMASK;
 
     private boolean mEnableSmsMms = false;
     private boolean mThreadIdSupport = false; // true if peer supports threadId in msg listing
@@ -222,6 +224,12 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         } finally {
             if (c != null) c.close();
         }
+    }
+
+    @Override
+    public boolean isSrmSupported() {
+        // TODO: Update based on the transport used
+        return true;
     }
 
     @Override

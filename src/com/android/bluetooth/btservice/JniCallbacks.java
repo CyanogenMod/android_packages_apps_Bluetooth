@@ -67,7 +67,7 @@ final class JniCallbacks {
     }
 
     void aclStateChangeCallback(int status, byte[] address, int newState) {
-		mRemoteDevices.aclStateChangeCallback(status, address, newState);
+        mRemoteDevices.aclStateChangeCallback(status, address, newState);
     }
 
     void stateChangeCallback(int status) {
@@ -82,8 +82,4 @@ final class JniCallbacks {
         mAdapterProperties.adapterPropertyChangedCallback(types, val);
     }
 
-    void deviceMasInstancesFoundCallback(int status, byte[] address, String[] name, int[] scn,
-            int[] id, int[] msgtype) {
-        mRemoteDevices.deviceMasInstancesFoundCallback(status, address, name, scn, id, msgtype);
-    }
 }

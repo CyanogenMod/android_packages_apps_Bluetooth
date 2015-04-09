@@ -644,4 +644,19 @@ class TestTcpTransport implements ObexTransport {
         return s.isConnected();
     }
 
+    @Override
+    public int getMaxTransmitPacketSize() {
+        return -1;
+    }
+
+    @Override
+    public int getMaxReceivePacketSize() {
+        return -1;
+    }
+
+    @Override
+    public boolean isSrmSupported() {
+        // TODO: It should be possible to use SRM in TCP connections
+        return false;
+    }
 }

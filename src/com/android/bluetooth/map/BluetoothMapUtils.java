@@ -36,6 +36,9 @@ public class BluetoothMapUtils {
     private static final long HANDLE_TYPE_SMS_GSM_MASK    = (((long)0x4)<<56);
     private static final long HANDLE_TYPE_SMS_CDMA_MASK   = (((long)0x8)<<56);
 
+
+    static final int MAP_FEATURE_DEFAULT_BITMASK                = 0x0000001F;
+
     /**
      * This enum is used to convert from the bMessage type property to a type safe
      * type. Hence do not change the names of the enum values.
