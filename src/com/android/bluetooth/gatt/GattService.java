@@ -560,6 +560,13 @@ public class GattService extends ProfileService {
             if (service == null) return;
             service.unregAll();
         }
+        
+        @Override
+        public int numHwTrackFiltersAvailable() {
+            GattService service = getService();
+            if (service == null) return 0;
+            return service.numHwTrackFiltersAvailable();
+        }
     };
 
     /**************************************************************************
@@ -1194,6 +1201,16 @@ public class GattService extends ProfileService {
         app.callback.onMultiAdvertiseCallback(status, isStart, settings);
     }
 
+    // callback from ScanManager for dispatch of errors apps.
+    void onScanManagerErrorCallback(int clientIf, int errorCode) throws RemoteException {
+        ClientMap.App app = mClientMap.getById(clientIf);
+        if (app == null || app.callback == null) {
+            Log.e(TAG, "App or callback is null");
+            return;
+        }
+        app.callback.onScanManagerErrorCallback(errorCode);
+    }
+
     void onConfigureMTU(int connId, int status, int mtu) throws RemoteException {
         String address = mClientMap.addressByConnId(connId);
 
@@ -1413,6 +1430,10 @@ public class GattService extends ProfileService {
         mAdvertiseManager.stopAdvertising(client);
     }
 
+    int numHwTrackFiltersAvailable() {
+        return (AdapterService.getAdapterService().getTotalNumOfTrackableAdvertisements()
+                    - mScanManager.getCurrentUsedTrackingAdvertisement());
+    }
 
     synchronized List<ParcelUuid> getRegisteredServiceUuids() {
         Utils.enforceAdminPermission(this);

@@ -1283,14 +1283,6 @@ public class AdapterService extends Service {
              return service.reportActivityInfo();
          }
 
-         public int numOfHwTrackFiltersAvailable() {
-             AdapterService service = getService();
-             if (service == null) return 0;
-             //ToDo: Accounting of how many filters hw can do, capability,
-             //vs how many have been used by current filters by ScanManager
-             return 5;
-         }
-
          public String dump() {
             AdapterService service = getService();
             if (service == null) {
@@ -1910,6 +1902,11 @@ public class AdapterService extends Service {
         mIdleTimeTotalMs = 0;
         mEnergyUsedTotalVoltAmpSecMicro = 0;
         return info;
+    }
+
+    public int getTotalNumOfTrackableAdvertisements() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return mAdapterProperties.getTotalNumOfTrackableAdvertisements();
     }
 
     private String dump() {

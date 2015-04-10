@@ -260,6 +260,14 @@ class AdapterProperties {
     boolean isActivityAndEnergyReportingSupported() {
         return mIsActivityAndEnergyReporting;
     }
+
+    /**
+     * @return total number of trackable advertisements
+     */
+    int getTotalNumOfTrackableAdvertisements() {
+        return mTotNumOfTrackableAdv;
+    }
+
     /**
      * @return the mBondedDevices
      */
