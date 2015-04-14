@@ -56,6 +56,8 @@ import javax.obex.ResponseCodes;
 import javax.obex.ServerRequestHandler;
 import javax.obex.ServerSession;
 
+import com.android.bluetooth.BluetoothObexTransport;
+
 /**
  * This class runs as an OBEX server
  */
@@ -181,8 +183,8 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         }
 
         String destination;
-        if (mTransport instanceof BluetoothOppRfcommTransport) {
-            destination = ((BluetoothOppRfcommTransport)mTransport).getRemoteAddress();
+        if (mTransport instanceof BluetoothObexTransport) {
+            destination = ((BluetoothObexTransport)mTransport).getRemoteAddress();
         } else {
             destination = "FF:FF:FF:00:00:00";
         }
@@ -555,8 +557,8 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
         }
         String destination;
-        if (mTransport instanceof BluetoothOppRfcommTransport) {
-            destination = ((BluetoothOppRfcommTransport)mTransport).getRemoteAddress();
+        if (mTransport instanceof BluetoothObexTransport) {
+            destination = ((BluetoothObexTransport)mTransport).getRemoteAddress();
         } else {
             destination = "FF:FF:FF:00:00:00";
         }

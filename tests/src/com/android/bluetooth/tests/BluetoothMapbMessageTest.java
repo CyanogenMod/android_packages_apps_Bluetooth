@@ -8,17 +8,18 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-import android.preference.PreferenceFragment;
+import org.apache.http.message.BasicHeaderElement;
+import org.apache.http.message.BasicHeaderValueFormatter;
+
 import android.test.AndroidTestCase;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 
 import com.android.bluetooth.map.BluetoothMapAppParams;
-import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 import com.android.bluetooth.map.BluetoothMapSmsPdu;
+import com.android.bluetooth.map.BluetoothMapUtils;
+import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 import com.android.bluetooth.map.BluetoothMapbMessage;
-import com.android.bluetooth.map.BluetoothMapbMessageMms;
+import com.android.bluetooth.map.BluetoothMapbMessageMime;
 import com.android.bluetooth.map.BluetoothMapbMessageSms;
 
 /***
@@ -54,7 +55,25 @@ public class BluetoothMapbMessageTest extends AndroidTestCase {
                         "EMAIL:casper@email.add\r\n" +
                         "EMAIL:bonde@email.add\r\n" +
                     "END:VCARD\r\n" +
+                    "BEGIN:VCARD\r\n" +
+                    "VERSION:3.0\r\n" +
+                    "FN:Casper Bonde\r\n" +
+                    "N:Bonde,Casper\r\n" +
+                    "TEL:+4512345678\r\n" +
+                    "TEL:+4587654321\r\n" +
+                    "EMAIL:casper@email.add\r\n" +
+                    "EMAIL:bonde@email.add\r\n" +
+                "END:VCARD\r\n" +
                     "BEGIN:BENV\r\n" +
+                        "BEGIN:VCARD\r\n" +
+                            "VERSION:3.0\r\n" +
+                            "FN:Jens Hansen\r\n" +
+                            "N:\r\n" +
+                            "TEL:+4512345678\r\n" +
+                            "TEL:+4587654321\r\n" +
+                            "EMAIL:casper@email.add\r\n" +
+                            "EMAIL:bonde@email.add\r\n" +
+                        "END:VCARD\r\n" +
                         "BEGIN:VCARD\r\n" +
                             "VERSION:3.0\r\n" +
                             "FN:Jens Hansen\r\n" +
@@ -77,8 +96,10 @@ public class BluetoothMapbMessageTest extends AndroidTestCase {
         String encoded;
         String[] phone = {"+4512345678", "+4587654321"};
         String[] email = {"casper@email.add", "bonde@email.add"};
-        msg.addOriginator("Bonde,Casper", "Casper Bonde", phone, email);
-        msg.addRecipient("", "Jens Hansen", phone, email);
+        msg.addOriginator("Bonde,Casper", "Casper Bonde", phone, email, null, null);
+        msg.addOriginator("Bonde,Casper", "Casper Bonde", phone, email, null, null);
+        msg.addRecipient("", "Jens Hansen", phone, email, null, null);
+        msg.addRecipient("", "Jens Hansen", phone, email, null, null);
         msg.setFolder("inbox");
         msg.setSmsBody("This is a short message");
         msg.setStatus(false);
@@ -178,8 +199,8 @@ public class BluetoothMapbMessageTest extends AndroidTestCase {
         String encoded;
         String[] phone = {"00498912345678", "+4587654321"};
         String[] email = {"casper@email.add", "bonde@email.add"};
-        msg.addOriginator("Bonde,Casper", "Casper Bonde", phone, email);
-        msg.addRecipient("", "Jens Hansen", phone, email);
+        msg.addOriginator("Bonde,Casper", "Casper Bonde", phone, email, null, null);
+        msg.addRecipient("", "Jens Hansen", phone, email, null, null);
         msg.setFolder("inbox");
         /* TODO: extract current time, and build the expected string */
         msg.setSmsBodyPdus(BluetoothMapSmsPdu.getDeliverPdus("Let's go fishing!", "00498912345678", date.getTime()));
@@ -248,8 +269,8 @@ public class BluetoothMapbMessageTest extends AndroidTestCase {
         String encoded;
         String[] phone = {"00498912345678", "+4587654321"};
         String[] email = {"casper@email.add", "bonde@email.add"};
-        msg.addOriginator("Bonde,Casper", "Casper Bonde", phone, email);
-        msg.addRecipient("", "Jens Hansen", phone, email);
+        msg.addOriginator("Bonde,Casper", "Casper Bonde", phone, email, null, null);
+        msg.addRecipient("", "Jens Hansen", phone, email, null, null);
         msg.setFolder("outbox");
         /* TODO: extract current time, and build the expected string */
         msg.setSmsBodyPdus(BluetoothMapSmsPdu.getSubmitPdus("Let's go fishing!", "00498912345678"));
@@ -417,7 +438,7 @@ public class BluetoothMapbMessageTest extends AndroidTestCase {
      * Test encoding of a simple MMS text message (UTF8). This validates most parameters.
      */
     public void testMmsEncodeText() {
-        BluetoothMapbMessageMms msg = new BluetoothMapbMessageMms();
+        BluetoothMapbMessageMime  msg = new BluetoothMapbMessageMime ();
         String str1 =
                  "BEGIN:BMSG\r\n" +
                     "VERSION:1.0\r\n" +
@@ -444,13 +465,17 @@ public class BluetoothMapbMessageTest extends AndroidTestCase {
                             "EMAIL:bonde@email.add\r\n" +
                         "END:VCARD\r\n" +
                         "BEGIN:BBODY\r\n" +
+                            "CHARSET:UTF-8\r\n" +
                             "LENGTH:184\r\n" +
                             "BEGIN:MSG\r\n" +
-                                "From: \"Jørn Hansen\" <bonde@email.add>;\r\n" +
-                                "To: \"Jørn Hansen\" <bonde@email.add>;\r\n" +
-                                "Cc: Jens Hansen <bonde@email.add>;\r\n\r\n" +
-                                "This is a short message\r\n\r\n" +
-                                "<partNameimage>\r\n\r\n" +
+                            "From: \"Jørn Hansen\" <bonde@email.add>;\r\n" +
+                            "To: \"Jørn Hansen\" <bonde@email.add>;\r\n" +
+                            "Cc: Jens Hansen <bonde@email.add>;\r\n" +
+                            "\r\n" +
+                            "This is a short message\r\n" +
+                            "\r\n" +
+                            "<partNameimage>\r\n" +
+                            "\r\n" +
                             "END:MSG\r\n" +
                         "END:BBODY\r\n" +
                     "END:BENV\r\n" +
@@ -459,14 +484,14 @@ public class BluetoothMapbMessageTest extends AndroidTestCase {
         String encoded;
         String[] phone = {"+4512345678", "+4587654321"};
         String[] email = {"casper@email.add", "bonde@email.add"};
-        msg.addOriginator("Bonde,Casper", "Casper Bonde", phone, email);
-        msg.addRecipient("", "Jørn Hansen", phone, email);
+        msg.addOriginator("Bonde,Casper", "Casper Bonde", phone, email, null, null);
+        msg.addRecipient("", "Jørn Hansen", phone, email, null, null);
         msg.setFolder("inbox");
         msg.setIncludeAttachments(false);
         msg.addTo("Jørn Hansen", "bonde@email.add");
         msg.addCc("Jens Hansen", "bonde@email.add");
         msg.addFrom("Jørn Hansen", "bonde@email.add");
-        BluetoothMapbMessageMms.MimePart part = msg.addMimePart();
+        BluetoothMapbMessageMime .MimePart part = msg.addMimePart();
         part.mPartName = "partNameText";
         part.mContentType ="dsfajfdlk/text/asdfafda";
         try {
@@ -484,6 +509,8 @@ public class BluetoothMapbMessageTest extends AndroidTestCase {
 
         msg.setStatus(false);
         msg.setType(TYPE.MMS);
+        msg.updateCharset();
+
         try {
             encoded = new String(msg.encode());
             if(D) Log.d(TAG, encoded);
@@ -493,5 +520,63 @@ public class BluetoothMapbMessageTest extends AndroidTestCase {
             assertTrue("Encoding failed.", true);
         }
     }
+
+    public void testHeaderEncode() {
+        BasicHeaderElement header = new BasicHeaderElement("To","Jørgen <joergen@hest.com>");
+        String headerStr = BasicHeaderValueFormatter.formatHeaderElement(header, true, BasicHeaderValueFormatter.DEFAULT);
+        if(D) Log.i(TAG, "The encoded header: " + headerStr);
+    }
+
+    public void testQuotedPrintable() {
+        testQuotedPrintableIso8859_1();
+        testQuotedPrintableUTF_8();
+    }
+
+    public void testQuotedPrintableIso8859_1() {
+        String charset = "iso-8859-1";
+        String input = "Hello, here are some danish letters: =E6=F8=E5.\r\n" +
+                       "Please check that you are able to remove soft " +
+                       "line breaks and handle '=3D' =\r\ncharacters within the text. \r\n" +
+                       "Just a sequence of non optimal characters to make " +
+                       "it complete: !\"#$@[\\]^{|}=\r\n~\r\n\r\n" +
+                       "Thanks\r\n" +
+                       "Casper";
+        String expected = "Hello, here are some danish letters: æøå.\r\n" +
+                "Please check that you are able to remove soft " +
+                "line breaks and handle '=' characters within the text. \r\n" +
+                "Just a sequence of non optimal characters to make " +
+                "it complete: !\"#$@[\\]^{|}~\r\n\r\n" +
+                "Thanks\r\n" +
+                "Casper";
+        String output;
+        output = new String(BluetoothMapUtils.quotedPrintableToUtf8(input, charset));
+        if(D) Log.d(TAG, "\nExpected: \n" + expected);
+        if(D) Log.d(TAG, "\nOutput: \n" + output);
+        assertTrue(output.equals(expected));
+    }
+
+    public void testQuotedPrintableUTF_8() {
+        String charset = "utf-8";
+        String input = "Hello, here are some danish letters: =C3=A6=C3=B8=C3=A5.\r\n" +
+                       "Please check that you are able to remove soft " +
+                       "line breaks and handle '=3D' =\r\ncharacters within the text. \r\n" +
+                       "Just a sequence of non optimal characters to make " +
+                       "it complete: !\"#$@[\\]^{|}=\r\n~\r\n\r\n" +
+                       "Thanks\r\n" +
+                       "Casper";
+        String expected = "Hello, here are some danish letters: æøå.\r\n" +
+                "Please check that you are able to remove soft " +
+                "line breaks and handle '=' characters within the text. \r\n" +
+                "Just a sequence of non optimal characters to make " +
+                "it complete: !\"#$@[\\]^{|}~\r\n\r\n" +
+                "Thanks\r\n" +
+                "Casper";
+        String output;
+        output = new String(BluetoothMapUtils.quotedPrintableToUtf8(input, charset));
+        if(D) Log.d(TAG, "\nExpected: \n" + expected);
+        if(D) Log.d(TAG, "\nOutput: \n" + output);
+        assertTrue(output.equals(expected));
+    }
+
 }
 

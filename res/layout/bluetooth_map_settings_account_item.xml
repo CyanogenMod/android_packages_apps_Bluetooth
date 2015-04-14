@@ -24,17 +24,17 @@
     android:orientation="horizontal"
     android:paddingLeft="51dp"
     android:paddingRight="25dp"
-    tools:context=".BluetoothMapEmailSettings" android:baselineAligned="false">
+    tools:context=".BluetoothMapSettings" android:baselineAligned="false">
 
         <TextView
-            android:id="@+id/bluetooth_map_email_settings_item_text_view"
+            android:id="@+id/bluetooth_map_settings_item_text_view"
             android:layout_width="match_parent"
             android:layout_height="51dp"
             android:layout_weight="1"
             android:gravity="left|center_vertical"/>
 
         <CheckBox
-            android:id="@+id/bluetooth_map_email_settings_item_check"
+            android:id="@+id/bluetooth_map_settings_item_check"
             android:layout_width="110dp"
             android:layout_height="51dp"
             android:layout_gravity="right"

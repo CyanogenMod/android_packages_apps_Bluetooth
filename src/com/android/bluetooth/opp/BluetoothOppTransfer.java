@@ -34,6 +34,8 @@ package com.android.bluetooth.opp;
 
 import javax.obex.ObexTransport;
 
+import com.android.bluetooth.BluetoothObexTransport;
+
 import android.app.NotificationManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -628,8 +630,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
                     if (V) Log.v(TAG, "Rfcomm socket connection attempt took " +
                             (System.currentTimeMillis() - timestamp) + " ms");
-                    BluetoothOppRfcommTransport transport;
-                    transport = new BluetoothOppRfcommTransport(btSocket);
+                    BluetoothObexTransport transport;
+                    transport = new BluetoothObexTransport(btSocket);
 
                     BluetoothOppPreference.getInstance(mContext).setName(device, device.getName());
 

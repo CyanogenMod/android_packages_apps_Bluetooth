@@ -27,6 +27,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- WRITE_CONTACTS is used for test cases only -->
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
@@ -226,13 +228,13 @@
             android:enabled="@bool/profile_supported_map" >
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothMap" />
-                <action android:name="android.btmap.intent.action.SHOW_MAPS_EMAIL_SETTINGS" />
+                <action android:name="android.btmap.intent.action.SHOW_MAPS_SETTINGS" />
                 <action android:name="com.android.bluetooth.map.USER_CONFIRM_TIMEOUT"/>
             </intent-filter>
         </service>
-         <activity android:name=".map.BluetoothMapEmailSettings"
+         <activity android:name=".map.BluetoothMapSettings"
                   android:process="@string/process"
-                  android:label="@string/bluetooth_map_email_settings_title"
+                  android:label="@string/bluetooth_map_settings_title"
                   android:excludeFromRecents="true"
                   android:configChanges="orientation|keyboardHidden"
                   android:enabled="@bool/profile_supported_map">

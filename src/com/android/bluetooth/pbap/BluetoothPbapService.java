@@ -56,6 +56,8 @@ import android.os.ServiceManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.android.bluetooth.BluetoothObexTransport;
 import com.android.bluetooth.Utils;
 
 
@@ -502,7 +504,7 @@ public class BluetoothPbapService extends Service {
             mAuth.setChallenged(false);
             mAuth.setCancelled(false);
         }
-        BluetoothPbapRfcommTransport transport = new BluetoothPbapRfcommTransport(mConnSocket);
+        BluetoothObexTransport transport = new BluetoothObexTransport(mConnSocket);
         mServerSession = new ServerSession(transport, mPbapServer, mAuth);
         setState(BluetoothPbap.STATE_CONNECTED);
 

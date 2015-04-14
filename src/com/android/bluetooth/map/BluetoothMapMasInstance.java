@@ -15,8 +15,19 @@
 package com.android.bluetooth.map;
 
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.obex.ServerSession;
+
+import com.android.bluetooth.BluetoothObexTransport;
+import com.android.bluetooth.IObexConnectionHandler;
+import com.android.bluetooth.ObexServerSockets;
+import com.android.bluetooth.map.BluetoothMapContentObserver.Msg;
+import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
+import com.android.bluetooth.sdp.SdpManager;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -29,8 +40,9 @@ import android.os.Handler;
 import android.os.RemoteException;
 import android.util.Log;
 
-public class BluetoothMapMasInstance {
-    private static final String TAG = "BluetoothMapMasInstance";
+public class BluetoothMapMasInstance implements IObexConnectionHandler {
+    private final String TAG;
+    private static volatile int sInstanceCounter = 0;
 
     private static final boolean D = BluetoothMapService.DEBUG;
     private static final boolean V = BluetoothMapService.VERBOSE;
@@ -39,32 +51,59 @@ public class BluetoothMapMasInstance {
     private static final int SDP_MAP_MSG_TYPE_SMS_GSM  = 0x02;
     private static final int SDP_MAP_MSG_TYPE_SMS_CDMA = 0x04;
     private static final int SDP_MAP_MSG_TYPE_MMS      = 0x08;
+    private static final int SDP_MAP_MSG_TYPE_IM       = 0x10;
 
-    private SocketAcceptThread mAcceptThread = null;
+    private static final int SDP_MAP_MAS_VERSION       = 0x0102;
+
+    /* TODO: Should these be adaptive for each MAS? - e.g. read from app? */
+    private static final int SDP_MAP_MAS_FEATURES      = 0x0000007F;
 
     private ServerSession mServerSession = null;
-
     // The handle to the socket registration with SDP
-    private BluetoothServerSocket mServerSocket = null;
+    private ObexServerSockets mServerSockets = null;
+    private int mSdpHandle = -1;
 
     // The actual incoming connection handle
     private BluetoothSocket mConnSocket = null;
-
-    private BluetoothDevice mRemoteDevice = null; // The remote connected device
-
+    // The remote connected device
+    private BluetoothDevice mRemoteDevice = null;
     private BluetoothAdapter mAdapter;
 
     private volatile boolean mInterrupted;              // Used to interrupt socket accept thread
+    private volatile boolean mShutdown = false;         // Used to interrupt socket accept thread
 
     private Handler mServiceHandler = null;             // MAP service message handler
     private BluetoothMapService mMapService = null;     // Handle to the outer MAP service
     private Context mContext = null;                    // MAP service context
     private BluetoothMnsObexClient mMnsClient = null;   // Shared MAP MNS client
-    private BluetoothMapEmailSettingsItem mAccount = null; //
-    private String mBaseEmailUri = null;                // Email client base URI for this instance
+    private BluetoothMapAccountItem mAccount = null;    //
+    private String mBaseUri = null;                     // Client base URI for this instance
     private int mMasInstanceId = -1;
     private boolean mEnableSmsMms = false;
     BluetoothMapContentObserver mObserver;
+
+    private AtomicLong mDbIndetifier = new AtomicLong();
+    private AtomicLong mFolderVersionCounter = new AtomicLong(0);
+    private AtomicLong mSmsMmsConvoListVersionCounter = new AtomicLong(0);
+    private AtomicLong mImEmailConvoListVersionCounter = new AtomicLong(0);
+
+    private Map<Long, Msg> mMsgListSms=null;
+    private Map<Long, Msg> mMsgListMms=null;
+    private Map<Long, Msg> mMsgListMsg=null;
+
+    private Map<String, BluetoothMapConvoContactElement> mContactList;
+
+    private HashMap<Long,BluetoothMapConvoListingElement> mSmsMmsConvoList =
+            new HashMap<Long, BluetoothMapConvoListingElement>();
+
+    private HashMap<Long,BluetoothMapConvoListingElement> mImEmailConvoList =
+            new HashMap<Long, BluetoothMapConvoListingElement>();
+
+    private int mRemoteFeatureMask = BluetoothMapUtils.MAP_FEATURE_DEFAULT_BITMASK;
+
+    public static final String TYPE_SMS_MMS_STR = "SMS/MMS";
+    public static final String TYPE_EMAIL_STR = "EMAIL";
+    public static final String TYPE_IM_STR = "IM";
 
     /**
      * Create a e-mail MAS instance
@@ -75,203 +114,230 @@ public class BluetoothMapMasInstance {
      */
     public BluetoothMapMasInstance (BluetoothMapService mapService,
             Context context,
-            BluetoothMapEmailSettingsItem account,
+            BluetoothMapAccountItem account,
             int masId,
             boolean enableSmsMms) {
+        TAG = "BluetoothMapMasInstance" + sInstanceCounter++;
         mMapService = mapService;
         mServiceHandler = mapService.getHandler();
         mContext = context;
         mAccount = account;
         if(account != null) {
-            mBaseEmailUri = account.mBase_uri;
+            mBaseUri = account.mBase_uri;
         }
         mMasInstanceId = masId;
         mEnableSmsMms = enableSmsMms;
         init();
     }
 
+    /* Needed only for test */
+    protected BluetoothMapMasInstance() {
+        TAG = "BluetoothMapMasInstance" + sInstanceCounter++;
+    }
+
     @Override
     public String toString() {
-        return "MasId: " + mMasInstanceId + " Uri:" + mBaseEmailUri + " SMS/MMS:" + mEnableSmsMms;
+        return "MasId: " + mMasInstanceId + " Uri:" + mBaseUri + " SMS/MMS:" + mEnableSmsMms;
     }
 
     private void init() {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
-    public int getMasId() {
-        return mMasInstanceId;
+    /**
+     * The data base identifier is used by connecting MCE devices to evaluate if cached data
+     * is still valid, hence only update this value when something actually invalidates the data.
+     * Situations where this must be called:
+     * - MAS ID's vs. server channels are scrambled (As neither MAS ID, name or server channels)
+     *   can be used by a client to uniquely identify a specific message database - except MAS id 0
+     *   we should change this value if the server channel is changed.
+     * - If a MAS instance folderVersionCounter roles over - will not happen before a long
+     *   is too small to hold a unix time-stamp, hence is not handled.
+     */
+    private void updateDbIdentifier(){
+        mDbIndetifier.set(Calendar.getInstance().getTime().getTime());
     }
 
     /**
-     * A thread that runs in the background waiting for remote rfcomm
-     * connect. Once a remote socket connected, this thread shall be
-     * shutdown. When the remote disconnect, this thread shall run again
-     * waiting for next request.
+     * update the time stamp used for FOLDER version counter.
+     * Call once when a content provider notification caused applicable changes to the
+     * list of messages.
      */
-    private class SocketAcceptThread extends Thread {
-
-        private boolean stopped = false;
-
-        @Override
-        public void run() {
-            BluetoothServerSocket serverSocket;
-            if (mServerSocket == null) {
-                if (!initSocket()) {
-                    return;
-                }
-            }
-
-            while (!stopped) {
-                try {
-                    if (D) Log.d(TAG, "Accepting socket connection...");
-                    serverSocket = mServerSocket;
-                    if(serverSocket == null) {
-                        Log.w(TAG, "mServerSocket is null");
-                        break;
-                    }
-                    mConnSocket = serverSocket.accept();
-                    if (D) Log.d(TAG, "Accepted socket connection...");
-
-                    synchronized (BluetoothMapMasInstance.this) {
-                        if (mConnSocket == null) {
-                            Log.w(TAG, "mConnSocket is null");
-                            break;
-                        }
-                        mRemoteDevice = mConnSocket.getRemoteDevice();
-                    }
-
-                    if (mRemoteDevice == null) {
-                        Log.i(TAG, "getRemoteDevice() = null");
-                        break;
-                    }
-
-                    /* Signal to the service that we have received an incoming connection.
-                     */
-                    boolean isValid = mMapService.onConnect(mRemoteDevice, BluetoothMapMasInstance.this);
-
-                    if(isValid == false) {
-                        // Close connection if we already have a connection with another device
-                        Log.i(TAG, "RemoteDevice is invalid - closing.");
-                        mConnSocket.close();
-                        mConnSocket = null;
-                        // now wait for a new connect
-                    } else {
-                        stopped = true; // job done ,close this thread;
-                    }
-                } catch (IOException ex) {
-                    stopped=true;
-                    if (D) Log.v(TAG, "Accept exception: (expected at shutdown)", ex);
-                }
-            }
-        }
-
-        void shutdown() {
-            stopped = true;
-            if(mServerSocket != null) {
-                try {
-                    mServerSocket.close();
-                } catch (IOException e) {
-                    if(D) Log.d(TAG, "Exception while thread shurdown:", e);
-                } finally {
-                    mServerSocket = null;
-                }
-            }
-            interrupt();
-        }
+    /* package */ void updateFolderVersionCounter() {
+        mFolderVersionCounter.incrementAndGet();
     }
 
-    public void startRfcommSocketListener() {
+    /**
+     * update the CONVO LIST version counter.
+     * Call once when a content provider notification caused applicable changes to the
+     * list of contacts, or when an update is manually triggered.
+     */
+    /* package */ void updateSmsMmsConvoListVersionCounter() {
+        mSmsMmsConvoListVersionCounter.incrementAndGet();
+    }
+
+    /* package */ void updateImEmailConvoListVersionCounter() {
+        mImEmailConvoListVersionCounter.incrementAndGet();
+    }
+
+    /* package */ Map<Long, Msg> getMsgListSms() {
+        return mMsgListSms;
+    }
+
+    /* package */ void setMsgListSms(Map<Long, Msg> msgListSms) {
+        mMsgListSms = msgListSms;
+    }
+
+    /* package */ Map<Long, Msg> getMsgListMms() {
+        return mMsgListMms;
+    }
+
+    /* package */ void setMsgListMms(Map<Long, Msg> msgListMms) {
+        mMsgListMms = msgListMms;
+    }
+
+    /* package */ Map<Long, Msg> getMsgListMsg() {
+        return mMsgListMsg;
+    }
+
+    /* package */ void setMsgListMsg(Map<Long, Msg> msgListMsg) {
+        mMsgListMsg = msgListMsg;
+    }
+
+    /* package */ Map<String, BluetoothMapConvoContactElement> getContactList() {
+        return mContactList;
+    }
+
+    /* package */ void setContactList(Map<String, BluetoothMapConvoContactElement> contactList) {
+        mContactList = contactList;
+    }
+
+    HashMap<Long,BluetoothMapConvoListingElement> getSmsMmsConvoList() {
+        return mSmsMmsConvoList;
+    }
+
+    void setSmsMmsConvoList(HashMap<Long,BluetoothMapConvoListingElement> smsMmsConvoList) {
+        mSmsMmsConvoList = smsMmsConvoList;
+    }
+
+    HashMap<Long,BluetoothMapConvoListingElement> getImEmailConvoList() {
+        return mImEmailConvoList;
+    }
+
+    void setImEmailConvoList(HashMap<Long,BluetoothMapConvoListingElement> imEmailConvoList) {
+        mImEmailConvoList = imEmailConvoList;
+    }
+
+    /* package*/
+    int getMasId() {
+        return mMasInstanceId;
+    }
+
+    /* package*/
+    long getDbIdentifier() {
+        return mDbIndetifier.get();
+    }
+
+    /* package*/
+    long getFolderVersionCounter() {
+        return mFolderVersionCounter.get();
+    }
+
+    /* package */
+    long getCombinedConvoListVersionCounter() {
+        long combinedVersionCounter = mSmsMmsConvoListVersionCounter.get();
+        combinedVersionCounter += mImEmailConvoListVersionCounter.get();
+        return combinedVersionCounter;
+    }
+
+    synchronized public void startRfcommSocketListener() {
         if (D) Log.d(TAG, "Map Service startRfcommSocketListener");
-        mInterrupted = false; /* For this to work all calls to this function
-                                 and shutdown() must be from same thread. */
-        if (mAcceptThread == null) {
-            mAcceptThread = new SocketAcceptThread();
-            mAcceptThread.setName("BluetoothMapAcceptThread masId=" + mMasInstanceId);
-            mAcceptThread.start();
+
+        if (mServerSession != null) {
+            if (D) Log.d(TAG, "mServerSession exists - shutting it down...");
+            mServerSession.close();
+            mServerSession = null;
+        }
+        if (mObserver != null) {
+            if (D) Log.d(TAG, "mObserver exists - shutting it down...");
+            mObserver.deinit();
+            mObserver = null;
+        }
+
+        closeConnectionSocket();
+
+        if(mServerSockets != null) {
+            mServerSockets.prepareForNewConnect();
+        } else {
+
+            mServerSockets = ObexServerSockets.create(this);
+
+            if(mServerSockets == null) {
+                // TODO: Handle - was not handled before
+                Log.e(TAG, "Failed to start the listeners");
+                return;
+            }
+            if(mSdpHandle >= 0) {
+                SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
+                if(V) Log.d(TAG, "Removing SDP record for MAS instance: " + mMasInstanceId +
+                        " Object reference: " + this + "SDP handle: " + mSdpHandle);
+            }
+            mSdpHandle = createMasSdpRecord(mServerSockets.getRfcommChannel(),
+                    mServerSockets.getL2capPsm());
+            // Here we might have changed crucial data, hence reset DB identifier
+            if(V) Log.d(TAG, "Creating new SDP record for MAS instance: " + mMasInstanceId +
+                    " Object reference: " + this + "SDP handle: " + mSdpHandle);
+            updateDbIdentifier();
         }
     }
 
-    private final boolean initSocket() {
-        if (D) Log.d(TAG, "MAS initSocket()");
+    /**
+     * Create the MAS SDP record with the information stored in the instance.
+     * @param rfcommChannel the rfcomm channel ID
+     * @param l2capPsm the l2capPsm - set to -1 to exclude
+     */
+    private int createMasSdpRecord(int rfcommChannel, int l2capPsm) {
+        String masName = "";
+        int messageTypeFlags = 0;
+        if(mEnableSmsMms) {
+            masName = TYPE_SMS_MMS_STR;
+            messageTypeFlags |= SDP_MAP_MSG_TYPE_SMS_GSM |
+                           SDP_MAP_MSG_TYPE_SMS_CDMA|
+                           SDP_MAP_MSG_TYPE_MMS;
+        }
 
-        boolean initSocketOK = false;
-        final int CREATE_RETRY_TIME = 10;
-
-        // It's possible that create will fail in some cases. retry for 10 times
-        for (int i = 0; (i < CREATE_RETRY_TIME) && !mInterrupted; i++) {
-            initSocketOK = true;
-            try {
-                // It is mandatory for MSE to support initiation of bonding and
-                // encryption.
-                String masId = String.format("%02x", mMasInstanceId & 0xff);
-                String masName = "";
-                int messageTypeFlags = 0;
-                if(mEnableSmsMms) {
-                    masName = "SMS/MMS";
-                    messageTypeFlags |= SDP_MAP_MSG_TYPE_SMS_GSM |
-                                   SDP_MAP_MSG_TYPE_SMS_CDMA|
-                                   SDP_MAP_MSG_TYPE_MMS;
-                }
-                if(mBaseEmailUri != null) {
-                    if(mEnableSmsMms) {
-                        masName += "/EMAIL";
-                    } else {
-                        masName = mAccount.getName();
-                    }
-                    messageTypeFlags |= SDP_MAP_MSG_TYPE_EMAIL;
-                }
-                String msgTypes = String.format("%02x", messageTypeFlags & 0xff);
-                String sdpString = masId + msgTypes + masName;
-                if(V) Log.d(TAG, "  masId = " + masId +
-                                 "\n  msgTypes = " + msgTypes +
-                                 "\n  masName = " + masName +
-                                 "\n  SDP string = " + sdpString);
-                mServerSocket = mAdapter.listenUsingRfcommWithServiceRecord
-                    (sdpString, BluetoothUuid.MAS.getUuid());
-
-            } catch (IOException e) {
-                Log.e(TAG, "Error create RfcommServerSocket " + e.toString());
-                initSocketOK = false;
-            }
-            if (!initSocketOK) {
-                // Need to break out of this loop if BT is being turned off.
-                if (mAdapter == null) break;
-                int state = mAdapter.getState();
-                if ((state != BluetoothAdapter.STATE_TURNING_ON) &&
-                    (state != BluetoothAdapter.STATE_ON)) {
-                    Log.w(TAG, "initServerSocket failed as BT is (being) turned off");
-                    break;
-                }
-                try {
-                    if (V) Log.v(TAG, "waiting 300 ms...");
-                    Thread.sleep(300);
-                } catch (InterruptedException e) {
-                    Log.e(TAG, "socketAcceptThread thread was interrupted (3)");
+        if(mBaseUri != null) {
+            if(mEnableSmsMms) {
+                if(mAccount.getType() == TYPE.EMAIL) {
+                    masName += "/" + TYPE_EMAIL_STR;
+                } else if(mAccount.getType() == TYPE.IM) {
+                    masName += "/" + TYPE_IM_STR;
                 }
             } else {
-                break;
+                masName = mAccount.getName();
+            }
+
+            if(mAccount.getType() == TYPE.EMAIL) {
+                messageTypeFlags |= SDP_MAP_MSG_TYPE_EMAIL;
+            } else if(mAccount.getType() == TYPE.IM) {
+                messageTypeFlags |= SDP_MAP_MSG_TYPE_IM;
             }
         }
-        if (mInterrupted) {
-            initSocketOK = false;
-            // close server socket to avoid resource leakage
-            closeServerSocket();
-        }
 
-        if (initSocketOK) {
-            if (V) Log.v(TAG, "Succeed to create listening socket ");
-
-        } else {
-            Log.e(TAG, "Error to create listening socket after " + CREATE_RETRY_TIME + " try");
-        }
-        return initSocketOK;
+        return SdpManager.getDefaultManager().createMapMasRecord(masName,
+                mMasInstanceId,
+                rfcommChannel,
+                l2capPsm,
+                SDP_MAP_MAS_VERSION,
+                messageTypeFlags,
+                SDP_MAP_MAS_FEATURES);
     }
 
     /* Called for all MAS instances for each instance when auth. is completed, hence
      * must check if it has a valid connection before creating a session.
      * Returns true at success. */
-    public boolean startObexServerSession(BluetoothMnsObexClient mnsClient) throws IOException, RemoteException {
+    public boolean startObexServerSession(BluetoothMnsObexClient mnsClient)
+            throws IOException, RemoteException {
         if (D) Log.d(TAG, "Map Service startObexServerSession masid = " + mMasInstanceId);
 
         if (mConnSocket != null) {
@@ -279,6 +345,7 @@ public class BluetoothMapMasInstance {
                 // Already connected, just return true
                 return true;
             }
+
             mMnsClient = mnsClient;
             BluetoothMapObexServer mapServer;
             mObserver = new  BluetoothMapContentObserver(mContext,
@@ -290,11 +357,12 @@ public class BluetoothMapMasInstance {
             mapServer = new BluetoothMapObexServer(mServiceHandler,
                                                     mContext,
                                                     mObserver,
-                                                    mMasInstanceId,
+                                                    this,
                                                     mAccount,
                                                     mEnableSmsMms);
-            // setup RFCOMM transport
-            BluetoothMapRfcommTransport transport = new BluetoothMapRfcommTransport(mConnSocket);
+
+            // setup transport
+            BluetoothObexTransport transport = new BluetoothObexTransport(mConnSocket);
             mServerSession = new ServerSession(transport, mapServer, null);
             if (D) Log.d(TAG, "    ServerSession started.");
 
@@ -330,44 +398,27 @@ public class BluetoothMapMasInstance {
             mObserver.deinit();
             mObserver = null;
         }
-        mInterrupted = true;
-        if(mAcceptThread != null) {
-            mAcceptThread.shutdown();
-            try {
-                mAcceptThread.join();
-            } catch (InterruptedException e) {/* Not much we can do about this*/}
-            mAcceptThread = null;
-        }
 
         closeConnectionSocket();
+
+        closeServerSockets(true);
     }
 
     /**
-     * Stop a running server session or cleanup, and start a new
-     * RFComm socket listener thread.
+     * Signal to the ServerSockets handler that a new connection may be accepted.
      */
     public void restartObexServerSession() {
-        if (D) Log.d(TAG, "MAP Service stopObexServerSession");
-
-        shutdown();
-
-        // Last obex transaction is finished, we start to listen for incoming
-        // connection again -
+        if (D) Log.d(TAG, "MAP Service restartObexServerSession()");
         startRfcommSocketListener();
     }
 
 
-    private final synchronized void closeServerSocket() {
+    private final synchronized void closeServerSockets(boolean block) {
         // exit SocketAcceptThread early
-        if (mServerSocket != null) {
-            try {
-                // this will cause mServerSocket.accept() return early with IOException
-                mServerSocket.close();
-            } catch (IOException ex) {
-                Log.e(TAG, "Close Server Socket error: " + ex);
-            } finally {
-                mServerSocket = null;
-            }
+        ObexServerSockets sockets = mServerSockets;
+        if (sockets != null) {
+            sockets.shutdown(block);
+            mServerSockets = null;
         }
     }
 
@@ -376,10 +427,48 @@ public class BluetoothMapMasInstance {
             try {
                 mConnSocket.close();
             } catch (IOException e) {
-                Log.e(TAG, "Close Connection Socket error: " + e.toString());
+                Log.e(TAG, "Close Connection Socket error: ", e);
             } finally {
                 mConnSocket = null;
             }
+        }
+    }
+
+    public void setRemoteFeatureMask(int supported_features) {
+        mRemoteFeatureMask  = supported_features;
+    }
+
+    public int getRemoteFeatureMask(){
+        return this.mRemoteFeatureMask;
+    }
+
+    @Override
+    public synchronized boolean onConnect(BluetoothDevice device, BluetoothSocket socket) {
+        /* Signal to the service that we have received an incoming connection.
+         */
+        boolean isValid = mMapService.onConnect(device, BluetoothMapMasInstance.this);
+
+        if(isValid == true) {
+            mRemoteDevice = device;
+            mConnSocket = socket;
+        }
+
+        return isValid;
+    }
+
+    /**
+     * Called when an unrecoverable error occurred in an accept thread.
+     * Close down the server socket, and restart.
+     * TODO: Change to message, to call start in correct context.
+     */
+    @Override
+    public synchronized void onAcceptFailed() {
+        mServerSockets = null; // Will cause a new to be created when calling start.
+        if(mShutdown) {
+            Log.e(TAG,"Failed to accept incomming connection - " + "shutdown");
+        } else {
+            Log.e(TAG,"Failed to accept incomming connection - " + "restarting");
+            startRfcommSocketListener();
         }
     }
 

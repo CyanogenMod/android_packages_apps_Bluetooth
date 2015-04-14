@@ -17,21 +17,21 @@
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/bluetooth_map_email_settings_liniar_layout"
+    android:id="@+id/bluetooth_map_settings_liniar_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".BluetoothMapEmailSettings" >
+    tools:context=".BluetoothMapSettings" >
 
     <TextView
-        android:id="@+id/bluetooth_map_email_settings_description_text_view"
+        android:id="@+id/bluetooth_map_settings_description_text_view"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
 
-        android:text="@string/bluetooth_map_email_settings_intro" />
+        android:text="@string/bluetooth_map_settings_intro" />
 
     <ExpandableListView
-        android:id="@+id/bluetooth_map_email_settings_list_view"
+        android:id="@+id/bluetooth_map_settings_list_view"
         android:layout_width="fill_parent"
         android:layout_height="0dip"
         android:layout_weight="3"

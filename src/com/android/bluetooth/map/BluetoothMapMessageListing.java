@@ -32,13 +32,13 @@ public class BluetoothMapMessageListing {
     private static final String TAG = "BluetoothMapMessageListing";
     private static final boolean D = BluetoothMapService.DEBUG;
 
-    private List<BluetoothMapMessageListingElement> list;
+    private List<BluetoothMapMessageListingElement> mList;
 
     public BluetoothMapMessageListing(){
-     list = new ArrayList<BluetoothMapMessageListingElement>();
+        mList = new ArrayList<BluetoothMapMessageListingElement>();
     }
     public void add(BluetoothMapMessageListingElement element) {
-        list.add(element);
+        mList.add(element);
         /* update info regarding whether the list contains unread messages */
         if (element.getReadBool())
         {
@@ -51,9 +51,9 @@ public class BluetoothMapMessageListing {
      * @return the number of elements in the list.
      */
     public int getCount() {
-        if(list != null)
+        if(mList != null)
         {
-            return list.size();
+            return mList.size();
         }
         return 0;
     }
@@ -73,18 +73,22 @@ public class BluetoothMapMessageListing {
      * @return list
      */
     public List<BluetoothMapMessageListingElement> getList(){
-        return list;
+        return mList;
     }
 
     /**
      * Encode the list of BluetoothMapMessageListingElement(s) into a UTF-8
      * formatted XML-string in a trimmed byte array
      *
+     * @param version the version as a string.
+     *        Set the listing version to e.g. "1.0" or "1.1".
+     *        To make this future proof, no check is added to validate the value, hence be careful.
      * @return a reference to the encoded byte array.
      * @throws UnsupportedEncodingException
      *             if UTF-8 encoding is unsupported on the platform.
      */
-    public byte[] encode(boolean includeThreadId) throws UnsupportedEncodingException {
+    // TODO: Remove includeThreadId when MAP-IM is adopted
+    public byte[] encode(boolean includeThreadId, String version) throws UnsupportedEncodingException {
         StringWriter sw = new StringWriter();
         XmlSerializer xmlMsgElement = new FastXmlSerializer();
         try {
@@ -92,9 +96,9 @@ public class BluetoothMapMessageListing {
             xmlMsgElement.startDocument("UTF-8", true);
             xmlMsgElement.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
             xmlMsgElement.startTag(null, "MAP-msg-listing");
-            xmlMsgElement.attribute(null, "version", "1.0");
+            xmlMsgElement.attribute(null, "version", version);
             // Do the XML encoding of list
-            for (BluetoothMapMessageListingElement element : list) {
+            for (BluetoothMapMessageListingElement element : mList) {
                 element.encode(xmlMsgElement, includeThreadId); // Append the list element
             }
             xmlMsgElement.endTag(null, "MAP-msg-listing");
@@ -110,22 +114,22 @@ public class BluetoothMapMessageListing {
     }
 
     public void sort() {
-        Collections.sort(list);
+        Collections.sort(mList);
     }
 
     public void segment(int count, int offset) {
-        count = Math.min(count, list.size() - offset);
+        count = Math.min(count, mList.size() - offset);
         if (count > 0) {
-            list = list.subList(offset, offset + count);
-            if(list == null) {
-                list = new ArrayList<BluetoothMapMessageListingElement>(); // Return an empty list
+            mList = mList.subList(offset, offset + count);
+            if(mList == null) {
+                mList = new ArrayList<BluetoothMapMessageListingElement>(); // Return an empty list
             }
         } else {
-            if(offset > list.size()) {
-               list = new ArrayList<BluetoothMapMessageListingElement>();
+            if(offset > mList.size()) {
+               mList = new ArrayList<BluetoothMapMessageListingElement>();
                Log.d(TAG, "offset greater than list size. Returning empty list");
             } else {
-               list = list.subList(offset, list.size());
+               mList = mList.subList(offset, mList.size());
             }
         }
     }
