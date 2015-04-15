@@ -475,15 +475,19 @@ static jboolean setVolumeNative(JNIEnv *env, jobject object, jint volume_type, j
 
 static jboolean dialNative(JNIEnv *env, jobject object, jstring number_str) {
     bt_status_t status;
-    const char *number;
+    const char *number = NULL;
     if (!sBluetoothHfpClientInterface) return JNI_FALSE;
 
-    number = env->GetStringUTFChars(number_str, NULL);
+    if (number_str != NULL) {
+        number = env->GetStringUTFChars(number_str, NULL);
+    }
 
     if ( (status = sBluetoothHfpClientInterface->dial(number)) != BT_STATUS_SUCCESS) {
         ALOGE("Failed to dial, status: %d", status);
     }
-    env->ReleaseStringUTFChars(number_str, number);
+    if (number != NULL) {
+        env->ReleaseStringUTFChars(number_str, number);
+    }
     return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
