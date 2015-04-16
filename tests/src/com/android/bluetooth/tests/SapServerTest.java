@@ -30,8 +30,9 @@ import com.android.bluetooth.sap.SapServer;
 public class SapServerTest extends AndroidTestCase {
     protected static String TAG = "SapServerTest";
     protected static final boolean D = true;
-    private static final boolean rilTestModeEnabled = false; /* Set the RIL driver in test mode, where request stubs are used in stead of forwarding to the modem/sim */
-
+    // Set the RIL driver in test mode, where request stubs are used instead
+    // of forwarding to the Modem/SIM.
+    private static final boolean rilTestModeEnabled = false;
     private Context mContext = null;
 
     public SapServerTest() {
@@ -176,16 +177,20 @@ public class SapServerTest extends AndroidTestCase {
             }
             sequencer.addStep(apdu7816Req, apdu7816Resp);
 
-            SapMessage transferCardReaderStatusReq = new SapMessage(SapMessage.ID_TRANSFER_CARD_READER_STATUS_REQ);
+            SapMessage transferCardReaderStatusReq =
+                    new SapMessage(SapMessage.ID_TRANSFER_CARD_READER_STATUS_REQ);
 
-            SapMessage transferCardReaderStatusResp = new SapMessage(SapMessage.ID_TRANSFER_CARD_READER_STATUS_RESP);
+            SapMessage transferCardReaderStatusResp =
+                    new SapMessage(SapMessage.ID_TRANSFER_CARD_READER_STATUS_RESP);
             transferCardReaderStatusResp.setResultCode(SapMessage.RESULT_OK);
             sequencer.addStep(transferCardReaderStatusReq, transferCardReaderStatusResp);
 
-            SapMessage setTransportProtocolReq = new SapMessage(SapMessage.ID_SET_TRANSPORT_PROTOCOL_REQ);
+            SapMessage setTransportProtocolReq =
+                    new SapMessage(SapMessage.ID_SET_TRANSPORT_PROTOCOL_REQ);
             setTransportProtocolReq.setTransportProtocol(0x01); // T=1
 
-            SapMessage setTransportProtocolResp = new SapMessage(SapMessage.ID_SET_TRANSPORT_PROTOCOL_RESP);
+            SapMessage setTransportProtocolResp =
+                    new SapMessage(SapMessage.ID_SET_TRANSPORT_PROTOCOL_RESP);
             setTransportProtocolResp.setResultCode(SapMessage.RESULT_OK);
             sequencer.addStep(setTransportProtocolReq, setTransportProtocolResp);
 
@@ -222,8 +227,12 @@ public class SapServerTest extends AndroidTestCase {
             SapMessage apduReq = new SapMessage(SapMessage.ID_TRANSFER_APDU_REQ);
             apduReq.setApdu(dummyBytes);
 
-            SapMessage apduResp = null; /* expect no response as we send a SIM_RESET before the write APDU completes
-                                            TODO: Consider adding a real response, and add an optional flag. */
+            //
+            // Expect no response as we send a SIM_RESET before the write APDU
+            // completes.
+            // TODO: Consider adding a real response, and add an optional flag.
+            //
+            SapMessage apduResp = null;
             index = sequencer.addStep(apduReq, apduResp);
 
             SapMessage resetReq = new SapMessage(SapMessage.ID_RESET_SIM_REQ);
@@ -249,7 +258,8 @@ public class SapServerTest extends AndroidTestCase {
      */
     public void testSapServerTimeouts() {
         Intent sapDisconnectIntent = new Intent(SapServer.SAP_DISCONNECT_ACTION);
-        sapDisconnectIntent.putExtra(SapServer.SAP_DISCONNECT_TYPE_EXTRA, SapMessage.DISC_IMMEDIATE);
+        sapDisconnectIntent.putExtra(
+                SapServer.SAP_DISCONNECT_TYPE_EXTRA, SapMessage.DISC_IMMEDIATE);
         mContext = this.getContext();
 
         try {
@@ -298,7 +308,8 @@ public class SapServerTest extends AndroidTestCase {
         public class SeqStep {
             public ArrayList<SapMessage> requests = null;
             public ArrayList<SapMessage> responses = null;
-            public int index = 0; /* requests with same index are executed in parallel (without waiting for a response) */
+            public int index = 0; // Requests with same index are executed in
+                                  // parallel without waiting for a response
             public SeqStep(SapMessage request, SapMessage response) {
                 requests = new ArrayList<SapMessage>();
                 responses = new ArrayList<SapMessage>();
@@ -328,7 +339,8 @@ public class SapServerTest extends AndroidTestCase {
 
         public SapSequencer() throws IOException {
             /* Setup the looper thread to handle messages */
-            handlerThread = new HandlerThread("SapTestTimeoutHandler", android.os.Process.THREAD_PRIORITY_BACKGROUND);
+            handlerThread = new HandlerThread("SapTestTimeoutHandler",
+                    android.os.Process.THREAD_PRIORITY_BACKGROUND);
             handlerThread.start();
             Looper testLooper = handlerThread.getLooper();
             messageHandler = new Handler(testLooper, this);
@@ -339,7 +351,8 @@ public class SapServerTest extends AndroidTestCase {
             /* Create a SapServer. Fake the BtSocket using piped input/output streams*/
             inStream = new PipedInputStream(8092);
             outStream = new PipedOutputStream();
-            sapServer = new SapServer(null, mContext, new PipedInputStream(outStream, 8092), new PipedOutputStream(inStream));
+            sapServer = new SapServer(null, mContext, new PipedInputStream(outStream, 8092),
+                    new PipedOutputStream(inStream));
             sapServer.start();
         }
 
@@ -364,15 +377,16 @@ public class SapServerTest extends AndroidTestCase {
          * @param response The response to EXPECT from the SAP server
          * @return The created step index, which can be used when adding events or actions.
          */
-        public int addStep(SapMessage request, SapMessage response) { // TODO: should we add a step trigger? (in stead of just executing in sequence)
+        public int addStep(SapMessage request, SapMessage response) {
+            // TODO: should we add a step trigger? (in stead of just executing in sequence)
             SeqStep newStep = new SeqStep(request, response);
             sequence.add(newStep);
             return sequence.indexOf(newStep);
         }
 
         /**
-         * Add a sub-step to a sequencer step. All requests added to the same index will be send to the
-         * SapServer in the order added before listening for the response.
+         * Add a sub-step to a sequencer step. All requests added to the same index will be send to
+         * the SapServer in the order added before listening for the response.
          * The response order is not validated - hence for each response received the entire list of
          * responses in the step will be searched for a match.
          * @param index the index returned from addStep() to which the sub-step is to be added.
@@ -399,8 +413,9 @@ public class SapServerTest extends AndroidTestCase {
                 if(step.requests != null) {
                     for(SapMessage request : step.requests) {
                         if(request != null) {
-                            Log.i(TAG, "Writing request: " + SapMessage.getMsgTypeName(request.getMsgType()));
-                            writeSapMessage(request, false); /* write the message without flushing */
+                            Log.i(TAG, "Writing request: " +
+                                    SapMessage.getMsgTypeName(request.getMsgType()));
+                            writeSapMessage(request, false); // write the message without flushing
                         }
                     }
                     writeSapMessage(null, true); /* flush the pipe */
@@ -414,11 +429,13 @@ public class SapServerTest extends AndroidTestCase {
                     while(!done) {
                         for(SapMessage response : step.responses) {
                             if(response != null)
-                                Log.i(TAG, "Waiting for the response: " + SapMessage.getMsgTypeName(response.getMsgType()));
+                                Log.i(TAG, "Waiting for the response: " +
+                                        SapMessage.getMsgTypeName(response.getMsgType()));
                         }
                         inMsg = readSapMessage();
                         if(inMsg != null)
-                            Log.i(TAG, "Read message: " + SapMessage.getMsgTypeName(inMsg.getMsgType()));
+                            Log.i(TAG, "Read message: " +
+                                    SapMessage.getMsgTypeName(inMsg.getMsgType()));
                         else
                             assertTrue("Failed to read message.", false);
 
@@ -465,19 +482,21 @@ public class SapServerTest extends AndroidTestCase {
          */
         private boolean compareSapMessages(SapMessage received, SapMessage expected) {
             boolean retVal = true;
-            if(expected.getCardReaderStatus() != -1 && received.getCardReaderStatus() != expected.getCardReaderStatus()) {
+            if(expected.getCardReaderStatus() != -1 &&
+                    received.getCardReaderStatus() != expected.getCardReaderStatus()) {
                 Log.i(TAG, "received.getCardReaderStatus() != expected.getCardReaderStatus() "
-                            + received.getCardReaderStatus() +" != " + expected.getCardReaderStatus());
+                        + received.getCardReaderStatus() + " != " + expected.getCardReaderStatus());
                 retVal = false;
             }
             if(received.getConnectionStatus() != expected.getConnectionStatus()) {
                 Log.i(TAG, "received.getConnectionStatus() != expected.getConnectionStatus() "
-                            + received.getConnectionStatus() +" != " + expected.getConnectionStatus());
+                        + received.getConnectionStatus() + " != " + expected.getConnectionStatus());
                 retVal = false;
             }
             if(received.getDisconnectionType() != expected.getDisconnectionType()) {
                 Log.i(TAG, "received.getDisconnectionType() != expected.getDisconnectionType() "
-                            + received.getDisconnectionType() +" != " + expected.getDisconnectionType());
+                        + received.getDisconnectionType() + " != "
+                        + expected.getDisconnectionType());
                 retVal = false;
             }
             if(received.getMaxMsgSize() != expected.getMaxMsgSize()) {
@@ -492,37 +511,43 @@ public class SapServerTest extends AndroidTestCase {
             }
             if(received.getResultCode() != expected.getResultCode()) {
                 Log.i(TAG, "received.getResultCode() != expected.getResultCode() "
-                        + received.getResultCode() +" != " + expected.getResultCode());
+                        + received.getResultCode() + " != " + expected.getResultCode());
                 retVal = false;
             }
             if(received.getStatusChange() != expected.getStatusChange()) {
                 Log.i(TAG, "received.getStatusChange() != expected.getStatusChange() "
-                        + received.getStatusChange() +" != " + expected.getStatusChange());
+                        + received.getStatusChange() + " != " + expected.getStatusChange());
                 retVal = false;
             }
             if(received.getTransportProtocol() != expected.getTransportProtocol()) {
                 Log.i(TAG, "received.getTransportProtocol() != expected.getTransportProtocol() "
-                        + received.getTransportProtocol() +" != " + expected.getTransportProtocol());
+                        + received.getTransportProtocol() + " != "
+                        + expected.getTransportProtocol());
                 retVal = false;
             }
             if(!Arrays.equals(received.getApdu(), expected.getApdu())) {
                 Log.i(TAG, "received.getApdu() != expected.getApdu() "
-                        + Arrays.toString(received.getApdu()) +" != " + Arrays.toString(expected.getApdu()));
+                        + Arrays.toString(received.getApdu()) + " != "
+                        + Arrays.toString(expected.getApdu()));
                 retVal = false;
             }
             if(!Arrays.equals(received.getApdu7816(), expected.getApdu7816())) {
                 Log.i(TAG, "received.getApdu7816() != expected.getApdu7816() "
-                        + Arrays.toString(received.getApdu7816()) +" != " + Arrays.toString(expected.getApdu7816()));
+                        + Arrays.toString(received.getApdu7816()) + " != "
+                        + Arrays.toString(expected.getApdu7816()));
                 retVal = false;
             }
-            if(expected.getApduResp() != null && !Arrays.equals(received.getApduResp(), expected.getApduResp())) {
+            if(expected.getApduResp() != null && !Arrays.equals(received.getApduResp(),
+                    expected.getApduResp())) {
                 Log.i(TAG, "received.getApduResp() != expected.getApduResp() "
-                        + Arrays.toString(received.getApduResp()) +" != " + Arrays.toString(expected.getApduResp()));
+                        + Arrays.toString(received.getApduResp()) + " != "
+                        + Arrays.toString(expected.getApduResp()));
                 retVal = false;
             }
             if(expected.getAtr() != null && !Arrays.equals(received.getAtr(), expected.getAtr())) {
                 Log.i(TAG, "received.getAtr() != expected.getAtr() "
-                        + Arrays.toString(received.getAtr()) +" != " + Arrays.toString(expected.getAtr()));
+                        + Arrays.toString(received.getAtr()) + " != "
+                        + Arrays.toString(expected.getAtr()));
                 retVal = false;
             }
             return retVal;

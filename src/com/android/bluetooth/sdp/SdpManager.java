@@ -19,6 +19,7 @@ import android.bluetooth.SdpMasRecord;
 import android.bluetooth.SdpMnsRecord;
 import android.bluetooth.SdpOppOpsRecord;
 import android.bluetooth.SdpPseRecord;
+import android.bluetooth.SdpSapsRecord;
 import android.bluetooth.SdpRecord;
 import android.content.Intent;
 import android.os.Handler;
@@ -106,6 +107,9 @@ public class SdpManager {
 
     private native int sdpCreateOppOpsRecordNative(String serviceName,
             int rfcommChannel, int l2capPsm, int version, byte[] formats_list);
+
+    private native int sdpCreateSapsRecordNative(String serviceName, int rfcommChannel,
+            int version);
 
     private native boolean sdpRemoveSdpRecordNative(int record_id);
 
@@ -364,6 +368,31 @@ public class SdpManager {
         }
     }
 
+    void sdpSapsRecordFoundCallback(int status, byte[] address, byte[] uuid,
+            int rfcommCannelNumber,
+            int profileVersion,
+            String serviceName,
+            boolean moreResults) {
+
+        synchronized(mTrackerLock) {
+            SdpSearchInstance inst = sSdpSearchTracker.getSearchInstance(address, uuid);
+            SdpSapsRecord sdpRecord = null;
+            if (inst == null) {
+                Log.e(TAG, "sdpSapsRecordFoundCallback: Search instance is NULL");
+                return;
+            }
+            inst.setStatus(status);
+            if (status == AbstractionLayer.BT_STATUS_SUCCESS) {
+                sdpRecord = new SdpSapsRecord(rfcommCannelNumber,
+                                             profileVersion,
+                                             serviceName);
+            }
+            if (D) Log.d(TAG, "UUID: " + Arrays.toString(uuid));
+            if (D) Log.d(TAG, "UUID in parcel: " + ((Utils.byteArrayToUuid(uuid))[0]).toString());
+            sendSdpIntent(inst, sdpRecord, moreResults);
+        }
+    }
+
     /* TODO: Test or remove! */
     void sdpRecordFoundCallback(int status, byte[] address, byte[] uuid,
             int size_record, byte[] record) {
@@ -589,6 +618,28 @@ public class SdpManager {
         }
         return sdpCreateOppOpsRecordNative(serviceName, rfcommChannel,
                  l2capPsm, version, formatsList);
+    }
+
+    /**
+     * Create a server side Sim Access Profile Service Record.
+     * Create the record once, and reuse it for all connections.
+     * If changes to a record is needed remove the old record using {@link removeSdpRecord}
+     * and then create a new one.
+     * @param serviceName   The textual name of the service
+     * @param rfcommChannel The RFCOMM channel that clients can connect to
+     *                      (obtain from BluetoothServerSocket)
+     * @param version       The Profile version number (As specified in the Bluetooth
+     *                      SAP specification)
+     * @return a handle to the record created. The record can be removed again
+     *          using {@link removeSdpRecord}(). The record is not linked to the
+     *          creation/destruction of BluetoothSockets, hence SDP record cleanup
+     *          is a separate process.
+     */
+    public int createSapsRecord(String serviceName, int rfcommChannel, int version) {
+        if (sNativeAvailable == false) {
+            throw new RuntimeException(TAG + " sNativeAvailable == false - native not initialized");
+        }
+        return sdpCreateSapsRecordNative(serviceName, rfcommChannel, version);
     }
 
      /**
