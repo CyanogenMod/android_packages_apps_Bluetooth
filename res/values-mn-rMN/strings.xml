@@ -115,11 +115,11 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Нээх"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Жагсаалтаас арилгах"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Арилгах"</string>
-    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"Хадгалах"</string>
-    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"Цуцлах"</string>
-    <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"Блютүүтээр хуваалцахыг хүсэж буй имэйл акаунтуудыг сонгоно уу. Та холбогдох үедээ акаунт руу хандалтыг зөвшөөрөх шаардлагатай хэвээр байх болно."</string>
-    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"Үлдсэн слотууд:"</string>
-    <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"Аппликешний дүрс"</string>
-    <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"Блютүүт Зурвас Хуваалцах Тохиргоо"</string>
-    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"Акаунтыг сонгох боломжгүй. 0 слот үлдсэн"</string>
+    <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Хадгалах"</string>
+    <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Цуцлах"</string>
+    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Bluetooth-ээр дамжуулан хуваалцахыг хүсч буй дансаа сонго. Та холбогдож байх үедээ ч данс руу нэвтрэх ямар ч хандалтуудыг хүлээн авах боломжтой."</string>
+    <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Үлдсэн слот:"</string>
+    <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Аппликешний дүрс"</string>
+    <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Bluetooth мессеж хуваалцах тохиргоо"</string>
+    <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"Дансыг сонгох боломжгүй. 0 слот үлдсэн"</string>
 </resources>

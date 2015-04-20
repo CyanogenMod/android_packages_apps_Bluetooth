@@ -115,11 +115,18 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"తెరువు"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"జాబితా నుండి క్లియర్ చేయి"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"క్లియర్ చేయి"</string>
-    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"సేవ్ చేయి"</string>
-    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"రద్దు చేయి"</string>
-    <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"మీరు బ్లూటూత్ ద్వారా భాగస్వామ్యం చేయాలనుకునే ఇమెయిల్ ఖాతాలను ఎంచుకోండి. మీరు ఇప్పటికీ కనెక్ట్ చేస్తున్నప్పుడు ఖాతాలకు ప్రాప్యతలను ఆమోదించాలి."</string>
-    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"మిగిలిన స్లాట్‌లు:"</string>
-    <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"అనువర్తన చిహ్నం"</string>
-    <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"బ్లూటూత్ సందేశ భాగస్వామ్య సెట్టింగ్‌లు"</string>
-    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"ఖాతాను ఎంచుకోవడం సాధ్యపడదు. 0 స్లాట్‌లు మిగిలి ఉన్నాయి"</string>
+    <!-- no translation found for bluetooth_map_settings_save (7635491847388074606) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_cancel (9205350798049865699) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_intro (6793938602201480648) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_count (4557473074937024833) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_app_icon (7105805610929114707) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_title (7420332483392851321) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_no_account_slots_left (1796029082612965251) -->
+    <skip />
 </resources>

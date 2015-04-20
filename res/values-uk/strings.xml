@@ -115,11 +115,18 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Відкр."</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Видал. зі списку"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Очистити"</string>
-    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"Зберегти"</string>
-    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"Скасувати"</string>
-    <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"Виберіть облікові записи електронної пошти, до яких ви хочете надати доступ через Bluetooth. Під час під’єднання все одно потрібно буде прийняти умови доступу до облікових записів."</string>
-    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"Залишилося рядків:"</string>
-    <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"Значок додатка"</string>
-    <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"Параметри надсилання повідомлень через Bluetooth"</string>
-    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"Обліковий запис не вибрано. Залишилося 0 рядків"</string>
+    <!-- no translation found for bluetooth_map_settings_save (7635491847388074606) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_cancel (9205350798049865699) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_intro (6793938602201480648) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_count (4557473074937024833) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_app_icon (7105805610929114707) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_title (7420332483392851321) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_no_account_slots_left (1796029082612965251) -->
+    <skip />
 </resources>

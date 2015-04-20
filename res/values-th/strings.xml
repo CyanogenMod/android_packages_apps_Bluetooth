@@ -115,11 +115,18 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"เปิด"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"ล้างจากรายการ"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"ล้าง"</string>
-    <string name="bluetooth_map_email_settings_save" msgid="5349902976213455385">"บันทึก"</string>
-    <string name="bluetooth_map_email_settings_cancel" msgid="5019472404940038118">"ยกเลิก"</string>
-    <string name="bluetooth_map_email_settings_intro" msgid="6219461401455143988">"เลือกบัญชีอีเมลที่คุณต้องการแชร์ผ่านบลูทูธ คุณยังคงต้องยอมรับการเข้าถึงบัญชีเมื่อเชื่อมต่อ"</string>
-    <string name="bluetooth_map_email_settings_count" msgid="8884933619108905375">"ช่องที่เหลือ:"</string>
-    <string name="bluetooth_map_email_settings_app_icon" msgid="6905622365985483669">"ไอคอนแอปพลิเคชัน"</string>
-    <string name="bluetooth_map_email_settings_title" msgid="2181388147513118336">"การตั้งค่าการแชร์ข้อความผ่านบลูทูธ"</string>
-    <string name="bluetooth_map_email_settings_no_account_slots_left" msgid="5989596869950397488">"ไม่สามารถเลือกบัญชีได้ ช่องเหลือ 0 ช่อง"</string>
+    <!-- no translation found for bluetooth_map_settings_save (7635491847388074606) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_cancel (9205350798049865699) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_intro (6793938602201480648) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_count (4557473074937024833) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_app_icon (7105805610929114707) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_title (7420332483392851321) -->
+    <skip />
+    <!-- no translation found for bluetooth_map_settings_no_account_slots_left (1796029082612965251) -->
+    <skip />
 </resources>
