@@ -396,8 +396,8 @@ public class BluetoothMapContentObserver {
                 mMsgListSms = msgListSms;
             }
 
-
-
+        c = mResolver.query(Mms.CONTENT_URI,
+            MMS_PROJECTION, null, null, null);
 
         HashMap<Long, Msg> msgListMms = new HashMap<Long, Msg>();
 
