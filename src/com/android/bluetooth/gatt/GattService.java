@@ -560,7 +560,7 @@ public class GattService extends ProfileService {
             if (service == null) return;
             service.unregAll();
         }
-        
+
         @Override
         public int numHwTrackFiltersAvailable() {
             GattService service = getService();
