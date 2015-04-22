@@ -294,7 +294,8 @@ public class BluetoothMapMessageListingElement
                         BluetoothMapUtils.stripInvalidChars(mRecipientName));
             if(mRecipientAddressing != null)
                 xmlMsgElement.attribute(null, "recipient_addressing", mRecipientAddressing);
-            if(mMsgTypeAppParamSet == true)
+            /* Avoid NPE for possible "null" value of mType */
+            if(mMsgTypeAppParamSet == true && mType != null)
                 xmlMsgElement.attribute(null, "type", mType.name());
             if(mSize != -1)
                 xmlMsgElement.attribute(null, "size", Integer.toString(mSize));

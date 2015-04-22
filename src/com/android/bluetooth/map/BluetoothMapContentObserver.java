@@ -435,10 +435,10 @@ public class BluetoothMapContentObserver {
         TelephonyManager tm = (TelephonyManager) mContext.getSystemService(
                 Context.TELEPHONY_SERVICE);
 
-        if (tm.getPhoneType() == TelephonyManager.PHONE_TYPE_GSM) {
-            smsType = TYPE.SMS_GSM;
-        } else if (tm.getPhoneType() == TelephonyManager.PHONE_TYPE_CDMA) {
+        if (tm.getPhoneType() == TelephonyManager.PHONE_TYPE_CDMA) {
             smsType = TYPE.SMS_CDMA;
+        } else {
+            smsType = TYPE.SMS_GSM;
         }
 
         return smsType;
@@ -729,8 +729,12 @@ public class BluetoothMapContentObserver {
                 if (oldFolder != null) {
                     xmlEvtReport.attribute("", "old_folder", oldFolder);
                 }
-                xmlEvtReport.attribute("", "msg_type", msgType.name());
-
+                /* Avoid possible NPE for "msgType" "null" value. "msgType"
+                 * is a implied attribute and will be set "null" for events
+                 * like "memory full" or "memory available" */
+                if (msgType != null) {
+                    xmlEvtReport.attribute("", "msg_type", msgType.name());
+                }
                 /* If MAP event report version is above 1.0 send
                  * extended event report parameters */
                 if (datetime != null) {

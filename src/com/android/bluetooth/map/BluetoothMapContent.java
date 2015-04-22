@@ -712,11 +712,13 @@ public class BluetoothMapContent {
 
     private TYPE getType(Cursor c, FilterInfo fi) {
         TYPE type = null;
+        if (V) Log.d(TAG, "getType: for filterMsgType" + fi.mMsgType);
         if (fi.mMsgType == FilterInfo.TYPE_SMS) {
-            if (fi.mPhoneType == TelephonyManager.PHONE_TYPE_GSM) {
-                type = TYPE.SMS_GSM;
-            } else if (fi.mPhoneType == TelephonyManager.PHONE_TYPE_CDMA) {
+            if (V) Log.d(TAG, "getType: phoneType for SMS " + fi.mPhoneType);
+            if (fi.mPhoneType == TelephonyManager.PHONE_TYPE_CDMA) {
                 type = TYPE.SMS_CDMA;
+            } else {
+                type = TYPE.SMS_GSM;
             }
         } else if (fi.mMsgType == FilterInfo.TYPE_MMS) {
             type = TYPE.MMS;
@@ -2175,17 +2177,21 @@ public class BluetoothMapContent {
             Cursor tmpCursor = null;
             for(int x=0;x<listSize;x++){
                 BluetoothMapMessageListingElement ele = list.get(x);
-                if((ele.getType().equals(TYPE.SMS_GSM)||ele.getType().equals(TYPE.SMS_CDMA))
-                        && smsCursor != null){
+                /* If OBEX "GET" request header includes "ParameterMask" with 'Type' NOT set,
+                 * then ele.getType() returns "null" even for a valid cursor.
+                 * Avoid NullPointerException in equals() check when 'mType' value is "null" */
+                TYPE tmpType = ele.getType();
+                if (smsCursor!= null &&
+                        ((TYPE.SMS_GSM).equals(tmpType) || (TYPE.SMS_CDMA).equals(tmpType))) {
                     tmpCursor = smsCursor;
                     fi.mMsgType = FilterInfo.TYPE_SMS;
-                }else if(ele.getType().equals(TYPE.MMS) && mmsCursor != null){
+                } else if(mmsCursor != null && (TYPE.MMS).equals(tmpType)) {
                     tmpCursor = mmsCursor;
                     fi.mMsgType = FilterInfo.TYPE_MMS;
-                }else if(ele.getType().equals(TYPE.EMAIL) && emailCursor != null){
+                } else if(emailCursor != null && ((TYPE.EMAIL).equals(tmpType))) {
                     tmpCursor = emailCursor;
                     fi.mMsgType = FilterInfo.TYPE_EMAIL;
-                }else if(ele.getType().equals(TYPE.IM) && imCursor != null){
+                } else if(imCursor != null && ((TYPE.IM).equals(tmpType))) {
                     tmpCursor = imCursor;
                     fi.mMsgType = FilterInfo.TYPE_IM;
                 }
