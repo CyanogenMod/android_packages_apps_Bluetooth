@@ -115,18 +115,11 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Άνοιγμα"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Εκκαθάριση από τη λίστα"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Εκκαθάριση"</string>
-    <!-- no translation found for bluetooth_map_settings_save (7635491847388074606) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_settings_cancel (9205350798049865699) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_settings_intro (6793938602201480648) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_settings_count (4557473074937024833) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_settings_app_icon (7105805610929114707) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_settings_title (7420332483392851321) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_settings_no_account_slots_left (1796029082612965251) -->
-    <skip />
+    <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Αποθήκευση"</string>
+    <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Ακύρωση"</string>
+    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Επιλέξτε τους λογαριασμούς που θέλετε να μοιραστείτε μέσω Bluetooth. Θα πρέπει ακόμη να αποδεχτείτε τυχόν αιτήματα πρόσβασης στους λογαριασμούς κατά τη σύνδεση."</string>
+    <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Υποδοχές που απομένουν:"</string>
+    <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Εικονίδιο εφαρμογής"</string>
+    <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Ρυθμίσεις κοινής χρήσης μηνυμάτων μέσω Bluetooth"</string>
+    <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"Δεν είναι δυνατή η επιλογή λογαριασμού. Απομένουν 0 υποδοχές"</string>
 </resources>

@@ -115,18 +115,11 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"විවෘත කරන්න"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"ලැයිස්තුව වෙතින් හිස් කරන්න"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"හිස් කරන්න"</string>
-    <!-- no translation found for bluetooth_map_settings_save (7635491847388074606) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_settings_cancel (9205350798049865699) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_settings_intro (6793938602201480648) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_settings_count (4557473074937024833) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_settings_app_icon (7105805610929114707) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_settings_title (7420332483392851321) -->
-    <skip />
-    <!-- no translation found for bluetooth_map_settings_no_account_slots_left (1796029082612965251) -->
-    <skip />
+    <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"සුරකින්න"</string>
+    <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"අවලංගු කරන්න"</string>
+    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"බ්ලූටූත් හරහා ඔබට බෙදාගැනීමට අවශ්‍ය ගිණුම් තෝරන්න. සම්බන්ධ වන විට ගිණුම් වෙත ඕනෑම ප්‍රවේශයක් ඔබ තවමත් පිළිගත යුතුයි."</string>
+    <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"ඉතිරිව ඇති විවර:"</string>
+    <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"යෙදුම් නිරූපකය"</string>
+    <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"බ්ලූටූත් පණිවිඩ බෙදාගැනීමේ සැකසීම්"</string>
+    <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"ගිණුමක් තේරිය නොහැක. විවර 0 ක් ඉතිරිව තිබේ"</string>
 </resources>
