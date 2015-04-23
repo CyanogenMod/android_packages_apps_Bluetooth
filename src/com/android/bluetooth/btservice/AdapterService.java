@@ -2028,7 +2028,6 @@ public class AdapterService extends Service {
             "tx_time = " + tx_time + "rx_time = " + rx_time +
             "idle_time = " + idle_time + "energy_used = " + energy_used +
             "ctrl_state = " + ctrl_state);
-        }
     }
 
     private int getIdleCurrentMa() {
