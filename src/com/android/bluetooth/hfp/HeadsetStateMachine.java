@@ -72,7 +72,7 @@ import android.os.SystemProperties;
 
 final class HeadsetStateMachine extends StateMachine {
     private static final String TAG = "HeadsetStateMachine";
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
     //For Debugging only
     private static int sRefCount=0;
 

@@ -81,8 +81,8 @@ import android.os.ServiceManager;
 
 public class AdapterService extends Service {
     private static final String TAG = "BluetoothAdapterService";
-    private static final boolean DBG = true;
-    private static final boolean TRACE_REF = true;
+    private static final boolean DBG = false;
+    private static final boolean TRACE_REF = false;
     private static final int MIN_ADVT_INSTANCES_FOR_MA = 5;
     private static final int MIN_OFFLOADED_FILTERS = 10;
     private static final int MIN_OFFLOADED_SCAN_STORAGE_BYTES = 1024;
@@ -636,7 +636,6 @@ public class AdapterService extends Service {
             String simpleName = services[i].getSimpleName();
 
             if (simpleName.equals("GattService")) {
-                if (DBG) Log.d(TAG, "It is gaTT service");
                 Integer serviceState = mProfileServicesState.get(serviceName);
 
                 if(serviceState != null && serviceState != expectedCurrentState) {
@@ -679,10 +678,8 @@ public class AdapterService extends Service {
             String serviceName = services[i].getName();
             String simpleName = services[i].getSimpleName();
 
-            if (simpleName.equals("GattService")) {
-                if (DBG) Log.d(TAG, "It is gaTT service. SKIP IT");
-                continue;
-            }
+            if (simpleName.equals("GattService")) continue;
+
             Integer serviceState = mProfileServicesState.get(serviceName);
             if(serviceState != null && serviceState != expectedCurrentState) {
                 debugLog("setProfileServiceState() - Unable to "
@@ -2027,8 +2024,7 @@ public class AdapterService extends Service {
             mEnergyUsedTotalVoltAmpSecMicro += energy_used;
         }
 
-        if (DBG) {
-            Log.d(TAG, "energyInfoCallback  " + "status = " + status +
+        debugLog("energyInfoCallback() status = " + status +
             "tx_time = " + tx_time + "rx_time = " + rx_time +
             "idle_time = " + idle_time + "energy_used = " + energy_used +
             "ctrl_state = " + ctrl_state);
