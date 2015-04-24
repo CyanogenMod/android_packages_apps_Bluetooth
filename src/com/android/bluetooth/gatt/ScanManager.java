@@ -19,6 +19,7 @@ package com.android.bluetooth.gatt;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
 import android.content.BroadcastReceiver;
@@ -29,6 +30,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.os.RemoteException;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -73,6 +75,7 @@ public class ScanManager {
     // Scan parameters for batch scan.
     private BatchScanParams mBatchScanParms;
 
+    private Integer curUsedTrackableAdvertisements;
     private GattService mService;
     private BroadcastReceiver mBatchAlarmReceiver;
     private boolean mBatchAlarmReceiverRegistered;
@@ -290,6 +293,10 @@ public class ScanManager {
                     && truncatedScanClientIf == other.truncatedScanClientIf;
 
         }
+    }
+
+    public int getCurrentUsedTrackingAdvertisement() {
+        return curUsedTrackableAdvertisements;
     }
 
     private class ScanNative {
@@ -591,6 +598,22 @@ public class ScanManager {
         void stopRegularScan(ScanClient client) {
             // Remove scan filters and recycle filter indices.
             removeScanFilters(client.clientIf);
+            int deliveryMode = getDeliveryMode(client);
+            if (deliveryMode == DELIVERY_MODE_ON_FOUND_LOST) {
+                for (ScanFilter filter : client.filters) {
+                    int entriesToFree = getNumOfTrackingAdvertisements(client.settings);
+                    if (!manageAllocationOfTrackingAdvertisement(entriesToFree, false)) {
+                        Log.e(TAG, "Error freeing for onfound/onlost filter resources "
+                                    + entriesToFree);
+                        try {
+                            mService.onScanManagerErrorCallback(client.clientIf,
+                                            ScanCallback.SCAN_FAILED_INTERNAL_ERROR);
+                        } catch (RemoteException e) {
+                            Log.e(TAG, "failed on onScanManagerCallback at freeing", e);
+                        }
+                    }
+                }
+            }
             mRegularScanClients.remove(client);
             if (numRegularScanClients() == 0) {
                 logd("stop scan");
@@ -681,9 +704,15 @@ public class ScanManager {
                     resetCountDownLatch();
                     if (deliveryMode == DELIVERY_MODE_ON_FOUND_LOST) {
                         trackEntries = getNumOfTrackingAdvertisements(client.settings);
-                        if (trackEntries == 0) {
-                            Log.e(TAG, "No hardware resources for onfound/onlost filter");
-                            return;
+                        if (!manageAllocationOfTrackingAdvertisement(trackEntries, true)) {
+                            Log.e(TAG, "No hardware resources for onfound/onlost filter " +
+                                    trackEntries);
+                            try {
+                                mService.onScanManagerErrorCallback(clientIf,
+                                            ScanCallback.SCAN_FAILED_INTERNAL_ERROR);
+                            } catch (RemoteException e) {
+                                Log.e(TAG, "failed on onScanManagerCallback", e);
+                            }
                         }
                     }
                     configureFilterParamter(clientIf, client, featureSelection, filterIndex,
@@ -934,6 +963,12 @@ public class ScanManager {
             if (settings == null)
                 return 0;
             int val=0;
+            int maxTotalTrackableAdvertisements =
+                    AdapterService.getAdapterService().getTotalNumOfTrackableAdvertisements();
+            // controller based onfound onlost resources are scarce commodity; the
+            // assignment of filters to num of beacons to track is configurable based
+            // on hw capabilities. Apps give an intent and allocation of onfound
+            // resources or failure there of is done based on availibility - FCFS model
             switch (settings.getNumOfMatches()) {
                 case ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT:
                     val = 1;
@@ -942,14 +977,38 @@ public class ScanManager {
                     val = 2;
                     break;
                 case ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT:
-                    val = 4;
+                    val = maxTotalTrackableAdvertisements/2;
                     break;
                 default:
                     val = 1;
+                    logd("Invalid setting for getNumOfMatches() " + settings.getNumOfMatches());
             }
-            // ToDo: Reserve few tracking advertisements in hw and report
-            // or scale down the request based on ask and availibility.
             return val;
+        }
+
+        private boolean manageAllocationOfTrackingAdvertisement(int numOfTrackableAdvertisement,
+                            boolean allocate) {
+            int maxTotalTrackableAdvertisements =
+                    AdapterService.getAdapterService().getTotalNumOfTrackableAdvertisements();
+            synchronized(curUsedTrackableAdvertisements) {
+                int availableEntries = maxTotalTrackableAdvertisements
+                                            - curUsedTrackableAdvertisements;
+                if (allocate) {
+                    if (availableEntries >= numOfTrackableAdvertisement) {
+                        curUsedTrackableAdvertisements += numOfTrackableAdvertisement;
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    if (numOfTrackableAdvertisement > curUsedTrackableAdvertisements) {
+                        return false;
+                    } else {
+                         curUsedTrackableAdvertisements -= numOfTrackableAdvertisement;
+                         return true;
+                    }
+                }
+            }
         }
 
 
