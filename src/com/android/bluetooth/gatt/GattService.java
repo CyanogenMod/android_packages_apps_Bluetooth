@@ -1132,24 +1132,37 @@ public class GattService extends ProfileService {
         flushPendingBatchResults(clientIf, isServer);
     }
 
-    void onTrackAdvFoundLost(int filterIndex, int addrType, String address, int advState,
-            int clientIf) throws RemoteException {
-        if (DBG) Log.d(TAG, "onClientAdvertiserFoundLost() - clientIf="
-                + clientIf + "address = " + address + "adv_state = "
-                + advState + "client_if = " + clientIf);
-        ClientMap.App app = mClientMap.getById(clientIf);
+    AdvtFilterOnFoundOnLostInfo CreateonTrackAdvFoundLostObject(int client_if, int adv_pkt_len,
+                    byte[] adv_pkt, int scan_rsp_len, byte[] scan_rsp, int filt_index, int adv_state,
+                    int adv_info_present, String address, int addr_type, int tx_power, int rssi_value,
+                    int time_stamp) {
+
+        return new AdvtFilterOnFoundOnLostInfo(client_if, adv_pkt_len, adv_pkt,
+                    scan_rsp_len, scan_rsp, filt_index, adv_state,
+                    adv_info_present, address, addr_type, tx_power,
+                    rssi_value, time_stamp);
+    }
+
+    void onTrackAdvFoundLost(AdvtFilterOnFoundOnLostInfo trackingInfo) throws RemoteException {
+        if (DBG) Log.d(TAG, "onTrackAdvFoundLost() - clientIf="
+                       + trackingInfo.getClientIf() + "address = " + trackingInfo.getAddress() +
+                       "adv_state = " + trackingInfo.getAdvState()+ "address type=" +
+                       trackingInfo.getAddressType()
+                       + "ADV packet data =" + trackingInfo.getAdvPacketLen());
+
+        ClientMap.App app = mClientMap.getById(trackingInfo.getClientIf());
         if (app == null || app.callback == null) {
             Log.e(TAG, "app or callback is null");
             return;
         }
 
         // use hw signal for only onlost reporting
-        if (advState != ADVT_STATE_ONLOST) {
+        if (trackingInfo.getAdvState() != ADVT_STATE_ONLOST) {
             return;
         }
 
         for (ScanClient client : mScanManager.getRegularScanQueue()) {
-            if (client.clientIf == clientIf) {
+            if (client.clientIf == trackingInfo.getClientIf()) {
                 ScanSettings settings = client.settings;
                 if ((settings.getCallbackType() &
                             ScanSettings.CALLBACK_TYPE_MATCH_LOST) != 0) {
