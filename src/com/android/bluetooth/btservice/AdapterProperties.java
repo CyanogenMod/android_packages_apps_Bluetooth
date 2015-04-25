@@ -64,6 +64,8 @@ class AdapterProperties {
     private int mNumOfOffloadedIrkSupported;
     private int mNumOfOffloadedScanFilterSupported;
     private int mOffloadedScanResultStorageBytes;
+    private int mVersSupported;
+    private int mTotNumOfTrackableAdv;
     private boolean mIsActivityAndEnergyReporting;
 
     // Lock for all getters and setters.
@@ -550,13 +552,17 @@ class AdapterProperties {
     }
 
     void updateFeatureSupport(byte[] val) {
-        mNumOfAdvertisementInstancesSupported = (0xFF & ((int)val[1]));
-        mRpaOffloadSupported = ((0xFF & ((int)val[2]))!= 0);
-        mNumOfOffloadedIrkSupported =  (0xFF & ((int)val[3]));
-        mNumOfOffloadedScanFilterSupported = (0xFF & ((int)val[4]));
-        mOffloadedScanResultStorageBytes = ((0xFF & ((int)val[6])) << 8)
-                            + (0xFF & ((int)val[5]));
+        mVersSupported = ((0xFF & ((int)val[1])) << 8)
+                            + (0xFF & ((int)val[0]));
+        mNumOfAdvertisementInstancesSupported = (0xFF & ((int)val[3]));
+        mRpaOffloadSupported = ((0xFF & ((int)val[4]))!= 0);
+        mNumOfOffloadedIrkSupported =  (0xFF & ((int)val[5]));
+        mNumOfOffloadedScanFilterSupported = (0xFF & ((int)val[6]));
         mIsActivityAndEnergyReporting = ((0xFF & ((int)val[7])) != 0);
+        mOffloadedScanResultStorageBytes = ((0xFF & ((int)val[9])) << 8)
+                            + (0xFF & ((int)val[8]));
+        mTotNumOfTrackableAdv = ((0xFF & ((int)val[11])) << 8)
+                            + (0xFF & ((int)val[10]));
 
         Log.d(TAG, "BT_PROPERTY_LOCAL_LE_FEATURES: update from BT controller"
                 + " mNumOfAdvertisementInstancesSupported = "
@@ -569,7 +575,11 @@ class AdapterProperties {
                 + " mOffloadedScanResultStorageBytes= "
                 + mOffloadedScanResultStorageBytes
                 + " mIsActivityAndEnergyReporting = "
-                + mIsActivityAndEnergyReporting);
+                + mIsActivityAndEnergyReporting
+                +" mVersSupported = "
+                + mVersSupported
+                + " mTotNumOfTrackableAdv = "
+                + mTotNumOfTrackableAdv);
     }
 
     void onBluetoothReady() {
