@@ -6,5 +6,5 @@
     <string name="bluetooth_sap_notif_message" msgid="7138657801087500690">"Minta klien untuk memutus sambungan?"</string>
     <string name="bluetooth_sap_notif_disconnecting" msgid="819150843490233288">"Menunggu klien untuk memutus sambungan"</string>
     <string name="bluetooth_sap_notif_disconnect_button" msgid="3678476872583356919">"Putuskan sambungan"</string>
-    <string name="bluetooth_sap_notif_force_disconnect_button" msgid="8144086340185532030">"Paksa putus sambungan"</string>
+    <string name="bluetooth_sap_notif_force_disconnect_button" msgid="8144086340185532030">"Putuskan paksa sambungan"</string>
 </resources>
