@@ -92,6 +92,7 @@ public class ScanManager {
         mBatchClients = new HashSet<ScanClient>();
         mService = service;
         mScanNative = new ScanNative();
+        curUsedTrackableAdvertisements = 0;
     }
 
     void start() {
