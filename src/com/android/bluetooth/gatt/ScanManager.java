@@ -414,7 +414,6 @@ public class ScanManager {
             if (curScanSetting != Integer.MIN_VALUE &&
                     curScanSetting != ScanSettings.SCAN_MODE_OPPORTUNISTIC) {
                 if (curScanSetting != mLastConfiguredScanSetting) {
-                    // TBD - Logic to be modified by Google as needed here
                     int scanWindow = getScanWindowMillis(client.settings);
                     int scanInterval = getScanIntervalMillis(client.settings);
                     // convert scanWindow and scanInterval from ms to LE scan units(0.625ms)
@@ -905,7 +904,6 @@ public class ScanManager {
             if (settings == null) {
                 return SCAN_MODE_LOW_POWER_WINDOW_MS;
             }
-            // TBD - Logic to be modified by Google as needed here
             switch (settings.getScanMode()) {
                 case ScanSettings.SCAN_MODE_LOW_LATENCY:
                     return SCAN_MODE_LOW_LATENCY_WINDOW_MS;
@@ -921,7 +919,6 @@ public class ScanManager {
         private int getScanIntervalMillis(ScanSettings settings) {
             if (settings == null)
                 return SCAN_MODE_LOW_POWER_INTERVAL_MS;
-            // TBD - Logic to be modified by Google as needed here
             switch (settings.getScanMode()) {
                 case ScanSettings.SCAN_MODE_LOW_LATENCY:
                     return SCAN_MODE_LOW_LATENCY_INTERVAL_MS;

@@ -573,8 +573,6 @@ class AdapterProperties {
                             + (0xFF & ((int)val[8]));
         mTotNumOfTrackableAdv = ((0xFF & ((int)val[11])) << 8)
                             + (0xFF & ((int)val[10]));
-
-        // TBD - Logic to be modified by Google as needed here
         mIsExtendedScanSupported = ((0xFF & ((int)val[12])) != 0);
         mIsDebugLogSupported = ((0xFF & ((int)val[13])) != 0);
 

@@ -1196,7 +1196,6 @@ public class GattService extends ProfileService {
             Log.e(TAG, "Advertise app or callback is null");
             return;
         }
-        // TBD - Logic to be modified by Google as needed here
         Log.d(TAG, "onScanParamSetupCompleted : " + status);
     }
 
