@@ -988,7 +988,7 @@ public class ScanManager {
                     val = 2;
                     break;
                 case ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT:
-                    val = maxTotalTrackableAdvertisements/2;
+                    val = (maxTotalTrackableAdvertisements - curUsedTrackableAdvertisements) / 2;
                     break;
                 default:
                     val = 1;
