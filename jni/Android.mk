@@ -36,4 +36,6 @@ LOCAL_MULTILIB := 32
 LOCAL_MODULE := libbluetooth_jni
 LOCAL_MODULE_TAGS := optional
 
+LOCAL_CFLAGS += -Os
+
 include $(BUILD_SHARED_LIBRARY)
