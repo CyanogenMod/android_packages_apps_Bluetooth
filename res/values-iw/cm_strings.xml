@@ -17,6 +17,6 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="empty_file_notification_sent">שיתוף Bluetooth: נדחה קובץ עם אורך אפסי <xliff:g id="file"> %1$s </xliff:g></string>
+  <string name="empty_file_notification_sent">שיתוף Bluetooth: נדחה קובץ עם אורך אפסי <xliff:g id="file">%1$s</xliff:g></string>
   <string name="upload_fail_waiting">שליחת הקובץ נכשלה, מנסה שנית\u2026</string>
 </resources>
