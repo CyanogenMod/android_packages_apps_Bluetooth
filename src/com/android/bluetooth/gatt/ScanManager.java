@@ -598,7 +598,8 @@ public class ScanManager {
 
         void stopRegularScan(ScanClient client) {
             // Remove scan filters and recycle filter indices.
-            removeScanFilters(client.clientIf);
+            client = getClient(client.clientIf);
+            if (client == null) return;
             int deliveryMode = getDeliveryMode(client);
             if (deliveryMode == DELIVERY_MODE_ON_FOUND_LOST) {
                 for (ScanFilter filter : client.filters) {
@@ -620,6 +621,15 @@ public class ScanManager {
                 logd("stop scan");
                 gattClientScanNative(false);
             }
+            removeScanFilters(client.clientIf);
+        }
+
+        // Find the scan client information
+        ScanClient getClient(int clientIf) {
+            for (ScanClient client : mRegularScanClients) {
+              if (client.clientIf == clientIf) return client;
+            }
+            return null;
         }
 
         void stopBatchScan(ScanClient client) {
