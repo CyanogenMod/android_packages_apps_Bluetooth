@@ -174,7 +174,7 @@ static jmethodID method_onBatchScanThresholdCrossed;
 
 static jmethodID method_CreateonTrackAdvFoundLostObject;
 static jmethodID method_onTrackAdvFoundLost;
-
+static jmethodID method_onScanParamSetupCompleted;
 
 /**
  * Server callback methods
@@ -591,6 +591,13 @@ void btgattc_track_adv_event_cb(btgatt_track_adv_info_t *p_adv_track_info)
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
+void btgattc_scan_parameter_setup_completed_cb(int client_if, btgattc_error_t status)
+{
+    CHECK_CALLBACK_ENV
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScanParamSetupCompleted, status, client_if);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
+}
+
 static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_register_app_cb,
     btgattc_scan_result_cb,
@@ -623,7 +630,8 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_batchscan_startstop_cb,
     btgattc_batchscan_reports_cb,
     btgattc_batchscan_threshold_cb,
-    btgattc_track_adv_event_cb
+    btgattc_track_adv_event_cb,
+    btgattc_scan_parameter_setup_completed_cb
 };
 
 
@@ -879,6 +887,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_CreateonTrackAdvFoundLostObject = env->GetMethodID(clazz, "CreateonTrackAdvFoundLostObject", "(II[BI[BIIILjava/lang/String;IIII)Lcom/android/bluetooth/gatt/AdvtFilterOnFoundOnLostInfo;");
     method_onTrackAdvFoundLost = env->GetMethodID(clazz, "onTrackAdvFoundLost",
                                                          "(Lcom/android/bluetooth/gatt/AdvtFilterOnFoundOnLostInfo;)V");
+    method_onScanParamSetupCompleted = env->GetMethodID(clazz, "onScanParamSetupCompleted", "(II)V");
 
     // Server callbacks
 
@@ -1313,10 +1322,11 @@ static void gattSetAdvDataNative(JNIEnv *env, jobject object, jint client_if,
 }
 
 static void gattSetScanParametersNative(JNIEnv* env, jobject object,
-                                        jint scan_interval_unit, jint scan_window_unit)
+                                        jint client_if, jint scan_interval_unit,
+                                        jint scan_window_unit)
 {
     if (!sGattIf) return;
-    sGattIf->client->set_scan_parameters(scan_interval_unit, scan_window_unit);
+    sGattIf->client->set_scan_parameters(client_if, scan_interval_unit, scan_window_unit);
 }
 
 static void gattClientScanFilterParamAddNative(JNIEnv* env, jobject object, jobject params)
@@ -1823,7 +1833,7 @@ static JNINativeMethod sScanMethods[] = {
     {"gattClientScanFilterDeleteNative", "(IIIIIJJJJLjava/lang/String;Ljava/lang/String;B[B[B)V", (void *) gattClientScanFilterDeleteNative},
     {"gattClientScanFilterClearNative", "(II)V", (void *) gattClientScanFilterClearNative},
     {"gattClientScanFilterEnableNative", "(IZ)V", (void *) gattClientScanFilterEnableNative},
-    {"gattSetScanParametersNative", "(II)V", (void *) gattSetScanParametersNative},
+    {"gattSetScanParametersNative", "(III)V", (void *) gattSetScanParametersNative},
 };
 
 // JNI functions defined in GattService class.
