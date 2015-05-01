@@ -307,8 +307,8 @@ public class ScanManager {
         private static final int DELIVERY_MODE_ON_FOUND_LOST = 1;
         private static final int DELIVERY_MODE_BATCH = 2;
 
-        private static final int ONFOUND_SIGHTINGS_AGGRESSIVE = 2;
-        private static final int ONFOUND_SIGHTINGS_STICKY = 5;
+        private static final int ONFOUND_SIGHTINGS_AGGRESSIVE = 1;
+        private static final int ONFOUND_SIGHTINGS_STICKY = 4;
 
         private static final int ALL_PASS_FILTER_INDEX_REGULAR_SCAN = 1;
         private static final int ALL_PASS_FILTER_INDEX_BATCH_SCAN = 2;
@@ -327,14 +327,12 @@ public class ScanManager {
         private static final int SCAN_MODE_LOW_LATENCY_INTERVAL_MS = 5000;
 
         /**
-         * Onfound/onlost timeouts are factors of scan settings
-         * To scan the three advertisement channels, it requires 3 scan
-         * intervals
-         * ToDo: Tuning these values for the platform
+         * Onfound/onlost for scan settings
          */
-        private static final int MATCH_MODE_AGGRESSIVE_TIMEOUT_FACTOR = (3*1);
-        private static final int MATCH_MODE_STICKY_TIMEOUT_FACTOR = (3*5);
+        private static final int MATCH_MODE_AGGRESSIVE_TIMEOUT_FACTOR = (1);
+        private static final int MATCH_MODE_STICKY_TIMEOUT_FACTOR = (3);
         private static final int ONLOST_FACTOR = 2;
+        private static final int ONLOST_ONFOUND_BASE_TIMEOUT_MS = 500;
 
         /**
          * Scan params corresponding to batch scan setting
@@ -942,15 +940,8 @@ public class ScanManager {
 
         private int getOnFoundOnLostTimeoutMillis(ScanSettings settings, boolean onFound) {
             int factor;
-            int timeout = getScanIntervalMillis(settings);
+            int timeout = ONLOST_ONFOUND_BASE_TIMEOUT_MS;
 
-            // ToDo: This tuning is still work in progress.
-            // How is onfound and onlost timeout computed?
-            // scanning occurs 1 channel per scan interval. Assuming all the
-            // channels are required to be scanned, thats 3 intervals.
-            // For aggressive onfound, we thus have timeout of 3x of
-            // scan interval. At least a factor for 'k' between onfound
-            // and onlost timeout to reduce hysterisis.
             if (settings.getMatchMode() == ScanSettings.MATCH_MODE_AGGRESSIVE) {
                 factor = MATCH_MODE_AGGRESSIVE_TIMEOUT_FACTOR;
             } else {
