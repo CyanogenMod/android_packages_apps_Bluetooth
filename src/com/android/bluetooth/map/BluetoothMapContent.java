@@ -1932,7 +1932,7 @@ public class BluetoothMapContent {
     }
 
     private void setFilterInfo(FilterInfo fi) {
-        TelephonyManager tm = 
+        TelephonyManager tm =
             (TelephonyManager)mContext.getSystemService(Context.TELEPHONY_SERVICE);
         if (tm != null) {
             fi.mPhoneType = tm.getPhoneType();
@@ -3227,7 +3227,12 @@ public class BluetoothMapContent {
             String phone,
             boolean incoming) {
         String contactId = null, contactName = null;
-        String[] phoneNumbers = null;
+        String[] phoneNumbers = new String[1];
+        //
+        // Use only actual phone number, because the MCE cannot know which
+        // number the message is from.
+        //
+        phoneNumbers[0] = phone;
         String[] emailAddresses = null;
         Cursor p;
 
@@ -3242,61 +3247,36 @@ public class BluetoothMapContent {
         // Get the contact _ID and name
         p = mResolver.query(uri, projection, selection, null, orderBy);
         try {
-            if (p != null && p.getCount() >= 1) {
-                p.moveToFirst();
+            if (p != null && p.moveToFirst()) {
                 contactId = p.getString(p.getColumnIndex(Contacts._ID));
                 contactName = p.getString(p.getColumnIndex(Contacts.DISPLAY_NAME));
             }
-
         } finally {
-            if (p != null) p.close();
+            close(p);
         }
-
-
         // Bail out if we are unable to find a contact, based on the phone number
-        if(contactId == null) {
-            phoneNumbers = new String[1];
-            phoneNumbers[0] = phone;
-        } else {
-            // use only actual phone number
-            phoneNumbers = new String[1];
-            phoneNumbers[0] = phone;
-
+        if (contactId != null) {
+            Cursor q = null;
+            // Fetch the contact e-mail addresses
             try {
-                if (p != null && p.moveToFirst()) {
-                    contactId = p.getString(p.getColumnIndex(Contacts._ID));
-                    contactName = p.getString(p.getColumnIndex(Contacts.DISPLAY_NAME));
-                }
-
-                // Bail out if we are unable to find a contact, based on the phone number
-                if(contactId == null) {
-                    phoneNumbers = new String[1];
-                    phoneNumbers[0] = phone;
-                } else {
-                    // use only actual phone number
-                    phoneNumbers = new String[1];
-                    phoneNumbers[0] = phone;
-
-                    // Fetch contact e-mail addresses
-                    close (p);
-                    p = mResolver.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, null,
-                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
-                            new String[]{contactId},
-                            null);
-                    if (p != null) {
-                        int i = 0;
-                        emailAddresses = new String[p.getCount()];
-                        while (p != null && p.moveToNext()) {
-                            String emailAddress = p.getString(
-                                    p.getColumnIndex(ContactsContract.CommonDataKinds.Email.ADDRESS));
-                            emailAddresses[i++] = emailAddress;
-                        }
-                    }
+                q = mResolver.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, null,
+                        ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                        new String[]{contactId},
+                        null);
+                if (q != null && q.moveToFirst()) {
+                    int i = 0;
+                    emailAddresses = new String[q.getCount()];
+                    do {
+                        String emailAddress = q.getString(q.getColumnIndex(
+                                ContactsContract.CommonDataKinds.Email.ADDRESS));
+                        emailAddresses[i++] = emailAddress;
+                    } while (q != null && q.moveToNext());
                 }
             } finally {
-                close(p);
+                close(q);
             }
         }
+
         if (incoming == true) {
             if(V) Log.d(TAG, "Adding originator for phone:" + phone);
             // Use version 3.0 as we only have a formatted name
