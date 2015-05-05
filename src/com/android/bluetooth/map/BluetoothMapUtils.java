@@ -251,25 +251,32 @@ public class BluetoothMapUtils {
      */
     public static String getMapHandle(long cpHandle, TYPE messageType){
         String mapHandle = "-1";
-        switch(messageType)
-        {
-            case MMS:
-                mapHandle = getLongAsString(cpHandle | HANDLE_TYPE_MMS_MASK);
-                break;
-            case SMS_GSM:
-                mapHandle = getLongAsString(cpHandle | HANDLE_TYPE_SMS_GSM_MASK);
-                break;
-            case SMS_CDMA:
-                mapHandle = getLongAsString(cpHandle | HANDLE_TYPE_SMS_CDMA_MASK);
-                break;
-            case EMAIL:
-                mapHandle = getLongAsString(cpHandle | HANDLE_TYPE_EMAIL_MASK);
-                break;
-            case IM:
-                mapHandle = getLongAsString(cpHandle | HANDLE_TYPE_IM_MASK);
-                break;
-            default:
-                throw new IllegalArgumentException("Message type not supported");
+        /* Avoid NPE for possible "null" value of messageType */
+        if(messageType != null) {
+            switch(messageType)
+            {
+                case MMS:
+                    mapHandle = getLongAsString(cpHandle | HANDLE_TYPE_MMS_MASK);
+                    break;
+                case SMS_GSM:
+                    mapHandle = getLongAsString(cpHandle | HANDLE_TYPE_SMS_GSM_MASK);
+                    break;
+                case SMS_CDMA:
+                    mapHandle = getLongAsString(cpHandle | HANDLE_TYPE_SMS_CDMA_MASK);
+                    break;
+                case EMAIL:
+                    mapHandle = getLongAsString(cpHandle | HANDLE_TYPE_EMAIL_MASK);
+                    break;
+                case IM:
+                    mapHandle = getLongAsString(cpHandle | HANDLE_TYPE_IM_MASK);
+                    break;
+                case NONE:
+                    break;
+                default:
+                    throw new IllegalArgumentException("Message type not supported");
+            }
+        } else {
+            if(D)Log.e(TAG," Invalid messageType input");
         }
         return mapHandle;
 
