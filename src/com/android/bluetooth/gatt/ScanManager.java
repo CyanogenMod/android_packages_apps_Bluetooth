@@ -419,7 +419,9 @@ public class ScanManager {
                     scanWindow = Utils.millsToUnit(scanWindow);
                     scanInterval = Utils.millsToUnit(scanInterval);
                     gattClientScanNative(false);
-                    gattSetScanParametersNative(scanInterval, scanWindow);
+                    logd("configureRegularScanParams - scanInterval = " + scanInterval +
+                        "configureRegularScanParams - scanWindow = " + scanWindow);
+                    gattSetScanParametersNative(client.clientIf, scanInterval, scanWindow);
                     gattClientScanNative(true);
                     mLastConfiguredScanSetting = curScanSetting;
                 }
@@ -1017,7 +1019,7 @@ public class ScanManager {
         /************************** Regular scan related native methods **************************/
         private native void gattClientScanNative(boolean start);
 
-        private native void gattSetScanParametersNative(int scan_interval,
+        private native void gattSetScanParametersNative(int client_if, int scan_interval,
                 int scan_window);
 
         /************************** Filter related native methods ********************************/

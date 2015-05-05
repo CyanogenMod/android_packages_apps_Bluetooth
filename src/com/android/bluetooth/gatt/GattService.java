@@ -1190,6 +1190,15 @@ public class GattService extends ProfileService {
         }
     }
 
+    void onScanParamSetupCompleted(int status, int clientIf) throws RemoteException {
+        ClientMap.App app = mClientMap.getById(clientIf);
+        if (app == null || app.callback == null) {
+            Log.e(TAG, "Advertise app or callback is null");
+            return;
+        }
+        Log.d(TAG, "onScanParamSetupCompleted : " + status);
+    }
+
     // callback from AdvertiseManager for advertise status dispatch.
     void onMultipleAdvertiseCallback(int clientIf, int status, boolean isStart,
             AdvertiseSettings settings) throws RemoteException {
