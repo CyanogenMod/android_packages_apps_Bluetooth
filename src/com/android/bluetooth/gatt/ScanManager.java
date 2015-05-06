@@ -884,6 +884,7 @@ public class ScanManager {
             int onFoundTimeout = getOnFoundOnLostTimeoutMillis(settings, true);
             int onLostTimeout = getOnFoundOnLostTimeoutMillis(settings, false);
             int onFoundCount = getOnFoundOnLostSightings(settings);
+            onLostTimeout = 10000;
             logd("configureFilterParamter " + onFoundTimeout + " " + onLostTimeout + " "
                     + onFoundCount + " " + numOfTrackingEntries);
             FilterParams FiltValue = new FilterParams(clientIf, filterIndex, featureSelection,
