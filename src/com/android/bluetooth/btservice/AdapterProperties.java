@@ -643,6 +643,8 @@ class AdapterProperties {
         debugLog("onBluetoothDisable()");
         mBluetoothDisabling = true;
         if (getState() == BluetoothAdapter.STATE_TURNING_OFF) {
+            // Turn off any Device Search/Inquiry
+            mService.cancelDiscovery();
             setScanMode(AbstractionLayer.BT_SCAN_MODE_NONE);
         }
     }
