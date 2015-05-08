@@ -1671,7 +1671,10 @@ public class AdapterService extends Service {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH ADMIN permission");
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-        if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDING) {
+        // Only allow setting a pin in bonding state, or bonded state in case of security upgrade.
+        if (deviceProp == null ||
+            (deviceProp.getBondState() != BluetoothDevice.BOND_BONDING &&
+             deviceProp.getBondState() != BluetoothDevice.BOND_BONDED)) {
             return false;
         }
 
