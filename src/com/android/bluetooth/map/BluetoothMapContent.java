@@ -27,11 +27,14 @@ import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.PhoneLookup;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Sms;
+import android.provider.Telephony.MmsSms;
+import android.provider.Telephony.CanonicalAddressesColumns;
 import android.provider.Telephony.Threads;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.text.util.Rfc822Token;
 import android.text.util.Rfc822Tokenizer;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -693,6 +696,14 @@ public class BluetoothMapContent {
                 size = subject.length();
             } else if (fi.mMsgType == FilterInfo.TYPE_MMS) {
                 size = c.getInt(fi.mMmsColSize);
+                //MMS complete size = attachment_size + subject length
+                String subject = e.getSubject();
+                if (subject == null || subject.length() == 0 ) {
+                    // Handle setSubject if not done case
+                    setSubject(e, c, fi, ap);
+                }
+                if (subject != null && subject.length() != 0 )
+                    size += subject.length();
             } else if (fi.mMsgType == FilterInfo.TYPE_EMAIL ||
                        fi.mMsgType == FilterInfo.TYPE_IM) {
                 size = c.getInt(fi.mMessageColSize);
@@ -923,10 +934,17 @@ public class BluetoothMapContent {
             String address = null;
             if (fi.mMsgType == FilterInfo.TYPE_SMS) {
                 int msgType = c.getInt(fi.mSmsColType);
-                if (msgType == 1) {
+                if (msgType == Sms.MESSAGE_TYPE_INBOX ) {
                     address = fi.mPhoneNum;
                 } else {
                     address = c.getString(c.getColumnIndex(Sms.ADDRESS));
+                }
+                if ((address == null) && msgType == Sms.MESSAGE_TYPE_DRAFT) {
+                    //Fetch address for Drafts folder from "canonical_address" table
+                    int threadIdInd = c.getColumnIndex(Sms.THREAD_ID);
+                    String threadIdStr = c.getString(threadIdInd);
+                    address = getCanonicalAddressSms(mResolver, Integer.valueOf(threadIdStr));
+                    if(V)  Log.v(TAG, "threadId = " + threadIdStr + " adress:" + address +"\n");
                 }
             } else if (fi.mMsgType == FilterInfo.TYPE_MMS) {
                 long id = c.getLong(c.getColumnIndex(BaseColumns._ID));
@@ -1271,6 +1289,10 @@ public class BluetoothMapContent {
      *       caching. */
     public static String getContactNameFromPhone(String phone, ContentResolver resolver) {
         String name = null;
+        //Handle possible exception for empty phone address
+        if (TextUtils.isEmpty(phone)) {
+            return name;
+        }
 
         Uri uri = Uri.withAppendedPath(PhoneLookup.ENTERPRISE_CONTENT_FILTER_URI,
                 Uri.encode(phone));
@@ -1293,6 +1315,71 @@ public class BluetoothMapContent {
         }
         return name;
     }
+    /**
+     * Get SMS RecipientAddresses for DRAFT folder based on threadId
+     *
+    */
+    static public String getCanonicalAddressSms(ContentResolver r,  int threadId) {
+       String [] RECIPIENT_ID_PROJECTION = { Threads.RECIPIENT_IDS };
+        /*
+         1. Get Recipient Ids from Threads.CONTENT_URI
+         2. Get Recipient Address for corresponding Id from canonical-addresses table.
+        */
+
+        //Uri sAllCanonical = Uri.parse("content://mms-sms/canonical-addresses");
+        Uri sAllCanonical =
+                MmsSms.CONTENT_URI.buildUpon().appendPath("canonical-addresses").build();
+        Uri sAllThreadsUri =
+                Threads.CONTENT_URI.buildUpon().appendQueryParameter("simple", "true").build();
+        Cursor cr = null;
+        String recipientAddress = "";
+        String recipientIds = null;
+        String whereClause = "_id="+threadId;
+        if (V) Log.v(TAG, "whereClause is "+ whereClause);
+        try {
+            cr = r.query(sAllThreadsUri, RECIPIENT_ID_PROJECTION, whereClause, null, null);
+            if (cr != null && cr.moveToFirst()) {
+                recipientIds = cr.getString(0);
+                if (V) Log.v(TAG, "cursor.getCount(): " + cr.getCount() + "recipientIds: "
+                        + recipientIds + "selection: "+ whereClause );
+            }
+        } finally {
+            if(cr != null) {
+                cr.close();
+                cr = null;
+            }
+        }
+        if (V) Log.v(TAG, "recipientIds with spaces: "+ recipientIds +"\n");
+        if(recipientIds != null) {
+            String recipients[] = null;
+            whereClause = "";
+            recipients = recipientIds.split(" ");
+            for (String id: recipients) {
+                if(whereClause.length() != 0)
+                    whereClause +=" OR ";
+                whereClause +="_id="+id;
+            }
+            if (V) Log.v(TAG, "whereClause is "+ whereClause);
+            try {
+                cr = r.query(sAllCanonical , null, whereClause, null, null);
+                if (cr != null && cr.moveToFirst()) {
+                    do {
+                        //TODO: Multiple Recipeints are appended with ";" for now.
+                        if(recipientAddress.length() != 0 )
+                           recipientAddress+=";";
+                        recipientAddress += cr.getString(
+                                cr.getColumnIndex(CanonicalAddressesColumns.ADDRESS));
+                    } while(cr.moveToNext());
+                }
+           } finally {
+               if(cr != null)
+                   cr.close();
+           }
+        }
+
+        if(V) Log.v(TAG,"Final recipientAddress : "+ recipientAddress);
+        return recipientAddress;
+     }
 
     static public String getAddressMms(ContentResolver r, long id, int type) {
         String selection = new String("msg_id=" + id + " AND type=" + type);
@@ -3224,10 +3311,13 @@ public class BluetoothMapContent {
     }
 
     private String setVCardFromPhoneNumber(BluetoothMapbMessage message,
-            String phone,
-            boolean incoming) {
+            String phone, boolean incoming) {
         String contactId = null, contactName = null;
         String[] phoneNumbers = new String[1];
+        //Handle possible exception for empty phone address
+        if (TextUtils.isEmpty(phone)) {
+            return contactName;
+        }
         //
         // Use only actual phone number, because the MCE cannot know which
         // number the message is from.
@@ -3328,7 +3418,10 @@ public class BluetoothMapContent {
                 msgBody = c.getString(c.getColumnIndex(Sms.BODY));
 
                 String phone = c.getString(c.getColumnIndex(Sms.ADDRESS));
-
+                if ((phone == null) && type == Sms.MESSAGE_TYPE_DRAFT) {
+                    //Fetch address for Drafts folder from "canonical_address" table
+                    phone  = getCanonicalAddressSms(mResolver, threadId);
+                }
                 time = c.getLong(c.getColumnIndex(Sms.DATE));
                 if(type == 1) // Inbox message needs to set the vCard as originator
                     setVCardFromPhoneNumber(message, phone, true);
