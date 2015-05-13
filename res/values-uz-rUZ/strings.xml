@@ -68,9 +68,9 @@
     <string name="upload_line5" msgid="7759322537674229752">"Fayl jo‘natilmoqda…"</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"Fayl jo‘natildi"</string>
     <string name="upload_succ_ok" msgid="7705428476405478828">"OK"</string>
-    <string name="upload_fail_line1" msgid="7899394672421491701">"Ushbu fayl \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"ga jo‘natilmadi."</string>
+    <string name="upload_fail_line1" msgid="7899394672421491701">"Fayl “<xliff:g id="RECIPIENT">%1$s</xliff:g>” qurilmasiga yuborilmadi."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Fayl: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_ok" msgid="5807702461606714296">"Yana urinib ko‘ring"</string>
+    <string name="upload_fail_ok" msgid="5807702461606714296">"Qayta urinish"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Yopish"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"OK"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Noma’lum fayl"</string>
@@ -93,19 +93,19 @@
     <string name="status_running" msgid="6562808920311008696">"Fayl o‘tkazmasi davom etmoqda."</string>
     <string name="status_success" msgid="239573225847565868">"Fayl o‘tkazmasi muvaffaqiyatli tugadi."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"Kontent qo‘llab-quvvatlanmaydi."</string>
-    <string name="status_forbidden" msgid="613956401054050725">"O‘tkazma qabul qiluvchi qurilma tomonidan taqiqlandi."</string>
+    <string name="status_forbidden" msgid="613956401054050725">"Qabul qiluvchi qurilmada fayl o‘tkazish taqiqlangan."</string>
     <string name="status_canceled" msgid="6664490318773098285">"O‘tkazma bekor qilindi."</string>
     <string name="status_file_error" msgid="3671917770630165299">"Saqlash muammolari."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"USB xotira yo‘q."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"SD karta yo‘q. O‘tkazilgan fayllarni saqlash uchun SD karta kiriting."</string>
     <string name="status_connection_error" msgid="947681831523219891">"Ulanish muvaffaqiyatsiz yakunlandi."</string>
-    <string name="status_protocol_error" msgid="3245444473429269539">"So‘rov to‘g‘ri amalga oshirilmasligi mumkin."</string>
+    <string name="status_protocol_error" msgid="3245444473429269539">"So‘rovni to‘g‘ri bajarib bo‘lmaydi."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Noma’lum xato."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth orqali olingan"</string>
-    <string name="download_success" msgid="7036160438766730871">"To‘liq olindi: <xliff:g id="FILE_SIZE">%1$s</xliff:g>"</string>
-    <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> jo‘natish tugadi."</string>
+    <string name="download_success" msgid="7036160438766730871">"To‘liq qabul qilindi: <xliff:g id="FILE_SIZE">%1$s</xliff:g>"</string>
+    <string name="upload_success" msgid="4014469387779648949">"To‘liq yuborildi: <xliff:g id="FILE_SIZE">%1$s</xliff:g>"</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Kiruvchi o‘tkazmalar"</string>
-    <string name="outbound_history_title" msgid="4279418703178140526">"Chiquvchi uzatishlar"</string>
+    <string name="outbound_history_title" msgid="4279418703178140526">"Chiquvchi o‘tkazmalar"</string>
     <string name="no_transfers" msgid="3482965619151865672">"O‘tkazmalar tarixi bo‘m-bo‘sh."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Barcha elementlar ro‘yxatdan o‘chiriladi."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth o‘tkazmalari: Yuborilgan fayllar"</string>
