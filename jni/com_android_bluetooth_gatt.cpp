@@ -581,9 +581,10 @@ void btgattc_track_adv_event_cb(btgatt_track_adv_info_t *p_adv_track_info)
                     address, p_adv_track_info->addr_type, p_adv_track_info->tx_power,
                     p_adv_track_info->rssi_value, p_adv_track_info->time_stamp);
 
-    if (NULL != trackadv_obj)
+    if (NULL != trackadv_obj) {
         sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onTrackAdvFoundLost, trackadv_obj);
-
+        sCallbackEnv->DeleteLocalRef(trackadv_obj);
+    }
     sCallbackEnv->DeleteLocalRef(address);
     sCallbackEnv->DeleteLocalRef(jb_adv_pkt);
     sCallbackEnv->DeleteLocalRef(jb_scan_rsp);
