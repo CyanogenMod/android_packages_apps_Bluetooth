@@ -674,6 +674,9 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         } catch (NumberFormatException e) {
             Log.w(TAG, "Wrongly formatted message handle: " + msgHandle);
             return ResponseCodes.OBEX_HTTP_PRECON_FAILED;
+        } catch (IllegalArgumentException e) {
+            Log.w(TAG, "Message type not found in handle string: " + msgHandle);
+            return ResponseCodes.OBEX_HTTP_PRECON_FAILED;
         }
 
         if( indicator == BluetoothMapAppParams.STATUS_INDICATOR_DELETED) {
