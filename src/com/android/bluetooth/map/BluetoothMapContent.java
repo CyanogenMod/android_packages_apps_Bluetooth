@@ -149,6 +149,7 @@ public class BluetoothMapContent {
             PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND );
 
     public static final String INSERT_ADDRES_TOKEN = "insert-address-token";
+    private static final String HONDA_CARKIT = "64:D4:BD";
 
     private final Context mContext;
     private final ContentResolver mResolver;
@@ -1232,8 +1233,9 @@ public class BluetoothMapContent {
         int subLength = ap.getSubjectLength();
         if(subLength == BluetoothMapAppParams.INVALID_VALUE_PARAMETER)
             subLength = 256;
-
-        if ((ap.getParameterMask() & MASK_SUBJECT) != 0) {
+        //Fix Subject Display issue with HONDA Carkit - Ignore subject Mask.
+        if (BluetoothMapService.getRemoteDevice().getAddress().startsWith(HONDA_CARKIT) ||
+                         (ap.getParameterMask() & MASK_SUBJECT) != 0) {
             if (fi.mMsgType == FilterInfo.TYPE_SMS) {
                 subject = c.getString(fi.mSmsColSubject);
             } else if (fi.mMsgType == FilterInfo.TYPE_MMS) {
