@@ -18,4 +18,5 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <string name="empty_file_notification_sent">บลูทูธที่ใช้ร่วมกัน: ระยะไกลปฏิเสธความยาวเป็นศูนย์ ไฟล์<xliff:g id="file"> %1$s</xliff:g></string>
+  <string name="upload_fail_waiting">ไม่สามารถส่งไฟล์ได้ กำลังลองอีกครั้ง\u2026</string>
 </resources>
