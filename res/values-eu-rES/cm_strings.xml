@@ -17,6 +17,6 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="empty_file_notification_sent">بەشداریکردنی بلوتوس:کۆنترۆل سفر درێژی فایلەکە <xliff:g id="file">%1$s</xliff:g></string>
-  <string name="upload_fail_waiting">ناتوانرێت فایل بنێردرێت، دوبارەهەوڵبەرەوە\u2026</string>
+  <string name="empty_file_notification_sent">Bluetooth partekatzea: <xliff:g id="file">%1$s</xliff:g> fitxategi hutsa ukatua izan da</string>
+  <string name="upload_fail_waiting">Ezin izan da fitxategia bidali, berriro saiatzen\u2026</string>
 </resources>
