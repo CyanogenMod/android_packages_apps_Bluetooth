@@ -573,6 +573,12 @@ public class BluetoothMapService extends ProfileService {
         if (DEBUG) Log.d(TAG, "start()");
         if(!VERBOSE)
         VERBOSE = Log.isLoggable(LOG_TAG, Log.VERBOSE);
+
+        if (!Utils.checkCaller()) {
+            Log.w(TAG, "start received for non-active user, ignoring");
+            return false;
+        }
+
         if (VERBOSE) Log.v(TAG, "verbose logging is enabled");
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
