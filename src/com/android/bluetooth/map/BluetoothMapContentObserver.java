@@ -47,6 +47,7 @@ import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.util.Xml;
+import android.text.TextUtils;
 
 import org.xmlpull.v1.XmlSerializer;
 
@@ -1371,9 +1372,9 @@ public class BluetoothMapContentObserver {
                                     // We shall only use the folder attribute, but can't remember
                                     // wether to set it to "deleted" or the name of the folder
                                     // from which the message have been deleted.
+                                    // "old_folder" used only for MessageShift event
                                     Event evt = new Event(EVENT_TYPE_DELETE, id,
-                                            BluetoothMapContract.FOLDER_NAME_DELETED,
-                                            getSmsFolderName(msg.type), mSmsType);
+                                            getSmsFolderName(msg.type), null, mSmsType);
                                     sendEvent(evt);
                                     msg.threadId = threadId;
                                 } else { // Undelete
@@ -1403,9 +1404,9 @@ public class BluetoothMapContentObserver {
             }
 
             for (Msg msg : getMsgListSms().values()) {
+                // "old_folder" used only for MessageShift event
                 Event evt = new Event(EVENT_TYPE_DELETE, msg.id,
-                        BluetoothMapContract.FOLDER_NAME_DELETED,
-                        getSmsFolderName(msg.type), mSmsType);
+                        getSmsFolderName(msg.type), null, mSmsType);
                 sendEvent(evt);
                 listChanged = true;
             }
@@ -1526,9 +1527,9 @@ public class BluetoothMapContentObserver {
                                         + msg.threadId);
                                 listChanged = true;
                                 if(threadId == DELETED_THREAD_ID) { // Message deleted
+                                    // "old_folder" used only for MessageShift event
                                     Event evt = new Event(EVENT_TYPE_DELETE, id,
-                                            BluetoothMapContract.FOLDER_NAME_DELETED,
-                                            getMmsFolderName(msg.type), TYPE.MMS);
+                                            getMmsFolderName(msg.type), null, TYPE.MMS);
                                     sendEvent(evt);
                                     msg.threadId = threadId;
                                 } else { // Undelete
@@ -1558,9 +1559,9 @@ public class BluetoothMapContentObserver {
                 if (c != null) c.close();
             }
             for (Msg msg : getMsgListMms().values()) {
+                // "old_folder" used only for MessageShift event
                 Event evt = new Event(EVENT_TYPE_DELETE, msg.id,
-                        BluetoothMapContract.FOLDER_NAME_DELETED,
-                        getMmsFolderName(msg.type), TYPE.MMS);
+                        getMmsFolderName(msg.type), null, TYPE.MMS);
                 sendEvent(evt);
                 listChanged = true;
             }
@@ -1669,8 +1670,9 @@ public class BluetoothMapContentObserver {
                                  */
                                 if(deletedFolder != null && deletedFolder.getFolderId()
                                         == folderId) {
-                                    Event evt = new Event(EVENT_TYPE_DELETE, msg.id, newFolder,
-                                            oldFolder, mAccount.getType());
+                                    // "old_folder" used only for MessageShift event
+                                    Event evt = new Event(EVENT_TYPE_DELETE, msg.id, oldFolder,
+                                            null, mAccount.getType());
                                     sendEvent(evt);
                                 } else if(sentFolder != null
                                         && sentFolder.getFolderId() == folderId
@@ -1741,8 +1743,9 @@ public class BluetoothMapContentObserver {
                  */
                 if (!msg.transparent) {
 
-                    Event evt = new Event(EVENT_TYPE_DELETE, msg.id, null, oldFolder,
-                            mAccount.getType());
+                    // "old_folder" used only for MessageShift event
+                    Event evt = new Event(EVENT_TYPE_DELETE, msg.id, oldFolder,
+                            null, mAccount.getType());
                     sendEvent(evt);
                 }
             }
@@ -2505,6 +2508,11 @@ public class BluetoothMapContentObserver {
                         if(msgBody == null)
                             msgBody = ((BluetoothMapbMessageSms) msg).getSmsBody();
 
+                        if (TextUtils.isEmpty(msgBody)) {
+                            Log.d(TAG, "PushMsg: Empty msgBody ");
+                            /* not allowed to push empty message */
+                            throw new IllegalArgumentException("push EMPTY message: Invalid Body");
+                        }
                         /* We need to lock the SMS list while updating the database,
                          * to avoid sending events on MCE initiated operation. */
                         Uri contentUri = Uri.parse(Sms.CONTENT_URI+ "/" + folder);
@@ -2914,43 +2922,46 @@ public class BluetoothMapContentObserver {
          *       The correct solution would be to create a service that will start based on
          *       the intent, if BT is turned off. */
 
-        for (int i = 0; i < msgInfo.parts; i++) {
-            Intent intentDelivery, intentSent;
+        if (parts != null && parts.size() > 0) {
+            for (int i = 0; i < msgInfo.parts; i++) {
+                Intent intentDelivery, intentSent;
 
-            intentDelivery = new Intent(ACTION_MESSAGE_DELIVERY, null);
-            /* Add msgId and part number to ensure the intents are different, and we
-             * thereby get an intent for each msg part.
-             * setType is needed to create different intents for each message id/ time stamp,
-             * as the extras are not used when comparing. */
-            intentDelivery.setType("message/" + Long.toString(msgInfo.id) + msgInfo.timestamp + i);
-            intentDelivery.putExtra(EXTRA_MESSAGE_SENT_HANDLE, msgInfo.id);
-            intentDelivery.putExtra(EXTRA_MESSAGE_SENT_TIMESTAMP, msgInfo.timestamp);
-            PendingIntent pendingIntentDelivery = PendingIntent.getBroadcast(mContext, 0,
-                    intentDelivery, PendingIntent.FLAG_UPDATE_CURRENT);
+                intentDelivery = new Intent(ACTION_MESSAGE_DELIVERY, null);
+                /* Add msgId and part number to ensure the intents are different, and we
+                 * thereby get an intent for each msg part.
+                 * setType is needed to create different intents for each message id/ time stamp,
+                 * as the extras are not used when comparing. */
+                intentDelivery.setType("message/" + Long.toString(msgInfo.id) +
+                        msgInfo.timestamp + i);
+                intentDelivery.putExtra(EXTRA_MESSAGE_SENT_HANDLE, msgInfo.id);
+                intentDelivery.putExtra(EXTRA_MESSAGE_SENT_TIMESTAMP, msgInfo.timestamp);
+                PendingIntent pendingIntentDelivery = PendingIntent.getBroadcast(mContext, 0,
+                        intentDelivery, PendingIntent.FLAG_UPDATE_CURRENT);
 
-            intentSent = new Intent(ACTION_MESSAGE_SENT, null);
-            /* Add msgId and part number to ensure the intents are different, and we
-             * thereby get an intent for each msg part.
-             * setType is needed to create different intents for each message id/ time stamp,
-             * as the extras are not used when comparing. */
-            intentSent.setType("message/" + Long.toString(msgInfo.id) + msgInfo.timestamp + i);
-            intentSent.putExtra(EXTRA_MESSAGE_SENT_HANDLE, msgInfo.id);
-            intentSent.putExtra(EXTRA_MESSAGE_SENT_URI, msgInfo.uri.toString());
-            intentSent.putExtra(EXTRA_MESSAGE_SENT_RETRY, msgInfo.retry);
-            intentSent.putExtra(EXTRA_MESSAGE_SENT_TRANSPARENT, msgInfo.transparent);
+                intentSent = new Intent(ACTION_MESSAGE_SENT, null);
+                /* Add msgId and part number to ensure the intents are different, and we
+                 * thereby get an intent for each msg part.
+                 * setType is needed to create different intents for each message id/ time stamp,
+                 * as the extras are not used when comparing. */
+                intentSent.setType("message/" + Long.toString(msgInfo.id) + msgInfo.timestamp + i);
+                intentSent.putExtra(EXTRA_MESSAGE_SENT_HANDLE, msgInfo.id);
+                intentSent.putExtra(EXTRA_MESSAGE_SENT_URI, msgInfo.uri.toString());
+                intentSent.putExtra(EXTRA_MESSAGE_SENT_RETRY, msgInfo.retry);
+                intentSent.putExtra(EXTRA_MESSAGE_SENT_TRANSPARENT, msgInfo.transparent);
 
-            PendingIntent pendingIntentSent = PendingIntent.getBroadcast(mContext, 0,
-                    intentSent, PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent pendingIntentSent = PendingIntent.getBroadcast(mContext, 0,
+                        intentSent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-            // We use the same pending intent for all parts, but do not set the one shot flag.
-            deliveryIntents.add(pendingIntentDelivery);
-            sentIntents.add(pendingIntentSent);
+                // We use the same pending intent for all parts, but do not set the one shot flag.
+                deliveryIntents.add(pendingIntentDelivery);
+                sentIntents.add(pendingIntentSent);
+            }
+
+            Log.d(TAG, "sendMessage to " + msgInfo.phone);
+
+            smsMng.sendMultipartTextMessage(msgInfo.phone, null, parts, sentIntents,
+                    deliveryIntents);
         }
-
-        Log.d(TAG, "sendMessage to " + msgInfo.phone);
-
-        smsMng.sendMultipartTextMessage(msgInfo.phone, null, parts, sentIntents,
-                deliveryIntents);
     }
 
     private class SmsBroadcastReceiver extends BroadcastReceiver {
