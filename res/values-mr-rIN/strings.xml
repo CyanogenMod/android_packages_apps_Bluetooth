@@ -20,7 +20,7 @@
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"अ‍ॅपला BluetoothShare व्‍यवस्‍थापकामध्‍ये प्रवेश करण्‍याची आणि फायली स्‍थानांतरित करण्‍यासाठी त्याचा वापर करण्‍याची अनुमती देते."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"श्वेतसूची ब्लूटूथ डिव्‍हाइस प्रवेश."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"अ‍ॅपला त्या डिव्‍हाइसला वापरकर्ता पुष्‍टीशिवाय या डिव्‍हासवर फायली पाठविण्‍याची अनुमती देऊन तात्पुरते ब डिव्‍हाइसला श्वेतसूची करण्‍याची अनुमती देते."</string>
-    <string name="bt_share_picker_label" msgid="6268100924487046932">"ब"</string>
+    <string name="bt_share_picker_label" msgid="6268100924487046932">"ब्लूटुथ"</string>
     <string name="unknown_device" msgid="9221903979877041009">"अज्ञात डिव्हाइस"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"अज्ञात"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"विमान मोड"</string>
