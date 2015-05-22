@@ -405,6 +405,7 @@ public class AdapterService extends Service {
 
     public void onDestroy() {
         debugLog("onDestroy()");
+        unregisterReceiver(mAlarmBroadcastReceiver);
     }
 
     void processStart() {
@@ -480,8 +481,6 @@ public class AdapterService extends Service {
         }
 
         mCleaningUp = true;
-
-        unregisterReceiver(mAlarmBroadcastReceiver);
 
         if (mPendingAlarm != null) {
             mAlarmManager.cancel(mPendingAlarm);
