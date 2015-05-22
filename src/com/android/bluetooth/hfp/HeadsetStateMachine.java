@@ -2537,6 +2537,12 @@ final class HeadsetStateMachine extends StateMachine {
         }
 
         String dialNumber;
+        if (mDialingOut) {
+            if (DBG) log("processDialCall, already dialling");
+            atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR, 0,
+                                       getByteAddress(device));
+            return;
+        }
         if ((number == null) || (number.length() == 0)) {
             dialNumber = mPhonebook.getLastDialledNumber();
             if (dialNumber == null) {
