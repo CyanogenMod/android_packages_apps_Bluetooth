@@ -353,6 +353,15 @@ final class HeadsetStateMachine extends StateMachine {
                         break;
                     }
 
+                    if (mPhoneProxy != null) {
+                        try {
+                            log("Query the phonestates");
+                            mPhoneProxy.queryPhoneState();
+                        } catch (RemoteException e) {
+                            Log.e(TAG, Log.getStackTraceString(new Throwable()));
+                        }
+                    } else Log.e(TAG, "Phone proxy null for query phone state");
+
                     synchronized (HeadsetStateMachine.this) {
                         mTargetDevice = device;
                         transitionTo(mPending);
@@ -431,7 +440,15 @@ final class HeadsetStateMachine extends StateMachine {
             case HeadsetHalConstants.CONNECTION_STATE_CONNECTED:
                 Log.w(TAG, "HFP Connected from Disconnected state");
                 if (okToConnect(device)) {
-                    Log.i(TAG,"Incoming Hf accepted");
+                    Log.d(TAG, "Incoming Hf accepted");
+                    if (mPhoneProxy != null) {
+                        try {
+                            log("Query the phonestates");
+                            mPhoneProxy.queryPhoneState();
+                        } catch (RemoteException e) {
+                            Log.e(TAG, Log.getStackTraceString(new Throwable()));
+                        }
+                    } else Log.e(TAG, "Phone proxy null for query phone state");
                     broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTED,
                                              BluetoothProfile.STATE_DISCONNECTED);
                     synchronized (HeadsetStateMachine.this) {
