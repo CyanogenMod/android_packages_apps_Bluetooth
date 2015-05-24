@@ -43,7 +43,7 @@
   <string name="notification_received_fail">Bluetooth-Fräigab: Fichier <xliff:g id="file">%1$s</xliff:g> net empfaangen</string>
   <string name="notification_sending">Bluetooth-Fräigab: <xliff:g id="file">%1$s</xliff:g> gëtt geschéckt</string>
   <string name="notification_sent">Bluetooth-Fräigab: <xliff:g id="file">%1$s</xliff:g> geschéckt</string>
-  <string name="notification_sent_complete">100% ofgeschloss</string>
+  <string name="notification_sent_complete">100 % ofgeschloss</string>
   <string name="notification_sent_fail">Bluetooth-Fräigab: Fichier <xliff:g id="file">%1$s</xliff:g> net geschéckt</string>
   <string name="download_title">Fichiersiwwerdroung</string>
   <string name="download_line1">Vum: \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022</string>
