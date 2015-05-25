@@ -34,18 +34,26 @@ package com.android.bluetooth.opp;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.lang.Thread;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.os.Process;
+import android.os.SystemProperties;
+import android.provider.ContactsContract.Contacts;
+import android.provider.ContactsContract.Profile;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
@@ -155,6 +163,46 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         }
         mCallback = null;
         mSession = null;
+    }
+
+    private class ContentResolverUpdateThread extends Thread {
+
+        private static final int sSleepTime = 500;
+        private Uri contentUri;
+        private Context mContext1;
+        private long position;
+
+        public ContentResolverUpdateThread(Context context, Uri cntUri, long pos) {
+            super("BtOpp Server ContentResolverUpdateThread");
+            mContext1 = context;
+            contentUri = cntUri;
+            position = pos;
+        }
+
+        public void updateProgress (long pos) {
+            position = pos;
+        }
+
+        @Override
+        public void run() {
+            ContentValues updateValues;
+
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+
+            while (true) {
+                updateValues = new ContentValues();
+                updateValues.put(BluetoothShare.CURRENT_BYTES, position);
+                mContext1.getContentResolver().update(contentUri, updateValues,
+                        null, null);
+
+                try {
+                    Thread.sleep(sSleepTime);
+                } catch (InterruptedException e1) {
+                    if (V) Log.v(TAG, "Server ContentResolverUpdateThread was interrupted (1), exiting");
+                    return;
+                }
+            }
+        }
     }
 
     public void addShare(BluetoothOppShareInfo info) {
@@ -435,6 +483,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
          */
         int status = -1;
         BufferedOutputStream bos = null;
+        ContentResolverUpdateThread uiUpdateThread = null;
 
         InputStream is = null;
         boolean error = false;
@@ -454,7 +503,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             mContext.getContentResolver().update(contentUri, updateValues, null, null);
         }
 
-        int position = 0;
+        long position = 0;
         if (!error) {
             bos = new BufferedOutputStream(fileInfo.mOutputStream, 0x10000);
         }
@@ -485,9 +534,29 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                                 + (System.currentTimeMillis() - timestamp) + " ms");
                     }
 
+                    if (uiUpdateThread == null) {
+                        uiUpdateThread = new ContentResolverUpdateThread (mContext, contentUri, position);
+                        if (V) Log.v(TAG, "Worker for Updation : Created");
+                        uiUpdateThread.start();
+                    } else {
+                        uiUpdateThread.updateProgress (position);
+                    }
+                }
+
+                if (uiUpdateThread != null) {
+                    try {
+                        if (V) Log.v(TAG, "Worker for Updation : Destroying");
+                        uiUpdateThread.interrupt ();
+                        uiUpdateThread.join ();
+                        uiUpdateThread = null;
+
                     ContentValues updateValues = new ContentValues();
                     updateValues.put(BluetoothShare.CURRENT_BYTES, position);
-                    mContext.getContentResolver().update(contentUri, updateValues, null, null);
+                        mContext.getContentResolver().update(contentUri, updateValues,
+                                        null, null);
+                    } catch (InterruptedException ie) {
+                            if (V) Log.v(TAG, "Interrupted waiting for uiUpdateThread to join");
+                    }
                 }
             } catch (IOException e1) {
                 Log.e(TAG, "Error when receiving file");
@@ -498,6 +567,12 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                     status = BluetoothShare.STATUS_OBEX_DATA_ERROR;
                 }
                 error = true;
+            } finally {
+                if (uiUpdateThread != null) {
+                    if (V) Log.v(TAG, "Worker for Updation : Finally Destroying");
+                    uiUpdateThread.interrupt ();
+                    uiUpdateThread = null;
+                }
             }
         }
 
