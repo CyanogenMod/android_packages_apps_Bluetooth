@@ -1645,8 +1645,8 @@ public class GattService extends ProfileService {
         switch (connectionPriority)
         {
             case BluetoothGatt.CONNECTION_PRIORITY_HIGH:
-                minInterval = 6; // 7.5ms
-                maxInterval = 8; // 10ms
+                minInterval = 9; // 11.25ms
+                maxInterval = 12; // 15ms
                 break;
 
             case BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER:
