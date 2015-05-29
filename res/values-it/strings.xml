@@ -106,7 +106,7 @@
     <string name="upload_success" msgid="4014469387779648949">"Invio completato (<xliff:g id="FILE_SIZE">%1$s</xliff:g>)"</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Trasferimenti in entrata"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Trasferimenti in uscita"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"La cronologia di trasferimento è vuota."</string>
+    <string name="no_transfers" msgid="3482965619151865672">"La cronologia dei trasferimenti è vuota."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Tutti gli elementi verranno cancellati dall\'elenco."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Condivisione Bluetooth: file inviati"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Condivisione Bluetooth: file ricevuti"</string>
