@@ -103,6 +103,7 @@ final class HeadsetStateMachine extends StateMachine {
 
     static final int ENABLE_WBS = 16;
     static final int DISABLE_WBS = 17;
+    static final int QUERY_PHONE_STATE_AT_SLC = 20;
 
 
     private static final int STACK_EVENT = 101;
@@ -115,6 +116,7 @@ final class HeadsetStateMachine extends StateMachine {
     private static final int DIALING_OUT_TIMEOUT_VALUE = 10000;
     private static final int START_VR_TIMEOUT_VALUE = 5000;
     private static final int CLCC_RSP_TIMEOUT_VALUE = 5000;
+    private static final int QUERY_PHONE_STATE_CHANGED_DELAYED = 100;
 
     // Max number of HF connections at any time
     private int max_hf_connections = 1;
@@ -955,6 +957,14 @@ final class HeadsetStateMachine extends StateMachine {
                     }
                 }
                     break;
+                case QUERY_PHONE_STATE_AT_SLC:
+                    try {
+                       log("Update call states after SLC is up");
+                       mPhoneProxy.queryPhoneState();
+                    } catch (RemoteException e) {
+                       Log.e(TAG, Log.getStackTraceString(new Throwable()));
+                    }
+                    break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
                     if (DBG) {
@@ -1140,12 +1150,9 @@ final class HeadsetStateMachine extends StateMachine {
 
         private void processSlcConnected() {
             if (mPhoneProxy != null) {
-                try {
-                    mPhoneProxy.queryPhoneState();
-                } catch (RemoteException e) {
-                    Log.e(TAG, Log.getStackTraceString(new Throwable()));
-                }
-            } else {
+                sendMessageDelayed(QUERY_PHONE_STATE_AT_SLC, QUERY_PHONE_STATE_CHANGED_DELAYED);
+            }
+            else {
                 Log.e(TAG, "Handsfree phone proxy null for query phone state");
             }
 
