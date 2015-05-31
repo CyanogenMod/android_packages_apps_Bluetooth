@@ -17,6 +17,6 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="empty_file_notification_sent">Bluetooth: <xliff:g id="file">%1$s</xliff:g> fitxategi hutsa ukatua izan da</string>
+  <string name="empty_file_notification_sent">Bluetooth partekatzea: <xliff:g id="file">%1$s</xliff:g> fitxategi hutsa ukatua izan da</string>
   <string name="format_progress_text">%%1$d%</string>
 </resources>
