@@ -236,6 +236,7 @@ public class BluetoothPbapService extends Service {
     // process the intent from receiver
     private void parseIntent(final Intent intent) {
         String action = intent.getStringExtra("action");
+        if (action == null) return;             // Nothing to do
         if (VERBOSE) Log.v(TAG, "action: " + action);
 
         int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
