@@ -46,7 +46,8 @@
         </receiver>
         <activity android:name=".opp.BluetoothOppLauncherActivity"
             android:process="@string/process"
-            android:theme="@android:style/Theme.Holo.Dialog" android:label="@string/bt_share_picker_label">
+            android:theme="@android:style/Theme.Material.DayNight.Dialog"
+            android:label="@string/bt_share_picker_label">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -74,8 +75,9 @@
           android:process="@string/process">
         </activity>
         <activity android:name=".opp.BluetoothOppBtEnablingActivity"
-            android:process="@string/process">
-            android:theme="@android:style/Theme.Holo.Dialog"> </activity>
+            android:process="@string/process"
+            android:theme="@android:style/Theme.Material.DayNight.Dialog">
+        </activity>
         <activity android:name=".opp.BluetoothOppIncomingFileConfirmActivity"
             android:process="@string/process">
         </activity>
@@ -85,7 +87,7 @@
         <activity android:name=".pbap.BluetoothPbapActivity"
             android:process="@string/process"
             android:label=" "
-            android:theme="@*android:style/Theme.Holo.Dialog.Alert">
+            android:theme="@android:style/Theme.Material.DayNight.Dialog.Alert">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
