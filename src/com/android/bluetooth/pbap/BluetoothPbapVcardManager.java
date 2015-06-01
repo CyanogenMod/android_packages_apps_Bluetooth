@@ -409,43 +409,27 @@ public class BluetoothPbapVcardManager {
             return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
         }
 
-        final MatrixCursor selectionCursor = new MatrixCursor(new String[] {
-            Phone.CONTACT_ID
-        });
-
         final Uri myUri = DevicePolicyUtils.getEnterprisePhoneUri(mContext);
         Cursor contactCursor = null;
+        Cursor contactIdCursor = new MatrixCursor(new String[] {
+            Phone.CONTACT_ID
+        });
         try {
             contactCursor = mResolver.query(myUri, PHONES_CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
                     null, Phone.CONTACT_ID);
             if (contactCursor != null) {
-                final int contactIdColumn = contactCursor.getColumnIndex(Data.CONTACT_ID);
-                long previousContactId = -1;
-                // As startPoint, endPoint index starts from 1 to n, we set
-                // currentPoint base as 1 not 0
-                int currentPoint = 1;
-                while(contactCursor.moveToNext() && currentPoint <= endPoint) {
-                    long currentContactId = contactCursor.getLong(contactIdColumn);
-                    if (previousContactId != currentContactId) {
-                        previousContactId = currentContactId;
-                        if (currentPoint >= startPoint) {
-                            selectionCursor.addRow(new Long[] {currentContactId});
-                            if (V) Log.v(TAG, "SelectionCursor addrow: " + currentContactId);
-                        }
-                        currentPoint++;
-                    }
-                }
+                contactIdCursor = ContactCursorFilter.filterByRange(contactCursor, startPoint,
+                        endPoint);
             }
         } catch (CursorWindowAllocationException e) {
             Log.e(TAG, "CursorWindowAllocationException while composing phonebook vcards");
         } finally {
             if (contactCursor != null) {
                 contactCursor.close();
-                contactCursor = null;
             }
         }
-        return composeContactsAndSendVCards(op, selectionCursor, vcardType21, ownerVCard,
-            ignorefilter, filter);
+        return composeContactsAndSendVCards(op, contactIdCursor, vcardType21, ownerVCard,
+                ignorefilter, filter);
     }
 
     public final int composeAndSendPhonebookOneVcard(Operation op, final int offset,
@@ -456,46 +440,72 @@ public class BluetoothPbapVcardManager {
             return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
         }
         final Uri myUri = DevicePolicyUtils.getEnterprisePhoneUri(mContext);
+
         Cursor contactCursor = null;
+        Cursor contactIdCursor = new MatrixCursor(new String[] {
+            Phone.CONTACT_ID
+        });
         try {
             contactCursor = mResolver.query(myUri, PHONES_CONTACTS_PROJECTION,
-                CLAUSE_ONLY_VISIBLE, null, Phone.CONTACT_ID);
+                    CLAUSE_ONLY_VISIBLE, null, Phone.CONTACT_ID);
+            contactIdCursor = ContactCursorFilter.filterByOffset(contactCursor, offset);
+
         } catch (CursorWindowAllocationException e) {
             Log.e(TAG,
                     "CursorWindowAllocationException while composing phonebook one vcard");
         } finally {
             if (contactCursor != null) {
                 contactCursor.close();
-                contactCursor = null;
             }
         }
-        long targetContactId = 0;
-        long previousContactId = -1;
-        // As offset starts from 1, currentOffset's base is 1 also
-        int currentOffset = 1;
-        final int contactIdColumn = contactCursor.getColumnIndex(Data.CONTACT_ID);
-
-        while(contactCursor.moveToNext()) {
-            long currentContactId = contactCursor.getLong(contactIdColumn);
-            if (previousContactId != currentContactId) {
-                if (currentOffset == offset) {
-                    targetContactId = currentContactId;
-                    break;
-                }
-                currentOffset++;
-                previousContactId = currentContactId;
-            }
-        }
-
-        MatrixCursor contactIdCursor = new MatrixCursor(new String[] {
-            Phone.CONTACT_ID
-        });
-        contactIdCursor.addRow(new Long[] {
-            targetContactId
-        });
-
         return composeContactsAndSendVCards(op, contactIdCursor, vcardType21, ownerVCard,
-            ignorefilter, filter);
+                ignorefilter, filter);
+    }
+
+    /**
+     * Filter contact cursor by certain condition.
+     */
+    public static final class ContactCursorFilter {
+        /**
+         *
+         * @param contactCursor
+         * @param offset
+         * @return a cursor containing contact id of {@code offset} contact.
+         */
+        public static Cursor filterByOffset(Cursor contactCursor, int offset) {
+            return filterByRange(contactCursor, offset, offset);
+        }
+
+        /**
+         *
+         * @param contactCursor
+         * @param startPoint
+         * @param endPoint
+         * @return a cursor containing contact ids of {@code startPoint}th to {@code endPoint}th
+         * contact.
+         */
+        public static Cursor filterByRange(Cursor contactCursor, int startPoint, int endPoint) {
+            final int contactIdColumn = contactCursor.getColumnIndex(Data.CONTACT_ID);
+            long previousContactId = -1;
+            // As startPoint, endOffset index starts from 1 to n, we set
+            // currentPoint base as 1 not 0
+            int currentOffset = 1;
+            final MatrixCursor contactIdsCursor = new MatrixCursor(new String[]{
+                    Phone.CONTACT_ID
+            });
+            while (contactCursor.moveToNext() && currentOffset <= endPoint) {
+                long currentContactId = contactCursor.getLong(contactIdColumn);
+                if (previousContactId != currentContactId) {
+                    previousContactId = currentContactId;
+                    if (currentOffset >= startPoint) {
+                        contactIdsCursor.addRow(new Long[]{currentContactId});
+                        if (V) Log.v(TAG, "contactIdsCursor.addRow: " + currentContactId);
+                    }
+                    currentOffset++;
+                }
+            }
+            return contactIdsCursor;
+        }
     }
 
     /**
@@ -511,7 +521,6 @@ public class BluetoothPbapVcardManager {
             } else {
                 return new VCardComposer.RawContactEntitlesInfo(RawContactsEntity.CONTENT_URI, contactId);
             }
-
         }
     }
 
