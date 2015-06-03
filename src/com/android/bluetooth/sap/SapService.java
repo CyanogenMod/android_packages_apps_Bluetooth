@@ -66,8 +66,8 @@ public class SapService extends ProfileService {
      *
      * NOTE: While connected the the Nokia 616 car-kit it was noticed that the carkit do
      *       TRANSFER_APDU_REQ with 20-30 seconds interval, and it sends no requests less than 1 sec
-     *       apart. Additionally the responses from the RIL comes within a few ms, hence a one
-     *       second timeout should be enough.
+     *       apart. Additionally the responses from the RIL seems to come within 100 ms, hence a
+     *       one second timeout should be enough.
      */
     private static final int RELEASE_WAKE_LOCK_DELAY = 1000;
 
@@ -280,14 +280,6 @@ public class SapService extends ProfileService {
          * supposed to close the RFCOMM connection. */
         if (VERBOSE) Log.v(TAG, "SAP Service stopSapServerSession");
 
-        // Release the wake lock if SAP transactions is over
-        /* TODO: Why do we need to hold a wakeLock? I assume the lower layers will wake
-         * the host at incoming data, hence I'm not sure why we need this wake lock?
-         * Any SAP req/ind is triggered either by incoming data from the client, from the
-         * RIL deamon or a user initiated disconnect.
-         * Perhaps we should only hold a wakelock while handling a message?
-         */
-
         mAcceptThread = null;
         closeConnectionSocket();
         closeServerSocket();
@@ -374,6 +366,7 @@ public class SapService extends ProfileService {
                         intent.putExtra(BluetoothDevice.EXTRA_PACKAGE_NAME, getPackageName());
 
                         mIsWaitingAuthorization = true;
+                        setUserTimeoutAlarm();
                         sendBroadcast(intent, BLUETOOTH_ADMIN_PERM);
 
                         if (VERBOSE) Log.v(TAG, "waiting for authorization for connection from: "
@@ -622,9 +615,11 @@ public class SapService extends ProfileService {
         if (mAlarmManager == null){
             mAlarmManager =(AlarmManager) this.getSystemService (Context.ALARM_SERVICE);
         }
+        if(mRemoveTimeoutMsg) {
+            cancelUserTimeoutAlarm();
+        }
         mRemoveTimeoutMsg = true;
-        Intent timeoutIntent =
-                new Intent(USER_CONFIRM_TIMEOUT_ACTION);
+        Intent timeoutIntent = new Intent(USER_CONFIRM_TIMEOUT_ACTION);
         PendingIntent pIntent = PendingIntent.getBroadcast(this, 0, timeoutIntent, 0);
         mAlarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()
                 + USER_CONFIRM_TIMEOUT_VALUE,pIntent);
@@ -632,8 +627,8 @@ public class SapService extends ProfileService {
 
     private void cancelUserTimeoutAlarm(){
         if (DEBUG)Log.d(TAG,"cancelUserTimeOutAlarm()");
-        Intent intent = new Intent(this, SapService.class);
-        PendingIntent sender = PendingIntent.getBroadcast(this, 0, intent, 0);
+        Intent timeoutIntent = new Intent(USER_CONFIRM_TIMEOUT_ACTION);
+        PendingIntent sender = PendingIntent.getBroadcast(this, 0, timeoutIntent, 0);
         AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(sender);
         mRemoveTimeoutMsg = false;
@@ -729,7 +724,8 @@ public class SapService extends ProfileService {
                                     + result);
                         }
                     }
-                    stopSapServerSession();
+                    // Ensure proper cleanup, and prepare for new connect.
+                    mSessionStatusHandler.sendEmptyMessage(MSG_SERVERSESSION_CLOSE);
                 }
             } else if (action.equals(USER_CONFIRM_TIMEOUT_ACTION)){
                 if (DEBUG) Log.d(TAG, "USER_CONFIRM_TIMEOUT ACTION Received.");
@@ -740,7 +736,7 @@ public class SapService extends ProfileService {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
                 if (mRemoteDevice == null || device == null) {
-                    Log.e(TAG, "Unexpected error!");
+                    Log.i(TAG, "Unexpected error!");
                     return;
                 }
 
@@ -748,10 +744,13 @@ public class SapService extends ProfileService {
 
                 if (mRemoteDevice.equals(device) && mRemoveTimeoutMsg) {
                     // Send any pending timeout now, as ACL got disconnected.
+                    cancelUserTimeoutAlarm();
                     mSessionStatusHandler.removeMessages(USER_TIMEOUT);
                     sendCancelUserConfirmationIntent(mRemoteDevice);
                     mIsWaitingAuthorization = false;
                     mRemoveTimeoutMsg = false;
+                    // Ensure proper cleanup, and prepare for new connect.
+                    mSessionStatusHandler.sendEmptyMessage(MSG_SERVERSESSION_CLOSE);
                 }
             }
         }
