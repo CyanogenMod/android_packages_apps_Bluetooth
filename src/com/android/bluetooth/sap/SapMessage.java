@@ -63,16 +63,21 @@ public class SapMessage {
     public static final int ID_SET_TRANSPORT_PROTOCOL_RESP = 0x14;
 
     /* Message IDs - RIL specific unsolicited */
-    public static final int ID_RIL_BASE                    = 0x100; // First RIL message id
-    public static final int ID_RIL_UNSOL_CONNECTED         = 0x100; // RIL_UNSOL_RIL_CONNECTED
-    public static final int ID_RIL_UNSOL_DISCONNECT_IND    = 0x102; // A disconnect ind from RIL will be converted after handled locally
-    public static final int ID_RIL_UNKNOWN                 = 0x1ff; // All others
+    // First RIL message id
+    public static final int ID_RIL_BASE                    = 0x100;
+    // RIL_UNSOL_RIL_CONNECTED
+    public static final int ID_RIL_UNSOL_CONNECTED         = 0x100;
+    // A disconnect ind from RIL will be converted after handled locally
+    public static final int ID_RIL_UNSOL_DISCONNECT_IND    = 0x102;
+    // All others
+    public static final int ID_RIL_UNKNOWN                 = 0x1ff;
 
     /* Message IDs - RIL specific solicited */
     public static final int ID_RIL_GET_SIM_STATUS_REQ      = 0x200; // RIL_REQUEST_GET_SIM_STATUS
     /* Test signals used to set the reference ril in test mode */
     public static final int ID_RIL_SIM_ACCESS_TEST_REQ     = 0x201; // RIL_REQUEST_SIM_ACCESS_TEST
-    public static final int ID_RIL_SIM_ACCESS_TEST_RESP    = 0x202; // response for RIL_REQUEST_SIM_ACCESS_TEST
+    public static final int ID_RIL_SIM_ACCESS_TEST_RESP    = 0x202; /* response for
+                                                                    RIL_REQUEST_SIM_ACCESS_TEST */
 
     /* Parameter IDs and lengths */
     public static final int PARAM_MAX_MSG_SIZE_ID        = 0x00;
@@ -153,7 +158,7 @@ public class SapMessage {
 
     // Map<rilSerial, RequestType> - HashTable is synchronized
     private static Map<Integer, Integer> sOngoingRequests = new Hashtable<Integer, Integer>();
-    private boolean mSendToRil = false; // set to true for messages that needs to go to through the RIL
+    private boolean mSendToRil = false; // set to true for messages that needs to go to the RIL
     private boolean mClearRilQueue = false; /* set to true for messages that needs to cause the
                                               sOngoingRequests to be cleared. */
 
@@ -886,7 +891,8 @@ public class SapMessage {
             mMsgType = ID_STATUS_IND;
             if(indMsg.hasStatusChange()) {
                 setStatusChange(indMsg.getStatusChange());
-                if(VERBOSE) Log.i(TAG, "RIL_UNSOL_SIM_SAP_STATUS_IND received value = " + mStatusChange);
+                if(VERBOSE) Log.i(TAG, "RIL_UNSOL_SIM_SAP_STATUS_IND received value = "
+                        + mStatusChange);
             } else {
                 if(VERBOSE) Log.i(TAG, "Wrong number of parameters in SAP_STATUS_IND, ignoring...");
                 mMsgType = ID_RIL_UNKNOWN;
@@ -1149,7 +1155,8 @@ public class SapMessage {
         case ID_TRANSFER_CARD_READER_STATUS_REQ:
         {
             RIL_SIM_SAP_TRANSFER_CARD_READER_STATUS_RSP resMsg =
-                    RIL_SIM_SAP_TRANSFER_CARD_READER_STATUS_RSP.parseFrom(msg.getPayload().toByteArray());
+                    RIL_SIM_SAP_TRANSFER_CARD_READER_STATUS_RSP.parseFrom(
+                            msg.getPayload().toByteArray());
             mMsgType = ID_TRANSFER_CARD_READER_STATUS_RESP;
             switch(resMsg.getResponse()) {
             case RIL_SIM_SAP_TRANSFER_CARD_READER_STATUS_RSP.RIL_E_SUCCESS:
@@ -1225,8 +1232,10 @@ public class SapMessage {
                 case ID_POWER_SIM_ON_RESP: return "ID_POWER_SIM_ON_RESP";
                 case ID_RESET_SIM_REQ: return "ID_RESET_SIM_REQ";
                 case ID_RESET_SIM_RESP: return "ID_RESET_SIM_RESP";
-                case ID_TRANSFER_CARD_READER_STATUS_REQ: return "ID_TRANSFER_CARD_READER_STATUS_REQ";
-                case ID_TRANSFER_CARD_READER_STATUS_RESP: return "ID_TRANSFER_CARD_READER_STATUS_RESP";
+                case ID_TRANSFER_CARD_READER_STATUS_REQ:
+                    return "ID_TRANSFER_CARD_READER_STATUS_REQ";
+                case ID_TRANSFER_CARD_READER_STATUS_RESP:
+                    return "ID_TRANSFER_CARD_READER_STATUS_RESP";
                 case ID_STATUS_IND: return "ID_STATUS_IND";
                 case ID_ERROR_RESP: return "ID_ERROR_RESP";
                 case ID_SET_TRANSPORT_PROTOCOL_REQ: return "ID_SET_TRANSPORT_PROTOCOL_REQ";
