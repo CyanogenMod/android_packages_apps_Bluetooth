@@ -113,27 +113,22 @@ public class SapService extends ProfileService {
         for (int i = 0; i < CREATE_RETRY_TIME && !mInterrupted; i++) {
             initSocketOK = true;
             try {
-                //
-                // It is mandatory for MSE to support initiation of bonding and
-                // encryption.
-                //
-                // TODO: Consider reusing the mServerSocket - it is intended
-                // to be reused for multiple connections.
-                //
-                mServerSocket = mAdapter.
-                        listenUsingRfcommOn(BluetoothAdapter.SOCKET_CHANNEL_AUTO_STATIC_NO_SDP);
-                int channel = mServerSocket.getChannel();
+                // It is mandatory for MSE to support initiation of bonding and encryption.
+                // TODO: Consider reusing the mServerSocket - it is indented to be reused
+                //       for multiple connections.
+                mServerSocket = mAdapter.listenUsingRfcommOn(
+                        BluetoothAdapter.SOCKET_CHANNEL_AUTO_STATIC_NO_SDP, true);
                 if (mSdpHandle >= 0) {
                     SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
                     if (VERBOSE) Log.d(TAG, "Removing SDP record");
                 }
                 mSdpHandle = SdpManager.getDefaultManager().createSapsRecord(SDP_SAP_SERVICE_NAME,
                         mServerSocket.getChannel(), SDP_SAP_VERSION);
-
             } catch (IOException e) {
                 Log.e(TAG, "Error create RfcommServerSocket ", e);
                 initSocketOK = false;
             }
+
             if (!initSocketOK) {
                 // Need to break out of this loop if BT is being turned off.
                 if (mAdapter == null) break;
