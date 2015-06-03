@@ -97,9 +97,15 @@ public class SapRilReceiver implements Runnable {
         return mRilBtOutStream;
     }
 
-    private void onConnectComplete() {
-        if (mSapServerMsgHandler != null)
-            mSapServerMsgHandler.sendEmptyMessage(SapServer.SAP_MSG_RIL_CONNECT);
+    /**
+     * Notify SapServer that this class is ready for shutdown.
+     */
+    private void notifyShutdown() {
+        if (DEBUG) Log.i(TAG, "notifyShutdown()");
+        // If we are already shutdown, don't bother sending a notification.
+        synchronized (this) {
+            if (mSocket != null) sendShutdownMessage();
+        }
     }
 
     /**
@@ -114,19 +120,22 @@ public class SapRilReceiver implements Runnable {
          * stream from the socket, and when the socket is closed, the pending
          * reads never return nor throw and exception.
          * Hence here we use the shutdown method: */
-        if (mSocket != null) {
-            try {
-                mSocket.shutdownOutput();
-            } catch (IOException e) {}
-            try {
-                mSocket.shutdownInput();
-            } catch (IOException e) {}
-            try {
-                mSocket.close();
-            } catch (IOException ex) {
-                if (VERBOSE) Log.e(TAG,"Uncaught exception", ex);
+        synchronized (this) {
+            if (mSocket != null) {
+                try {
+                    mSocket.shutdownOutput();
+                } catch (IOException e) {}
+                try {
+                    mSocket.shutdownInput();
+                } catch (IOException e) {}
+                try {
+                    mSocket.close();
+                } catch (IOException ex) {
+                    if (VERBOSE) Log.e(TAG,"Uncaught exception", ex);
+                } finally {
+                    mSocket = null;
+                }
             }
-            mSocket = null;
         }
     }
 
@@ -197,7 +206,7 @@ public class SapRilReceiver implements Runnable {
             mRilBtOutStream = CodedOutputStreamMicro.newInstance(mSocket.getOutputStream());
 
             // Notify the SapServer that we have connected to the RilBtSocket
-            onConnectComplete();
+            sendRilConnectMessage();
 
             // The main loop - read messages and forward to SAP server
             for (;;) {
@@ -208,6 +217,11 @@ public class SapRilReceiver implements Runnable {
                 int length = readMessage(mRilBtInStream, buffer);
 
                 SapService.notifyUpdateWakeLock(mSapServiceHandler);
+
+                if (length == -1) {
+                    if (DEBUG) Log.i(TAG, "EOF reached - closing down.");
+                    break;
+                }
 
                 CodedInputStreamMicro msgStream =
                         CodedInputStreamMicro.newInstance(buffer, 0, length);
@@ -227,17 +241,27 @@ public class SapRilReceiver implements Runnable {
                     }
                 } // else simply ignore it
             }
+
         } catch (IOException e) {
-            shutdown(); /* Only needed in case of a connection error */
+            notifyShutdown(); /* Only needed in case of a connection error */
             Log.i(TAG, "'" + SOCKET_NAME_RIL_BT + "' socket inputStream closed", e);
-        }
-        finally {
+
+        } finally {
             Log.i(TAG, "Disconnected from '" + SOCKET_NAME_RIL_BT + "' socket");
         }
     }
 
     /**
-     * Send message to the Sap Server Handler Thread
+     * Notify SapServer that the RIL socket is connected
+     */
+    private void sendRilConnectMessage() {
+        if (mSapServerMsgHandler != null) {
+            mSapServerMsgHandler.sendEmptyMessage(SapServer.SAP_MSG_RIL_CONNECT);
+        }
+    }
+
+    /**
+     * Send reply (solicited) message from the RIL to the Sap Server Handler Thread
      * @param sapMsg The message to send
      */
     private void sendClientMessage(SapMessage sapMsg) {
@@ -245,6 +269,19 @@ public class SapRilReceiver implements Runnable {
         mSapServerMsgHandler.sendMessage(newMsg);
     }
 
+    /**
+     * Send a shutdown signal to SapServer to indicate the
+     */
+    private void sendShutdownMessage() {
+        if (mSapServerMsgHandler != null) {
+            mSapServerMsgHandler.sendEmptyMessage(SapServer.SAP_RIL_SOCK_CLOSED);
+        }
+    }
+
+    /**
+     * Send indication (unsolicited) message from RIL to the Sap Server Handler Thread
+     * @param sapMsg The message to send
+     */
     private void sendRilIndMessage(SapMessage sapMsg) {
         Message newMsg = mSapServerMsgHandler.obtainMessage(SapServer.SAP_MSG_RIL_IND, sapMsg);
         mSapServerMsgHandler.sendMessage(newMsg);
