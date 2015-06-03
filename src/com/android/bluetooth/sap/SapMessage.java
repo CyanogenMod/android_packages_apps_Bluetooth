@@ -1024,7 +1024,7 @@ public class SapMessage {
                 mResultCode = RESULT_OK;
                 break;
             case RIL_SIM_SAP_SET_TRANSFER_PROTOCOL_RSP.RIL_E_GENERIC_FAILURE:
-                mResultCode = RESULT_ERROR_NO_REASON;
+                mResultCode = RESULT_ERROR_NOT_SUPPORTED;
                 break;
             case RIL_SIM_SAP_SET_TRANSFER_PROTOCOL_RSP.RIL_E_SIM_ABSENT:
                 mResultCode = RESULT_ERROR_CARD_NOT_ACCESSIBLE;
@@ -1036,7 +1036,7 @@ public class SapMessage {
                 mResultCode = RESULT_ERROR_CARD_REMOVED;
                 break;
             default:
-                mResultCode = RESULT_ERROR_NO_REASON;
+                mResultCode = RESULT_ERROR_NOT_SUPPORTED;
                 break;
             }
             break;
