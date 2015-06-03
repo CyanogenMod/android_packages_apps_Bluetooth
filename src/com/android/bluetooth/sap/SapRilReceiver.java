@@ -29,12 +29,14 @@ public class SapRilReceiver implements Runnable {
     CodedOutputStreamMicro mRilBtOutStream = null;
     InputStream mRilBtInStream = null;
     private Handler mSapServerMsgHandler = null;
+    private Handler mSapServiceHandler = null;
 
     public static final int RIL_MAX_COMMAND_BYTES = (8 * 1024);
     byte[] buffer = new byte[RIL_MAX_COMMAND_BYTES];
 
-    public SapRilReceiver(Handler SapServerMsgHandler) {
+    public SapRilReceiver(Handler SapServerMsgHandler, Handler sapServiceHandler) {
         mSapServerMsgHandler = SapServerMsgHandler;
+        mSapServiceHandler = sapServiceHandler;
     }
 
     /**
@@ -75,7 +77,7 @@ public class SapRilReceiver implements Runnable {
                     Log.i (TAG,
                         "Couldn't find '" + SOCKET_NAME_RIL_BT
                         + "' socket; retrying after timeout");
-                    if(VERBOSE) Log.w(TAG, ex);
+                    if (VERBOSE) Log.w(TAG, ex);
                 }
 
                 try {
@@ -96,7 +98,7 @@ public class SapRilReceiver implements Runnable {
     }
 
     private void onConnectComplete() {
-        if(mSapServerMsgHandler != null)
+        if (mSapServerMsgHandler != null)
             mSapServerMsgHandler.sendEmptyMessage(SapServer.SAP_MSG_RIL_CONNECT);
     }
 
@@ -105,14 +107,14 @@ public class SapRilReceiver implements Runnable {
      * streams.
      */
     public void shutdown() {
-        if(DEBUG) Log.i(TAG, "shutdown()");
+        if (DEBUG) Log.i(TAG, "shutdown()");
 
         /* On Android you need to close the IOstreams using Socket.shutdown*
          * The IOstream close must not be used, as it some how decouples the
          * stream from the socket, and when the socket is closed, the pending
          * reads never return nor throw and exception.
          * Hence here we use the shutdown method: */
-        if(mSocket != null) {
+        if (mSocket != null) {
             try {
                 mSocket.shutdownOutput();
             } catch (IOException e) {}
@@ -122,7 +124,7 @@ public class SapRilReceiver implements Runnable {
             try {
                 mSocket.close();
             } catch (IOException ex) {
-                if(VERBOSE) Log.e(TAG,"Uncaught exception", ex);
+                if (VERBOSE) Log.e(TAG,"Uncaught exception", ex);
             }
             mSocket = null;
         }
@@ -160,7 +162,7 @@ public class SapRilReceiver implements Runnable {
                 | ((buffer[1] & 0xff) << 16)
                 | ((buffer[2] & 0xff) << 8)
                 | (buffer[3] & 0xff);
-        if(VERBOSE) Log.e(TAG,"Message length found to be: "+messageLength);
+        if (VERBOSE) Log.e(TAG,"Message length found to be: "+messageLength);
         // Read the message
         offset = 0;
         remaining = messageLength;
@@ -188,8 +190,7 @@ public class SapRilReceiver implements Runnable {
     public void run() {
 
         try {
-            int length = 0;
-            if(VERBOSE) Log.i(TAG, "Starting RilBtReceiverThread...");
+            if (VERBOSE) Log.i(TAG, "Starting RilBtReceiverThread...");
 
             mSocket = openRilBtSocket();
             mRilBtInStream = mSocket.getInputStream();
@@ -203,19 +204,23 @@ public class SapRilReceiver implements Runnable {
                 SapMessage sapMsg = null;
                 MsgHeader rilMsg;
 
+                if (VERBOSE) Log.i(TAG, "Waiting for incoming message...");
+                int length = readMessage(mRilBtInStream, buffer);
 
-                if(VERBOSE) Log.i(TAG, "Waiting for incoming message...");
-                length = readMessage(mRilBtInStream, buffer);
-                CodedInputStreamMicro msgStream = CodedInputStreamMicro.newInstance(buffer, 0, length);
+                SapService.notifyUpdateWakeLock(mSapServiceHandler);
+
+                CodedInputStreamMicro msgStream =
+                        CodedInputStreamMicro.newInstance(buffer, 0, length);
+
                 rilMsg = MsgHeader.parseFrom(msgStream);
 
-                if(VERBOSE) Log.i(TAG, "Message received.");
+                if (VERBOSE) Log.i(TAG, "Message received.");
 
                 sapMsg = SapMessage.newInstance(rilMsg);
 
-                if(sapMsg != null && sapMsg.getMsgType() != SapMessage.INVALID_VALUE)
+                if (sapMsg != null && sapMsg.getMsgType() != SapMessage.INVALID_VALUE)
                 {
-                    if(sapMsg.getMsgType() < SapMessage.ID_RIL_BASE) {
+                    if (sapMsg.getMsgType() < SapMessage.ID_RIL_BASE) {
                         sendClientMessage(sapMsg);
                     } else {
                         sendRilIndMessage(sapMsg);

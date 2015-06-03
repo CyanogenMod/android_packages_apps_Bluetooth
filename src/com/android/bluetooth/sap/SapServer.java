@@ -279,7 +279,7 @@ public class SapServer extends Thread implements Callback {
             Looper sapLooper = mHandlerThread.getLooper(); /* This will return when the looper is ready */
             mSapHandler = new Handler(sapLooper, this);
 
-            mRilBtReceiver = new SapRilReceiver(mSapHandler);
+            mRilBtReceiver = new SapRilReceiver(mSapHandler, mSapServiceHandler);
             mRilBtReceiverThread = new Thread(mRilBtReceiver, "RilBtReceiver");
             setNotification(SapMessage.DISC_GRACEFULL,0);
             boolean done = false;
@@ -290,6 +290,8 @@ public class SapServer extends Thread implements Callback {
                     done = true; // EOF reached
                 } else {
                     SapMessage msg = SapMessage.readMessage(requestType, mRfcommIn);
+                    /* notify about an incoming message from the BT Client */
+                    SapService.notifyUpdateWakeLock(mSapServiceHandler);
                     if(msg != null && mState != SAP_STATE.DISCONNECTING)
                     {
                         switch (requestType) {
