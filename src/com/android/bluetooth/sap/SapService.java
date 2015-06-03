@@ -58,6 +58,19 @@ public class SapService extends ProfileService {
     public static final int MSG_SESSION_ESTABLISHED = 5001;
     public static final int MSG_SESSION_DISCONNECTED = 5002;
 
+    public static final int MSG_ACQUIRE_WAKE_LOCK = 5005;
+    public static final int MSG_RELEASE_WAKE_LOCK = 5006;
+
+    /* Each time a transaction between the SIM and the BT Client is detected a wakelock is taken.
+     * After an idle period of RELEASE_WAKE_LOCK_DELAY ms the wakelock is released.
+     *
+     * NOTE: While connected the the Nokia 616 car-kit it was noticed that the carkit do
+     *       TRANSFER_APDU_REQ with 20-30 seconds interval, and it sends no requests less than 1 sec
+     *       apart. Additionally the responses from the RIL comes within a few ms, hence a one
+     *       second timeout should be enough.
+     */
+    private static final int RELEASE_WAKE_LOCK_DELAY = 1000;
+
     /* Intent indicating timeout for user confirmation. */
     public static final String USER_CONFIRM_TIMEOUT_ACTION =
             "com.android.bluetooth.sap.USER_CONFIRM_TIMEOUT";
@@ -92,6 +105,22 @@ public class SapService extends ProfileService {
     public SapService() {
         mState = BluetoothSap.STATE_DISCONNECTED;
     }
+
+    /***
+     * Call this when ever an activity is detected to renew the wakelock
+     *
+     * @param messageHandler reference to the handler to notify
+     *  - typically mSessionStatusHandler, but it cannot be accessed in a static manner.
+     */
+    public static void notifyUpdateWakeLock(Handler messageHandler) {
+        if (messageHandler != null) {
+            Message msg = Message.obtain(messageHandler);
+            msg.what = MSG_ACQUIRE_WAKE_LOCK;
+            msg.sendToTarget();
+        }
+    }
+
+
 
     private void startRfcommSocketListener() {
         if (VERBOSE) Log.v(TAG, "Sap Service startRfcommSocketListener");
@@ -204,6 +233,8 @@ public class SapService extends ProfileService {
         }
 
         if (mWakeLock != null) {
+            mSessionStatusHandler.removeMessages(MSG_ACQUIRE_WAKE_LOCK);
+            mSessionStatusHandler.removeMessages(MSG_RELEASE_WAKE_LOCK);
             mWakeLock.release();
             mWakeLock = null;
         }
@@ -217,9 +248,6 @@ public class SapService extends ProfileService {
         if (VERBOSE) Log.v(TAG, "Sap Service startSapServerSession");
 
         // acquire the wakeLock before start SAP transaction thread
-        // TODO: Do we need this? I guess we will wake when ever incoming data is available?
-        //        And/or when a SIM event occurs - same for MAP.
-        // UPDATE: Change to use same approach as for MAP with a timer based wake-lock
         if (mWakeLock == null) {
             PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
             mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
@@ -236,6 +264,10 @@ public class SapService extends ProfileService {
         /* Warning: at this point we most likely have already handled the initial connect
          *          request from the SAP client, hence we need to be prepared to handle the
          *          response. (the SapHandler should have been started before this point)*/
+
+        mSessionStatusHandler.removeMessages(MSG_RELEASE_WAKE_LOCK);
+        mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
+                .obtainMessage(MSG_RELEASE_WAKE_LOCK), RELEASE_WAKE_LOCK_DELAY);
 
         if (VERBOSE) {
             Log.v(TAG, "startSapServerSession() success!");
@@ -297,7 +329,7 @@ public class SapService extends ProfileService {
                 try {
                     if (VERBOSE) Log.v(TAG, "Accepting socket connection...");
                     serverSocket = mServerSocket;
-                    if(serverSocket == null) {
+                    if (serverSocket == null) {
                         Log.w(TAG, "mServerSocket is null");
                         break;
                     }
@@ -391,6 +423,30 @@ public class SapService extends ProfileService {
                     break;
                 case MSG_SESSION_DISCONNECTED:
                     // handled elsewhere
+                    break;
+                case MSG_ACQUIRE_WAKE_LOCK:
+                    if (VERBOSE)Log.i(TAG, "Acquire Wake Lock request message");
+                    if (mWakeLock == null) {
+                        PowerManager pm = (PowerManager)getSystemService(
+                                          Context.POWER_SERVICE);
+                        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                                    "StartingObexMapTransaction");
+                        mWakeLock.setReferenceCounted(false);
+                    }
+                    if (!mWakeLock.isHeld()) {
+                        mWakeLock.acquire();
+                        if (DEBUG)Log.i(TAG, "  Acquired Wake Lock by message");
+                    }
+                    mSessionStatusHandler.removeMessages(MSG_RELEASE_WAKE_LOCK);
+                    mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
+                      .obtainMessage(MSG_RELEASE_WAKE_LOCK), RELEASE_WAKE_LOCK_DELAY);
+                    break;
+                case MSG_RELEASE_WAKE_LOCK:
+                    if (VERBOSE)Log.i(TAG, "Release Wake Lock request message");
+                    if (mWakeLock != null) {
+                        mWakeLock.release();
+                        if (DEBUG) Log.i(TAG, "  Released Wake Lock by message");
+                    }
                     break;
                 case SHUTDOWN:
                     /* Ensure to call close from this handler to avoid starting new stuff
@@ -555,15 +611,15 @@ public class SapService extends ProfileService {
     public boolean cleanup()  {
         setState(BluetoothSap.STATE_DISCONNECTED, BluetoothSap.RESULT_CANCELED);
         closeService();
-        if(mSessionStatusHandler != null) {
+        if (mSessionStatusHandler != null) {
             mSessionStatusHandler.removeCallbacksAndMessages(null);
         }
         return true;
     }
 
     private void setUserTimeoutAlarm(){
-        if(DEBUG)Log.d(TAG,"SetUserTimeOutAlarm()");
-        if(mAlarmManager == null){
+        if (DEBUG)Log.d(TAG,"SetUserTimeOutAlarm()");
+        if (mAlarmManager == null){
             mAlarmManager =(AlarmManager) this.getSystemService (Context.ALARM_SERVICE);
         }
         mRemoveTimeoutMsg = true;
@@ -575,7 +631,7 @@ public class SapService extends ProfileService {
     }
 
     private void cancelUserTimeoutAlarm(){
-        if(DEBUG)Log.d(TAG,"cancelUserTimeOutAlarm()");
+        if (DEBUG)Log.d(TAG,"cancelUserTimeOutAlarm()");
         Intent intent = new Intent(this, SapService.class);
         PendingIntent sender = PendingIntent.getBroadcast(this, 0, intent, 0);
         AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
@@ -609,7 +665,7 @@ public class SapService extends ProfileService {
 
     private void sendConnectTimeoutMessage() {
         if (DEBUG) Log.d(TAG, "sendConnectTimeoutMessage()");
-        if(mSessionStatusHandler != null) {
+        if (mSessionStatusHandler != null) {
             Message msg = mSessionStatusHandler.obtainMessage(USER_TIMEOUT);
             msg.sendToTarget();
         } // Can only be null during shutdown
