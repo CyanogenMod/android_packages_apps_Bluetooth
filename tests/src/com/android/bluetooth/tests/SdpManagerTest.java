@@ -110,6 +110,12 @@ public class SdpManagerTest extends AndroidTestCase {
             Log.i(TAG, "  Added record_handle=" + handles[record_id]);
             assertTrue(handles[record_id]>=0);
             if(record_id == count) break;
+
+            handles[++record_id] = mManager.createSapsRecord(SDP_SERVER_NAME,
+                    record_id, SDP_VERSION);
+            Log.i(TAG, "  Added record_handle=" + handles[record_id]);
+            assertTrue(handles[record_id]>=0);
+            if (record_id == count) break;
         }
     }
 
@@ -159,7 +165,8 @@ public class SdpManagerTest extends AndroidTestCase {
         final String[] uuids = {BluetoothUuid.MAS.toString(),
                                 BluetoothUuid.MNS.toString(),
                                 BluetoothUuid.PBAP_PSE.toString(),
-                                BluetoothUuid.ObexObjectPush.toString()};
+                                BluetoothUuid.ObexObjectPush.toString(),
+                                BluetoothUuid.SAP.toString()};
         final String uuids_str;
         final StringBuilder sb = new StringBuilder(uuids.length*2-1);
         for(String str : uuids) {

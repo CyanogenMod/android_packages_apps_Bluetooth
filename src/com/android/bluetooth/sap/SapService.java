@@ -37,10 +37,13 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ProfileService.IProfileServiceBinder;
+import com.android.bluetooth.sdp.SdpManager;
 
 @TargetApi(Build.VERSION_CODES.ECLAIR)
 public class SapService extends ProfileService {
 
+    private static final String SDP_SAP_SERVICE_NAME = "SIM Access";
+    private static final int SDP_SAP_VERSION = 0x0102;
     private static final String TAG = "SapService";
     public static final boolean DEBUG = true;
     public static final boolean VERBOSE = true;
@@ -64,6 +67,7 @@ public class SapService extends ProfileService {
     private BluetoothAdapter mAdapter;
     private SocketAcceptThread mAcceptThread = null;
     private BluetoothServerSocket mServerSocket = null;
+    private int mSdpHandle = -1;
     private BluetoothSocket mConnSocket = null;
     private BluetoothDevice mRemoteDevice = null;
     private static String sRemoteDeviceName = null;
@@ -109,10 +113,22 @@ public class SapService extends ProfileService {
         for (int i = 0; i < CREATE_RETRY_TIME && !mInterrupted; i++) {
             initSocketOK = true;
             try {
+                //
                 // It is mandatory for MSE to support initiation of bonding and
                 // encryption.
-                mServerSocket = mAdapter.listenUsingRfcommWithServiceRecord
-                    ("SIM Access", BluetoothUuid.SAP.getUuid());
+                //
+                // TODO: Consider reusing the mServerSocket - it is intended
+                // to be reused for multiple connections.
+                //
+                mServerSocket = mAdapter.
+                        listenUsingRfcommOn(BluetoothAdapter.SOCKET_CHANNEL_AUTO_STATIC_NO_SDP);
+                int channel = mServerSocket.getChannel();
+                if (mSdpHandle >= 0) {
+                    SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
+                    if (VERBOSE) Log.d(TAG, "Removing SDP record");
+                }
+                mSdpHandle = SdpManager.getDefaultManager().createSapsRecord(SDP_SAP_SERVICE_NAME,
+                        mServerSocket.getChannel(), SDP_SAP_VERSION);
 
             } catch (IOException e) {
                 Log.e(TAG, "Error create RfcommServerSocket ", e);

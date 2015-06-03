@@ -16,6 +16,7 @@ import android.bluetooth.SdpMasRecord;
 import android.bluetooth.SdpMnsRecord;
 import android.bluetooth.SdpOppOpsRecord;
 import android.bluetooth.SdpPseRecord;
+import android.bluetooth.SdpSapsRecord;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -145,6 +146,7 @@ public class SdpManagerTestServer extends ServerRequestHandler {
         boolean hasMas = false;
         boolean hasMns = false;
         boolean hasOppServer = false;
+        boolean hasSapServer = false;
         boolean hasPse = false;
         final CountDownLatch mLatch;
 
@@ -158,6 +160,8 @@ public class SdpManagerTestServer extends ServerRequestHandler {
                     hasPse = true;
                 if(uuid.toString().equals(BluetoothUuid.ObexObjectPush.toString()))
                     hasOppServer = true;
+                if(uuid.toString().equals(BluetoothUuid.SAP.toString()))
+                    hasSapServer = true;
             }
             mLatch = latch;
         }
@@ -261,6 +265,28 @@ public class SdpManagerTestServer extends ServerRequestHandler {
                         Log.i(TAG, "Wrong service name (" + record.getServiceName()
                                 + ") received, still waiting...");
                     }
+                } else if (hasSapServer && uuid.toString().equals(BluetoothUuid.SAP.toString())) {
+                    Log.v(TAG, " -> SAP Server UUID in result.");
+                    int status = intent.getIntExtra(BluetoothDevice.EXTRA_SDP_SEARCH_STATUS, -1);
+                    Assert.assertEquals(AbstractionLayer.BT_STATUS_SUCCESS, status); /* BT_STATUS_SUCCESS == 0 - but status is not documented... */
+                    Log.v(TAG, " -> status: "+status);
+                    SdpSapsRecord record = intent.getParcelableExtra(BluetoothDevice.EXTRA_SDP_RECORD);
+                    Assert.assertNotNull(record);
+                    Log.v(TAG, " -> Record: " + record);
+                    /* As the normal profiles are also running, we filter out these records */
+                    if (record.getServiceName().equals(SdpManagerTest.SDP_SERVER_NAME)) {
+                        Assert.assertEquals(record.getProfileVersion(), SdpManagerTest.SDP_VERSION);
+                        Assert.assertEquals(record.getServiceName(), SdpManagerTest.SDP_SERVER_NAME);
+                        int rfcommChannel = record.getRfcommCannelNumber();
+                        /* We set RFCOMM-channel to record_id and the l2cap PSM to
+                         * iteration*record_id.
+                         * As SAP does not carry a L2CAP PSM, we cannot validate the RFCOMM value
+                        Assert.assertEquals(mOperationIndex+rfcommChannel, l2capPsm); */
+                        mLatch.countDown();
+                    } else {
+                        Log.i(TAG, "Wrong service name (" + record.getServiceName()
+                                + ") received, still waiting...");
+                    }
                 } else {
                     Log.i(TAG, "Wrong UUID received, still waiting...");
                 }
@@ -289,6 +315,8 @@ public class SdpManagerTestServer extends ServerRequestHandler {
                 serverDevice.sdpSearch(BluetoothUuid.PBAP_PSE);
             if(uuid.toString().equals(BluetoothUuid.ObexObjectPush.toString()))
                 serverDevice.sdpSearch(BluetoothUuid.ObexObjectPush);
+            if(uuid.toString().equals(BluetoothUuid.SAP.toString()))
+                serverDevice.sdpSearch(BluetoothUuid.SAP);
         }
 
         // Await results
