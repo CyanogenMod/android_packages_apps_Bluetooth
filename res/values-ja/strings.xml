@@ -57,7 +57,7 @@
     <string name="incoming_line1" msgid="2127419875681087545">"送信元"</string>
     <string name="incoming_line2" msgid="3348994249285315873">"ファイル名"</string>
     <string name="incoming_line3" msgid="7954237069667474024">"サイズ"</string>
-    <string name="download_fail_line1" msgid="3846450148862894552">"ファイルを受信していません"</string>
+    <string name="download_fail_line1" msgid="3846450148862894552">"ファイルの受信に失敗"</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"ファイル: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_fail_line3" msgid="3451040656154861722">"理由: <xliff:g id="REASON">%1$s</xliff:g>"</string>
     <string name="download_fail_ok" msgid="1521733664438320300">"OK"</string>
