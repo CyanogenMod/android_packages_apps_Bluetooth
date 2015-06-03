@@ -35,7 +35,8 @@ static const uint8_t  UUID_MAP_MNS[] = {0x00, 0x00, 0x11, 0x33, 0x00, 0x00, 0x10
                                         0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
 static const uint8_t  UUID_SPP[] = {0x00, 0x00, 0x11, 0x01, 0x00, 0x00, 0x10, 0x00,
                                     0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
-
+static const uint8_t  UUID_SAP[] = {0x00, 0x00, 0x11, 0x2D, 0x00, 0x00, 0x10, 0x00,
+                                    0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
 // TODO:
 // Both the fact that the UUIDs are declared in multiple places, plus the fact
 // that there is a mess of UUID comparison and shortening methods will have to
@@ -52,6 +53,7 @@ static jmethodID method_sdpMasRecordFoundCallback;
 static jmethodID method_sdpMnsRecordFoundCallback;
 static jmethodID method_sdpPseRecordFoundCallback;
 static jmethodID method_sdpOppOpsRecordFoundCallback;
+static jmethodID method_sdpSapsRecordFoundCallback;
 
 static const btsdp_interface_t *sBluetoothSdpInterface = NULL;
 
@@ -123,6 +125,10 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_sdpOppOpsRecordFoundCallback = env->GetMethodID(clazz,
                                                     "sdpOppOpsRecordFoundCallback",
                                                     "(I[B[BIIILjava/lang/String;[BZ)V");
+    /* SAP Server record */
+    method_sdpSapsRecordFoundCallback = env->GetMethodID(clazz,
+                                                    "sdpSapsRecordFoundCallback",
+                                                    "(I[B[BIILjava/lang/String;Z)V");
 
 }
 
@@ -261,6 +267,15 @@ static void sdp_search_callback(bt_status_t status, bt_bdaddr_t *bd_addr, uint8_
                     more_results);
             sCallbackEnv->DeleteLocalRef(formats_list);
 
+        } else if (IS_UUID(UUID_SAP, uuid_in)) {
+            sCallbackEnv->CallVoidMethod(sCallbacksObj, method_sdpSapsRecordFoundCallback,
+                    (jint) status,
+                    addr,
+                    uuid,
+                    (jint)record->mas.hdr.rfcomm_channel_number,
+                    (jint)record->mas.hdr.profile_version,
+                    service_name,
+                    more_results);
         } else {
             // we don't have a wrapper for this uuid, send as raw data
             jint record_data_size = record->hdr.user1_ptr_len;
@@ -295,7 +310,7 @@ static void sdp_search_callback(bt_status_t status, bt_bdaddr_t *bd_addr, uint8_
 static jint sdpCreateMapMasRecordNative(JNIEnv *env, jobject obj, jstring name_str, jint mas_id,
                                          jint scn, jint l2cap_psm, jint version,
                                          jint msg_types, jint features) {
-    ALOGD("%s:",__FUNCTION__);
+    ALOGD("%s:", __FUNCTION__);
 
     const char* service_name = NULL;
     bluetooth_sdp_record record = {}; // Must be zero initialized
@@ -467,6 +482,42 @@ static jint sdpCreateOppOpsRecordNative(JNIEnv *env, jobject obj, jstring name_s
     return handle;
 }
 
+static jint sdpCreateSapsRecordNative(JNIEnv *env, jobject obj, jstring name_str,
+                                         jint scn, jint version) {
+    ALOGD("%s:",__FUNCTION__);
+
+    const char* service_name = NULL;
+    bluetooth_sdp_record record = {}; // Must be zero initialized
+    int handle = -1;
+    int ret = 0;
+    if (!sBluetoothSdpInterface) return handle;
+
+    record.sap.hdr.type = SDP_TYPE_SAP_SERVER;
+
+    if (name_str != NULL) {
+        service_name = env->GetStringUTFChars(name_str, NULL);
+        record.mas.hdr.service_name = (char *) service_name;
+        record.mas.hdr.service_name_length = strlen(service_name);
+    } else {
+        record.mas.hdr.service_name = NULL;
+        record.mas.hdr.service_name_length = 0;
+    }
+    record.mas.hdr.rfcomm_channel_number = scn;
+    record.mas.hdr.profile_version = version;
+
+    if ( (ret = sBluetoothSdpInterface->create_sdp_record(&record, &handle))
+            != BT_STATUS_SUCCESS) {
+        ALOGE("SDP Create record failed: %d", ret);
+        goto Fail;
+    }
+
+    ALOGD("SDP Create record success - handle: %d", handle);
+
+    Fail:
+    if (service_name) env->ReleaseStringUTFChars(name_str, service_name);
+    return handle;
+}
+
 static jboolean sdpRemoveSdpRecordNative(JNIEnv *env, jobject obj, jint record_id) {
     ALOGD("%s:",__FUNCTION__);
 
@@ -520,6 +571,8 @@ static JNINativeMethod sMethods[] = {
         (void*) sdpCreatePbapPseRecordNative},
     {"sdpCreateOppOpsRecordNative", "(Ljava/lang/String;III[B)I",
         (void*) sdpCreateOppOpsRecordNative},
+    {"sdpCreateSapsRecordNative", "(Ljava/lang/String;II)I",
+        (void*) sdpCreateSapsRecordNative},
     {"sdpRemoveSdpRecordNative", "(I)Z", (void*) sdpRemoveSdpRecordNative}
 };
 
