@@ -1855,6 +1855,8 @@ public class AdapterService extends Service {
     }
 
      private void processConnectOtherProfiles (BluetoothDevice device, int firstProfileStatus){
+        // initiate connection for missing profile on device
+        Log.i(TAG,"device is " + device);
         if (getState()!= BluetoothAdapter.STATE_ON){
             return;
         }
@@ -1865,6 +1867,8 @@ public class AdapterService extends Service {
         if ((hsService == null) ||(a2dpService == null )){
             return;
         }
+        boolean a2dpConnected = false;
+        boolean hsConnected = false;
         List<BluetoothDevice> a2dpConnDevList= a2dpService.getConnectedDevices();
         List<BluetoothDevice> hfConnDevList= hsService.getConnectedDevices();
         // Check if the device is in disconnected state and if so return
@@ -1876,13 +1880,54 @@ public class AdapterService extends Service {
             (PROFILE_CONN_CONNECTED  == firstProfileStatus)){
             return;
         }
-        if((hfConnDevList.isEmpty()) &&
-            (hsService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)){
-            hsService.connect(device);
+        if(!a2dpConnDevList.isEmpty()) {
+            for (BluetoothDevice a2dpDevice : a2dpConnDevList)
+            {
+                if(a2dpDevice.equals(device))
+                {
+                    a2dpConnected = true;
+                }
+            }
+        }
+        if(!hfConnDevList.isEmpty()) {
+            for (BluetoothDevice hsDevice : hfConnDevList)
+            {
+                if(hsDevice.equals(device))
+                {
+                    hsConnected = true;
+                }
+            }
+        }
+       // This change makes sure that we try to re-connect
+       // the profile if its connection failed and priority
+       // for desired profile is ON.
+        Log.i(TAG, "HF connected for device : " + device + " " + hfConnDevList.contains(device));
+        Log.i(TAG, "A2DP connected for device : " + device + " " + a2dpConnDevList.contains(device));
+        if((hfConnDevList.isEmpty() || !(hfConnDevList.contains(device))) &&
+            (hsService.getPriority(device) >= BluetoothProfile.PRIORITY_ON) &&
+            (a2dpConnected || (a2dpService.getPriority(device) == BluetoothProfile.PRIORITY_OFF))) {
+
+            // proceed connection only if a2dp is connected to this device
+            // add here as if is already overloaded
+            if (a2dpConnDevList.contains(device) ||
+                (hsService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)) {
+                hsService.connect(device);
+            } else {
+                Log.d(TAG, "do not initiate connect as A2dp is not connected");
+            }
         }
         else if((a2dpConnDevList.isEmpty()) &&
-            (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)){
-            a2dpService.connect(device);
+            (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_ON) &&
+            (hsConnected || (hsService.getPriority(device) == BluetoothProfile.PRIORITY_OFF))) {
+
+            // proceed connection only if HFP is connected to this device
+            // add here as if is already overloaded
+            if (hfConnDevList.contains(device) ||
+                (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)) {
+                a2dpService.connect(device);
+            } else {
+                Log.v(TAG,"do not initiate connect as HFP is not connected");
+            }
         }
     }
 
