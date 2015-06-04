@@ -472,11 +472,8 @@ public class HeadsetService extends ProfileService {
     }
 
     boolean startScoUsingVirtualVoiceCall(BluetoothDevice device) {
-        int connectionState = mStateMachine.getConnectionState(device);
-        if (connectionState != BluetoothProfile.STATE_CONNECTED &&
-            connectionState != BluetoothProfile.STATE_CONNECTING) {
-            return false;
-        }
+        /* Do not ignore request if HSM state is still Disconnected or
+           Pending, it will be processed when transitioned to Connected */
         mStateMachine.sendMessage(HeadsetStateMachine.VIRTUAL_CALL_START, device);
         return true;
     }
