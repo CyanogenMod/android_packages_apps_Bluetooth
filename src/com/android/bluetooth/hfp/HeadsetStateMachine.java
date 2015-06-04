@@ -1545,7 +1545,7 @@ final class HeadsetStateMachine extends StateMachine {
             } else {
                 Log.e(TAG, "Handsfree phone proxy null for query phone state");
             }
-         }
+        }
 
         private void processIntentScoVolume(Intent intent, BluetoothDevice device) {
             int volumeValue = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE, 0);
@@ -1920,6 +1920,9 @@ final class HeadsetStateMachine extends StateMachine {
                     }
                 }
                 break;
+            case HeadsetHalConstants.CONNECTION_STATE_SLC_CONNECTED:
+                processSlcConnected();
+                break;
             case HeadsetHalConstants.CONNECTION_STATE_CONNECTING:
                 if (mConnectedDevicesList.contains(device)) {
                     Log.e(TAG, "current device tries to connect back");
@@ -1997,6 +2000,19 @@ final class HeadsetStateMachine extends StateMachine {
                     break;
             }
         }
+
+        private void processSlcConnected() {
+            if (mPhoneProxy != null) {
+                try {
+                    mPhoneProxy.queryPhoneState();
+                } catch (RemoteException e) {
+                    Log.e(TAG, Log.getStackTraceString(new Throwable()));
+                }
+            } else {
+                Log.e(TAG, "Handsfree phone proxy null for query phone state");
+            }
+        }
+
 
         private void processMultiHFConnected(BluetoothDevice device) {
             log("MultiHFPending state: processMultiHFConnected");
