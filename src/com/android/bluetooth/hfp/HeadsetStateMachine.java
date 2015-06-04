@@ -2656,6 +2656,16 @@ final class HeadsetStateMachine extends StateMachine {
                     || callState.mCallState != HeadsetHalConstants.CALL_STATE_IDLE) {
                 terminateScoUsingVirtualVoiceCall();
             }
+
+            // Specific handling for case of starting MO/MT call while VOIP
+            // ongoing, terminateScoUsingVirtualVoiceCall() resets callState
+            // INCOMING/DIALING to IDLE. Some HS send AT+CIND? to read call
+            // and get wrong value of callsetup. This case is hit only
+            // SCO for VOIP call is not terminated via SDK API call.
+            if (mPhoneState.getCallState() != callState.mCallState) {
+                mPhoneState.setCallState(callState.mCallState);
+            }
+
             // at this step: if there is virtual call ongoing, it means there is no CSV call
             // let virtual call continue and skip phone state update
             if (!isVirtualCallInProgress()) {
