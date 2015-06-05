@@ -1302,7 +1302,9 @@ final class HeadsetStateMachine extends StateMachine {
                     processLocalVrEvent(HeadsetHalConstants.VR_STATE_STOPPED);
                     break;
                 case INTENT_SCO_VOLUME_CHANGED:
-                    processIntentScoVolume((Intent) message.obj, mActiveScoDevice);
+                    if (mActiveScoDevice != null) {
+                        processIntentScoVolume((Intent) message.obj, mActiveScoDevice);
+                    }
                     break;
                 case CALL_STATE_CHANGED:
                     processCallState((HeadsetCallState) message.obj, ((message.arg1 == 1)?true:false));
@@ -1640,6 +1642,11 @@ final class HeadsetStateMachine extends StateMachine {
                     device = (BluetoothDevice) message.obj;
                     if (mConnectedDevicesList.contains(device)) {
                         processLocalVrEvent(HeadsetHalConstants.VR_STATE_STOPPED);
+                    }
+                    break;
+                case INTENT_SCO_VOLUME_CHANGED:
+                    if (mActiveScoDevice != null) {
+                        processIntentScoVolume((Intent) message.obj, mActiveScoDevice);
                     }
                     break;
                 case INTENT_BATTERY_CHANGED:
@@ -2015,6 +2022,14 @@ final class HeadsetStateMachine extends StateMachine {
                             BluetoothProfile.STATE_DISCONNECTED);
         }
 
+        private void processIntentScoVolume(Intent intent, BluetoothDevice device) {
+            int volumeValue = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE, 0);
+            if (mPhoneState.getSpeakerVolume() != volumeValue) {
+                mPhoneState.setSpeakerVolume(volumeValue);
+                setVolumeNative(HeadsetHalConstants.VOLUME_TYPE_SPK,
+                                    volumeValue, getByteAddress(device));
+            }
+        }
     }
 
 
