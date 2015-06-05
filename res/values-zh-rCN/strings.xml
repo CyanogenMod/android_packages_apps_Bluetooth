@@ -126,6 +126,7 @@
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"选择您要通过蓝牙共享的帐号。连接时，您仍必须接受所有帐号访问请求。"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"剩余空档数："</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"应用图标"</string>
+    <string name="upload_fail_waiting">正在进行数据准备，稍后自动重发</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"蓝牙消息共享设置"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"无法选择帐号，目前没有任何空档"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"蓝牙音频已连接"</string>

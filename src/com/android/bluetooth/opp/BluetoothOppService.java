@@ -156,7 +156,7 @@ public class BluetoothOppService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        if (V) Log.v(TAG, "onCreate");
+        if (D) Log.d(TAG, "onCreate");
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mShares = Lists.newArrayList();
         mBatchs = Lists.newArrayList();
@@ -231,10 +231,12 @@ public class BluetoothOppService extends Service {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case STOP_LISTENER:
-                    if (mOppSdpHandle >= 0 &&
+                    if (mAdapter != null && mOppSdpHandle >= 0 &&
                         SdpManager.getDefaultManager() != null) {
                         if (D) Log.d(TAG, "Removing SDP record mOppSdpHandle :" + mOppSdpHandle);
-                        SdpManager.getDefaultManager().removeSdpRecord(mOppSdpHandle);
+                        boolean status = SdpManager.getDefaultManager().
+                                             removeSdpRecord(mOppSdpHandle);
+                        Log.d(TAG, "RemoveSDPrecord returns " + status);
                         mOppSdpHandle = -1;
                     }
                     if (mSocketListener != null) {
@@ -358,7 +360,7 @@ public class BluetoothOppService extends Service {
 
     private void startSocketListener() {
 
-        if (V) Log.v(TAG, "start Socket Listeners");
+        if (D) Log.d(TAG, "start Socket Listeners");
         if (mSocketListener != null) {
             if (D) Log.d(TAG, "rfcomm listener active, stopping it");
             mSocketListener.stop();
@@ -372,7 +374,6 @@ public class BluetoothOppService extends Service {
         mSocketListener = new BluetoothOppRfcommListener(mAdapter);
         mL2cSocketListener = new BluetoothOppL2capListener(mAdapter);
 
-       if (V) Log.v(TAG, "start Socket Listeners");
        if (mSocketListener != null && mL2cSocketListener != null) {
 
            if ( ( mSocketListener.openRfcommSocket() != null) &&
@@ -391,7 +392,7 @@ public class BluetoothOppService extends Service {
 
     @Override
     public void onDestroy() {
-        if (V) Log.v(TAG, "onDestroy");
+        if (D) Log.d(TAG, "onDestroy");
         super.onDestroy();
         getContentResolver().unregisterContentObserver(mObserver);
         unregisterReceiver(mBluetoothReceiver);
@@ -429,6 +430,7 @@ public class BluetoothOppService extends Service {
             String action = intent.getAction();
 
             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+                if (D) Log.d(TAG, "Adapter state = " + mAdapter.getState());
                 switch (mAdapter.getState()) {
                     case BluetoothAdapter.STATE_ON:
                         if (V) Log.v(TAG,

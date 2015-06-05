@@ -143,7 +143,7 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity imple
                     mUpdateValues.put(BluetoothShare.USER_CONFIRMATION,
                             BluetoothShare.USER_CONFIRMATION_CONFIRMED);
                     this.getContentResolver().update(mUri, mUpdateValues, null, null);
-
+                    if (V) Log.v(TAG, " Confirmed :" + mUri);
                     Toast.makeText(this, getString(R.string.bt_toast_1), Toast.LENGTH_SHORT).show();
                 }
                 break;
@@ -154,6 +154,7 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity imple
                 mUpdateValues.put(BluetoothShare.USER_CONFIRMATION,
                         BluetoothShare.USER_CONFIRMATION_DENIED);
                 this.getContentResolver().update(mUri, mUpdateValues, null, null);
+                if (V) Log.v(TAG, " Denied :" + mUri);
                 break;
         }
     }
