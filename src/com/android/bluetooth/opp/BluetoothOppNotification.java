@@ -40,6 +40,8 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.CursorWindowAllocationException;
+import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.util.Log;
 import android.os.Handler;
@@ -151,6 +153,15 @@ class BluetoothOppNotification {
                 if (V) Log.v(TAG, "send message");
                 mHandler.sendMessage(mHandler.obtainMessage(NOTIFY));
             }
+        }
+    }
+
+    public void updateNotifier() {
+        if (V) Log.v(TAG, "updateNotifier while BT is Turning OFF");
+        synchronized (BluetoothOppNotification.this) {
+            updateActiveNotification();
+            updateCompletedNotification();
+            cancelIncomingFileConfirmNotification();
         }
     }
 
@@ -529,4 +540,36 @@ class BluetoothOppNotification {
         }
         cursor.close();
     }
+
+    private void cancelIncomingFileConfirmNotification() {
+        Cursor cursor = null;
+        try {
+            cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
+                WHERE_CONFIRM_PENDING, null, BluetoothShare._ID);
+        } catch (SQLiteException e) {
+            if (cursor != null) {
+                cursor.close();
+            }
+            cursor = null;
+            Log.e(TAG, "cancelupdateIncomingFileConfirmNotification: " + e);
+        } catch (CursorWindowAllocationException e) {
+            cursor = null;
+            Log.e(TAG, "cancelupdateIncomingFileConfirmNotification: " + e);
+        }
+
+
+        if (cursor == null) {
+            return;
+        }
+
+        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+            int id = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID));
+            if (V) Log.v(TAG, "Cancelling incoming notification " + id);
+            mNotificationMgr.cancel(id);
+        }
+        cursor.close();
+        if (V) Log.v(TAG, "Freeing cursor: " + cursor);
+        cursor = null;
+    }
+
 }
