@@ -73,7 +73,7 @@
     <string name="upload_fail_ok" msgid="5807702461606714296">"ಮತ್ತೆ ಪ್ರಯತ್ನಿಸು"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"ಮುಚ್ಚು"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"ಸರಿ"</string>
-    <string name="unknown_file" msgid="6092727753965095366">"ಅಜ್ಞಾತ ಫೈಲ್"</string>
+    <string name="unknown_file" msgid="6092727753965095366">"ಅಪರಿಚಿತ ಫೈಲ್"</string>
     <string name="unknown_file_desc" msgid="480434281415453287">"ಈ ಪ್ರಕಾರದ ಫೈಲ್ ನಿರ್ವಹಿಸಲು ಯಾವುದೇ ಅಪ್ಲಿಕೇಶನ್ ಇಲ್ಲ. \n"</string>
     <string name="not_exist_file" msgid="3489434189599716133">"ಫೈಲ್ ಇಲ್ಲ"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"ಫೈಲ್‌ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ. \n"</string>

@@ -62,7 +62,7 @@
     <string name="download_fail_line3" msgid="3451040656154861722">"دلیل: <xliff:g id="REASON">%1$s</xliff:g>"</string>
     <string name="download_fail_ok" msgid="1521733664438320300">"تأیید"</string>
     <string name="download_succ_line5" msgid="4509944688281573595">"فایل دریافت شد"</string>
-    <string name="download_succ_ok" msgid="7053688246357050216">"باز شود"</string>
+    <string name="download_succ_ok" msgid="7053688246357050216">"باز کردن"</string>
     <string name="upload_line1" msgid="2055952074059709052">"به: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="upload_line3" msgid="4920689672457037437">"نوع فایل: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
     <string name="upload_line5" msgid="7759322537674229752">"در حال ارسال فایل..."</string>
