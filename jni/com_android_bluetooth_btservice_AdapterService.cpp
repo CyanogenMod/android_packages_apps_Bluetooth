@@ -350,7 +350,8 @@ static void discovery_state_changed_callback(bt_discovery_state_t state) {
     checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
 }
 
-static void pin_request_callback(bt_bdaddr_t *bd_addr, bt_bdname_t *bdname, uint32_t cod) {
+static void pin_request_callback(bt_bdaddr_t *bd_addr, bt_bdname_t *bdname, uint32_t cod,
+        bool min_16_digits) {
     jbyteArray addr, devname;
     if (!checkCallbackThread()) {
        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
@@ -370,7 +371,8 @@ static void pin_request_callback(bt_bdaddr_t *bd_addr, bt_bdname_t *bdname, uint
 
     callbackEnv->SetByteArrayRegion(devname, 0, sizeof(bt_bdname_t), (jbyte*)bdname);
 
-    callbackEnv->CallVoidMethod(sJniCallbacksObj, method_pinRequestCallback, addr, devname, cod);
+    callbackEnv->CallVoidMethod(sJniCallbacksObj, method_pinRequestCallback, addr, devname, cod,
+            min_16_digits);
 
     checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
     callbackEnv->DeleteLocalRef(addr);
@@ -619,7 +621,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
                                                             "([B[I[[B)V");
     method_deviceFoundCallback = env->GetMethodID(jniCallbackClass, "deviceFoundCallback", "([B)V");
     method_pinRequestCallback = env->GetMethodID(jniCallbackClass, "pinRequestCallback",
-                                                 "([B[BI)V");
+                                                 "([B[BIZ)V");
     method_sspRequestCallback = env->GetMethodID(jniCallbackClass, "sspRequestCallback",
                                                  "([B[BIII)V");
 
@@ -1044,7 +1046,7 @@ Fail:
 }
 
 static int createSocketChannelNative(JNIEnv *env, jobject object, jint type,
-                                     jstring name_str, jbyteArray uuidObj, 
+                                     jstring name_str, jbyteArray uuidObj,
                                      jint channel, jint flag) {
     const char *service_name = NULL;
     jbyte *uuid = NULL;
