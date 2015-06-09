@@ -49,6 +49,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.ActivityNotFoundException;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.IBinder;
@@ -171,6 +173,7 @@ final class HeadsetStateMachine extends StateMachine {
     private boolean mWaitingForVoiceRecognition = false;
     private WakeLock mStartVoiceRecognitionWakeLock;  // held while waiting for voice recognition
 
+    private ConnectivityManager mConnectivityManager;
     private boolean mDialingOut = false;
     private AudioManager mAudioManager;
     private AtPhonebook mPhonebook;
@@ -238,6 +241,9 @@ final class HeadsetStateMachine extends StateMachine {
         mStartVoiceRecognitionWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                                                        TAG + ":VoiceRecognition");
         mStartVoiceRecognitionWakeLock.setReferenceCounted(false);
+
+        mConnectivityManager = (ConnectivityManager)
+                context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         mDialingOut = false;
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
@@ -2802,6 +2808,10 @@ final class HeadsetStateMachine extends StateMachine {
             return false;
         }
         setVirtualCallInProgress(true);
+
+        // 2. Update the connectivity network type to controller for CxM optimisation.
+        sendVoipConnectivityNetworktype(true);
+
         if (mA2dpState == BluetoothProfile.STATE_CONNECTED) {
             mAudioManager.setParameters("A2dpSuspended=true");
             mA2dpSuspend = true;
@@ -2812,8 +2822,7 @@ final class HeadsetStateMachine extends StateMachine {
             }
         }
 
-
-        // 2. Send virtual phone state changed to initialize SCO
+        // 3. Send virtual phone state changed to initialize SCO
         processCallState(new HeadsetCallState(0, 0,
             HeadsetHalConstants.CALL_STATE_DIALING, "", 0), true);
         processCallState(new HeadsetCallState(0, 0,
@@ -2838,6 +2847,8 @@ final class HeadsetStateMachine extends StateMachine {
         processCallState(new HeadsetCallState(0, 0,
             HeadsetHalConstants.CALL_STATE_IDLE, "", 0), true);
         setVirtualCallInProgress(false);
+        sendVoipConnectivityNetworktype(false);
+
         // Virtual call is Ended set A2dpSuspended to false
         if (mA2dpSuspend) {
             log("Virtual call ended, set A2dpSuspended=false");
@@ -3834,6 +3845,23 @@ final class HeadsetStateMachine extends StateMachine {
         return ret;
     }
 
+    private void sendVoipConnectivityNetworktype(boolean isVoipStarted) {
+        NetworkInfo networkInfo = mConnectivityManager.getActiveNetworkInfo();
+        if (networkInfo == null || !networkInfo.isAvailable() || !networkInfo.isConnected()) {
+            Log.e(TAG, "No connected/available connectivity network, don't update soc");
+            return;
+        }
+
+        if (networkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
+            log("Voip started/stopped on n/w TYPE_MOBILE, don't update to soc");
+        } else if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+            log("Voip started/stopped on n/w TYPE_WIFI, update n/w type & start/stop to soc");
+            voipNetworkWifiInfoNative(isVoipStarted, true);
+        } else {
+            log("Voip started/stopped on some other n/w, don't update to soc");
+        }
+    }
+
     @Override
     protected void log(String msg) {
         if (DBG) {
@@ -3954,4 +3982,7 @@ final class HeadsetStateMachine extends StateMachine {
     private native boolean bindResponseNative(int anum, boolean state, byte[] address);
 
     private native boolean bindStringResponseNative(String result, byte[] address);
+
+    private native boolean voipNetworkWifiInfoNative(boolean isVoipStarted,
+                                                     boolean isNetworkWifi);
 }
