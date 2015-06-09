@@ -235,10 +235,16 @@ final class BondStateMachine extends StateMachine {
                                  BluetoothDevice.PAIRING_VARIANT_DISPLAY_PIN);
                         break;
                     }
-                    //In PIN_REQUEST, there is no passkey to display.So do not send the
-                    //EXTRA_PAIRING_KEY type in the intent( 0 in SendDisplayPinIntent() )
-                    sendDisplayPinIntent(devProp.getAddress(), 0,
-                                          BluetoothDevice.PAIRING_VARIANT_PIN);
+
+                    if (msg.arg2 == 1) { // Minimum 16 digit pin required here
+                        sendDisplayPinIntent(devProp.getAddress(), 0,
+                                BluetoothDevice.PAIRING_VARIANT_PIN_16_DIGITS);
+                    } else {
+                        // In PIN_REQUEST, there is no passkey to display.So do not send the
+                        // EXTRA_PAIRING_KEY type in the intent( 0 in SendDisplayPinIntent() )
+                        sendDisplayPinIntent(devProp.getAddress(), 0,
+                                              BluetoothDevice.PAIRING_VARIANT_PIN);
+                    }
 
                     break;
                 default:
@@ -402,8 +408,9 @@ final class BondStateMachine extends StateMachine {
         sendMessage(msg);
     }
 
-    void pinRequestCallback(byte[] address, byte[] name, int cod) {
+    void pinRequestCallback(byte[] address, byte[] name, int cod, boolean min16Digits) {
         //TODO(BT): Get wakelock and update name and cod
+
         BluetoothDevice bdDevice = mRemoteDevices.getDevice(address);
         if (bdDevice == null) {
             mRemoteDevices.addDeviceProperties(address);
@@ -413,6 +420,7 @@ final class BondStateMachine extends StateMachine {
 
         Message msg = obtainMessage(PIN_REQUEST);
         msg.obj = bdDevice;
+        msg.arg2 = min16Digits ? 1 : 0; // Use arg2 to pass the min16Digit boolean
 
         sendMessage(msg);
     }
