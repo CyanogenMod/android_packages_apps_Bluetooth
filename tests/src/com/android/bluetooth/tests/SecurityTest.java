@@ -43,5 +43,9 @@ public class SecurityTest extends AndroidTestCase {
             Log.e(TAG, "Failed to create connection", e);
             fail();
         }
+        Log.i(TAG, "\n\n\nTest done - please fetch logs within 30 seconds...\n\n\n");
+        try {
+            Thread.sleep(30000);
+        } catch (InterruptedException e) {}
     }
 }
