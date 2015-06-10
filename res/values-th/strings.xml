@@ -105,7 +105,7 @@
     <string name="download_success" msgid="7036160438766730871">"ได้รับแล้ว <xliff:g id="FILE_SIZE">%1$s</xliff:g>"</string>
     <string name="upload_success" msgid="4014469387779648949">"ส่ง <xliff:g id="FILE_SIZE">%1$s</xliff:g> เรียบร้อยแล้ว"</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"การถ่ายโอนขาเข้า"</string>
-    <string name="outbound_history_title" msgid="4279418703178140526">"การถ่ายโอนขาออก"</string>
+    <string name="outbound_history_title" msgid="4279418703178140526">"การถ่ายโอนข้อมูล"</string>
     <string name="no_transfers" msgid="3482965619151865672">"ประวัติการถ่ายโอนว่างเปล่า"</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"รายการทั้งหมดจะถูกล้างจากรายการ"</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"การแชร์ทางบลูทูธ: ส่งไฟล์แล้ว"</string>
