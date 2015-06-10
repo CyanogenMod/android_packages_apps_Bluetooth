@@ -66,6 +66,8 @@ class AdapterProperties {
     private int mOffloadedScanResultStorageBytes;
     private int mVersSupported;
     private int mTotNumOfTrackableAdv;
+    private boolean mIsExtendedScanSupported;
+    private boolean mIsDebugLogSupported;
     private boolean mIsActivityAndEnergyReporting;
 
     // Lock for all getters and setters.
@@ -564,6 +566,10 @@ class AdapterProperties {
         mTotNumOfTrackableAdv = ((0xFF & ((int)val[11])) << 8)
                             + (0xFF & ((int)val[10]));
 
+        // TBD - Logic to be modified by Google as needed here
+        mIsExtendedScanSupported = ((0xFF & ((int)val[12])) != 0);
+        mIsDebugLogSupported = ((0xFF & ((int)val[13])) != 0);
+
         Log.d(TAG, "BT_PROPERTY_LOCAL_LE_FEATURES: update from BT controller"
                 + " mNumOfAdvertisementInstancesSupported = "
                 + mNumOfAdvertisementInstancesSupported
@@ -579,7 +585,12 @@ class AdapterProperties {
                 +" mVersSupported = "
                 + mVersSupported
                 + " mTotNumOfTrackableAdv = "
-                + mTotNumOfTrackableAdv);
+                + mTotNumOfTrackableAdv
+                + " mIsExtendedScanSupported = "
+                + mIsExtendedScanSupported
+                + " mIsDebugLogSupported = "
+                + mIsDebugLogSupported
+                );
     }
 
     void onBluetoothReady() {
