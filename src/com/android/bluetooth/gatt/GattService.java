@@ -2087,14 +2087,16 @@ public class GattService extends ProfileService {
     }
 
     private boolean needsPrivilegedPermissionForScan(ScanSettings settings) {
+        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+        // BLE scan only mode needs special permission.
+        if (adapter.getState() != BluetoothAdapter.STATE_ON) return true;
+
         // Regular scan, no special permission.
-        if (settings == null) {
-            return false;
-        }
+        if (settings == null) return false;
+
         // Regular scan, no special permission.
-        if (settings.getReportDelayMillis() == 0) {
-            return false;
-        }
+        if (settings.getReportDelayMillis() == 0) return false;
+
         // Batch scan, truncated mode needs permission.
         return settings.getScanResultType() == ScanSettings.SCAN_RESULT_TYPE_ABBREVIATED;
     }
