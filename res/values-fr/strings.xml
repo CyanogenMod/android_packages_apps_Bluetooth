@@ -94,7 +94,7 @@
     <string name="status_success" msgid="239573225847565868">"Le transfert de fichiers s\'est déroulé correctement."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"Le contenu n\'est pas compatible."</string>
     <string name="status_forbidden" msgid="613956401054050725">"L\'appareil cible n\'autorise pas le transfert."</string>
-    <string name="status_canceled" msgid="6664490318773098285">"Le transfert a été annulé par l\'utilisateur."</string>
+    <string name="status_canceled" msgid="6664490318773098285">"le transfert a été annulé par l\'utilisateur."</string>
     <string name="status_file_error" msgid="3671917770630165299">"Problème de mémoire."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Aucune mémoire de stockage USB"</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Carte SD absente. Insérez une carte SD pour enregistrer les fichiers transférés."</string>
