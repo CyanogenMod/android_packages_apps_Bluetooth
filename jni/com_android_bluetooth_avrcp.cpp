@@ -118,8 +118,6 @@ static void btavrcp_get_element_attr_callback(uint8_t num_attr, btrc_media_attr_
 }
 
 static void btavrcp_register_notification_callback(btrc_event_id_t event_id, uint32_t param) {
-    ALOGI("%s", __FUNCTION__);
-
     if (!checkCallbackThread()) {
         ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
         return;
@@ -391,7 +389,6 @@ static jboolean registerNotificationRspPlayPosNative(JNIEnv *env, jobject object
     bt_status_t status;
     btrc_register_notification_t param;
 
-    ALOGI("%s: sBluetoothAvrcpInterface: %p", __FUNCTION__, sBluetoothAvrcpInterface);
     if (!sBluetoothAvrcpInterface) return JNI_FALSE;
 
     param.song_pos = (uint32_t)playPos;
