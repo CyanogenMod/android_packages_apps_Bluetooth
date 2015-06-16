@@ -15,17 +15,17 @@
 <resources>
     <bool name="profile_supported_a2dp">true</bool>
     <bool name="profile_supported_a2dp_sink">false</bool>
-    <bool name="profile_supported_hdp">true</bool>
-    <bool name="profile_supported_hs_hfp">true</bool>
+    <bool name="profile_supported_hdp">false</bool>
+    <bool name="profile_supported_hs_hfp">false</bool>
     <bool name="profile_supported_hfpclient">false</bool>
-    <bool name="profile_supported_hid">true</bool>
-    <bool name="profile_supported_opp">true</bool>
-    <bool name="profile_supported_pan">true</bool>
-    <bool name="profile_supported_pbap">true</bool>
+    <bool name="profile_supported_hid">false</bool>
+    <bool name="profile_supported_opp">false</bool>
+    <bool name="profile_supported_pan">false</bool>
+    <bool name="profile_supported_pbap">false</bool>
     <bool name="profile_supported_gatt">true</bool>
     <bool name="pbap_include_photos_in_vcard">false</bool>
-    <bool name="pbap_use_profile_for_owner_vcard">true</bool>
-    <bool name="profile_supported_map">true</bool>
+    <bool name="pbap_use_profile_for_owner_vcard">false</bool>
+    <bool name="profile_supported_map">false</bool>
     <bool name="profile_supported_avrcp_controller">false</bool>
     <bool name="profile_supported_sap">true</bool>
 </resources>
