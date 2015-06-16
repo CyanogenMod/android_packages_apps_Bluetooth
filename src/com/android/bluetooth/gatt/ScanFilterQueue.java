@@ -19,7 +19,6 @@ package com.android.bluetooth.gatt;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.le.ScanFilter;
 import android.os.ParcelUuid;
-import android.util.Log;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -46,7 +45,7 @@ import java.util.UUID;
     private static final int MAX_LEN_PER_FIELD = 26;
 
     // Values defined in bluedroid.
-    private static final byte DEVICE_TYPE_ALL = 0;
+    private static final byte DEVICE_TYPE_ALL = 2;
 
     class Entry {
         public String address;
