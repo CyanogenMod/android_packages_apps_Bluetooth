@@ -2006,9 +2006,9 @@ public class AdapterService extends Service {
             // Energy is product of mA, V and ms. If the chipset doesn't
             // report it, we have to compute it from time
             if (energy_used == 0) {
-                energy_used = ((mTxTimeTotalMs * getTxCurrentMa()
+                energy_used = (long)((mTxTimeTotalMs * getTxCurrentMa()
                     + mRxTimeTotalMs * getRxCurrentMa()
-                    + mIdleTimeTotalMs * getIdleCurrentMa()) * getOperatingMilliVolt())/1000;
+                    + mIdleTimeTotalMs * getIdleCurrentMa()) * getOperatingVolt());
             }
             mEnergyUsedTotalVoltAmpSecMicro += energy_used;
         }
@@ -2031,8 +2031,8 @@ public class AdapterService extends Service {
         return getResources().getInteger(R.integer.config_bluetooth_rx_cur_ma);
     }
 
-    private int getOperatingMilliVolt() {
-        return getResources().getInteger(R.integer.config_bluetooth_operating_voltage_mv);
+    private double getOperatingVolt() {
+        return getResources().getInteger(R.integer.config_bluetooth_operating_voltage_mv) / 1000.0;
     }
 
     private void dump(FileDescriptor fd) {
