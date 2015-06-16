@@ -826,7 +826,7 @@ public class ScanManager {
                     logd("add address " + entry.address);
                     gattClientScanFilterAddNative(clientIf, entry.type, filterIndex, 0, 0, 0, 0, 0,
                             0,
-                            "", entry.address, (byte) 0, new byte[0], new byte[0]);
+                            "", entry.address, (byte) entry.addr_type, new byte[0], new byte[0]);
                     break;
 
                 case ScanFilterQueue.TYPE_SERVICE_DATA:
