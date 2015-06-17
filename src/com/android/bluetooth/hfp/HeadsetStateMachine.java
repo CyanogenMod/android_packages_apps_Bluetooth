@@ -202,6 +202,7 @@ final class HeadsetStateMachine extends StateMachine {
     private IBluetoothHeadsetPhone mPhoneProxy;
     private boolean mNativeAvailable;
 
+    private boolean mAudioFocused;
     private boolean mA2dpSuspend;
     private int mA2dpPlayState;
     private int mA2dpState;
@@ -1736,6 +1737,7 @@ final class HeadsetStateMachine extends StateMachine {
                                 log("Audio is closed,Set A2dpSuspended=false");
                                 mAudioManager.setParameters("A2dpSuspended=false");
                                 mA2dpSuspend = false;
+                                releaseAudioFocus();
                             }
                         }
                         broadcastAudioState(device, BluetoothHeadset.STATE_AUDIO_DISCONNECTED,
@@ -2249,6 +2251,7 @@ final class HeadsetStateMachine extends StateMachine {
                                 log("Audio is closed,Set A2dpSuspended=false");
                                 mAudioManager.setParameters("A2dpSuspended=false");
                                 mA2dpSuspend = false;
+                                releaseAudioFocus();
                             }
                         }
                         broadcastAudioState(device, BluetoothHeadset.STATE_AUDIO_DISCONNECTED,
@@ -2816,6 +2819,7 @@ final class HeadsetStateMachine extends StateMachine {
             if (mA2dpPlayState == BluetoothA2dp.STATE_PLAYING) {
                 log("suspending A2DP stream for SCO");
                 mPendingCiev = true;
+                requestAudioFocus();
                 return true;
             }
         }
@@ -2917,6 +2921,21 @@ final class HeadsetStateMachine extends StateMachine {
                     mAudioManager.setParameters("A2dpSuspended=true");
                 }
             }
+        }
+    }
+
+    private void requestAudioFocus() {
+        if (!mAudioFocused) {
+            mAudioManager.requestAudioFocusForCall(AudioManager.STREAM_BLUETOOTH_SCO,
+                    AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+            mAudioFocused = true;
+        }
+    }
+
+    private void releaseAudioFocus() {
+        if (mAudioFocused) {
+            mAudioManager.abandonAudioFocusForCall();
+            mAudioFocused = false;
         }
     }
 
@@ -3123,6 +3142,7 @@ final class HeadsetStateMachine extends StateMachine {
             if (mA2dpPlayState == BluetoothA2dp.STATE_PLAYING) {
                 Log.d(TAG, "suspending A2DP stream for Call");
                 mPendingCiev = true;
+                requestAudioFocus();
                 return ;
             }
         }
@@ -3136,6 +3156,7 @@ final class HeadsetStateMachine extends StateMachine {
                 log("Set A2dpSuspended=false to reset the a2dp state to standby");
                 mAudioManager.setParameters("A2dpSuspended=false");
                 mA2dpSuspend = false;
+                releaseAudioFocus();
             }
         }
     }
