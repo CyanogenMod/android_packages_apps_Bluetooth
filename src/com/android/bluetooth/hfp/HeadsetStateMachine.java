@@ -48,6 +48,7 @@ import android.content.ActivityNotFoundException;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.IBinder;
+import android.os.IDeviceIdleController;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
@@ -2168,6 +2169,14 @@ final class HeadsetStateMachine extends StateMachine {
             if (!isVirtualCallInProgress() &&
                 !isInCall())
             {
+                IDeviceIdleController dic = IDeviceIdleController.Stub.asInterface(
+                        ServiceManager.getService(Context.DEVICE_IDLE_CONTROLLER));
+                if (dic != null) {
+                    try {
+                        dic.exitIdle("voice-command");
+                    } catch (RemoteException e) {
+                    }
+                }
                 try {
                     mService.startActivity(sVoiceCommandIntent);
                 } catch (ActivityNotFoundException e) {
