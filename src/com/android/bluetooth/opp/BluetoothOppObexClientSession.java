@@ -337,6 +337,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
         private int sendFile(BluetoothOppSendFileInfo fileInfo) {
             boolean error = false;
             int responseCode = -1;
+            int position = 0;
             int status = BluetoothShare.STATUS_SUCCESS;
             Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + mInfo.mId);
             ContentValues updateValues;
@@ -391,7 +392,6 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                 }
 
                 if (!error) {
-                    int position = 0;
                     int readLength = 0;
                     boolean okToProceed = false;
                     long timestamp = 0;
