@@ -408,15 +408,24 @@ class AdapterProperties {
     private boolean updateCountersAndCheckForConnectionStateChange(int state, int prevState) {
         switch (prevState) {
             case BluetoothProfile.STATE_CONNECTING:
-                mProfilesConnecting--;
+                if (mProfilesConnecting > 0)
+                    mProfilesConnecting--;
+                else
+                    Log.e(TAG, "mProfilesConnecting " + mProfilesConnecting);
                 break;
 
             case BluetoothProfile.STATE_CONNECTED:
-                mProfilesConnected--;
+                if (mProfilesConnected > 0)
+                    mProfilesConnected--;
+                else
+                    Log.e(TAG, "mProfilesConnected " + mProfilesConnected);
                 break;
 
             case BluetoothProfile.STATE_DISCONNECTING:
-                mProfilesDisconnecting--;
+                if (mProfilesDisconnecting > 0)
+                    mProfilesDisconnecting--;
+                else
+                    Log.e(TAG, "mProfilesDisconnecting " + mProfilesDisconnecting);
                 break;
         }
 

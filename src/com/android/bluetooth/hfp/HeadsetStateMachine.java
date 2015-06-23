@@ -823,6 +823,9 @@ final class HeadsetStateMachine extends StateMachine {
                     if (mConnectedDevicesList.contains(device)) {
                         Log.e(TAG, "ERROR: Connect received for already connected device, Ignore");
                         break;
+                    } else {
+                            broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_DISCONNECTING,
+                                       BluetoothProfile.STATE_CONNECTED);
                     }
 
                     if (!mRetryConnect.containsKey(device)) {
@@ -904,7 +907,7 @@ final class HeadsetStateMachine extends StateMachine {
                                    BluetoothProfile.STATE_CONNECTED);
                     if (!disconnectHfpNative(getByteAddress(device))) {
                         broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTED,
-                                       BluetoothProfile.STATE_DISCONNECTED);
+                                       BluetoothProfile.STATE_DISCONNECTING);
                         break;
                     }
 
