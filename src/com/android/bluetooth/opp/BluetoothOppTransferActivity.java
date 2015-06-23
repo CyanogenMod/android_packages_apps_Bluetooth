@@ -429,15 +429,18 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
             return;
         }
 
-        if (mTransInfo.mTotalBytes == 0) {
-            // if Max and progress both equal 0, the progress display 100%.
-            // Below is to fix it.
-            mProgressTransfer.setMax(100);
-        } else {
-            mProgressTransfer.setMax(mTransInfo.mTotalBytes);
-        }
+        // Set Transfer Max as 100. Percentage calculation would be done in setProgress API
+        mProgressTransfer.setMax(100);
 
-        mProgressTransfer.setProgress(mTransInfo.mCurrentBytes);
+        if (mTransInfo.mTotalBytes != 0) {
+            if (V) Log.v(TAG, "mCurrentBytes: " + mTransInfo.mCurrentBytes +
+                " mTotalBytes: " + mTransInfo.mTotalBytes + " (" +
+                (int)((mTransInfo.mCurrentBytes * 100) / mTransInfo.mTotalBytes) + "%)");
+            mProgressTransfer.setProgress((int)((mTransInfo.mCurrentBytes * 100) /
+                mTransInfo.mTotalBytes));
+        } else {
+            mProgressTransfer.setProgress(100);
+        }
 
         mPercentView.setText(BluetoothOppUtility.formatProgressText(mTransInfo.mTotalBytes,
                 mTransInfo.mCurrentBytes));
