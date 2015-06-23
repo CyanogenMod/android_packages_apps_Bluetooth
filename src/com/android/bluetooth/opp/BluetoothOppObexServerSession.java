@@ -268,7 +268,9 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         ContentValues values = new ContentValues();
 
         values.put(BluetoothShare.FILENAME_HINT, name);
-        values.put(BluetoothShare.TOTAL_BYTES, length.intValue());
+
+        values.put(BluetoothShare.TOTAL_BYTES, length);
+
         values.put(BluetoothShare.MIMETYPE, mimeType);
 
         values.put(BluetoothShare.DESTINATION, destination);
