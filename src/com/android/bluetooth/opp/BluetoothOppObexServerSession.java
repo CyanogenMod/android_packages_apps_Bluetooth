@@ -116,7 +116,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
      * Called when connection is accepted from remote, to retrieve the first
      * Header then wait for user confirmation
      */
-    public void preStart(Handler handler) {
+    public void preStart() {
         try {
             if (D) Log.d(TAG, "Create ServerSession with transport " + mTransport.toString());
             mSession = new ServerSession(mTransport, this, null);
