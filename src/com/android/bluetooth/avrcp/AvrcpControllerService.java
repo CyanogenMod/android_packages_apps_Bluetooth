@@ -82,14 +82,13 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     protected boolean cleanup() {
-        mHandler.removeCallbacksAndMessages(null);
-        Looper looper = mHandler.getLooper();
-        if (looper != null) {
-            looper.quit();
+        if (mHandler != null) {
+            mHandler.removeCallbacksAndMessages(null);
+            Looper looper = mHandler.getLooper();
+            if (looper != null) looper.quit();
         }
 
         clearAvrcpControllerService();
-
         cleanupNative();
 
         return true;
