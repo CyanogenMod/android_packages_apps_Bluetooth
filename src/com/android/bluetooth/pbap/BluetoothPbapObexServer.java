@@ -105,6 +105,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     // phone book
     private static final String PB = "pb";
 
+    private static final String TELECOM_PATH = "/telecom";
+
     private static final String ICH_PATH = "/telecom/ich";
 
     private static final String OCH_PATH = "/telecom/och";
@@ -366,6 +368,12 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 mNeedNewMissedCallsNum = true;
             } else if (mCurrentPath.equals(CCH_PATH)) {
                 appParamValue.needTag = ContentType.COMBINED_CALL_HISTORY;
+            } else if (mCurrentPath.equals(TELECOM_PATH)) {
+                /* PBAP 1.1.1 change */
+                if (!validName && type.equals(TYPE_LISTING)) {
+                    Log.e(TAG, "invalid vcard listing request in default folder");
+                    return ResponseCodes.OBEX_HTTP_NOT_FOUND;
+                }
             } else {
                 Log.w(TAG, "mCurrentpath is not valid path!!!");
                 return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
