@@ -715,6 +715,11 @@ final class A2dpStateMachine extends StateMachine {
         int delay = mAudioManager.setBluetoothA2dpDeviceConnectionState(device, newState,
                 BluetoothProfile.A2DP);
 
+        if (newState == BluetoothProfile.STATE_DISCONNECTING ||
+            newState == BluetoothProfile.STATE_CONNECTING) {
+            delay = 0;
+        }
+
         mWakeLock.acquire();
         mIntentBroadcastHandler.sendMessageDelayed(mIntentBroadcastHandler.obtainMessage(
                                                         MSG_CONNECTION_STATE_CHANGED,
