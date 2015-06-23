@@ -326,6 +326,7 @@ final class HeadsetStateMachine extends StateMachine {
             mPhoneState.listenForPhoneState(false);
             mVoiceRecognitionStarted = false;
             mWaitingForVoiceRecognition = false;
+            mDialingOut = false;
         }
 
         @Override
@@ -900,6 +901,7 @@ final class HeadsetStateMachine extends StateMachine {
                 {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
                     if (mDialingOut) {
+                        log("Timeout waiting for call to be placed, resetting mDialingOut");
                         mDialingOut= false;
                         atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR,
                                                    0, getByteAddress(device));
@@ -1350,6 +1352,7 @@ final class HeadsetStateMachine extends StateMachine {
                 {
                     if (mDialingOut) {
                         BluetoothDevice device = (BluetoothDevice)message.obj;
+                        log("Timeout waiting for call to be placed, resetting mDialingOut");
                         mDialingOut= false;
                         atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR,
                                                0, getByteAddress(device));
@@ -1681,6 +1684,7 @@ final class HeadsetStateMachine extends StateMachine {
                 case DIALING_OUT_TIMEOUT:
                     if (mDialingOut) {
                         device = (BluetoothDevice) message.obj;
+                        log("Timeout waiting for call to be placed, resetting mDialingOut");
                         mDialingOut= false;
                         atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_ERROR,
                                              0, getByteAddress(device));
@@ -2703,21 +2707,17 @@ final class HeadsetStateMachine extends StateMachine {
         mPhoneState.setNumActiveCall(callState.mNumActive);
         mPhoneState.setNumHeldCall(callState.mNumHeld);
         mPhoneState.setCallState(callState.mCallState);
-        if (mDialingOut) {
-            if (callState.mCallState ==
+        if (mDialingOut && callState.mCallState ==
                 HeadsetHalConstants.CALL_STATE_DIALING) {
                 BluetoothDevice device = getDeviceForMessage(DIALING_OUT_TIMEOUT);
+                removeMessages(DIALING_OUT_TIMEOUT);
+                log("mDialingOut is " + mDialingOut + ", device " + device);
+                mDialingOut = false;
                 if (device == null) {
                     return;
                 }
                 atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK,
                                                        0, getByteAddress(device));
-                removeMessages(DIALING_OUT_TIMEOUT);
-            } else if (callState.mCallState ==
-                HeadsetHalConstants.CALL_STATE_ACTIVE || callState.mCallState
-                == HeadsetHalConstants.CALL_STATE_IDLE) {
-                mDialingOut = false;
-            }
         }
 
         /* Set ActiveScoDevice to null when call ends */
