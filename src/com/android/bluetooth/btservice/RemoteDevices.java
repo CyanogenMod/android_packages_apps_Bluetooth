@@ -174,11 +174,15 @@ final class RemoteDevices {
         /**
          * @param mAlias the mAlias to set
          */
-        void setAlias(String mAlias) {
+        void setAlias(BluetoothDevice device, String mAlias) {
             synchronized (mObject) {
                 this.mAlias = mAlias;
                 mAdapterService.setDevicePropertyNative(mAddress,
                     AbstractionLayer.BT_PROPERTY_REMOTE_FRIENDLY_NAME, mAlias.getBytes());
+                Intent intent = new Intent(BluetoothDevice.ACTION_ALIAS_CHANGED);
+                intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+                intent.putExtra(BluetoothDevice.EXTRA_NAME, mAlias);
+                mAdapterService.sendBroadcast(intent, AdapterService.BLUETOOTH_PERM);
             }
         }
 
