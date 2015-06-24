@@ -123,6 +123,11 @@ final class BondStateMachine extends StateMachine {
                     sendIntent(dev, newState, 0);
                     transitionTo(mPendingCommandState);
                 }
+                else if (newState == BluetoothDevice.BOND_NONE)
+                {
+                    /* if the link key was deleted by the stack */
+                    sendIntent(dev, newState, 0);
+                }
                 else
                 {
                     Log.e(TAG, "In stable state, received invalid newState: " + newState);
