@@ -94,7 +94,7 @@
     <string name="status_success" msgid="239573225847565868">"फाइल स्थानांतरण यशस्वीरित्या पूर्ण झाले."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"सामग्री समर्थित नाही."</string>
     <string name="status_forbidden" msgid="613956401054050725">"लक्ष्‍य डिव्‍हाइसद्वारे स्‍थानांतरण निषिद्ध केले."</string>
-    <string name="status_canceled" msgid="6664490318773098285">"वापरकर्त्याद्वारे स्‍थानांतरण रद्द केले."</string>
+    <string name="status_canceled" msgid="6664490318773098285">"वापरकर्त्याने स्‍थानांतरण रद्द केले."</string>
     <string name="status_file_error" msgid="3671917770630165299">"संचयन समस्‍या."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"USB संचयन नाही."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"SD कार्ड नाही. स्‍थानांतरित केलेल्‍या फायली जतन करण्‍यासाठी SD कार्ड घाला."</string>

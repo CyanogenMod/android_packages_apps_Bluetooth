@@ -114,7 +114,7 @@
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Hapus daftar"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Buka"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Hapus dari daftar"</string>
-    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Bersihkan"</string>
+    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Hapus"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Simpan"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Batal"</string>
     <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Pilih akun yang ingin Anda bagikan melalui Bluetooth. Anda harus menerima akses apa pun ke akun saat menyambungkan."</string>

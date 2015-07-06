@@ -36,16 +36,16 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Accetta"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Si è verificato un timeout durante l\'accettazione di un file in arrivo da \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Condivisione Bluetooth: file in arrivo"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth: file in arrivo"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Vuoi ricevere questo file?"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"File in arrivo da un altro dispositivo. Conferma che vuoi ricevere il file."</string>
-    <string name="notification_receiving" msgid="4674648179652543984">"Condivisione Bluetooth: ricezione file <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received" msgid="3324588019186687985">"Condivisione Bluetooth: file <xliff:g id="FILE">%1$s</xliff:g> ricevuto"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Condivisione Bluetooth: file <xliff:g id="FILE">%1$s</xliff:g> non ricevuto"</string>
-    <string name="notification_sending" msgid="3035748958534983833">"Condivisione Bluetooth: invio file <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"Condivisione Bluetooth: file <xliff:g id="FILE">%1$s</xliff:g> inviato"</string>
+    <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth: ricezione <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received" msgid="3324588019186687985">"Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> ricevuto"</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth: file <xliff:g id="FILE">%1$s</xliff:g> non ricevuto"</string>
+    <string name="notification_sending" msgid="3035748958534983833">"Bluetooth: invio <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> inviato"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"100% completato"</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"Condivisione Bluetooth: file <xliff:g id="FILE">%1$s</xliff:g> non inviato"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth: file <xliff:g id="FILE">%1$s</xliff:g> non inviato"</string>
     <string name="download_title" msgid="3353228219772092586">"Trasferimento file"</string>
     <string name="download_line1" msgid="4926604799202134144">"Da: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"File: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -108,9 +108,9 @@
     <string name="outbound_history_title" msgid="4279418703178140526">"Trasferimenti in uscita"</string>
     <string name="no_transfers" msgid="3482965619151865672">"La cronologia dei trasferimenti è vuota."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Tutti gli elementi verranno cancellati dall\'elenco."</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"Condivisione Bluetooth: file inviati"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"Condivisione Bluetooth: file ricevuti"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> operazioni riuscite, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> operazioni non riuscite."</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth: file inviati"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth: file ricevuti"</string>
+    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> riusciti, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> non riusciti."</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Cancella elenco"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Apri"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Cancella da elenco"</string>

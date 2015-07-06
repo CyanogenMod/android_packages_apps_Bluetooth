@@ -31,7 +31,7 @@
     <string name="bt_enable_cancel" msgid="1988832367505151727">"റദ്ദാക്കുക"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"ഓൺ ചെയ്യുക"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"ഫയൽ കൈമാറൽ"</string>
-    <string name="incoming_file_confirm_content" msgid="2752605552743148036">"ഇൻകമിംഗ് ഫയൽ അംഗീകരിക്കണോ?"</string>
+    <string name="incoming_file_confirm_content" msgid="2752605552743148036">"ഇൻകമിംഗ് ഫയൽ സ്വീകരിക്കണോ?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"നിരസിക്കുക"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"സ്വീകരിക്കുക"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ശരി"</string>
@@ -54,7 +54,7 @@
     <string name="download_line5" msgid="3069560415845295386">"ഫയൽ നേടുന്നു…"</string>
     <string name="download_cancel" msgid="9177305996747500768">"നിര്‍ത്തുക"</string>
     <string name="download_ok" msgid="5000360731674466039">"മറയ്‌ക്കുക"</string>
-    <string name="incoming_line1" msgid="2127419875681087545">"അയച്ചയാൾ"</string>
+    <string name="incoming_line1" msgid="2127419875681087545">"അയച്ചത്"</string>
     <string name="incoming_line2" msgid="3348994249285315873">"ഫയല്‍നാമം"</string>
     <string name="incoming_line3" msgid="7954237069667474024">"വലുപ്പം"</string>
     <string name="download_fail_line1" msgid="3846450148862894552">"ഫയൽ ലഭിച്ചില്ല"</string>
@@ -68,7 +68,7 @@
     <string name="upload_line5" msgid="7759322537674229752">"ഫയൽ അയയ്‌ക്കുന്നു…"</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"ഫയൽ അയച്ചു"</string>
     <string name="upload_succ_ok" msgid="7705428476405478828">"ശരി"</string>
-    <string name="upload_fail_line1" msgid="7899394672421491701">"ഈ ഫയൽ \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" എന്നയാൾക്ക് അയച്ചില്ല."</string>
+    <string name="upload_fail_line1" msgid="7899394672421491701">"ഈ ഫയൽ \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" -ലേക്ക് അയച്ചില്ല."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"ഫയൽ: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="upload_fail_ok" msgid="5807702461606714296">"വീണ്ടും ശ്രമിക്കുക"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"അടയ്‌ക്കുക"</string>
@@ -110,7 +110,7 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"ലിസ്റ്റിൽ നിന്നും എല്ലാ ഇനങ്ങളും മായ്‌ക്കും."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"ബ്ലൂടൂത്ത് പങ്കിടൽ: അയച്ച ഫയലുകൾ"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"ബ്ലൂടൂത്ത് പങ്കിടൽ: ലഭിച്ച ഫയലുകൾ"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> എണ്ണം വിജയകരം, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> എണ്ണം പരാജയപ്പെട്ടു."</string>
+    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> വിജയകരം, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> പരാജയപ്പെട്ടു."</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"ലിസ്റ്റ് മായ്‌ക്കുക"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"തുറക്കുക"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"ലിസ്റ്റിൽ നിന്നും മായ്‌ക്കുക"</string>

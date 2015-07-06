@@ -36,16 +36,16 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Prijať"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Pri prijímaní prichádzajúceho súboru od používateľa <xliff:g id="SENDER">%1$s</xliff:g> vypršal časový limit."</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Zdieľanie Bluetooth: Prichádzajúci súbor"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth: Prichádzajúci súbor"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Chcete prijať tento súbor?"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Potvrďte príjem súboru prichádzajúceho z iného zariadenia."</string>
-    <string name="notification_receiving" msgid="4674648179652543984">"Zdieľanie Bluetooth: Prijímanie súboru <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received" msgid="3324588019186687985">"Zdieľanie Bluetooth: Bol prijatý súbor <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Zdieľanie Bluetooth: Súbor <xliff:g id="FILE">%1$s</xliff:g> nebol prijatý"</string>
-    <string name="notification_sending" msgid="3035748958534983833">"Zdieľanie Bluetooth: Odosielanie súboru <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"Zdieľanie Bluetooth: Súbor <xliff:g id="FILE">%1$s</xliff:g> bol odoslaný"</string>
+    <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth: Prijíma sa <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received" msgid="3324588019186687985">"Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> prijatý"</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> neprijatý"</string>
+    <string name="notification_sending" msgid="3035748958534983833">"Bluetooth: Odosiela sa <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> odoslaný"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"100 % hotovo"</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"Zdieľanie Bluetooth: Súbor <xliff:g id="FILE">%1$s</xliff:g> nebol odoslaný"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> neodoslaný"</string>
     <string name="download_title" msgid="3353228219772092586">"Prenos súborov"</string>
     <string name="download_line1" msgid="4926604799202134144">"Od: <xliff:g id="SENDER">%1$s</xliff:g>"</string>
     <string name="download_line2" msgid="5876973543019417712">"Súbor: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -93,7 +93,7 @@
     <string name="status_running" msgid="6562808920311008696">"Prebieha prenos súborov."</string>
     <string name="status_success" msgid="239573225847565868">"Prenos súborov bol úspešne dokončený."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"Obsah nie je podporovaný."</string>
-    <string name="status_forbidden" msgid="613956401054050725">"Tento prenos bol zakázaný cieľovým zariadením."</string>
+    <string name="status_forbidden" msgid="613956401054050725">"Prenos bol zakázaný cieľovým zariadením."</string>
     <string name="status_canceled" msgid="6664490318773098285">"Prenos bol zrušený používateľom."</string>
     <string name="status_file_error" msgid="3671917770630165299">"Problém s ukladacím priestorom."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Žiadny ukladací priestor USB."</string>
@@ -108,8 +108,8 @@
     <string name="outbound_history_title" msgid="4279418703178140526">"Odchádzajúce prenosy"</string>
     <string name="no_transfers" msgid="3482965619151865672">"História prenosov je prázdna."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Zo zoznamu budú vymazané všetky položky."</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"Zdieľanie Bluetooth: Odoslané súbory"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"Zdieľanie Bluetooth: Prijaté súbory"</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth: Odoslané súbory"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth: Prijaté súbory"</string>
     <string name="noti_caption" msgid="7508708288885707365">"Úspešné: <xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g>, neúspešné: <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g>."</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Vymazať zoznam"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Otvoriť"</string>

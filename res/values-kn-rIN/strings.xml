@@ -93,7 +93,7 @@
     <string name="status_running" msgid="6562808920311008696">"ಫೈಲ್‌‌ ವರ್ಗಾವಣೆಯು ಚಾಲ್ತಿಯಲ್ಲಿದೆ."</string>
     <string name="status_success" msgid="239573225847565868">"ಫೈಲ್‌ ವರ್ಗಾವಣೆಯು ಸಂಪೂರ್ಣವಾಗಿ ಯಶಸ್ವಿಯಾಗಿದೆ."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"ವಿಷಯ ಬೆಂಬಲಿತವಾಗಿಲ್ಲ."</string>
-    <string name="status_forbidden" msgid="613956401054050725">"ಗುರಿಯ ಸಾಧನದಿಂದ ವರ್ಗಾವಣೆಯನ್ನು ನಿಷೇಧಿಸಲಾಗಿದೆ."</string>
+    <string name="status_forbidden" msgid="613956401054050725">"ಉದ್ದೇಶಿತ ಸಾಧನದಿಂದ ವರ್ಗಾವಣೆಯನ್ನು ನಿಷೇಧಿಸಲಾಗಿದೆ."</string>
     <string name="status_canceled" msgid="6664490318773098285">"ಬಳಕೆದಾರರ ಮೂಲಕ ವರ್ಗಾವಣೆಯನ್ನು ರದ್ದುಪಡಿಸಲಾಗಿದೆ."</string>
     <string name="status_file_error" msgid="3671917770630165299">"ಸಂಗ್ರಹಣೆಯ ಸಮಸ್ಯೆ."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"ಯಾವುದೇ USB ಸಂಗ್ರಹಣೆಯಿಲ್ಲ."</string>
@@ -104,8 +104,8 @@
     <string name="btopp_live_folder" msgid="7967791481444474554">"ಬ್ಲೂಟೂತ್‌ ಸ್ವೀಕರಿಸಲಾಗಿದೆ"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ಸ್ವೀಕರಿಸುವುದು ಪೂರ್ಣಗೊಂಡಿದೆ."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ಕಳುಹಿಸುವುದು ಪೂರ್ಣಗೊಂಡಿದೆ."</string>
-    <string name="inbound_history_title" msgid="6940914942271327563">"ಆಗಮಿಸುವ ವರ್ಗಾವಣೆಗಳು"</string>
-    <string name="outbound_history_title" msgid="4279418703178140526">"ಹೊರಹೋಗುವ ವರ್ಗಾವಣೆಗಳು"</string>
+    <string name="inbound_history_title" msgid="6940914942271327563">"ಇನ್‌ಬೌಂಡ್‌ ವರ್ಗಾವಣೆಗಳು"</string>
+    <string name="outbound_history_title" msgid="4279418703178140526">"ಔಟ್‌ಬೌಂಡ್‌ ವರ್ಗಾವಣೆಗಳು"</string>
     <string name="no_transfers" msgid="3482965619151865672">"ವರ್ಗಾವಣೆಯ ಇತಿಹಾಸವು ಖಾಲಿಯಾಗಿದೆ."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"ಪಟ್ಟಿಯಿಂದ ಎಲ್ಲ ಐಟಂಗಳನ್ನು ತೆರವುಗೊಳಿಸಲಾಗುವುದು."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"ಬ್ಲೂಟೂತ್‌ ಹಂಚಿಕೆ: ಕಳುಹಿಸಲಾಗಿರುವ ಫೈಲ್‌‌ಗಳು"</string>
