@@ -56,7 +56,7 @@
     <string name="download_ok" msgid="5000360731674466039">"Verbergen"</string>
     <string name="incoming_line1" msgid="2127419875681087545">"Van"</string>
     <string name="incoming_line2" msgid="3348994249285315873">"Bestandsnaam"</string>
-    <string name="incoming_line3" msgid="7954237069667474024">"Gootte"</string>
+    <string name="incoming_line3" msgid="7954237069667474024">"Grootte"</string>
     <string name="download_fail_line1" msgid="3846450148862894552">"Bestand niet ontvangen"</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"Bestand: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_fail_line3" msgid="3451040656154861722">"Reden: <xliff:g id="REASON">%1$s</xliff:g>"</string>
@@ -108,8 +108,8 @@
     <string name="outbound_history_title" msgid="4279418703178140526">"Uitgaande overdrachten"</string>
     <string name="no_transfers" msgid="3482965619151865672">"Overdrachtsgeschiedenis is leeg."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Alle items op de lijst worden gewist."</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth-share: verzonden bestanden"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth-share: ontvangen bestanden"</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Delen via Bluetooth: verzonden bestanden"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Delen via Bluetooth: ontvangen bestanden"</string>
     <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> geslaagd, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> mislukt."</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Lijst wissen"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Openen"</string>

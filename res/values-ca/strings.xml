@@ -93,7 +93,7 @@
     <string name="status_running" msgid="6562808920311008696">"S\'està duent a terme la transferència de fitxers."</string>
     <string name="status_success" msgid="239573225847565868">"La transferència de fitxers s\'ha completat correctament."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"El contingut no és compatible."</string>
-    <string name="status_forbidden" msgid="613956401054050725">"El dispositiu de destinació ha prohibit la transferència."</string>
+    <string name="status_forbidden" msgid="613956401054050725">"El dispositiu de destinació no permet la transferència."</string>
     <string name="status_canceled" msgid="6664490318773098285">"L\'usuari ha cancel·lat la transferència."</string>
     <string name="status_file_error" msgid="3671917770630165299">"Problema d\'emmagatzematge."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Sense emmagatzematge USB."</string>

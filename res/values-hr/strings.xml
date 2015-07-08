@@ -102,7 +102,7 @@
     <string name="status_protocol_error" msgid="3245444473429269539">"Zahtjev nije moguće ispravno obraditi."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Nepoznata pogreška."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth primljen"</string>
-    <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Primljeno u potpunosti."</string>
+    <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> primljeno u cijelosti."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Poslano u potpunosti."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Dolazni prijenosi"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Odlazni prijenosi"</string>
@@ -111,10 +111,10 @@
     <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth dijeljenje: poslane datoteke"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth dijeljenje: primljene datoteke"</string>
     <string name="noti_caption" msgid="7508708288885707365">"Uspjelo: <xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g>, nije uspjelo: <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g>."</string>
-    <string name="transfer_menu_clear_all" msgid="790017462957873132">"Očisti popis"</string>
+    <string name="transfer_menu_clear_all" msgid="790017462957873132">"Izbriši popis"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Otvori"</string>
-    <string name="transfer_menu_clear" msgid="5854038118831427492">"Očisti s popisa"</string>
-    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Očisti"</string>
+    <string name="transfer_menu_clear" msgid="5854038118831427492">"Izbriši s popisa"</string>
+    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Brisanje"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Spremi"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Odustani"</string>
     <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Odaberite račune koje želite dijeliti putem Bluetootha. I dalje morate prihvatiti svako pristupanje računima prilikom povezivanja."</string>
