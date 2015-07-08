@@ -24,7 +24,7 @@
     </style>
 
     <style name="file_transfer_item_label">
-        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginStart">20dip</item>
         <item name="android:layout_marginEnd">20dip</item>
@@ -35,7 +35,7 @@
     </style>
 
     <style name="file_transfer_item_content">
-        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginStart">20dip</item>
         <item name="android:layout_marginEnd">20dip</item>
