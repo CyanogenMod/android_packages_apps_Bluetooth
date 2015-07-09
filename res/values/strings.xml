@@ -214,7 +214,14 @@
     <string name="transfer_clear_dlg_msg">All items will be cleared from the list.</string>
     <string name="outbound_noti_title">Bluetooth share: Sent files</string>
     <string name="inbound_noti_title">Bluetooth share: Received files</string>
-    <string name="noti_caption"> <xliff:g id="successful_number">%1$s</xliff:g> successful, <xliff:g id="unsuccessful_number">%2$s</xliff:g> unsuccessful.</string>
+    <plurals name="noti_caption_unsuccessful">
+        <item quantity="one"><xliff:g id="unsuccessful_number">%1$d</xliff:g> unsuccessful.</item>
+        <item quantity="other"><xliff:g id="unsuccessful_number">%1$d</xliff:g> unsuccessful.</item>
+    </plurals>
+    <plurals name="noti_caption_success">
+        <item quantity="one"><xliff:g id="successful_number">%1$d</xliff:g> successful, %2$s</item>
+        <item quantity="other"><xliff:g id="successful_number">%1$d</xliff:g> successful, %2$s</item>
+    </plurals>
 
     <string name="transfer_menu_clear_all">Clear list</string>
     <string name="transfer_menu_open">Open</string>
