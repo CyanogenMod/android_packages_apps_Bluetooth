@@ -67,6 +67,7 @@
         android:icon="@mipmap/bt_share"
         android:persistent="false"
         android:label="@string/app_name"
+        android:supportsRtl="true"
         android:usesCleartextTraffic="false">
         <uses-library android:name="javax.obex" />
         <provider android:name=".opp.BluetoothOppProvider"
