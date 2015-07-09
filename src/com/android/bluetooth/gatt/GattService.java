@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.gatt;
 
+import android.app.AppOpsManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -148,6 +149,7 @@ public class GattService extends ProfileService {
 
     private AdvertiseManager mAdvertiseManager;
     private ScanManager mScanManager;
+    private AppOpsManager mAppOps;
 
     /**
      * Reliable write queue
@@ -169,6 +171,7 @@ public class GattService extends ProfileService {
     protected boolean start() {
         if (DBG) Log.d(TAG, "start()");
         initializeNative();
+        mAppOps = getSystemService(AppOpsManager.class);
         mAdvertiseManager = new AdvertiseManager(this, AdapterService.getAdapterService());
         mAdvertiseManager.start();
 
@@ -303,10 +306,10 @@ public class GattService extends ProfileService {
 
         @Override
         public void startScan(int appIf, boolean isServer, ScanSettings settings,
-                List<ScanFilter> filters, List storages) {
+                List<ScanFilter> filters, List storages, String callingPackage) {
             GattService service = getService();
             if (service == null) return;
-            service.startScan(appIf, isServer, settings, filters, storages);
+            service.startScan(appIf, isServer, settings, filters, storages, callingPackage);
         }
 
         public void stopScan(int appIf, boolean isServer) {
@@ -599,7 +602,7 @@ public class GattService extends ProfileService {
                             .getRemoteDevice(address);
                     ScanResult result = new ScanResult(device, ScanRecord.parseFromBytes(adv_data),
                             rssi, SystemClock.elapsedRealtimeNanos());
-                    if (matchesFilters(client, result)) {
+                    if (client.hasLocationPermission && matchesFilters(client, result)) {
                         try {
                             ScanSettings settings = client.settings;
                             if ((settings.getCallbackType() &
@@ -1350,13 +1353,18 @@ public class GattService extends ProfileService {
     }
 
     void startScan(int appIf, boolean isServer, ScanSettings settings,
-            List<ScanFilter> filters, List<List<ResultStorageDescriptor>> storages) {
+            List<ScanFilter> filters, List<List<ResultStorageDescriptor>> storages,
+            String callingPackage) {
         if (DBG) Log.d(TAG, "start scan with filters");
         enforceAdminPermission();
         if (needsPrivilegedPermissionForScan(settings)) {
             enforcePrivilegedPermission();
         }
-        mScanManager.startScan(new ScanClient(appIf, isServer, settings, filters, storages));
+        boolean hasLocationPermission = Utils.checkCallerHasLocationPermission(this,
+                mAppOps, callingPackage);
+        final ScanClient scanClient = new ScanClient(appIf, isServer, settings, filters, storages);
+        scanClient.hasLocationPermission = hasLocationPermission;
+        mScanManager.startScan(scanClient);
     }
 
     void flushPendingBatchResults(int clientIf, boolean isServer) {
