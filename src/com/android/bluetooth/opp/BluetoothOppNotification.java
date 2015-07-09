@@ -351,6 +351,7 @@ class BluetoothOppNotification {
 
     private void updateCompletedNotification() {
         String title;
+        String unsuccess_caption;
         String caption;
         long timeStamp = 0;
         int outboundSuccNumber = 0;
@@ -409,8 +410,11 @@ class BluetoothOppNotification {
             Notification outNoti = new Notification();
             outNoti.icon = android.R.drawable.stat_sys_upload_done;
             title = mContext.getString(R.string.outbound_noti_title);
-            caption = mContext.getString(R.string.noti_caption, outboundSuccNumber,
-                    outboundFailNumber);
+            unsuccess_caption = mContext.getResources().getQuantityString(
+                    R.plurals.noti_caption_unsuccessful, outboundFailNumber, outboundFailNumber);
+            caption = mContext.getResources().getQuantityString(
+                    R.plurals.noti_caption_success, outboundSuccNumber, outboundSuccNumber,
+                    unsuccess_caption);
             intent = new Intent(Constants.ACTION_OPEN_OUTBOUND_TRANSFER);
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
             outNoti.color = mContext.getResources().getColor(
@@ -458,8 +462,11 @@ class BluetoothOppNotification {
             Notification inNoti = new Notification();
             inNoti.icon = android.R.drawable.stat_sys_download_done;
             title = mContext.getString(R.string.inbound_noti_title);
-            caption = mContext.getString(R.string.noti_caption, inboundSuccNumber,
-                    inboundFailNumber);
+            unsuccess_caption = mContext.getResources().getQuantityString(
+                    R.plurals.noti_caption_unsuccessful, inboundFailNumber, inboundFailNumber);
+            caption = mContext.getResources().getQuantityString(
+                    R.plurals.noti_caption_success, inboundSuccNumber, inboundSuccNumber,
+                    unsuccess_caption);
             intent = new Intent(Constants.ACTION_OPEN_INBOUND_TRANSFER);
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
             inNoti.color = mContext.getResources().getColor(
