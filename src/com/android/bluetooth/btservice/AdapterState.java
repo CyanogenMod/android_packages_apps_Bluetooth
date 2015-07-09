@@ -462,9 +462,14 @@ final class AdapterState extends StateMachine {
 
                 case DISABLE_TIMEOUT:
                     errorLog("Error disabling Bluetooth (disable timeout)");
+                    if (isTurningOn)
+                        mPendingCommandState.setTurningOn(false);
+                    adapterService.stopProfileServices();
+                    adapterService.stopGattProfileService();
                     mPendingCommandState.setTurningOff(false);
-                    transitionTo(mOnState);
-                    notifyAdapterStateChange(BluetoothAdapter.STATE_ON);
+                    setBleTurningOff(false);
+                    transitionTo(mOffState);
+                    notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
                     break;
 
                 default:
