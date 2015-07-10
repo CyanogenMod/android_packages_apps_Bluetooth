@@ -18,10 +18,12 @@ package com.android.bluetooth;
 
 import android.app.ActivityManager;
 import android.app.ActivityThread;
+import android.app.AppOpsManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.pm.PackageManager;
 import android.content.pm.UserInfo;
 import android.os.Binder;
 import android.os.ParcelUuid;
@@ -264,6 +266,28 @@ final public class Utils {
     public static void enforceAdminPermission(ContextWrapper context) {
         context.enforceCallingOrSelfPermission(android.Manifest.permission.BLUETOOTH_ADMIN,
                 "Need BLUETOOTH_ADMIN permission");
+    }
+
+    /**
+     * Checks that calling process has android.Manifest.permission.ACCESS_COARSE_LOCATION or
+     * android.Manifest.permission.ACCESS_FINE_LOCATION and a corresponding app op is allowed
+     */
+    public static boolean checkCallerHasLocationPermission(Context context, AppOpsManager appOps,
+            String callingPackage) {
+        if (context.checkCallingOrSelfPermission(android.Manifest.permission.
+                ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                && isAppOppAllowed(appOps, AppOpsManager.OP_FINE_LOCATION, callingPackage)) {
+            return true;
+        }
+
+        return context.checkCallingOrSelfPermission(android.Manifest.permission.
+                ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                && isAppOppAllowed(appOps, AppOpsManager.OP_COARSE_LOCATION, callingPackage);
+    }
+
+    private static boolean isAppOppAllowed(AppOpsManager appOps, int op, String callingPackage) {
+        return appOps.noteOp(op, Binder.getCallingUid(), callingPackage)
+                == AppOpsManager.MODE_ALLOWED;
     }
 
     /**
