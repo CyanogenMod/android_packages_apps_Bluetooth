@@ -33,12 +33,14 @@
 package com.android.bluetooth.pbap;
 
 import android.content.Context;
+import android.content.ContentResolver;
+import android.database.Cursor;
 import android.os.Message;
 import android.os.Handler;
-import android.text.TextUtils;
-import android.util.Log;
 import android.provider.CallLog.Calls;
 import android.provider.CallLog;
+import android.text.TextUtils;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -756,18 +758,28 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
             if (mNeedNewMissedCallsNum) {
                 mNeedNewMissedCallsNum = false;
-                int nmnum = size - mMissedCallSize;
-                mMissedCallSize = size;
+                int nmnum = 0;
+                ContentResolver contentResolver;
+                contentResolver = mContext.getContentResolver();
+
+                Cursor c = contentResolver.query(
+                    Calls.CONTENT_URI,
+                    null,
+                    Calls.TYPE + " = " + Calls.MISSED_TYPE + " AND " + android.provider.CallLog.Calls.NEW + " = 1",
+                    null,
+                    Calls.DEFAULT_SORT_ORDER);
+
+                if (c != null) {
+                  nmnum = c.getCount();
+                  c.close();
+                }
 
                 nmnum = nmnum > 0 ? nmnum : 0;
                 misnum[0] = (byte)nmnum;
-                ap.addAPPHeader(ApplicationParameter.TRIPLET_TAGID.NEWMISSEDCALLS_TAGID,
-                        ApplicationParameter.TRIPLET_LENGTH.NEWMISSEDCALLS_LENGTH, misnum);
-                if (D) Log.d(TAG, "handleAppParaForResponse(): mNeedNewMissedCallsNum=true,  num= "
-                            + nmnum);
+                if (D) Log.d(TAG, "handleAppParaForResponse(): mNeedNewMissedCallsNum=true,  num= " + nmnum);
             }
             reply.setHeader(HeaderSet.APPLICATION_PARAMETER, ap.getAPPparam());
-
+            
             if (D) Log.d(TAG, "Send back Phonebook size only, without body info! Size= " + size);
 
             return pushHeader(op, reply);
@@ -779,12 +791,26 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         if (mNeedNewMissedCallsNum) {
             if (V) Log.v(TAG, "Need new missed call num in response header.");
             mNeedNewMissedCallsNum = false;
+            int nmnum = 0;
+            ContentResolver contentResolver;
+            contentResolver = mContext.getContentResolver();
 
-            int nmnum = size - mMissedCallSize;
-            mMissedCallSize = size;
+            Cursor c = contentResolver.query(
+                Calls.CONTENT_URI,
+                null,
+                Calls.TYPE + " = " + Calls.MISSED_TYPE + " AND " + android.provider.CallLog.Calls.NEW + " = 1",
+                null,
+                Calls.DEFAULT_SORT_ORDER);
+
+            if (c != null) {
+              nmnum = c.getCount();
+              c.close();
+            }
 
             nmnum = nmnum > 0 ? nmnum : 0;
             misnum[0] = (byte)nmnum;
+            if (D) Log.d(TAG, "handleAppParaForResponse(): mNeedNewMissedCallsNum=true,  num= " + nmnum);
+
             ap.addAPPHeader(ApplicationParameter.TRIPLET_TAGID.NEWMISSEDCALLS_TAGID,
                     ApplicationParameter.TRIPLET_LENGTH.NEWMISSEDCALLS_LENGTH, misnum);
             reply.setHeader(HeaderSet.APPLICATION_PARAMETER, ap.getAPPparam());
