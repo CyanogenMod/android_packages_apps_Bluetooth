@@ -36,7 +36,7 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Terima"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"Oke"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Terjadi waktu tunggu saat menerima file masuk dari \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Berbagi-pakai bluetooth: File masuk"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Berbagi bluetooth: File masuk"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Apakah Anda ingin menerima file ini?"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"File masuk dari perangkat lain. Konfirmasikan bahwa Anda ingin menerima file ini."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Berbagi Bluetooth: Menerima <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -104,17 +104,18 @@
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth diterima"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Telah selesai diterima."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Telah selesai dikirim."</string>
-    <string name="inbound_history_title" msgid="6940914942271327563">"Transfer inbound"</string>
-    <string name="outbound_history_title" msgid="4279418703178140526">"Transfer outbound"</string>
+    <string name="inbound_history_title" msgid="6940914942271327563">"Transfer masuk"</string>
+    <string name="outbound_history_title" msgid="4279418703178140526">"Transfer keluar"</string>
     <string name="no_transfers" msgid="3482965619151865672">"Riwayat transfer kosong."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Semua item akan dihapus dari daftar."</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"Berbagi-pakai bluetooth: Telah mengirimkan file"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"Berbagi-pakai Bluetooth: File yang diterima"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> berhasil, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> tidak berhasil."</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Berbagi bluetooth: Telah mengirimkan file"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Berbagi Bluetooth: File yang diterima"</string>
+    <!-- no translation found for noti_caption_unsuccessful (2020750076679526122) -->
+    <!-- no translation found for noti_caption_success (1572472450257645181) -->
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Hapus daftar"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Buka"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Hapus dari daftar"</string>
-    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Bersihkan"</string>
+    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Hapus"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Simpan"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Batal"</string>
     <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Pilih akun yang ingin Anda bagikan melalui Bluetooth. Anda harus menerima akses apa pun ke akun saat menyambungkan."</string>

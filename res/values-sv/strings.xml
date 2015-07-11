@@ -101,7 +101,7 @@
     <string name="status_connection_error" msgid="947681831523219891">"Anslutningen misslyckades."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"Begäran kan inte hanteras korrekt."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Okänt fel."</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth har tagits emot"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"Mottaget via Bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> har tagits emot fullständigt."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> har skickats fullständigt."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Inkommande överföringar"</string>
@@ -110,11 +110,12 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Alla objekt tas bort från listan."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth-delning: skickade filer"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth-delning: mottagna filer"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> lyckades, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> misslyckades."</string>
+    <!-- no translation found for noti_caption_unsuccessful (2020750076679526122) -->
+    <!-- no translation found for noti_caption_success (1572472450257645181) -->
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Rensa listan"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Öppna"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Ta bort från listan"</string>
-    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Ta bort"</string>
+    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Rensa"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Spara"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Avbryt"</string>
     <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Välj de konton du vill dela via Bluetooth. Du måste fortfarande godkänna åtkomsten till kontona vid anslutning."</string>

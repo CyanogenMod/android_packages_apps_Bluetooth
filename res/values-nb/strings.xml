@@ -93,24 +93,25 @@
     <string name="status_running" msgid="6562808920311008696">"Filoverføring pågår."</string>
     <string name="status_success" msgid="239573225847565868">"Filoverføring fullført."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"Innholdet støttes ikke."</string>
-    <string name="status_forbidden" msgid="613956401054050725">"Overføring forbudt av målenheten."</string>
-    <string name="status_canceled" msgid="6664490318773098285">"Overføringen avbrutt av bruker."</string>
+    <string name="status_forbidden" msgid="613956401054050725">"Overføring nektes av mottakerenheten."</string>
+    <string name="status_canceled" msgid="6664490318773098285">"Overføring avbrutt av bruker."</string>
     <string name="status_file_error" msgid="3671917770630165299">"Problem med lagring."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Ingen USB-lagring."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Mangler minnekort. Sett inn et minnekort for å lagre overførte filer."</string>
     <string name="status_connection_error" msgid="947681831523219891">"Tilkobling mislyktes."</string>
-    <string name="status_protocol_error" msgid="3245444473429269539">"Forespørselen kan ikke behandles på riktig måte."</string>
+    <string name="status_protocol_error" msgid="3245444473429269539">"Kan ikke behandle forespørsel på riktig måte."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Ukjent feil."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth mottatt"</string>
-    <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> mottatt."</string>
+    <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> mottatt – ferdig."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> sendt."</string>
-    <string name="inbound_history_title" msgid="6940914942271327563">"Inngående overføringer"</string>
+    <string name="inbound_history_title" msgid="6940914942271327563">"Innkommende overføringer"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Utgående overføringer"</string>
     <string name="no_transfers" msgid="3482965619151865672">"Overføringsloggen er tom."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Alle elementer fjernes fra listen."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth-deling: Filer sendt"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth-deling: Filer mottatt"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> vellykket, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> mislykket."</string>
+    <!-- no translation found for noti_caption_unsuccessful (2020750076679526122) -->
+    <!-- no translation found for noti_caption_success (1572472450257645181) -->
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Tøm listen"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Åpne"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Fjern fra listen"</string>

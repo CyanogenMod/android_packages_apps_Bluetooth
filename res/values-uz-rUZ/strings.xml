@@ -36,16 +36,16 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Qabul qilish"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\"dan kiruvchi xabarni olishga rozilik bildirilayotganda, kutish vaqti o‘tib ketdi."</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth o‘tkazmalari: kiruvchi fayl"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth o‘tkazmalari"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Fayl qabul qilinsinmi?"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Boshqa qurilmadan kiruvchi fayl. Ushbu faylni qabul qilmoqchi bo‘lsangiz, tasdiqlang."</string>
-    <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth o‘tkazmalari: <xliff:g id="FILE">%1$s</xliff:g> fayli qabul qilinmoqda"</string>
-    <string name="notification_received" msgid="3324588019186687985">"Bluetooth o‘tkazmalari: <xliff:g id="FILE">%1$s</xliff:g> fayli qabul qilindi"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth o‘tkazmalari: <xliff:g id="FILE">%1$s</xliff:g> fayli qabul qilinmadi"</string>
-    <string name="notification_sending" msgid="3035748958534983833">"Bluetooth o‘tkazmalari: <xliff:g id="FILE">%1$s</xliff:g> fayli yuborilmoqda"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"Bluetooth o‘tkazmalari: <xliff:g id="FILE">%1$s</xliff:g> fayli yuborildi"</string>
+    <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth orqali yuborildi: <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received" msgid="3324588019186687985">"Bluetooth orqali olindi: <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"Fayl qabul qilinmadi: <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sending" msgid="3035748958534983833">"Bluetooth orqali yuborish: <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"Bluetooth orqali yuborildi: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"100% tugadi"</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth o‘tkazmalari: <xliff:g id="FILE">%1$s</xliff:g> fayli yuborilmadi"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"Fayl yuborilmadi: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_title" msgid="3353228219772092586">"Fayl o‘tkazish"</string>
     <string name="download_line1" msgid="4926604799202134144">"Yuboruvchi: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"Fayl: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -107,10 +107,11 @@
     <string name="inbound_history_title" msgid="6940914942271327563">"Kiruvchi o‘tkazmalar"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Chiquvchi o‘tkazmalar"</string>
     <string name="no_transfers" msgid="3482965619151865672">"O‘tkazmalar tarixi bo‘m-bo‘sh."</string>
-    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Barcha elementlar ro‘yxatdan o‘chiriladi."</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth o‘tkazmalari: Yuborilgan fayllar"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth o‘tkazmalari: Qabul qilingan fayllar"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"Muvaffaqiyatli: <xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g>, muvaffaqiyatsiz: <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g>"</string>
+    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Barcha qaydlar ro‘yxatdan o‘chirib tashlanadi."</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth orqali yuborildi"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth orqali olindi"</string>
+    <!-- no translation found for noti_caption_unsuccessful (2020750076679526122) -->
+    <!-- no translation found for noti_caption_success (1572472450257645181) -->
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Ro‘yxatni tozalash"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Ochish"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Ro‘yxatdan o‘chirish"</string>

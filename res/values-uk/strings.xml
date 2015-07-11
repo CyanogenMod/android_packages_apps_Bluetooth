@@ -46,7 +46,7 @@
     <string name="notification_sent" msgid="9218710861333027778">"Через Bluetooth: надісл. <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"100% виконано"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Через Bluetooth: файл <xliff:g id="FILE">%1$s</xliff:g> не надісл."</string>
-    <string name="download_title" msgid="3353228219772092586">"Пересилка файлів"</string>
+    <string name="download_title" msgid="3353228219772092586">"Передача файлів"</string>
     <string name="download_line1" msgid="4926604799202134144">"Від: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"Файл: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_line3" msgid="4384821622908676061">"Розмір файлу: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
@@ -62,15 +62,15 @@
     <string name="download_fail_line3" msgid="3451040656154861722">"Причина: <xliff:g id="REASON">%1$s</xliff:g>"</string>
     <string name="download_fail_ok" msgid="1521733664438320300">"OK"</string>
     <string name="download_succ_line5" msgid="4509944688281573595">"Файл отримано"</string>
-    <string name="download_succ_ok" msgid="7053688246357050216">"Відкр."</string>
+    <string name="download_succ_ok" msgid="7053688246357050216">"Відкрити"</string>
     <string name="upload_line1" msgid="2055952074059709052">"Кому: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="upload_line3" msgid="4920689672457037437">"Тип файлу: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
     <string name="upload_line5" msgid="7759322537674229752">"Надсил-ня файлу..."</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"Файл надіслано"</string>
     <string name="upload_succ_ok" msgid="7705428476405478828">"OK"</string>
-    <string name="upload_fail_line1" msgid="7899394672421491701">"Файл не надіслано отримувачеві \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"."</string>
+    <string name="upload_fail_line1" msgid="7899394672421491701">"Файл не надіслано на пристрій \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Файл: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_ok" msgid="5807702461606714296">"Спробуйте ще"</string>
+    <string name="upload_fail_ok" msgid="5807702461606714296">"Повторити"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Закрити"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"OK"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Невідомий файл"</string>
@@ -101,19 +101,20 @@
     <string name="status_connection_error" msgid="947681831523219891">"Помилка з’єднання."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"Запит неможливо обробити належним чином."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Невідома помилка."</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth отримані"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"Отримані через Bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"Завершено отримання <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>
     <string name="upload_success" msgid="4014469387779648949">"Заверш. надсил. <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>
-    <string name="inbound_history_title" msgid="6940914942271327563">"Вхідні пересилки"</string>
-    <string name="outbound_history_title" msgid="4279418703178140526">"Вихідні пересилки"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"Історія пересилок порожня."</string>
+    <string name="inbound_history_title" msgid="6940914942271327563">"Вхідні передавання"</string>
+    <string name="outbound_history_title" msgid="4279418703178140526">"Вихідні передавання"</string>
+    <string name="no_transfers" msgid="3482965619151865672">"Немає даних."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Зі списку буде видалено всі елементи."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Через Bluetooth: надісл. файли"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Через Bluetooth: отримані файли"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> виконано, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> не виконано."</string>
-    <string name="transfer_menu_clear_all" msgid="790017462957873132">"Очист. список"</string>
-    <string name="transfer_menu_open" msgid="3368984869083107200">"Відкр."</string>
-    <string name="transfer_menu_clear" msgid="5854038118831427492">"Видал. зі списку"</string>
+    <!-- no translation found for noti_caption_unsuccessful (2020750076679526122) -->
+    <!-- no translation found for noti_caption_success (1572472450257645181) -->
+    <string name="transfer_menu_clear_all" msgid="790017462957873132">"Очистити список"</string>
+    <string name="transfer_menu_open" msgid="3368984869083107200">"Відкрити"</string>
+    <string name="transfer_menu_clear" msgid="5854038118831427492">"Видалити зі списку"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Очистити"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Зберегти"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Скасувати"</string>

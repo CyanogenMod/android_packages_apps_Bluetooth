@@ -110,7 +110,8 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"목록에서 모든 항목이 삭제됩니다."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"블루투스 공유: 파일 보냄"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"블루투스 공유: 파일 받음"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"성공 <xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g>개, 실패 <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g>개"</string>
+    <!-- no translation found for noti_caption_unsuccessful (2020750076679526122) -->
+    <!-- no translation found for noti_caption_success (1572472450257645181) -->
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"목록 지우기"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"열기"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"목록에서 지우기"</string>

@@ -110,7 +110,8 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Todos os itens serão excluídos da lista."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Compartilhamento Bluetooth: Arquivos enviados"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Compartilhamento Bluetooth: Arquivos recebidos"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> com êxito, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> com falha."</string>
+    <!-- no translation found for noti_caption_unsuccessful (2020750076679526122) -->
+    <!-- no translation found for noti_caption_success (1572472450257645181) -->
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Limpar lista"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Abrir"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Limpar da lista"</string>
