@@ -31,7 +31,7 @@
     <string name="bt_enable_cancel" msgid="1988832367505151727">"Anuluj"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"Włącz"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"Przesyłanie pliku"</string>
-    <string name="incoming_file_confirm_content" msgid="2752605552743148036">"Zaakceptować udostępniony plik?"</string>
+    <string name="incoming_file_confirm_content" msgid="2752605552743148036">"Zaakceptować przesyłany plik?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Odrzuć"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Akceptuj"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
@@ -104,13 +104,14 @@
     <string name="btopp_live_folder" msgid="7967791481444474554">"Odebrane przez Bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"Odbieranie <xliff:g id="FILE_SIZE">%1$s</xliff:g> zakończono."</string>
     <string name="upload_success" msgid="4014469387779648949">"Wysyłanie <xliff:g id="FILE_SIZE">%1$s</xliff:g> zakończono."</string>
-    <string name="inbound_history_title" msgid="6940914942271327563">"Transmisje przychodzące"</string>
-    <string name="outbound_history_title" msgid="4279418703178140526">"Transmisje wychodzące"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"Historia transmisji jest pusta."</string>
+    <string name="inbound_history_title" msgid="6940914942271327563">"Transfery przychodzące"</string>
+    <string name="outbound_history_title" msgid="4279418703178140526">"Transfery wychodzące"</string>
+    <string name="no_transfers" msgid="3482965619151865672">"Historia transferów jest pusta."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Wszystkie elementy zostaną usunięte z listy."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Udostępnianie Bluetooth: wysłane pliki"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Udostępnianie Bluetooth: odebrane pliki"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"Powodzenia: <xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g>, niepowodzenia: <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g>"</string>
+    <!-- no translation found for noti_caption_unsuccessful (2020750076679526122) -->
+    <!-- no translation found for noti_caption_success (1572472450257645181) -->
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Wyczyść listę"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Otwórz"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Usuń z listy"</string>

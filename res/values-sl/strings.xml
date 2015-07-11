@@ -36,16 +36,16 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Sprejmi"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"V redu"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Pri sprejemanju datoteke pošiljatelja »<xliff:g id="SENDER">%1$s</xliff:g>« je potekla časovna omejitev"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Delež Bluetootha: Prihajajoča datoteka"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth: Prihajajoča datoteka"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Ali želite prejeti to datoteko?"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Iz druge naprave prihaja datoteka. Potrdite, da jo želite prejeti."</string>
-    <string name="notification_receiving" msgid="4674648179652543984">"Delež Bluetootha: Prejemanje<xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received" msgid="3324588019186687985">"Delež Bluetootha: Prejeto<xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth: Prejemanje <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received" msgid="3324588019186687985">"Bluetooth: Prejeto <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth: Datoteka <xliff:g id="FILE">%1$s</xliff:g> ni bila prejeta"</string>
-    <string name="notification_sending" msgid="3035748958534983833">"Delež Bluetootha: Pošiljanje<xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sending" msgid="3035748958534983833">"Bluetooth: Pošiljanje <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent" msgid="9218710861333027778">"Bluetooth: Poslano <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"Dokončano: 100 %"</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"Delež Bluetootha: Datoteka <xliff:g id="FILE">%1$s</xliff:g> ni bila poslana"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth: Datoteka <xliff:g id="FILE">%1$s</xliff:g> ni bila poslana"</string>
     <string name="download_title" msgid="3353228219772092586">"Prenos datoteke"</string>
     <string name="download_line1" msgid="4926604799202134144">"Od: »<xliff:g id="SENDER">%1$s</xliff:g>«"</string>
     <string name="download_line2" msgid="5876973543019417712">"Datoteka: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -70,7 +70,7 @@
     <string name="upload_succ_ok" msgid="7705428476405478828">"V redu"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"Datoteka ni bila poslana prejemniku »<xliff:g id="RECIPIENT">%1$s</xliff:g>«."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Datoteka: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_ok" msgid="5807702461606714296">"Poskusite znova."</string>
+    <string name="upload_fail_ok" msgid="5807702461606714296">"Poskusite znova"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Zapri"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"V redu"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Neznana datoteka"</string>
@@ -108,9 +108,10 @@
     <string name="outbound_history_title" msgid="4279418703178140526">"Odhodni prenosi"</string>
     <string name="no_transfers" msgid="3482965619151865672">"Zgodovina prenosov je prazna."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Vsi elementi bodo izbrisani s seznama."</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"Delež Bluetootha: Poslane datoteke"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"Delež Bluetootha: Prejete datoteke"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"št. uspešnih: <xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g>, št. neuspešnih: <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g>."</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth: Poslane datoteke"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth: Prejete datoteke"</string>
+    <!-- no translation found for noti_caption_unsuccessful (2020750076679526122) -->
+    <!-- no translation found for noti_caption_success (1572472450257645181) -->
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Počisti seznam"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Odpri"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Počisti s seznama"</string>

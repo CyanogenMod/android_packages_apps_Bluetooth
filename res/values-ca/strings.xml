@@ -36,16 +36,16 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Accepta"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"D\'acord"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"S\'ha esgotat el temps d\'espera mentre s\'acceptava un fitxer entrant de \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Ús compartit de Bluetooth: fitxer entrant"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth: fitxer entrant"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Vols rebre aquest fitxer?"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Està entrant un fitxer d\'un altre dispositiu. Confirma que vols rebre el fitxer."</string>
-    <string name="notification_receiving" msgid="4674648179652543984">"Ús compartit de Bluetooth: s\'està rebent <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received" msgid="3324588019186687985">"Compartir amb Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> rebut"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth compartit: fitxer <xliff:g id="FILE">%1$s</xliff:g> no rebut"</string>
-    <string name="notification_sending" msgid="3035748958534983833">"Ús compartit de Bluetooth: s\'està enviant <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"Ús compartit de Bluetooth: s\'ha enviat <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth: s\'està rebent <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received" msgid="3324588019186687985">"Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> rebut"</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> no rebut"</string>
+    <string name="notification_sending" msgid="3035748958534983833">"Bluetooth: s\'està enviant <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> enviat"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"100% complet"</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"Ús compartit de Bluetooth: no s\'ha enviat el fitxer <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> no enviat"</string>
     <string name="download_title" msgid="3353228219772092586">"Transferència del fitxer"</string>
     <string name="download_line1" msgid="4926604799202134144">"De: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"Fitxer: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -93,7 +93,7 @@
     <string name="status_running" msgid="6562808920311008696">"S\'està duent a terme la transferència de fitxers."</string>
     <string name="status_success" msgid="239573225847565868">"La transferència de fitxers s\'ha completat correctament."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"El contingut no és compatible."</string>
-    <string name="status_forbidden" msgid="613956401054050725">"El dispositiu de destinació ha prohibit la transferència."</string>
+    <string name="status_forbidden" msgid="613956401054050725">"El dispositiu de destinació no permet la transferència."</string>
     <string name="status_canceled" msgid="6664490318773098285">"L\'usuari ha cancel·lat la transferència."</string>
     <string name="status_file_error" msgid="3671917770630165299">"Problema d\'emmagatzematge."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Sense emmagatzematge USB."</string>
@@ -102,16 +102,17 @@
     <string name="status_protocol_error" msgid="3245444473429269539">"La sol·licitud no es pot processar correctament."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Error desconegut."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Rebut per Bluetooth"</string>
-    <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g>: recepció completa."</string>
+    <string name="download_success" msgid="7036160438766730871">"Recepció completada (<xliff:g id="FILE_SIZE">%1$s</xliff:g>)"</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g>: enviament complet."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Transferències d\'entrada"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Transferències de sortida"</string>
     <string name="no_transfers" msgid="3482965619151865672">"L\'historial de transferències és buit."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"S\'esborraran tots els elements de la llista."</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"Ús compartit de Bluetooth: fitxers enviats"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"Ús compartit de Bluetooth: fitxers rebuts"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> correctes, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> incorrectes."</string>
-    <string name="transfer_menu_clear_all" msgid="790017462957873132">"Buida la llista"</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth: fitxers enviats"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth: fitxers rebuts"</string>
+    <!-- no translation found for noti_caption_unsuccessful (2020750076679526122) -->
+    <!-- no translation found for noti_caption_success (1572472450257645181) -->
+    <string name="transfer_menu_clear_all" msgid="790017462957873132">"Esborra la llista"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Obre"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Esborra de la llista"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Esborra"</string>
