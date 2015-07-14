@@ -27,5 +27,5 @@
     <bool name="pbap_use_profile_for_owner_vcard">true</bool>
     <bool name="profile_supported_map">true</bool>
     <bool name="profile_supported_avrcp_controller">false</bool>
-    <bool name="profile_supported_sap">true</bool>
+    <bool name="profile_supported_sap">false</bool>
 </resources>
