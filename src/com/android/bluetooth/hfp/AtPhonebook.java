@@ -575,7 +575,6 @@ public class AtPhonebook {
             record = "+CPBR: " + index + ",\"" + number + "\"," + regionType + ",\"" + name + "\"";
             record = record + "\r\n\r\n";
             atCommandResponse = record;
-            log("processCpbrCommand - atCommandResponse = "+atCommandResponse);
             mStateMachine.atResponseStringNative(atCommandResponse, getByteAddress(device));
             if (!pbr.cursor.moveToNext()) {
                 break;
