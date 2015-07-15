@@ -75,18 +75,11 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             0x08, 0x00, 0x20, 0x0c, (byte)0x9a, 0x66
     };
 
-    // Currently not support SIM card
+    // Note: SIM also supported in this version
     private static final String[] LEGAL_PATH = {
             "/telecom", "/telecom/pb", "/telecom/ich", "/telecom/och", "/telecom/mch",
-            "/telecom/cch"
-    };
-
-    @SuppressWarnings("unused")
-    private static final String[] LEGAL_PATH_WITH_SIM = {
-            "/telecom", "/telecom/pb", "/telecom/ich", "/telecom/och", "/telecom/mch",
-            "/telecom/cch", "/SIM1", "/SIM1/telecom", "/SIM1/telecom/ich", "/SIM1/telecom/och",
+            "/telecom/cch","/SIM1","/SIM1/telecom", "/SIM1/telecom/ich", "/SIM1/telecom/och",
             "/SIM1/telecom/mch", "/SIM1/telecom/cch", "/SIM1/telecom/pb"
-
     };
 
     // SIM card
@@ -119,6 +112,17 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     private static final String PB_PATH = "/telecom/pb";
 
+    private static final String SIM_PATH = "/SIM1/telecom";
+
+    private static final String SIM_ICH_PATH = "/SIM1/telecom/ich";
+
+    private static final String SIM_OCH_PATH = "/SIM1/telecom/och";
+
+    private static final String SIM_MCH_PATH = "/SIM1/telecom/mch";
+
+    private static final String SIM_CCH_PATH = "/SIM1/telecom/cch";
+
+    private static final String SIM_PB_PATH = "/SIM1/telecom/pb";
     // type for list vcard objects
     private static final String TYPE_LISTING = "x-bt/vcard-listing";
 
@@ -169,6 +173,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         public static final int MISSED_CALL_HISTORY = 4;
 
         public static final int COMBINED_CALL_HISTORY = 5;
+
+        public static final int SIM_PHONEBOOK = 6;
     }
 
     public BluetoothPbapObexServer(Handler callback, Context context) {
@@ -361,37 +367,41 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
             if (mCurrentPath.equals(PB_PATH)) {
                 appParamValue.needTag = ContentType.PHONEBOOK;
-            } else if (mCurrentPath.equals(ICH_PATH)) {
+            } else if (mCurrentPath.equals(ICH_PATH) || mCurrentPath.equals(SIM_ICH_PATH)) {
                 appParamValue.needTag = ContentType.INCOMING_CALL_HISTORY;
-            } else if (mCurrentPath.equals(OCH_PATH)) {
+            } else if (mCurrentPath.equals(OCH_PATH) || mCurrentPath.equals(SIM_OCH_PATH)) {
                 appParamValue.needTag = ContentType.OUTGOING_CALL_HISTORY;
-            } else if (mCurrentPath.equals(MCH_PATH)) {
+            } else if (mCurrentPath.equals(MCH_PATH) || mCurrentPath.equals(SIM_MCH_PATH)) {
                 appParamValue.needTag = ContentType.MISSED_CALL_HISTORY;
                 mNeedNewMissedCallsNum = true;
-            } else if (mCurrentPath.equals(CCH_PATH)) {
+            } else if (mCurrentPath.equals(CCH_PATH) || mCurrentPath.equals(SIM_CCH_PATH)) {
                 appParamValue.needTag = ContentType.COMBINED_CALL_HISTORY;
-            } else if (mCurrentPath.equals(TELECOM_PATH)) {
+            } else if (mCurrentPath.equals(TELECOM_PATH) || mCurrentPath.equals(SIM_PATH)) {
                 /* PBAP 1.1.1 change */
                 if (!validName && type.equals(TYPE_LISTING)) {
                     Log.e(TAG, "invalid vcard listing request in default folder");
                     return ResponseCodes.OBEX_HTTP_NOT_FOUND;
                 }
+            } else if (mCurrentPath.equals(SIM_PB_PATH)) {
+                appParamValue.needTag = ContentType.SIM_PHONEBOOK;
             } else {
                 Log.w(TAG, "mCurrentpath is not valid path!!!");
                 return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
             }
             if (D) Log.v(TAG, "onGet(): appParamValue.needTag=" + appParamValue.needTag);
         } else {
-            // Not support SIM card currently
-            if (name.contains(SIM1.subSequence(0, SIM1.length()))) {
-                Log.w(TAG, "Not support access SIM card info!");
-                return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
-            }
-
             // we have weak name checking here to provide better
             // compatibility with other devices,although unique name such as
             // "pb.vcf" is required by SIG spec.
-            if (isNameMatchTarget(name, PB)) {
+            if (((name.contains(PB.subSequence(0, PB.length())) &&
+                 name.contains(SIM1.subSequence(0, SIM1.length()))) &&
+                (type.equals(TYPE_PB))) ||
+                (((name.contains(PB.subSequence(0, PB.length()))) &&
+                (mCurrentPath.equals(SIM_PATH))) && (type.equals(TYPE_LISTING))))
+            {
+                appParamValue.needTag = ContentType.SIM_PHONEBOOK;
+                if (D) Log.v(TAG, "download SIM phonebook request");
+            } else if (isNameMatchTarget(name, PB)) {
                 appParamValue.needTag = ContentType.PHONEBOOK;
                 if (D) Log.v(TAG, "download phonebook request");
             } else if (isNameMatchTarget(name, ICH)) {
@@ -597,6 +607,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             String searchAttr) {
         StringBuilder result = new StringBuilder();
         int itemsFound = 0;
+        boolean SIM = false;
         result.append("<?xml version=\"1.0\"?>");
         result.append("<!DOCTYPE vcard-listing SYSTEM \"vcard-listing.dtd\">");
         result.append("<vCard-listing version=\"1.0\">");
@@ -605,17 +616,26 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         if (type == ContentType.PHONEBOOK) {
             if (searchAttr.equals("0")) { // search by name
                 itemsFound = createList(maxListCount, listStartOffset, searchValue, result,
-                        "name");
+                        "name", SIM);
             } else if (searchAttr.equals("1")) { // search by number
                 itemsFound = createList(maxListCount, listStartOffset, searchValue, result,
-                        "number");
+                        "number", SIM);
+            } else { // end of search by number
+                return ResponseCodes.OBEX_HTTP_PRECON_FAILED;
+            }
+        } else if (type == ContentType.SIM_PHONEBOOK) { // SIM Phonebook listing Request
+            SIM = true;
+            if (searchAttr.equals("0")) { // search by name
+                itemsFound = createList(maxListCount, listStartOffset, searchValue, result,
+                        "name", SIM);
+            } else if (searchAttr.equals("1")) { // search by number
+                itemsFound = createList(maxListCount, listStartOffset, searchValue, result,
+                        "number", SIM);
             }// end of search by number
             else {
                 return ResponseCodes.OBEX_HTTP_PRECON_FAILED;
             }
-        }
-        // Call history listing request
-        else {
+        } else { // Call history listing request
             ArrayList<String> nameList = mVcardManager.loadCallHistoryList(type);
             int requestSize = nameList.size() >= maxListCount ? maxListCount : nameList.size();
             int startPoint = listStartOffset;
@@ -637,11 +657,17 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     private int createList(final int maxListCount, final int listStartOffset,
-            final String searchValue, StringBuilder result, String type) {
+        final String searchValue, StringBuilder result, String type, boolean SIM) {
         int itemsFound = 0, pos = 0;
         ArrayList<Integer> savedPosList = new ArrayList<>();
+        ArrayList<String> nameList = null;
         ArrayList<String> selectedNameList = new ArrayList<String>();
-        ArrayList<String> nameList = mVcardManager.getPhonebookNameList(mOrderBy);
+        //check if current request is for SIM
+        if(SIM) {
+             nameList = mVcardManager.getSIMPhonebookNameList(mOrderBy);
+        }else{
+             nameList = mVcardManager.getPhonebookNameList(mOrderBy);
+        }
         final int requestSize = nameList.size() >= maxListCount ? maxListCount : nameList.size();
         final int listSize = nameList.size();
         String compareValue = "", currentValue;
@@ -650,8 +676,13 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                     + listStartOffset + " searchValue=" + searchValue);
 
         if (type.equals("number")) {
+            ArrayList<String> names = null;
             // query the number, to get the names
-            ArrayList<String> names = mVcardManager.getContactNamesByNumber(searchValue);
+            if(SIM) {
+                names = mVcardManager.getSIMContactNamesByNumber(searchValue);
+            } else {
+                  names = mVcardManager.getContactNamesByNumber(searchValue);
+            }
             for (int i = 0; i < names.size(); i++) {
                 compareValue = names.get(i).trim();
                 if (D) Log.d(TAG, "compareValue=" + compareValue);
@@ -949,6 +980,18 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 return mVcardManager.composeAndSendPhonebookOneVcard(op, intIndex, vcard21, null,
                         mOrderBy, appParamValue.ignorefilter, appParamValue.filter);
             }
+       } else if (appParamValue.needTag == ContentType.SIM_PHONEBOOK) {
+            if (intIndex < 0 || intIndex >= size) {
+                Log.w(TAG, "The requested vcard is not acceptable! name= " + name);
+                return ResponseCodes.OBEX_HTTP_NOT_FOUND;
+            } else if (intIndex == 0) {
+                // For PB_PATH, 0.vcf is the phone number of this phone.
+                String ownerVcard = mVcardManager.getOwnerPhoneNumberVcard(vcard21, null);
+                return pushBytes(op, ownerVcard);
+            } else {
+                return mVcardManager.composeAndSendSIMPhonebookOneVcard(op, intIndex, vcard21, null,
+                        mOrderBy );
+            }
         } else {
             if (intIndex <= 0 || intIndex > size) {
                 Log.w(TAG, "The requested vcard is not acceptable! name= " + name);
@@ -1000,7 +1043,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         }
 
         // Limit the number of call log to CALLLOG_NUM_LIMIT
-        if (appParamValue.needTag != BluetoothPbapObexServer.ContentType.PHONEBOOK) {
+        if ((appParamValue.needTag != BluetoothPbapObexServer.ContentType.PHONEBOOK)
+            &&(appParamValue.needTag != BluetoothPbapObexServer.ContentType.SIM_PHONEBOOK)) {
             if (requestSize > CALLLOG_NUM_LIMIT) {
                requestSize = CALLLOG_NUM_LIMIT;
             }
@@ -1016,7 +1060,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         boolean vcard21 = appParamValue.vcard21;
         if (appParamValue.needTag == BluetoothPbapObexServer.ContentType.PHONEBOOK) {
             if (startPoint == 0) {
-                String ownerVcard = mVcardManager.getOwnerPhoneNumberVcard(vcard21,null);
+                String ownerVcard = mVcardManager.getOwnerPhoneNumberVcard(vcard21, null);
                 if (endPoint == 0) {
                     return pushBytes(op, ownerVcard);
                 } else {
@@ -1026,6 +1070,19 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             } else {
                 return mVcardManager.composeAndSendPhonebookVcards(op, startPoint, endPoint,
                         vcard21, null, appParamValue.ignorefilter, appParamValue.filter);
+            }
+        } else if (appParamValue.needTag == BluetoothPbapObexServer.ContentType.SIM_PHONEBOOK) {
+            if (startPoint == 0) {
+                String ownerVcard = mVcardManager.getOwnerPhoneNumberVcard(vcard21, null);
+                if (endPoint == 0) {
+                    return pushBytes(op, ownerVcard);
+                } else {
+                    return mVcardManager.composeAndSendSIMPhonebookVcards(op, 1, endPoint, vcard21,
+                            ownerVcard);
+                }
+            } else {
+                return mVcardManager.composeAndSendSIMPhonebookVcards(op, startPoint, endPoint,
+                        vcard21, null);
             }
         } else {
             return mVcardManager.composeAndSendCallLogVcards(appParamValue.needTag, op,
