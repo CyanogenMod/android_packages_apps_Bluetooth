@@ -110,8 +110,14 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"სიიდან ყველა ერთეული ამოიშლება."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth გაზიარება: გაგზავნილი ფაილები"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth გაზიარება: მიღებული ფაილები"</string>
-    <!-- no translation found for noti_caption_unsuccessful (2020750076679526122) -->
-    <!-- no translation found for noti_caption_success (1572472450257645181) -->
+    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
+      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> წარუმატებელი.</item>
+      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> წარუმატებელი.</item>
+    </plurals>
+    <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
+      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> წარმატებული, %2$s</item>
+      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> წარმატებული, %2$s</item>
+    </plurals>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"სიის გასუფთავება"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"გახსნა"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"სიიდან ამოშლა"</string>
