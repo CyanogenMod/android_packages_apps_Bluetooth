@@ -110,7 +110,14 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"జాబితా నుండి అన్ని అంశాలు క్లియర్ చేయబడతాయి."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"బ్లూటూత్ భాగస్వామ్యం: పంపిన ఫైల్‌లు"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"బ్లూటూత్ భాగస్వామ్యం: స్వీకరించబడిన ఫైల్‌లు"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> విజయవంతమయ్యాయి, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> విఫలమయ్యాయి."</string>
+    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
+      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> విఫలం.</item>
+      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> విఫలం.</item>
+    </plurals>
+    <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
+      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> విజయవంతం, %2$s</item>
+      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> విజయవంతం, %2$s</item>
+    </plurals>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"జాబితాను క్లియర్ చేయి"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"తెరువు"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"జాబితా నుండి క్లియర్ చేయి"</string>

@@ -110,7 +110,12 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"ലിസ്റ്റിൽ നിന്നും എല്ലാ ഇനങ്ങളും മായ്‌ക്കും."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"ബ്ലൂടൂത്ത് പങ്കിടൽ: അയച്ച ഫയലുകൾ"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"ബ്ലൂടൂത്ത് പങ്കിടൽ: ലഭിച്ച ഫയലുകൾ"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> വിജയകരം, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> പരാജയപ്പെട്ടു."</string>
+    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
+      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> പരാജയം.</item>
+      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> പരാജയം.</item>
+    </plurals>
+    <!-- String.format failed for translation -->
+    <!-- no translation found for noti_caption_success (1572472450257645181) -->
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"ലിസ്റ്റ് മായ്‌ക്കുക"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"തുറക്കുക"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"ലിസ്റ്റിൽ നിന്നും മായ്‌ക്കുക"</string>

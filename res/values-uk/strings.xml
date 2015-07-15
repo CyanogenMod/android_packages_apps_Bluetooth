@@ -110,7 +110,18 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Зі списку буде видалено всі елементи."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Через Bluetooth: надісл. файли"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Через Bluetooth: отримані файли"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> виконано, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> не виконано."</string>
+    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
+      <item quantity="one">Не виконано <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g>.</item>
+      <item quantity="few">Не виконано <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g>.</item>
+      <item quantity="many">Не виконано <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g>.</item>
+      <item quantity="other">Не виконано <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g>.</item>
+    </plurals>
+    <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
+      <item quantity="one">Виконано <xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g>, %2$s</item>
+      <item quantity="few">Виконано <xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g>, %2$s</item>
+      <item quantity="many">Виконано <xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g>, %2$s</item>
+      <item quantity="other">Виконано <xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g>, %2$s</item>
+    </plurals>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Очистити список"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Відкрити"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Видалити зі списку"</string>

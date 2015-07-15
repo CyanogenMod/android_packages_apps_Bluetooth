@@ -110,7 +110,18 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Wszystkie elementy zostaną usunięte z listy."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Udostępnianie Bluetooth: wysłane pliki"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Udostępnianie Bluetooth: odebrane pliki"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"powodzenia: <xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g>, niepowodzenia: <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g>"</string>
+    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
+      <item quantity="few"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> nieudane.</item>
+      <item quantity="many"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> nieudanych.</item>
+      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> nieudanego.</item>
+      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> nieudany.</item>
+    </plurals>
+    <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
+      <item quantity="few"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> udane, %2$s</item>
+      <item quantity="many"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> udanych, %2$s</item>
+      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> udanego, %2$s</item>
+      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> udany, %2$s</item>
+    </plurals>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Wyczyść listę"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Otwórz"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Usuń z listy"</string>

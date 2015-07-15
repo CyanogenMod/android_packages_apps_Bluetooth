@@ -110,7 +110,14 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Tous les éléments de la liste seront effacés."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Partage Bluetooth : fichiers envoyés"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Partage Bluetooth : fichiers reçus"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"Réussite : <xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g>, échec : <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g>"</string>
+    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
+      <item quantity="one">Échec de <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> élément</item>
+      <item quantity="other">Échec de <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> éléments</item>
+    </plurals>
+    <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
+      <item quantity="one">Réussite de <xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> élément, %2$s</item>
+      <item quantity="other">Réussite de <xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> éléments, %2$s</item>
+    </plurals>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Effacer la liste"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Ouvrir"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Effacer de la liste"</string>
