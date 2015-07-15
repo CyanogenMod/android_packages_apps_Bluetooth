@@ -770,8 +770,6 @@ final class HeadsetClientStateMachine extends StateMachine {
     }
 
     private void updateClip(String number) {
-        Log.d(TAG, "updateClip number: " + number);
-
         BluetoothHeadsetClientCall c = getCall(BluetoothHeadsetClientCall.CALL_STATE_INCOMING);
 
         if (c == null) {
@@ -791,8 +789,6 @@ final class HeadsetClientStateMachine extends StateMachine {
     }
 
     private void addCallWaiting(String number) {
-        Log.d(TAG, "addCallWaiting number: " + number);
-
         if (getCall(BluetoothHeadsetClientCall.CALL_STATE_WAITING) == null) {
             addCall(BluetoothHeadsetClientCall.CALL_STATE_WAITING, number);
         }
