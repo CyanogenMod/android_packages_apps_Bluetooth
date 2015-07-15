@@ -66,6 +66,7 @@
         android:layout_below="@id/targetdevice"
         android:layout_toEndOf="@id/transfer_icon"
         android:layout_toStartOf="@id/complete_date"
+        android:textDirection="locale"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:visibility="gone"
     />
