@@ -573,7 +573,7 @@ public class BluetoothMapContentObserver {
         }
     }
 
-    private class Event {
+    class Event {
         String eventType;
         long handle;
         String folder = null;
@@ -811,6 +811,8 @@ public class BluetoothMapContentObserver {
         long folderId = -1;     // Email folder ID
         long oldFolderId = -1;  // Used for email undelete
         boolean localInitiatedSend = false; // Used for MMS to filter out events
+        boolean localInitiatedReadStatus = false; // Used for SetMsgStatusRead to filter out event
+        boolean localInitiatedShift = false; // Used for SetMsgStatusDelete to filter out events
         boolean transparent = false; // Used for EMAIL to delete message sent with transparency
         int flagRead = -1;      // Message status read/unread
 

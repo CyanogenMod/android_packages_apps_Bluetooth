@@ -192,6 +192,14 @@ public abstract class BluetoothMapbMessage {
             } else
                 return null;
         }
+
+        public String[] getEmailAddresses() {
+            if (mEmailAddresses.length > 0) {
+                return mEmailAddresses;
+            } else
+                throw new IllegalArgumentException("No Recipient Email Address");
+        }
+
         public String getFirstBtUci() {
             if(mBtUcis.length > 0) {
                 return mBtUcis[0];
@@ -330,6 +338,33 @@ public abstract class BluetoothMapbMessage {
             this.mInStream = is;
         }
 
+        private byte[] getLineTerminatorAsBytes() {
+            int readByte;
+            // Donot skip Empty Line.
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            try {
+                while ((readByte = mInStream.read()) != -1) {
+                    if (readByte == '\r') {
+                        if ((readByte = mInStream.read()) != -1 && readByte == '\n') {
+                            if (output.size() == 0) {
+                                Log.v(TAG,"outputsize 0");
+                                output.write('\r');
+                                output.write('\n');
+                            }
+                            break;
+                        } else {
+                            output.write('\r');
+                        }
+                    }
+                    output.write(readByte);
+                }
+            } catch (IOException e) {
+                Log.w(TAG, e);
+                return null;
+            }
+            return output.toByteArray();
+        }
+
         private byte[] getLineAsBytes() {
             int readByte;
 
@@ -368,8 +403,30 @@ public abstract class BluetoothMapbMessage {
         }
 
         /**
+         * Read a line of text from the BMessage including empty lines.
+         * @return the next line of text, or null at end of file, or if UTF-8 is not supported.
+         * @hide
+         */
+        public String getLineTerminator() {
+            try {
+                byte[] line = getLineTerminatorAsBytes();
+                if (line == null) {
+                    return null;
+                } else if (line.length == 0){
+                    return null;
+                } else {
+                    return new String(line, "UTF-8");
+                }
+            } catch (UnsupportedEncodingException e) {
+                Log.w(TAG, e);
+                return null;
+            }
+        }
+
+        /**
          * Read a line of text from the BMessage.
          * @return the next line of text, or null at end of file, or if UTF-8 is not supported.
+         * @hide
          */
         public String getLine() {
             try {
@@ -455,6 +512,24 @@ public abstract class BluetoothMapbMessage {
                 return null;
             }
             return data;
+        }
+
+        /**
+         * Read a part of BMessage including empty lines till terminator
+         * @return the string till terminator, or null at end of file, or if UTF-8 is not supported
+         * @hide
+         */
+        public String getStringTerminator(String terminator) {
+            StringBuilder dataStr= new StringBuilder();
+            String lineCur = getLineTerminator();
+            while( lineCur != null && (!lineCur.equals(terminator))) {
+                dataStr.append(lineCur);
+                if(! lineCur.equals("\r\n")) {
+                   dataStr.append("\r\n");
+                }
+                lineCur = getLineTerminator();
+           }
+           return dataStr.toString();
         }
     };
 
@@ -598,7 +673,7 @@ public abstract class BluetoothMapbMessage {
                         newBMsg = new BluetoothMapbMessageMime();
                         break;
                     case EMAIL:
-                        newBMsg = new BluetoothMapbMessageEmail();
+                        newBMsg = new BluetoothMapbMessageExtEmail();
                         break;
                     case IM:
                         newBMsg = new BluetoothMapbMessageMime();
@@ -637,6 +712,10 @@ public abstract class BluetoothMapbMessage {
         }
         if(line.contains("BEGIN:BENV")) {
             newBMsg.parseEnvelope(reader, 0);
+            if ( type == TYPE.EMAIL && newBMsg instanceof BluetoothMapbMessageExtEmail) {
+                ((BluetoothMapbMessageExtEmail)newBMsg)
+                    .parseBodyEmail(reader.getStringTerminator("END:BBODY"));
+            }
         } else
             throw new IllegalArgumentException("Bmessage has no BEGIN:BENV - line:" + line);
 
@@ -672,7 +751,7 @@ public abstract class BluetoothMapbMessage {
             if(D) Log.d(TAG,"Decoding nested envelope");
             parseEnvelope(reader, ++level); // Nested BENV
         }
-        if(line.contains("BEGIN:BBODY")){
+        if (mType != TYPE.EMAIL && line.contains("BEGIN:BBODY")) {
             if(D) Log.d(TAG,"Decoding bbody");
             parseBody(reader);
         }

@@ -63,7 +63,7 @@ public class BluetoothMapService extends ProfileService {
 
     public static final boolean DEBUG = true; //FIXME set to false;
 
-    public static final boolean VERBOSE = false;
+    public static final boolean VERBOSE = true;
 
     /**
      * Intent indicating timeout for user confirmation, which is sent to

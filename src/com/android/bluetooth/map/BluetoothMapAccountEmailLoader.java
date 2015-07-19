@@ -1,4 +1,6 @@
 /*
+* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+* Not a Contribution.
 * Copyright (C) 2014 Samsung System LSI
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -20,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import com.android.bluetooth.map.BluetoothMapAccountItem;
+import com.android.bluetooth.map.BluetoothMapUtils.*;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 
 
@@ -38,24 +41,28 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
 import com.android.bluetooth.mapapi.BluetoothMapContract;
+import com.android.bluetooth.mapapi.BluetoothMapEmailContract;
+import com.android.bluetooth.map.BluetoothMapAccountLoader;
 import android.text.format.DateUtils;
 import android.util.Log;
 
 
-public class BluetoothMapAccountLoader {
-    private static final String TAG = "BluetoothMapAccountLoader";
+public class BluetoothMapAccountEmailLoader extends BluetoothMapAccountLoader {
+    private static final String TAG = "BluetoothMapAccountEmailLoader";
     private static final boolean D = BluetoothMapService.DEBUG;
     private static final boolean V = BluetoothMapService.VERBOSE;
-    private Context mContext = null;
+    private Context mEmailContext = null;
     private PackageManager mPackageManager = null;
     private ContentResolver mResolver;
     private int mAccountsEnabledCount = 0;
     private ContentProviderClient mProviderClient = null;
     private static final long PROVIDER_ANR_TIMEOUT = 20 * DateUtils.SECOND_IN_MILLIS;
-
-    public BluetoothMapAccountLoader(Context ctx)
-    {
-        mContext = ctx;
+    public BluetoothMapAccountEmailLoader(Context ctx) {
+        super(ctx);
+        mEmailContext = ctx;
+        if(mEmailContext != null){
+            Log.d(TAG,"mEmailContext Assigned ");
+        }
     }
 
     /**
@@ -65,66 +72,52 @@ public class BluetoothMapAccountLoader {
      * @return LinkedHashMap with the packages as keys(BluetoothMapAccountItem) and
      *          values as ArrayLists of BluetoothMapAccountItems.
      */
+    @Override
     public LinkedHashMap<BluetoothMapAccountItem,
                          ArrayList<BluetoothMapAccountItem>> parsePackages(boolean includeIcon) {
 
         LinkedHashMap<BluetoothMapAccountItem, ArrayList<BluetoothMapAccountItem>> groups =
                 new LinkedHashMap<BluetoothMapAccountItem,
                                   ArrayList<BluetoothMapAccountItem>>();
-        Intent[] searchIntents = new Intent[2];
-        //Array <Intent> searchIntents = new Array <Intent>();
-        searchIntents[0] = new Intent(BluetoothMapContract.PROVIDER_INTERFACE_EMAIL);
-        searchIntents[1] = new Intent(BluetoothMapContract.PROVIDER_INTERFACE_IM);
-        // reset the counter every time this method is called.
+                // reset the counter every time this method is called.
         mAccountsEnabledCount=0;
-        // find all installed packages and filter out those that do not support Bluetooth Map.
-        // this is done by looking for a apps with content providers containing the intent-filter
-        // in the manifest file.
-        mPackageManager = mContext.getPackageManager();
-
-        for (Intent searchIntent : searchIntents) {
-            List<ResolveInfo> resInfos =
-                mPackageManager.queryIntentContentProviders(searchIntent, 0);
-            if (resInfos != null ) {
-                if(D) Log.d(TAG,"Found " + resInfos.size() + " application(s) with intent "
-                        + searchIntent.getAction().toString());
-                BluetoothMapUtils.TYPE msgType = (searchIntent.getAction().toString() ==
-                        BluetoothMapContract.PROVIDER_INTERFACE_EMAIL) ?
-                        BluetoothMapUtils.TYPE.EMAIL : BluetoothMapUtils.TYPE.IM;
-                for (ResolveInfo rInfo : resInfos) {
-                    if(D) Log.d(TAG,"ResolveInfo " + rInfo.toString());
-                    // We cannot rely on apps that have been force-stopped in the
-                    // application settings menu.
-                    if ((rInfo.providerInfo.applicationInfo.flags &
-                            ApplicationInfo.FLAG_STOPPED) == 0) {
-                        BluetoothMapAccountItem app = createAppItem(rInfo, includeIcon, msgType);
-                        if (app != null){
-                            ArrayList<BluetoothMapAccountItem> accounts = parseAccounts(app);
-                            // we do not want to list apps without accounts
-                            if(accounts.size() > 0)
-                            {// we need to make sure that the "select all" checkbox
-                             // is checked if all accounts in the list are checked
-                                app.mIsChecked = true;
-                                for (BluetoothMapAccountItem acc: accounts)
+        groups = super.parsePackages(includeIcon);
+        Log.d(TAG, "Groups SIZE: "+groups.size());
+        if(groups.size() == 0) {
+            /* Support ONLY account(s) configured from default or primary Email App,
+            * accisible with "com.android.email.permission.ACCESS_PROVIDER",
+            * similar to MAP email instance as on QCOM KK and L releas(es).*/
+            Log.d(TAG,"Found 0 applications - Support legacy default or primary email Account");
+            if( mEmailContext != null ) {
+                BluetoothMapAccountItem app = BluetoothMapAccountItem.create(
+                    "0",
+                    null,
+                    "com.android.email",
+                    BluetoothMapEmailContract.EMAIL_AUTHORITY,
+                    null ,
+                    BluetoothMapUtils.TYPE.EMAIL);
+                    if (app != null){
+                        ArrayList<BluetoothMapAccountItem> accounts = parseEmailAccounts(app);
+                        Log.d(TAG,"parseAccnts: " + accounts.size());
+                        // we do not want to list apps without accounts
+                        if(accounts.size() > 0)
+                        {   // we need to make sure that the "select all" checkbox
+                            // is checked if all accounts in the list are checked
+                            app.mIsChecked = true;
+                            for (BluetoothMapAccountItem acc: accounts)
+                            {
+                                if(!acc.mIsChecked)
                                 {
-                                    if(!acc.mIsChecked)
-                                    {
-                                        app.mIsChecked = false;
-                                        break;
-                                    }
+                                    app.mIsChecked = false;
+                                    break;
                                 }
-                                groups.put(app, accounts);
                             }
-                        }
-                    } else {
-                        if(D)Log.d(TAG,"Ignoring force-stopped authority "
-                                + rInfo.providerInfo.authority +"\n");
-                    }
-                }
-            }
-            else {
-                if(D) Log.d(TAG,"Found no applications");
-            }
+                            groups.put(app, accounts);
+                       }
+                   }
+                } else {
+                    Log.d(TAG,"mEmailContext NOT Assigned - NULL");
+               }
         }
         return groups;
     }
@@ -154,12 +147,12 @@ public class BluetoothMapAccountLoader {
      * @param app The parent app object
      * @return An ArrayList of BluetoothMapAccountItems containing all the accounts from the app
      */
-    public ArrayList<BluetoothMapAccountItem> parseAccounts(BluetoothMapAccountItem app)  {
+    public ArrayList<BluetoothMapAccountItem> parseEmailAccounts(BluetoothMapAccountItem app)  {
         Cursor c = null;
         if(D) Log.d(TAG,"Finding accounts for app "+app.getPackageName());
         ArrayList<BluetoothMapAccountItem> children = new ArrayList<BluetoothMapAccountItem>();
         // Get the list of accounts from the email apps content resolver (if possible)
-        mResolver = mContext.getContentResolver();
+        mResolver = mEmailContext.getContentResolver();
         try{
             mProviderClient = mResolver.acquireUnstableContentProviderClient(
                     Uri.parse(app.mBase_uri_no_account));
@@ -167,17 +160,10 @@ public class BluetoothMapAccountLoader {
                 throw new RemoteException("Failed to acquire provider for " + app.getPackageName());
             }
             mProviderClient.setDetectNotResponding(PROVIDER_ANR_TIMEOUT);
-
             Uri uri = Uri.parse(app.mBase_uri_no_account + "/"
-                                + BluetoothMapContract.TABLE_ACCOUNT);
-
-            if(app.getType() == TYPE.IM) {
-                c = mProviderClient.query(uri, BluetoothMapContract.BT_IM_ACCOUNT_PROJECTION,
-                        null, null, BluetoothMapContract.AccountColumns._ID+" DESC");
-            } else {
-                c = mProviderClient.query(uri, BluetoothMapContract.BT_ACCOUNT_PROJECTION,
-                        null, null, BluetoothMapContract.AccountColumns._ID+" DESC");
-            }
+                                + BluetoothMapEmailContract.EMAIL_TABLE_ACCOUNT);
+            c = mProviderClient.query(uri, BluetoothMapEmailContract
+                    .BT_EMAIL_ACCOUNT_ID_PROJECTION, null, null, null);
         } catch (RemoteException e){
             if(D)Log.d(TAG,"Could not establish ContentProviderClient for "+app.getPackageName()+
                     " - returning empty account list" );
@@ -188,27 +174,29 @@ public class BluetoothMapAccountLoader {
 
         if (c != null) {
             c.moveToPosition(-1);
-            int idIndex = c.getColumnIndex(BluetoothMapContract.AccountColumns._ID);
-            int dispNameIndex = c.getColumnIndex(
-                    BluetoothMapContract.AccountColumns.ACCOUNT_DISPLAY_NAME);
-            int exposeIndex = c.getColumnIndex(BluetoothMapContract.AccountColumns.FLAG_EXPOSE);
-            int uciIndex = c.getColumnIndex(BluetoothMapContract.AccountColumns.ACCOUNT_UCI);
-            int uciPreIndex = c.getColumnIndex(
-                    BluetoothMapContract.AccountColumns.ACCOUNT_UCI_PREFIX);
+            int dispNameIndex = c.getColumnIndex(BluetoothMapEmailContract
+                                        .ExtEmailMessageColumns.DISPLAY_NAME);
+            int idIndex = c.getColumnIndex(BluetoothMapEmailContract.ExtEmailMessageColumns
+                                  .RECORD_ID);
+            int exposeIndex = c.getColumnIndex(BluetoothMapEmailContract.ExtEmailMessageColumns
+                                  .IS_DEFAULT);
             while (c.moveToNext()) {
                 if(D)Log.d(TAG,"Adding account " + c.getString(dispNameIndex) +
                         " with ID " + String.valueOf(c.getInt(idIndex)));
                 String uci = null;
                 String uciPrefix = null;
                 if(app.getType() == TYPE.IM){
+                    int uciIndex =
+                            c.getColumnIndex(BluetoothMapContract.AccountColumns.ACCOUNT_UCI);
+                    int uciPreIndex = c.getColumnIndex(
+                    BluetoothMapContract.AccountColumns.ACCOUNT_UCI_PREFIX);
                     uci = c.getString(uciIndex);
                     uciPrefix = c.getString(uciPreIndex);
                     if(D)Log.d(TAG,"   Account UCI " + uci);
                 }
-
                 BluetoothMapAccountItem child = BluetoothMapAccountItem.create(
                         String.valueOf((c.getInt(idIndex))),
-                        c.getString(dispNameIndex),
+                        BluetoothMapEmailContract.ExtEmailMessageColumns.EMAIL_SERVICE_NAME,
                         app.getPackageName(),
                         app.getProviderAuthority(),
                         null,
@@ -232,15 +220,26 @@ public class BluetoothMapAccountLoader {
         }
         return children;
     }
+
+    @Override
+    /**
+     * Method for getting the accounts under a given contentprovider from a package.
+     * @param app The parent app object
+     * @return An ArrayList of BluetoothMapAccountItems containing all the accounts from the app
+     */
+    public ArrayList<BluetoothMapAccountItem> parseAccounts(BluetoothMapAccountItem app)  {
+        return parseEmailAccounts(app);
+    }
+
     /**
      * Gets the number of enabled accounts in total across all supported apps.
      * NOTE that this method should not be called before the parsePackages method
      * has been successfully called.
      * @return number of enabled accounts
      */
+    @Override
     public int getAccountsEnabledCount() {
         if(D)Log.d(TAG,"Enabled Accounts count:"+ mAccountsEnabledCount);
-        return mAccountsEnabledCount;
+        return super.getAccountsEnabledCount() + mAccountsEnabledCount;
     }
-
 }

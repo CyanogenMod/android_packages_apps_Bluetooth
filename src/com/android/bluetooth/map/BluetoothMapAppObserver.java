@@ -53,14 +53,14 @@ public class BluetoothMapAppObserver{
     private Context mContext;
     private BroadcastReceiver mReceiver;
     private PackageManager mPackageManager = null;
-    BluetoothMapAccountLoader mLoader;
+    BluetoothMapAccountEmailLoader mLoader;
     BluetoothMapService mMapService = null;
 
     public BluetoothMapAppObserver(final Context context, BluetoothMapService mapService) {
         mContext    = context;
         mMapService = mapService;
         mResolver   = context.getContentResolver();
-        mLoader     = new BluetoothMapAccountLoader(mContext);
+        mLoader     = new BluetoothMapAccountEmailLoader(mContext);
         mFullList   = mLoader.parsePackages(false); /* Get the current list of apps */
         createReceiver();
         initObservers();
