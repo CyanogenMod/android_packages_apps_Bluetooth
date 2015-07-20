@@ -34,6 +34,7 @@ import java.util.List;
 
 import org.xmlpull.v1.XmlSerializer;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -43,11 +44,14 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.text.format.Time;
+import android.os.Binder;
 import android.os.Handler;
+import android.os.Process;
 import android.provider.BaseColumns;
 import android.provider.Telephony;
 import android.provider.Telephony.Mms;
@@ -1197,6 +1201,13 @@ public class BluetoothMapContentObserver {
 
         private void actionMessageSent(Context context, Intent intent,
             PushMsgInfo msgInfo) {
+            /* Check permission for message deletion. */
+            if (context.checkCallingOrSelfPermission(android.Manifest.permission.WRITE_SMS)
+                  != PackageManager.PERMISSION_GRANTED) {
+                Log.w(TAG, "actionMessageSent: Not allowed to delete SMS/MMS messages");
+                return;
+            }
+
             int result = getResultCode();
             boolean delete = false;
 
