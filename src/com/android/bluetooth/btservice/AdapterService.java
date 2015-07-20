@@ -1334,6 +1334,20 @@ public class AdapterService extends Service {
              if (service == null) return;
              service.onBrEdrDown();
          }
+
+         public int createMapMnsSdpRecord(String serviceName, int rfcommChannel,
+                 int l2capPsm, int version, int features) {
+             AdapterService service = getService();
+             if (service == null) return -1;
+             return service.createMapMnsSdpRecord(serviceName, rfcommChannel,
+                     l2capPsm, version, features);
+         }
+
+         public boolean removeSdpRecord(int recordHandle){
+             AdapterService service = getService();
+             if (service == null) return false;
+             return service.removeSdpRecord(recordHandle);
+         }
     };
 
     // ----API Methods--------
@@ -2058,6 +2072,18 @@ public class AdapterService extends Service {
     public void onBrEdrDown() {
         Message m = mAdapterStateMachine.obtainMessage(AdapterState.USER_TURN_OFF);
         mAdapterStateMachine.sendMessage(m);
+    }
+
+    public int createMapMnsSdpRecord(String serviceName, int rfcommChannel,
+            int l2capPsm, int version, int features) {
+        SdpManager manager = SdpManager.getDefaultManager();
+        return manager.createMapMnsRecord(serviceName, rfcommChannel,
+                l2capPsm, version, features);
+    }
+
+    public boolean removeSdpRecord(int recordHandle){
+        SdpManager manager = SdpManager.getDefaultManager();
+        return manager.removeSdpRecord(recordHandle);
     }
 
     private static int convertScanModeToHal(int mode) {
