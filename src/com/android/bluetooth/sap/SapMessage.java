@@ -643,8 +643,10 @@ public class SapMessage {
 
         /* Payload */
         os.write(value);
-        for(int i = 0, n = 4 - (value.length % 4) ; i < n; i++) {
-            os.write(0); // Padding
+        if (value.length % 4 != 0) {
+            for (int i = 0; i < (4 - (value.length % 4)); ++i) {
+                os.write(0); // Padding
+            }
         }
     }
 
