@@ -26,6 +26,7 @@ import android.content.ContextWrapper;
 import android.content.pm.PackageManager;
 import android.content.pm.UserInfo;
 import android.os.Binder;
+import android.os.Build;
 import android.os.ParcelUuid;
 import android.os.Process;
 import android.os.UserHandle;
@@ -280,9 +281,27 @@ final public class Utils {
             return true;
         }
 
-        return context.checkCallingOrSelfPermission(android.Manifest.permission.
+        if (context.checkCallingOrSelfPermission(android.Manifest.permission.
                 ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                && isAppOppAllowed(appOps, AppOpsManager.OP_COARSE_LOCATION, callingPackage);
+                && isAppOppAllowed(appOps, AppOpsManager.OP_COARSE_LOCATION, callingPackage)) {
+            return true;
+        }
+        // Enforce location permission for apps targeting MNC and later versions
+        boolean enforceLocationPermission = true;
+        try {
+            enforceLocationPermission = context.getPackageManager().getApplicationInfo(
+                    callingPackage, 0).targetSdkVersion >= Build.VERSION_CODES.MNC;
+        } catch (PackageManager.NameNotFoundException e) {
+            // In case of exception, enforce permission anyway
+        }
+        if (enforceLocationPermission) {
+            throw new SecurityException("Need ACCESS_COARSE_LOCATION or "
+                    + "ACCESS_FINE_LOCATION permission to get scan results");
+        } else {
+            Log.e(TAG, "Permission denial: Need ACCESS_COARSE_LOCATION or ACCESS_FINE_LOCATION "
+                    + "permission to get scan results");
+        }
+        return false;
     }
 
     private static boolean isAppOppAllowed(AppOpsManager appOps, int op, String callingPackage) {
