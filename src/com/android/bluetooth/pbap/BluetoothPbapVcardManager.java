@@ -623,6 +623,7 @@ public class BluetoothPbapVcardManager {
         HandlerForStringBuffer buffer = null;
         try {
 
+            VCardFilter vcardfilter = new VCardFilter(ignorefilter ? null : filter);
             composer = new BluetoothPbapCallLogComposer(mContext);
             buffer = new HandlerForStringBuffer(op, ownerVCard);
             if (!composer.init(CallLog.Calls.CONTENT_URI, selection, null, CALLLOG_SORT_ORDER)
@@ -637,6 +638,9 @@ public class BluetoothPbapVcardManager {
                     break;
                 }
                 String vcard = composer.createOneEntry(vcardType21);
+                if (vcard != null) {
+                    vcard = vcardfilter.apply(vcard, vcardType21);
+                }
                 if (vcard == null) {
                     Log.e(TAG,
                             "Failed to read a contact. Error reason: " + composer.getErrorReason());
@@ -751,9 +755,10 @@ public class BluetoothPbapVcardManager {
             EMAIL(     8, "EMAIL",    false,        false),
             TITLE(    12, "TITLE",    false,        false),
             ORG(      16, "ORG",      false,        false),
-            NOTES(    17, "NOTES",    false,        false),
+            NOTE(     17, "NOTE",     false,        false),
             URL(      20, "URL",      false,        false),
-            NICKNAME( 23, "NICKNAME", false,        true);
+            NICKNAME( 23, "NICKNAME", false,        true),
+            DATETIME( 28, "DATETIME", false,        true);
 
             public final int pos;
             public final String prop;
@@ -771,12 +776,13 @@ public class BluetoothPbapVcardManager {
         private static final String SEPARATOR = System.getProperty("line.separator");
         private final byte[] filter;
 
-        private boolean isFilteredOut(FilterBit bit, boolean vCardType21) {
+        //This function returns true if the attributes needs to be included in the filtered vcard.
+        private boolean isFilteredIn(FilterBit bit, boolean vCardType21) {
             final int offset = (bit.pos / 8) + 1;
             final int bit_pos = bit.pos % 8;
-            if (!vCardType21 && bit.onlyCheckV21) return false;
-            if (vCardType21 && bit.excludeForV21) return true;
-            if (filter == null || offset >= filter.length) return false;
+            if (!vCardType21 && bit.onlyCheckV21) return true;
+            if (vCardType21 && bit.excludeForV21) return false;
+            if (filter == null || offset >= filter.length) return true;
             return ((filter[filter.length - offset] >> bit_pos) & 0x01) != 0;
         }
 
@@ -785,25 +791,25 @@ public class BluetoothPbapVcardManager {
         }
 
         public boolean isPhotoEnabled() {
-            return !isFilteredOut(FilterBit.PHOTO, false);
+            return isFilteredIn(FilterBit.PHOTO, false);
         }
 
         public String apply(String vCard, boolean vCardType21){
             if (filter == null) return vCard;
             String lines[] = vCard.split(SEPARATOR);
             StringBuilder filteredVCard = new StringBuilder();
-            boolean filteredOut = false;
+            boolean filteredIn = false;
 
             for (String line : lines) {
                 // Check whether the current property is changing (ignoring multi-line properties)
                 // and determine if the current property is filtered in.
                 if (!Character.isWhitespace(line.charAt(0)) && !line.startsWith("=")) {
                     String currentProp = line.split("[;:]")[0];
-                    filteredOut = false;
+                    filteredIn = true;
 
                     for (FilterBit bit : FilterBit.values()) {
                         if (bit.prop.equals(currentProp)) {
-                            filteredOut = isFilteredOut(bit, vCardType21);
+                            filteredIn = isFilteredIn(bit, vCardType21);
                             break;
                         }
                     }
@@ -811,11 +817,11 @@ public class BluetoothPbapVcardManager {
                     // Since PBAP does not have filter bits for IM and SIP,
                     // exclude them by default. Easiest way is to exclude all
                     // X- fields....
-                    if (currentProp.startsWith("X-")) filteredOut = true;
+                    if (currentProp.startsWith("X-")) filteredIn = false;
                 }
 
                 // Build filtered vCard
-                if (!filteredOut) filteredVCard.append(line + SEPARATOR);
+                if (filteredIn) filteredVCard.append(line + SEPARATOR);
             }
 
             return filteredVCard.toString();
