@@ -26,13 +26,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentFilter.MalformedMimeTypeException;
+import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelFileDescriptor;
+import android.os.Process;
 import android.os.RemoteException;
 import android.provider.Telephony;
 import android.provider.Telephony.Mms;
@@ -2973,9 +2976,6 @@ public class BluetoothMapContentObserver {
 
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction(ACTION_MESSAGE_DELIVERY);
-            /* The reception of ACTION_MESSAGE_SENT have been moved to the MAP
-             * service, to be able to handle message sent events after a disconnect. */
-            //intentFilter.addAction(ACTION_MESSAGE_SENT);
             try{
                 intentFilter.addDataType("message/*");
             } catch (MalformedMimeTypeException e) {
@@ -3006,23 +3006,7 @@ public class BluetoothMapContentObserver {
                 return;
             }
 
-            if (action.equals(ACTION_MESSAGE_SENT)) {
-                int result = intent.getIntExtra(EXTRA_MESSAGE_SENT_RESULT,
-                        Activity.RESULT_CANCELED);
-                msgInfo.partsSent++;
-                if(result != Activity.RESULT_OK) {
-                    /* If just one of the parts in the message fails, we need to send the
-                     * entire message again
-                     */
-                    msgInfo.failedSent = true;
-                }
-                if(D) Log.d(TAG, "onReceive: msgInfo.partsSent = " + msgInfo.partsSent
-                        + ", msgInfo.parts = " + msgInfo.parts + " result = " + result);
-
-                if (msgInfo.partsSent == msgInfo.parts) {
-                    actionMessageSent(context, intent, msgInfo);
-                }
-            } else if (action.equals(ACTION_MESSAGE_DELIVERY)) {
+            if (action.equals(ACTION_MESSAGE_DELIVERY)) {
                 long timestamp = intent.getLongExtra(EXTRA_MESSAGE_SENT_TIMESTAMP, 0);
                 int status = -1;
                 if(msgInfo.timestamp == timestamp) {
@@ -3046,67 +3030,6 @@ public class BluetoothMapContentObserver {
                 }
             } else {
                 Log.d(TAG, "onReceive: Unknown action " + action);
-            }
-        }
-
-        private void actionMessageSent(Context context, Intent intent, PushMsgInfo msgInfo) {
-            /* As the MESSAGE_SENT intent is forwarded from the MAP service, we use the intent
-             * to carry the result, as getResult() will not return the correct value.
-             */
-            boolean delete = false;
-
-            if(D) Log.d(TAG,"actionMessageSent(): msgInfo.failedSent = " + msgInfo.failedSent);
-
-            msgInfo.sendInProgress = false;
-
-            if (msgInfo.failedSent == false) {
-                if(D) Log.d(TAG, "actionMessageSent: result OK");
-                if (msgInfo.transparent == 0) {
-                    if (!Sms.moveMessageToFolder(context, msgInfo.uri,
-                            Sms.MESSAGE_TYPE_SENT, 0)) {
-                        Log.w(TAG, "Failed to move " + msgInfo.uri + " to SENT");
-                    }
-                } else {
-                    delete = true;
-                }
-
-                Event evt = new Event(EVENT_TYPE_SENDING_SUCCESS, msgInfo.id,
-                        getSmsFolderName(Sms.MESSAGE_TYPE_SENT), null, mSmsType);
-                sendEvent(evt);
-
-            } else {
-                if (msgInfo.retry == 1) {
-                    /* Notify failure, but keep message in outbox for resending */
-                    msgInfo.resend = true;
-                    msgInfo.partsSent = 0; // Reset counter for the retry
-                    msgInfo.failedSent = false;
-                    Event evt = new Event(EVENT_TYPE_SENDING_FAILURE, msgInfo.id,
-                            getSmsFolderName(Sms.MESSAGE_TYPE_OUTBOX), null, mSmsType);
-                    sendEvent(evt);
-                } else {
-                    if (msgInfo.transparent == 0) {
-                        if (!Sms.moveMessageToFolder(context, msgInfo.uri,
-                                Sms.MESSAGE_TYPE_FAILED, 0)) {
-                            Log.w(TAG, "Failed to move " + msgInfo.uri + " to FAILED");
-                        }
-                    } else {
-                        delete = true;
-                    }
-
-                    Event evt = new Event(EVENT_TYPE_SENDING_FAILURE, msgInfo.id,
-                            getSmsFolderName(Sms.MESSAGE_TYPE_FAILED), null, mSmsType);
-                    sendEvent(evt);
-                }
-            }
-
-            if (delete == true) {
-                /* Delete from Observer message list to avoid delete notifications */
-                synchronized(getMsgListSms()) {
-                    getMsgListSms().remove(msgInfo.id);
-                }
-
-                /* Delete from DB */
-                mResolver.delete(msgInfo.uri, null, null);
             }
         }
 
@@ -3215,13 +3138,21 @@ public class BluetoothMapContentObserver {
         TYPE type = TYPE.fromOrdinal(
         intent.getIntExtra(EXTRA_MESSAGE_SENT_MSG_TYPE, TYPE.NONE.ordinal()));
         if(type == TYPE.MMS) {
-        actionMmsSent(context, intent, result, null);
+            actionMmsSent(context, intent, result, null);
         } else {
-        actionSmsSentDisconnected(context, intent, result);
+            actionSmsSentDisconnected(context, intent, result);
         }
     }
 
     static public void actionSmsSentDisconnected(Context context, Intent intent, int result) {
+        /* Check permission for message deletion. */
+        if ((Binder.getCallingPid() != Process.myPid()) ||
+            (context.checkCallingOrSelfPermission("android.Manifest.permission.WRITE_SMS")
+                    != PackageManager.PERMISSION_GRANTED)) {
+            Log.w(TAG, "actionSmsSentDisconnected: Not allowed to delete SMS/MMS messages");
+            return;
+        }
+
         boolean delete = false;
         //int retry = intent.getIntExtra(EXTRA_MESSAGE_SENT_RETRY, 0);
         int transparent = intent.getIntExtra(EXTRA_MESSAGE_SENT_TRANSPARENT, 0);
@@ -3258,10 +3189,10 @@ public class BluetoothMapContentObserver {
             }
         }
 
-        if (delete == true) {
+        if (delete) {
             /* Delete from DB */
             ContentResolver resolver = context.getContentResolver();
-            if(resolver != null) {
+            if (resolver != null) {
                 resolver.delete(uri, null, null);
             } else {
                 Log.w(TAG, "Unable to get resolver");
