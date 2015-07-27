@@ -415,4 +415,12 @@ public final class BluetoothShare implements BaseColumns {
      */
     public static final int STATUS_CONNECTION_ERROR = 497;
 
+    /**
+     * Returns the throughput of the file transfer
+     */
+    public static float throughputInKbps(long fileSize, long timeDuration) {
+        float throughput = (float)(fileSize * 1024 * 8 ) / (timeDuration * 1024);
+        return throughput;
+    }
+
 }

@@ -35,68 +35,58 @@ import android.util.Log;
 import java.io.IOException;
 import android.bluetooth.SdpOppOpsRecord;
 public class OolConnManager {
-	private static final String TAG="OolConnManager";
-	static int channel = 0;
-	static boolean sdpDone = false;
-	static String mAddress;
-public static BluetoothSocket CreateL2capConnection(BluetoothDevice remBtDev,UUID uuid ) {
-Log.d(TAG,"Inside Create L2capConnection");
 
-	
-	 try {
-	 	Log.d(TAG,"Calling createL2capSocket");
-     return remBtDev.createL2capSocket(channel);
-	 	}
-	 catch (IOException e) {
-Log.e(TAG, "BtSocket Connect error " + e.getMessage());
+    private static final String TAG="OolConnManager";
+    static int channel = 0;
+    static boolean sdpDone = false;
+    static String mAddress;
 
-	 }
-	 return null;
-	}
-public static void setSdpInitiatedAddress(BluetoothDevice remBtDev) {
-	
-	mAddress = remBtDev.getAddress();
-	Log.d(TAG,"prp setSdpInitiatedAddress "+ mAddress);
-}
+    public static BluetoothSocket CreateL2capConnection(BluetoothDevice remBtDev,UUID uuid ) {
 
-public static int getL2cPSM(BluetoothDevice remBtDev) {
-Log.d(TAG,"Inside getL2cPSM");
-int waitCount = 0;
-while(!sdpDone & waitCount < 8) {
-	Log.d(TAG,"before sleep");
-try {
-	Thread.sleep(500);
-} catch (InterruptedException e) {
-	Log.e(TAG, "Interrupted", e);
-}
-waitCount++;
-Log.d(TAG,"after sleep");
+        Log.d(TAG,"createL2cConnection "+remBtDev.getAddress());
+        try {
+            return remBtDev.createL2capSocket(channel);
+        } catch (IOException e) {
+            Log.e(TAG, "BtSocket Connect error " + e.getMessage());
+        }
+        return null;
+    }
 
-}
-waitCount = 0;
-sdpDone = false;
+    public static void setSdpInitiatedAddress(BluetoothDevice remBtDev) {
 
-Log.d(TAG,"returning l2c channel as "+channel);
+        Log.d(TAG,"setSdpInitiatedAddress "+ mAddress);
+        mAddress = remBtDev.getAddress();
+    }
 
-return channel;
-	}
+    public static int getL2cPSM(BluetoothDevice remBtDev) {
 
-public static void saveOppSdpRecord(SdpOppOpsRecord sdpRec, BluetoothDevice btDevice) {
-	Log.d(TAG,"prp sdp complete address  is "+ btDevice.getAddress());
-	Log.d(TAG,"prp mAddress  is "+ mAddress);
-	if((mAddress != null) && mAddress.equalsIgnoreCase(btDevice.getAddress())) { 
-		
-channel = sdpRec.getL2capPsm();
-sdpDone = true;
+        int waitCount = 0;
+        int channelNo = -1;
+        while(!sdpDone && waitCount < 8) {
+           try {
+               Thread.sleep(500);
+           } catch (InterruptedException e) {
+               Log.e(TAG, "Interrupted", e);
+           }
+           waitCount++;
+        }
+        waitCount = 0;
+        sdpDone = false;
 
+        Log.d(TAG,"returning l2c channel as "+channel);
+        channelNo = channel;
+        channel = -1;
+        return channelNo;
+    }
 
-Log.d(TAG,"saveOppSdpRecord");
-Log.d(TAG,"prp l2cap psm  is "+ sdpRec.getL2capPsm());
-//Log.d(TAG,"prp rfcomm channel  is "+ sdpRec.getL2capPsm());
+    public static void saveOppSdpRecord(SdpOppOpsRecord sdpRec, BluetoothDevice btDevice) {
 
-Log.d(TAG,"remote device address is "+ btDevice.getAddress());
+        Log.v(TAG,"saveOppSdpRecord"+ btDevice.getAddress());
+        if ((mAddress != null) && mAddress.equalsIgnoreCase(btDevice.getAddress())) {
+           channel = sdpRec.getL2capPsm();
+           sdpDone = true;
+           Log.d(TAG,"saveOppSdpRecord channel "+ channel);
+        }
+    }
 
-		}
-}
-	
 }

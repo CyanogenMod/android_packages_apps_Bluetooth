@@ -56,6 +56,7 @@ import android.os.Parcelable;
 import android.os.PowerManager;
 import android.os.Process;
 import android.util.Log;
+import com.android.bluetooth.OolConnManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,9 +75,9 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
     private static final boolean V = Log.isLoggable(Constants.TAG, Log.VERBOSE);
 
-    private static final int RFCOMM_ERROR = 10;
+    private static final int TRANSPORT_ERROR = 10;
 
-    private static final int RFCOMM_CONNECTED = 11;
+    private static final int TRANSPORT_CONNECTED = 11;
 
     private static final int SOCKET_ERROR_RETRY = 13;
 
@@ -143,23 +144,23 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
                     mConnectThread.start();
                     break;
-                case RFCOMM_ERROR:
+                case TRANSPORT_ERROR:
                     /*
                     * RFCOMM connect fail is for outbound share only! Mark batch
                     * failed, and all shares in batch failed
                     */
-                    if (V) Log.v(TAG, "receive RFCOMM_ERROR msg");
+                    if (V) Log.v(TAG, "receive TRANSPORT_ERROR msg");
                     mConnectThread = null;
                     markBatchFailed(BluetoothShare.STATUS_CONNECTION_ERROR);
                     mBatch.mStatus = Constants.BATCH_STATUS_FAILED;
 
                     break;
-                case RFCOMM_CONNECTED:
+                case TRANSPORT_CONNECTED:
                     /*
                     * RFCOMM connected is for outbound share only! Create
                     * BluetoothOppObexClientSession and start it
                     */
-                    if (V) Log.v(TAG, "Transfer receive RFCOMM_CONNECTED msg");
+                    if (V) Log.v(TAG, "Transfer receive TRANSPORT_CONNECTED msg");
                     mConnectThread = null;
                     mTransport = (ObexTransport)msg.obj;
                     startObexSession();
@@ -563,8 +564,10 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             mConnectThread = new SocketConnectThread("localhost", Constants.TCP_DEBUG_PORT, 0);
             mConnectThread.start();
         } else {
-            mConnectThread = new SocketConnectThread(mBatch.mDestination,false);
-            mConnectThread.start();
+           OolConnManager.setSdpInitiatedAddress(mBatch.mDestination);
+           mBatch.mDestination.sdpSearch(BluetoothUuid.ObexObjectPush);
+           mConnectThread = new SocketConnectThread(mBatch.mDestination,false);
+           mConnectThread.start();
         }
     }
 
@@ -576,6 +579,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         private final BluetoothDevice device;
 
         private final int channel;
+
+        private int l2cChannel = 0;
 
         private boolean isConnected;
 
@@ -627,6 +632,47 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 }
             }
         }
+
+        private void connectRfcommSocket() {
+
+            try {
+                btSocket = device.createInsecureRfcommSocketToServiceRecord(BluetoothUuid.ObexObjectPush.getUuid());
+            } catch (IOException e1) {
+                Log.e(TAG, "Rfcomm socket create error",e1);
+                markConnectionFailed(btSocket);
+                return;
+            }
+            try {
+                btSocket.connect();
+
+                if (V) Log.v(TAG, "Rfcomm socket connection attempt took " +
+                                  (System.currentTimeMillis() - timestamp) + " ms");
+                BluetoothObexTransport transport;
+                transport = new BluetoothObexTransport(btSocket);
+
+                BluetoothOppPreference.getInstance(mContext).setName(device, device.getName());
+
+                if (V) Log.v(TAG, "Send transport message " + transport.toString());
+
+                mSessionHandler.obtainMessage(TRANSPORT_CONNECTED, transport).sendToTarget();
+            } catch (IOException e) {
+                Log.e(TAG, "Rfcomm socket connect exception",e);
+                // If the devices were paired before, but unpaired on the
+                // remote end, it will return an error for the auth request
+                // for the socket connection. Link keys will get exchanged
+                // again, but we need to retry. There is no good way to
+                // inform this socket asking it to retry apart from a blind
+                // delayed retry.
+                if (!mRetry && e.getMessage().equals(SOCKET_LINK_KEY_ERROR)) {
+                   Message msg = mSessionHandler.obtainMessage(SOCKET_ERROR_RETRY,-1,-1,device);
+                   mSessionHandler.sendMessageDelayed(msg, 1500);
+                } else {
+                   markConnectionFailed(btSocket);
+                }
+            }
+
+        }
+
 
         @Override
         public void run() {
@@ -683,23 +729,24 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                     return;
                 } else {
                     if (D) Log.d(TAG, "Send transport message " + transport.toString());
-                    mSessionHandler.obtainMessage(RFCOMM_CONNECTED, transport).sendToTarget();
+                    mSessionHandler.obtainMessage(TRANSPORT_CONNECTED, transport).sendToTarget();
                 }
             } else {
 
                 /* Use BluetoothSocket to connect */
-
+                l2cChannel = 0;
                 try {
-                    btSocket = device.createInsecureRfcommSocketToServiceRecord(BluetoothUuid.ObexObjectPush.getUuid());
+                    l2cChannel = OolConnManager.getL2cPSM(device);
+                    btSocket = device.createInsecureL2capSocket(l2cChannel);
                 } catch (IOException e1) {
-                    Log.e(TAG, "Rfcomm socket create error",e1);
-                    markConnectionFailed(btSocket);
-                    return;
+                  Log.e(TAG, "L2cap socket create error",e1);
+                  connectRfcommSocket();
+                  return;
                 }
                 try {
                     btSocket.connect();
 
-                    if (V) Log.v(TAG, "Rfcomm socket connection attempt took " +
+                    if (V) Log.v(TAG, "L2cap socket connection attempt took " +
                             (System.currentTimeMillis() - timestamp) + " ms");
                     BluetoothObexTransport transport;
                     transport = new BluetoothObexTransport(btSocket);
@@ -708,21 +755,16 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
                     if (V) Log.v(TAG, "Send transport message " + transport.toString());
 
-                    mSessionHandler.obtainMessage(RFCOMM_CONNECTED, transport).sendToTarget();
+                    mSessionHandler.obtainMessage(TRANSPORT_CONNECTED, transport).sendToTarget();
                 } catch (IOException e) {
-                    Log.e(TAG, "Rfcomm socket connect exception",e);
-                    // If the devices were paired before, but unpaired on the
-                    // remote end, it will return an error for the auth request
-                    // for the socket connection. Link keys will get exchanged
-                    // again, but we need to retry. There is no good way to
-                    // inform this socket asking it to retry apart from a blind
-                    // delayed retry.
-                    if (!mRetry && e.getMessage().equals(SOCKET_LINK_KEY_ERROR)) {
-                        Message msg = mSessionHandler.obtainMessage(SOCKET_ERROR_RETRY,-1,-1,device);
-                        mSessionHandler.sendMessageDelayed(msg, 1500);
-                    } else {
-                        markConnectionFailed(btSocket);
+                    Log.e(TAG, "L2cap socket connect exception",e);
+                    try {
+                        btSocket.close();
+                    } catch (IOException e3) {
+                        Log.e(TAG, "Bluetooth socket close error ",e3);
                     }
+                    connectRfcommSocket();
+                    return;
                 }
             }
         }
@@ -733,7 +775,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             } catch (IOException e) {
                 Log.e(TAG, "TCP socket close error");
             }
-            mSessionHandler.obtainMessage(RFCOMM_ERROR).sendToTarget();
+            mSessionHandler.obtainMessage(TRANSPORT_ERROR).sendToTarget();
         }
 
         private void markConnectionFailed(BluetoothSocket s) {
@@ -742,7 +784,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             } catch (IOException e) {
                 if (V) Log.e(TAG, "Error when close socket");
             }
-            mSessionHandler.obtainMessage(RFCOMM_ERROR).sendToTarget();
+            mSessionHandler.obtainMessage(TRANSPORT_ERROR).sendToTarget();
             return;
         }
     };

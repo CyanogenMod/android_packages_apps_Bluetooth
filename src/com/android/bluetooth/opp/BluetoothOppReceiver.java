@@ -42,6 +42,7 @@ import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.sqlite.SQLiteException;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -197,8 +198,14 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             context.startActivity(in);
         } else if (action.equals(Constants.ACTION_HIDE)) {
             if (V) Log.v(TAG, "Receiver hide for " + intent.getData());
-            Cursor cursor = context.getContentResolver().query(intent.getData(), null, null, null,
-                    null);
+            Cursor cursor;
+            try {
+                cursor = context.getContentResolver().query(intent.getData(), null, null, null,
+                         null);
+            } catch (SQLiteException e) {
+                cursor = null;
+                Log.e(TAG, "SQLite exception: " + e);
+            }
             if (cursor != null) {
                 if (cursor.moveToFirst()) {
                     int statusColumn = cursor.getColumnIndexOrThrow(BluetoothShare.STATUS);
@@ -217,6 +224,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                         }
                 }
                 cursor.close();
+                cursor = null;
             }
         } else if (action.equals(Constants.ACTION_COMPLETE_HIDE)) {
             if (V) Log.v(TAG, "Receiver ACTION_COMPLETE_HIDE");

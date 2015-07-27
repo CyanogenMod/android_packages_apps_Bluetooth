@@ -27,6 +27,7 @@ import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.Parcelable;
 import android.util.Log;
+import com.android.bluetooth.OolConnManager;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AbstractionLayer;
@@ -365,6 +366,7 @@ public class SdpManager {
             if(D) Log.d(TAG, "UUID: " + Arrays.toString(uuid));
             if(D) Log.d(TAG, "UUID in parcel: " + ((Utils.byteArrayToUuid(uuid))[0]).toString());
             sendSdpIntent(inst, sdpRecord, moreResults);
+            OolConnManager.saveOppSdpRecord (sdpRecord,inst.getDevice());
         }
     }
 

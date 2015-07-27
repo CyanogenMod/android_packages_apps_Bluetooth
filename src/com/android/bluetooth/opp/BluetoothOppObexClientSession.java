@@ -396,6 +396,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     int readLength = 0;
                     long percent = 0;
                     long prevPercent = 0;
+                    long readbytesleft = 0;
                     boolean okToProceed = false;
                     long timestamp = 0;
                     int outputBufferSize = putOperation.getMaxPacketSize();
@@ -403,6 +404,10 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     BufferedInputStream a = new BufferedInputStream(fileInfo.mInputStream, 0x4000);
 
                     if (!mInterrupted && (position != fileInfo.mLength)) {
+                        readbytesleft = fileInfo.mLength - position;
+                        if(readbytesleft < outputBufferSize) {
+                           outputBufferSize = (int) readbytesleft;
+                        }
                         readLength = readFully(a, buffer, outputBufferSize);
 
                         mCallback.sendMessageDelayed(mCallback
@@ -437,11 +442,18 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                         }
                     }
 
+                    long beginTime = System.currentTimeMillis();
                     while (!mInterrupted && okToProceed && (position < fileInfo.mLength)) {
                         if (V) timestamp = System.currentTimeMillis();
 
+                        readbytesleft = fileInfo.mLength - position;
+                        if(readbytesleft < outputBufferSize) {
+                            outputBufferSize = (int) readbytesleft;
+                        }
                         readLength = a.read(buffer, 0, outputBufferSize);
                         outputStream.write(buffer, 0, readLength);
+
+                        if (V) Log.v(TAG, "waiting for response code");
 
                         /* check remote abort */
                         responseCode = putOperation.getResponseCode();
@@ -478,8 +490,13 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                         Log.i(TAG, "Remote reject file type " + fileInfo.mMimetype);
                         status = BluetoothShare.STATUS_NOT_ACCEPTABLE;
                     } else if (!mInterrupted && position == fileInfo.mLength) {
+                        long endTime = System.currentTimeMillis();
                         Log.i(TAG, "SendFile finished send out file " + fileInfo.mFileName
-                                + " length " + fileInfo.mLength);
+                                + " length " + fileInfo.mLength + " Bytes. Approx. throughput is "
+                                +BluetoothShare.throughputInKbps(fileInfo.mLength,
+                                        (endTime - beginTime))
+                                + " Kbps");
+                        status = BluetoothShare.STATUS_SUCCESS;
                     } else {
                         error = true;
                         status = BluetoothShare.STATUS_CANCELED;

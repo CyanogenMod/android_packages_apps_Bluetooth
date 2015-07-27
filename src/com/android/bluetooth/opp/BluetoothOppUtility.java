@@ -46,6 +46,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.util.Log;
 
 import java.io.File;
@@ -68,12 +69,20 @@ public class BluetoothOppUtility {
 
     public static BluetoothOppTransferInfo queryRecord(Context context, Uri uri) {
         BluetoothOppTransferInfo info = new BluetoothOppTransferInfo();
-        Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
+        Cursor cursor;
+        try {
+            cursor = context.getContentResolver().query(uri, null, null, null, null);
+        } catch (SQLiteException e) {
+            cursor = null;
+            Log.e(TAG, "SQLite exception: " + e);
+        }
+
         if (cursor != null) {
             if (cursor.moveToFirst()) {
                 fillRecord(context, cursor, info);
             }
             cursor.close();
+            cursor = null;
         } else {
             info = null;
             if (V) Log.v(TAG, "BluetoothOppManager Error: not got data from db for uri:" + uri);
@@ -141,10 +150,16 @@ public class BluetoothOppUtility {
         ArrayList<String> uris = Lists.newArrayList();
         final String WHERE = BluetoothShare.TIMESTAMP + " == " + timeStamp;
 
-        Cursor metadataCursor = context.getContentResolver().query(BluetoothShare.CONTENT_URI,
+        Cursor metadataCursor;
+        try {
+            metadataCursor = context.getContentResolver().query(BluetoothShare.CONTENT_URI,
                 new String[] {
                     BluetoothShare._DATA
                 }, WHERE, null, BluetoothShare._ID);
+        } catch (SQLiteException e) {
+            metadataCursor = null;
+            Log.e(TAG, "SQLite exception: " + e);
+        }
 
         if (metadataCursor == null) {
             return null;
@@ -162,6 +177,7 @@ public class BluetoothOppUtility {
             if (V) Log.d(TAG, "Uri in this batch: " + path.toString());
         }
         metadataCursor.close();
+        metadataCursor = null;
         return uris;
     }
 

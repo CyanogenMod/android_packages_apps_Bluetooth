@@ -40,6 +40,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.text.format.Formatter;
 import android.util.Log;
@@ -212,8 +213,15 @@ class BluetoothOppNotification {
 
     private void updateActiveNotification() {
         // Active transfers
-        Cursor cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
+        Cursor cursor;
+        try {
+            cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
                 WHERE_RUNNING, null, BluetoothShare._ID);
+        } catch (SQLiteException e) {
+            cursor = null;
+            Log.e(TAG, "SQLite exception: " + e);
+        }
+
         if (cursor == null) {
             return;
         }
@@ -287,6 +295,7 @@ class BluetoothOppNotification {
             }
         }
         cursor.close();
+        cursor = null;
 
         // Add the notifications
         for (NotificationItem item : mNotifications.values()) {
@@ -381,8 +390,14 @@ class BluetoothOppNotification {
         }
 
         // Creating outbound notification
-        Cursor cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
-                WHERE_COMPLETED_OUTBOUND, null, BluetoothShare.TIMESTAMP + " DESC");
+        Cursor cursor;
+        try {
+            cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
+                   WHERE_COMPLETED_OUTBOUND, null, BluetoothShare.TIMESTAMP + " DESC");
+        } catch (SQLiteException e) {
+            cursor = null;
+            Log.e(TAG, "SQLite exception: " + e);
+        }
         if (cursor == null) {
             return;
         }
@@ -405,6 +420,7 @@ class BluetoothOppNotification {
         }
         if (V) Log.v(TAG, "outbound: succ-" + outboundSuccNumber + "  fail-" + outboundFailNumber);
         cursor.close();
+        cursor = null;
 
         outboundNum = outboundSuccNumber + outboundFailNumber;
         // create the outbound notification
@@ -436,8 +452,14 @@ class BluetoothOppNotification {
         }
 
         // Creating inbound notification
-        cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
+        try {
+            cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
                 WHERE_COMPLETED_INBOUND, null, BluetoothShare.TIMESTAMP + " DESC");
+        } catch (SQLiteException e) {
+            cursor = null;
+            Log.e(TAG, "SQLite exception: " + e);
+        }
+
         if (cursor == null) {
             return;
         }
@@ -457,6 +479,7 @@ class BluetoothOppNotification {
         }
         if (V) Log.v(TAG, "inbound: succ-" + inboundSuccNumber + "  fail-" + inboundFailNumber);
         cursor.close();
+        cursor = null;
 
         inboundNum = inboundSuccNumber + inboundFailNumber;
         // create the inbound notification
@@ -489,14 +512,21 @@ class BluetoothOppNotification {
     }
 
     private void updateIncomingFileConfirmNotification() {
-        Cursor cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
+        Cursor cursor;
+        try {
+            cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
                 WHERE_CONFIRM_PENDING, null, BluetoothShare._ID);
+        } catch (SQLiteException e) {
+            cursor = null;
+            Log.e(TAG, "SQLite exception: " + e);
+        }
 
         if (cursor == null) {
             return;
         }
 
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+
           BluetoothOppTransferInfo info = new BluetoothOppTransferInfo();
           BluetoothOppUtility.fillRecord(mContext, cursor, info);
           Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + info.mID);
@@ -535,5 +565,7 @@ class BluetoothOppNotification {
           mNotificationMgr.notify(info.mID, n);
         }
         cursor.close();
+        cursor = null;
     }
+
 }
