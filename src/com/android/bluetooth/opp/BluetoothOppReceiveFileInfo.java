@@ -41,6 +41,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.StatFs;
@@ -93,9 +94,16 @@ public class BluetoothOppReceiveFileInfo {
         Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + id);
         String filename = null, hint = null, mimeType = null;
         long length = 0;
-        Cursor metadataCursor = contentResolver.query(contentUri, new String[] {
+        Cursor metadataCursor;
+        try {
+            metadataCursor = contentResolver.query(contentUri, new String[] {
                 BluetoothShare.FILENAME_HINT, BluetoothShare.TOTAL_BYTES, BluetoothShare.MIMETYPE
-        }, null, null, null);
+                }, null, null, null);
+        } catch (SQLiteException e) {
+            metadataCursor = null;
+            Log.e(Constants.TAG, "SQLite exception: " + e);
+        }
+
         if (metadataCursor != null) {
             try {
                 if (metadataCursor.moveToFirst()) {
@@ -105,6 +113,7 @@ public class BluetoothOppReceiveFileInfo {
                 }
             } finally {
                 metadataCursor.close();
+                metadataCursor = null;
             }
         }
 

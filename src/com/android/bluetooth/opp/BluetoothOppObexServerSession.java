@@ -107,6 +107,8 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     boolean mTimeoutMsgSent = false;
 
+    boolean mTransferInProgress = false;
+
     public BluetoothOppObexServerSession(Context context, ObexTransport transport) {
         mContext = context;
         mTransport = transport;
@@ -202,6 +204,21 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                     return;
                 }
             }
+        }
+    }
+    /*
+    * Called when a ABORT request is received.
+    */
+    @Override
+    public int onAbort(HeaderSet request, HeaderSet reply) {
+        if (D) Log.d(TAG, "onAbort()");
+        if (mTransferInProgress) {
+           return ResponseCodes.OBEX_HTTP_OK;
+        } else {
+            /* Transfer is completed already or the command is received
+             * when no transfer in progress. Send -ve response.
+             */
+            return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
         }
     }
 
@@ -481,6 +498,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         /*
          * implement receive file
          */
+        long beginTime = 0;
         int status = -1;
         BufferedOutputStream bos = null;
         ContentResolverUpdateThread uiUpdateThread = null;
@@ -514,12 +532,12 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             int readLength = 0;
             long timestamp = 0;
             try {
+                beginTime = System.currentTimeMillis();
                 while ((!mInterrupted) && (position != fileInfo.mLength)) {
 
                     if (V) timestamp = System.currentTimeMillis();
 
                     readLength = is.read(b);
-
                     if (readLength == -1) {
                         if (D) Log.d(TAG, "Receive file reached stream end at position" + position);
                         break;
@@ -584,7 +602,11 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             status = BluetoothShare.STATUS_CANCELED;
         } else {
             if (position == fileInfo.mLength) {
-                if (D) Log.d(TAG, "Receiving file completed for " + fileInfo.mFileName);
+                long endTime = System.currentTimeMillis();
+                if (D) Log.d(TAG, "Receiving file completed for " + fileInfo.mFileName
+                             + " length " + fileInfo.mLength + " Bytes. Approx. throughput is "
+                             + BluetoothShare.throughputInKbps(fileInfo.mLength, (endTime - beginTime))
+                             + " Kbps");
                 status = BluetoothShare.STATUS_SUCCESS;
             } else {
                 if (D) Log.d(TAG, "Reading file failed at " + position + " of " + fileInfo.mLength);
