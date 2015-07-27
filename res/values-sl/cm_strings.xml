@@ -17,6 +17,6 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="empty_file_notification_sent">مشاركة البلوتوث: رفض ملف عن بعد طول صفري <xliff:g id="file"> %1$s </xliff:g></string>
-  <string name="upload_fail_waiting">تعذر إرسال الملف، جاري إعادة المحاولة\u2026</string>
+  <string name="empty_file_notification_sent">Deljenje Bluetooth: oddaljeno zavrnjena ničelna datoteka <xliff:g id="file">%1$s</xliff:g></string>
+  <string name="upload_fail_waiting">Datoteke ni mogoče poslati, ponovno poskušanje \u2026</string>
 </resources>
