@@ -1212,6 +1212,14 @@ public class AdapterService extends Service {
             return service.configHciSnoopLog(enable);
         }
 
+        public boolean factoryReset() {
+            AdapterService service = getService();
+            if (service == null) return false;
+            service.disable();
+            return service.factoryReset();
+
+        }
+
         public void registerCallback(IBluetoothCallback cb) {
             AdapterService service = getService();
             if (service == null) return ;
@@ -1821,6 +1829,11 @@ public class AdapterService extends Service {
         return configHciSnoopLogNative(enable);
     }
 
+    boolean factoryReset() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED, "Need BLUETOOTH permission");
+        return factoryResetNative();
+    }
+
      void registerCallback(IBluetoothCallback cb) {
          mCallbacks.register(cb);
       }
@@ -2121,6 +2134,7 @@ public class AdapterService extends Service {
                                                  byte[] uuid, int port, int flag);
 
     /*package*/ native boolean configHciSnoopLogNative(boolean enable);
+    /*package*/ native boolean factoryResetNative();
 
     private native void alarmFiredNative();
     private native void dumpNative(FileDescriptor fd);
