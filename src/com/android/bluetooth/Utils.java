@@ -38,6 +38,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -298,10 +299,25 @@ final public class Utils {
             throw new SecurityException("Need ACCESS_COARSE_LOCATION or "
                     + "ACCESS_FINE_LOCATION permission to get scan results");
         } else {
+            // Pre-M apps running in the foreground should continue getting scan results
+            if (isForegroundApp(context, callingPackage)) {
+                return true;
+            }
             Log.e(TAG, "Permission denial: Need ACCESS_COARSE_LOCATION or ACCESS_FINE_LOCATION "
                     + "permission to get scan results");
         }
         return false;
+    }
+
+    /**
+     * Return true if the specified package name is a foreground app.
+     *
+     * @param pkgName application package name.
+     */
+    private static boolean isForegroundApp(Context context, String pkgName) {
+        ActivityManager am = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningTaskInfo> tasks = am.getRunningTasks(1);
+        return !tasks.isEmpty() && pkgName.equals(tasks.get(0).topActivity.getPackageName());
     }
 
     private static boolean isAppOppAllowed(AppOpsManager appOps, int op, String callingPackage) {
