@@ -52,7 +52,7 @@
     <string name="download_line3" msgid="4384821622908676061">"Dimensiunea fişierului: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="download_line4" msgid="8535996869722666525"></string>
     <string name="download_line5" msgid="3069560415845295386">"Se primeşte fişierul..."</string>
-    <string name="download_cancel" msgid="9177305996747500768">"Opriţi"</string>
+    <string name="download_cancel" msgid="9177305996747500768">"Opriți"</string>
     <string name="download_ok" msgid="5000360731674466039">"Ascundeţi"</string>
     <string name="incoming_line1" msgid="2127419875681087545">"De la"</string>
     <string name="incoming_line2" msgid="3348994249285315873">"Numele fișierului"</string>
