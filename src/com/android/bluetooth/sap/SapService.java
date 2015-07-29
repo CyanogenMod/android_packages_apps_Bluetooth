@@ -45,8 +45,8 @@ public class SapService extends ProfileService {
     private static final String SDP_SAP_SERVICE_NAME = "SIM Access";
     private static final int SDP_SAP_VERSION = 0x0102;
     private static final String TAG = "SapService";
-    public static final boolean DEBUG = false;
-    public static final boolean VERBOSE = false;
+    public static final boolean DEBUG = true;
+    public static final boolean VERBOSE = true;
     public static final boolean PTS_TEST = false;
 
     /* Message ID's */

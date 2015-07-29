@@ -456,18 +456,22 @@ public class SapMessage {
         int paramId;
         int paramLength;
         boolean success = true;
+        int skipLen = 0;
         for(int i = 0; i < count; i++) {
             paramId = is.read();
             is.read(); // Skip the reserved byte
             paramLength = is.read();
             paramLength = paramLength << 8 | is.read();
+            // As per SAP spec padding should be 0-3 bytes
+            if ((paramLength % 4) != 0)
+                skipLen = 4 - (paramLength % 4);
             if(VERBOSE) Log.i(TAG, "parsing paramId: " + paramId + " with length: " + paramLength);
             switch(paramId) {
             case PARAM_MAX_MSG_SIZE_ID:
                 if(paramLength != PARAM_MAX_MSG_SIZE_LENGTH) {
                     Log.e(TAG, "Received PARAM_MAX_MSG_SIZE with wrong length: " +
                             paramLength + " skipping this parameter.");
-                    skip(is, paramLength + (4 - (paramLength % 4)));
+                    skip(is, paramLength + skipLen);
                     success = false;
                 } else {
                     mMaxMsgSize = is.read();
@@ -478,18 +482,18 @@ public class SapMessage {
             case PARAM_COMMAND_APDU_ID:
                 mApdu = new byte[paramLength];
                 read(is, mApdu);
-                skip(is, 4 - (paramLength % 4));
+                skip(is, skipLen);
                 break;
             case PARAM_COMMAND_APDU7816_ID:
                 mApdu7816 = new byte[paramLength];
                 read(is, mApdu7816);
-                skip(is, 4 - (paramLength % 4));
+                skip(is, skipLen);
                 break;
             case PARAM_TRANSPORT_PROTOCOL_ID:
                 if(paramLength != PARAM_TRANSPORT_PROTOCOL_LENGTH) {
                     Log.e(TAG, "Received PARAM_TRANSPORT_PROTOCOL with wrong length: " +
                             paramLength + " skipping this parameter.");
-                    skip(is, paramLength + (4 - (paramLength % 4)));
+                    skip(is, paramLength + skipLen);
                     success = false;
                 } else {
                     mTransportProtocol = is.read();
@@ -502,7 +506,7 @@ public class SapMessage {
                     if(paramLength != PARAM_CONNECTION_STATUS_LENGTH) {
                         Log.e(TAG, "Received PARAM_CONNECTION_STATUS with wrong length: " +
                                 paramLength + " skipping this parameter.");
-                        skip(is, paramLength + (4 - (paramLength % 4)));
+                        skip(is, paramLength + skipLen);
                         success = false;
                     } else {
                         mConnectionStatus = is.read();
@@ -516,7 +520,7 @@ public class SapMessage {
                     if(paramLength != PARAM_CARD_READER_STATUS_LENGTH) {
                         Log.e(TAG, "Received PARAM_CARD_READER_STATUS with wrong length: " +
                                 paramLength + " skipping this parameter.");
-                        skip(is, paramLength + (4 - (paramLength % 4)));
+                        skip(is, paramLength + skipLen);
                         success = false;
                     } else {
                         mCardReaderStatus = is.read();
@@ -530,7 +534,7 @@ public class SapMessage {
                     if(paramLength != PARAM_STATUS_CHANGE_LENGTH) {
                         Log.e(TAG, "Received PARAM_STATUS_CHANGE with wrong length: " +
                                 paramLength + " skipping this parameter.");
-                        skip(is, paramLength + (4 - (paramLength % 4)));
+                        skip(is, paramLength + skipLen);
                         success = false;
                     } else {
                         mStatusChange = is.read();
@@ -544,7 +548,7 @@ public class SapMessage {
                     if(paramLength != PARAM_RESULT_CODE_LENGTH) {
                         Log.e(TAG, "Received PARAM_RESULT_CODE with wrong length: " +
                                 paramLength + " skipping this parameter.");
-                        skip(is, paramLength + (4 - (paramLength % 4)));
+                        skip(is, paramLength + skipLen);
                         success = false;
                     } else {
                         mResultCode = is.read();
@@ -558,7 +562,7 @@ public class SapMessage {
                     if(paramLength != PARAM_DISCONNECT_TYPE_LENGTH) {
                         Log.e(TAG, "Received PARAM_DISCONNECT_TYPE_ID with wrong length: " +
                                 paramLength + " skipping this parameter.");
-                        skip(is, paramLength + (4 - (paramLength % 4)));
+                        skip(is, paramLength + skipLen);
                         success = false;
                     } else {
                         mDisconnectionType = is.read();
@@ -571,7 +575,7 @@ public class SapMessage {
                 if(TEST) {
                     mApduResp = new byte[paramLength];
                     read(is, mApduResp);
-                    skip(is, 4 - (paramLength % 4));
+                    skip(is, skipLen);
                     break;
                 } // Fall through if TEST == false
             case PARAM_ATR_ID:
@@ -579,13 +583,13 @@ public class SapMessage {
                 if(TEST) {
                     mAtr = new byte[paramLength];
                     read(is, mAtr);
-                    skip(is, 4 - (paramLength % 4));
+                    skip(is, skipLen);
                     break;
                 } // Fall through if TEST == false
             default:
                 Log.e(TAG, "Received unknown parameter ID: " + paramId + " length: " +
                         paramLength + " skipping this parameter.");
-                skip(is, paramLength + (4 - (paramLength % 4)));
+                skip(is, paramLength + skipLen);
             }
         }
         return success;
