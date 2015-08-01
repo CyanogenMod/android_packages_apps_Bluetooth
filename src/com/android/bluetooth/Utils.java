@@ -287,11 +287,11 @@ final public class Utils {
                 && isAppOppAllowed(appOps, AppOpsManager.OP_COARSE_LOCATION, callingPackage)) {
             return true;
         }
-        // Enforce location permission for apps targeting MNC and later versions
+        // Enforce location permission for apps targeting M and later versions
         boolean enforceLocationPermission = true;
         try {
             enforceLocationPermission = context.getPackageManager().getApplicationInfo(
-                    callingPackage, 0).targetSdkVersion >= Build.VERSION_CODES.MNC;
+                    callingPackage, 0).targetSdkVersion >= Build.VERSION_CODES.M;
         } catch (PackageManager.NameNotFoundException e) {
             // In case of exception, enforce permission anyway
         }
