@@ -76,7 +76,9 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
     private Handler mCallback;
 
-    private int position;
+    private long  position;
+
+    private final int MIN_FILE_LEN_FOR_TPUT_MEASUREMENT = 500000;
 
     public BluetoothOppObexClientSession(Context context, ObexTransport transport) {
         if (transport == null) {
@@ -558,12 +560,18 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                         Log.i(TAG, "Remote reject file type " + fileInfo.mMimetype);
                         status = BluetoothShare.STATUS_NOT_ACCEPTABLE;
                     } else if (!mInterrupted && position == fileInfo.mLength) {
-                        long endTime = System.currentTimeMillis();
                         if(V) {
-                            Log.i(TAG, "SendFile finished send out file " + fileInfo.mFileName
-                                + " length " + fileInfo.mLength + " Bytes. Approx. throughput is "
-                                +BluetoothShare.throughputInKbps(fileInfo.mLength,(endTime - beginTime))
-                                + " Kbps");
+                            if (fileInfo.mLength > MIN_FILE_LEN_FOR_TPUT_MEASUREMENT) {
+                                long endTime = System.currentTimeMillis();
+                                Log.i(TAG, "SendFile finished send out file " + fileInfo.mFileName
+                                    + " length " + fileInfo.mLength + " Bytes. Approx. throughput "
+                                    +" is " + BluetoothShare.throughputInKbps(fileInfo.mLength,
+                                    +(endTime - beginTime))+ " Kbps");
+                            } else {
+                                Log.i(TAG, "SendFile finished sending file " + fileInfo.mFileName
+                                    + " length " + fileInfo.mLength + " Bytes. File size is too "
+                                    + " small to measure throughput");
+                            }
                         }
                         status = BluetoothShare.STATUS_SUCCESS;
                     } else {
