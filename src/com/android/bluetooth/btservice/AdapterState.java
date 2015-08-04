@@ -441,6 +441,7 @@ final class AdapterState extends StateMachine {
 
                 case ENABLE_TIMEOUT:
                     errorLog("Error enabling Bluetooth (enable timeout)");
+                    adapterService.ssrcleanupNative(false);
                     mPendingCommandState.setBleTurningOn(false);
                     transitionTo(mOffState);
                     adapterService.stopProfileServices();
@@ -468,6 +469,7 @@ final class AdapterState extends StateMachine {
                     adapterService.stopProfileServices();
                     adapterService.stopGattProfileService();
                     mPendingCommandState.setTurningOff(false);
+                    adapterService.ssrcleanupNative(true);
                     setBleTurningOff(false);
                     transitionTo(mOffState);
                     notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
