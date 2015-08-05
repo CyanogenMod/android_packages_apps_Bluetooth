@@ -1123,6 +1123,13 @@ static void dumpNative(JNIEnv *env, jobject obj, jobject fdObj)
     sBluetoothInterface->dump(fd);
 }
 
+static jboolean factoryResetNative(JNIEnv *env, jobject obj) {
+    ALOGV("%s:", __FUNCTION__);
+    if (!sBluetoothInterface) return JNI_FALSE;
+    int ret = sBluetoothInterface->config_clear();
+    return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+}
+
 static JNINativeMethod sMethods[] = {
     /* name, signature, funcPtr */
     {"classInitNative", "()V", (void *) classInitNative},
@@ -1151,6 +1158,7 @@ static JNINativeMethod sMethods[] = {
     {"alarmFiredNative", "()V", (void *) alarmFiredNative},
     {"readEnergyInfo", "()I", (void*) readEnergyInfo},
     {"dumpNative", "(Ljava/io/FileDescriptor;)V", (void*) dumpNative},
+    {"factoryResetNative", "()Z", (void*)factoryResetNative}
 };
 
 int register_com_android_bluetooth_btservice_AdapterService(JNIEnv* env)
