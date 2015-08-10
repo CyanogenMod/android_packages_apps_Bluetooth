@@ -171,6 +171,10 @@ public class BluetoothOppTransferHistory extends Activity implements
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
+        if (mTransferCursor.getCount() == 0) {
+            Log.i(TAG," History is already Clear - Not clearing again ");
+            return true;
+        }
         mTransferCursor.moveToPosition(mContextMenuPosition);
         switch (item.getItemId()) {
             case R.id.transfer_menu_open:
