@@ -113,6 +113,8 @@ public abstract class ProfileService extends Service {
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (DBG) log("onStartCommand()");
+        if(mAdapterService == null)
+            mAdapterService = AdapterService.getAdapterService();
         if (mStartError || mAdapter == null) {
             Log.w(mName, "Stopping profile service: device does not have BT");
             doStop(intent);

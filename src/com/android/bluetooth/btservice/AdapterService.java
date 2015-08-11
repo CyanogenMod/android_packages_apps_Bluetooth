@@ -429,6 +429,7 @@ public class AdapterService extends Service {
 
         mSdpManager = SdpManager.init(this);
         registerReceiver(mAlarmBroadcastReceiver, new IntentFilter(ACTION_ALARM_WAKEUP));
+        setAdapterService(this);
 
 
 
@@ -466,9 +467,6 @@ public class AdapterService extends Service {
         mBondStateMachine = BondStateMachine.make(mPowerManager, this, mAdapterProperties, mRemoteDevices);
 
         mJniCallbacks.init(mBondStateMachine,mRemoteDevices);
-
-        //FIXME: Set static instance here???
-        setAdapterService(this);
 
         checkA2dpState();
 
