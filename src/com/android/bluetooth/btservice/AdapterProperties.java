@@ -75,6 +75,33 @@ class AdapterProperties {
     // can be added here.
     private Object mObject = new Object();
 
+    private class DeviceState {
+        private BluetoothDevice device = null;
+        private int currentState = 0;
+        private int profileId = 0;
+
+        public DeviceState(BluetoothDevice device, int profile,
+                int state) {
+            this.device = device;
+            this.profileId = profile;
+            this.currentState = state;
+        }
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof DeviceState) {
+                if (this.device.equals(((DeviceState) o).device) &&
+                        this.profileId == ((DeviceState) o).profileId &&
+                        this.currentState == ((DeviceState) o).currentState) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    };
+
+    private ArrayList<DeviceState> mConnectedDeviceList =
+                new ArrayList<DeviceState>();
+
     public AdapterProperties(AdapterService service) {
         mService = service;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -350,6 +377,26 @@ class AdapterProperties {
     }
 
     void sendConnectionStateChange(BluetoothDevice device, int profile, int state, int prevState) {
+        // add device in connection list for first connected
+        // and remove it in disconnected
+        if (state == BluetoothProfile.STATE_CONNECTED) {
+            DeviceState newDevice = new DeviceState(device, profile, state);
+            if (!mConnectedDeviceList.contains(newDevice)) {
+                mConnectedDeviceList.add(newDevice);
+                Log.v(TAG,"device is added to list");
+            } else {
+                Log.v(TAG,"Fake broadcast for device, ignore");
+                return;
+            }
+        } else if (state == BluetoothProfile.STATE_DISCONNECTED) {
+            DeviceState deviceState = new DeviceState(device, profile,
+                    BluetoothProfile.STATE_CONNECTED);
+            if(mConnectedDeviceList.contains(deviceState)) {
+                Log.v(TAG,"device is removed from list");
+                mConnectedDeviceList.remove(deviceState);
+            }
+        }
+
         if (!validateProfileConnectionState(state) ||
                 !validateProfileConnectionState(prevState)) {
             // Previously, an invalid state was broadcast anyway,

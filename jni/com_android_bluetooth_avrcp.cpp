@@ -81,14 +81,13 @@ static void btavrcp_remote_features_callback(bt_bdaddr_t* bd_addr, btrc_remote_f
         return;
     }
 
+    sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
     if (mCallbacksObj) {
-        sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
         sCallbackEnv->CallVoidMethod(mCallbacksObj, method_getRcFeatures, addr,
                                                          (jint)features, addr);
     } else {
         ALOGE("%s: mCallbacksObj is null", __FUNCTION__);
     }
-
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 
@@ -1834,7 +1833,7 @@ static jboolean getItemAttrRspNative(JNIEnv *env, jobject object, jbyte numAttr,
         pAttrs[i].attr_id = attr[i];
         if (utfStringLength >= BTRC_MAX_ATTR_STR_LEN) {
             ALOGE("get_item_attr_rsp: string length exceed maximum");
-            strlcpy((char *)pAttrs[i].text, textStr, BTRC_MAX_ATTR_STR_LEN-1);
+            strlcpy((char *)pAttrs[i].text, textStr, BTRC_MAX_ATTR_STR_LEN);
             pAttrs[i].text[BTRC_MAX_ATTR_STR_LEN-1] = 0;
         } else {
             strlcpy((char *)pAttrs[i].text, textStr, utfStringLength + 1);

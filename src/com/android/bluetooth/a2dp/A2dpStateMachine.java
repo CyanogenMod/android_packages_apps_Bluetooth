@@ -406,7 +406,6 @@ final class A2dpStateMachine extends StateMachine {
                     StackEvent event = (StackEvent) message.obj;
                     switch (event.type) {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
-                            removeMessages(CONNECT_TIMEOUT);
                             processConnectionEvent(event.valueInt, event.device);
                             break;
                         default:
@@ -1650,10 +1649,9 @@ final class A2dpStateMachine extends StateMachine {
         Log.i(TAG,"connectoin state change " + device + " state " + newState);
 
         if (newState == BluetoothProfile.STATE_DISCONNECTING ||
-            newState == BluetoothProfile.STATE_CONNECTING) {
+                newState == BluetoothProfile.STATE_CONNECTING) {
             delay = 0;
         }
-
         mWakeLock.acquire();
         mIntentBroadcastHandler.sendMessageDelayed(mIntentBroadcastHandler.obtainMessage(
                                                         MSG_CONNECTION_STATE_CHANGED,

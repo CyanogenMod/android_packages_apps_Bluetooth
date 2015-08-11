@@ -292,6 +292,7 @@ public final class Avrcp {
             mLastDirection = 0;
             mVolCmdInProgress = false;
             mAbsVolRetryTimes = 0;
+            mSkipAmount = 0;
             keyPressState = KEY_STATE_RELEASE; //Key release state
             mAddressedPlayerChangedNT = NOTIFICATION_TYPE_CHANGED;
             mAvailablePlayersChangedNT = NOTIFICATION_TYPE_CHANGED;
@@ -385,7 +386,7 @@ public final class Avrcp {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mMetadata = new Metadata();
         mTrackNumber = -1L;
-        mCurrentPosMs = 0L;
+        mCurrentPosMs = -1L;
         mPlayStartTimeMs = -1L;
         mSongLengthMs = 0L;
         mA2dpService = svc;
@@ -785,8 +786,10 @@ public final class Avrcp {
                 }
                 mMediaUriStatic = uri;
                 if (handler != null) {
+                    // Don't send the complete path to CK as few gets confused by that
+                    // Send only the name of the root folder
                     handler.obtainMessage(MSG_UPDATE_BROWSED_PLAYER_FOLDER, NUM_ROOT_ELEMENTS,
-                                                SplitPath.length, SplitPath).sendToTarget();
+                                                1, SplitPath).sendToTarget();
                 }
             } else {
                 handler.obtainMessage(MSG_UPDATE_BROWSED_PLAYER_FOLDER, 0, 0, null)
@@ -1469,7 +1472,8 @@ public final class Avrcp {
     }
 
     private void updatePlayStatusForDevice(int deviceIndex,int state) {
-        Log.i(TAG,"updatePlayStatusForDevice");
+        Log.i(TAG,"updatePlayStatusForDevice: device: " +
+                    deviceFeatures[deviceIndex].mCurrentDevice);
         int oldPlayStatus = convertPlayStateToPlayStatus(
                     deviceFeatures[deviceIndex].mCurrentPlayState);
         int newPlayStatus = convertPlayStateToPlayStatus(state);
@@ -1964,7 +1968,7 @@ public final class Avrcp {
             trackTitle = null;
             albumTitle = null;
             genre = null;
-            tracknum = 0;
+            tracknum = -1L;
         }
 
         public String toString() {
@@ -1982,7 +1986,7 @@ public final class Avrcp {
         mMetadata.trackTitle = data.getString(MediaMetadataRetriever.METADATA_KEY_TITLE, null);
         mMetadata.albumTitle = data.getString(MediaMetadataRetriever.METADATA_KEY_ALBUM, null);
         mMetadata.genre = data.getString(MediaMetadataRetriever.METADATA_KEY_GENRE, null);
-        //mTrackNumber = data.getLong(MediaMetadataRetriever.METADATA_KEY_NUM_TRACKS, -1L);
+        mTrackNumber = data.getLong(MediaMetadataRetriever.METADATA_KEY_NUM_TRACKS, 0L);
         mMetadata.tracknum = data.getLong(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER, 0L);
 
         Log.v(TAG,"old Metadata = " + oldMetadata);
@@ -2105,6 +2109,8 @@ public final class Avrcp {
                             } else {
                                 packageName = di.RetrievePlayerPackageName();
                             }
+                        } else {
+                            retError = PLAYER_NOT_BROWSABLE;
                         }
                     }
                 }
