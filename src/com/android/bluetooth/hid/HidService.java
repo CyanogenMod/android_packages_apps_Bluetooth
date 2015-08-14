@@ -47,8 +47,9 @@ import java.util.Map;
  * @hide
  */
 public class HidService extends ProfileService {
-    private static final boolean DBG = true;
     private static final String TAG = "HidService";
+    public static final String LOG_TAG = "BluetoothHidHost";
+    private static boolean DBG = Log.isLoggable(LOG_TAG, Log.DEBUG);
 
     private Map<BluetoothDevice, Integer> mInputDevices;
     private boolean mNativeAvailable;
@@ -85,6 +86,9 @@ public class HidService extends ProfileService {
     }
 
     protected boolean start() {
+        if(!DBG)
+            DBG = Log.isLoggable(LOG_TAG, Log.DEBUG);
+        if (DBG) log("Start Bluetooth HidService");
         mInputDevices = Collections.synchronizedMap(new HashMap<BluetoothDevice, Integer>());
         initializeNative();
         mNativeAvailable=true;

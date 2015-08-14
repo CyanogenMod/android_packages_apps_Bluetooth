@@ -81,6 +81,7 @@ import javax.obex.ServerSession;
 
 public class BluetoothPbapService extends Service implements IObexConnectionHandler{
     private static final String TAG = "BluetoothPbapService";
+    public static final String LOG_TAG = "BluetoothPbap";
 
     /**
      * To enable PBAP DEBUG/VERBOSE logging - run below cmd in adb shell, and
@@ -91,7 +92,7 @@ public class BluetoothPbapService extends Service implements IObexConnectionHand
 
     public static final boolean DEBUG = true;
 
-    public static final boolean VERBOSE = false;
+    public static boolean VERBOSE = Log.isLoggable(LOG_TAG, Log.VERBOSE);
 
     /**
      * Intent indicating incoming obex authentication request which is from
@@ -429,6 +430,9 @@ public class BluetoothPbapService extends Service implements IObexConnectionHand
 
     synchronized private void startSocketListeners() {
         if (DEBUG) Log.d(TAG, "startsocketListener");
+        if(!VERBOSE)
+            VERBOSE = Log.isLoggable(LOG_TAG, Log.VERBOSE);
+        if (VERBOSE) Log.v(TAG, "Pbap Service startRfcommSocketListener");
 
         if (mServerSession != null) {
             if (DEBUG) Log.d(TAG, "mServerSession exists - shutting it down...");

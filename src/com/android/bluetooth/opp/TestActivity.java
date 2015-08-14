@@ -355,7 +355,7 @@ class TestTcpListener {
 
     private static final boolean D = Constants.DEBUG;
 
-    private static final boolean V = Constants.VERBOSE;
+    private static final boolean V = Log.isLoggable(Constants.TAG, Log.VERBOSE);
 
     private volatile boolean mInterrupted;
 
@@ -455,7 +455,7 @@ class TestTcpListener {
 class TestTcpServer extends ServerRequestHandler implements Runnable {
     private static final String TAG = "ServerRequestHandler";
 
-    private static final boolean V = Constants.VERBOSE;
+    private static final boolean V = Log.isLoggable(Constants.TAG, Log.VERBOSE) ;
 
     static final int port = 6500;
 

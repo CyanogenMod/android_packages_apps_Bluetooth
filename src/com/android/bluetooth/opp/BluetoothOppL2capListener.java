@@ -50,7 +50,7 @@ public class BluetoothOppL2capListener {
 
     private static final boolean D = Constants.DEBUG;
 
-    private static final boolean V = Constants.VERBOSE;
+    private static final boolean V = Log.isLoggable(Constants.TAG, Log.VERBOSE);
 
     public static final int MSG_INCOMING_BTOPP_CONNECTION = 100;
 

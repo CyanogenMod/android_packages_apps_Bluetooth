@@ -72,7 +72,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
     private static final boolean D = Constants.DEBUG;
 
-    private static final boolean V = Constants.VERBOSE;
+    private static final boolean V = Log.isLoggable(Constants.TAG, Log.VERBOSE);
 
     private static final int RFCOMM_ERROR = 10;
 
@@ -320,6 +320,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         info = mBatch.getPendingShare();
         while (info != null) {
             if (info.mStatus < 200) {
+                Log.i(TAG," Batch Failed updating Content Provider ");
                 info.mStatus = failReason;
                 Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + info.mId);
                 ContentValues updateValues = new ContentValues();

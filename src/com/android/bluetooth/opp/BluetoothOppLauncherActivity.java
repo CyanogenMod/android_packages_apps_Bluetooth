@@ -64,8 +64,7 @@ import java.util.Locale;
 public class BluetoothOppLauncherActivity extends Activity {
     private static final String TAG = "BluetoothLauncherActivity";
     private static final boolean D = Constants.DEBUG;
-    private static final boolean V = Constants.VERBOSE;
-
+    private static final boolean V = Log.isLoggable(Constants.TAG, Log.VERBOSE);
     // Regex that matches characters that have special meaning in HTML. '<', '>', '&' and
     // multiple continuous spaces.
     private static final Pattern PLAIN_TEXT_TO_ESCAPE = Pattern.compile("[<>&]| {2,}|\r?\n");

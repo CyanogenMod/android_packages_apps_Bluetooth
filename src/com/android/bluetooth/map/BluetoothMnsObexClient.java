@@ -47,7 +47,7 @@ public class BluetoothMnsObexClient {
 
     private static final String TAG = "BluetoothMnsObexClient";
     private static final boolean D = BluetoothMapService.DEBUG;
-    private static final boolean V = BluetoothMapService.VERBOSE;
+    private static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE);
 
     private ObexTransport mTransport;
     public Handler mHandler = null;

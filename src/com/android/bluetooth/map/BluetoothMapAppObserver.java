@@ -44,7 +44,7 @@ public class BluetoothMapAppObserver{
     private static final String TAG = "BluetoothMapAppObserver";
 
     private static final boolean D = BluetoothMapService.DEBUG;
-    private static final boolean V = BluetoothMapService.VERBOSE;
+    private static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE);
     /*  */
     private LinkedHashMap<BluetoothMapAccountItem, ArrayList<BluetoothMapAccountItem>> mFullList;
     private LinkedHashMap<String,ContentObserver> mObserverMap =

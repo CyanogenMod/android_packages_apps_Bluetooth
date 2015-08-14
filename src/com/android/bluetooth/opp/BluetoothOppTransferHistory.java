@@ -62,7 +62,7 @@ public class BluetoothOppTransferHistory extends Activity implements
         View.OnCreateContextMenuListener, OnItemClickListener {
     private static final String TAG = "BluetoothOppTransferHistory";
 
-    private static final boolean V = Constants.VERBOSE;
+    private static final boolean V = Log.isLoggable(Constants.TAG, Log.VERBOSE);
 
     private ListView mListView;
 

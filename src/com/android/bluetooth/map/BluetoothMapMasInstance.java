@@ -45,7 +45,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
     private static volatile int sInstanceCounter = 0;
 
     private static final boolean D = BluetoothMapService.DEBUG;
-    private static final boolean V = BluetoothMapService.VERBOSE;
+    private static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE);
 
     private static final int SDP_MAP_MSG_TYPE_EMAIL    = 0x01;
     private static final int SDP_MAP_MSG_TYPE_SMS_GSM  = 0x02;

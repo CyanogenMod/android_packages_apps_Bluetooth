@@ -56,6 +56,7 @@ import java.util.Set;
 
 public class BluetoothMapService extends ProfileService {
     private static final String TAG = "BluetoothMapService";
+    public static final String LOG_TAG = "BluetoothMap";
 
     /**
      * To enable MAP DEBUG/VERBOSE logging - run below cmd in adb shell, and
@@ -65,8 +66,8 @@ public class BluetoothMapService extends ProfileService {
      */
 
     public static final boolean DEBUG = true; //FIXME set to false;
+    public static boolean VERBOSE = Log.isLoggable(LOG_TAG, Log.VERBOSE);
 
-    public static final boolean VERBOSE = true;
 
     /**
      * Intent indicating timeout for user confirmation, which is sent to
@@ -614,6 +615,9 @@ public class BluetoothMapService extends ProfileService {
         Looper looper = thread.getLooper();
         mSessionStatusHandler = new MapServiceMessageHandler(looper);
 
+        if(!VERBOSE)
+        VERBOSE = Log.isLoggable(LOG_TAG, Log.VERBOSE);
+        if (VERBOSE) Log.v(TAG, "verbose logging is enabled");
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);

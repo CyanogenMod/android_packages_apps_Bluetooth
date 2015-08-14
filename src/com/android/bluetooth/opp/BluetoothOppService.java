@@ -69,7 +69,7 @@ import java.util.ArrayList;
 
 public class BluetoothOppService extends Service {
     private static final boolean D = Constants.DEBUG;
-    private static final boolean V = Constants.VERBOSE;
+    private static boolean V = Log.isLoggable(Constants.TAG, Log.VERBOSE);
 
     private boolean userAccepted = false;
 
@@ -196,6 +196,9 @@ public class BluetoothOppService extends Service {
     }
 
     private void startListener() {
+        if(!V)
+            V = Log.isLoggable(Constants.TAG, Log.VERBOSE);
+        if (V) Log.v(TAG, "startListener");
         if (!mListenStarted) {
             if (mAdapter.isEnabled()) {
                 if (V) Log.v(TAG, "Starting RfcommListener");
@@ -401,7 +404,9 @@ public class BluetoothOppService extends Service {
     private void updateFromProvider() {
         synchronized (BluetoothOppService.this) {
             mPendingUpdate = true;
-            if (mUpdateThread == null) {
+            if ((mUpdateThread == null) && (mAdapter != null)
+                && mAdapter.isEnabled()) {
+                if (V) Log.v(TAG, "Starting a new thread");
                 mUpdateThread = new UpdateThread();
                 mUpdateThread.start();
             }
@@ -429,9 +434,11 @@ public class BluetoothOppService extends Service {
                     if (!mPendingUpdate) {
                         mUpdateThread = null;
                         if (!keepService && !mListenStarted) {
+                            if (V) Log.v(TAG, "Need to stop self");
                             stopSelf();
                             break;
                         }
+                        if (V) Log.v(TAG, "***returning from updatethread***");
                         return;
                     }
                     mPendingUpdate = false;
@@ -767,6 +774,7 @@ public class BluetoothOppService extends Service {
                     if (mServerTransfer == null) {
                         Log.e(TAG, "Unexpected error! mServerTransfer is null");
                     } else if (batch.mId == mServerTransfer.getBatchId()) {
+                        if(V) Log.v(TAG," Stopping Inbound Transfer ");
                         mServerTransfer.stop();
                     } else {
                         Log.e(TAG, "Unexpected error! batch id " + batch.mId

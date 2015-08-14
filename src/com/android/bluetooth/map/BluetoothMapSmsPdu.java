@@ -46,7 +46,7 @@ import com.android.internal.telephony.gsm.SmsMessage.SubmitPdu;
 public class BluetoothMapSmsPdu {
 
     private static final String TAG = "BluetoothMapSmsPdu";
-    private static final boolean V = false;
+    private static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE);
     private static int INVALID_VALUE = -1;
     public static int SMS_TYPE_GSM = 1;
     public static int SMS_TYPE_CDMA = 2;

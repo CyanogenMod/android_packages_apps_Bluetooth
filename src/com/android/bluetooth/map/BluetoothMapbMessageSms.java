@@ -24,6 +24,8 @@ import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 
 public class BluetoothMapbMessageSms extends BluetoothMapbMessage {
 
+    private static final boolean D = BluetoothMapService.DEBUG;
+    private static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE);
     private ArrayList<SmsPdu> mSmsBodyPdus = null;
     private String mSmsBody = null;
     private String PCM_CARKIT = "9C:DF:03";

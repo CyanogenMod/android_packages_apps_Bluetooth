@@ -61,7 +61,7 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity imple
         DialogInterface.OnClickListener {
     private static final String TAG = "BluetoothIncomingFileConfirmActivity";
     private static final boolean D = Constants.DEBUG;
-    private static final boolean V = Constants.VERBOSE;
+    private static final boolean V = Log.isLoggable(Constants.TAG, Log.VERBOSE) ;
 
     private static final int DISMISS_TIMEOUT_DIALOG = 0;
 

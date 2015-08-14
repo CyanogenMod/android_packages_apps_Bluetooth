@@ -23,15 +23,14 @@ import java.util.LinkedHashMap;
 import android.app.Activity;
 import android.os.Bundle;
 import android.widget.ExpandableListView;
+import android.util.Log;
 
 
 public class BluetoothMapSettings extends Activity {
 
     private static final String TAG = "BluetoothMapSettings";
     private static final boolean D = BluetoothMapService.DEBUG;
-    private static final boolean V = BluetoothMapService.VERBOSE;
-
-
+    private static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE);
 
     BluetoothMapAccountLoader mLoader = new BluetoothMapAccountLoader(this);
     LinkedHashMap<BluetoothMapAccountItem,ArrayList<BluetoothMapAccountItem>> mGroups;
