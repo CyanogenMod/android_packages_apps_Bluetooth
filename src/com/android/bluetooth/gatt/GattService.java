@@ -34,10 +34,13 @@ import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Intent;
+import android.os.Binder;
 import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.os.SystemClock;
+import android.os.UserHandle;
+import android.provider.Settings;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -579,6 +582,9 @@ public class GattService extends ProfileService {
     void onScanResult(String address, int rssi, byte[] adv_data) {
         if (VDBG) Log.d(TAG, "onScanResult() - address=" + address
                     + ", rssi=" + rssi);
+        boolean locationEnabled = Settings.Secure.getInt(getContentResolver(),
+                Settings.Secure.LOCATION_MODE, Settings.Secure.LOCATION_MODE_OFF)
+                != Settings.Secure.LOCATION_MODE_OFF;
         List<UUID> remoteUuids = parseUuids(adv_data);
         for (ScanClient client : mScanManager.getRegularScanQueue()) {
             if (client.uuids.length > 0) {
@@ -602,7 +608,11 @@ public class GattService extends ProfileService {
                             .getRemoteDevice(address);
                     ScanResult result = new ScanResult(device, ScanRecord.parseFromBytes(adv_data),
                             rssi, SystemClock.elapsedRealtimeNanos());
-                    if (client.hasLocationPermission && matchesFilters(client, result)) {
+                    // Do no report if location mode is OFF or the client has no location permission
+                    // PEERS_MAC_ADDRESS permission holders always get results
+                    if ((client.hasPeersMacAddressPermission
+                            || (locationEnabled && client.hasLocationPermission))
+                            && matchesFilters(client, result)) {
                         try {
                             ScanSettings settings = client.settings;
                             if ((settings.getCallbackType() &
@@ -1364,6 +1374,8 @@ public class GattService extends ProfileService {
                 mAppOps, callingPackage);
         final ScanClient scanClient = new ScanClient(appIf, isServer, settings, filters, storages);
         scanClient.hasLocationPermission = hasLocationPermission;
+        scanClient.hasPeersMacAddressPermission = Utils.checkCallerHasPeersMacAddressPermission(
+                this);
         mScanManager.startScan(scanClient);
     }
 
