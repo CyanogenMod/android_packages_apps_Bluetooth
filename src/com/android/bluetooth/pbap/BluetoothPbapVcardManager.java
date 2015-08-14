@@ -984,18 +984,18 @@ public class BluetoothPbapVcardManager {
 
     public static class VCardFilter {
         private static enum FilterBit {
-            //       bit  property    onlyCheckV21  excludeForV21
-            FN (       1, "FN",       true,         false),
-            PHOTO(     3, "PHOTO",    false,        false),
-            BDAY(      4, "BDAY",     false,        false),
-            ADR(       5, "ADR",      false,        false),
-            EMAIL(     8, "EMAIL",    false,        false),
-            TITLE(    12, "TITLE",    false,        false),
-            ORG(      16, "ORG",      false,        false),
-            NOTE(     17, "NOTE",     false,        false),
-            URL(      20, "URL",      false,        false),
-            NICKNAME( 23, "NICKNAME", false,        true),
-            DATETIME( 28, "DATETIME", false,        true);
+            //       bit  property                  onlyCheckV21  excludeForV21
+            FN (       1, "FN",                       true,         false),
+            PHOTO(     3, "PHOTO",                    false,        false),
+            BDAY(      4, "BDAY",                     false,        false),
+            ADR(       5, "ADR",                      false,        false),
+            EMAIL(     8, "EMAIL",                    false,        false),
+            TITLE(    12, "TITLE",                    false,        false),
+            ORG(      16, "ORG",                      false,        false),
+            NOTE(     17, "NOTE",                     false,        false),
+            URL(      20, "URL",                      false,        false),
+            NICKNAME( 23, "NICKNAME",                 false,        true),
+            DATETIME( 28, "X-IRMC-CALL-DATETIME",     false,        false);
 
             public final int pos;
             public final String prop;
@@ -1046,6 +1046,7 @@ public class BluetoothPbapVcardManager {
 
                     for (FilterBit bit : FilterBit.values()) {
                         if (bit.prop.equals(currentProp)) {
+                            if (V) Log.v(TAG, "Checking filter values for " + currentProp);
                             filteredIn = isFilteredIn(bit, vCardType21);
                             break;
                         }
@@ -1053,12 +1054,18 @@ public class BluetoothPbapVcardManager {
 
                     // Since PBAP does not have filter bits for IM and SIP,
                     // exclude them by default. Easiest way is to exclude all
-                    // X- fields....
-                    if (currentProp.startsWith("X-")) filteredIn = false;
+                    // X- fields, except date time....
+                    if (currentProp.startsWith("X-")) {
+                        if (!(filteredIn && currentProp.equals("X-IRMC-CALL-DATETIME")))
+                            filteredIn = false;
+                    }
                 }
 
                 // Build filtered vCard
-                if (filteredIn) filteredVCard.append(line + SEPARATOR);
+                if (filteredIn) {
+                    if (V) Log.v(TAG, "Appending" + line + " to the filtered vcard");
+                    filteredVCard.append(line + SEPARATOR);
+                }
             }
 
             return filteredVCard.toString();
