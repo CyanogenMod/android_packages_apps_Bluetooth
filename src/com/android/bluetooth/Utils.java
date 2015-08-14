@@ -310,6 +310,14 @@ final public class Utils {
     }
 
     /**
+     * Returns true if the caller holds PEERS_MAC_ADDRESS.
+     */
+    public static boolean checkCallerHasPeersMacAddressPermission(Context context) {
+        return context.checkCallingOrSelfPermission(
+                android.Manifest.permission.PEERS_MAC_ADDRESS) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
      * Return true if the specified package name is a foreground app.
      *
      * @param pkgName application package name.
