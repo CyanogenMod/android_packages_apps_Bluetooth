@@ -31,6 +31,10 @@ import android.util.Log;
 
 public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
 
+    private static final boolean D = BluetoothMapService.DEBUG;
+    private static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE);
+    protected static String TAG = "BluetoothMapbMessageMime";
+
     public static class MimePart {
         public long mId = INVALID_VALUE;   /* The _id from the content provider, can be used to
                                             * sort the parts if needed */

@@ -45,7 +45,7 @@ import android.util.Log;
 public class BluetoothMapAccountLoader {
     private static final String TAG = "BluetoothMapAccountLoader";
     private static final boolean D = BluetoothMapService.DEBUG;
-    private static final boolean V = BluetoothMapService.VERBOSE;
+    private static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE);
     private Context mContext = null;
     private PackageManager mPackageManager = null;
     private ContentResolver mResolver;

@@ -57,7 +57,7 @@ public class BluetoothOppBtEnablingActivity extends AlertActivity {
 
     private static final boolean D = Constants.DEBUG;
 
-    private static final boolean V = Constants.VERBOSE;
+    private static final boolean V = Log.isLoggable(Constants.TAG, Log.VERBOSE);
 
     private static final int BT_ENABLING_TIMEOUT = 0;
 

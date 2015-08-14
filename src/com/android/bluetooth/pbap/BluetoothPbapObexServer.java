@@ -62,7 +62,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     private static final boolean D = BluetoothPbapService.DEBUG;
 
-    private static final boolean V = BluetoothPbapService.VERBOSE;
+    private static final boolean V = Log.isLoggable(BluetoothPbapService.LOG_TAG, Log.VERBOSE);
 
     private static final int UUID_LENGTH = 16;
 

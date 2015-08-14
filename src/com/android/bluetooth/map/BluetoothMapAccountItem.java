@@ -27,7 +27,7 @@ public class BluetoothMapAccountItem implements Comparable<BluetoothMapAccountIt
     private static final String TAG = "BluetoothMapAccountItem";
 
     private static final boolean D = BluetoothMapService.DEBUG;
-    private static final boolean V = BluetoothMapService.VERBOSE;
+    private static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE);
 
     protected boolean mIsChecked;
     private final String mName;

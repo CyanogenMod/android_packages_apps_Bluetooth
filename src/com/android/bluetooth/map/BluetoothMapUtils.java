@@ -39,7 +39,7 @@ public class BluetoothMapUtils {
 
     private static final String TAG = "BluetoothMapUtils";
     private static final boolean D = BluetoothMapService.DEBUG;
-    private static final boolean V = BluetoothMapService.VERBOSE;
+    private static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE);
     /* We use the upper 4 bits for the type mask.
      * TODO: When more types are needed, consider just using a number
      *       in stead of a bit to indicate the message type. Then 4

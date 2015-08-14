@@ -61,7 +61,7 @@ import com.google.android.collect.Lists;
 
 public class BluetoothOppBatch {
     private static final String TAG = "BtOppBatch";
-    private static final boolean V = Constants.VERBOSE;
+    private static final boolean V = Log.isLoggable(Constants.TAG, Log.VERBOSE);
 
     public int mId;
     public int mStatus;

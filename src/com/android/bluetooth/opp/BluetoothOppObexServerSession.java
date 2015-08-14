@@ -74,7 +74,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     private static final String TAG = "BtOppObexServer";
     private static final boolean D = Constants.DEBUG;
-    private static final boolean V = Constants.VERBOSE;
+    private static final boolean V = Log.isLoggable(Constants.TAG, Log.VERBOSE);
 
     private ObexTransport mTransport;
 

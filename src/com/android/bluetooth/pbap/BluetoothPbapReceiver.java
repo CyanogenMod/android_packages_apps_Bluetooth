@@ -42,7 +42,7 @@ public class BluetoothPbapReceiver extends BroadcastReceiver {
 
     private static final String TAG = "BluetoothPbapReceiver";
 
-    private static final boolean V = BluetoothPbapService.VERBOSE;
+    private static final boolean V = Log.isLoggable(BluetoothPbapService.LOG_TAG, Log.VERBOSE);
 
     @Override
     public void onReceive(Context context, Intent intent) {

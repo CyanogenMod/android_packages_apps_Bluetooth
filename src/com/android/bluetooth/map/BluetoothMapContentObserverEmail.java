@@ -84,7 +84,7 @@ public class BluetoothMapContentObserverEmail extends BluetoothMapContentObserve
     private static final String TAG = "BluetoothMapContentObserverEmail";
 
     private static final boolean D = BluetoothMapService.DEBUG;
-    private static final boolean V = BluetoothMapService.VERBOSE;
+    private static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE);
 
     private static final String EVENT_TYPE_NEW              = "NewMessage";
     private static final String EVENT_TYPE_DELETE           = "MessageDeleted";

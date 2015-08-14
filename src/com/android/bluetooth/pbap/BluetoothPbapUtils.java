@@ -46,7 +46,7 @@ import com.android.vcard.VCardConfig;
 public class BluetoothPbapUtils {
 
     private static final String TAG = "FilterUtils";
-    private static final boolean V = BluetoothPbapService.VERBOSE;
+    private static final boolean V = Log.isLoggable(BluetoothPbapService.LOG_TAG, Log.VERBOSE);
 
     public static int FILTER_PHOTO = 3;
     public static int FILTER_TEL = 7;

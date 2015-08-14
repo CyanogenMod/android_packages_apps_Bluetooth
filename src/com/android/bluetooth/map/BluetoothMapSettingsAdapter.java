@@ -49,7 +49,7 @@ import com.android.bluetooth.map.BluetoothMapAccountItem;
 import com.android.bluetooth.map.BluetoothMapAccountLoader;
 public class BluetoothMapSettingsAdapter extends BaseExpandableListAdapter {
     private static final boolean D = BluetoothMapService.DEBUG;
-    private static final boolean V = BluetoothMapService.VERBOSE;
+    private static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE);
     private static final String TAG = "BluetoothMapSettingsAdapter";
     private boolean mCheckAll = true;
     public LayoutInflater mInflater;

@@ -38,6 +38,8 @@ import android.util.Log;
 public class BluetoothMapbMessageExtEmail extends BluetoothMapbMessageMime {
 
     protected static String TAG = "BluetoothMapbMessageExtEmail";
+    private static final boolean D = BluetoothMapService.DEBUG;
+    private static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE);
     private String mEmailBody = null;
     private static final String CRLF = "\r\n";
 

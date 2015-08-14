@@ -55,7 +55,7 @@ import android.util.Log;
  */
 public class BluetoothOppReceiveFileInfo {
     private static final boolean D = Constants.DEBUG;
-    private static final boolean V = Constants.VERBOSE;
+    private static final boolean V = Log.isLoggable(Constants.TAG, Log.VERBOSE);
     private static String sDesiredStoragePath = null;
 
     /** absolute store file name */

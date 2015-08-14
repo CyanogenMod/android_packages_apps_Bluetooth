@@ -68,7 +68,7 @@ public class BluetoothMapContent {
     private static final String TAG = "BluetoothMapContent";
 
     private static final boolean D = BluetoothMapService.DEBUG;
-    private static final boolean V = BluetoothMapService.VERBOSE;
+    private static final boolean V = Log.isLoggable(BluetoothMapService.LOG_TAG, Log.VERBOSE);
 
     // Parameter Mask for selection of parameters to return in listings
     private static final int MASK_SUBJECT               = 0x00000001;

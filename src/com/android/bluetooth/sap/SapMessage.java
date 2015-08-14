@@ -26,8 +26,8 @@ import android.util.Log;
 public class SapMessage {
 
     public static final String TAG = "SapMessage";
-    public static final boolean DEBUG = SapService.DEBUG;
-    public static final boolean VERBOSE = SapService.VERBOSE;
+    public static final boolean DEBUG = Log.isLoggable(SapService.LOG_TAG, Log.DEBUG);
+    public static final boolean VERBOSE = Log.isLoggable(SapService.LOG_TAG, Log.VERBOSE);
     public static final boolean TEST = SapService.PTS_TEST;
 
     /* Message IDs - SAP specification */
@@ -361,7 +361,7 @@ public class SapMessage {
             paramCount = is.read();
             skip(is, 2); // Skip the 2 padding bytes
             if(paramCount > 0) {
-                if(VERBOSE) Log.i(TAG, "Parsing message with paramCount: " + paramCount);
+                if(VERBOSE) Log.v(TAG, "Parsing message with paramCount: " + paramCount);
                 if(newMessage.parseParameters(paramCount, is) == false)
                     return null;
             }
@@ -369,7 +369,7 @@ public class SapMessage {
             Log.w(TAG, e);
             return null;
         }
-        if(DEBUG) Log.i(TAG, "readMessage() Read message: " + getMsgTypeName(requestType));
+        if(DEBUG) Log.d(TAG, "readMessage() Read message: " + getMsgTypeName(requestType));
 
         /* Validate parameters */
         switch(requestType) {
@@ -465,7 +465,7 @@ public class SapMessage {
             // As per SAP spec padding should be 0-3 bytes
             if ((paramLength % 4) != 0)
                 skipLen = 4 - (paramLength % 4);
-            if(VERBOSE) Log.i(TAG, "parsing paramId: " + paramId + " with length: " + paramLength);
+            if(VERBOSE) Log.v(TAG, "parsing paramId: " + paramId + " with length: " + paramLength);
             switch(paramId) {
             case PARAM_MAX_MSG_SIZE_ID:
                 if(paramLength != PARAM_MAX_MSG_SIZE_LENGTH) {
@@ -889,39 +889,39 @@ public class SapMessage {
 //            break;
         case SapApi.RIL_SIM_SAP_STATUS:
         {
-            if(VERBOSE) Log.i(TAG, "RIL_SIM_SAP_STATUS_IND received");
+            if(DEBUG) Log.d(TAG, "RIL_SIM_SAP_STATUS_IND received");
             RIL_SIM_SAP_STATUS_IND indMsg =
                     RIL_SIM_SAP_STATUS_IND.parseFrom(msg.getPayload().toByteArray());
             mMsgType = ID_STATUS_IND;
             if(indMsg.hasStatusChange()) {
                 setStatusChange(indMsg.getStatusChange());
-                if(VERBOSE) Log.i(TAG, "RIL_UNSOL_SIM_SAP_STATUS_IND received value = "
+                if(VERBOSE) Log.v(TAG, "RIL_UNSOL_SIM_SAP_STATUS_IND received value = "
                         + mStatusChange);
             } else {
-                if(VERBOSE) Log.i(TAG, "Wrong number of parameters in SAP_STATUS_IND, ignoring...");
+                if(VERBOSE) Log.v(TAG, "Wrong number of parameters in SAP_STATUS_IND, ignoring...");
                 mMsgType = ID_RIL_UNKNOWN;
             }
             break;
         }
         case SapApi.RIL_SIM_SAP_DISCONNECT:
         {
-            if(VERBOSE) Log.i(TAG, "RIL_SIM_SAP_DISCONNECT_IND received");
+            if(DEBUG) Log.d(TAG, "RIL_SIM_SAP_DISCONNECT_IND received");
 
             RIL_SIM_SAP_DISCONNECT_IND indMsg =
                     RIL_SIM_SAP_DISCONNECT_IND.parseFrom(msg.getPayload().toByteArray());
             mMsgType = ID_RIL_UNSOL_DISCONNECT_IND; // don't use ID_DISCONNECT_IND;
             if(indMsg.hasDisconnectType()) {
                 setDisconnectionType(indMsg.getDisconnectType());
-                if(VERBOSE) Log.i(TAG, "RIL_UNSOL_SIM_SAP_STATUS_IND received value = "
+                if(VERBOSE) Log.v(TAG, "RIL_UNSOL_SIM_SAP_STATUS_IND received value = "
                                                                 + mDisconnectionType);
             } else {
-                if(VERBOSE) Log.i(TAG, "Wrong number of parameters in SAP_STATUS_IND, ignoring...");
+                if(VERBOSE) Log.v(TAG, "Wrong number of parameters in SAP_STATUS_IND, ignoring...");
                 mMsgType = ID_RIL_UNKNOWN;
             }
             break;
         }
         default:
-            if(VERBOSE) Log.i(TAG, "Unused unsolicited message received, ignoring: " + msg.getId());
+            if(VERBOSE) Log.v(TAG, "Unused unsolicited message received, ignoring: " + msg.getId());
             mMsgType = ID_RIL_UNKNOWN;
         }
     }
@@ -935,7 +935,7 @@ public class SapMessage {
         int error = msg.getError();
         Integer reqType = null;
         reqType = sOngoingRequests.remove(serial);
-        if(VERBOSE) Log.i(TAG, "RIL SOLICITED serial: " + serial + ", error: " + error
+        if(VERBOSE) Log.v(TAG, "RIL SOLICITED serial: " + serial + ", error: " + error
                 + " SapReqType: " + ((reqType== null)?"null":getMsgTypeName(reqType)));
 
         if(reqType == null) {
