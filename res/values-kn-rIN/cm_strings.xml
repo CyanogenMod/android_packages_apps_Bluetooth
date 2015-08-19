@@ -17,6 +17,6 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="empty_file_notification_sent">اشتراک بلوتوث: لغو ارتباط به دلیل حجم صفر فایل <xliff:g id="file">%1$s</xliff:g></string>
-  <string name="upload_fail_waiting">قادر به فرستادن فایل نیست، تلاش مجدد\u2026</string>
+  <string name="empty_file_notification_sent">ಬ್ಲೂಟೂತ್ ಹಂಚಿಕೆ: ರಿಮೋಟ್ ಶೂನ್ಯ ಗಾತ್ರ ಕಡತವನ್ನು <xliff:g id="file">%1$s</xliff:g> ನಿರಾಕರಿಸಿದ್ದಾರೆ</string>
+  <string name="upload_fail_waiting">ಕಡತವನ್ನು ಕಳುಹಿಸಲು ಆಗುತ್ತಿಲ್ಲ, ಮರುಪ್ರಯತ್ನಿಸುತ್ತಿದೆ\u2026</string>
 </resources>
