@@ -18,4 +18,5 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <string name="empty_file_notification_sent">Bluetoothdelning: Fjärrpart nekade nollängdsfilen <xliff:g id="file">%1$s</xliff:g></string>
+  <string name="upload_fail_waiting">Kunde inte skicka filen, försöker igen\u2026</string>
 </resources>
