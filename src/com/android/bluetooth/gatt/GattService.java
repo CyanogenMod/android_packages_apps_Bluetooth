@@ -43,6 +43,7 @@ import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Log;
 
+import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
@@ -582,9 +583,6 @@ public class GattService extends ProfileService {
     void onScanResult(String address, int rssi, byte[] adv_data) {
         if (VDBG) Log.d(TAG, "onScanResult() - address=" + address
                     + ", rssi=" + rssi);
-        boolean locationEnabled = Settings.Secure.getInt(getContentResolver(),
-                Settings.Secure.LOCATION_MODE, Settings.Secure.LOCATION_MODE_OFF)
-                != Settings.Secure.LOCATION_MODE_OFF;
         List<UUID> remoteUuids = parseUuids(adv_data);
         for (ScanClient client : mScanManager.getRegularScanQueue()) {
             if (client.uuids.length > 0) {
@@ -610,9 +608,7 @@ public class GattService extends ProfileService {
                             rssi, SystemClock.elapsedRealtimeNanos());
                     // Do no report if location mode is OFF or the client has no location permission
                     // PEERS_MAC_ADDRESS permission holders always get results
-                    if ((client.hasPeersMacAddressPermission
-                            || (locationEnabled && client.hasLocationPermission))
-                            && matchesFilters(client, result)) {
+                    if (hasScanResultPermission(client) && matchesFilters(client, result)) {
                         try {
                             ScanSettings settings = client.settings;
                             if ((settings.getCallbackType() &
@@ -639,6 +635,18 @@ public class GattService extends ProfileService {
                 }
             }
         }
+    }
+
+    /** Determines if the given scan client has the appropriate permissions to receive callbacks. */
+    private boolean hasScanResultPermission(final ScanClient client) {
+        final boolean requiresLocationEnabled =
+                getResources().getBoolean(R.bool.strict_location_check);
+        final boolean locationEnabled = Settings.Secure.getInt(getContentResolver(),
+                Settings.Secure.LOCATION_MODE, Settings.Secure.LOCATION_MODE_OFF)
+                != Settings.Secure.LOCATION_MODE_OFF;
+
+        return (client.hasPeersMacAddressPermission ||
+                (client.hasLocationPermission && (!requiresLocationEnabled || locationEnabled)));
     }
 
     // Check if a scan record matches a specific filters.
