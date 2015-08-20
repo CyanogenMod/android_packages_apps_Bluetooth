@@ -18,5 +18,5 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <string name="empty_file_notification_sent">اشتراک بلوتوث: لغو ارتباط به دلیل حجم صفر فایل <xliff:g id="file">%1$s</xliff:g></string>
-  <string name="upload_fail_waiting">ناتوان در ارسال فایل، تلاش مجدد\u2026</string>
+  <string name="upload_fail_waiting">فایل فرستاده نشد، تلاش مجدد\u2026</string>
 </resources>
