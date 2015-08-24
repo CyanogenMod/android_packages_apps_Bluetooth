@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2014, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2013-2015, The Linux Foundation. All rights reserved.
  * Not a Contribution.
  *
  * Copyright (C) 2012 The Android Open Source Project
@@ -165,6 +165,7 @@ public final class Avrcp {
     private static final int MESSAGE_CHANGE_PATH = 2005;
     private static final int MESSAGE_PLAY_ITEM = 2006;
     private static final int MESSAGE_GET_ITEM_ATTRS = 2007;
+    private static final int MESSAGE_GET_TOTAL_NUMBER_OF_ITEMS = 2008;
 
     private CachedRequest mCachedRequest = null;
 
@@ -238,8 +239,8 @@ public final class Avrcp {
     private static final int MEDIA_TYPE_AUDIO = 0X00;
     private static final int MEDIA_TYPE_VIDEO = 0X01;
 
-    private static final int MAX_BROWSE_ITEM_TO_SEND = 0x03;
-    private static final int MAX_ATTRIB_COUNT = 0x07;
+    private static final int MAX_BROWSE_ITEM_TO_SEND = 10;
+    private static final int MAX_ATTRIB_COUNT = 0x08;
 
     private final static int ALBUMS_ITEM_INDEX = 0;
     private final static int ARTISTS_ITEM_INDEX = 1;
@@ -395,6 +396,7 @@ public final class Avrcp {
     public static final int ATTRIBUTE_SCANMODE = 4;
     public static final int NUMPLAYER_ATTRIBUTE = 2;
 
+    private static AvrcpBipRsp mAvrcpBipRsp;
 
     private byte [] def_attrib = new byte [] {ATTRIBUTE_REPEATMODE, ATTRIBUTE_SHUFFLEMODE};
     private byte [] value_repmode = new byte [] { VALUE_REPEATMODE_OFF,
@@ -443,6 +445,7 @@ public final class Avrcp {
         mResources = context.getResources();
         mAudioStreamMax = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         mVolumeStep = Math.max(AVRCP_BASE_VOLUME_STEP, AVRCP_MAX_VOL/mAudioStreamMax);
+        mAvrcpBipRsp = new AvrcpBipRsp(mContext);
     }
 
     private void start() {
@@ -486,6 +489,7 @@ public final class Avrcp {
             Log.e(TAG,"Unable to register Avrcp receiver", e);
         }
         registerMediaPlayers();
+        mAvrcpBipRsp.start();
     }
 
     //Listen to intents from MediaPlayer and Audio Manager and update data structures
@@ -682,6 +686,10 @@ public final class Avrcp {
             featureMasks[FEATURE_MASK_NOW_PLAY_OFFSET] | FEATURE_MASK_NOW_PLAY_MASK;
         featureMasks[FEATURE_MASK_BR_WH_ADDR_OFFSET] =
             featureMasks[FEATURE_MASK_BR_WH_ADDR_OFFSET] | FEATURE_MASK_BR_WH_ADDR_MASK;
+        featureMasks[FEATURE_MASK_NUM_ITEMS_OFFSET] =
+            featureMasks[FEATURE_MASK_NUM_ITEMS_OFFSET] | FEATURE_MASK_NUM_ITEMS_MASK;
+        featureMasks[FEATURE_MASK_COVER_ART_OFFSET] =
+            featureMasks[FEATURE_MASK_COVER_ART_OFFSET] | FEATURE_MASK_COVER_ART_MASK;
 
         mediaPlayerInfo1 = new MediaPlayerInfo ((short)0x0001,
                     MAJOR_TYPE_AUDIO,
@@ -1395,6 +1403,7 @@ public final class Avrcp {
 
             case MESSAGE_FAST_FORWARD:
             case MESSAGE_REWIND:
+                deviceIndex = getIndexForDevice((BluetoothDevice) msg.obj);
                 if (msg.what == MESSAGE_FAST_FORWARD) {
                     if ((deviceFeatures[deviceIndex].mCurrentPlayState.getActions() &
                                 PlaybackState.ACTION_FAST_FORWARD) != 0) {
@@ -1442,7 +1451,7 @@ public final class Avrcp {
                 if (msg.arg1 == KEY_STATE_PRESS) {
                     mSkipAmount = skipAmount;
                     changePositionBy(mSkipAmount * getSkipMultiplier(),
-                            (String)msg.obj);
+                            (String)(((BluetoothDevice)msg.obj).getAddress()));
                     Message posMsg = obtainMessage(MESSAGE_CHANGE_PLAY_POS,
                             0, 0, msg.obj);
                     posMsg.arg1 = 1;
@@ -1455,7 +1464,7 @@ public final class Avrcp {
                 if (DEBUG)
                     Log.v(TAG, "MESSAGE_CHANGE_PLAY_POS:" + msg.arg1);
                 changePositionBy(mSkipAmount * getSkipMultiplier(),
-                        (String)msg.obj);
+                        (String)(((BluetoothDevice)msg.obj).getAddress()));
                 if (msg.arg1 * SKIP_PERIOD < BUTTON_TIMEOUT_TIME) {
                     Message posMsg = obtainMessage(MESSAGE_CHANGE_PLAY_POS,
                             0, 0, msg.obj);
@@ -1508,7 +1517,7 @@ public final class Avrcp {
                     attrIds[i] = itemAttr.mAttrList.get(i).intValue();
                 }
                 processGetItemAttr((byte)msg.arg2, itemAttr.mUid, (byte)msg.arg1,
-                        attrIds, itemAttr.mAddress);
+                        attrIds, itemAttr.mSize, itemAttr.mAddress);
                 break;
             case MESSAGE_GET_FOLDER_ITEMS:
                 FolderListEntries folderListEntries = (FolderListEntries)msg.obj;
@@ -1517,8 +1526,11 @@ public final class Avrcp {
                     attrIds[i] = folderListEntries.mAttrList.get(i).intValue();
                 }
                 processGetFolderItems(folderListEntries.mScope, folderListEntries.mStart,
-                    folderListEntries.mEnd, folderListEntries.mAttrCnt,
+                    folderListEntries.mEnd, folderListEntries.mSize,
                     folderListEntries.mNumAttr, attrIds, folderListEntries.mAddress);
+                break;
+            case MESSAGE_GET_TOTAL_NUMBER_OF_ITEMS:
+                processGetTotalNumberOfItems((byte)msg.arg1, (String) msg.obj);
                 break;
             }
         }
@@ -1993,8 +2005,8 @@ public final class Avrcp {
         byte[] playable = new byte[MAX_BROWSE_ITEM_TO_SEND];
         String[] displayName = new String[MAX_BROWSE_ITEM_TO_SEND];
         byte[] numAtt = new byte[MAX_BROWSE_ITEM_TO_SEND];
-        String[] attValues = new String[MAX_BROWSE_ITEM_TO_SEND * 7];
-        int[] attIds = new int[MAX_BROWSE_ITEM_TO_SEND * 7];
+        String[] attValues = new String[MAX_BROWSE_ITEM_TO_SEND * 8];
+        int[] attIds = new int[MAX_BROWSE_ITEM_TO_SEND * 8];
         int index;
         if (mBrowserDevice == null) {
             Log.e(TAG,"mBrowserDevice is null for music app called API");
@@ -2008,8 +2020,16 @@ public final class Avrcp {
 
         Log.v(TAG, "updateNowPlayingEntriesReceived");
 
+        if (!mCachedRequest.mIsGetFolderItems) {
+            Log.v(TAG, "getTotalNumberOfItemsRspNative for NowPlaying List");
+            getTotalNumberOfItemsRspNative((byte)OPERATION_SUCCESSFUL, playList.length,
+                    0x0000, getByteAddress(device));
+            mBrowserDevice = null;
+            return;
+        }
+
         // Item specific attribute's entry starts from index*8, reset all such entries to 0 for now
-        for (int count = 0; count < (MAX_BROWSE_ITEM_TO_SEND * 7); count++) {
+        for (int count = 0; count < (MAX_BROWSE_ITEM_TO_SEND * 8); count++) {
             attValues[count] = "";
             attIds[count] = 0;
         }
@@ -2019,7 +2039,7 @@ public final class Avrcp {
             Log.i(TAG, "startIteam exceeds the available item index");
             getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS ,
                     numItems, itemType, uid, type,
-                    playable, displayName, numAtt, attValues, attIds,
+                    playable, displayName, numAtt, attValues, attIds, mCachedRequest.mSize,
                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
             return;
         }
@@ -2029,7 +2049,7 @@ public final class Avrcp {
             Log.i(TAG, "wrong start / end index");
             getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS ,
                     numItems, itemType, uid, type,
-                    playable, displayName, numAtt, attValues, attIds,
+                    playable, displayName, numAtt, attValues, attIds, mCachedRequest.mSize,
                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
             return;
         }
@@ -2062,9 +2082,9 @@ public final class Avrcp {
                     for (int attIndex = 0; attIndex < mCachedRequest.mAttrCnt; attIndex++) {
                         int attr = mCachedRequest.mAttrList.get(attIndex).intValue();
                         if ((attr <= MEDIA_ATTR_MAX) && (attr >= MEDIA_ATTR_MIN)) {
-                            attValues[(7 * index) + attIndex] = getAttributeStringFromCursor(
+                            attValues[(8 * index) + attIndex] = getAttributeStringFromCursor(
                                     cursor, attr, deviceIndex);
-                            attIds[(7 * index) + attIndex] = attr;
+                            attIds[(8 * index) + attIndex] = attr;
                             validAttrib ++;
                         }
                     }
@@ -2074,7 +2094,7 @@ public final class Avrcp {
                 Log.i(TAG, "Exception e"+ e);
                 getFolderItemsRspNative((byte)INTERNAL_ERROR ,
                         numItems, itemType, uid, type,
-                        playable, displayName, numAtt, attValues, attIds,
+                        playable, displayName, numAtt, attValues, attIds, mCachedRequest.mSize,
                         getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
             } finally {
                 if (cursor != null) {
@@ -2085,7 +2105,7 @@ public final class Avrcp {
         numItems = index;
         getFolderItemsRspNative((byte)OPERATION_SUCCESSFUL ,
                 numItems, itemType, uid, type,
-                playable, displayName, numAtt, attValues, attIds,
+                playable, displayName, numAtt, attValues, attIds, mCachedRequest.mSize,
                 getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
         mBrowserDevice = null;
     }
@@ -2098,10 +2118,11 @@ public final class Avrcp {
         int mSize;
         boolean mIsGetFolderItems;
         public CachedRequest(long start, long end, byte attrCnt, int[] attrs,
-                boolean isGetFolderItems) {
+                int size, boolean isGetFolderItems) {
             mStart = start;
             mEnd = end;
             mAttrCnt = attrCnt;
+            mSize = size;
             mIsGetFolderItems = isGetFolderItems;
             mAttrList = new ArrayList<Integer>();
             for (int i = 0; i < attrCnt; ++i) {
@@ -2114,16 +2135,16 @@ public final class Avrcp {
         byte mScope;
         long mStart;
         long mEnd;
-        int mAttrCnt;
+        int mSize;
         int mNumAttr;
         String mAddress;
         ArrayList<Integer> mAttrList;
-        public FolderListEntries(byte scope, long start, long end, int attrCnt, int numAttr,
+        public FolderListEntries(byte scope, long start, long end, int size, int numAttr,
                 int[] attrs, String deviceAddress) {
             mScope = scope;
             mStart = start;
             mEnd = end;
-            mAttrCnt = attrCnt;
+            mSize = size;
             mNumAttr = numAttr;
             mAddress = deviceAddress;
             int i;
@@ -2143,6 +2164,7 @@ public final class Avrcp {
         private String mediaTotalNumber;
         private String genre;
         private String playingTimeMs;
+        private String coverArt;
 
         private static final int ATTR_TITLE = 1;
         private static final int ATTR_ARTIST_NAME = 2;
@@ -2151,6 +2173,7 @@ public final class Avrcp {
         private static final int ATTR_MEDIA_TOTAL_NUMBER = 5;
         private static final int ATTR_GENRE = 6;
         private static final int ATTR_PLAYING_TIME_MS = 7;
+        private static final int ATTR_COVER_ART = 8;
 
 
         public MediaAttributes(MediaMetadata data) {
@@ -2191,13 +2214,17 @@ public final class Avrcp {
             if (exists == false)
                 return true;
 
+            if (coverArt == null)
+                return false;
+
             return (title.equals(other.title)) &&
                 (artistName.equals(other.artistName)) &&
                 (albumName.equals(other.albumName)) &&
                 (mediaNumber.equals(other.mediaNumber)) &&
                 (mediaTotalNumber.equals(other.mediaTotalNumber)) &&
                 (genre.equals(other.genre)) &&
-                (playingTimeMs.equals(other.playingTimeMs));
+                (playingTimeMs.equals(other.playingTimeMs)) &&
+                (coverArt.equals(other.coverArt));
         }
 
         public String getString(int attrId) {
@@ -2219,6 +2246,11 @@ public final class Avrcp {
                     return genre;
                 case ATTR_PLAYING_TIME_MS:
                     return playingTimeMs;
+                case ATTR_COVER_ART:
+                    //Fetch CoverArtHandle for this playing song from AvrcpBip.
+                    coverArt = mAvrcpBipRsp.getImgHandle(albumName);
+                    Log.v(TAG, "CoverArtHandle: " + coverArt);
+                    return coverArt;
                 default:
                     return new String();
             }
@@ -2309,7 +2341,7 @@ public final class Avrcp {
         for (i = 0; i < numAttr; ++i) {
             attrList.add(attrs[i]);
         }
-        ItemAttr itemAttr = new ItemAttr(attrList, 0,
+        ItemAttr itemAttr = new ItemAttr(attrList, 0, 0,
                 Utils.getAddressStringFromByte(address));
         Message msg = mHandler.obtainMessage(MESSAGE_GET_ELEM_ATTRS, (int)numAttr, 0,
                 itemAttr);
@@ -2393,7 +2425,7 @@ public final class Avrcp {
             Log.e(TAG, "Ignore key release event");
         } else {
             Message msg = mHandler.obtainMessage(MESSAGE_FAST_FORWARD, keyState,
-                    0, deviceAddress);
+                    0, device);
             mHandler.sendMessage(msg);
             deviceFeatures[deviceIndex].keyPressState = keyState;
         }
@@ -2411,7 +2443,7 @@ public final class Avrcp {
             Log.e(TAG, "Ignore key release event");
         } else {
             Message msg = mHandler.obtainMessage(MESSAGE_REWIND, keyState, 0,
-                    deviceAddress);
+                    device);
             mHandler.sendMessage(msg);
             deviceFeatures[deviceIndex].keyPressState = keyState;
         }
@@ -2420,7 +2452,7 @@ public final class Avrcp {
     private void changePath(byte direction, long uid, byte[] address) {
         if (DEBUG)
             Log.v(TAG, "changePath: direction: " + direction + " uid:" + uid);
-        ItemAttr itemAttr = new ItemAttr(null, uid,
+        ItemAttr itemAttr = new ItemAttr(null, uid, 0,
                 Utils.getAddressStringFromByte(address));
         Message msg = mHandler.obtainMessage(MESSAGE_CHANGE_PATH, direction, 0, itemAttr);
         mHandler.sendMessage(msg);
@@ -2788,10 +2820,284 @@ public final class Avrcp {
         return 0;
     }
 
+    private void getTotalNumberOfItems(byte scope, byte[] address) {
+        if (DEBUG) Log.v(TAG, "getTotalNumberOfItems: scope: " + scope);
+        Message msg = mHandler.obtainMessage(MESSAGE_GET_TOTAL_NUMBER_OF_ITEMS, scope, 0,
+                Utils.getAddressStringFromByte(address));
+        mHandler.sendMessage(msg);
+    }
+
+    private void processGetTotalNumberOfItems(byte scope, String deviceAddress) {
+        long itemCount = 0;
+        BluetoothDevice device = mAdapter.getRemoteDevice(deviceAddress);
+        int deviceIndex = getIndexForDevice(device);
+        if (deviceIndex == INVALID_DEVICE_INDEX) {
+            Log.v(TAG,"device entry not present, bailing out");
+            return;
+        }
+
+        if (DEBUG) Log.v(TAG, "procesGetTotalNumberOfItems: scope: " + scope);
+        if (scope == SCOPE_PLAYER_LIST) {
+            processGetMediaPlayerTotalItems(scope, deviceAddress);
+        } else if (scope == SCOPE_VIRTUAL_FILE_SYS) {
+            processGetVirtualFileTotalItems(scope, deviceAddress);
+        } else if (scope == SCOPE_NOW_PLAYING) {
+            processGetNowPlayingTotalItems(scope, deviceAddress);
+        } else {
+            getTotalNumberOfItemsRspNative(INVALID_SCOPE, itemCount, 0x0000,
+                    getByteAddress(device));
+        }
+    }
+
+    private void processGetMediaPlayerTotalItems(byte scope, String deviceAddress) {
+        int totalAvailableMediaPlayers = 0;
+        BluetoothDevice device = mAdapter.getRemoteDevice(deviceAddress);
+        if (DEBUG)
+            Log.v(TAG, "processGetMediaPlayerTotalItems");
+
+        if (mMediaPlayers.size() > 0) {
+            final Iterator<MediaPlayerInfo> rccIterator = mMediaPlayers.iterator();
+            while (rccIterator.hasNext()) {
+                final MediaPlayerInfo di = rccIterator.next();
+                if (di.GetPlayerAvailablility()) {
+                    totalAvailableMediaPlayers ++;
+                }
+            }
+        }
+        if (DEBUG)
+            Log.v(TAG, "Total No of Available Media Players = " + totalAvailableMediaPlayers);
+        getTotalNumberOfItemsRspNative((byte)OPERATION_SUCCESSFUL, totalAvailableMediaPlayers,
+                 0x0000, getByteAddress(device));
+    }
+
+    private void processGetVirtualFileTotalItems(byte scope, String deviceAddress) {
+        long virtualFileTotalItems = 0;
+        BluetoothDevice device = mAdapter.getRemoteDevice(deviceAddress);
+
+        int deviceIndex = getIndexForDevice(device);
+        if (deviceIndex == INVALID_DEVICE_INDEX) {
+            Log.v(TAG,"device entry not present, bailing out");
+            return;
+        }
+
+        if (DEBUG) {
+            Log.v(TAG, "processGetVirtualFileTotalItems");
+            Log.v(TAG, "mCurrentPath: " +
+                deviceFeatures[deviceIndex].mCurrentPath);
+            Log.v(TAG, "mCurrentPathUID: " +
+                deviceFeatures[deviceIndex].mCurrentPathUid);
+        }
+        if (!isCurrentPathValid(deviceIndex)) {
+            getTotalNumberOfItemsRspNative((byte)DOES_NOT_EXIST, virtualFileTotalItems,
+                0x0000, getByteAddress(device));
+            Log.v(TAG, "Current path not set");
+            return;
+        }
+
+        if (deviceFeatures[deviceIndex].mCurrentPath.equals(PATH_ROOT)) {
+            virtualFileTotalItems = NUM_ROOT_ELEMENTS;
+        } else if (deviceFeatures[deviceIndex].mCurrentPath.equals(PATH_TITLES)) {
+            Cursor cursor = null;
+            try {
+                cursor = mContext.getContentResolver().query(
+                            deviceFeatures[deviceIndex].mMediaUri,
+                            mCursorCols, MediaStore.Audio.Media.IS_MUSIC + "=1", null,
+                            MediaStore.Audio.Media.DEFAULT_SORT_ORDER);
+                if (cursor != null) {
+                    virtualFileTotalItems = cursor.getCount();
+                } else {
+                    Log.i(TAG, "Error: could not fetch the elements");
+                    getTotalNumberOfItemsRspNative((byte)INTERNAL_ERROR, virtualFileTotalItems,
+                                0x0000, getByteAddress(device));
+                    return;
+                }
+            } catch(Exception e) {
+                Log.i(TAG, "Exception e" + e);
+                getTotalNumberOfItemsRspNative((byte)INTERNAL_ERROR , virtualFileTotalItems,
+                            0x0000, getByteAddress(device));
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+        } else if (deviceFeatures[deviceIndex].mCurrentPath.equals(PATH_ALBUMS)) {
+            if (deviceFeatures[deviceIndex].mCurrentPathUid == null) {
+                Cursor cursor = null;
+                try {
+                   virtualFileTotalItems = getNumItems(PATH_ALBUMS,
+                                    MediaStore.Audio.Media.ALBUM_ID, deviceIndex);
+                } catch(Exception e) {
+                    Log.i(TAG, "Exception e" + e);
+                    getTotalNumberOfItemsRspNative((byte)INTERNAL_ERROR, virtualFileTotalItems,
+                            0x0000, getByteAddress(device));
+                }
+            } else {
+                long folderUid = Long.valueOf(deviceFeatures[deviceIndex].mCurrentPathUid);
+                Cursor cursor = null;
+                try {
+                    cursor = mContext.getContentResolver().query(
+                        deviceFeatures[deviceIndex].mMediaUri,
+                        mCursorCols, MediaStore.Audio.Media.IS_MUSIC + "=1 AND " +
+                        MediaStore.Audio.Media.ALBUM_ID + "=" + folderUid, null,
+                                        MediaStore.Audio.Albums.DEFAULT_SORT_ORDER);
+
+                    if (cursor != null) {
+                        virtualFileTotalItems = cursor.getCount();
+                    } else {
+                        Log.i(TAG, "Error: could not fetch the elements");
+                        getTotalNumberOfItemsRspNative((byte)INTERNAL_ERROR, virtualFileTotalItems,
+                            0x0000, getByteAddress(device));
+                        return;
+                    }
+            } catch(Exception e) {
+                  Log.i(TAG, "Exception e" + e);
+                  getTotalNumberOfItemsRspNative((byte)INTERNAL_ERROR, virtualFileTotalItems,
+                        0x0000, getByteAddress(device));
+                } finally {
+                    if (cursor != null) {
+                        cursor.close();
+                    }
+                }
+             }
+        } else if (deviceFeatures[deviceIndex].mCurrentPath.equals(PATH_ARTISTS)) {
+             if (deviceFeatures[deviceIndex].mCurrentPathUid == null) {
+                 Cursor cursor = null;
+                 try {
+                     virtualFileTotalItems = getNumItems(PATH_ARTISTS,
+                                        MediaStore.Audio.Media.ARTIST_ID, deviceIndex);
+                } catch(Exception e) {
+                    Log.i(TAG, "Exception e" + e);
+                    getTotalNumberOfItemsRspNative((byte)INTERNAL_ERROR, virtualFileTotalItems,
+                            0x0000, getByteAddress(device));
+                 }
+            } else {
+                long folderUid = Long.valueOf(deviceFeatures[deviceIndex].mCurrentPathUid);
+                Cursor cursor = null;
+                try {
+                    cursor = mContext.getContentResolver().query(
+                        deviceFeatures[deviceIndex].mMediaUri,
+                        mCursorCols, MediaStore.Audio.Media.IS_MUSIC + "=1 AND " +
+                        MediaStore.Audio.Media.ARTIST_ID + "=" + folderUid, null,
+                                        MediaStore.Audio.Artists.DEFAULT_SORT_ORDER);
+
+                    if (cursor != null) {
+                        virtualFileTotalItems = cursor.getCount();
+                    } else {
+                        Log.i(TAG, "Error: could not fetch the elements");
+                        getTotalNumberOfItemsRspNative((byte)INTERNAL_ERROR, virtualFileTotalItems,
+                            0x0000, getByteAddress(device));
+                        return;
+                    }
+                } catch(Exception e) {
+                  Log.i(TAG, "Exception e" + e);
+                  getTotalNumberOfItemsRspNative((byte)INTERNAL_ERROR, virtualFileTotalItems,
+                            0x0000, getByteAddress(device));
+                } finally {
+                    if (cursor != null) {
+                        cursor.close();
+                    }
+                }
+            }
+        } else if (deviceFeatures[deviceIndex].mCurrentPath.equals(PATH_PLAYLISTS)) {
+            if (deviceFeatures[deviceIndex].mCurrentPathUid == null) {
+                    Cursor cursor = null;
+                try {
+                   virtualFileTotalItems = getNumPlaylistItems();
+                } catch(Exception e) {
+                    Log.i(TAG, "Exception e" + e);
+                    getTotalNumberOfItemsRspNative((byte)INTERNAL_ERROR, virtualFileTotalItems,
+                            0x0000, getByteAddress(device));
+                }
+            } else {
+                long folderUid = Long.valueOf(deviceFeatures[deviceIndex].mCurrentPathUid);
+                Cursor cursor = null;
+                String[] playlistMemberCols = new String[] {
+                            MediaStore.Audio.Playlists.Members._ID,
+                            MediaStore.Audio.Media.TITLE,
+                            MediaStore.Audio.Media.DATA,
+                            MediaStore.Audio.Media.ALBUM,
+                            MediaStore.Audio.Media.ARTIST,
+                            MediaStore.Audio.Media.DURATION,
+                            MediaStore.Audio.Playlists.Members.PLAY_ORDER,
+                            MediaStore.Audio.Playlists.Members.AUDIO_ID,
+                            MediaStore.Audio.Media.IS_MUSIC
+                };
+                try {
+                    Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external",
+                                                                                    folderUid);
+                    StringBuilder where = new StringBuilder();
+                    where.append(MediaStore.Audio.Media.TITLE + " != ''");
+                    cursor = mContext.getContentResolver().query(uri, playlistMemberCols,
+                                    where.toString(), null,
+                                    MediaStore.Audio.Playlists.Members.DEFAULT_SORT_ORDER);
+
+                    if (cursor != null) {
+                        virtualFileTotalItems = cursor.getCount();
+                    } else {
+                        Log.i(TAG, "Error: could not fetch the elements");
+                        getTotalNumberOfItemsRspNative((byte)INTERNAL_ERROR, virtualFileTotalItems,
+                            0x0000, getByteAddress(device));
+                        return;
+                    }
+                } catch(Exception e) {
+                    Log.i(TAG, "Exception e" + e);
+                    getTotalNumberOfItemsRspNative((byte)INTERNAL_ERROR, virtualFileTotalItems,
+                            0x0000, getByteAddress(device));
+                } finally {
+                    if (cursor != null) {
+                        cursor.close();
+                    }
+                }
+            }
+        } else {
+            getTotalNumberOfItemsRspNative((byte)DOES_NOT_EXIST, virtualFileTotalItems,
+                        0x0000, getByteAddress(device));
+            Log.v(TAG, "GetFolderItems fail as player is not browsable");
+        }
+
+        if (DEBUG)
+            Log.v(TAG, "Total No of VFS items = " + virtualFileTotalItems);
+        getTotalNumberOfItemsRspNative((byte)OPERATION_SUCCESSFUL, virtualFileTotalItems,
+                                       0x0000, getByteAddress(device));
+    }
+
+    private void processGetNowPlayingTotalItems(byte scope, String deviceAddress) {
+        long virtualFileTotalItems = 0;
+        BluetoothDevice device = mAdapter.getRemoteDevice(deviceAddress);
+
+        int deviceIndex = getIndexForDevice(device);
+        if (deviceIndex == INVALID_DEVICE_INDEX) {
+            Log.v(TAG,"device entry not present, bailing out");
+            return;
+        }
+
+        mBrowserDevice = device;
+        Log.v(TAG, "mBrowserDevice is set to -> " + device);
+
+        if (mMediaPlayers.size() > 0) {
+            final Iterator<MediaPlayerInfo> rccIterator = mMediaPlayers.iterator();
+            while (rccIterator.hasNext()) {
+                final MediaPlayerInfo di = rccIterator.next();
+                if (di.GetPlayerFocus()) {
+                    if (!di.IsRemoteAddressable() ||
+                        deviceFeatures[deviceIndex].mCurrentPath.equals(PATH_INVALID)) {
+                        getTotalNumberOfItemsRspNative((byte)INTERNAL_ERROR, virtualFileTotalItems,
+                                0x0000, getByteAddress(device));
+                        Log.e(TAG, "processGetNowPlayingTotalItems fails: addressed player " +
+                            "is not browsable");
+                        return;
+                    }
+                }
+            }
+        }
+        mMediaController.getTransportControls().getRemoteControlClientNowPlayingEntries();
+        mCachedRequest = new CachedRequest((long)0, (long)0, (byte)0, null, (int)0, false);
+    }
+
     private void playItem(byte scope, long uid, byte[] address) {
         if (DEBUG)
             Log.v(TAG, "playItem: scope: " + scope + " uid:" + uid);
-        ItemAttr itemAttr = new ItemAttr(null, uid,
+        ItemAttr itemAttr = new ItemAttr(null, uid, 0,
                 Utils.getAddressStringFromByte(address));
         Message msg = mHandler.obtainMessage(MESSAGE_PLAY_ITEM, scope, 0, itemAttr);
         mHandler.sendMessage(msg);
@@ -2985,10 +3291,11 @@ public final class Avrcp {
         }
     }
 
-    private void getItemAttr(byte scope, long uid, byte numAttr, int[] attrs, byte[] address) {
+    private void getItemAttr(byte scope, long uid, byte numAttr, int[] attrs,
+            int size, byte[] address) {
         if (DEBUG)
             Log.v(TAG, "getItemAttr: scope: " + scope + " uid:" + uid +
-                    " numAttr:" + numAttr);
+                    " numAttr:" + numAttr + " size: " + size);
         int i;
         ArrayList<Integer> attrList = new ArrayList<Integer>();
         for (i = 0; i < numAttr; ++i) {
@@ -2996,7 +3303,7 @@ public final class Avrcp {
             if (DEBUG)
                 Log.v(TAG, "attrs[" + i + "] = " + attrs[i]);
         }
-        ItemAttr itemAttr = new ItemAttr(attrList, uid,
+        ItemAttr itemAttr = new ItemAttr(attrList, uid, size,
                 Utils.getAddressStringFromByte(address));
         Message msg = mHandler.obtainMessage(MESSAGE_GET_ITEM_ATTRS, (int)numAttr,
                                                                 (int)scope, itemAttr);
@@ -3018,10 +3325,10 @@ public final class Avrcp {
     };
 
     private void processGetItemAttr(byte scope, long uid, byte numAttr, int[] attrs,
-                String deviceAddress) {
+                int size, String deviceAddress) {
         if (DEBUG)
             Log.v(TAG, "processGetItemAttr: scope: " + scope + " uid:" + uid +
-                    " numAttr:" + numAttr);
+                    " numAttr:" + numAttr + " size: " + size);
         String[] textArray;
         BluetoothDevice device = mAdapter.getRemoteDevice(deviceAddress);
         int deviceIndex = getIndexForDevice(device);
@@ -3038,7 +3345,7 @@ public final class Avrcp {
                     if (DEBUG)
                         Log.v(TAG, "Browsed player not set, getItemAttr can not be processed");
                     getItemAttrRspNative((byte)0 ,attrs ,
-                            textArray ,getByteAddress(device));
+                            textArray, size, getByteAddress(device));
                     return;
                 }
                 cursor = mContext.getContentResolver().query(
@@ -3050,7 +3357,7 @@ public final class Avrcp {
                     if (cursor != null)
                         Log.i(TAG, "cursor.getCount() " + cursor.getCount());
                     getItemAttrRspNative((byte)0 ,attrs ,
-                            textArray ,getByteAddress(device));
+                            textArray, size, getByteAddress(device));
                 } else {
                     int validAttrib = 0;
                     cursor.moveToFirst();
@@ -3063,12 +3370,12 @@ public final class Avrcp {
                         }
                     }
                     getItemAttrRspNative(numAttr ,attrs ,
-                            textArray ,getByteAddress(device));
+                            textArray, size, getByteAddress(device));
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Exception " + e);
                 getItemAttrRspNative((byte)0 ,attrs ,
-                        textArray ,getByteAddress(device));
+                        textArray, size, getByteAddress(device));
             } finally {
                 if (cursor != null) {
                     cursor.close();
@@ -3077,18 +3384,20 @@ public final class Avrcp {
         } else {
             Log.i(TAG, "Invalid scope");
             getItemAttrRspNative((byte)0 ,attrs ,
-                    textArray ,getByteAddress(device));
+                    textArray, size, getByteAddress(device));
         }
     }
 
     private class ItemAttr {
         ArrayList<Integer> mAttrList;
         long mUid;
+        int mSize;
         String mAddress;
-        public ItemAttr (ArrayList<Integer> attrList, long uid,
+        public ItemAttr (ArrayList<Integer> attrList, long uid, int size,
                 String deviceAddress) {
             mAttrList = attrList;
             mUid = uid;
+            mSize = size;
             mAddress = deviceAddress;
         }
     }
@@ -3158,12 +3467,12 @@ public final class Avrcp {
         }
     }
 
-    private void getFolderItems(byte scope, long start, long end, int attrCnt,
+    private void getFolderItems(byte scope, long start, long end, int size,
             int numAttr, int[] attrs, byte[] address) {
         if (DEBUG)
             Log.v(TAG, "getFolderItems");
         if (DEBUG)
-            Log.v(TAG, "scope: " + scope + " attrCnt: " + attrCnt);
+            Log.v(TAG, "scope: " + scope + " mtu_size: " + size);
         if (DEBUG)
             Log.v(TAG, "start: " + start + " end: " + end);
         for (int i = 0; i < numAttr; ++i) {
@@ -3171,7 +3480,7 @@ public final class Avrcp {
                 Log.v(TAG, "attrs[" + i + "] = " + attrs[i]);
         }
 
-        FolderListEntries folderListEntries = new FolderListEntries (scope, start, end, attrCnt,
+        FolderListEntries folderListEntries = new FolderListEntries (scope, start, end, size,
                 numAttr, attrs, Utils.getAddressStringFromByte(address));
         Message msg = mHandler.obtainMessage(MESSAGE_GET_FOLDER_ITEMS, 0, 0, folderListEntries);
         mHandler.sendMessage(msg);
@@ -3255,8 +3564,8 @@ public final class Avrcp {
         byte[] playable = new byte[MAX_BROWSE_ITEM_TO_SEND];
         String[] displayName = new String[MAX_BROWSE_ITEM_TO_SEND];
         byte[] numAtt = new byte[MAX_BROWSE_ITEM_TO_SEND];
-        String[] attValues = new String[MAX_BROWSE_ITEM_TO_SEND * 7];
-        int[] attIds = new int[MAX_BROWSE_ITEM_TO_SEND * 7];
+        String[] attValues = new String[MAX_BROWSE_ITEM_TO_SEND * 8];
+        int[] attIds = new int[MAX_BROWSE_ITEM_TO_SEND * 8];
         BluetoothDevice device = mAdapter.getRemoteDevice(deviceAddress);
         mBrowserDevice = device;
 
@@ -3266,7 +3575,7 @@ public final class Avrcp {
             return;
         }
         if (DEBUG)
-            Log.v(TAG, "processGetFolderItemsInternal");
+            Log.v(TAG, "processGetFolderItemsInternal, size = " + size);
         if (DEBUG)
             Log.v(TAG, "requested attribute count" + numAttr);
         for (int count = 0; count < numAttr; count++) {
@@ -3275,8 +3584,8 @@ public final class Avrcp {
         }
 
         if (scope == SCOPE_VIRTUAL_FILE_SYS) {
-            // Item specific attribute's entry starts from index*7
-            for (int count = 0; count < (MAX_BROWSE_ITEM_TO_SEND * 7); count++) {
+            // Item specific attribute's entry starts from index*8
+            for (int count = 0; count < (MAX_BROWSE_ITEM_TO_SEND * 8); count++) {
                 attValues[count] = "";
                 attIds[count] = 0;
             }
@@ -3290,7 +3599,7 @@ public final class Avrcp {
             if (!isCurrentPathValid(deviceIndex)) {
                 getFolderItemsRspNative((byte)DOES_NOT_EXIST ,
                         numItems, itemType, uid, type,
-                        playable, displayName, numAtt, attValues, attIds,
+                        playable, displayName, numAtt, attValues, attIds, size,
                         getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                 Log.v(TAG, "Current path not set");
                 return;
@@ -3299,7 +3608,7 @@ public final class Avrcp {
             if ((start < 0) || (end < 0) || (start > end)) {
                 getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS ,
                         numItems, itemType, uid, type,
-                        playable, displayName, numAtt, attValues, attIds,
+                        playable, displayName, numAtt, attValues, attIds, size,
                         getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                 Log.e(TAG, "Wrong start/end index");
                 return;
@@ -3311,7 +3620,7 @@ public final class Avrcp {
                     Log.i(TAG, "startIteam exceeds the available item index");
                     getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS ,
                             numItems, itemType, uid, type,
-                            playable, displayName, numAtt, attValues, attIds,
+                            playable, displayName, numAtt, attValues, attIds, size,
                             getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                     return;
                 }
@@ -3368,7 +3677,7 @@ public final class Avrcp {
                             Log.i(TAG, "wrong index");
                             getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                     }
                 }
@@ -3378,7 +3687,7 @@ public final class Avrcp {
                 }
                 getFolderItemsRspNative((byte)status ,
                         numItems, itemType, uid, type,
-                        playable, displayName, numAtt, attValues, attIds,
+                        playable, displayName, numAtt, attValues, attIds, size,
                         getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
             } else if (deviceFeatures[deviceIndex].mCurrentPath.equals(PATH_TITLES)) {
                 long availableItems = 0;
@@ -3394,7 +3703,7 @@ public final class Avrcp {
                             Log.i(TAG, "startIteam exceeds the available item index");
                             getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                             return;
                         }
@@ -3406,7 +3715,7 @@ public final class Avrcp {
                         Log.i(TAG, "Error: could not fetch the elements");
                         getFolderItemsRspNative((byte)INTERNAL_ERROR ,
                                 numItems, itemType, uid, type,
-                                playable, displayName, numAtt, attValues, attIds,
+                                playable, displayName, numAtt, attValues, attIds, size,
                                 getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                         return;
                     }
@@ -3435,10 +3744,10 @@ public final class Avrcp {
                         for (attIndex = 0; attIndex < numAttr; attIndex++) {
                             if ((attrs[attIndex] <= MEDIA_ATTR_MAX) &&
                                         (attrs[attIndex] >= MEDIA_ATTR_MIN)) {
-                                attValues[(7 * index) + attIndex] =
+                                attValues[(8 * index) + attIndex] =
                                         getAttributeStringFromCursor(
                                         cursor, attrs[attIndex], deviceIndex);
-                                attIds[(7 * index) + attIndex] = attrs[attIndex];
+                                attIds[(8 * index) + attIndex] = attrs[attIndex];
                                 validAttrib ++;
                             }
                         }
@@ -3448,13 +3757,13 @@ public final class Avrcp {
                     numItems = index;
                     getFolderItemsRspNative((byte)OPERATION_SUCCESSFUL ,
                             numItems, itemType, uid, type,
-                            playable, displayName, numAtt, attValues, attIds,
+                            playable, displayName, numAtt, attValues, attIds, size,
                             getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                 } catch(Exception e) {
                     Log.i(TAG, "Exception e" + e);
                     getFolderItemsRspNative((byte)INTERNAL_ERROR ,
                             numItems, itemType, uid, type,
-                            playable, displayName, numAtt, attValues, attIds,
+                            playable, displayName, numAtt, attValues, attIds, size,
                             getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                 } finally {
                     if (cursor != null) {
@@ -3472,7 +3781,7 @@ public final class Avrcp {
                             Log.i(TAG, "startIteam exceeds the available item index");
                             getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                             return;
                         }
@@ -3500,7 +3809,7 @@ public final class Avrcp {
                             Log.i(TAG, "Error: could not fetch the elements");
                             getFolderItemsRspNative((byte)INTERNAL_ERROR ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                             return;
                         }
@@ -3539,19 +3848,19 @@ public final class Avrcp {
                             numItems = index;
                             getFolderItemsRspNative((byte)OPERATION_SUCCESSFUL ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                         } else {
                             getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                         }
                     } catch(Exception e) {
                         Log.i(TAG, "Exception e" + e);
                         getFolderItemsRspNative((byte)INTERNAL_ERROR ,
                                 numItems, itemType, uid, type,
-                                playable, displayName, numAtt, attValues, attIds,
+                                playable, displayName, numAtt, attValues, attIds, size,
                                 getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                     } finally {
                         if (cursor != null) {
@@ -3575,7 +3884,7 @@ public final class Avrcp {
                                 Log.i(TAG, "startIteam exceeds the available item index");
                                 getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS ,
                                         numItems, itemType, uid, type,
-                                        playable, displayName, numAtt, attValues, attIds,
+                                        playable, displayName, numAtt, attValues, attIds, size,
                                         getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                                 return;
                             }
@@ -3587,7 +3896,7 @@ public final class Avrcp {
                             Log.i(TAG, "Error: could not fetch the elements");
                             getFolderItemsRspNative((byte)INTERNAL_ERROR ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                             return;
                         }
@@ -3618,10 +3927,10 @@ public final class Avrcp {
                             for (attIndex = 0; attIndex < numAttr; attIndex++) {
                                 if ((attrs[attIndex] <= MEDIA_ATTR_MAX) &&
                                             (attrs[attIndex] >= MEDIA_ATTR_MIN)) {
-                                    attValues[(7 * index) + attIndex] =
+                                    attValues[(8 * index) + attIndex] =
                                             getAttributeStringFromCursor(
                                             cursor, attrs[attIndex], deviceIndex);
-                                    attIds[(7 * index) + attIndex] = attrs[attIndex];
+                                    attIds[(8 * index) + attIndex] = attrs[attIndex];
                                     validAttrib ++;
                                 }
                             }
@@ -3631,13 +3940,13 @@ public final class Avrcp {
                         numItems = index;
                         getFolderItemsRspNative((byte)OPERATION_SUCCESSFUL ,
                                 numItems, itemType, uid, type,
-                                playable, displayName, numAtt, attValues, attIds,
+                                playable, displayName, numAtt, attValues, attIds, size,
                                 getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                     } catch(Exception e) {
                         Log.i(TAG, "Exception e" + e);
                         getFolderItemsRspNative((byte)INTERNAL_ERROR ,
                                 numItems, itemType, uid, type,
-                                playable, displayName, numAtt, attValues, attIds,
+                                playable, displayName, numAtt, attValues, attIds, size,
                                 getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                     } finally {
                         if (cursor != null) {
@@ -3656,7 +3965,7 @@ public final class Avrcp {
                             Log.i(TAG, "startIteam exceeds the available item index");
                             getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                             return;
                         }
@@ -3685,7 +3994,7 @@ public final class Avrcp {
                             Log.i(TAG, "Error: could not fetch the elements");
                             getFolderItemsRspNative((byte)INTERNAL_ERROR ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                             return;
                         }
@@ -3723,19 +4032,19 @@ public final class Avrcp {
                             numItems = index;
                             getFolderItemsRspNative((byte)OPERATION_SUCCESSFUL ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                         } else {
                             getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                         }
                     } catch(Exception e) {
                         Log.i(TAG, "Exception e" + e);
                         getFolderItemsRspNative((byte)INTERNAL_ERROR ,
                                 numItems, itemType, uid, type,
-                                playable, displayName, numAtt, attValues, attIds,
+                                playable, displayName, numAtt, attValues, attIds, size,
                                 getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                     } finally {
                         if (cursor != null) {
@@ -3759,7 +4068,7 @@ public final class Avrcp {
                                 Log.i(TAG, "startIteam exceeds the available item index");
                                 getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS ,
                                         numItems, itemType, uid, type,
-                                        playable, displayName, numAtt, attValues, attIds,
+                                        playable, displayName, numAtt, attValues, attIds, size,
                                         getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                                 return;
                             }
@@ -3771,7 +4080,7 @@ public final class Avrcp {
                             Log.i(TAG, "Error: could not fetch the elements");
                             getFolderItemsRspNative((byte)INTERNAL_ERROR ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                             return;
                         }
@@ -3802,10 +4111,10 @@ public final class Avrcp {
                             for (attIndex = 0; attIndex < numAttr; attIndex++) {
                                 if ((attrs[attIndex] <= MEDIA_ATTR_MAX) &&
                                             (attrs[attIndex] >= MEDIA_ATTR_MIN)) {
-                                    attValues[(7 * index) + attIndex] =
+                                    attValues[(8 * index) + attIndex] =
                                                 getAttributeStringFromCursor(
                                                 cursor, attrs[attIndex], deviceIndex);
-                                    attIds[(7 * index) + attIndex] = attrs[attIndex];
+                                    attIds[(8 * index) + attIndex] = attrs[attIndex];
                                     validAttrib ++;
                                 }
                             }
@@ -3815,13 +4124,13 @@ public final class Avrcp {
                         numItems = index;
                         getFolderItemsRspNative((byte)OPERATION_SUCCESSFUL ,
                                 numItems, itemType, uid, type,
-                                playable, displayName, numAtt, attValues, attIds,
+                                playable, displayName, numAtt, attValues, attIds, size,
                                 getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                     } catch(Exception e) {
                         Log.i(TAG, "Exception e" + e);
                         getFolderItemsRspNative((byte)INTERNAL_ERROR ,
                                 numItems, itemType, uid, type,
-                                playable, displayName, numAtt, attValues, attIds,
+                                playable, displayName, numAtt, attValues, attIds, size,
                                 getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                     } finally {
                         if (cursor != null) {
@@ -3839,7 +4148,7 @@ public final class Avrcp {
                             Log.i(TAG, "startIteam exceeds the available item index");
                             getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                             return;
                         }
@@ -3872,7 +4181,7 @@ public final class Avrcp {
                             Log.i(TAG, "Error: could not fetch the elements");
                             getFolderItemsRspNative((byte)INTERNAL_ERROR ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                             return;
                         }
@@ -3901,19 +4210,19 @@ public final class Avrcp {
                             numItems = index;
                             getFolderItemsRspNative((byte)OPERATION_SUCCESSFUL ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                         } else {
                             getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                         }
                     } catch(Exception e) {
                         Log.i(TAG, "Exception e" + e);
                         getFolderItemsRspNative((byte)INTERNAL_ERROR ,
                                 numItems, itemType, uid, type,
-                                playable, displayName, numAtt, attValues, attIds,
+                                playable, displayName, numAtt, attValues, attIds, size,
                                 getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                     } finally {
                         if (cursor != null) {
@@ -3952,7 +4261,7 @@ public final class Avrcp {
                                 Log.i(TAG, "startIteam exceeds the available item index");
                                 getFolderItemsRspNative((byte)RANGE_OUT_OF_BOUNDS ,
                                         numItems, itemType, uid, type,
-                                        playable, displayName, numAtt, attValues, attIds,
+                                        playable, displayName, numAtt, attValues, attIds, size,
                                         getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                                 return;
                             }
@@ -3964,7 +4273,7 @@ public final class Avrcp {
                             Log.i(TAG, "Error: could not fetch the elements");
                             getFolderItemsRspNative((byte)INTERNAL_ERROR ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                             return;
                         }
@@ -3996,10 +4305,10 @@ public final class Avrcp {
                             for (attIndex = 0; attIndex < numAttr; attIndex++) {
                                 if ((attrs[attIndex] <= MEDIA_ATTR_MAX) &&
                                             (attrs[attIndex] >= MEDIA_ATTR_MIN)) {
-                                    attValues[(7 * index) + attIndex] =
+                                    attValues[(8 * index) + attIndex] =
                                             getAttributeStringFromCursor(
                                             cursor, attrs[attIndex], deviceIndex);
-                                    attIds[(7 * index) + attIndex] = attrs[attIndex];
+                                    attIds[(8 * index) + attIndex] = attrs[attIndex];
                                     validAttrib ++;
                                 }
                             }
@@ -4009,13 +4318,13 @@ public final class Avrcp {
                         numItems = index;
                         getFolderItemsRspNative((byte)OPERATION_SUCCESSFUL ,
                                 numItems, itemType, uid, type,
-                                playable, displayName, numAtt, attValues, attIds,
+                                playable, displayName, numAtt, attValues, attIds, size,
                                 getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                     } catch(Exception e) {
                         Log.e(TAG, "Exception e" + e);
                         getFolderItemsRspNative((byte)INTERNAL_ERROR ,
                                 numItems, itemType, uid, type,
-                                playable, displayName, numAtt, attValues, attIds,
+                                playable, displayName, numAtt, attValues, attIds, size,
                                 getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                     } finally {
                         if (cursor != null) {
@@ -4026,7 +4335,7 @@ public final class Avrcp {
             } else {
                 getFolderItemsRspNative((byte)DOES_NOT_EXIST ,
                         numItems, itemType, uid, type,
-                        playable, displayName, numAtt, attValues, attIds,
+                        playable, displayName, numAtt, attValues, attIds, size,
                         getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                 Log.v(TAG, "GetFolderItems fail as player is not browsable");
             }
@@ -4040,7 +4349,7 @@ public final class Avrcp {
                              deviceFeatures[deviceIndex].mCurrentPath.equals(PATH_INVALID)) {
                             getFolderItemsRspNative((byte)INTERNAL_ERROR ,
                                     numItems, itemType, uid, type,
-                                    playable, displayName, numAtt, attValues, attIds,
+                                    playable, displayName, numAtt, attValues, attIds, size,
                                     getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                             Log.e(TAG, "GetFolderItems fails: addressed player is not browsable");
                             return;
@@ -4049,7 +4358,7 @@ public final class Avrcp {
                 }
             }
             mMediaController.getTransportControls().getRemoteControlClientNowPlayingEntries();
-            mCachedRequest = new CachedRequest(start, end, numAttr, attrs, true);
+            mCachedRequest = new CachedRequest(start, end, numAttr, attrs, size, true);
         }
     }
 
@@ -4383,6 +4692,12 @@ public final class Avrcp {
                 break;
             case MEDIA_ATTR_GENRE:
                 attrStr = "<unknown>"; // GENRE is not supported
+                break;
+            case MEDIA_ATTR_COVER_ART:
+                //Fetch CoverArtHandle for this song from AvrcpBip.
+                attrStr = mAvrcpBipRsp.getImgHandle(
+                        cursor.getString(cursor.getColumnIndexOrThrow(
+                        MediaStore.Audio.Media.ALBUM)));
                 break;
             default:
                 Log.v(TAG, "getAttributeStringFromCursor: wrong attribute: attrId = "
@@ -4983,7 +5298,8 @@ public final class Avrcp {
     final static int MEDIA_ATTR_NUM_TRACKS = 5;
     final static int MEDIA_ATTR_GENRE = 6;
     final static int MEDIA_ATTR_PLAYING_TIME = 7;
-    final static int MEDIA_ATTR_MAX = 7;
+    final static int MEDIA_ATTR_COVER_ART = 8;
+    final static int MEDIA_ATTR_MAX = 8;
 
     // match up with btrc_event_id_t enum of bt_rc.h
     final static int EVT_PLAY_STATUS_CHANGED = 1;
@@ -5297,6 +5613,14 @@ public final class Avrcp {
     final static int FEATURE_MASK_UID_PERSIST_MASK = 0x04;
     final static int FEATURE_MASK_UID_PERSIST_OFFSET = 8;
 
+    final static int FEATURE_MASK_NUM_ITEMS_BIT_NO = 67;
+    final static int FEATURE_MASK_NUM_ITEMS_MASK = 0x08;
+    final static int FEATURE_MASK_NUM_ITEMS_OFFSET = 8;
+
+    final static int FEATURE_MASK_COVER_ART_BIT_NO = 68;
+    final static int FEATURE_MASK_COVER_ART_MASK = 0x10;
+    final static int FEATURE_MASK_COVER_ART_OFFSET = 8;
+
     final static short FEATURE_BITMASK_FIELD_LENGTH = 16;
     final static short PLAYER_ID_FIELD_LENGTH = 2;
     final static short MAJOR_PLAYER_TYPE_FIELD_LENGTH = 1;
@@ -5332,7 +5656,7 @@ public final class Avrcp {
                                     folderItemLengths, byte[] address);
     private native boolean getFolderItemsRspNative(byte statusCode, long numItems,
         int[] itemType, long[] uid, int[] type, byte[] playable, String[] displayName,
-        byte[] numAtt, String[] attValues, int[] attIds, byte[] address);
+        byte[] numAtt, String[] attValues, int[] attIds, int size, byte[] address);
     private native boolean getListPlayerappAttrRspNative(byte attr,
             byte[] attrIds, byte[] address);
     private native boolean getPlayerAppValueRspNative(byte numberattr,
@@ -5352,9 +5676,11 @@ public final class Avrcp {
     private native boolean changePathRspNative(int status, long itemCount, byte[] address);
     private native boolean playItemRspNative(int status, byte[] address);
     private native boolean getItemAttrRspNative(byte numAttr, int[] attrIds,
-        String[] textArray, byte[] address);
+        String[] textArray, int size, byte[] address);
     private native boolean isDeviceActiveInHandOffNative(byte[] address);
 
+    private native boolean getTotalNumberOfItemsRspNative(int errStatus,
+            long itemCount, int uidCounter, byte[] address);
     /**
       * A class to encapsulate all the information about a media player.
       * static record will be maintained for all applicable media players

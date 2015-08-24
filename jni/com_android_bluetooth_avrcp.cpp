@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2014, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2013-2015, The Linux Foundation. All rights reserved.
  * Not a Contribution.
  *
  * Copyright (C) 2012 The Android Open Source Project
@@ -49,6 +49,7 @@ static jmethodID method_setPlayerAppSetting;
 static jmethodID method_getplayerattribute_text;
 static jmethodID method_getplayervalue_text;
 static jmethodID method_onConnectionStateChanged;
+static jmethodID method_getTotalNumberOfItems;
 
 static const btrc_interface_t *sBluetoothMultiAvrcpInterface = NULL;
 static jobject mCallbacksObj = NULL;
@@ -434,7 +435,7 @@ static void btavrcp_get_folder_items_callback(btrc_browse_folderitem_t scope ,
     if (num_attr == 0xff) {
         num_attr = 0; // 0xff signifies no attribute required in response
     } else if (num_attr == 0) {
-        num_attr = 7; // 0x00 signifies all attributes required in response
+        num_attr = 8; // 0x00 signifies all attributes required in response
     }
 
     attrs = (jintArray)sCallbackEnv->NewIntArray(num_attr);
@@ -597,14 +598,14 @@ static void btavrcp_play_item_callback(uint8_t scope, uint64_t uid, bt_bdaddr_t*
 
 static void btavrcp_get_item_attr_callback(uint8_t scope, uint64_t uid,
                                     uint8_t num_attr, btrc_media_attr_t *p_attrs,
-                                    bt_bdaddr_t* bd_addr) {
+                                    uint32_t size, bt_bdaddr_t* bd_addr) {
     jintArray attrs;
     jbyteArray addr;
 
     if (num_attr == 0xff) {
         num_attr = 0; // 0xff signifies no attribute required in response
     } else if (num_attr == 0) {
-        num_attr = 7; // 0x00 signifies all attributes required in response
+        num_attr = 8; // 0x00 signifies all attributes required in response
     }
 
     ALOGI("%s", __FUNCTION__);
@@ -629,7 +630,7 @@ static void btavrcp_get_item_attr_callback(uint8_t scope, uint64_t uid,
     sCallbackEnv->SetIntArrayRegion(attrs, 0, num_attr, (jint *)p_attrs);
     if (mCallbacksObj) {
         sCallbackEnv->CallVoidMethod(mCallbacksObj, method_getItemAttr, (jbyte)scope, (jlong)uid,
-                                     (jbyte)num_attr, attrs, addr);
+                                     (jbyte)num_attr, attrs, (jint)size, addr);
     } else {
         ALOGE("%s: mCallbacksObj is null", __FUNCTION__);
     }
@@ -668,6 +669,34 @@ static void btavrcp_connection_state_callback(bool state, bt_bdaddr_t* bd_addr) 
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
+static void btavrcp_get_total_items_callback(uint8_t scope, bt_bdaddr_t* bd_addr) {
+    jbyteArray addr;
+
+    ALOGI("%s", __FUNCTION__);
+    ALOGI("scope: %d", scope);
+
+    if (!checkCallbackThread()) {
+        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
+        return;
+    }
+
+    addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+    if (!addr) {
+        ALOGE("Fail to new jbyteArray bd addr for connection state");
+        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+        return;
+    }
+
+    sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
+    if (mCallbacksObj) {
+        sCallbackEnv->CallVoidMethod(mCallbacksObj, method_getTotalNumberOfItems,
+                                            (jbyte)scope, addr);
+    } else {
+        ALOGE("%s: mCallbacksObj is null", __FUNCTION__);
+    }
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+    sCallbackEnv->DeleteLocalRef(addr);
+}
 
 static btrc_callbacks_t sBluetoothAvrcpCallbacks = {
     sizeof(sBluetoothAvrcpCallbacks),
@@ -689,7 +718,8 @@ static btrc_callbacks_t sBluetoothAvrcpCallbacks = {
     btavrcp_change_path_callback,
     btavrcp_play_item_callback,
     btavrcp_get_item_attr_callback,
-    btavrcp_connection_state_callback
+    btavrcp_connection_state_callback,
+    btavrcp_get_total_items_callback
 };
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
@@ -730,9 +760,11 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_playItem =
         env->GetMethodID(clazz, "playItem", "(BJ[B)V");
     method_getItemAttr =
-        env->GetMethodID(clazz, "getItemAttr", "(BJB[I[B)V");
+        env->GetMethodID(clazz, "getItemAttr", "(BJB[II[B)V");
     method_onConnectionStateChanged =
         env->GetMethodID(clazz, "onConnectionStateChanged", "(Z[B)V");
+    method_getTotalNumberOfItems =
+        env->GetMethodID(clazz, "getTotalNumberOfItems", "(B[B)V");
     ALOGI("%s: succeeds", __FUNCTION__);
 }
 
@@ -1430,9 +1462,9 @@ static jboolean registerNotificationRspNowPlayingContentChangedNative(JNIEnv *en
 }
 
 static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statusCode,
-                            jlong numItems, jintArray itemType, jlongArray uid, jintArray type,
-                            jbyteArray playable, jobjectArray displayName, jbyteArray numAtt,
-                            jobjectArray attValues, jintArray attIds , jbyteArray address) {
+                          jlong numItems, jintArray itemType, jlongArray uid, jintArray type,
+                          jbyteArray playable, jobjectArray displayName, jbyteArray numAtt,
+                          jobjectArray attValues, jintArray attIds, jint size, jbyteArray address) {
     bt_status_t status = BT_STATUS_SUCCESS;
     jbyte *addr;
     btrc_folder_list_entries_t param;
@@ -1449,6 +1481,7 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
     const char* textStr;
     jsize utfStringLength = 0;
     int num_attr;
+    int total_len = BTRC_BROWSE_PDU_HEADER + BTRC_AVCTP_HEADER + BTRC_BROWSE_PKT_3TO7OCT_LEN;
 
     ALOGI("%s: sBluetoothMultiAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
     if (!sBluetoothMultiAvrcpInterface) return JNI_FALSE;
@@ -1460,7 +1493,6 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
     }
     param.status = statusCode;
     param.uid_counter = 0;
-    param.item_count = numItems;
 
     if (numItems > 0) {
         itemTypeElements = env->GetIntArrayElements(itemType, NULL);
@@ -1503,6 +1535,7 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
     param.p_item_list = new btrc_folder_list_item_t[numItems];
 
     for (count = 0; count < numItems; count++) {
+        total_len = total_len + BTRC_ITEM_TYPE_N_LEN_OCT;
         param.p_item_list[count].item_type = (uint8_t)itemTypeElements[count];
         ALOGI("getFolderItemsRspNative: item_type: %d", param.p_item_list[count].item_type);
         if (itemTypeElements[count] == BTRC_TYPE_FOLDER) {
@@ -1524,6 +1557,18 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
                 break;
             }
             ALOGI("getFolderItemsRspNative: Disp Elem Length: %d", utfStringLength);
+            total_len = total_len + utfStringLength + BTRC_FOLDER_ITEM_HEADER;
+            if (total_len > size) {
+                ALOGI("total_len = : %d, count = %d", total_len, count);
+                if (count != 0) {
+                    env->DeleteLocalRef(text);
+                    break;
+                } else {
+                    utfStringLength =
+                            size - (BTRC_FOLDER_ITEM_HEADER + BTRC_ITEM_TYPE_N_LEN_OCT + 1);
+                    ALOGI("modified utfStringLength = : %d", utfStringLength);
+                }
+            }
 
             textStr = env->GetStringUTFChars(text, NULL);
             if (!textStr) {
@@ -1541,9 +1586,9 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
         } else if (itemTypeElements[count] == BTRC_TYPE_MEDIA_ELEMENT) {
             num_attr = 0;
             param.p_item_list[count].u.media.uid = uidElements[count];
-            ALOGI("getFolderItemsRspNative: uid: %l", param.p_item_list[count].u.folder.uid);
+            ALOGI("getFolderItemsRspNative: uid: %l", param.p_item_list[count].u.media.uid);
             param.p_item_list[count].u.media.type = (uint8_t)typeElements[count];
-            ALOGI("getFolderItemsRspNative: type: %d", param.p_item_list[count].u.folder.type);
+            ALOGI("getFolderItemsRspNative: type: %d", param.p_item_list[count].u.media.type);
             text = (jstring) env->GetObjectArrayElement(displayName, count);
             if (text == NULL) {
                 ALOGE("getFolderItemsRspNative: App string is NULL, bail out");
@@ -1557,6 +1602,7 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
             }
             ALOGI("getFolderItemsRspNative: Disp Elem Length: %d", utfStringLength);
 
+            total_len = total_len + utfStringLength + BTRC_FOLDER_ITEM_HEADER;
             textStr = env->GetStringUTFChars(text, NULL);
             if (!textStr) {
                 ALOGE("getFolderItemsRspNative: GetStringUTFChars return NULL");
@@ -1575,7 +1621,7 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
                             new btrc_attr_entry_t[numAttElements[count]];
 
             for (int i = 0; i < numAttElements[count]; i++) {
-                text = (jstring) env->GetObjectArrayElement(attValues, (7 * count) + i);
+                text = (jstring) env->GetObjectArrayElement(attValues, (8 * count) + i);
                 if (text == NULL) {
                     ALOGE("getFolderItemsRspNative: Attribute string is NULL, continue to next");
                     continue;
@@ -1586,6 +1632,15 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
                     env->DeleteLocalRef(text);
                     continue;
                 }
+                total_len = total_len + utfStringLength + BTRC_ITEM_ATTRIBUTE_HEADER;
+                if (total_len > size) {
+                    ALOGI("total_len = %d, count = %d", total_len, count);
+                    if (count != 0)
+                        num_attr = 0;
+                    env->DeleteLocalRef(text);
+                    break;
+                }
+
                 textStr = env->GetStringUTFChars(text, NULL);
                 if (!textStr) {
                     ALOGE("getFolderItemsRspNative: GetStringUTFChars return NULL");
@@ -1593,7 +1648,7 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
                     continue;
                 }
                 param.p_item_list[count].u.media.p_attr_list[num_attr].attr_id =
-                                                    attIdsElements[(7 * count) + i];
+                                                    attIdsElements[(8 * count) + i];
                 ALOGI("getFolderItemsRspNative: Attr id: %d",
                     param.p_item_list[count].u.media.p_attr_list[num_attr].attr_id);
                 param.p_item_list[count].u.media.p_attr_list[num_attr].name.charset_id =
@@ -1614,7 +1669,16 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
             ALOGI("getFolderItemsRspNative: effective numAttr: %d",
                             param.p_item_list[count].u.media.attr_count);
         }
+        if (total_len > size) {
+            ALOGI("total_len final =: %d", total_len);
+            break;
+        }
     }
+
+    if (count != 0)
+        param.item_count = count;
+    else if (param.status == BTRC_STS_NO_ERROR)
+        param.item_count = 1;
 
     if ((status = sBluetoothMultiAvrcpInterface->get_folder_items_rsp(&param,
                                             (bt_bdaddr_t *)addr)) != BT_STATUS_SUCCESS) {
@@ -1769,7 +1833,7 @@ static jboolean setAdressedPlayerRspNative(JNIEnv *env, jobject object, jbyte st
 
 static jboolean getItemAttrRspNative(JNIEnv *env, jobject object, jbyte numAttr,
                                      jintArray attrIds, jobjectArray textArray,
-                                     jbyteArray address) {
+                                     jint size, jbyteArray address) {
     jint *attr;
     jbyte *addr;
     bt_status_t status;
@@ -1778,6 +1842,8 @@ static jboolean getItemAttrRspNative(JNIEnv *env, jobject object, jbyte numAttr,
     btrc_element_attr_val_t *pAttrs = NULL;
     const char* textStr;
     jsize utfStringLength = 0;
+    int total_len = BTRC_BROWSE_PDU_HEADER + BTRC_AVCTP_HEADER +
+                    BTRC_BROWSE_PKT_3TO7OCT_LEN + BTRC_ITEM_TYPE_N_LEN_OCT;
 
     if (!sBluetoothMultiAvrcpInterface) return JNI_FALSE;
 
@@ -1808,8 +1874,9 @@ static jboolean getItemAttrRspNative(JNIEnv *env, jobject object, jbyte numAttr,
         text = (jstring) env->GetObjectArrayElement(textArray, i);
 
         utfStringLength = env->GetStringUTFLength(text);
-        if (!utfStringLength) {
-            ALOGE("setBrowsedPlayerRspNative: GetStringUTFLength return NULL");
+        total_len = total_len + utfStringLength + BTRC_ITEM_ATTRIBUTE_HEADER;
+        if (total_len > size) {
+            ALOGI("total_len: %d", total_len);
             env->DeleteLocalRef(text);
             break;
         }
@@ -1980,6 +2047,29 @@ static jboolean isDeviceActiveInHandOffNative(JNIEnv *env, jobject object, jbyte
     return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
+static jboolean getTotalNumberOfItemsRspNative(JNIEnv *env, jobject object,
+                             jint errStatus, jlong itemCount, jint uidCounter, jbyteArray address) {
+    bt_status_t status;
+    jbyte *addr;
+    if (!sBluetoothMultiAvrcpInterface) return JNI_FALSE;
+
+    addr = env->GetByteArrayElements(address, NULL);
+    if (!addr) {
+        jniThrowIOException(env, EINVAL);
+        return JNI_FALSE;
+    }
+
+    ALOGI("%s: sBluetoothAvrcpInterface: %p", __FUNCTION__, sBluetoothMultiAvrcpInterface);
+    ALOGI("status: %d", errStatus);
+
+    if ((status = sBluetoothMultiAvrcpInterface->get_total_items_rsp((uint8_t) errStatus,
+                (uint32_t) itemCount, (uint16_t) uidCounter, (bt_bdaddr_t *)addr))
+                != BT_STATUS_SUCCESS) {
+        ALOGE("Failed sending get total items response, status: %d", status);
+    }
+    env->ReleaseByteArrayElements(address, addr, 0);
+    return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+}
 
 
 static JNINativeMethod sMethods[] = {
@@ -2022,10 +2112,12 @@ static JNINativeMethod sMethods[] = {
                                 (void *) setBrowsedPlayerRspNative},
     {"changePathRspNative", "(IJ[B)Z", (void *) changePathRspNative},
     {"playItemRspNative", "(I[B)Z", (void *) playItemRspNative},
-    {"getItemAttrRspNative", "(B[I[Ljava/lang/String;[B)Z", (void *) getItemAttrRspNative},
-    {"getFolderItemsRspNative", "(BJ[I[J[I[B[Ljava/lang/String;[B[Ljava/lang/String;[I[B)Z",
+    {"getItemAttrRspNative", "(B[I[Ljava/lang/String;I[B)Z", (void *) getItemAttrRspNative},
+    {"getFolderItemsRspNative", "(BJ[I[J[I[B[Ljava/lang/String;[B[Ljava/lang/String;[II[B)Z",
                                                             (void *) getFolderItemsRspNative},
     {"isDeviceActiveInHandOffNative", "([B)Z", (void *) isDeviceActiveInHandOffNative},
+    {"getTotalNumberOfItemsRspNative", "(IJI[B)Z",
+                                     (void *) getTotalNumberOfItemsRspNative},
 };
 
 int register_com_android_bluetooth_avrcp(JNIEnv* env)

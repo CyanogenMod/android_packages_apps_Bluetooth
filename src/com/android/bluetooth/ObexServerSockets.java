@@ -87,6 +87,20 @@ public class ObexServerSockets {
 
     /**
      * Creates an RFCOMM {@link BluetoothServerSocket} and a L2CAP {@link BluetoothServerSocket}
+     * @param validator a reference to the {@link IObexConnectionHandler} object to call
+     *                  to validate an incoming connection.
+     * @param rfcommChannel fixed rfcomm channel number to listen on
+     * @param l2capPsm fixed l2cap psm to listen on
+     * @return a reference to a {@link ObexServerSockets} object instance.
+     * @throws IOException if it occurs while creating the {@link BluetoothServerSocket}s.
+     */
+    public static ObexServerSockets createWithFixedChannels(IObexConnectionHandler validator,
+            int rfcommChannel, int l2capPsm) {
+        return create(validator, rfcommChannel, l2capPsm);
+    }
+
+    /**
+     * Creates an RFCOMM {@link BluetoothServerSocket} and a L2CAP {@link BluetoothServerSocket}
      * with specific l2cap and RFCOMM channel numbers. It is the responsibility of the caller to
      * ensure the numbers are free and can be used, e.g. by calling {@link #getL2capPsm()} and
      * {@link #getRfcommChannel()} in {@link ObexServerSockets}.
@@ -114,10 +128,10 @@ public class ObexServerSockets {
         for (int i = 0; i < CREATE_RETRY_TIME; i++) {
             initSocketOK = true;
             try {
-                if(rfcommSocket == null) {
+                if(rfcommSocket == null && rfcommChannel != -1) {
                     rfcommSocket = bt.listenUsingRfcommOn(rfcommChannel);
                 }
-                if(l2capSocket == null) {
+                if(l2capSocket == null && l2capPsm != -1) {
                     l2capSocket = bt.listenUsingL2capOn(l2capPsm);
                 }
             } catch (IOException e) {
@@ -181,11 +195,15 @@ public class ObexServerSockets {
         if(D) Log.d(TAG,"startAccept()");
         prepareForNewConnect();
 
-        mRfcommThread = new SocketAcceptThread(mRfcommSocket);
-        mRfcommThread.start();
+        if (mRfcommSocket != null) {
+            mRfcommThread = new SocketAcceptThread(mRfcommSocket);
+            mRfcommThread.start();
+        }
 
-        mL2capThread = new SocketAcceptThread(mL2capSocket);
-        mL2capThread.start();
+        if (mL2capSocket != null) {
+            mL2capThread = new SocketAcceptThread(mL2capSocket);
+            mL2capThread.start();
+        }
     }
 
     /**
