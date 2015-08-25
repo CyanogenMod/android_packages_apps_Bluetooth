@@ -2069,6 +2069,11 @@ final class HeadsetClientStateMachine extends StateMachine {
                             + currMode + " to " + newAudioMode);
                          mAudioManager.setMode(newAudioMode);
                     }
+
+                    // We need to set the volume after switching into HFP mode as some Audio HALs
+                    // reset the volume to a known-default on mode switch.
+                    final int volume =
+                            mAudioManager.getStreamVolume(AudioManager.STREAM_BLUETOOTH_SCO);
                     Log.d(TAG,"hfp_enable=true");
                     Log.d(TAG,"mAudioWbs is " + mAudioWbs);
                     if (mAudioWbs) {
@@ -2080,6 +2085,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                         mAudioManager.setParameters("hfp_set_sampling_rate=8000");
                     }
                     mAudioManager.setParameters("hfp_enable=true");
+                    mAudioManager.setParameters("hfp_volume=" + volume);
                     broadcastAudioState(device, BluetoothHeadsetClient.STATE_AUDIO_CONNECTED,
                             BluetoothHeadsetClient.STATE_AUDIO_CONNECTING);
                     transitionTo(mAudioOn);
