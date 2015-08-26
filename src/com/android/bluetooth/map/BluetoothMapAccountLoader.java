@@ -183,7 +183,9 @@ public class BluetoothMapAccountLoader {
                     " - returning empty account list" );
             return children;
         } finally {
-            mProviderClient.release();
+            if (mProviderClient != null) {
+                mProviderClient.release();
+            }
         }
 
         if (c != null) {
