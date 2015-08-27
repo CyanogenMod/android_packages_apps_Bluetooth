@@ -479,6 +479,12 @@ final class A2dpStateMachine extends StateMachine {
     private class Connected extends State {
         @Override
         public void enter() {
+            // Remove pending connection attempts that were deferred during the pending
+            // state. This is to prevent auto connect attempts from disconnecting
+            // devices that previously successfully connected.
+            // TODO: This needs to check for multiple A2DP connections, once supported...
+            removeDeferredMessages(CONNECT);
+
             log("Enter Connected: " + getCurrentMessage().what);
             // Upon connected, the audio starts out as stopped
             broadcastAudioState(mCurrentDevice, BluetoothA2dp.STATE_NOT_PLAYING,
