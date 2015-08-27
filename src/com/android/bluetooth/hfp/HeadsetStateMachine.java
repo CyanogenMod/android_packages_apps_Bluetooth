@@ -741,6 +741,12 @@ final class HeadsetStateMachine extends StateMachine {
     private class Connected extends State {
         @Override
         public void enter() {
+            // Remove pending connection attempts that were deferred during the pending
+            // state. This is to prevent auto connect attempts from disconnecting
+            // devices that previously successfully connected.
+            // TODO: This needs to check for multiple HFP connections, once supported...
+            removeDeferredMessages(CONNECT);
+
             log("Enter Connected: " + getCurrentMessage().what +
                            ", size: " + mConnectedDevicesList.size());
             // start phone state listener here so that the CIND response as part of SLC can be
@@ -2216,7 +2222,7 @@ final class HeadsetStateMachine extends StateMachine {
             boolean needAudio = true;
             if (mVoiceRecognitionStarted || isInCall())
             {
-                Log.e(TAG, "Voice recognition started when call is active. isInCall:" + isInCall() + 
+                Log.e(TAG, "Voice recognition started when call is active. isInCall:" + isInCall() +
                     " mVoiceRecognitionStarted: " + mVoiceRecognitionStarted);
                 return;
             }
@@ -2695,9 +2701,9 @@ final class HeadsetStateMachine extends StateMachine {
                 removeMessages(DIALING_OUT_TIMEOUT);
             } else if (callState.mCallState ==
                 HeadsetHalConstants.CALL_STATE_ACTIVE || callState.mCallState
-                == HeadsetHalConstants.CALL_STATE_IDLE) {				
+                == HeadsetHalConstants.CALL_STATE_IDLE) {
                 mDialingOut = false;
-            } 
+            }
         }
 
         /* Set ActiveScoDevice to null when call ends */
@@ -2867,7 +2873,7 @@ final class HeadsetStateMachine extends StateMachine {
                 String operatorName = mPhoneProxy.getNetworkOperator();
                 if (operatorName == null) {
                     operatorName = "";
-                } 
+                }
                 copsResponseNative(operatorName, getByteAddress(device));
             } catch (RemoteException e) {
                 Log.e(TAG, Log.getStackTraceString(new Throwable()));
