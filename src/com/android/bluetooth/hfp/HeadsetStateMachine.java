@@ -834,9 +834,6 @@ final class HeadsetStateMachine extends StateMachine {
                     if (mConnectedDevicesList.contains(device)) {
                         Log.e(TAG, "ERROR: Connect received for already connected device, Ignore");
                         break;
-                    } else {
-                            broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_DISCONNECTING,
-                                       BluetoothProfile.STATE_CONNECTED);
                     }
 
                     if (!mRetryConnect.containsKey(device)) {
