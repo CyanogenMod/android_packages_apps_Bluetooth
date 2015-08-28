@@ -153,10 +153,19 @@ public class Constants {
             "com.android.intent.extra.CONNECTION_HANDOVER";
 
     /**
-     * the intent that gets sent when deleting the incoming file confirmation
-     * notification
+     * the intent that gets sent when deleting the incoming file confirmation notification
      */
     public static final String ACTION_HIDE = "android.btopp.intent.action.HIDE";
+
+    /**
+     * the intent that gets sent when accepting the incoming file confirmation notification
+     */
+    public static final String ACTION_ACCEPT = "android.btopp.intent.action.ACCEPT";
+
+    /**
+     * the intent that gets sent when declining the incoming file confirmation notification
+     */
+    public static final String ACTION_DECLINE = "android.btopp.intent.action.DECLINE";
 
     /**
      * the intent that gets sent when deleting the notifications of outbound and

@@ -79,10 +79,8 @@
     <string name="incoming_file_confirm_timeout_content">There was a timeout while accepting an incoming file from \u0022<xliff:g id="sender">%1$s</xliff:g>\u0022</string>
 
     <!-- Bluetooth File Transfer Acceptance Notification item -->
-    <string name="incoming_file_confirm_Notification_title">Bluetooth share: Incoming file</string>
-    <string name="incoming_file_confirm_Notification_caption">Do you want to receive this file?</string>
-    <string name="incoming_file_toast_msg">Incoming file from another device.
-        Confirm you want to receive this file.</string>
+    <string name="incoming_file_confirm_Notification_title">Incoming file</string>
+    <string name="incoming_file_confirm_Notification_content"><xliff:g id="sender">%1$s</xliff:g> is ready to send <xliff:g id="file">%2$s</xliff:g></string>
 
     <!-- Inbound File Transfer Progress Notification item -->
     <!-- label for the notification item of receiving file -->

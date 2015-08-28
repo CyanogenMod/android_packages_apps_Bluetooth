@@ -118,18 +118,25 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             in.setDataAndNormalize(uri);
             context.startActivity(in);
+            cancelNotification(context, uri);
 
-            NotificationManager notMgr = (NotificationManager)context
-                    .getSystemService(Context.NOTIFICATION_SERVICE);
-            if (notMgr != null) {
-                notMgr.cancel((int)ContentUris.parseId(intent.getData()));
-                if (V) Log.v(TAG, "notMgr.cancel called");
-            }
-        } else if (action.equals(BluetoothShare.INCOMING_FILE_CONFIRMATION_REQUEST_ACTION)) {
-            if (V) Log.v(TAG, "Receiver INCOMING_FILE_NOTIFICATION");
+        } else if (action.equals(Constants.ACTION_DECLINE)) {
+            if (V) Log.v(TAG, "Receiver ACTION_DECLINE");
 
-            Toast.makeText(context, context.getString(R.string.incoming_file_toast_msg),
-                    Toast.LENGTH_SHORT).show();
+            Uri uri = intent.getData();
+            ContentValues values = new ContentValues();
+            values.put(BluetoothShare.USER_CONFIRMATION, BluetoothShare.USER_CONFIRMATION_DENIED);
+            context.getContentResolver().update(uri, values, null, null);
+            cancelNotification(context, uri);
+
+        } else if (action.equals(Constants.ACTION_ACCEPT)) {
+            if (V) Log.v(TAG, "Receiver ACTION_ACCEPT");
+
+            Uri uri = intent.getData();
+            ContentValues values = new ContentValues();
+            values.put(BluetoothShare.USER_CONFIRMATION, BluetoothShare.USER_CONFIRMATION_CONFIRMED);
+            context.getContentResolver().update(uri, values, null, null);
+            cancelNotification(context, uri);
 
         } else if (action.equals(Constants.ACTION_OPEN) || action.equals(Constants.ACTION_LIST)) {
             if (V) {
@@ -161,12 +168,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                 context.startActivity(in);
             }
 
-            NotificationManager notMgr = (NotificationManager)context
-                    .getSystemService(Context.NOTIFICATION_SERVICE);
-            if (notMgr != null) {
-                notMgr.cancel((int)ContentUris.parseId(intent.getData()));
-                if (V) Log.v(TAG, "notMgr.cancel called");
-                }
+            cancelNotification(context, uri);
         } else if (action.equals(Constants.ACTION_OPEN_OUTBOUND_TRANSFER)) {
             if (V) Log.v(TAG, "Received ACTION_OPEN_OUTBOUND_TRANSFER.");
 
@@ -277,6 +279,15 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             if (toastMsg != null) {
                 Toast.makeText(context, toastMsg, Toast.LENGTH_SHORT).show();
             }
+        }
+    }
+
+    private void cancelNotification(Context context, Uri uri) {
+        NotificationManager notMgr = (NotificationManager)context
+                .getSystemService(Context.NOTIFICATION_SERVICE);
+        if (notMgr != null) {
+            notMgr.cancel((int)ContentUris.parseId(uri));
+            if (V) Log.v(TAG, "notMgr.cancel called");
         }
     }
 }
