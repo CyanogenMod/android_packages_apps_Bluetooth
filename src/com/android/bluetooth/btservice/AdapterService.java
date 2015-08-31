@@ -1626,6 +1626,7 @@ public class AdapterService extends Service {
 
      String getRemoteName(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (mRemoteDevices == null) return null;
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp == null) return null;
         return deviceProp.getName();
