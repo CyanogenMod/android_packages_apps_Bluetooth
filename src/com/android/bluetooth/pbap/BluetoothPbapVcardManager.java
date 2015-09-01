@@ -276,8 +276,8 @@ public class BluetoothPbapVcardManager {
                     Collections.sort(nameList);
                 }
             }
-        } catch (CursorWindowAllocationException e) {
-            Log.e(TAG, "CursorWindowAllocationException while getting Phonebook name list");
+        } catch (Exception e) {
+            Log.e(TAG, "Exception while getting Phonebook name list", e);
         } finally {
             if (contactCursor != null) {
                 contactCursor.close();
@@ -838,11 +838,12 @@ public class BluetoothPbapVcardManager {
      */
     private static final int getDistinctContactIdSize(Cursor cursor) {
         final int contactIdColumn = cursor.getColumnIndex(Data.CONTACT_ID);
+        final int idColumn = cursor.getColumnIndex(Data._ID);
         long previousContactId = -1;
         int count = 0;
         cursor.moveToPosition(-1);
         while (cursor.moveToNext()) {
-            final long contactId = cursor.getLong(contactIdColumn);
+            final long contactId = cursor.getLong(contactIdColumn != -1 ? contactIdColumn : idColumn);
             if (previousContactId != contactId) {
                 count++;
                 previousContactId = contactId;
@@ -861,11 +862,12 @@ public class BluetoothPbapVcardManager {
     private static void appendDistinctNameIdList(ArrayList<String> resultList,
             String defaultName, Cursor cursor) {
         final int contactIdColumn = cursor.getColumnIndex(Data.CONTACT_ID);
+        final int idColumn = cursor.getColumnIndex(Data._ID);
         final int nameColumn = cursor.getColumnIndex(Data.DISPLAY_NAME);
         long previousContactId = -1;
         cursor.moveToPosition(-1);
         while (cursor.moveToNext()) {
-            final long contactId = cursor.getLong(contactIdColumn);
+            final long contactId = cursor.getLong(contactIdColumn != -1 ? contactIdColumn : idColumn);
             String displayName = nameColumn != -1 ? cursor.getString(nameColumn) : defaultName;
             if (TextUtils.isEmpty(displayName)) {
                 displayName = defaultName;
