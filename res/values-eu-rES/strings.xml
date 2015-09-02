@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Onartu"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"Ados"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" igorlearen sarrerako fitxategia onartzeko denbora-muga gainditu da"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth bidezko partekatzea: sarrerako fitxategia"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Fitxategi hau jaso nahi duzu?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Sarrerako fitxategi bat bidali dizute beste gailu batetik. Berretsi fitxategia jaso nahi duzun."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Sarrerako fitxategia"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> prest dago <xliff:g id="FILE">%2$s</xliff:g> bidaltzeko"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth bidezko partekatzea: <xliff:g id="FILE">%1$s</xliff:g> fitxategia jasotzen"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth bidezko partekatzea: <xliff:g id="FILE">%1$s</xliff:g> fitxategia jaso da"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth bidezko partekatzea: ez da <xliff:g id="FILE">%1$s</xliff:g> fitxategia jaso"</string>

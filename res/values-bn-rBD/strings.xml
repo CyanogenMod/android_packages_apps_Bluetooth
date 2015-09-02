@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"স্বীকার করুন"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ঠিক আছে"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" এর থেকে ইনকামিং ফাইল গ্রহণ করার সময় অতিবাহিত হয়ে গেছে।"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth share: ইনকামিং ফাইল"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"আপনি কি এই ফাইলটি পেতে চান?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"অন্য ডিভাইস থেকে ইনকামিং ফাইল। আপনি যে ফাইলটি পেতে চান তা নিশ্চিত করুন।"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"আগত ফাইল"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> <xliff:g id="FILE">%2$s</xliff:g> পাঠানোর জন্য প্রস্তুত"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth share: <xliff:g id="FILE">%1$s</xliff:g> প্রাপ্ত করা হচ্ছে"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth share: <xliff:g id="FILE">%1$s</xliff:g> প্রাপ্ত করা হয়েছে"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth share: <xliff:g id="FILE">%1$s</xliff:g> ফাইল প্রাপ্ত করা হয়নি"</string>

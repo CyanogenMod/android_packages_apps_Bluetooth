@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Зөвшөөрөх"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"Тийм"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\"-с ирж байгаа файлыг зөвшөөрөх явцад хугацаа хэтэрсэн байна"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth хуваалцах: Ирж байгаа файл"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Та энэ файлыг хүлээн авахыг хүсэж байна уу?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Өөр төхөөрөмжөөс ирж байгаа файл. Та энэ файлыг хүлээн авахыг хүсэж байгаагаа баталгаажуулна уу."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Ирж буй файл"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> нь <xliff:g id="FILE">%2$s</xliff:g>-г илгээхэд бэлэн"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth хуваалцах: Хүлээн авч байна <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth хуваалцах: Хүлээн авсан <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth хуваалцах: Файл <xliff:g id="FILE">%1$s</xliff:g> хүлээж аваагүй"</string>

@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Přijmout"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Při příjmu příchozího souboru od uživatele <xliff:g id="SENDER">%1$s</xliff:g> vypršel časový limit."</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Sdílení Bluetooth: Příchozí soubor"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Chcete tento soubor přijmout?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Potvrďte prosím příjem příchozího souboru z jiného zařízení."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Příchozí soubor"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> – odeslání souboru <xliff:g id="FILE">%2$s</xliff:g> je připraveno"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Sdílení Bluetooth: Příjem souboru <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Sdílení Bluetooth: Soubor <xliff:g id="FILE">%1$s</xliff:g> byl přijat"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Sdílení Bluetooth: Soubor <xliff:g id="FILE">%1$s</xliff:g> nebyl přijat"</string>

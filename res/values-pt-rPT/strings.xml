@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Aceitar"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Foi excedido o tempo limite durante a aceitação de um ficheiro de \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Partilha Bluetooth: ficheiro recebido"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Pretende receber este ficheiro?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"A receber ficheiro de outro aparelho. Confirme se pretende recebê-lo."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Ficheiro recebido"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> está pronto para enviar <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Partilha Bluetooth: a receber <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Partilha Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> recebido"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Partilha Bluetooth: Ficheiro <xliff:g id="FILE">%1$s</xliff:g> não recebido"</string>

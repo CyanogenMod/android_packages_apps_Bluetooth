@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"承諾"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"「<xliff:g id="SENDER">%1$s</xliff:g>」からのファイル受信中に接続がタイムアウトしました"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth共有: ファイル着信"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"このファイルを受信しますか？"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"別の端末からファイルが着信しました。このファイルを受信するかどうか確認してください。"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"着信ファイル"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g>さんが<xliff:g id="FILE">%2$s</xliff:g>を送信できるようになりました"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth共有: <xliff:g id="FILE">%1$s</xliff:g>を受信中"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth共有: <xliff:g id="FILE">%1$s</xliff:g>を受信済み"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth共有: ファイル<xliff:g id="FILE">%1$s</xliff:g>の受信に失敗"</string>

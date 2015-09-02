@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Sprejmi"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"V redu"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Pri sprejemanju datoteke pošiljatelja »<xliff:g id="SENDER">%1$s</xliff:g>« je potekla časovna omejitev"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth: Prihajajoča datoteka"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Ali želite prejeti to datoteko?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Iz druge naprave prihaja datoteka. Potrdite, da jo želite prejeti."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Dohodna datoteka"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"Uporabnik <xliff:g id="SENDER">%1$s</xliff:g> je pripravljen za pošiljanje datoteke <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth: Prejemanje <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth: Prejeto <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth: Datoteka <xliff:g id="FILE">%1$s</xliff:g> ni bila prejeta"</string>

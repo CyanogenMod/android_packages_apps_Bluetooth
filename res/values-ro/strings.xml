@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Acceptaţi"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"A fost atins timpul limită pentru acceptarea unui fişier primit de la „<xliff:g id="SENDER">%1$s</xliff:g>”"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth: se primeşte fişierul"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Doriţi să primiţi acest fişier?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Un fişier de la alt dispozitiv se află în curs de primire. Confirmaţi dacă doriţi primirea acestuia."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Fișier primit"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> este gata să trimită <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Distribuire prin Bluetooth: se primeşte <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Distribuire prin Bluetooth: s-a primit <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Distribuire prin Bluetooth: fişierul <xliff:g id="FILE">%1$s</xliff:g> nu s-a primit"</string>

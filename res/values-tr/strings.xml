@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Kabul Et"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"Tamam"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" kaynağından gelen dosyayı kabul etme süresi doldu"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth paylaşımı: Gelen dosya"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Bu dosyayı almak istiyor musunuz?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Başka cihazdan gelen bir dosya. Bu dosyayı almak istediğinizi onaylayın."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Gelen dosya"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g>, <xliff:g id="FILE">%2$s</xliff:g> adlı dosyayı göndermeye hazır"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth paylaşımı: <xliff:g id="FILE">%1$s</xliff:g> alınıyor"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth paylaşımı: <xliff:g id="FILE">%1$s</xliff:g> alındı"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth paylaşımı: <xliff:g id="FILE">%1$s</xliff:g> dosyası alınamadı"</string>

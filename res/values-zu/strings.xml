@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Yamukela"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"Kulungile"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Isikhathi siphelile ngenkathi yamukela ifayela engenayo esuka ku- \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Abelana ne-Bluetooth: Ifayela engenayo"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Ngabe uyafuna ukuthola leli fayela?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Kunefayela engenayo esuka kwenye idivayisi. Qiniseka ukuthi ufuna ukuthola lefayela."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Ifayela elingenayo"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> ulungele ukuthumela i-<xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Abelana ne-Bluetooth: Ithola<xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Abelana ne-Bluetooth: Itholakele <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Abelana ne-Bluetooth: Ifayela <xliff:g id="FILE">%1$s</xliff:g> ayitholakalanga"</string>

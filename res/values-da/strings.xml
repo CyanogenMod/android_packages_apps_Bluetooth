@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Accepter"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Der opstod timeout ved modtagelse af indgående fil fra \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth-deling: indgående fil"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"VIl du modtage denne fil?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Indgående fil fra en anden enhed. Bekræft, at du vil modtage denne fil."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Indgående fil"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> er klar til at sende <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth-deling: Modtager <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth-deling: Modtog <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth-deling: Filen <xliff:g id="FILE">%1$s</xliff:g> blev ikke modtaget"</string>

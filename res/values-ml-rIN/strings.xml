@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"സ്വീകരിക്കുക"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ശരി"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" എന്നയാളിൽ നിന്നും ഒരു ഇൻകമിംഗ് ഫയൽ സ്വീകരിക്കുമ്പോൾ ഒരു കാലഹരണപ്പെടൽ സംഭവിച്ചു"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"ബ്ലൂടൂത്ത് പങ്കിടൽ: ഇൻകമിംഗ് ഫയൽ"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"നിങ്ങൾക്ക് ഈ ഫയൽ നേടണോ?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"മറ്റൊരു ഉപകരണത്തിൽ നിന്നുള്ള ഇൻകമിംഗ് ഫയൽ. ഈ ഫയൽ നിങ്ങൾക്ക് നേടണമെങ്കിൽ സ്ഥിരീകരിക്കുക."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"ഇൻകമിംഗ് ഫയൽ"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="FILE">%2$s</xliff:g> അയയ്ക്കാൻ <xliff:g id="SENDER">%1$s</xliff:g> തയ്യാറാണ്"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"ബ്ലൂടൂത്ത് പങ്കിടൽ: <xliff:g id="FILE">%1$s</xliff:g> എന്ന ഫയൽ ലഭിക്കുന്നു"</string>
     <string name="notification_received" msgid="3324588019186687985">"ബ്ലൂടൂത്ത് പങ്കിടൽ: <xliff:g id="FILE">%1$s</xliff:g> ലഭിച്ചു"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"ബ്ലൂടൂത്ത് പങ്കിടൽ: <xliff:g id="FILE">%1$s</xliff:g> എന്ന ഫയൽ ലഭിച്ചില്ല."</string>

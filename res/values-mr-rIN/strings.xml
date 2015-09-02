@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"स्वीकारा"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ठीक"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" कडील फाइल स्‍वीकार करताना वेळ संपली."</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"ब्लूटुथ शेअर: येणारी फाइल"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"आपण ही फाइल प्राप्त करू इच्छिता?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"दुसर्‍या डिव्‍हाइस वरील येणारी फाइल. ही फाइल आपण प्राप्त करू इच्‍छिता याची पुष्‍टी करा."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"येणारी फाईल"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="FILE">%2$s</xliff:g> पाठविण्‍यासाठी <xliff:g id="SENDER">%1$s</xliff:g> तयार आहे"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"ब्लूटुथ शेअर: <xliff:g id="FILE">%1$s</xliff:g> प्राप्त करीत आहे"</string>
     <string name="notification_received" msgid="3324588019186687985">"ब्लूटुथ शेअर: <xliff:g id="FILE">%1$s</xliff:g> प्राप्त केली"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"ब्लूटुथ शेअर: <xliff:g id="FILE">%1$s</xliff:g> फाइल प्राप्त केली नाही"</string>

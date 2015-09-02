@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"स्वीकारें"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ठीक है"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" से आने वाली फ़ाइल स्वीकार करते समय समयबाह्य हुआ."</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"ब्लूटूथ शेयर: आने वाली फ़ाइल"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"क्या आप यह फ़ाइल प्राप्त करना चाहते हैं?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"दूसरे डिवाइस से कोई फ़ाइल आ रही है. सुनिश्चित करें कि आप यह फ़ाइल प्राप्त करना चाहते हैं."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"आवक फ़ाइल"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> <xliff:g id="FILE">%2$s</xliff:g> भेजने के लिए तैयार है"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"ब्लूटूथ शेयर: <xliff:g id="FILE">%1$s</xliff:g> प्राप्त कर रहा है"</string>
     <string name="notification_received" msgid="3324588019186687985">"ब्लूटूथ शेयर: <xliff:g id="FILE">%1$s</xliff:g> प्राप्त"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"ब्लूटूथ शेयर: फ़ाइल <xliff:g id="FILE">%1$s</xliff:g> प्राप्त नहीं हुई"</string>

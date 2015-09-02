@@ -36,9 +36,10 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"接受"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"确定"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"接受来自“<xliff:g id="SENDER">%1$s</xliff:g>”的文件时发生超时"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"蓝牙共享：传入文件"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"要接收该文件吗？"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"从其他设备传入了文件，请确认是否要接收。"</string>
+    <!-- no translation found for incoming_file_confirm_Notification_title (5573329005298936903) -->
+    <skip />
+    <!-- no translation found for incoming_file_confirm_Notification_content (3359694069319644738) -->
+    <skip />
     <string name="notification_receiving" msgid="4674648179652543984">"蓝牙共享：正在接收“<xliff:g id="FILE">%1$s</xliff:g>”"</string>
     <string name="notification_received" msgid="3324588019186687985">"蓝牙共享：已接收“<xliff:g id="FILE">%1$s</xliff:g>”"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"蓝牙共享：未收到文件“<xliff:g id="FILE">%1$s</xliff:g>”"</string>

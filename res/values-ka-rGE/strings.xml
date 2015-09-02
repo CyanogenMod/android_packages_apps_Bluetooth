@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"მიღება"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"კარგი"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"„<xliff:g id="SENDER">%1$s</xliff:g>“-გან ფაილის შემომავალი ფაილის მიღების დრო ამოიწურა"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth გაზიარება: შემომავალი ფაილი"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"გსურთ ამ ფაილის მიღება?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"შემომავალი ფაილი სხვა მოწყობილობიდან. დაადასტურეთ, რომ გსურთ ფაილის მიღება."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"შემომავალი ფაილი"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> მზად არის <xliff:g id="FILE">%2$s</xliff:g>-ის გასაგზავნად"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth გაზიარება: <xliff:g id="FILE">%1$s</xliff:g> ფაილის მიღება"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth გაზიარება: მიღებულია <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth გაზიარება: ფაილი <xliff:g id="FILE">%1$s</xliff:g> არ მიღებულა"</string>

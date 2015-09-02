@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"ទទួល"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"យល់​ព្រម​"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"អស់​ពេល​ទទួល​​ឯកសារ​ចូល​ពី \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"ការ​ចែក​រំលែក​ប៊្លូ​ធូ​ស៖ ឯកសារ​ចូល"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"តើ​អ្នក​ចង់​ទទួល​ឯកសារ​នេះ​ឬ​?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"ឯកសារ​ចូល​ពី​ឧបករណ៍​ផ្សេងទៀត។ បញ្ជាក់​ថា​អ្នក​ចង់​ទទួល​បាន​ឯកសារ​នេះ។"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"ឯកសារចូល"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> ត្រៀមរួចរាល់ក្នុងការផ្ញើ <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"ការ​ចែក​រំលែក​ប៊្លូ​ធូ​ស៖ ទទួល <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"ការ​ចែក​រំលែក​ប៊្លូ​ធូ​ស៖ បាន​ទទួល​ <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"ការ​ចែក​រំលែក​ប៊្លូ​ធូ​ស៖ មិន​បាន​ទទួល​ឯកសារ <xliff:g id="FILE">%1$s</xliff:g>"</string>

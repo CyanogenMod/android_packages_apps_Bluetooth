@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Piekrist"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"Labi"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Saņemot ienākošu failu no saņēmēja <xliff:g id="SENDER">%1$s</xliff:g>, radās noildze."</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth Share: ienākošais fails"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Vai vēlaties saņemt šo failu?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"No citas ierīces tiek sūtīts fails. Apstipriniet, ka vēlaties saņemt šo failu."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Ienākošais fails"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"Sūtītājs <xliff:g id="SENDER">%1$s</xliff:g> ir gatavs nosūtīt failu <xliff:g id="FILE">%2$s</xliff:g>."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Kopīgošana, izmantojot Bluetooth: notiek faila <xliff:g id="FILE">%1$s</xliff:g> saņemšana"</string>
     <string name="notification_received" msgid="3324588019186687985">"Kopīgošana, izmantojot Bluetooth: saņemts fails <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Kopīgošana, izmantojot Bluetooth: fails <xliff:g id="FILE">%1$s</xliff:g> netika saņemts"</string>

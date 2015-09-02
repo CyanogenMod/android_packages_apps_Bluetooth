@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Ընդունել"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"Լավ"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"«<xliff:g id="SENDER">%1$s</xliff:g>»-ից մուտքային ֆայլի ընդունման ժամանակը սպառվեց"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth համօգտագործում՝ մուտքային ֆայլ"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Ցանկանո՞ւմ եք ստանալ այս ֆայլը:"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Առկա է մուտքային ֆայլ այլ սարքից: Հաստատեք, որ ցանկանում եք ստանալ այս ֆայլը:"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Մուտքային ֆայլ"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g>-ը պատրաստ է ուղարկելու <xliff:g id="FILE">%2$s</xliff:g> ֆայլը"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth համօգտագործում՝ <xliff:g id="FILE">%1$s</xliff:g>-ը ստացվում է"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth համօգտագործում՝ ստացվեց <xliff:g id="FILE">%1$s</xliff:g>-ը"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth համօգտագործում՝ <xliff:g id="FILE">%1$s</xliff:g> ֆայլը չի ստացվել"</string>

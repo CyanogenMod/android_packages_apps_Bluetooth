@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"ಸ್ವೀಕರಿಸಿ"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ಸರಿ"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" ಅವರಿಂದ ಫೈಲ್‌ ಸ್ವೀಕರಿಸುವಾಗ ಕಾಲಾವಧಿ ಮುಕ್ತಾಯಗೊಂಡಿದೆ"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"ಬ್ಲೂಟೂತ್‌ ಹಂಚಿಕೆ: ಒಳಬರುವ ಫೈಲ್‌"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"ಈ ಫೈಲ್‌ ಅನ್ನು ಸ್ವೀಕರಿಸಲು ನೀವು ಬಯಸುವಿರಾ?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"ಮತ್ತೊಂದು ಸಾಧನದಿಂದ ಒಳಬರುವ ಫೈಲ್‌. ಈ ಫೈಲ್‌ ಸ್ವೀಕರಿಸಲು ನೀವು ಬಯಸುತ್ತೀರಾ ಎಂಬುದನ್ನು ಖಚಿತಪಡಿಸಿ."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"ಒಳಬರುತ್ತಿರುವ ಫೈಲ್"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> ಅವರು <xliff:g id="FILE">%2$s</xliff:g> ಫೈಲ್ ಕಳುಹಿಸಲು ಸಿದ್ಧವಾಗಿದ್ದಾರೆ"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"ಬ್ಲೂಟೂತ್‌ ಹಂಚಿಕೆ: <xliff:g id="FILE">%1$s</xliff:g> ಸ್ವೀಕರಿಸಲಾಗುತ್ತಿದೆ"</string>
     <string name="notification_received" msgid="3324588019186687985">"ಬ್ಲೂಟೂತ್‌ ಹಂಚಿಕೆ: <xliff:g id="FILE">%1$s</xliff:g> ಸ್ವೀಕರಿಸಲಾಗಿದೆ"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"ಬ್ಲೂಟೂತ್‌ ಹಂಚಿಕೆ: ಫೈಲ್‌ <xliff:g id="FILE">%1$s</xliff:g> ಸ್ವೀಕರಿಸಿಲ್ಲ"</string>

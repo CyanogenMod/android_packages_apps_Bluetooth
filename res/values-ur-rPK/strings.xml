@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"قبول کریں"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ٹھیک ہے"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" کی جانب سے ایک موصول ہونے والی فائل کو قبول کرتے وقت ایک ٹائم آؤٹ پیش آگیا"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"بلوٹوتھ اشتراک: موصول ہونے والی فائل"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"کیا آپ اس فائل کو موصول کرنا چاہتے ہیں؟"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"کسی دوسرے آلہ سے موصول ہونے والی فائل۔ توثیق کریں کہ آپ اس فائل کو موصول کرنا چاہتے ہیں۔"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"آنے والی فائل"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> <xliff:g id="FILE">%2$s</xliff:g> بھیجنے کے لئے تیار ہے"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"بلوٹوتھ اشتراک: <xliff:g id="FILE">%1$s</xliff:g> موصول ہو رہی ہے"</string>
     <string name="notification_received" msgid="3324588019186687985">"بلوٹوتھ اشتراک: <xliff:g id="FILE">%1$s</xliff:g> موصول ہوئی"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"بلوٹوتھ اشتراک: فائل <xliff:g id="FILE">%1$s</xliff:g> موصول نہیں ہوئی"</string>

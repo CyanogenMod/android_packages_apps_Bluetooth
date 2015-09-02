@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"قبول"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"موافق"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"انتهت المهلة أثناء قبول ملف وراد من \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"مشاركة البلوتوث: ملف وارد"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"هل تريد تلقي هذا الملف؟"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"هناك ملف وارد من جهاز آخر. عليك تأكيد أنك تريد استلام هذا الملف."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"ملف وارد"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> جاهز لإرسال <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"مشاركة البلوتوث: يتم استلام <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"مشاركة البلوتوث: تم استلام <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"مشاركة البلوتوث: لم يتم استلام الملف <xliff:g id="FILE">%1$s</xliff:g>"</string>

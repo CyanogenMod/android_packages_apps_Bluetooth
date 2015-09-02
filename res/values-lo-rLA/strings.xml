@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"ຮັບເອົາ"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ຕົກລົງ"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"ເກີດມີການໝົດເວລາໃນລະຫວ່າງທີ່ກຳລັງຮັບເອົາໄຟລ໌ທີ່ເຂົ້າມາຈາກ \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"ແບ່ງປັນໃນ Bluetooth: ມີໄຟລ໌ເຂົ້າມາ"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"ທ່ານຕ້ອງການທີ່ຮັບເອົາໄຟລ໌ນີ້ບໍ່?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"ມີໄຟລ໌ກຳລັງເຂົ້າມາຈາກອຸປະກອນອື່ນ. ຢືນຢັນວ່າທ່ານຕ້ອງການຮັບເອົາໄຟລ໌ນີ້."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"ໄຟ​ລ໌​ເຂົ້າ​ມາ"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> ພ້ອມ​ທີ່​ຈະ​ສົ່ງ <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"ແບ່ງປັນໃນ Bluetooth: ກຳລັງຮັບເອົາ <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"ແບ່ງປັນໃນ Bluetooth: ໄດ້ຮັບ <xliff:g id="FILE">%1$s</xliff:g> ແລ້ວ"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"ແບ່ງປັນໃນ Bluetooth: ບໍ່ໄດ້ຮັບ <xliff:g id="FILE">%1$s</xliff:g>"</string>

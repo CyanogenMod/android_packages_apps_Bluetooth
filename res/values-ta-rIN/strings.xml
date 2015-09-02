@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"ஏற்கிறேன்"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"சரி"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" இடமிருந்து வரும் கோப்பை ஏற்கும்போது நேரம் முடிந்தது"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"புளூடூத் பகிர்வு: உள்வரும் கோப்பு"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"கோப்பைப் பெறவா?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"வேறொரு சாதனத்திலிருந்து கோப்பு வருகிறது. அதைப் பெற விருப்பமா என்பதை உறுதிப்படுத்தவும்."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"உள்வரும் கோப்பு"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> <xliff:g id="FILE">%2$s</xliff:g> கோப்பை அனுப்புவதற்குத் தயாராக உள்ளார்"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"புளூடூத் பகிர்வு: <xliff:g id="FILE">%1$s</xliff:g> ஐப் பெறுகிறது"</string>
     <string name="notification_received" msgid="3324588019186687985">"புளூடூத் பகிர்வு: <xliff:g id="FILE">%1$s</xliff:g> பெறப்பட்டது"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"புளூடூத் பகிர்வு: <xliff:g id="FILE">%1$s</xliff:g> ஐப் பெறவில்லை"</string>

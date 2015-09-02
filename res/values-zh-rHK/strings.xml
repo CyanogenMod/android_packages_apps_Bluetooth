@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"接受"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"確定"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"接收來自「<xliff:g id="SENDER">%1$s</xliff:g>」的檔案時發生作業逾時"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"藍牙分享：外來檔案"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"您要接收這個檔案嗎？"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"來自另一部裝置的檔案，請確認您要接收這個外來檔案。"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"收到的檔案"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g>準備傳送<xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"藍牙分享：正在接收 <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"藍牙分享：已接收 <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"藍牙分享：未收到檔案 <xliff:g id="FILE">%1$s</xliff:g>"</string>

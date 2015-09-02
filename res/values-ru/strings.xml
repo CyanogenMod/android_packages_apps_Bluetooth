@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Принять"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ОК"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"В процессе приема файла от \"<xliff:g id="SENDER">%1$s</xliff:g>\" произошел тайм-аут"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Передача по Bluetooth"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Принять файл?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Входящий файл с другого устройства. Подтвердите, что хотите загрузить его."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Входящий файл"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"Устройство \"<xliff:g id="SENDER">%1$s</xliff:g>\" готово к отправке файла \"<xliff:g id="FILE">%2$s</xliff:g>\""</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Передача по Bluetooth: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Получено по Bluetooth: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Файл не передан: <xliff:g id="FILE">%1$s</xliff:g>"</string>

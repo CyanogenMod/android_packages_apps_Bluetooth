@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"පිළිගන්න"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"හරි"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" වෙතින් පැමිණෙන ගොනුවක් පිළිගන්නා අතරතුර කාල නිමාවක් විය"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"බ්ලූටූත් බෙදා ගැනීම: පැමිණෙන ගොනුව"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"ඔබට මෙම ගොනුව ලබා ගැනීමට අවශ්‍යද?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"වෙනත් උපාංගයක් වෙතින් පැමිණෙන ගොනුව. මෙම ගොනුව ලබා ගැනීමට ඔබට අවශ්‍ය බව තහවුරු කරන්න."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"ලැබෙන ගොනුව"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> <xliff:g id="FILE">%2$s</xliff:g> යැවීමට සූදානම්ය"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"බ්ලූටූත් බෙදා ගැනීම: <xliff:g id="FILE">%1$s</xliff:g> ලැබේ"</string>
     <string name="notification_received" msgid="3324588019186687985">"බ්ලූටූත් බෙදා ගැනීම: <xliff:g id="FILE">%1$s</xliff:g> ලැබිණි"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"බ්ලූටූත් බෙදා ගැනීම: <xliff:g id="FILE">%1$s</xliff:g> ගොනුව නොලැබිණි"</string>

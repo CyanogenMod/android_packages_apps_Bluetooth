@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"स्वीकार्नुहोस्"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ठीक छ"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" बाट आगमन फाइल स्वीकार्दा समय सकिएको थियो"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"ब्लुटुथ साझेदारी: आगमन फाइल"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"के तपाईँ यो फाइल प्राप्त गर्न चाहनु हुन्छ?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"अर्को उपकरणबाट आगमन फाइल। यो फाइल तपाईँ प्राप्त गर्न चाहनु हुन्छ भन्ने कुरा निश्चित गर्नुहोस्।"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"आगमन फाइल"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> ले <xliff:g id="FILE">%2$s</xliff:g> पठाउन तयार छ"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"ब्लुटुथ साझेदारी:<xliff:g id="FILE">%1$s</xliff:g> प्राप्त गर्दै"</string>
     <string name="notification_received" msgid="3324588019186687985">"ब्लुटुथ साझेदारी: <xliff:g id="FILE">%1$s</xliff:g> प्राप्त भयो"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"ब्लुटुथ साझेदारी: फाइल: <xliff:g id="FILE">%1$s</xliff:g> प्राप्त भएन"</string>

@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Godkänn"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Tidsgränsen överskreds när en inkommande fil från <xliff:g id="SENDER">%1$s</xliff:g> skulle tas emot"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth-delning: inkommande fil"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Vill du ta emot den här filen?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Inkommande fil från en annan enhet. Bekräfta att du vill ta emot denna fil."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Inkommande fil"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> är klar att skicka <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth-delning: tar emot <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth-delning: <xliff:g id="FILE">%1$s</xliff:g> har tagits emot"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth-delning: filen <xliff:g id="FILE">%1$s</xliff:g> har inte tagits emot"</string>

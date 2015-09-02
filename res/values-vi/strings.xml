@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Chấp nhận"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Có thời gian chờ trong khi chấp nhận tệp tới từ \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Chia sẻ qua Bluetooth: Tệp đến"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Bạn có muốn nhận tệp này không?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Có tệp đến từ một thiết bị khác. Hãy xác nhận bạn muốn nhận tệp này."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Tệp đến"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> đã sẵn sàng gửi <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Chia sẻ qua Bluetooth: Đang nhận <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Chia sẻ qua Bluetooth: Đã nhận <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Chia sẻ qua Bluetooth: Chưa nhận được tệp <xliff:g id="FILE">%1$s</xliff:g>"</string>

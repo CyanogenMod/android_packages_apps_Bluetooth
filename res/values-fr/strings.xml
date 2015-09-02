@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Accepter"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Expiration du délai de réception du fichier de \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Partage Bluetooth : réception de fichier"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Voulez-vous recevoir ce fichier ?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Fichier entrant provenant d\'un autre appareil. Confirmez que vous souhaitez recevoir ce fichier."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Fichier entrant"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> est prêt à envoyer le fichier \"<xliff:g id="FILE">%2$s</xliff:g>\"."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Partage Bluetooth : réception de <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Partage Bluetooth : <xliff:g id="FILE">%1$s</xliff:g> reçu"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Partage Bluetooth : fichier <xliff:g id="FILE">%1$s</xliff:g> non reçu"</string>

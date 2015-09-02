@@ -36,9 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Nõustun"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Esines ajalõpp sissetuleva faili aktsepteerimisel saatjalt „<xliff:g id="SENDER">%1$s</xliff:g>”"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetoothi jagamine: sissetulev fail"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Kas soovite selle faili vastu võtta?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Sissetulev fail teisest seadmest. Kinnitage, et soovite selle faili vastu võtta."</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Sissetulev fail"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"Saatja <xliff:g id="SENDER">%1$s</xliff:g> on faili <xliff:g id="FILE">%2$s</xliff:g> saatmiseks valmis"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetoothi jagamine: faili <xliff:g id="FILE">%1$s</xliff:g> vastuvõtmine"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetoothi jagamine: <xliff:g id="FILE">%1$s</xliff:g> vastu võetud"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Bluetoothi jagamine: faili <xliff:g id="FILE">%1$s</xliff:g> pole saadud"</string>
