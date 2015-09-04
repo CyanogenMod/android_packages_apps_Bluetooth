@@ -118,7 +118,7 @@ public class BluetoothPbapVcardManager {
     // here.
     static final String CALLLOG_SORT_ORDER = Calls._ID + " DESC";
 
-    private static final String CLAUSE_ONLY_VISIBLE = Contacts.IN_VISIBLE_GROUP + "=1";
+    private static final String CLAUSE_ONLY_VISIBLE = null;
 
     public BluetoothPbapVcardManager(final Context context) {
         mContext = context;
