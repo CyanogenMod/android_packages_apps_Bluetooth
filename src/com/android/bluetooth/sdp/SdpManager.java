@@ -103,6 +103,9 @@ public class SdpManager {
     private native int sdpCreateMapMnsRecordNative(String serviceName,
             int rfcommChannel, int l2capPsm, int version, int features);
 
+    private native int sdpCreatePbapPceRecordNative(String serviceName,
+            int version);
+
     private native int sdpCreatePbapPseRecordNative(String serviceName, int rfcommChannel,
             int l2capPsm, int version, int repositories, int features);
 
@@ -560,6 +563,31 @@ public class SdpManager {
         }
         return sdpCreateMapMnsRecordNative(serviceName, rfcommChannel,
                 l2capPsm, version, features);
+    }
+
+    /**
+     * Create a client side Phonebook Access Profile Service Record.
+     * Create the record once, and reuse it for all connections.
+     * If changes to a record is needed remove the old record using {@link removeSdpRecord}
+     * and then create a new one.
+     * @param serviceName   The textual name of the service
+     * @param rfcommChannel The RFCOMM channel that clients can connect to
+     *                      (obtain from BluetoothServerSocket)
+     * @param l2capPsm      The L2CAP PSM channel that clients can connect to
+     *                      (obtain from BluetoothServerSocket)
+     *                      Supply -1 to omit the L2CAP PSM from the record.
+     * @param version       The Profile version number (As specified in the Bluetooth
+     *                      PBAP specification)
+     * @return a handle to the record created. The record can be removed again
+     *          using {@link removeSdpRecord}(). The record is not linked to the
+     *          creation/destruction of BluetoothSockets, hence SDP record cleanup
+     *          is a separate process.
+     */
+    public int createPbapPceRecord(String serviceName, int version) {
+        if(sNativeAvailable == false) {
+            throw new RuntimeException(TAG + " sNativeAvailable == false - native not initialized");
+        }
+        return sdpCreatePbapPceRecordNative(serviceName, version);
     }
 
     /**

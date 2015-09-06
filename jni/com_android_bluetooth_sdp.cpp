@@ -389,6 +389,41 @@ static jint sdpCreateMapMnsRecordNative(JNIEnv *env, jobject obj, jstring name_s
     return handle;
 }
 
+static jint sdpCreatePbapPceRecordNative(JNIEnv *env, jobject obj, jstring name_str,
+                                         jint version) {
+    ALOGD("%s:",__FUNCTION__);
+
+    const char* service_name = NULL;
+    bluetooth_sdp_record record = {}; // Must be zero initialized
+    int handle=-1;
+    int ret = 0;
+    if (!sBluetoothSdpInterface) return handle;
+
+    record.pce.hdr.type = SDP_TYPE_PBAP_PCE;
+
+    if (name_str != NULL) {
+        service_name = env->GetStringUTFChars(name_str, NULL);
+        record.pce.hdr.service_name = (char *) service_name;
+        record.pce.hdr.service_name_length = strlen(service_name);
+    } else {
+        record.pce.hdr.service_name = NULL;
+        record.pce.hdr.service_name_length = 0;
+    }
+    record.pce.hdr.profile_version = version;
+
+    if ( (ret = sBluetoothSdpInterface->create_sdp_record(&record, &handle))
+            != BT_STATUS_SUCCESS) {
+        ALOGE("SDP Create record failed: %d", ret);
+        goto Fail;
+    }
+
+    ALOGD("SDP Create record success - handle: %d", handle);
+
+    Fail:
+    if (service_name) env->ReleaseStringUTFChars(name_str, service_name);
+    return handle;
+}
+
 static jint sdpCreatePbapPseRecordNative(JNIEnv *env, jobject obj, jstring name_str,
                                          jint scn, jint l2cap_psm, jint version,
                                          jint supported_repositories, jint features) {
@@ -567,6 +602,8 @@ static JNINativeMethod sMethods[] = {
         (void*) sdpCreateMapMasRecordNative},
     {"sdpCreateMapMnsRecordNative", "(Ljava/lang/String;IIII)I",
         (void*) sdpCreateMapMnsRecordNative},
+    {"sdpCreatePbapPceRecordNative", "(Ljava/lang/String;I)I",
+        (void*) sdpCreatePbapPceRecordNative},
     {"sdpCreatePbapPseRecordNative", "(Ljava/lang/String;IIIII)I",
         (void*) sdpCreatePbapPseRecordNative},
     {"sdpCreateOppOpsRecordNative", "(Ljava/lang/String;III[B)I",

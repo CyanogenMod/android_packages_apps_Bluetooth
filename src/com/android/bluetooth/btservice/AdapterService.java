@@ -1396,6 +1396,12 @@ public class AdapterService extends Service {
                      l2capPsm, version, features);
          }
 
+         public int createPbapPceSdpRecord(String serviceName, int version) {
+             AdapterService service = getService();
+             if (service == null) return -1;
+             return service.createPbapPceSdpRecord(serviceName, version);
+         }
+
          public boolean removeSdpRecord(int recordHandle){
              AdapterService service = getService();
              if (service == null) return false;
@@ -2183,6 +2189,11 @@ public class AdapterService extends Service {
         SdpManager manager = SdpManager.getDefaultManager();
         return manager.createMapMnsRecord(serviceName, rfcommChannel,
                 l2capPsm, version, features);
+    }
+
+    public int createPbapPceSdpRecord(String serviceName, int version) {
+        SdpManager manager = SdpManager.getDefaultManager();
+        return manager.createPbapPceRecord(serviceName, version);
     }
 
     public boolean removeSdpRecord(int recordHandle){
