@@ -416,7 +416,7 @@ public class AdapterService extends Service {
                         continue;
                     }
                     if (BluetoothAdapter.STATE_OFF != entry.getValue()) {
-                        debugLog("onProfileServiceStateChange() - Profile still running: "
+                        Log.d(TAG,"onProfileServiceStateChange() - Profile still running: "
                             + entry.getKey());
                         return;
                     }
@@ -443,7 +443,7 @@ public class AdapterService extends Service {
                     }
                     if (BluetoothAdapter.STATE_ON != entry.getValue()) {
                         debugLog("onProfileServiceStateChange() - Profile still not running:"
-                            + entry.getKey());
+                              + entry.getKey());
                         return;
                     }
                 }
@@ -797,7 +797,6 @@ public class AdapterService extends Service {
                 debugLog("setProfileServiceState() - "
                     + (state == BluetoothAdapter.STATE_OFF ? "Stopping" : "Starting")
                     + " service " + serviceName);
-
                 mProfileServicesState.put(serviceName,pendingState);
                 Intent intent = new Intent(this,services[i]);
                 intent.putExtra(EXTRA_ACTION,ACTION_SERVICE_STATE_CHANGED);

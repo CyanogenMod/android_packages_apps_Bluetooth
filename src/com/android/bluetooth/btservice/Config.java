@@ -27,6 +27,7 @@ import android.content.res.Resources;
 import android.os.SystemProperties;
 import android.provider.Settings;
 import android.util.Log;
+import android.os.SystemProperties;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.a2dp.A2dpService;
@@ -97,6 +98,8 @@ public class Config {
         for (int i=0; i < PROFILE_SERVICES_FLAG.length; i++) {
             boolean supported = resources.getBoolean(PROFILE_SERVICES_FLAG[i]);
             if (supported && !isProfileDisabled(ctx, PROFILE_SERVICES[i])) {
+                if(!addAudioProfiles(PROFILE_SERVICES[i].getSimpleName()))
+                    continue;
                 Log.d(TAG, "Adding " + PROFILE_SERVICES[i].getSimpleName());
                 profiles.add(PROFILE_SERVICES[i]);
             }
@@ -104,6 +107,28 @@ public class Config {
         int totalProfiles = profiles.size();
         SUPPORTED_PROFILES = new Class[totalProfiles];
         profiles.toArray(SUPPORTED_PROFILES);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static synchronized boolean addAudioProfiles(String serviceName) {
+        boolean isA2dpSinkEnabled = SystemProperties.getBoolean("persist.service.bt.a2dp.sink",
+                                                                                         false);
+        boolean isHfpClientEnabled = SystemProperties.getBoolean("persist.service.bt.hfp.client",
+                                                                                         false);
+        Log.d(TAG, "addA2dpProfile: isA2dpSinkEnabled = " + isA2dpSinkEnabled+"isHfpClientEnabled "
+        + isHfpClientEnabled + " serviceName " + serviceName);
+        /* If property not enabled and request is for A2DPSinkService, don't add */
+        if((serviceName.equals("A2dpSinkService"))&&(!isA2dpSinkEnabled))
+            return false;
+        if((serviceName.equals("A2dpService"))&&(isA2dpSinkEnabled))
+            return false;
+
+        if((serviceName.equals("HeadsetClientService"))&&(!isHfpClientEnabled))
+            return false;
+        if((serviceName.equals("HeadsetService"))&&(isHfpClientEnabled))
+            return false;
+
+        return true;
     }
 
     static Class[]  getSupportedProfiles() {
