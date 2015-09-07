@@ -36,10 +36,8 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"קבל"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"אישור"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"תם הזמן הקצוב לקבלת קובץ נכנס מאת \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <!-- no translation found for incoming_file_confirm_Notification_title (5573329005298936903) -->
-    <skip />
-    <!-- no translation found for incoming_file_confirm_Notification_content (3359694069319644738) -->
-    <skip />
+    <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"קובץ שהתקבל"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> מוכן לשלוח את <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"‏שיתוף Bluetooth: מקבל את <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"‏שיתוף Bluetooth‏: התקבל <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"‏שיתוף Bluetooth: הקובץ <xliff:g id="FILE">%1$s</xliff:g> לא התקבל"</string>
