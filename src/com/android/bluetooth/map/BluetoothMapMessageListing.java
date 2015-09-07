@@ -33,6 +33,7 @@ public class BluetoothMapMessageListing {
     private static final boolean D = BluetoothMapService.DEBUG;
 
     private List<BluetoothMapMessageListingElement> mList;
+    private static final String BENZ_CARKIT = "00:26:e8";
 
     public BluetoothMapMessageListing(){
         mList = new ArrayList<BluetoothMapMessageListingElement>();
@@ -90,11 +91,25 @@ public class BluetoothMapMessageListing {
     // TODO: Remove includeThreadId when MAP-IM is adopted
     public byte[] encode(boolean includeThreadId, String version) throws UnsupportedEncodingException {
         StringWriter sw = new StringWriter();
-        XmlSerializer xmlMsgElement = new FastXmlSerializer();
+        XmlSerializer xmlMsgElement = null;
+        boolean isBenzCarkit = BluetoothMapService.getRemoteDevice().getAddress().toLowerCase()
+                .startsWith(BENZ_CARKIT);
+        if(D) Log.d(TAG, "Remote is BENZ CARKIT: " + isBenzCarkit);
+        if(isBenzCarkit) {
+            xmlMsgElement = Xml.newSerializer();
+        } else {
+            xmlMsgElement = new FastXmlSerializer();
+        }
         try {
             xmlMsgElement.setOutput(sw);
-            xmlMsgElement.startDocument("UTF-8", true);
-            xmlMsgElement.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+            if(isBenzCarkit) {
+                xmlMsgElement.text("\n");
+            } else {
+                xmlMsgElement.startDocument("UTF-8", true);
+                xmlMsgElement.text("\n");
+                xmlMsgElement.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output",
+                        true);
+            }
             xmlMsgElement.startTag(null, "MAP-msg-listing");
             xmlMsgElement.attribute(null, "version", version);
             // Do the XML encoding of list
