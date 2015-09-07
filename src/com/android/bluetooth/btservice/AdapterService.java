@@ -205,7 +205,6 @@ public class AdapterService extends Service {
     private PowerManager mPowerManager;
     private PowerManager.WakeLock mWakeLock;
     private String mWakeLockName;
-    private HashSet<String> mDisabledProfiles = new HashSet<String>();
 
     public AdapterService() {
         super();
@@ -379,7 +378,7 @@ public class AdapterService extends Service {
                         continue;
                     }
                     if (BluetoothAdapter.STATE_OFF != entry.getValue()) {
-                        debugLog("onProfileServiceStateChange() - Profile still running: "
+                        Log.d(TAG,"onProfileServiceStateChange() - Profile still running: "
                             + entry.getKey());
                         return;
                     }
@@ -402,10 +401,10 @@ public class AdapterService extends Service {
                         debugLog("Skip GATT service - already started before");
                         continue;
                     }
-                    if (BluetoothAdapter.STATE_ON != entry.getValue()
-                                   && !mDisabledProfiles.contains(entry.getKey())) {
+
+                    if (BluetoothAdapter.STATE_ON != entry.getValue()) {
                         debugLog("onProfileServiceStateChange() - Profile still not running:"
-                            + entry.getKey());
+                              + entry.getKey());
                         return;
                     }
                 }
@@ -474,8 +473,6 @@ public class AdapterService extends Service {
         mBondStateMachine = BondStateMachine.make(mPowerManager, this, mAdapterProperties, mRemoteDevices);
 
         mJniCallbacks.init(mBondStateMachine,mRemoteDevices);
-
-        checkA2dpState();
 
         //Start Gatt service
         setGattProfileServiceState(supportedProfileServices,BluetoothAdapter.STATE_ON);
@@ -597,10 +594,6 @@ public class AdapterService extends Service {
             mProfileServicesState.clear();
         }
 
-        if (mDisabledProfiles != null) {
-            mDisabledProfiles.clear();
-        }
-
         clearAdapterService();
 
         if (mBinder != null) {
@@ -696,7 +689,6 @@ public class AdapterService extends Service {
                 debugLog("setProfileServiceState() - "
                     + (state == BluetoothAdapter.STATE_OFF ? "Stopping" : "Starting")
                     + " service " + serviceName);
-
                 mProfileServicesState.put(serviceName,pendingState);
                 Intent intent = new Intent(this,services[i]);
                 intent.putExtra(EXTRA_ACTION,ACTION_SERVICE_STATE_CHANGED);
@@ -740,16 +732,6 @@ public class AdapterService extends Service {
             debugLog("setProfileServiceState() - "
                 + (state == BluetoothAdapter.STATE_OFF ? "Stopping" : "Starting")
                 + " service " + serviceName);
-
-            if (state == BluetoothAdapter.STATE_ON && mDisabledProfiles.contains(serviceName)) {
-                Log.i(TAG, "skipping " + serviceName + " (disabled)");
-                continue;
-            }
-
-            if (DBG) {
-                Log.w(TAG, (state == BluetoothAdapter.STATE_OFF? "Stopping" : "Starting" ) +" service " +
-                        serviceName);
-            }
 
             mProfileServicesState.put(serviceName,pendingState);
             Intent intent = new Intent(this,services[i]);
@@ -2446,64 +2428,4 @@ public class AdapterService extends Service {
         }
     }
 
-    @SuppressWarnings("rawtypes")
-    private synchronized void checkA2dpState() {
-        final Class a2dp_src[]  =  { A2dpService.class };
-        final Class a2dp_sink[] = { A2dpSinkService.class };
-
-        boolean isA2dpSinkEnabled = SystemProperties.getBoolean("persist.service.bt.a2dp.sink", false);
-        Log.d(TAG, "checkA2dpState: isA2dpSinkEnabled = " + isA2dpSinkEnabled);
-
-        if (isA2dpSinkEnabled) {
-            mDisabledProfiles.add(A2dpService.class.getName());
-            mDisabledProfiles.remove(A2dpSinkService.class.getName());
-        } else {
-            mDisabledProfiles.remove(A2dpService.class.getName());
-            mDisabledProfiles.add(A2dpSinkService.class.getName());
-        }
-
-        if (mAdapterStateMachine.isTurningOn() || mAdapterStateMachine.isTurningOff()) {
-            Log.e(TAG, "checkA2dpState: returning");
-            return;
-        }
-
-        if (isA2dpSinkEnabled) {
-            setProfileServiceState(a2dp_src, BluetoothAdapter.STATE_OFF);
-            setProfileServiceState(a2dp_sink, BluetoothAdapter.STATE_ON);
-        } else {
-            setProfileServiceState(a2dp_sink, BluetoothAdapter.STATE_OFF);
-            setProfileServiceState(a2dp_src, BluetoothAdapter.STATE_ON);
-        }
-    }
-
-    @SuppressWarnings("rawtypes")
-    private synchronized void checkHfpState() {
-        final Class hfp_ag[] = { HeadsetService.class };
-        final Class hfp_hs[] = { HeadsetClientService.class };
-
-        boolean isHfpClientEnabled = SystemProperties.getBoolean("persist.service.bt.hfp.client",
-                false);
-        Log.d(TAG, "checkHfpState: isHfpClientEnabled = " + isHfpClientEnabled);
-
-        if (isHfpClientEnabled) {
-            mDisabledProfiles.add(HeadsetService.class.getName());
-            mDisabledProfiles.remove(HeadsetClientService.class.getName());
-        } else {
-            mDisabledProfiles.remove(HeadsetService.class.getName());
-            mDisabledProfiles.add(HeadsetClientService.class.getName());
-        }
-
-        if (mAdapterStateMachine.isTurningOn() || mAdapterStateMachine.isTurningOff()) {
-            Log.e(TAG, "checkHfpState: returning");
-            return;
-        }
-
-        if (isHfpClientEnabled) {
-            setProfileServiceState(hfp_ag, BluetoothAdapter.STATE_OFF);
-            setProfileServiceState(hfp_hs, BluetoothAdapter.STATE_ON);
-        } else {
-            setProfileServiceState(hfp_hs, BluetoothAdapter.STATE_OFF);
-            setProfileServiceState(hfp_ag, BluetoothAdapter.STATE_ON);
-        }
-    }
 }
