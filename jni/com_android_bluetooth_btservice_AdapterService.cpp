@@ -536,13 +536,14 @@ static bool set_wake_alarm_callout(uint64_t delay_millis, bool should_wake,
 
     jboolean jshould_wake = should_wake ? JNI_TRUE : JNI_FALSE;
     if (sJniAdapterServiceObj) {
-    jboolean ret = env->CallBooleanMethod(sJniAdapterServiceObj, method_setWakeAlarm,
+        ret = env->CallBooleanMethod(sJniAdapterServiceObj, method_setWakeAlarm,
             (jlong)delay_millis, jshould_wake);
     } else {
        ALOGE("JNI ERROR : JNI reference already cleaned : set_wake_alarm_callout", __FUNCTION__);
     }
 
     if (!ret) {
+        ALOGE("%s setWakeAlarm failed:ret= %d ", __func__,ret);
         sAlarmCallback = NULL;
         sAlarmCallbackData = NULL;
     }
