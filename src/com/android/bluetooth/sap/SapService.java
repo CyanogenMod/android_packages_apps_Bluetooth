@@ -47,7 +47,6 @@ public class SapService extends ProfileService {
     private static final String TAG = "SapService";
     public static final boolean DEBUG = false;
     public static final boolean VERBOSE = false;
-    public static final boolean PTS_TEST = false;
 
     /* Message ID's */
     private static final int START_LISTENER = 1;
