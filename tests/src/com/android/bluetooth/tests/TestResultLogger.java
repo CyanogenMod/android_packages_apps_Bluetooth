@@ -68,9 +68,11 @@ public class TestResultLogger implements IResultLogger {
         }
         for(; i >= 0 ; i--) {
             preFirst = mResults.get(i);
-            if(preFirst.timeStamp < firstTimeStamp) {
+            if(preFirst != null && preFirst.timeStamp < firstTimeStamp) {
                 first = mResults.get(i+1);
                 break;
+            } else {
+                return 0;
             }
         }
         long timeError = period - (last.timeStamp-first.timeStamp);
