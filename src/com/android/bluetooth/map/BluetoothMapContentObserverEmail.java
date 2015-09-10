@@ -263,6 +263,27 @@ public class BluetoothMapContentObserverEmail extends BluetoothMapContentObserve
         mMasInstance.setMsgListMsg(msgListMsg);
     }
 
+    public int getObserverRemoteFeatureMask() {
+        if (V) Log.v(TAG, "getObserverRemoteFeatureMask Email: " + mMapEventReportVersion
+            + " mMapSupportedFeatures Email: " + mMapSupportedFeatures);
+        return mMapSupportedFeatures;
+    }
+
+    public void setObserverRemoteFeatureMask( int remoteSupportedFeatures) {
+        mMapSupportedFeatures = remoteSupportedFeatures;
+        if ((BluetoothMapUtils.MAP_FEATURE_EXTENDED_EVENT_REPORT_11_BIT
+                & mMapSupportedFeatures) != 0) {
+            mMapEventReportVersion = BluetoothMapUtils.MAP_EVENT_REPORT_V11;
+        }
+        // Make sure support for all formats result in latest version returned
+        if ((BluetoothMapUtils.MAP_FEATURE_EVENT_REPORT_V12_BIT
+                & mMapSupportedFeatures) != 0) {
+            mMapEventReportVersion = BluetoothMapUtils.MAP_EVENT_REPORT_V12;
+        }
+        if (V) Log.d(TAG, "setObserverRemoteFeatureMask Email: " + mMapEventReportVersion
+            + " mMapSupportedFeatures Email: " + mMapSupportedFeatures);
+    }
+
     private static boolean sendEventNewMessage(long eventFilter) {
         return ((eventFilter & EVENT_FILTER_NEW_MESSAGE) > 0);
     }
@@ -340,12 +361,12 @@ public class BluetoothMapContentObserverEmail extends BluetoothMapContentObserve
                             Long.toString(mAccount.getAccountId()));
         if (V) Log.d(TAG, "registerObserver EMAIL_URI: "+ EMAIL_URI.toString());
         if (mAccount!= null && mAccount.getType() == TYPE.EMAIL) {
-            initMsgList();
             mProviderClient = mResolver.acquireUnstableContentProviderClient(mAuthority);
             if (mProviderClient == null) {
                 throw new RemoteException("Failed to acquire provider for " + mAuthority);
             }
             mProviderClient.setDetectNotResponding(PROVIDER_ANR_TIMEOUT);
+            initMsgList();
             try {
                 mResolver.registerContentObserver(EMAIL_URI, false, mObserver);
                 mObserverRegistered = true;
@@ -488,6 +509,8 @@ public class BluetoothMapContentObserverEmail extends BluetoothMapContentObserve
         String where = BluetoothMapEmailContract.ExtEmailMessageColumns.ACCOUNT_KEY + "="
                            + mAccount.getAccountId();
         boolean listChanged = false;
+        if (V) Log.d(TAG, "handleMsgListChangesMsg Email: " + mMapEventReportVersion
+            + "mMapSupportedFeatures Email: " + mMapSupportedFeatures);
         if (mMapEventReportVersion == BluetoothMapUtils.MAP_EVENT_REPORT_V10) {
             c = mProviderClient.query(mMessageUri, BluetoothMapEmailContract
                                .BT_EMAIL_MSG_PROJECTION_SHORT, where, null, null);

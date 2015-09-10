@@ -450,8 +450,13 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
         }
     }
 
-    public void setRemoteFeatureMask(int supported_features) {
-        mRemoteFeatureMask  = supported_features;
+    public void setRemoteFeatureMask(int supportedFeatures) {
+       if(V) Log.v(TAG, "setRemoteFeatureMask : Curr: "+ mRemoteFeatureMask);
+       mRemoteFeatureMask  = supportedFeatures;
+       if (mObserver != null && (mObserver.getObserverRemoteFeatureMask() != mRemoteFeatureMask)) {
+           mObserver.setObserverRemoteFeatureMask(mRemoteFeatureMask);
+           if(V) Log.v(TAG, "setRemoteFeatureMask : set: " + mRemoteFeatureMask);
+       }
     }
 
     public int getRemoteFeatureMask(){

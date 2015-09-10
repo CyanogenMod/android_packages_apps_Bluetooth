@@ -326,6 +326,26 @@ public class BluetoothMapContentObserver {
         }
     }
 
+    public int getObserverRemoteFeatureMask() {
+        if (V) Log.v(TAG, "getObserverRemoteFeatureMask : " + mMapEventReportVersion
+            + " mMapSupportedFeatures: " + mMapSupportedFeatures);
+        return mMapSupportedFeatures;
+    }
+
+    public void setObserverRemoteFeatureMask( int remoteSupportedFeatures) {
+        mMapSupportedFeatures = remoteSupportedFeatures;
+        if ((BluetoothMapUtils.MAP_FEATURE_EXTENDED_EVENT_REPORT_11_BIT
+                & mMapSupportedFeatures) != 0) {
+            mMapEventReportVersion = BluetoothMapUtils.MAP_EVENT_REPORT_V11;
+        }
+        // Make sure support for all formats result in latest version returned
+        if ((BluetoothMapUtils.MAP_FEATURE_EVENT_REPORT_V12_BIT
+                & mMapSupportedFeatures) != 0) {
+            mMapEventReportVersion = BluetoothMapUtils.MAP_EVENT_REPORT_V12;
+        }
+        if (V) Log.d(TAG, "setObserverRemoteFeatureMask : " + mMapEventReportVersion
+            + " mMapSupportedFeatures : " + mMapSupportedFeatures);
+    }
 
     private Map<Long, Msg> getMsgListSms() {
         return mMsgListSms;
@@ -866,28 +886,48 @@ public class BluetoothMapContentObserver {
     public int setNotificationRegistration(int notificationStatus) throws RemoteException {
         // Forward the request to the MNS thread as a message - including the MAS instance ID.
         if(D) Log.d(TAG,"setNotificationRegistration() enter");
+        if (mMnsClient == null ) {
+            return ResponseCodes.OBEX_HTTP_UNAVAILABLE;
+        }
         Handler mns = mMnsClient.getMessageHandler();
-        if(mns != null) {
+        if (mns != null) {
             Message msg = mns.obtainMessage();
-            msg.what = BluetoothMnsObexClient.MSG_MNS_NOTIFICATION_REGISTRATION;
+            if (mMnsClient.isValidMnsRecord()) {
+                msg.what = BluetoothMnsObexClient.MSG_MNS_NOTIFICATION_REGISTRATION;
+            } else {
+                //Trigger SDP Search and notificaiton registration , if SDP record not found.
+                msg.what = BluetoothMnsObexClient.MSG_MNS_SDP_SEARCH_REGISTRATION;
+                if (mMnsClient.mMnsLstRegRqst != null &&
+                        (mMnsClient.mMnsLstRegRqst.getIsSearchProgress())) {
+                        /*  1. Disallow next Notification ON Request :
+                         *     - Respond "Service Unavailable" as SDP Search and last notification
+                         *       registration ON request is already InProgress.
+                         *     - Next notification ON Request will be allowed ONLY after search
+                         *       and connect for last saved request [Replied with OK ] is processed.
+                         */
+                     if (notificationStatus == BluetoothMapAppParams.NOTIFICATION_STATUS_YES) {
+                         return ResponseCodes.OBEX_HTTP_UNAVAILABLE;
+                     } else {
+                         /*  2. Allow next Notification OFF Request:
+                          *    - Keep the SDP search still in progress.
+                          *    - Disconnect and Deregister the contentObserver.
+                          */
+                          msg.what = BluetoothMnsObexClient.MSG_MNS_NOTIFICATION_REGISTRATION;
+                    }
+                }
+            }
             msg.arg1 = mMasId;
             msg.arg2 = notificationStatus;
             mns.sendMessageDelayed(msg, 10); // Send message without forcing a context switch
             /* Some devices - e.g. PTS needs to get the unregister confirm before we actually
              * disconnect the MNS. */
-            if(D) Log.d(TAG,"setNotificationRegistration() MSG_MNS_NOTIFICATION_REGISTRATION " +
-                    "send to MNS");
+            if(D) Log.d(TAG,"setNotificationRegistration() send : " + msg.what + " to MNS ");
+            return ResponseCodes.OBEX_HTTP_OK;
         } else {
             // This should not happen except at shutdown.
             if(D) Log.d(TAG,"setNotificationRegistration() Unable to send registration request");
             return ResponseCodes.OBEX_HTTP_UNAVAILABLE;
         }
-        if(notificationStatus == BluetoothMapAppParams.NOTIFICATION_STATUS_YES) {
-            registerObserver();
-        } else {
-            unregisterObserver();
-        }
-        return ResponseCodes.OBEX_HTTP_OK;
     }
 
     boolean eventMaskContainsContacts(long mask) {
