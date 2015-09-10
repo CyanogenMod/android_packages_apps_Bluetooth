@@ -90,6 +90,10 @@ public class BluetoothMapService extends ProfileService {
 
     public static final int MSG_RELEASE_WAKE_LOCK = 5006;
 
+    public static final int MSG_MNS_SDP_SEARCH = 5007;
+
+    public static final int MSG_OBSERVER_REGISTRATION = 5008;
+
     private static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
 
     private static final String BLUETOOTH_ADMIN_PERM = android.Manifest.permission.BLUETOOTH_ADMIN;
@@ -387,6 +391,30 @@ public class BluetoothMapService extends ProfileService {
                     if (mWakeLock != null) {
                         mWakeLock.release();
                         if (DEBUG) Log.d(TAG, "  Released Wake Lock by message");
+                    }
+                    break;
+                case MSG_MNS_SDP_SEARCH:
+                    if (mRemoteDevice != null) {
+                        if (DEBUG) Log.d(TAG,"MNS SDP Initiate Search ..");
+                        mRemoteDevice.sdpSearch(BluetoothMnsObexClient.BLUETOOTH_UUID_OBEX_MNS);
+                    } else {
+                        Log.w(TAG, "remoteDevice info not available");
+                    }
+                    break;
+                case MSG_OBSERVER_REGISTRATION:
+                    if (DEBUG) Log.d(TAG,"ContentObserver Registration MASID: " + msg.arg1
+                        + " Enable: " + msg.arg2);
+                    BluetoothMapMasInstance masInst = mMasInstances.get(msg.arg1);
+                    if (masInst != null) {
+                        try {
+                            if (msg.arg2 == BluetoothMapAppParams.NOTIFICATION_STATUS_YES) {
+                                masInst.mObserver.registerObserver();
+                            } else {
+                                masInst.mObserver.unregisterObserver();
+                            }
+                        } catch (RemoteException e) {
+                            Log.e(TAG,"ContentObserverRegistarion Failed: "+ e);
+                        }
                     }
                     break;
                 default:
@@ -965,31 +993,34 @@ public class BluetoothMapService extends ProfileService {
                     }
                     sendConnectCancelMessage();
                 }
-            } else if (action.equals(BluetoothDevice.ACTION_SDP_RECORD)){
-//                Log.v(TAG, "Received ACTION_SDP_RECORD.");
+            } else if (action.equals(BluetoothDevice.ACTION_SDP_RECORD)) {
+                if (DEBUG) Log.d(TAG, "Received ACTION_SDP_RECORD.");
                 ParcelUuid uuid = intent.getParcelableExtra(BluetoothDevice.EXTRA_UUID);
                 if (VERBOSE) {
                     Log.v(TAG, "Received UUID: " + uuid.toString());
                     Log.v(TAG, "expected UUID: " +
                           BluetoothMnsObexClient.BLUETOOTH_UUID_OBEX_MNS.toString());
                 }
-                if(uuid.equals(BluetoothMnsObexClient.BLUETOOTH_UUID_OBEX_MNS)
-                        && mSdpSearchInitiated)
-                {
+                if (uuid.equals(BluetoothMnsObexClient.BLUETOOTH_UUID_OBEX_MNS)) {
                     mMnsRecord = intent.getParcelableExtra(BluetoothDevice.EXTRA_SDP_RECORD);
                     int status = intent.getIntExtra(BluetoothDevice.EXTRA_SDP_SEARCH_STATUS, -1);
                     if (VERBOSE) {
                         Log.v(TAG, " -> MNS Record:" + mMnsRecord);
                         Log.v(TAG, " -> status: " + status);
                     }
-                    mSdpSearchInitiated = false; // done searching
-                    if(status != -1 && mMnsRecord != null){
-                        for(int i=0, c=mMasInstances.size(); i < c; i++) {
+                    if (mBluetoothMnsObexClient != null && !mSdpSearchInitiated) {
+                        mBluetoothMnsObexClient.setMnsRecord(mMnsRecord);
+                    }
+                    if (status != -1 && mMnsRecord != null) {
+                        for (int i = 0, c = mMasInstances.size(); i < c; i++) {
                                 mMasInstances.valueAt(i).setRemoteFeatureMask(
                                         mMnsRecord.getSupportedFeatures());
                         }
                     }
-                    sendConnectMessage(-1); // -1 indicates all MAS instances
+                    if (mSdpSearchInitiated) {
+                        mSdpSearchInitiated = false; // done searching
+                        sendConnectMessage(-1); // -1 indicates all MAS instances
+                    }
                 }
             } else if (action.equals(ACTION_SHOW_MAPS_SETTINGS)) {
                 if (VERBOSE) Log.v(TAG, "Received ACTION_SHOW_MAPS_SETTINGS.");
