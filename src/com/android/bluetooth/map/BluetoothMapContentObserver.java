@@ -3023,6 +3023,9 @@ public class BluetoothMapContentObserver {
                     if(status != 0/*0 is success*/) {
                         msgInfo.statusDelivered = status;
                         if(D) Log.d(TAG, "msgInfo.statusDelivered = " + status);
+                        Sms.moveMessageToFolder(mContext, msgInfo.uri, Sms.MESSAGE_TYPE_FAILED, 0);
+                    } else {
+                        Sms.moveMessageToFolder(mContext, msgInfo.uri, Sms.MESSAGE_TYPE_SENT, 0);
                     }
                 }
                 if (msgInfo.partsDelivered == msgInfo.parts) {
