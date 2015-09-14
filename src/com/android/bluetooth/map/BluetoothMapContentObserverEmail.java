@@ -853,97 +853,91 @@ public class BluetoothMapContentObserverEmail extends BluetoothMapContentObserve
                 }
             }
             String toAddress[] = null;
-            String fromAddress = null;
             for (BluetoothMapbMessage.vCard recipient : recipientList) {
                 if(recipient.getEnvLevel() == 0) // Only send the message to the top level recipient
                     toAddress = ((BluetoothMapbMessage.vCard)recipient).getEmailAddresses();
-            }
-            for (BluetoothMapbMessage.vCard org : originatorList) {
-                if(org.getEnvLevel() == 0) // Only send the message to the top level recipient
-                    fromAddress = org.getFirstEmail();
-            }
-            Uri uriInsert = BluetoothMapEmailContract
-                                .buildEmailMessageUri(BluetoothMapEmailContract.EMAIL_AUTHORITY);
-            if (D) Log.d(TAG, "pushMessage - uriInsert= " + uriInsert.toString() +
-                    ", intoFolder id=" + folderElement.getFolderId());
-            synchronized(getMsgListMsg()) {
-                // Now insert the empty message into folder
-                ContentValues values = new ContentValues();
-                Time timeObj = new Time();
-                timeObj.setToNow();
-                folderId = folderElement.getFolderId();
-                values.put(BluetoothMapEmailContract.ExtEmailMessageColumns.MAILBOX_KEY,
-                        folderId);
-                if(((BluetoothMapbMessageExtEmail)msg).getSubject() != null) {
-                    values.put(BluetoothMapContract.MessageColumns.SUBJECT,
-                            ((BluetoothMapbMessageExtEmail)msg).getSubject());
-                } else {
-                    values.put(BluetoothMapContract.MessageColumns.SUBJECT, "");
-                }
-                values.put("syncServerTimeStamp", 0);
-                values.put("syncServerId", "5:65");
-                values.put("timeStamp", timeObj.toMillis(false));
-                values.put("flagLoaded", "1");
-                values.put("flagFavorite", "0");
-                values.put("flagAttachment", "0");
-                if(folderElement.getName().equalsIgnoreCase(BluetoothMapContract.FOLDER_NAME_DRAFT)
-                        || folderElement.getName()
-                        .equalsIgnoreCase(BluetoothMapEmailContract.FOLDER_NAME_DRAFTS)) {
-                    values.put("flags", "1179648");
-                } else
-                    values.put("flags", "0");
-                String splitStr[] = emailBaseUri.split("/");
-                for (String str: splitStr)
-                    Log.d(TAG,"seg for mBaseUri: "+ str);
-                if (mAccount != null) {
-                    values.put("accountKey", mAccount.getAccountId());
-                    values.put("displayName", mAccount.getName());
-                }
-                values.put("fromList", fromAddress);
-                values.put("mailboxKey", folderId);
-                StringBuilder address = new StringBuilder();
-                for (String  s : toAddress) {
-                    address.append(s);
-                    address.append(";");
-                }
-                values.put("toList", address.toString().trim());
-                values.put("flagRead", 0);
-                Uri uriNew = mProviderClient.insert(uriInsert, values);
-                if (D) Log.d(TAG, "pushMessage - uriNew= " + uriNew.toString());
-                handle =  Long.parseLong(uriNew.getLastPathSegment());
-                if (V) {
-                    Log.v(TAG, " NEW HANDLE " + handle);
-                }
-                if(handle == -1) {
-                   Log.v(TAG, " Inavlid Handle ");
-                   return -1;
-                }
-                //Insert msgBody in DB Provider BODY TABLE
-                ContentValues valuesBody = new ContentValues();
-                valuesBody.put("messageKey", String.valueOf(handle));
-                valuesBody.put("textContent", msgBody);
-                Uri uriMsgBdyInsert =
-                    BluetoothMapEmailContract
-                        .buildEmailMessageBodyUri(BluetoothMapEmailContract.EMAIL_AUTHORITY);
-                Log.d(TAG, "pushMessage - uriMsgBdyInsert = " + uriMsgBdyInsert.toString());
-                mProviderClient.insert(uriMsgBdyInsert, valuesBody);
-                // Extract the data for the inserted message, and store in local mirror, to
-                // avoid sending a NewMessage Event.
-                //TODO: We need to add the new 1.1 parameter as well:-) e.g. read
-                Msg newMsg = new Msg(handle, folderId, 1); // TODO: Create define for read-state
-                newMsg.transparent = (transparent == 1) ? true : false;
-                newMsg.localInitiatedSend = true;
-                if ( folderId == folderElement.getFolderByName(
+                Uri uriInsert = BluetoothMapEmailContract
+                        .buildEmailMessageUri(BluetoothMapEmailContract.EMAIL_AUTHORITY);
+                if (D) Log.d(TAG, "pushMessage - uriInsert= " + uriInsert.toString() +
+                        ", intoFolder id=" + folderElement.getFolderId());
+                synchronized(getMsgListMsg()) {
+                    // Now insert the empty message into folder
+                    ContentValues values = new ContentValues();
+                    Time timeObj = new Time();
+                    timeObj.setToNow();
+                    folderId = folderElement.getFolderId();
+                    values.put(BluetoothMapEmailContract.ExtEmailMessageColumns.MAILBOX_KEY,
+                            folderId);
+                    if(((BluetoothMapbMessageExtEmail)msg).getSubject() != null) {
+                        values.put(BluetoothMapContract.MessageColumns.SUBJECT,
+                                ((BluetoothMapbMessageExtEmail)msg).getSubject());
+                    } else {
+                        values.put(BluetoothMapContract.MessageColumns.SUBJECT, "");
+                    }
+                    values.put("syncServerTimeStamp", 0);
+                    values.put("syncServerId", "5:65");
+                    values.put("timeStamp", timeObj.toMillis(false));
+                    values.put("flagLoaded", "1");
+                    values.put("flagFavorite", "0");
+                    values.put("flagAttachment", "0");
+                    if(folderElement.getName().equalsIgnoreCase(BluetoothMapContract
+                        .FOLDER_NAME_DRAFT) || folderElement.getName()
+                            .equalsIgnoreCase(BluetoothMapEmailContract.FOLDER_NAME_DRAFTS)) {
+                        values.put("flags", "1179648");
+                    } else
+                        values.put("flags", "0");
+                    String splitStr[] = emailBaseUri.split("/");
+                    for (String str: splitStr)
+                        Log.d(TAG,"seg for mBaseUri: "+ str);
+                    if (mAccount != null) {
+                        values.put("accountKey", mAccount.getAccountId());
+                        values.put("displayName", mAccount.getDisplayName());
+                        values.put("fromList", mAccount.getEmailAddress());
+                    }
+                    values.put("mailboxKey", folderId);
+                    StringBuilder address = new StringBuilder();
+                    for (String  s : toAddress) {
+                        address.append(s);
+                        address.append(";");
+                    }
+                    values.put("toList", address.toString().trim());
+                    values.put("flagRead", 0);
+                    Uri uriNew = mProviderClient.insert(uriInsert, values);
+                    if (D) Log.d(TAG, "pushMessage - uriNew= " + uriNew.toString());
+                    handle =  Long.parseLong(uriNew.getLastPathSegment());
+                    if (V) {
+                        Log.v(TAG, " NEW HANDLE " + handle);
+                    }
+                    if(handle == -1) {
+                       Log.v(TAG, " Inavlid Handle ");
+                       return -1;
+                    }
+                    //Insert msgBody in DB Provider BODY TABLE
+                    ContentValues valuesBody = new ContentValues();
+                    valuesBody.put("messageKey", String.valueOf(handle));
+                    valuesBody.put("textContent", msgBody);
+                    Uri uriMsgBdyInsert = BluetoothMapEmailContract
+                            .buildEmailMessageBodyUri(BluetoothMapEmailContract.EMAIL_AUTHORITY);
+                    Log.d(TAG, "pushMessage - uriMsgBdyInsert = " + uriMsgBdyInsert.toString());
+                    mProviderClient.insert(uriMsgBdyInsert, valuesBody);
+                    // Extract the data for the inserted message, and store in local mirror, to
+                    // avoid sending a NewMessage Event.
+                    //TODO: We need to add the new 1.1 parameter as well:-) e.g. read
+                    Msg newMsg = new Msg(handle, folderId, 1); // TODO: Create define for read-state
+                    newMsg.transparent = (transparent == 1) ? true : false;
+                    newMsg.localInitiatedSend = true;
+                    if ( folderId == folderElement.getFolderByName(
                         BluetoothMapContract.FOLDER_NAME_OUTBOX).getFolderId() ) {
-                    //Trigger Email App to send the message over network.
-                    Intent emailIn = new Intent();
-                    long accountId = mAccount.getAccountId();
-                    if(V) Log.d(TAG, "sendIntent SEND: " + handle + "accounId: " +accountId);
-                    emailIn.setAction(BluetoothMapEmailContract.ACTION_SEND_PENDING_MAIL);
-                    emailIn.putExtra(BluetoothMapEmailContract.EXTRA_ACCOUNT, accountId);
-                    mContext.sendBroadcast(emailIn);
+                        //Trigger Email App to send the message over network.
+                        Intent emailIn = new Intent();
+                        long accountId = mAccount.getAccountId();
+                        if(V) Log.d(TAG, "sendIntent SEND: " + handle + "accounId: " +accountId);
+                        emailIn.setAction(BluetoothMapEmailContract.ACTION_SEND_PENDING_MAIL);
+                        emailIn.putExtra(BluetoothMapEmailContract.EXTRA_ACCOUNT, accountId);
+                        mContext.sendBroadcast(emailIn);
+                    }
+                    getMsgListMsg().put(handle, newMsg);
                 }
-                getMsgListMsg().put(handle, newMsg);
             }
         }
         // If multiple recipients return handle of last

@@ -178,6 +178,8 @@ public class BluetoothMapAccountEmailLoader extends BluetoothMapAccountLoader {
             c.moveToPosition(-1);
             int dispNameIndex = c.getColumnIndex(BluetoothMapEmailContract
                                         .ExtEmailMessageColumns.DISPLAY_NAME);
+            int emailAddressIndex = c.getColumnIndex(BluetoothMapEmailContract
+                                        .ExtEmailMessageColumns.EMAIL_ADDRESS);
             int idIndex = c.getColumnIndex(BluetoothMapEmailContract.ExtEmailMessageColumns
                                   .RECORD_ID);
             int exposeIndex = c.getColumnIndex(BluetoothMapEmailContract.ExtEmailMessageColumns
@@ -207,6 +209,8 @@ public class BluetoothMapAccountEmailLoader extends BluetoothMapAccountLoader {
                         uciPrefix);
 
                 child.mIsChecked = (c.getInt(exposeIndex) != 0);
+                child.setDisplayName(c.getString(dispNameIndex));
+                child.setEmailAddress(c.getString(emailAddressIndex));
                 child.mIsChecked = true; // TODO: Revert when this works
                 /* update the account counter
                  * so we can make sure that not to many accounts are checked. */

@@ -343,6 +343,7 @@ public final class BluetoothMapEmailContract {
     public static final String[] BT_EMAIL_ACCOUNT_ID_PROJECTION = new String[] {
         ExtEmailMessageColumns.RECORD_ID,
         ExtEmailMessageColumns.DISPLAY_NAME,
+        ExtEmailMessageColumns.EMAIL_ADDRESS,
         ExtEmailMessageColumns.IS_DEFAULT
     };
 
