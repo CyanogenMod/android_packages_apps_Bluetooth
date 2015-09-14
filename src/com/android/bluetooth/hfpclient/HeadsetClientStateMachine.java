@@ -2039,8 +2039,6 @@ final class HeadsetClientStateMachine extends StateMachine {
                     }
                     mAudioManager.setParameters("hfp_enable=true");
                     mAudioManager.setParameters("hfp_volume=" + volume);
-                    broadcastAudioState(device, BluetoothHeadsetClient.STATE_AUDIO_CONNECTED,
-                            BluetoothHeadsetClient.STATE_AUDIO_CONNECTING);
                     transitionTo(mAudioOn);
                     break;
                 case HeadsetClientHalConstants.AUDIO_STATE_CONNECTING:
@@ -2074,6 +2072,9 @@ final class HeadsetClientStateMachine extends StateMachine {
             Log.d(TAG, "Enter AudioOn: " + getCurrentMessage().what);
 
             mAudioManager.setStreamSolo(AudioManager.STREAM_BLUETOOTH_SCO, true);
+
+            broadcastAudioState(mCurrentDevice, BluetoothHeadsetClient.STATE_AUDIO_CONNECTED,
+                BluetoothHeadsetClient.STATE_AUDIO_CONNECTING);
         }
 
         @Override
