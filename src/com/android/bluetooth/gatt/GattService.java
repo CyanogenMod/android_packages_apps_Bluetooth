@@ -1673,13 +1673,13 @@ public class GattService extends ProfileService {
         switch (connectionPriority)
         {
             case BluetoothGatt.CONNECTION_PRIORITY_HIGH:
-                minInterval = 9; // 11.25ms
-                maxInterval = 12; // 15ms
+                minInterval = getResources().getInteger(R.integer.gatt_high_priority_min_interval);
+                maxInterval = getResources().getInteger(R.integer.gatt_high_priority_max_interval);
                 break;
 
             case BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER:
-                minInterval = 80; // 100ms
-                maxInterval = 100; // 125ms
+                minInterval = getResources().getInteger(R.integer.gatt_low_power_min_interval);
+                maxInterval = getResources().getInteger(R.integer.gatt_low_power_max_interval);
                 latency = 2;
                 break;
         }
