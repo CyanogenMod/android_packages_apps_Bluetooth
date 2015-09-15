@@ -121,19 +121,21 @@ public class AtPhonebook {
     /** Returns the last dialled number, or null if no numbers have been called */
     public String getLastDialledNumber() {
         String[] projection = {Calls.NUMBER};
-        Cursor cursor = mContentResolver.query(Calls.CONTENT_URI, projection,
+        PhonebookResult pbr = getPhonebookResult(mCurrentPhonebook, true);
+        if (pbr == null) return null;
+        pbr.cursor = mContentResolver.query(Calls.CONTENT_URI, projection,
                 Calls.TYPE + "=" + Calls.OUTGOING_TYPE, null, Calls.DEFAULT_SORT_ORDER +
                 " LIMIT 1");
-        if (cursor == null) return null;
+        if (pbr.cursor == null) return null;
 
-        if (cursor.getCount() < 1) {
-            cursor.close();
+        if (pbr.cursor.getCount() < 1) {
+            pbr.cursor.close();
             return null;
         }
-        cursor.moveToNext();
-        int column = cursor.getColumnIndexOrThrow(Calls.NUMBER);
-        String number = cursor.getString(column);
-        cursor.close();
+        pbr.cursor.moveToNext();
+        int column = pbr.cursor.getColumnIndexOrThrow(Calls.NUMBER);
+        String number = pbr.cursor.getString(column);
+        pbr.cursor.close();
         return number;
     }
 

@@ -192,9 +192,12 @@ final class A2dpSinkStateMachine extends StateMachine {
                     log(" AudioConfigs not yet received, returning");
                     return;
                 }
+                /*Fix for below klockworks issue */
+                /*Null pointer dereference of 'getAudioConfig(...)' where null is returned from a map or a collection */
+                /*We are checking mAudioConfigs in above if condition and Fix is not allowd will update in False positive doc */
                 int sampleRate = getAudioConfig(mPlayingDevice).getSampleRate();
                 int channelMask = getAudioConfig(mPlayingDevice).getChannelConfig();
-                int format = getAudioConfig(mPlayingDevice).getAudioFormat();
+                int format =  getAudioConfig(mPlayingDevice).getAudioFormat();
 
                 AudioPortConfig sourcePortArray[] =
                     {mInPortA2dpSink.buildConfig(sampleRate, channelMask, format, null)};

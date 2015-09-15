@@ -700,6 +700,10 @@ public class AvrcpControllerService extends ProfileService {
                                                null, null, null,BluetoothAvrcpInfo._ID);
         if ((cursor == null) || (!cursor.moveToFirst())) {
             Log.d(TAG," isMetaDataPresent cursor not valid, returing");
+            /*Fix for below klockworks issue */
+            /*Sql object 'cursor' is not closed on exit*/
+            if (cursor != null)
+               cursor.close();
             return false;
         }
         int index = 0;
@@ -1130,6 +1134,10 @@ public class AvrcpControllerService extends ProfileService {
         Uri contentUri = sAvrcpControllerService.getContentResolver().
                               insert(BluetoothAvrcpInfo.CONTENT_URI, values);
         Log.d(TAG," InitializeDatabase uri " + contentUri);
+        /*Fix for below klockworks issue */
+        /*Sql object 'cursor' is not closed on exit*/
+        if (cursor != null)
+            cursor.close();
         mDbInitialized = true;
     }
     private void deinitDatabase()
@@ -1713,10 +1721,14 @@ public class AvrcpControllerService extends ProfileService {
                 int remoteFeatures = msg.arg1;
                 BluetoothDevice remoteDevice =  (BluetoothDevice)msg.obj;
                 if (mConnectedDevices.contains(remoteDevice)) {
-                    mRemoteData.mRemoteFeatures = remoteFeatures;
-                    if ((mRemoteData.mRemoteFeatures & BTRC_FEAT_METADATA) != 0)
-                        mHandler.sendMessage(mHandler.
-                        obtainMessage(MESSAGE_GET_SUPPORTED_COMPANY_ID,0, 0, remoteDevice));
+                    /*Fix for below klockworks issue */
+                    /*Null pointer dereference of 'mRemoteData' where null comes from condition */
+                    if (mRemoteData != null) {
+                        mRemoteData.mRemoteFeatures = remoteFeatures;
+                        if ((mRemoteData.mRemoteFeatures & BTRC_FEAT_METADATA) != 0)
+                            mHandler.sendMessage(mHandler.
+                            obtainMessage(MESSAGE_GET_SUPPORTED_COMPANY_ID,0, 0, remoteDevice));
+                    }
                 }
                 break;
             case MESSAGE_PROCESS_CONNECTION_CHANGE:
