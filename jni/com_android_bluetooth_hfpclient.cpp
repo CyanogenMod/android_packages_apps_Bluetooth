@@ -510,9 +510,16 @@ static jboolean dialNative(JNIEnv *env, jobject object, jstring number_str) {
         number = env->GetStringUTFChars(number_str, NULL);
     }
 
-    if ( (status = sBluetoothHfpClientInterface->dial(number)) != BT_STATUS_SUCCESS) {
-        ALOGE("Failed to dial, status: %d", status);
+    if (number != NULL) {
+        if ( (status = sBluetoothHfpClientInterface->dial(number)) != BT_STATUS_SUCCESS) {
+            ALOGE("Failed to dial, status: %d", status);
+        }
+    } else {
+        if ( (status = sBluetoothHfpClientInterface->dial("")) != BT_STATUS_SUCCESS) {
+            ALOGE("Failed to dial, status: %d", status);
+        }
     }
+
     if (number != NULL) {
         env->ReleaseStringUTFChars(number_str, number);
     }
