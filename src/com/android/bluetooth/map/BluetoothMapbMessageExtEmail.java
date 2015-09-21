@@ -132,7 +132,9 @@ public class BluetoothMapbMessageExtEmail extends BluetoothMapbMessageMime {
                    if (beginMsg == -1) {
                        throw new IllegalArgumentException("Ill-formatted bMessage, no BEGIN:MSG");
                    }
-                   //Last occurence of END:MSG
+                   //Remove a '/' in all occurrences of <CRLF>'/END:MSG' as per New Spec.
+                   body = body.replaceAll("\r\n([/]*)/END\\:MSG", "\r\n$1END:MSG");
+                  //Last occurence of END:MSG
                    int endMsg = body.lastIndexOf("END:MSG");
                    if (endMsg == -1) {
                        throw new IllegalArgumentException("Ill-formatted bMessage, no END:MSG");
