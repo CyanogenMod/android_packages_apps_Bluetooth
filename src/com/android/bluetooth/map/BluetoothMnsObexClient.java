@@ -153,7 +153,7 @@ public class BluetoothMnsObexClient {
     /**
      * Shutdown the MNS.
      */
-    public void shutdown() {
+    public synchronized void shutdown() {
         /* should shutdown handler thread first to make sure
          * handleRegistration won't be called when disconnect
          */
@@ -178,7 +178,7 @@ public class BluetoothMnsObexClient {
      * @param masId
      * @param notificationStatus
      */
-    public void handleRegistration(int masId, int notificationStatus){
+    public synchronized void handleRegistration(int masId, int notificationStatus){
         if(D) Log.d(TAG, "handleRegistration( " + masId + ", " + notificationStatus + ")");
 
         if(notificationStatus == BluetoothMapAppParams.NOTIFICATION_STATUS_NO) {
