@@ -72,6 +72,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+
 /**
  * support Bluetooth AVRCP profile.
  * support metadata, play status and event notification
@@ -115,6 +118,7 @@ public final class Avrcp {
     public static final int BTRC_FEAT_METADATA = 0x01;
     public static final int BTRC_FEAT_ABSOLUTE_VOLUME = 0x02;
     public static final int BTRC_FEAT_BROWSE = 0x04;
+    public static final int BTRC_FEAT_AVRC_UI_UPDATE = 0x08;
 
     /* AVRC response codes, from avrc_defs */
     private static final int AVRC_RSP_NOT_IMPL = 8;
@@ -993,6 +997,22 @@ public final class Avrcp {
                         isAbsoluteVolumeSupported());
                 Log.v(TAG," update audio manager for abs vol state = "
                         + isAbsoluteVolumeSupported());
+                if ((deviceFeatures[deviceIndex].mFeatures &
+                        BTRC_FEAT_AVRC_UI_UPDATE) != 0)
+                {
+                    int NOTIFICATION_ID = android.R.drawable.stat_sys_data_bluetooth;
+                    Notification notification = new Notification.Builder(mContext)
+                        .setContentTitle("Bluetooth Media Browsing")
+                        .setContentText("Peer supports advanced feature")
+                        .setSubText("Re-pair from peer to enable it")
+                        .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
+                        .setDefaults(Notification.DEFAULT_ALL)
+                        .build();
+                    NotificationManager manager = (NotificationManager)
+                        mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+                    manager.notify(NOTIFICATION_ID, notification);
+                    Log.v(TAG," update notification manager on remote repair request");
+                }
                 break;
             }
             case MESSAGE_GET_PLAY_STATUS:
