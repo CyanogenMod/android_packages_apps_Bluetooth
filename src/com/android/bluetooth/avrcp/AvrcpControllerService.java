@@ -1842,21 +1842,22 @@ public class AvrcpControllerService extends ProfileService {
     private void onConnectionStateChanged(boolean connected, byte[] address) {
         BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice
             (Utils.getAddressStringFromByte(address));
+        Log.d(TAG, "onConnectionStateChanged " + connected + " " + device+ " size "+
+                    mConnectedDevices.size());
         if (device == null)
             return;
-        Log.d(TAG, "onConnectionStateChanged " + connected + " " + device);
         Intent intent = new Intent(BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED);
         int oldState = (mConnectedDevices.contains(device) ? BluetoothProfile.STATE_CONNECTED
                                                         : BluetoothProfile.STATE_DISCONNECTED);
         int newState = (connected ? BluetoothProfile.STATE_CONNECTED
                                   : BluetoothProfile.STATE_DISCONNECTED);
-        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, oldState);
-        intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-//        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-        sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
 
         if (connected && oldState == BluetoothProfile.STATE_DISCONNECTED) {
+            /* AVRCPControllerService supports single connection */
+            if(mConnectedDevices.size() >0) {
+                Log.d(TAG,"A Connection already exists, returning");
+                return;
+            }
             mConnectedDevices.add(device);
             Message msg =  mHandler.obtainMessage(MESSAGE_PROCESS_CONNECTION_CHANGE, 1, 0, device);
             mHandler.sendMessage(msg);
@@ -1865,6 +1866,11 @@ public class AvrcpControllerService extends ProfileService {
             Message msg =  mHandler.obtainMessage(MESSAGE_PROCESS_CONNECTION_CHANGE, 0, 0, device);
             mHandler.sendMessage(msg);
         }
+        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, oldState);
+        intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+//      intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+        sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
     }
 
     private void getRcFeatures(byte[] address, int features) {
