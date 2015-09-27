@@ -175,13 +175,19 @@ final class HeadsetClientStateMachine extends StateMachine {
         ProfileService.println(sb, "mSubscriberInfo: " + mSubscriberInfo);
         ProfileService.println(sb, "mVoiceRecognitionActive: " + mVoiceRecognitionActive);
         ProfileService.println(sb, "mInBandRingtone: " + mInBandRingtone);
+
         ProfileService.println(sb, "mCalls:");
-        for (BluetoothHeadsetClientCall call : mCalls.values()) {
-            ProfileService.println(sb, "  " + call);
+        if (mCalls != null) {
+            for (BluetoothHeadsetClientCall call : mCalls.values()) {
+                ProfileService.println(sb, "  " + call);
+            }
         }
+
         ProfileService.println(sb, "mCallsUpdate:");
-        for (BluetoothHeadsetClientCall call : mCallsUpdate.values()) {
-            ProfileService.println(sb, "  " + call);
+        if (mCallsUpdate != null) {
+            for (BluetoothHeadsetClientCall call : mCallsUpdate.values()) {
+                ProfileService.println(sb, "  " + call);
+            }
         }
     }
 
