@@ -171,7 +171,7 @@ class BluetoothOppNotification {
     //    Buffer other updates.
     // 2. Update thread will clear mPendingUpdate.
     // 3. Handler sends a delayed message to self
-    // 4. Handler checks if there are any more updates after 1 second.
+    // 4. Handler checks if there are any more updates after 100 milliseconds.
     // 5. If there is an update, update it else stop.
     private Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
@@ -183,10 +183,10 @@ class BluetoothOppNotification {
                             mUpdateNotificationThread = new NotificationUpdateThread();
                             mUpdateNotificationThread.start();
                             if (V) Log.v(TAG, "send delay message");
-                            mHandler.sendMessageDelayed(mHandler.obtainMessage(NOTIFY), 1000);
+                            mHandler.sendMessageDelayed(mHandler.obtainMessage(NOTIFY), 100);
                         } else if (mPendingUpdate > 0) {
                             if (V) Log.v(TAG, "previous thread is not finished yet");
-                            mHandler.sendMessageDelayed(mHandler.obtainMessage(NOTIFY), 1000);
+                            mHandler.sendMessageDelayed(mHandler.obtainMessage(NOTIFY), 100);
                         }
                         break;
                     }
