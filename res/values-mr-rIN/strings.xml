@@ -19,15 +19,15 @@
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"डाउनलोड व्यवस्थापकावर प्रवेश करा."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"अ‍ॅपला BluetoothShare व्‍यवस्‍थापकामध्‍ये प्रवेश करण्‍याची आणि फायली स्‍थानांतरित करण्‍यासाठी त्याचा वापर करण्‍याची अनुमती देते."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"श्वेतसूची ब्लूटूथ डिव्‍हाइस प्रवेश."</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"अ‍ॅपला त्या डिव्‍हाइसला वापरकर्ता पुष्‍टीशिवाय या डिव्‍हासवर फायली पाठविण्‍याची अनुमती देऊन तात्पुरते ब डिव्‍हाइसला श्वेतसूची करण्‍याची अनुमती देते."</string>
-    <string name="bt_share_picker_label" msgid="6268100924487046932">"ब"</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"अ‍ॅपला त्या डिव्‍हाइसला वापरकर्ता पुष्‍टीशिवाय या डिव्‍हासवर फायली पाठविण्‍याची अनुमती देऊन तात्पुरते ब्लूटुथ डिव्‍हाइसला श्वेतसूची करण्‍याची अनुमती देते."</string>
+    <string name="bt_share_picker_label" msgid="6268100924487046932">"ब्लूटुथ"</string>
     <string name="unknown_device" msgid="9221903979877041009">"अज्ञात डिव्हाइस"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"अज्ञात"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"विमान मोड"</string>
-    <string name="airplane_error_msg" msgid="8698965595254137230">"आपण विमान मोड मध्ये ब वापरू शकत नाही."</string>
+    <string name="airplane_error_msg" msgid="8698965595254137230">"आपण विमान मोड मध्ये ब्लूटुथ वापरू शकत नाही."</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
-    <string name="bt_enable_line1" msgid="7203551583048149">"ब सेवांचा वापर करण्‍यासाठी, आपण प्रथम ब चालू करा."</string>
-    <string name="bt_enable_line2" msgid="4341936569415937994">"आता ब चालू करायचे?"</string>
+    <string name="bt_enable_line1" msgid="7203551583048149">"ब्लूटुथ सेवांचा वापर करण्‍यासाठी, आपण प्रथम ब्लूटुथ चालू करा."</string>
+    <string name="bt_enable_line2" msgid="4341936569415937994">"आता ब्लूटुथ चालू करायचे?"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"रद्द करा"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"चालू करा"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"फाइल स्थानांतरण"</string>
@@ -36,16 +36,16 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"स्वीकारा"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ठीक"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" कडील फाइल स्‍वीकार करताना वेळ संपली."</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"ब शेअर: येणारी फाइल"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"ब्लूटुथ शेअर: येणारी फाइल"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"आपण ही फाइल प्राप्त करू इच्छिता?"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"दुसर्‍या डिव्‍हाइस वरील येणारी फाइल. ही फाइल आपण प्राप्त करू इच्‍छिता याची पुष्‍टी करा."</string>
-    <string name="notification_receiving" msgid="4674648179652543984">"ब शेअर: <xliff:g id="FILE">%1$s</xliff:g> प्राप्त करीत आहे"</string>
-    <string name="notification_received" msgid="3324588019186687985">"ब शेअर: <xliff:g id="FILE">%1$s</xliff:g> प्राप्त केली"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"ब शेअर: <xliff:g id="FILE">%1$s</xliff:g> फाइल प्राप्त केली नाही"</string>
-    <string name="notification_sending" msgid="3035748958534983833">"ब शेअर: <xliff:g id="FILE">%1$s</xliff:g> पाठवित आहे"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"ब शेअर: <xliff:g id="FILE">%1$s</xliff:g> पाठविली"</string>
+    <string name="notification_receiving" msgid="4674648179652543984">"ब्लूटुथ शेअर: <xliff:g id="FILE">%1$s</xliff:g> प्राप्त करीत आहे"</string>
+    <string name="notification_received" msgid="3324588019186687985">"ब्लूटुथ शेअर: <xliff:g id="FILE">%1$s</xliff:g> प्राप्त केली"</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"ब्लूटुथ शेअर: <xliff:g id="FILE">%1$s</xliff:g> फाइल प्राप्त केली नाही"</string>
+    <string name="notification_sending" msgid="3035748958534983833">"ब्लूटुथ शेअर: <xliff:g id="FILE">%1$s</xliff:g> पाठवित आहे"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"ब्लूटुथ शेअर: <xliff:g id="FILE">%1$s</xliff:g> पाठविली"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"100% पूर्ण"</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"ब शेअर: <xliff:g id="FILE">%1$s</xliff:g> फाइल पाठविली नाही"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"ब्लूटुथ शेअर: <xliff:g id="FILE">%1$s</xliff:g> फाइल पाठविली नाही"</string>
     <string name="download_title" msgid="3353228219772092586">"फाइल स्थानांतरण"</string>
     <string name="download_line1" msgid="4926604799202134144">"प्रेेषक: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"फाइल: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -78,7 +78,7 @@
     <string name="not_exist_file" msgid="3489434189599716133">"फाइल नाही"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"फाइल अस्‍तित्वात नाही. \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"कृपया प्रतीक्षा करा..."</string>
-    <string name="enabling_progress_content" msgid="4601542238119927904">"ब चालू करीत आहे…"</string>
+    <string name="enabling_progress_content" msgid="4601542238119927904">"ब्लूटुथ चालू करीत आहे…"</string>
     <string name="bt_toast_1" msgid="972182708034353383">"फाइल प्राप्त होईल. सूचना पॅनेल मधील प्रगती तपासा."</string>
     <string name="bt_toast_2" msgid="8602553334099066582">"फाइल प्राप्त होऊ शकत नाही."</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" कडील फाइल प्राप्त करणे थांबविले"</string>
@@ -94,23 +94,26 @@
     <string name="status_success" msgid="239573225847565868">"फाइल स्थानांतरण यशस्वीरित्या पूर्ण झाले."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"सामग्री समर्थित नाही."</string>
     <string name="status_forbidden" msgid="613956401054050725">"लक्ष्‍य डिव्‍हाइसद्वारे स्‍थानांतरण निषिद्ध केले."</string>
-    <string name="status_canceled" msgid="6664490318773098285">"वापरकर्त्याद्वारे स्‍थानांतरण रद्द केले."</string>
+    <string name="status_canceled" msgid="6664490318773098285">"वापरकर्त्याने स्‍थानांतरण रद्द केले."</string>
     <string name="status_file_error" msgid="3671917770630165299">"संचयन समस्‍या."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"USB संचयन नाही."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"SD कार्ड नाही. स्‍थानांतरित केलेल्‍या फायली जतन करण्‍यासाठी SD कार्ड घाला."</string>
     <string name="status_connection_error" msgid="947681831523219891">"कनेक्‍शन अयशस्‍वी."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"विनंती योग्यरितीने हाताळली जाऊ शकत नाही."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"अज्ञात त्रुटी."</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"ब प्राप्त केले"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"ब्लूटुथ प्राप्त केले"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> प्राप्त करणे पूर्ण."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> पाठविणे पूर्ण."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"इनबाउंड स्‍थानांतरणे"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"आउटबाउंड स्‍थानांतरणे"</string>
     <string name="no_transfers" msgid="3482965619151865672">"स्‍थानांतरण इतिहास रिक्त आहे."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"सूचीमधून सर्व आयटम साफ केले जातील."</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"ब शेअर: पाठविलेल्‍या फायली"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"ब शेअर: प्राप्त केलेल्‍या फायली"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> यशस्‍वी, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> अयशस्‍वी."</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"ब्लूटुथ शेअर: पाठविलेल्‍या फायली"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"ब्लूटुथ शेअर: प्राप्त केलेल्‍या फायली"</string>
+    <!-- no translation found for noti_caption_unsuccessful:one (8128018037399612752) -->
+    <!-- no translation found for noti_caption_unsuccessful:other (1270810527859501266) -->
+    <!-- no translation found for noti_caption_success:one (2029001621691602699) -->
+    <!-- no translation found for noti_caption_success:other (7429030624288564531) -->
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"सूची साफ करा"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"उघडा"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"सूचीमधून साफ करा"</string>
