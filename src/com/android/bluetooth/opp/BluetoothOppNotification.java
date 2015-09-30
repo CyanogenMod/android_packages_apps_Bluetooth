@@ -160,6 +160,8 @@ class BluetoothOppNotification {
         if (V) Log.v(TAG, "updateNotifier while BT is Turning OFF");
         synchronized (BluetoothOppNotification.this) {
             updateActiveNotification();
+            if (V) Log.v(TAG, "Update Inbound and Outbound count");
+            mUpdateCompleteNotification = true;
             updateCompletedNotification();
             cancelIncomingFileConfirmNotification();
         }
