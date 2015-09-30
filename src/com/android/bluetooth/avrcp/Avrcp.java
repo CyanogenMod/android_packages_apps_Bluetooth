@@ -773,8 +773,8 @@ public final class Avrcp {
                 String[] ExternalPath = stringUri.split("/");
                 if (ExternalPath.length < 4) {
                     Log.d(TAG, "Wrong entries.");
-                    handler.obtainMessage(MSG_UPDATE_BROWSED_PLAYER_FOLDER, 0, 0, null)
-                                                                        .sendToTarget();
+                    handler.obtainMessage(MSG_UPDATE_BROWSED_PLAYER_FOLDER, 0, INTERNAL_ERROR,
+                                                                  null).sendToTarget();
                     return;
                 }
                 Uri uri = Uri.parse(stringUri);
@@ -793,11 +793,11 @@ public final class Avrcp {
                     // Don't send the complete path to CK as few gets confused by that
                     // Send only the name of the root folder
                     handler.obtainMessage(MSG_UPDATE_BROWSED_PLAYER_FOLDER, NUM_ROOT_ELEMENTS,
-                                                1, SplitPath).sendToTarget();
+                                                OPERATION_SUCCESSFUL, SplitPath).sendToTarget();
                 }
             } else {
-                handler.obtainMessage(MSG_UPDATE_BROWSED_PLAYER_FOLDER, 0, 0, null)
-                                                                    .sendToTarget();
+                handler.obtainMessage(MSG_UPDATE_BROWSED_PLAYER_FOLDER, 0, INTERNAL_ERROR,
+                                                                  null).sendToTarget();
             }
         }
 
@@ -1766,8 +1766,9 @@ public final class Avrcp {
         updateResetNotification(NOW_PALYING_CONTENT_CHANGED_NOTIFICATION);
     }
 
-    void updateBrowsedPlayerFolder(int numOfItems, int folderDepth, String[] folderNames) {
-        Log.v(TAG, "updateBrowsedPlayerFolder: folderDepth: " + folderDepth);
+    void updateBrowsedPlayerFolder(int numOfItems, int status, String[] folderNames) {
+        Log.v(TAG, "updateBrowsedPlayerFolder: numOfItems =  " + numOfItems
+              + " status = " + status);
         if (mBrowserDevice == null) {
             Log.e(TAG,"mBrowserDevice is null for music player called api");
         }
@@ -1781,15 +1782,9 @@ public final class Avrcp {
         deviceFeatures[deviceIndex].mCurrentPathUid = null;
         deviceFeatures[deviceIndex].mMediaUri = mMediaUriStatic;
         mMediaUriStatic = null;
-        if (folderDepth > 0) {
-            setBrowsedPlayerRspNative((byte)OPERATION_SUCCESSFUL ,
-                    0x0, numOfItems, folderDepth, CHAR_SET_UTF8,
-                    folderNames, getByteAddress(device));
-        } else {
-            setBrowsedPlayerRspNative((byte)INTERNAL_ERROR ,
-                    0x0, numOfItems, folderDepth, CHAR_SET_UTF8,
-                    folderNames, getByteAddress(device));
-        }
+
+        setBrowsedPlayerRspNative((byte)status, 0x0, numOfItems, 0x0, CHAR_SET_UTF8,
+                                   folderNames, getByteAddress(device));
         mBrowserDevice = null;
     }
 
