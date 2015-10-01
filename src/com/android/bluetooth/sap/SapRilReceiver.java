@@ -33,6 +33,7 @@ public class SapRilReceiver implements Runnable {
 
     public static final int RIL_MAX_COMMAND_BYTES = (8 * 1024);
     byte[] buffer = new byte[RIL_MAX_COMMAND_BYTES];
+    boolean mShutdown = false;
 
     public SapRilReceiver(Handler SapServerMsgHandler, Handler sapServiceHandler) {
         mSapServerMsgHandler = SapServerMsgHandler;
@@ -44,11 +45,11 @@ public class SapRilReceiver implements Runnable {
      * success. (Based on the approach used to open the rild socket in telephony)
      * @return The socket handle
      */
-    public static LocalSocket openRilBtSocket() {
+    private LocalSocket openRilBtSocket() {
         int retryCount = 0;
         LocalSocket rilSocket = null;
 
-        for (;;) {
+        for (;mShutdown == false;) {
             LocalSocketAddress address;
 
             try {
@@ -88,6 +89,9 @@ public class SapRilReceiver implements Runnable {
                 retryCount++;
                 continue;
             }
+        }
+        if(mShutdown) {
+            if(DEBUG) Log.d(TAG, "Shutdown received before RIL socket was opened.");
         }
         return rilSocket;
     }
@@ -137,6 +141,7 @@ public class SapRilReceiver implements Runnable {
                 }
             }
         }
+        mShutdown = true;
     }
 
     /**
@@ -199,7 +204,9 @@ public class SapRilReceiver implements Runnable {
     public void run() {
 
         try {
-            if (VERBOSE) Log.v(TAG, "Starting RilBtReceiverThread...");
+            int length = 0;
+            mShutdown = false; // Currently only used to break openRilBtSocket()
+            if(VERBOSE) Log.i(TAG, "Starting RilBtReceiverThread...");
 
             mSocket = openRilBtSocket();
             mRilBtInStream = mSocket.getInputStream();
@@ -214,7 +221,7 @@ public class SapRilReceiver implements Runnable {
                 MsgHeader rilMsg;
 
                 if (VERBOSE) Log.v(TAG, "Waiting for incoming message...");
-                int length = readMessage(mRilBtInStream, buffer);
+                length = readMessage(mRilBtInStream, buffer);
 
                 SapService.notifyUpdateWakeLock(mSapServiceHandler);
 

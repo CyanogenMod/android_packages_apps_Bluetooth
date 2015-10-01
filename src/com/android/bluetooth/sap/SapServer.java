@@ -628,6 +628,8 @@ public class SapServer extends Thread implements Callback {
                - close RFCOMM after timeout if no response. */
             sendDisconnectInd(SapMessage.DISC_IMMEDIATE);
             startDisconnectTimer(SapMessage.DISC_RFCOMM, DISCONNECT_TIMEOUT_RFCOMM);
+            // As the RIL is closed, we cannot receive a disconnect response. Signal OK to shutdown.
+            mDeinitSignal.countDown();
             break;
         default:
             /* Message not handled */
@@ -831,8 +833,15 @@ public class SapServer extends Thread implements Callback {
         if(VERBOSE) Log.v(TAG_HANDLER, "sendRilMessage() - "
                 + SapMessage.getMsgTypeName(sapMsg.getMsgType()));
         try {
-            if (mRilBtOutStream != null)
+            if(mRilBtOutStream != null) {
                 sapMsg.writeReqToStream(mRilBtOutStream);
+            } else {
+                // else we are in a shutdown race, and don't need to send the message.
+                // we need to inform the shutdown procedure that it shall not expect a reply.
+                // This should only happen if the ril-socket cannot be opened or it is closed
+                // from outside the BT code.
+                mDeinitSignal.countDown();
+            }
         } catch (IOException e) {
             Log.e(TAG_HANDLER, "Unable to send message to RIL", e);
             SapMessage errorReply = new SapMessage(SapMessage.ID_ERROR_RESP);

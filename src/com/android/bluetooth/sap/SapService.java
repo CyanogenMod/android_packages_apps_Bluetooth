@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
@@ -26,12 +27,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
+
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
@@ -93,6 +97,8 @@ public class SapService extends ProfileService {
 
     private boolean mIsWaitingAuthorization = false;
 
+    private SapServiceMessageHandler mSessionStatusHandler = null;
+
     // package and class name to which we send intent to check message access access permission
     private static final String ACCESS_AUTHORITY_PACKAGE = "com.android.settings";
     private static final String ACCESS_AUTHORITY_CLASS =
@@ -120,8 +126,6 @@ public class SapService extends ProfileService {
             msg.sendToTarget();
         }
     }
-
-
 
     private void startRfcommSocketListener() {
         if (VERBOSE) Log.v(TAG, "Sap Service startRfcommSocketListener");
@@ -205,6 +209,7 @@ public class SapService extends ProfileService {
             }
         }
     }
+
     private final synchronized void closeConnectionSocket() {
         if (mConnSocket != null) {
             try {
@@ -216,36 +221,61 @@ public class SapService extends ProfileService {
         }
     }
 
-    private final void closeService() {
+    synchronized private final void closeService(CountDownLatch latch) {
         if (VERBOSE) Log.v(TAG, "SAP Service closeService in");
 
         // exit initSocket early
         mInterrupted = true;
+        closeConnectionSocket();
         closeServerSocket();
+
+        awaitSapServerSessionStop();
 
         if (mAcceptThread != null) {
             try {
                 mAcceptThread.shutdown();
                 mAcceptThread.join();
-                mAcceptThread = null;
             } catch (InterruptedException ex) {
                 Log.w(TAG, "mAcceptThread close error", ex);
             }
+            mAcceptThread = null;
         }
 
+        releaseWakeLockResources();
+        if(latch != null) {
+            latch.countDown();
+        }
+        if (VERBOSE) Log.v(TAG, "SAP Service closeService out");
+    }
+
+    synchronized private void releaseWakeLockResources() {
         if (mWakeLock != null) {
             mSessionStatusHandler.removeMessages(MSG_ACQUIRE_WAKE_LOCK);
             mSessionStatusHandler.removeMessages(MSG_RELEASE_WAKE_LOCK);
             mWakeLock.release();
             mWakeLock = null;
         }
-
-        closeConnectionSocket();
-
-        if (VERBOSE) Log.v(TAG, "SAP Service closeService out");
     }
 
-    private final void startSapServerSession() throws IOException {
+    synchronized private void awaitSapServerSessionStop() {
+        // We need to ensure all resources have been released before we accept a new connection.
+        // E.g. we cannot have multiple receivers registered nor have multiple servers attached
+        // to the RIL socket.
+        if(mSapServer != null) {
+            boolean retry = true;
+            while(retry == true) {
+                retry = false;
+                try {
+                    mSapServer.join();
+                } catch(InterruptedException ex) {
+                    retry = true;
+                }
+            }
+            mSapServer = null;
+        }
+    }
+
+    private synchronized void startSapServerSession() throws IOException {
         if (VERBOSE) Log.v(TAG, "Sap Service startSapServerSession");
 
         // acquire the wakeLock before start SAP transaction thread
@@ -287,16 +317,15 @@ public class SapService extends ProfileService {
 
         setState(BluetoothSap.STATE_DISCONNECTED);
 
-        if (mWakeLock != null) {
-            mWakeLock.release();
-            mWakeLock = null;
-        }
+        awaitSapServerSessionStop();
 
         // Last SAP transaction is finished, we start to listen for incoming
         // rfcomm connection again
         if (mAdapter.isEnabled()) {
             startRfcommSocketListener();
         }
+
+        releaseWakeLockResources();
     }
 
     /**
@@ -391,7 +420,10 @@ public class SapService extends ProfileService {
         }
     }
 
-    private final Handler mSessionStatusHandler = new Handler() {
+    private final class SapServiceMessageHandler extends Handler {
+        private SapServiceMessageHandler(Looper looper) {
+            super(looper);
+        }
         @Override
         public void handleMessage(Message msg) {
             if (VERBOSE) Log.v(TAG, "Handler(): got msg=" + msg.what);
@@ -445,7 +477,8 @@ public class SapService extends ProfileService {
                 case SHUTDOWN:
                     /* Ensure to call close from this handler to avoid starting new stuff
                        because of pending messages */
-                    closeService();
+                    CountDownLatch latch = (CountDownLatch)msg.obj;
+                    closeService(latch);
                     break;
                 default:
                     break;
@@ -588,6 +621,10 @@ public class SapService extends ProfileService {
         mInterrupted = false;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         // start RFCOMM listener
+        HandlerThread thread = new HandlerThread("BluetoothSapHandler");
+        thread.start();
+        Looper looper = thread.getLooper();
+        mSessionStatusHandler = new SapServiceMessageHandler(looper);
         mSessionStatusHandler.sendMessage(mSessionStatusHandler
                 .obtainMessage(START_LISTENER));
         return true;
@@ -602,14 +639,32 @@ public class SapService extends ProfileService {
             Log.w(TAG,"Unable to unregister sap receiver",e);
         }
         setState(BluetoothSap.STATE_DISCONNECTED, BluetoothSap.RESULT_CANCELED);
-        sendShutdownMessage();
+        CountDownLatch latch = new CountDownLatch(1);
+        sendShutdownMessage(latch);
+        // We need to wait for shutdown to complete to avoid being garbage collected before
+        // shutdown completes.
+        if(DEBUG) Log.i(TAG, "Waiting for shutdown to complete");
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            Log.e(TAG, "Interrupt received while waiting for shutdown to complete", e);
+        }
+        if (mSessionStatusHandler != null) {
+            mSessionStatusHandler.removeCallbacksAndMessages(null);
+            Looper looper = mSessionStatusHandler.getLooper();
+            if (looper != null) {
+                looper.quit();
+            }
+            mSessionStatusHandler = null;
+        }
+        if(DEBUG) Log.v(TAG, "stop() out");
         return true;
     }
 
     public boolean cleanup()  {
         setState(BluetoothSap.STATE_DISCONNECTED, BluetoothSap.RESULT_CANCELED);
-        closeService();
-        if (mSessionStatusHandler != null) {
+        closeService(null); // No latch needed as the call is blocking
+        if(mSessionStatusHandler != null) {
             mSessionStatusHandler.removeCallbacksAndMessages(null);
         }
         return true;
@@ -648,7 +703,7 @@ public class SapService extends ProfileService {
         sendBroadcast(intent, BLUETOOTH_PERM);
     }
 
-    private void sendShutdownMessage() {
+    private void sendShutdownMessage(CountDownLatch latch) {
         /* Any pending messages are no longer valid.
         To speed up things, simply delete them. */
         if (mRemoveTimeoutMsg) {
@@ -660,7 +715,18 @@ public class SapService extends ProfileService {
         }
         mSessionStatusHandler.removeCallbacksAndMessages(null);
         // Request release of all resources
-        mSessionStatusHandler.obtainMessage(SHUTDOWN).sendToTarget();
+        Message msg = mSessionStatusHandler.obtainMessage(SHUTDOWN,latch);
+        if( mSessionStatusHandler.sendMessage(msg) == false) {
+            /* most likely caused by shutdown being called from multiple sources - e.g.BT off
+             * signaled through intent and a service shutdown simultaneously.
+             * Intended behavior not documented, hence we need to be able to handle all cases. */
+            Log.e(TAG, "mSessionStatusHandler.sendMessage() failed trigger latch locally");
+            if(latch != null) {
+                latch.countDown();
+            }
+        } else {
+            if(DEBUG) Log.e(TAG, "mSessionStatusHandler.sendMessage() dispatched shutdown message");
+        }
     }
 
     private void sendConnectTimeoutMessage() {
@@ -684,7 +750,7 @@ public class SapService extends ProfileService {
                                                BluetoothAdapter.ERROR);
                 if (state == BluetoothAdapter.STATE_TURNING_OFF) {
                     if (DEBUG) Log.d(TAG, "STATE_TURNING_OFF");
-                    sendShutdownMessage();
+                    sendShutdownMessage(null);
                 } else if (state == BluetoothAdapter.STATE_ON) {
                     if (DEBUG) Log.d(TAG, "STATE_ON");
                     // start RFCOMM listener
