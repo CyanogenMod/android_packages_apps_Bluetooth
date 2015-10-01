@@ -163,6 +163,10 @@ public class A2dpSinkService extends ProfileService {
         return priority;
     }
 
+    public void informAvrcpStatePlaying(BluetoothDevice device) {
+        if(mStateMachine != null)
+            mStateMachine.informAvrcpStatePlaying(device);
+    }
     synchronized boolean isA2dpPlaying(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM,
                                        "Need BLUETOOTH permission");
