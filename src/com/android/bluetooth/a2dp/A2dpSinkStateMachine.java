@@ -1103,9 +1103,6 @@ final class A2dpSinkStateMachine extends StateMachine {
         AvrcpControllerService avrcpCtrlService = AvrcpControllerService.getAvrcpControllerService();
         if ((avrcpCtrlService != null) && (mDevice != null) &&
             (avrcpCtrlService.getConnectedDevices().contains(mDevice))){
-            if (mPlayingDevice == null){
-                return true; // don't send Pause if we are not playing already.
-            }
             avrcpCtrlService.sendPassThroughCmd(mDevice, AVRC_ID_PAUSE, KEY_STATE_PRESSED);
             avrcpCtrlService.sendPassThroughCmd(mDevice, AVRC_ID_PAUSE, KEY_STATE_RELEASED);
             log(" SendPassThruPause command sent - ");
