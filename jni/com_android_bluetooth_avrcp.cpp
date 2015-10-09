@@ -1036,11 +1036,8 @@ static jboolean sendSettingsTextRspNative(JNIEnv *env, jobject object, jint num_
         pAttrs[i].id = arr[i];
         if (strlen(textStr) >= BTRC_MAX_ATTR_STR_LEN) {
             ALOGE("sendSettingsTextRspNative: string length exceed maximum");
-            strncpy((char *)pAttrs[i].text, textStr, BTRC_MAX_ATTR_STR_LEN-1);
-            pAttrs[i].text[BTRC_MAX_ATTR_STR_LEN-1] = 0;
-        } else {
-            strcpy((char *)pAttrs[i].text, textStr);
         }
+        strlcpy((char *)pAttrs[i].text, textStr, BTRC_MAX_ATTR_STR_LEN);
         //Check out if release need to be done in for loop
         env->ReleaseStringUTFChars(text, textStr);
         env->DeleteLocalRef(text);
@@ -1101,12 +1098,9 @@ static jboolean sendValueTextRspNative(JNIEnv *env, jobject object, jint num_att
         }
         pAttrs[i].id = arr[i];
         if (strlen(textStr) >= BTRC_MAX_ATTR_STR_LEN) {
-        ALOGE("sendValueTextRspNative: string length exceed maximum");
-        strncpy((char *)pAttrs[i].text, textStr, BTRC_MAX_ATTR_STR_LEN-1);
-        pAttrs[i].text[BTRC_MAX_ATTR_STR_LEN-1] = 0;
-        } else {
-            strcpy((char *)pAttrs[i].text, textStr);
+           ALOGE("sendValueTextRspNative: string length exceed maximum");
         }
+        strlcpy((char *)pAttrs[i].text, textStr, BTRC_MAX_ATTR_STR_LEN);
         env->ReleaseStringUTFChars(text, textStr);
         env->DeleteLocalRef(text);
     }
@@ -1169,11 +1163,8 @@ static jboolean sendValueTextRspNative(JNIEnv *env, jobject object, jint num_att
         pAttrs[i].attr_id = attr[i];
         if (strlen(textStr) >= BTRC_MAX_ATTR_STR_LEN) {
             ALOGE("get_element_attr_rsp: string length exceed maximum");
-            strncpy((char *)pAttrs[i].text, textStr, BTRC_MAX_ATTR_STR_LEN-1);
-            pAttrs[i].text[BTRC_MAX_ATTR_STR_LEN-1] = 0;
-        } else {
-            strcpy((char *)pAttrs[i].text, textStr);
         }
+        strlcpy((char *)pAttrs[i].text, textStr, BTRC_MAX_ATTR_STR_LEN);
         env->ReleaseStringUTFChars(text, textStr);
         env->DeleteLocalRef(text);
     }
@@ -1833,11 +1824,8 @@ static jboolean getItemAttrRspNative(JNIEnv *env, jobject object, jbyte numAttr,
         pAttrs[i].attr_id = attr[i];
         if (utfStringLength >= BTRC_MAX_ATTR_STR_LEN) {
             ALOGE("get_item_attr_rsp: string length exceed maximum");
-            strlcpy((char *)pAttrs[i].text, textStr, BTRC_MAX_ATTR_STR_LEN);
-            pAttrs[i].text[BTRC_MAX_ATTR_STR_LEN-1] = 0;
-        } else {
-            strlcpy((char *)pAttrs[i].text, textStr, utfStringLength + 1);
         }
+        strlcpy((char *)pAttrs[i].text, textStr, BTRC_MAX_ATTR_STR_LEN);
         env->ReleaseStringUTFChars(text, textStr);
         env->DeleteLocalRef(text);
     }
