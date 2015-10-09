@@ -434,7 +434,10 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             mContext.getContentResolver().update(contentUri, updateValues, null, null);
         }
 
-        int position = 0;
+        long position = 0;
+        long percent = 0;
+        long prevPercent = 0;
+
         if (!error) {
             bos = new BufferedOutputStream(fileInfo.mOutputStream, 0x10000);
         }
@@ -458,6 +461,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
                     bos.write(b, 0, readLength);
                     position += readLength;
+                    percent = position * 100 / fileInfo.mLength;
 
                     if (V) {
                         Log.v(TAG, "Receive file position = " + position + " readLength "
@@ -465,9 +469,13 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                                 + (System.currentTimeMillis() - timestamp) + " ms");
                     }
 
-                    ContentValues updateValues = new ContentValues();
-                    updateValues.put(BluetoothShare.CURRENT_BYTES, position);
-                    mContext.getContentResolver().update(contentUri, updateValues, null, null);
+                    // Update the Progress Bar only if there is change in percentage
+                    if (percent > prevPercent) {
+                        ContentValues updateValues = new ContentValues();
+                        updateValues.put(BluetoothShare.CURRENT_BYTES, position);
+                        mContext.getContentResolver().update(contentUri, updateValues, null, null);
+                        prevPercent = percent;
+                    }
                 }
             } catch (IOException e1) {
                 Log.e(TAG, "Error when receiving file");
