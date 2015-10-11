@@ -78,6 +78,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import android.os.SystemProperties;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 final class HeadsetStateMachine extends StateMachine {
     private static final String TAG = "HeadsetStateMachine";
@@ -190,6 +191,8 @@ final class HeadsetStateMachine extends StateMachine {
     private int mA2dpPlayState;
     private int mA2dpState;
     private boolean mPendingCiev;
+    //ConcurrentLinkeQueue is used so that it is threadsafe
+    private ConcurrentLinkedQueue<HeadsetCallState> mPendingCallStates = new ConcurrentLinkedQueue<HeadsetCallState>();
 
     // mCurrentDevice is the device connected before the state changes
     // mTargetDevice is the device to be connected
@@ -1240,6 +1243,7 @@ final class HeadsetStateMachine extends StateMachine {
                 sendMessageDelayed(QUERY_PHONE_STATE_AT_SLC, QUERY_PHONE_STATE_CHANGED_DELAYED);
                 mA2dpSuspend = false;/*Reset at SLC*/
                 mPendingCiev = false;
+                mPendingCallStates.clear();
                 if ((isInCall()) && (mA2dpState == BluetoothProfile.STATE_CONNECTED)) {
                     if (DBG) {
                         log("Headset connected while we are in some call state");
@@ -2266,6 +2270,7 @@ final class HeadsetStateMachine extends StateMachine {
                 sendMessageDelayed(QUERY_PHONE_STATE_AT_SLC, QUERY_PHONE_STATE_CHANGED_DELAYED);
                 mA2dpSuspend = false;/*Reset at SLC*/
                 mPendingCiev = false;
+                mPendingCallStates.clear();
                 if ((isInCall()) && (mA2dpState == BluetoothProfile.STATE_CONNECTED)) {
                     log("Headset connected while we are in some call state");
                     log("Make A2dpSuspended=true here");
@@ -2815,6 +2820,7 @@ final class HeadsetStateMachine extends StateMachine {
             if (mA2dpPlayState == BluetoothA2dp.STATE_PLAYING) {
                 log("suspending A2DP stream for SCO");
                 mPendingCiev = true;
+                //This is VOIP call, dont need to remember the states
                 return true;
             }
         }
@@ -2882,7 +2888,6 @@ final class HeadsetStateMachine extends StateMachine {
                                    BluetoothA2dp.STATE_NOT_PLAYING);
         Log.d(TAG, "A2dp Play State Changed: Current State: " + currState +
                   "Prev State: " + prevState + "A2pSuspend: " + mA2dpSuspend);
-        mA2dpPlayState = currState;
 
         if (prevState == BluetoothA2dp.STATE_PLAYING) {
             if (mA2dpSuspend && mPendingCiev) {
@@ -2900,9 +2905,18 @@ final class HeadsetStateMachine extends StateMachine {
                 } else {
                     //send incomming phone status to remote device
                     log("A2dp is suspended, updating phone status if any");
-                    phoneStateChangeNative( mPhoneState.getNumActiveCall(),
-                                            mPhoneState.getNumHeldCall(),mPhoneState.getCallState(),
-                                            mPhoneState.getNumber(),mPhoneState.getType());
+                    Iterator<HeadsetCallState> it = mPendingCallStates.iterator();
+                    if (it != null) {
+                        while (it.hasNext()) {
+                            HeadsetCallState callState = it.next();
+                            phoneStateChangeNative( callState.mNumActive,
+                                            callState.mNumHeld,callState.mCallState,
+                                            callState.mNumber,callState.mType);
+                            it.remove();
+                        }
+                    } else {
+                        Log.d(TAG, "There are no pending call state changes");
+                    }
                 }
                 mPendingCiev = false;
             }
@@ -2919,6 +2933,7 @@ final class HeadsetStateMachine extends StateMachine {
                 }
             }
         }
+        mA2dpPlayState = currState;
     }
 
     private void processAnswerCall(BluetoothDevice device) {
@@ -3122,12 +3137,16 @@ final class HeadsetStateMachine extends StateMachine {
     private void processA2dpState(HeadsetCallState callState) {
         log("mA2dpPlayState " + mA2dpPlayState + " mA2dpSuspend  " + mA2dpSuspend );
         if ((isInCall()) && (isConnected()) &&
-            (mA2dpState == BluetoothProfile.STATE_CONNECTED) && (!mA2dpSuspend)) {
-            mAudioManager.setParameters("A2dpSuspended=true");
-            mA2dpSuspend = true;
+            (mA2dpState == BluetoothProfile.STATE_CONNECTED)) {
+            if (!mA2dpSuspend) {
+                Log.d(TAG, "Suspend A2DP streaming");
+                mAudioManager.setParameters("A2dpSuspended=true");
+                mA2dpSuspend = true;
+            }
             if (mA2dpPlayState == BluetoothA2dp.STATE_PLAYING) {
-                Log.d(TAG, "suspending A2DP stream for Call");
+                Log.d(TAG, "Cache the call state for future");
                 mPendingCiev = true;
+                mPendingCallStates.add(callState);
                 return ;
             }
         }
