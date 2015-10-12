@@ -320,8 +320,7 @@ public class BluetoothMapContentObserverEmail extends BluetoothMapContentObserve
         return ((eventFilter & EVENT_FILTER_MESSAGE_REMOVED) > 0);
     }
 
-    private final ContentObserver mObserver = new ContentObserver(
-            new Handler(Looper.getMainLooper())) {
+    private final ContentObserver mObserver = new ContentObserver(null) {
         @Override
         public void onChange(boolean selfChange) {
             onChange(selfChange, null);
@@ -511,19 +510,21 @@ public class BluetoothMapContentObserverEmail extends BluetoothMapContentObserve
         boolean listChanged = false;
         if (V) Log.d(TAG, "handleMsgListChangesMsg Email: " + mMapEventReportVersion
             + "mMapSupportedFeatures Email: " + mMapSupportedFeatures);
-        if (mMapEventReportVersion == BluetoothMapUtils.MAP_EVENT_REPORT_V10) {
-            c = mProviderClient.query(mMessageUri, BluetoothMapEmailContract
-                               .BT_EMAIL_MSG_PROJECTION_SHORT, where, null, null);
-        } else if (mMapEventReportVersion == BluetoothMapUtils.MAP_EVENT_REPORT_V11) {
-            c = mProviderClient.query(mMessageUri, BluetoothMapEmailContract
-                                .BT_EMAIL_MSG_PROJECTION_SHORT_EXT, where, null, null);
-        } else {
-            c = mProviderClient.query(mMessageUri, BluetoothMapEmailContract
-                               .BT_EMAIL_MESSAGE_PROJECTION, where, null, null);
-        }
-        if (V) Log.v(TAG, "handleMsgListChangesMsg uri: " + uri.toString());
-        if (V) Log.v(TAG, "handleMsgListChangesMsg where: " + where);
+
         synchronized(getMsgListMsg()) {
+
+            if (mMapEventReportVersion == BluetoothMapUtils.MAP_EVENT_REPORT_V10) {
+                c = mProviderClient.query(mMessageUri, BluetoothMapEmailContract
+                               .BT_EMAIL_MSG_PROJECTION_SHORT, where, null, null);
+            } else if (mMapEventReportVersion == BluetoothMapUtils.MAP_EVENT_REPORT_V11) {
+                c = mProviderClient.query(mMessageUri, BluetoothMapEmailContract
+                                .BT_EMAIL_MSG_PROJECTION_SHORT_EXT, where, null, null);
+            } else {
+                c = mProviderClient.query(mMessageUri, BluetoothMapEmailContract
+                               .BT_EMAIL_MESSAGE_PROJECTION, where, null, null);
+            }
+            if (V) Log.v(TAG, "handleMsgListChangesMsg uri: " + uri.toString());
+            if (V) Log.v(TAG, "handleMsgListChangesMsg where: " + where);
             try {
                 if (c != null && c.moveToFirst()) {
                     do {
