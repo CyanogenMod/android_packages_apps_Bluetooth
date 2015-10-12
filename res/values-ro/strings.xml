@@ -16,7 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Accesaţi managerul de descărcare."</string>
+    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Accesați managerul de descărcare."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Permite aplicațiilor să acceseze managerul Distribuire prin Bluetooth și să-l utilizeze la transferul fișierelor."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Acces la dispozitivele Bluetooth din lista albă."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Permite aplicației să treacă temporar pe lista albă un dispozitiv Bluetooth, permițându-i să trimită fişiere la acest dispozitiv fără confirmare din partea utilizatorului."</string>
@@ -100,7 +100,7 @@
     <string name="status_connection_error" msgid="947681831523219891">"Conectare eşuată."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"Solicitarea nu poate fi gestionată corect."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Eroare necunoscută."</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth recepţionat"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth recepționat"</string>
     <string name="download_success" msgid="7036160438766730871">"Primire finalizată: <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>
     <string name="upload_success" msgid="4014469387779648949">"Trimitere finalizată: <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Transferuri de intrare"</string>
