@@ -217,6 +217,7 @@ public abstract class ProfileService extends Service {
             if (DBG) log("start()");
             mStartError = !start();
             if (!mStartError) {
+                Log.d(mName, " profile started successfully");
                 notifyProfileServiceStateChanged(BluetoothAdapter.STATE_ON);
             } else {
                 Log.e(mName, "Error starting profile. BluetoothAdapter is null");
@@ -228,6 +229,7 @@ public abstract class ProfileService extends Service {
         if (stop()) {
             if (DBG) log("stop()");
             stopSelf();
+            Log.d(mName, " profile stopped successfully");
             notifyProfileServiceStateChanged(BluetoothAdapter.STATE_OFF);
         } else {
             Log.e(mName, "Unable to stop profile");
