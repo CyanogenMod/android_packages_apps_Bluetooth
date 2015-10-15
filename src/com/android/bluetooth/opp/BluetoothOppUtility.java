@@ -215,7 +215,7 @@ public class BluetoothOppUtility {
         }
 
         if (isRecognizedFileType(context, path, mimetype)) {
-            Intent activityIntent = new Intent(Intent.ACTION_VIEW);
+            CustomIntent activityIntent = new CustomIntent(Intent.ACTION_VIEW);
             activityIntent.setDataAndTypeAndNormalize(path, mimetype);
 
             List<ResolveInfo> resInfoList = context.getPackageManager()
@@ -383,6 +383,26 @@ public class BluetoothOppUtility {
             try {
                 info.mInputStream.close();
             } catch (IOException ignored) {
+            }
+        }
+    }
+
+    // Custom class to remove special characters from Intent.toString()
+    static class CustomIntent extends Intent {
+
+        public CustomIntent(String actionView) {
+            super(actionView);
+        }
+
+        @Override
+        public String toString() {
+            if (V) Log.v(TAG, " Intent Info :" + super.toString());
+            if(super.toString().length() != super.toString().getBytes().length) {
+                if (V) Log.v(TAG, "Removed special characters from path");
+                // Replace all special characters while returning  string.
+                return  super.toString().replaceAll("[^\\x00-\\x7F]", "");
+            } else {
+                return super.toString();
             }
         }
     }
