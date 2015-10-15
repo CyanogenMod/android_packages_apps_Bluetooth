@@ -40,6 +40,8 @@ import java.util.UUID;
     boolean appDied;
     boolean hasLocationPermission;
     boolean hasPeersMacAddressPermission;
+    // Pre-M apps are allowed to get scan results even if location is disabled
+    boolean legacyForegroundApp;
 
     private static final ScanSettings DEFAULT_SCAN_SETTINGS = new ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
