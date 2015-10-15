@@ -413,7 +413,10 @@ public class SapServer extends Thread implements Callback {
              *        - Initiate a FORCED shutdown
              *        - Wait for RIL deinit to complete
              */
-            if(mState != SAP_STATE.DISCONNECTED) {
+            if (mState == SAP_STATE.CONNECTING_CALL_ONGOING) {
+                /* Most likely remote device closed rfcomm, update state */
+                changeState(SAP_STATE.DISCONNECTED);
+            } else if (mState != SAP_STATE.DISCONNECTED) {
                 if(mState != SAP_STATE.DISCONNECTING &&
                         mIsLocalInitDisconnect != true) {
                     sendDisconnectInd(SapMessage.DISC_FORCED);
@@ -500,7 +503,6 @@ public class SapServer extends Thread implements Callback {
             if (isCallOngoing() == true) {
                 /* If a call is ongoing we set the state, inform the SAP client and wait for a state
                  * change intent from the TelephonyManager with state IDLE. */
-                changeState(SAP_STATE.CONNECTING_CALL_ONGOING);
                 reply.setConnectionStatus(SapMessage.CON_STATUS_OK_ONGOING_CALL);
             } else {
                 /* no call is ongoing, initiate the connect sequence:
@@ -626,6 +628,8 @@ public class SapServer extends Thread implements Callback {
                - close RFCOMM after timeout if no response. */
             sendDisconnectInd(SapMessage.DISC_IMMEDIATE);
             startDisconnectTimer(SapMessage.DISC_RFCOMM, DISCONNECT_TIMEOUT_RFCOMM);
+            // As the RIL is closed, we cannot receive a disconnect response. Signal OK to shutdown.
+            mDeinitSignal.countDown();
             break;
         default:
             /* Message not handled */
@@ -642,11 +646,12 @@ public class SapServer extends Thread implements Callback {
 
         if(DEBUG) Log.d(TAG_HANDLER, "in Shutdown()");
         try {
-            mRfcommOut.close();
+            if (mRfcommOut != null)
+                mRfcommOut.close();
         } catch (IOException e) {}
         try {
-            mRfcommIn.close();
-
+            if (mRfcommIn != null)
+                mRfcommIn.close();
         } catch (IOException e) {}
         mRfcommIn = null;
         mRfcommOut = null;
@@ -705,19 +710,25 @@ public class SapServer extends Thread implements Callback {
             switch(sapMsg.getMsgType()) {
 
                 case SapMessage.ID_CONNECT_RESP:
-                    if (sapMsg.getConnectionStatus() == SapMessage.CON_STATUS_OK) {
-                        // This is successful connect response from RIL/modem.
-                        changeState(SAP_STATE.CONNECTED);
-                    } else if(sapMsg.getConnectionStatus() == SapMessage.CON_STATUS_OK_ONGOING_CALL
-                              && mState != SAP_STATE.CONNECTING_CALL_ONGOING) {
-                        changeState(SAP_STATE.CONNECTING_CALL_ONGOING);
-                    } else if(mState == SAP_STATE.CONNECTING_CALL_ONGOING) {
+                    if(mState == SAP_STATE.CONNECTING_CALL_ONGOING) {
                         /* Hold back the connect resp if a call was ongoing when the connect req
-                         *  was received.
+                         * was received.
+                         * A response with status call-ongoing was sent, and the connect response
+                         * received from the RIL when call ends must be discarded.
                          */
-                        if(DEBUG) Log.d(TAG, "Hold back the connect resp, as a call was ongoing" +
+                        if (sapMsg.getConnectionStatus() == SapMessage.CON_STATUS_OK) {
+                            // This is successful connect response from RIL/modem.
+                            changeState(SAP_STATE.CONNECTED);
+                        }
+                        if(VERBOSE) Log.i(TAG, "Hold back the connect resp, as a call was ongoing" +
                                 " when the initial response were sent.");
                         sapMsg = null;
+                    } else if (sapMsg.getConnectionStatus() == SapMessage.CON_STATUS_OK) {
+                        // This is successful connect response from RIL/modem.
+                        changeState(SAP_STATE.CONNECTED);
+                    } else if(sapMsg.getConnectionStatus() ==
+                            SapMessage.CON_STATUS_OK_ONGOING_CALL) {
+                        changeState(SAP_STATE.CONNECTING_CALL_ONGOING);
                     } else if(sapMsg.getConnectionStatus() != SapMessage.CON_STATUS_OK) {
                         /* Most likely the peer will try to connect again, hence we keep the
                          * connection to RIL open and stay in connecting state.
@@ -822,8 +833,15 @@ public class SapServer extends Thread implements Callback {
         if(VERBOSE) Log.v(TAG_HANDLER, "sendRilMessage() - "
                 + SapMessage.getMsgTypeName(sapMsg.getMsgType()));
         try {
-            if (mRilBtOutStream != null)
+            if(mRilBtOutStream != null) {
                 sapMsg.writeReqToStream(mRilBtOutStream);
+            } else {
+                // else we are in a shutdown race, and don't need to send the message.
+                // we need to inform the shutdown procedure that it shall not expect a reply.
+                // This should only happen if the ril-socket cannot be opened or it is closed
+                // from outside the BT code.
+                mDeinitSignal.countDown();
+            }
         } catch (IOException e) {
             Log.e(TAG_HANDLER, "Unable to send message to RIL", e);
             SapMessage errorReply = new SapMessage(SapMessage.ID_ERROR_RESP);
