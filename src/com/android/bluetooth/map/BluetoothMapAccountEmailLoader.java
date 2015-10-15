@@ -113,6 +113,9 @@ public class BluetoothMapAccountEmailLoader extends BluetoothMapAccountLoader {
                                 }
                             }
                             groups.put(app, accounts);
+                       } else {
+                           //Handle dynamic email account add configuration
+                           groups.put(app, null);
                        }
                    }
                 } else {

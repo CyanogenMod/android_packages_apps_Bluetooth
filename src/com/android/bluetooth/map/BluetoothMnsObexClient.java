@@ -274,6 +274,7 @@ public class BluetoothMnsObexClient {
             //SDP Search completed.
             mMnsLstRegRqst.setIsSearchProgress(false);
             if (mHandler.hasMessages(MSG_MNS_NOTIFICATION_REGISTRATION)) {
+                mHandler.removeMessages(MSG_MNS_NOTIFICATION_REGISTRATION);
                 //Search Result obtained within MNS_SDP_SEARCH_DELAY timeout
                 if (mMnsRecord == null ) {
                     // SDP info still not available for last trial.
@@ -290,7 +291,6 @@ public class BluetoothMnsObexClient {
                     //Handle notification registration.
                     mHandler.sendMessageDelayed(msgReg, 10);
                 }
-                mHandler.removeMessages(MSG_MNS_NOTIFICATION_REGISTRATION);
             }
         } else {
            if (V) Log.v(TAG,"No last saved MNSSDPInfo to handle ");

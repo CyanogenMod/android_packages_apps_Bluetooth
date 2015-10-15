@@ -92,7 +92,10 @@ public class BluetoothMapAppObserver{
             ArrayList<BluetoothMapAccountItem> addedAccountList =
                     (ArrayList<BluetoothMapAccountItem>)newAccountList.clone();
             ArrayList<BluetoothMapAccountItem> removedAccountList = mFullList.get(app);
-            // Same as oldAccountList.clone
+            if (oldAccountList == null)
+                oldAccountList = new ArrayList <BluetoothMapAccountItem>();
+            if (removedAccountList == null)
+                removedAccountList = new ArrayList <BluetoothMapAccountItem>();
 
             mFullList.put(app, newAccountList);
             for(BluetoothMapAccountItem newAcc: newAccountList){
@@ -155,7 +158,7 @@ public class BluetoothMapAppObserver{
     public void registerObserver(BluetoothMapAccountItem app) {
         Uri uri = BluetoothMapContract.buildAccountUri(app.getProviderAuthority());
         if (V) Log.d(TAG, "registerObserver for URI "+uri.toString()+"\n");
-        ContentObserver observer = new ContentObserver(new Handler()) {
+        ContentObserver observer = new ContentObserver(null) {
             @Override
             public void onChange(boolean selfChange) {
                 onChange(selfChange, null);
@@ -174,7 +177,8 @@ public class BluetoothMapAppObserver{
             }
         };
         mObserverMap.put(uri.toString(), observer);
-        mResolver.registerContentObserver(uri, true, observer);
+        //False "notifyForDescendents" : Get notified whenever a change occurs to the exact URI.
+        mResolver.registerContentObserver(uri, false, observer);
     }
 
     public void unregisterObserver(BluetoothMapAccountItem app) {
@@ -295,12 +299,20 @@ public class BluetoothMapAppObserver{
     public ArrayList<BluetoothMapAccountItem> getEnabledAccountItems(){
         if(D)Log.d(TAG,"getEnabledAccountItems()\n");
         ArrayList<BluetoothMapAccountItem> list = new ArrayList<BluetoothMapAccountItem>();
-        for(BluetoothMapAccountItem app:mFullList.keySet()){
-            ArrayList<BluetoothMapAccountItem> accountList = mFullList.get(app);
-            for(BluetoothMapAccountItem acc: accountList){
-                if(acc.mIsChecked) {
-                    list.add(acc);
+        for (BluetoothMapAccountItem app:mFullList.keySet()){
+            if (app != null ) {
+                ArrayList<BluetoothMapAccountItem> accountList = mFullList.get(app);
+                if (accountList != null) {
+                    for (BluetoothMapAccountItem acc: accountList) {
+                        if (acc.mIsChecked) {
+                            list.add(acc);
+                        }
+                    }
+                } else {
+                   Log.w(TAG,"getEnabledAccountItems() - No AccountList enabled\n");
                 }
+            } else {
+               Log.w(TAG,"getEnabledAccountItems() - No Account in App enabled\n");
             }
         }
         return list;
