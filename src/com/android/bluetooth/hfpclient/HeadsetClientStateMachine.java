@@ -2242,6 +2242,7 @@ final class HeadsetClientStateMachine extends StateMachine {
 
     private void broadcastAudioState(BluetoothDevice device, int newState, int prevState) {
         Intent intent = new Intent(BluetoothHeadsetClient.ACTION_AUDIO_STATE_CHANGED);
+        intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
 
