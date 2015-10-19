@@ -212,7 +212,7 @@ final public class Utils {
             if (!ok) {
                 // Always allow SystemUI/System access.
                 int systemUiUid = ActivityThread.getPackageManager().getPackageUid(
-                        "com.android.systemui", UserHandle.USER_OWNER);
+                        "com.android.systemui", UserHandle.USER_SYSTEM);
                 ok = (systemUiUid == callingUid) || (Process.SYSTEM_UID == callingUid);
             }
         } catch (Exception ex) {
@@ -246,7 +246,7 @@ final public class Utils {
             if (!ok) {
                 // Always allow SystemUI/System access.
                 int systemUiUid = ActivityThread.getPackageManager().getPackageUid(
-                        "com.android.systemui", UserHandle.USER_OWNER);
+                        "com.android.systemui", UserHandle.USER_SYSTEM);
                 ok = (systemUiUid == callingUid) || (Process.SYSTEM_UID == callingUid);
             }
         } catch (Exception ex) {
