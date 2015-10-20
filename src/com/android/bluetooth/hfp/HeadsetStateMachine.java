@@ -3143,7 +3143,8 @@ final class HeadsetStateMachine extends StateMachine {
                 mAudioManager.setParameters("A2dpSuspended=true");
                 mA2dpSuspend = true;
             }
-            if (mA2dpPlayState == BluetoothA2dp.STATE_PLAYING) {
+            // Cache the call states for CS calls only
+            if (mA2dpPlayState == BluetoothA2dp.STATE_PLAYING && !isVirtualCallInProgress()) {
                 Log.d(TAG, "Cache the call state for future");
                 mPendingCiev = true;
                 mPendingCallStates.add(callState);
