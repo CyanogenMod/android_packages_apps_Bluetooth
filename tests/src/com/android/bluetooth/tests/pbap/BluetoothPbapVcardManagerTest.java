@@ -16,26 +16,43 @@
 
 package com.android.bluetooth.tests.pbap;
 
-import android.database.Cursor;
-import android.database.MatrixCursor;
-import android.provider.ContactsContract;
-import android.test.AndroidTestCase;
-import android.test.mock.MockContentProvider;
-import android.test.mock.MockContentResolver;
-
 import com.android.bluetooth.pbap.BluetoothPbapObexServer;
 import com.android.bluetooth.pbap.BluetoothPbapVcardManager;
 import com.android.bluetooth.tests.mock.BluetoothMockContext;
 import com.android.bluetooth.tests.mock.SimpleMockContentProvider;
 
+import android.database.Cursor;
+import android.database.MatrixCursor;
+import android.provider.ContactsContract;
+import android.provider.ContactsContract.PhoneLookup;
+import android.test.AndroidTestCase;
+import android.test.mock.MockContentProvider;
+import android.test.mock.MockContentResolver;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.text.TextUtils;
+
+
 import java.util.ArrayList;
 
-public class BluetoothPhabVcardManagerTest extends AndroidTestCase {
+public class BluetoothPbapVcardManagerTest extends AndroidTestCase {
 
-    public void testGetContactNamesByNumber() {
-        MatrixCursor mc = new MatrixCursor(
-                new String[]{ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
-                        ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME});
+    public void testGetContactNamesByNumberWithEmptyPhoneNumber() {
+        getContactNamesByNumberInternal("");
+    }
+
+    public void testGetContactNamesByNumberWithPhoneNumber() {
+        getContactNamesByNumberInternal("111-111-111");
+    }
+
+    private void getContactNamesByNumberInternal(String phoneNumber) {
+        String[] columnNames;
+        if (TextUtils.isEmpty(phoneNumber)) {
+            columnNames = new String[]{Phone.CONTACT_ID, Phone.DISPLAY_NAME};
+        } else {
+            columnNames = new String[]{PhoneLookup._ID, PhoneLookup.DISPLAY_NAME};
+        }
+
+        MatrixCursor mc = new MatrixCursor(columnNames);
         mc.addRow(new Object[]{1L, "A"});
         mc.addRow(new Object[]{1L, "A (1)"});
         mc.addRow(new Object[]{2L, "B"});
@@ -45,7 +62,7 @@ public class BluetoothPhabVcardManagerTest extends AndroidTestCase {
         mc.addRow(new Object[]{3L, "C (2)"});
         mc.addRow(new Object[]{4L, "D"});
         BluetoothPbapVcardManager manager = createBluetoothPbapVcardManager(mc);
-        ArrayList<String> nameList = manager.getContactNamesByNumber("111-111-111");
+        ArrayList<String> nameList = manager.getContactNamesByNumber(phoneNumber);
 
         // If there are multiple display name per id, first one is picked.
         assertEquals("A,1", nameList.get(0));
