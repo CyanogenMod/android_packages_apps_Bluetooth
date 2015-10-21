@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import android.support.v4.content.FileProvider;
 /**
  * This class has some utilities for Opp application;
  */
@@ -190,7 +191,8 @@ public class BluetoothOppUtility {
             return;
         }
 
-        Uri path = Uri.parse(fileName);
+        Uri path = FileProvider.getUriForFile(context,
+                       "com.google.android.bluetooth.fileprovider", f);
         // If there is no scheme, then it must be a file
         if (path.getScheme() == null) {
             path = Uri.fromFile(new File(fileName));
@@ -200,7 +202,22 @@ public class BluetoothOppUtility {
             Intent activityIntent = new Intent(Intent.ACTION_VIEW);
             activityIntent.setDataAndTypeAndNormalize(path, mimetype);
 
+            List<ResolveInfo> resInfoList = context.getPackageManager()
+                .queryIntentActivities(activityIntent,
+                        PackageManager.MATCH_DEFAULT_ONLY);
+
+            // Grant permissions for any app that can handle a file to access it
+            for (ResolveInfo resolveInfo : resInfoList) {
+                String packageName = resolveInfo.activityInfo.packageName;
+                context.grantUriPermission(packageName, path,
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION |
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            }
+
             activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            activityIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            activityIntent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
             try {
                 if (V) Log.d(TAG, "ACTION_VIEW intent sent out: " + path + " / " + mimetype);
                 context.startActivity(activityIntent);
