@@ -426,6 +426,12 @@ public class AdapterService extends Service {
 
     void BleOnProcessStart() {
         debugLog("BleOnProcessStart()");
+
+        if (getApplicationContext().getResources().getBoolean(
+                R.bool.config_bluetooth_reload_supported_profiles_when_enabled)) {
+            Config.init(getApplicationContext());
+        }
+
         Class[] supportedProfileServices = Config.getSupportedProfiles();
         //Initialize data objects
         for (int i=0; i < supportedProfileServices.length;i++) {
