@@ -2246,7 +2246,6 @@ final class HeadsetClientStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
 
         if (newState == BluetoothHeadsetClient.STATE_AUDIO_CONNECTED) {
-            intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
             intent.putExtra(BluetoothHeadsetClient.EXTRA_AUDIO_WBS, mAudioWbs);
         }
 
