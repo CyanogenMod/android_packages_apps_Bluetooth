@@ -428,10 +428,13 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             if (V) Log.v(TAG, "Stop mSession");
             mSession.stop();
         }
-        if (mHandlerThread != null) {
-            mHandlerThread.getLooper().quit();
-            mHandlerThread.interrupt();
-            mHandlerThread = null;
+        // Prevent concurrent access
+        synchronized (this) {
+            if (mHandlerThread != null) {
+                mHandlerThread.quit();
+                mHandlerThread.interrupt();
+                mHandlerThread = null;
+            }
         }
     }
 
