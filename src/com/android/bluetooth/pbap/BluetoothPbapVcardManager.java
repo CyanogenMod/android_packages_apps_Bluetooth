@@ -33,41 +33,38 @@
 
 package com.android.bluetooth.pbap;
 
+import com.android.bluetooth.R;
+import com.android.bluetooth.util.DevicePolicyUtils;
+import com.android.vcard.VCardComposer;
+import com.android.vcard.VCardConfig;
+import com.android.vcard.VCardPhoneNumberTranslationCallback;
+
 import android.content.ContentResolver;
 import android.content.Context;
-import android.database.CursorWindowAllocationException;
 import android.database.Cursor;
+import android.database.CursorWindowAllocationException;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.provider.CallLog;
-import android.provider.ContactsContract;
 import android.provider.CallLog.Calls;
 import android.provider.ContactsContract.CommonDataKinds;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Data;
-import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.PhoneLookup;
 import android.provider.ContactsContract.RawContactsEntity;
 import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.android.bluetooth.R;
-import com.android.vcard.VCardComposer;
-import com.android.vcard.VCardConfig;
-import com.android.vcard.VCardPhoneNumberTranslationCallback;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import javax.obex.ServerOperation;
 import javax.obex.Operation;
 import javax.obex.ResponseCodes;
-
-import com.android.bluetooth.Utils;
-import com.android.bluetooth.util.DevicePolicyUtils;
+import javax.obex.ServerOperation;
 
 public class BluetoothPbapVcardManager {
     private static final String TAG = "BluetoothPbapVcardManager";
@@ -170,7 +167,8 @@ public class BluetoothPbapVcardManager {
             if (contactCursor == null) {
                 return 0;
             }
-            return getDistinctContactIdSize(contactCursor) + 1; // always has the 0.vcf
+            return getDistinctContactIdSize(contactCursor, Phone.CONTACT_ID)
+                    + 1; // always has the 0.vcf
         } catch (CursorWindowAllocationException e) {
             Log.e(TAG, "CursorWindowAllocationException while getting Contacts size");
         } finally {
@@ -266,8 +264,8 @@ public class BluetoothPbapVcardManager {
                     null, Phone.CONTACT_ID);
             if (contactCursor != null) {
                 appendDistinctNameIdList(nameList,
-                        mContext.getString(android.R.string.unknownName),
-                        contactCursor);
+                        mContext.getString(android.R.string.unknownName), contactCursor,
+                        Phone.CONTACT_ID, Phone.DISPLAY_NAME);
                 if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_INDEXED) {
                     if (V) Log.v(TAG, "getPhonebookNameList, order by index");
                     // Do not need to do anything, as we sort it by index already
@@ -292,26 +290,28 @@ public class BluetoothPbapVcardManager {
         ArrayList<String> tempNameList = new ArrayList<String>();
 
         Cursor contactCursor = null;
-        Uri uri = null;
-        String[] projection = null;
-
+        Uri uri;
+        final String[] projection;
+        final String contactIdColumn, displayNameColumn;
         if (TextUtils.isEmpty(phoneNumber)) {
             uri = DevicePolicyUtils.getEnterprisePhoneUri(mContext);
-            projection = PHONES_CONTACTS_PROJECTION;
+            contactIdColumn = Phone.CONTACT_ID;
+            displayNameColumn = Phone.DISPLAY_NAME;
         } else {
-            uri = Uri.withAppendedPath(getPhoneLookupFilterUri(),
-                Uri.encode(phoneNumber));
-            projection = PHONE_LOOKUP_PROJECTION;
+            uri = Uri.withAppendedPath(getPhoneLookupFilterUri(), Uri.encode(phoneNumber));
+            contactIdColumn = PhoneLookup._ID;
+            displayNameColumn = PhoneLookup.DISPLAY_NAME;
         }
+        projection = new String[]{contactIdColumn, displayNameColumn};
 
         try {
-            contactCursor = mResolver.query(uri, projection, CLAUSE_ONLY_VISIBLE, null,
-                    Phone.CONTACT_ID);
+            contactCursor = mResolver
+                    .query(uri, projection, CLAUSE_ONLY_VISIBLE, null, contactIdColumn);
 
             if (contactCursor != null) {
                 appendDistinctNameIdList(nameList,
                         mContext.getString(android.R.string.unknownName),
-                        contactCursor);
+                        contactCursor, contactIdColumn, displayNameColumn);
                 if (V) {
                     for (String nameIdStr : nameList) {
                         Log.v(TAG, "got name " + nameIdStr + " by number " + phoneNumber);
@@ -827,19 +827,23 @@ public class BluetoothPbapVcardManager {
     private static final Uri getPhoneLookupFilterUri() {
         return PhoneLookup.ENTERPRISE_CONTENT_FILTER_URI;
     }
-
     /**
      * Get size of the cursor without duplicated contact id. This assumes the
      * given cursor is sorted by CONATCT_ID.
      */
-    private static final int getDistinctContactIdSize(Cursor cursor) {
-        final int contactIdColumn = cursor.getColumnIndex(Data.CONTACT_ID);
-        final int idColumn = cursor.getColumnIndex(Data._ID);
+    /**
+     * Count number of rows having distinct contact id. It assumes
+     * @param cursor cursor to be counted.
+     * @param contactIdColumn column name of contact id
+     * @return number of rows that have distinct contact id.
+     */
+    private static final int getDistinctContactIdSize(Cursor cursor, String contactIdColumn) {
+        final int contactIdColumnIndex = cursor.getColumnIndexOrThrow(contactIdColumn);
         long previousContactId = -1;
         int count = 0;
         cursor.moveToPosition(-1);
         while (cursor.moveToNext()) {
-            final long contactId = cursor.getLong(contactIdColumn != -1 ? contactIdColumn : idColumn);
+            final long contactId = cursor.getLong(contactIdColumnIndex);
             if (previousContactId != contactId) {
                 count++;
                 previousContactId = contactId;
@@ -852,19 +856,25 @@ public class BluetoothPbapVcardManager {
     }
 
     /**
-     * Append "display_name,contact_id" string array from cursor to ArrayList.
-     * This assumes the given cursor is sorted by CONATCT_ID.
+     * Construct "display_name,contact_id" strings and insert into a arraylist.
+     *
+     * @param resultList  list to be inserted.
+     * @param defaultName default name if the name of contact is empty.
+     * @param cursor      a cursor containing contact id and display name.
+     * @param contactIdColumnName name of column that stores contact id.
+     * @param displayNameColumnName name of column that stores display name.
      */
     private static void appendDistinctNameIdList(ArrayList<String> resultList,
-            String defaultName, Cursor cursor) {
-        final int contactIdColumn = cursor.getColumnIndex(Data.CONTACT_ID);
-        final int idColumn = cursor.getColumnIndex(Data._ID);
-        final int nameColumn = cursor.getColumnIndex(Data.DISPLAY_NAME);
+            String defaultName, Cursor cursor, String contactIdColumnName,
+            String displayNameColumnName) {
+        final int contactIdColumnIndex = cursor.getColumnIndexOrThrow(contactIdColumnName);
+        final int displayNameColumnIndex = cursor.getColumnIndexOrThrow(displayNameColumnName);
+
         long previousContactId = -1;
         cursor.moveToPosition(-1);
         while (cursor.moveToNext()) {
-            final long contactId = cursor.getLong(contactIdColumn != -1 ? contactIdColumn : idColumn);
-            String displayName = nameColumn != -1 ? cursor.getString(nameColumn) : defaultName;
+            final long contactId = cursor.getLong(contactIdColumnIndex);
+            String displayName = cursor.getString(displayNameColumnIndex);
             if (TextUtils.isEmpty(displayName)) {
                 displayName = defaultName;
             }
