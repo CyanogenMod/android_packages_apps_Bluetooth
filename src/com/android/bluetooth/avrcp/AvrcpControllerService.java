@@ -521,6 +521,7 @@ public class AvrcpControllerService extends ProfileService {
             case AVRC_ID_PAUSE:
                 sendCommand  = (mRemoteData.mMetadata.playStatus == PLAY_STATUS_PLAYING)||
                                (mRemoteData.mMetadata.playStatus == PLAY_STATUS_FWD_SEEK)||
+                               (mRemoteData.mMetadata.playStatus == PLAY_STATUS_PAUSED)||
                                (mRemoteData.mMetadata.playStatus == PLAY_STATUS_STOPPED)||
                                (mRemoteData.mMetadata.playStatus == PLAY_STATUS_REV_SEEK);
                 break;
@@ -1288,6 +1289,13 @@ public class AvrcpControllerService extends ProfileService {
     {
         ContentValues values =  new ContentValues();
         Log.d(TAG," updatePlayStatus " + mRemoteData.mMetadata.toString());
+        if(mRemoteData.mMetadata.playStatus == PLAY_STATUS_PLAYING) {
+            A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
+            if((a2dpSinkService != null)&&(!mConnectedDevices.isEmpty())) {
+                Log.d(TAG," State = PLAYING, inform A2DP SINK");
+                a2dpSinkService.informAvrcpStatePlaying(mConnectedDevices.get(0));
+            }
+        }
         values.put(BluetoothAvrcpInfo.PLAY_STATUS,
                           getPlayStatusString(mRemoteData.mMetadata.playStatus));
         values.put(BluetoothAvrcpInfo.PLAYING_TIME, mRemoteData.mMetadata.playTime);
