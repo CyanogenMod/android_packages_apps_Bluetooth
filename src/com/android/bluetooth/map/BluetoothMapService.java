@@ -407,7 +407,7 @@ public class BluetoothMapService extends ProfileService {
                     if (DEBUG) Log.d(TAG,"ContentObserver Registration MASID: " + msg.arg1
                         + " Enable: " + msg.arg2);
                     BluetoothMapMasInstance masInst = mMasInstances.get(msg.arg1);
-                    if (masInst != null) {
+                    if (masInst != null && masInst.mObserver != null) {
                         try {
                             if (msg.arg2 == BluetoothMapAppParams.NOTIFICATION_STATUS_YES) {
                                 masInst.mObserver.registerObserver();
