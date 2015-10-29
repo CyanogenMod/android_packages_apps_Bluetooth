@@ -40,11 +40,9 @@ import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothHeadsetClientCall;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
-import android.bluetooth.IBluetoothHeadsetClientController;
 import android.os.Bundle;
 import android.os.Message;
 import android.os.ParcelUuid;
-import android.os.RemoteException;
 import android.util.Log;
 import android.util.Pair;
 import android.content.Context;
@@ -142,7 +140,6 @@ final class HeadsetClientStateMachine extends StateMachine {
     // indicator
     private Pair<Integer, Object> mPendingAction;
 
-    private IBluetoothHeadsetClientController mClientController;
     private final AudioManager mAudioManager;
     private int mAudioState;
     private boolean mAudioWbs;
@@ -158,10 +155,6 @@ final class HeadsetClientStateMachine extends StateMachine {
 
     static {
         classInitNative();
-    }
-
-    public void setClientController(IBluetoothHeadsetClientController clientController) {
-        mClientController = clientController;
     }
 
     public void dump(StringBuilder sb) {
@@ -2023,15 +2016,6 @@ final class HeadsetClientStateMachine extends StateMachine {
                     mAudioWbs = true;
                     // fall through
                 case HeadsetClientHalConstants.AUDIO_STATE_CONNECTED:
-                    try {
-                        if (mClientController != null && !mClientController.allowAudioConnect()) {
-                            sendMessage(HeadsetClientStateMachine.DISCONNECT_AUDIO);
-                            break;
-                        }
-                    } catch (RemoteException remoteException) {
-                        Log.e(TAG, "ERROR: couldn't communicate with client controller");
-                    }
-
                     mAudioState = BluetoothHeadsetClient.STATE_AUDIO_CONNECTED;
                     // request audio focus for call
                     int newAudioMode = AudioManager.MODE_IN_CALL;
