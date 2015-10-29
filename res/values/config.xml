@@ -41,7 +41,4 @@
     <integer name="gatt_high_priority_max_interval">12</integer>
     <integer name="gatt_low_power_min_interval">80</integer>
     <integer name="gatt_low_power_max_interval">100</integer>
-
-    <!-- Specifies the component name of the service to be bound to for controlling HF -->
-    <string name="headset_client_controller_service"></string>
 </resources>
