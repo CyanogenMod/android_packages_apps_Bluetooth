@@ -1290,6 +1290,11 @@ final class HeadsetClientStateMachine extends StateMachine {
     }
 
     public void doQuit() {
+        Log.d(TAG, "doQuit");
+        if (mAudioManager != null)
+        {
+            mAudioManager.setParameters("hfp_enable=false");
+        }
         quitNow();
     }
 
