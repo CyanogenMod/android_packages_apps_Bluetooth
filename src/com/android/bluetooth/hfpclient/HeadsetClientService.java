@@ -22,26 +22,19 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothHeadsetClientCall;
 import android.bluetooth.IBluetoothHeadsetClient;
-import android.bluetooth.IBluetoothHeadsetClientController;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.Message;
 import android.provider.Settings;
-import android.text.TextUtils;
 import android.util.Log;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.android.bluetooth.R;
 
 /**
  * Provides Bluetooth Headset Client (HF Role) profile, as a service in the
@@ -54,21 +47,7 @@ public class HeadsetClientService extends ProfileService {
     private static final String TAG = "HeadsetClientService";
 
     private HeadsetClientStateMachine mStateMachine;
-
     private static HeadsetClientService sHeadsetClientService;
-
-    private ServiceConnection mControllerConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder service) {
-            mStateMachine.setClientController(
-                    IBluetoothHeadsetClientController.Stub.asInterface(service));
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            mStateMachine.setClientController(null);
-        }
-    };
 
     @Override
     protected String getName() {
@@ -90,18 +69,7 @@ public class HeadsetClientService extends ProfileService {
         } catch (Exception e) {
             Log.w(TAG, "Unable to register broadcat receiver", e);
         }
-
-        final String controllerComponent =
-                getResources().getString(R.string.headset_client_controller_service);
-
-        if (!TextUtils.isEmpty(controllerComponent)) {
-            Intent intent = new Intent();
-            intent.setComponent(ComponentName.unflattenFromString(controllerComponent));
-            bindService(intent, mControllerConnection, Context.BIND_AUTO_CREATE);
-        }
-
         setHeadsetClientService(this);
-
         return true;
     }
 
@@ -583,7 +551,6 @@ public class HeadsetClientService extends ProfileService {
         if (mStateMachine.isAudioOn()) {
             return false;
         }
-
         mStateMachine.sendMessage(HeadsetClientStateMachine.CONNECT_AUDIO);
         return true;
     }
