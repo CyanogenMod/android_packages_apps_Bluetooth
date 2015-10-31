@@ -78,7 +78,7 @@ public class SdpManager {
     static Object mTrackerLock = new Object();
 
     /* The timeout to wait for reply from native. Should never fire. */
-    private static final int SDP_INTENT_DELAY = 6000;
+    private static final int SDP_INTENT_DELAY = 11000;
     private static final int MESSAGE_SDP_INTENT = 2;
 
     // We need a reference to the adapter service, to be able to send intents
