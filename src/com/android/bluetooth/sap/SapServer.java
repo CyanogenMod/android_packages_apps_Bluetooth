@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
 
 import com.android.bluetooth.R;
+
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -26,8 +27,10 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Parcel;
 import android.os.SystemClock;
+import android.os.SystemProperties;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+
 //import com.android.internal.telephony.RIL;
 import com.google.protobuf.micro.CodedOutputStreamMicro;
 
@@ -48,7 +51,6 @@ public class SapServer extends Thread implements Callback {
     private static final String TAG_HANDLER = "SapServerHandler";
     public static final boolean DEBUG = Log.isLoggable(SapService.LOG_TAG, Log.DEBUG);
     public static final boolean VERBOSE = Log.isLoggable(SapService.LOG_TAG, Log.VERBOSE);
-    public static final boolean PTS_TEST = SapService.PTS_TEST;
 
     private enum SAP_STATE    {
         DISCONNECTED, CONNECTING, CONNECTING_CALL_ONGOING, CONNECTED,
@@ -211,7 +213,14 @@ public class SapServer extends Thread implements Callback {
     {
         String title, text, button, ticker;
         Notification notification;
-        if(VERBOSE) Log.v(TAG, "setNotification type: " + type);
+        if(VERBOSE) Log.i(TAG, "setNotification type: " + type);
+        /* For PTS TC_SERVER_DCN_BV_03_I we need to expose the option to send immediate disconnect
+         * without first sending a graceful disconnect.
+         * To enable this option set
+         * bt.sap.pts="true" */
+        String pts_enabled = SystemProperties.get("bt.sap.pts");
+        Boolean pts_test = Boolean.parseBoolean(pts_enabled);
+
         /* put notification up for the user to be able to disconnect from the client*/
         Intent sapDisconnectIntent = new Intent(SapServer.SAP_DISCONNECT_ACTION);
         if(type == SapMessage.DISC_GRACEFULL){
@@ -225,7 +234,7 @@ public class SapServer extends Thread implements Callback {
             text = mContext.getString(R.string.bluetooth_sap_notif_disconnecting);
             ticker = mContext.getString(R.string.bluetooth_sap_notif_ticker);
         }
-        if(!PTS_TEST)
+        if(!pts_test)
         {
             sapDisconnectIntent.putExtra(SapServer.SAP_DISCONNECT_TYPE_EXTRA, type);
             PendingIntent pIntentDisconnect = PendingIntent.getBroadcast(mContext, type,
@@ -844,6 +853,10 @@ public class SapServer extends Thread implements Callback {
             }
         } catch (IOException e) {
             Log.e(TAG_HANDLER, "Unable to send message to RIL", e);
+            SapMessage errorReply = new SapMessage(SapMessage.ID_ERROR_RESP);
+            sendClientMessage(errorReply);
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG_HANDLER, "Unable encode message", e);
             SapMessage errorReply = new SapMessage(SapMessage.ID_ERROR_RESP);
             sendClientMessage(errorReply);
         }

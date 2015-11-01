@@ -50,7 +50,6 @@ public class SapService extends ProfileService {
     private static final int SDP_SAP_VERSION = 0x0102;
     private static final String TAG = "SapService";
     public static final String LOG_TAG = "BluetoothSap";
-    public static final boolean PTS_TEST = false;
     public static boolean DEBUG = Log.isLoggable(LOG_TAG, Log.DEBUG);
     public static boolean VERBOSE = Log.isLoggable(LOG_TAG, Log.VERBOSE);
 
