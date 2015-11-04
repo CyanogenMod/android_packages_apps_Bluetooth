@@ -388,11 +388,11 @@ public class BluetoothOppService extends Service {
                 if (isDisabledNonAosp) {
                     mOppSdpHandle = SdpManager.getDefaultManager().createOppOpsRecord
                             ("OBEX Object Push",mSocketListener.getRfcommChannel(),
-                            -1, 0x0101, SdpManager.OPP_FORMAT_ALL);
+                            -1, 0x0101, SdpManager.OPP_FORMAT);
                 } else {
                     mOppSdpHandle = SdpManager.getDefaultManager().createOppOpsRecord(
                             "OBEX Object Push",mSocketListener.getRfcommChannel(),
-                            mL2cSocketListener.getL2capPsm(), 0x0102,SdpManager.OPP_FORMAT_ALL);
+                            mL2cSocketListener.getL2capPsm(), 0x0102,SdpManager.OPP_FORMAT);
                 }
               mSocketListener.start(mHandler);
               mL2cSocketListener.start(mHandler);
