@@ -175,12 +175,20 @@ public class BluetoothOppSendFileInfo {
                 }
             } catch (FileNotFoundException e) {
                 // Ignore
+            } catch (SecurityException e) {
+                Log.e(TAG, "gnrtFileInfo: openAssetFD:  " + e);
+                Log.e(TAG, "gnrtFileInfo: Close transfer " );
+                return SEND_FILE_INFO_ERROR;
             }
         }
         if (is == null) {
             try {
                 is = (FileInputStream) contentResolver.openInputStream(uri);
             } catch (FileNotFoundException e) {
+                return SEND_FILE_INFO_ERROR;
+            } catch (SecurityException e) {
+                Log.e(TAG, "OpenInputStrm: generateFileInfo: " + e);
+                Log.e(TAG, "gnrtFileInfo: Close transfer " );
                 return SEND_FILE_INFO_ERROR;
             }
         }
