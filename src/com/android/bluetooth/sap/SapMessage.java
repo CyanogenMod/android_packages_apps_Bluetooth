@@ -28,7 +28,6 @@ public class SapMessage {
     public static final String TAG = "SapMessage";
     public static final boolean DEBUG = Log.isLoggable(SapService.LOG_TAG, Log.DEBUG);
     public static final boolean VERBOSE = Log.isLoggable(SapService.LOG_TAG, Log.VERBOSE);
-    public static final boolean TEST = SapService.PTS_TEST;
 
     /* Message IDs - SAP specification */
     public static final int ID_CONNECT_REQ        = 0x00;
@@ -404,10 +403,8 @@ public class SapMessage {
         case ID_DISCONNECT_REQ:    /* No params */
             break;
         default:
-            if(TEST == false) {
-                Log.e(TAG, "Unknown request type");
-                return null;
-            }
+            Log.e(TAG, "Unknown request type");
+            return null;
         }
         return newMessage;
     }
@@ -457,6 +454,7 @@ public class SapMessage {
         int paramLength;
         boolean success = true;
         int skipLen = 0;
+
         for(int i = 0; i < count; i++) {
             paramId = is.read();
             is.read(); // Skip the reserved byte
@@ -501,91 +499,77 @@ public class SapMessage {
                 }
                 break;
             case PARAM_CONNECTION_STATUS_ID:
-                // not needed - server -> client
-                if(TEST) {
-                    if(paramLength != PARAM_CONNECTION_STATUS_LENGTH) {
-                        Log.e(TAG, "Received PARAM_CONNECTION_STATUS with wrong length: " +
-                                paramLength + " skipping this parameter.");
-                        skip(is, paramLength + skipLen);
-                        success = false;
-                    } else {
-                        mConnectionStatus = is.read();
-                        skip(is, 4 - PARAM_CONNECTION_STATUS_LENGTH);
-                    }
-                    break;
-                } // Fall through if TEST == false
+                // not needed for server role, but used for module test
+                if(paramLength != PARAM_CONNECTION_STATUS_LENGTH) {
+                    Log.e(TAG, "Received PARAM_CONNECTION_STATUS with wrong length: " +
+                            paramLength + " skipping this parameter.");
+                    skip(is, paramLength + skipLen);
+                    success = false;
+                } else {
+                    mConnectionStatus = is.read();
+                    skip(is, 4 - PARAM_CONNECTION_STATUS_LENGTH);
+                }
+                break;
             case PARAM_CARD_READER_STATUS_ID:
-                // not needed - server -> client
-                if(TEST) {
-                    if(paramLength != PARAM_CARD_READER_STATUS_LENGTH) {
-                        Log.e(TAG, "Received PARAM_CARD_READER_STATUS with wrong length: " +
-                                paramLength + " skipping this parameter.");
-                        skip(is, paramLength + skipLen);
-                        success = false;
-                    } else {
-                        mCardReaderStatus = is.read();
-                        skip(is, 4 - PARAM_CARD_READER_STATUS_LENGTH);
-                    }
-                    break;
-                } // Fall through if TEST == false
+                // not needed for server role, but used for module test
+                if(paramLength != PARAM_CARD_READER_STATUS_LENGTH) {
+                    Log.e(TAG, "Received PARAM_CARD_READER_STATUS with wrong length: " +
+                            paramLength + " skipping this parameter.");
+                    skip(is, paramLength + skipLen);
+                    success = false;
+                } else {
+                    mCardReaderStatus = is.read();
+                    skip(is, 4 - PARAM_CARD_READER_STATUS_LENGTH);
+                }
+                break;
             case PARAM_STATUS_CHANGE_ID:
-                // not needed - server -> client
-                if(TEST) {
-                    if(paramLength != PARAM_STATUS_CHANGE_LENGTH) {
-                        Log.e(TAG, "Received PARAM_STATUS_CHANGE with wrong length: " +
-                                paramLength + " skipping this parameter.");
-                        skip(is, paramLength + skipLen);
-                        success = false;
-                    } else {
-                        mStatusChange = is.read();
-                        skip(is, 4 - PARAM_STATUS_CHANGE_LENGTH);
-                    }
-                    break;
-                } // Fall through if TEST == false
+                // not needed for server role, but used for module test
+                if(paramLength != PARAM_STATUS_CHANGE_LENGTH) {
+                    Log.e(TAG, "Received PARAM_STATUS_CHANGE with wrong length: " +
+                            paramLength + " skipping this parameter.");
+                    skip(is, paramLength + skipLen);
+                    success = false;
+                } else {
+                    mStatusChange = is.read();
+                    skip(is, 4 - PARAM_STATUS_CHANGE_LENGTH);
+                }
+                break;
             case PARAM_RESULT_CODE_ID:
-                // not needed - server -> client
-                if(TEST) {
-                    if(paramLength != PARAM_RESULT_CODE_LENGTH) {
-                        Log.e(TAG, "Received PARAM_RESULT_CODE with wrong length: " +
-                                paramLength + " skipping this parameter.");
-                        skip(is, paramLength + skipLen);
-                        success = false;
-                    } else {
-                        mResultCode = is.read();
-                        skip(is, 4 - PARAM_RESULT_CODE_LENGTH);
-                    }
-                    break;
-                } // Fall through if TEST == false
+                // not needed for server role, but used for module test
+                if(paramLength != PARAM_RESULT_CODE_LENGTH) {
+                    Log.e(TAG, "Received PARAM_RESULT_CODE with wrong length: " +
+                            paramLength + " skipping this parameter.");
+                    skip(is, paramLength + skipLen);
+                    success = false;
+                } else {
+                    mResultCode = is.read();
+                    skip(is, 4 - PARAM_RESULT_CODE_LENGTH);
+                }
+                break;
             case PARAM_DISCONNECT_TYPE_ID:
-                // not needed - server -> client
-                if(TEST) {
-                    if(paramLength != PARAM_DISCONNECT_TYPE_LENGTH) {
-                        Log.e(TAG, "Received PARAM_DISCONNECT_TYPE_ID with wrong length: " +
-                                paramLength + " skipping this parameter.");
-                        skip(is, paramLength + skipLen);
-                        success = false;
-                    } else {
-                        mDisconnectionType = is.read();
-                        skip(is, 4 - PARAM_DISCONNECT_TYPE_LENGTH);
-                    }
-                    break;
-                } // Fall through if TEST == false
+                // not needed for server role, but used for module test
+                if(paramLength != PARAM_DISCONNECT_TYPE_LENGTH) {
+                    Log.e(TAG, "Received PARAM_DISCONNECT_TYPE_ID with wrong length: " +
+                            paramLength + " skipping this parameter.");
+                    skip(is, paramLength + skipLen);
+                    success = false;
+                } else {
+                    mDisconnectionType = is.read();
+                    skip(is, 4 - PARAM_DISCONNECT_TYPE_LENGTH);
+                }
+                break;
             case PARAM_RESPONSE_APDU_ID:
-                // not needed - server -> client
-                if(TEST) {
-                    mApduResp = new byte[paramLength];
-                    read(is, mApduResp);
-                    skip(is, skipLen);
-                    break;
-                } // Fall through if TEST == false
+                // not needed for server role, but used for module test
+                mApduResp = new byte[paramLength];
+                read(is, mApduResp);
+                skip(is, skipLen);
+                break;
             case PARAM_ATR_ID:
-                // not needed - server -> client
-                if(TEST) {
-                    mAtr = new byte[paramLength];
-                    read(is, mAtr);
-                    skip(is, skipLen);
-                    break;
-                } // Fall through if TEST == false
+                // not needed for server role, but used for module test
+                mAtr = new byte[paramLength];
+                read(is, mAtr);
+                skip(is, skipLen);
+                break;
             default:
                 Log.e(TAG, "Received unknown parameter ID: " + paramId + " length: " +
                         paramLength + " skipping this parameter.");
@@ -647,8 +631,10 @@ public class SapMessage {
 
         /* Payload */
         os.write(value);
-        for(int i = 0, n = 4 - (value.length % 4) ; i < n; i++) {
-            os.write(0); // Padding
+        if (value.length % 4 != 0) {
+            for (int i = 0; i < (4 - (value.length % 4)); ++i) {
+                os.write(0); // Padding
+            }
         }
     }
 
@@ -672,7 +658,7 @@ public class SapMessage {
             writeParameter(os, PARAM_RESULT_CODE_ID, mResultCode,
                             PARAM_RESULT_CODE_LENGTH);
         }
-        if(mDisconnectionType != INVALID_VALUE && TEST) {
+        if(mDisconnectionType != INVALID_VALUE) {
             writeParameter(os, PARAM_DISCONNECT_TYPE_ID, mDisconnectionType,
                             PARAM_DISCONNECT_TYPE_LENGTH);
         }
@@ -684,14 +670,14 @@ public class SapMessage {
             writeParameter(os, PARAM_STATUS_CHANGE_ID, mStatusChange,
                             PARAM_STATUS_CHANGE_LENGTH);
         }
-        if(mTransportProtocol != INVALID_VALUE && TEST) {
+        if(mTransportProtocol != INVALID_VALUE) {
             writeParameter(os, PARAM_TRANSPORT_PROTOCOL_ID, mTransportProtocol,
                             PARAM_TRANSPORT_PROTOCOL_LENGTH);
         }
-        if(mApdu != null && TEST) {
+        if(mApdu != null) {
             writeParameter(os, PARAM_COMMAND_APDU_ID, mApdu);
         }
-        if(mApdu7816 != null  && TEST) {
+        if(mApdu7816 != null) {
             writeParameter(os, PARAM_COMMAND_APDU7816_ID, mApdu7816);
         }
         if(mApduResp != null) {
@@ -842,10 +828,8 @@ public class SapMessage {
             break;
         }
         default:
-            if(TEST == false) {
-                Log.e(TAG, "Unknown request type");
-                throw new IllegalArgumentException();
-            }
+            Log.e(TAG, "Unknown request type");
+            throw new IllegalArgumentException();
         }
         /* Update the ongoing requests queue */
         if(mClearRilQueue == true) {
@@ -1218,7 +1202,7 @@ public class SapMessage {
 
 
     public static String getMsgTypeName(int msgType) {
-        if(TEST || VERBOSE) {
+        if(DEBUG || VERBOSE) {
             switch (msgType)
             {
                 case ID_CONNECT_REQ: return "ID_CONNECT_REQ";

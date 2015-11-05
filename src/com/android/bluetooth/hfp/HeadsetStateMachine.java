@@ -3179,6 +3179,11 @@ final class HeadsetStateMachine extends StateMachine {
         } else {
             Log.e(TAG,"processNoiceReductionEvent: AudioParamNrec is null ");
         }
+
+        if (mActiveScoDevice != null && mActiveScoDevice.equals(device)
+                && mAudioState == BluetoothHeadset.STATE_AUDIO_CONNECTED) {
+            setAudioParameters(device);
+        }
     }
 
     // 2 - WBS on
