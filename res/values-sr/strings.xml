@@ -68,7 +68,7 @@
     <string name="upload_line5" msgid="7759322537674229752">"Слање датотеке..."</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"Датотека је послата"</string>
     <string name="upload_succ_ok" msgid="7705428476405478828">"Потврди"</string>
-    <string name="upload_fail_line1" msgid="7899394672421491701">"Датотека није послата примаоцу „<xliff:g id="RECIPIENT">%1$s</xliff:g>“."</string>
+    <string name="upload_fail_line1" msgid="7899394672421491701">"Датотека није послата на <xliff:g id="RECIPIENT">%1$s</xliff:g>."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Датотека: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="upload_fail_ok" msgid="5807702461606714296">"Покушај поново"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Затвори"</string>
@@ -107,10 +107,13 @@
     <string name="inbound_history_title" msgid="6940914942271327563">"Долазни преноси"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Одлазни преноси"</string>
     <string name="no_transfers" msgid="3482965619151865672">"Историја преноса је празна."</string>
-    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Све ставке биће избрисане са листе."</string>
+    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Све ставке ће бити избрисане са листе."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Дељење преко Bluetooth-а: послате датотеке"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Дељење преко Bluetooth-а: примљене датотеке"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"Успешно: <xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g>; неуспешно: <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g>."</string>
+    <!-- no translation found for noti_caption_unsuccessful:one (8128018037399612752) -->
+    <!-- no translation found for noti_caption_unsuccessful:other (1270810527859501266) -->
+    <!-- no translation found for noti_caption_success:one (2029001621691602699) -->
+    <!-- no translation found for noti_caption_success:other (7429030624288564531) -->
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Обриши листу"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Отвори"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Обриши са листе"</string>

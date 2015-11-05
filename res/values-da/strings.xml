@@ -36,16 +36,16 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Accepter"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Der opstod timeout ved modtagelse af indgående fil fra \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Deling med Bluetooth: indgående fil"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth-deling: indgående fil"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"VIl du modtage denne fil?"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Indgående fil fra en anden enhed. Bekræft, at du vil modtage denne fil."</string>
-    <string name="notification_receiving" msgid="4674648179652543984">"Deling med Bluetooth: Modtager <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received" msgid="3324588019186687985">"Deling med Bluetooth: Modtog <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Deling med Bluetooth: Filen <xliff:g id="FILE">%1$s</xliff:g> blev ikke modtaget"</string>
-    <string name="notification_sending" msgid="3035748958534983833">"Deling med Bluetooth: Sender <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"Deling med Bluetooth: Sendt <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth-deling: Modtager <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received" msgid="3324588019186687985">"Bluetooth-deling: Modtog <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth-deling: Filen <xliff:g id="FILE">%1$s</xliff:g> blev ikke modtaget"</string>
+    <string name="notification_sending" msgid="3035748958534983833">"Bluetooth-deling: Sender <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"Bluetooth-deling: Sendt <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"100 % fuldført"</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"Deling med Bluetooth: Filen <xliff:g id="FILE">%1$s</xliff:g> blev ikke sendt"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth-deling: Filen <xliff:g id="FILE">%1$s</xliff:g> blev ikke sendt"</string>
     <string name="download_title" msgid="3353228219772092586">"Filoverførsel"</string>
     <string name="download_line1" msgid="4926604799202134144">"Fra: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"Fil: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -101,16 +101,19 @@
     <string name="status_connection_error" msgid="947681831523219891">"Forbindelsen mislykkedes."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"Anmodningen kan ikke håndteres korrekt."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Ukendt fejl."</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth modtaget"</string>
-    <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Modtagelse fuldført."</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"Modtaget via Bluetooth"</string>
+    <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Modtaget."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Afsendelse fuldført."</string>
-    <string name="inbound_history_title" msgid="6940914942271327563">"Overførsler hertil"</string>
-    <string name="outbound_history_title" msgid="4279418703178140526">"Overførsler herfra"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"Overførselsoversigten er tom."</string>
+    <string name="inbound_history_title" msgid="6940914942271327563">"Indgående overførsler"</string>
+    <string name="outbound_history_title" msgid="4279418703178140526">"Udgående overførsler"</string>
+    <string name="no_transfers" msgid="3482965619151865672">"Overførselshistorikken er tom."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Alle elementer vil blive fjernet fra listen."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth-deling: Sendte filer"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth-deling: Modtagne filer"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> vellykket, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> mislykket."</string>
+    <!-- no translation found for noti_caption_unsuccessful:one (8128018037399612752) -->
+    <!-- no translation found for noti_caption_unsuccessful:other (1270810527859501266) -->
+    <!-- no translation found for noti_caption_success:one (2029001621691602699) -->
+    <!-- no translation found for noti_caption_success:other (7429030624288564531) -->
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Ryd liste"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Åbn"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Fjern fra listen"</string>

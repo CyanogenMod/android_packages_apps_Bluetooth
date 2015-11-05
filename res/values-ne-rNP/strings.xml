@@ -110,7 +110,10 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"सूचीबाट सम्पूर्ण वस्तुहरू मेटाइने छन्।"</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"ब्लुटुथ साझेदारी: पठाइएका फाइलहरू"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"ब्लुटुथ साझेदारी: प्राप्त फाइलहरू"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> सफल, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> विफल।"</string>
+    <!-- no translation found for noti_caption_unsuccessful:one (8128018037399612752) -->
+    <!-- no translation found for noti_caption_unsuccessful:other (1270810527859501266) -->
+    <!-- no translation found for noti_caption_success:one (2029001621691602699) -->
+    <!-- no translation found for noti_caption_success:other (7429030624288564531) -->
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"सूची हटाउनुहोस्"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"खोल्नुहोस्"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"सूचीबाट हटाउनुहोस्"</string>

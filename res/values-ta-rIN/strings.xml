@@ -101,16 +101,19 @@
     <string name="status_connection_error" msgid="947681831523219891">"இணைப்பு தோல்வி."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"கோரிக்கை சரியாக கையாளப்படவில்லை."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"தெரியாத பிழை."</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"புளூடூத் பெறப்பட்டது"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"புளூடூத் - பெற்றவை"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> பெறப்பட்டது."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> அனுப்புவது முடிந்தது."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"உள் இடமாற்றங்கள்"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"வெளிச்செல்லும் பரிமாற்றங்கள்"</string>
     <string name="no_transfers" msgid="3482965619151865672">"பரிமாற்ற வரலாற்றில் எதுவுமில்லை."</string>
-    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"எல்லா உருப்படிகளும் பட்டியலிலிருந்து அழிக்கப்படும்."</string>
+    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"பட்டியலிலிருந்து அனைத்தும் அழிக்கப்படும்."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"புளூடூத் பகிர்வு: அனுப்பியவை"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"புளூடூத் பகிர்வு: பெற்ற கோப்புகள்"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> வெற்றி, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> தோல்வி."</string>
+    <!-- no translation found for noti_caption_unsuccessful:one (8128018037399612752) -->
+    <!-- no translation found for noti_caption_unsuccessful:other (1270810527859501266) -->
+    <!-- no translation found for noti_caption_success:one (2029001621691602699) -->
+    <!-- no translation found for noti_caption_success:other (7429030624288564531) -->
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"பட்டியலை அழி"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"திற"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"பட்டியலிலிருந்து அழி"</string>

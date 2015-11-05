@@ -16,7 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Πρόσβαση στο πρόγραμμα διαχείρισης λήψεων."</string>
+    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Πρόσβαση στη διαχείριση λήψεων."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Επιτρέπει στην εφαρμογή να αποκτά πρόσβαση στο πρόγραμμα διαχείρισης BluetoothShare και να το χρησιμοποιεί για τη μεταφορά αρχείων."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Πρόσβαση συσκευής Bluetooth επιτρεπόμενης λίστας."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Επιτρέπει στην εφαρμογή να προσθέσει μια συσκευή Bluetooth σε μια λίστα επιτρεπόμενων συσκευών, δίνοντας τη δυνατότητα στη συγκεκριμένη εφαρμογή να αποστέλλει αρχεία σε αυτήν τη συσκευή χωρίς επιβεβαίωση χρήστη."</string>
@@ -107,14 +107,17 @@
     <string name="inbound_history_title" msgid="6940914942271327563">"Εισερχόμενες μεταφορές"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Εξερχόμενες μεταφορές"</string>
     <string name="no_transfers" msgid="3482965619151865672">"Το ιστορικό μεταφορών είναι κενό."</string>
-    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Θα γίνει εκκαθάριση όλων των στοιχείων από τη λίστα."</string>
+    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Όλα τα στοιχεία από τη λίστα θα διαγραφούν."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Κοινή χρήση Bluetooth: Απεσταλμένα αρχεία"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Κοινή χρήση Bluetooth: Ληφθέντα αρχεία"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> επιτυχίες, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> αποτυχίες."</string>
-    <string name="transfer_menu_clear_all" msgid="790017462957873132">"Εκκαθάριση λίστας"</string>
+    <!-- no translation found for noti_caption_unsuccessful:one (8128018037399612752) -->
+    <!-- no translation found for noti_caption_unsuccessful:other (1270810527859501266) -->
+    <!-- no translation found for noti_caption_success:one (2029001621691602699) -->
+    <!-- no translation found for noti_caption_success:other (7429030624288564531) -->
+    <string name="transfer_menu_clear_all" msgid="790017462957873132">"Διαγραφή λίστας"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Άνοιγμα"</string>
-    <string name="transfer_menu_clear" msgid="5854038118831427492">"Εκκαθάριση από τη λίστα"</string>
-    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Εκκαθάριση"</string>
+    <string name="transfer_menu_clear" msgid="5854038118831427492">"Διαγραφή από τη λίστα"</string>
+    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Διαγραφή"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Αποθήκευση"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Ακύρωση"</string>
     <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Επιλέξτε τους λογαριασμούς που θέλετε να μοιραστείτε μέσω Bluetooth. Θα πρέπει ακόμη να αποδεχτείτε τυχόν αιτήματα πρόσβασης στους λογαριασμούς κατά τη σύνδεση."</string>

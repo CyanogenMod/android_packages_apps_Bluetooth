@@ -104,13 +104,16 @@
     <string name="btopp_live_folder" msgid="7967791481444474554">"ब्लूटूथ प्राप्त"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> प्राप्ति पूर्ण."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> भेजना पूर्ण."</string>
-    <string name="inbound_history_title" msgid="6940914942271327563">"अंतर्गामी स्थानांतरण"</string>
-    <string name="outbound_history_title" msgid="4279418703178140526">"बहिर्गामी स्थानांतरण"</string>
+    <string name="inbound_history_title" msgid="6940914942271327563">"इनबाउंड स्थानांतरण"</string>
+    <string name="outbound_history_title" msgid="4279418703178140526">"आउटबाउंड स्थानांतरण"</string>
     <string name="no_transfers" msgid="3482965619151865672">"स्थानांतरण इतिहास खाली है."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"सूची से सभी आइटम साफ़ कर दिए जाएंगे."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"ब्लूटूथ शेयर: भेजी गई फ़ाइलें"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"ब्लूटूथ शेयर: प्राप्त फ़ाइलें"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> सफल, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> विफल."</string>
+    <!-- no translation found for noti_caption_unsuccessful:one (8128018037399612752) -->
+    <!-- no translation found for noti_caption_unsuccessful:other (1270810527859501266) -->
+    <!-- no translation found for noti_caption_success:one (2029001621691602699) -->
+    <!-- no translation found for noti_caption_success:other (7429030624288564531) -->
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"सूची साफ़ करें"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"खोलें"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"सूची से साफ़ करें"</string>

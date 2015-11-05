@@ -73,7 +73,7 @@
     <string name="upload_fail_ok" msgid="5807702461606714296">"ಮತ್ತೆ ಪ್ರಯತ್ನಿಸು"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"ಮುಚ್ಚು"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"ಸರಿ"</string>
-    <string name="unknown_file" msgid="6092727753965095366">"ಅಜ್ಞಾತ ಫೈಲ್"</string>
+    <string name="unknown_file" msgid="6092727753965095366">"ಅಪರಿಚಿತ ಫೈಲ್"</string>
     <string name="unknown_file_desc" msgid="480434281415453287">"ಈ ಪ್ರಕಾರದ ಫೈಲ್ ನಿರ್ವಹಿಸಲು ಯಾವುದೇ ಅಪ್ಲಿಕೇಶನ್ ಇಲ್ಲ. \n"</string>
     <string name="not_exist_file" msgid="3489434189599716133">"ಫೈಲ್ ಇಲ್ಲ"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"ಫೈಲ್‌ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ. \n"</string>
@@ -93,7 +93,7 @@
     <string name="status_running" msgid="6562808920311008696">"ಫೈಲ್‌‌ ವರ್ಗಾವಣೆಯು ಚಾಲ್ತಿಯಲ್ಲಿದೆ."</string>
     <string name="status_success" msgid="239573225847565868">"ಫೈಲ್‌ ವರ್ಗಾವಣೆಯು ಸಂಪೂರ್ಣವಾಗಿ ಯಶಸ್ವಿಯಾಗಿದೆ."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"ವಿಷಯ ಬೆಂಬಲಿತವಾಗಿಲ್ಲ."</string>
-    <string name="status_forbidden" msgid="613956401054050725">"ಗುರಿಯ ಸಾಧನದಿಂದ ವರ್ಗಾವಣೆಯನ್ನು ನಿಷೇಧಿಸಲಾಗಿದೆ."</string>
+    <string name="status_forbidden" msgid="613956401054050725">"ಉದ್ದೇಶಿತ ಸಾಧನದಿಂದ ವರ್ಗಾವಣೆಯನ್ನು ನಿಷೇಧಿಸಲಾಗಿದೆ."</string>
     <string name="status_canceled" msgid="6664490318773098285">"ಬಳಕೆದಾರರ ಮೂಲಕ ವರ್ಗಾವಣೆಯನ್ನು ರದ್ದುಪಡಿಸಲಾಗಿದೆ."</string>
     <string name="status_file_error" msgid="3671917770630165299">"ಸಂಗ್ರಹಣೆಯ ಸಮಸ್ಯೆ."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"ಯಾವುದೇ USB ಸಂಗ್ರಹಣೆಯಿಲ್ಲ."</string>
@@ -104,13 +104,16 @@
     <string name="btopp_live_folder" msgid="7967791481444474554">"ಬ್ಲೂಟೂತ್‌ ಸ್ವೀಕರಿಸಲಾಗಿದೆ"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ಸ್ವೀಕರಿಸುವುದು ಪೂರ್ಣಗೊಂಡಿದೆ."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ಕಳುಹಿಸುವುದು ಪೂರ್ಣಗೊಂಡಿದೆ."</string>
-    <string name="inbound_history_title" msgid="6940914942271327563">"ಆಗಮಿಸುವ ವರ್ಗಾವಣೆಗಳು"</string>
-    <string name="outbound_history_title" msgid="4279418703178140526">"ಹೊರಹೋಗುವ ವರ್ಗಾವಣೆಗಳು"</string>
+    <string name="inbound_history_title" msgid="6940914942271327563">"ಇನ್‌ಬೌಂಡ್‌ ವರ್ಗಾವಣೆಗಳು"</string>
+    <string name="outbound_history_title" msgid="4279418703178140526">"ಔಟ್‌ಬೌಂಡ್‌ ವರ್ಗಾವಣೆಗಳು"</string>
     <string name="no_transfers" msgid="3482965619151865672">"ವರ್ಗಾವಣೆಯ ಇತಿಹಾಸವು ಖಾಲಿಯಾಗಿದೆ."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"ಪಟ್ಟಿಯಿಂದ ಎಲ್ಲ ಐಟಂಗಳನ್ನು ತೆರವುಗೊಳಿಸಲಾಗುವುದು."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"ಬ್ಲೂಟೂತ್‌ ಹಂಚಿಕೆ: ಕಳುಹಿಸಲಾಗಿರುವ ಫೈಲ್‌‌ಗಳು"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"ಬ್ಲೂಟೂತ್‌ ಹಂಚಿಕೆ: ಫೈಲ್‌ಗಳನ್ನು ಸ್ವೀಕರಿಸಲಾಗಿದೆ"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> ಯಶಸ್ವಿಯಾಗಿದೆ, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> ಯಶಸ್ವಿಯಾಗಿಲ್ಲ."</string>
+    <!-- no translation found for noti_caption_unsuccessful:one (8128018037399612752) -->
+    <!-- no translation found for noti_caption_unsuccessful:other (1270810527859501266) -->
+    <!-- no translation found for noti_caption_success:one (2029001621691602699) -->
+    <!-- no translation found for noti_caption_success:other (7429030624288564531) -->
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"ಪಟ್ಟಿಯನ್ನು ತೆರವುಗೊಳಿಸಿ"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"ತೆರೆಯಿರಿ"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"ಪಟ್ಟಿಯಿಂದ ತೆರವುಗೊಳಿಸಿ"</string>
