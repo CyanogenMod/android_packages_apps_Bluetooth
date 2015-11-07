@@ -204,15 +204,19 @@ final public class Utils {
         int callingUser = UserHandle.getCallingUserId();
         int callingUid = Binder.getCallingUid();
         long ident = Binder.clearCallingIdentity();
+        Log.d(TAG,"callingUid =" + callingUid);
 
         try {
             // With calling identity cleared the current user is the foreground user.
             int foregroundUser = ActivityManager.getCurrentUser();
             ok = (foregroundUser == callingUser);
+            Log.e(TAG, "foregroundUser =" + foregroundUser);
+            Log.e(TAG, "callingUser =" + callingUser);
             if (!ok) {
                 // Always allow SystemUI/System access.
                 int systemUiUid = ActivityThread.getPackageManager().getPackageUid(
                         "com.android.systemui", UserHandle.USER_OWNER);
+                Log.d(TAG," systemUiUid :" + systemUiUid);
                 ok = (systemUiUid == callingUid) || (Process.SYSTEM_UID == callingUid);
             }
         } catch (Exception ex) {
