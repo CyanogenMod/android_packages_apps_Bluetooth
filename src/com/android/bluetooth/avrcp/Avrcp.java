@@ -19,14 +19,12 @@ package com.android.bluetooth.avrcp;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import android.app.PendingIntent;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAvrcp;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.AudioManager;
-import android.media.IRemoteControlDisplay;
 import android.media.MediaMetadataRetriever;
 import android.media.RemoteControlClient;
 import android.media.RemoteController;
