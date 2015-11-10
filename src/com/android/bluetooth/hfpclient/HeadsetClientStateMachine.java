@@ -987,9 +987,6 @@ final class HeadsetClientStateMachine extends StateMachine {
                 }
                 break;
             case BluetoothHeadsetClientCall.CALL_STATE_HELD_BY_RESPONSE_AND_HOLD:
-                if (flag != BluetoothHeadsetClient.CALL_ACCEPT_NONE) {
-                    return;
-                }
                 action = HeadsetClientHalConstants.CALL_ACTION_BTRH_1;
                 break;
             case BluetoothHeadsetClientCall.CALL_STATE_ALERTING:
