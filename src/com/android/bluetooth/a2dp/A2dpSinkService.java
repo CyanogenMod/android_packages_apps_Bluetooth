@@ -24,6 +24,8 @@ import android.provider.Settings;
 import android.util.Log;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
+import cyanogenmod.providers.CMSettings;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -147,8 +149,8 @@ public class A2dpSinkService extends ProfileService {
     public boolean setPriority(BluetoothDevice device, int priority) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH_ADMIN permission");
-        Settings.Global.putInt(getContentResolver(),
-            Settings.Global.getBluetoothA2dpSrcPriorityKey(device.getAddress()),
+        CMSettings.Global.putInt(getContentResolver(),
+            CMSettings.Global.getBluetoothA2dpSrcPriorityKey(device.getAddress()),
             priority);
         Log.d(TAG,"Saved priority " + device + " = " + priority);
         return true;
@@ -157,8 +159,8 @@ public class A2dpSinkService extends ProfileService {
     public int getPriority(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH_ADMIN permission");
-        int priority = Settings.Global.getInt(getContentResolver(),
-            Settings.Global.getBluetoothA2dpSrcPriorityKey(device.getAddress()),
+        int priority = CMSettings.Global.getInt(getContentResolver(),
+                CMSettings.Global.getBluetoothA2dpSrcPriorityKey(device.getAddress()),
             BluetoothProfile.PRIORITY_UNDEFINED);
         return priority;
     }
