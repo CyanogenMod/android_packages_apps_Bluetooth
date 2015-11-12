@@ -23,7 +23,7 @@ LOCAL_CERTIFICATE := platform
 LOCAL_JNI_SHARED_LIBRARIES := libbluetooth_jni
 LOCAL_JAVA_LIBRARIES := javax.obex telephony-common libprotobuf-java-micro
 LOCAL_STATIC_JAVA_LIBRARIES := com.android.vcard  bluetooth.mapsapi sap-api-java-static
-LOCAL_STATIC_JAVA_LIBRARIES += com.android.emailcommon
+LOCAL_STATIC_JAVA_LIBRARIES += com.android.emailcommon org.cyanogenmod.platform.internal
 
 LOCAL_REQUIRED_MODULES := bluetooth.default
 LOCAL_MULTILIB := 32
