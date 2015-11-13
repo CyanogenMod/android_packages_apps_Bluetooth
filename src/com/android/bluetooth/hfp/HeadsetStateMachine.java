@@ -305,10 +305,16 @@ final class HeadsetStateMachine extends StateMachine {
 
     public void doQuit() {
         log("quit");
+        if (mAudioManager != null) {
+             mAudioManager.setBluetoothScoOn(false);
+        }
         quitNow();
     }
 
     public void cleanup() {
+        if (mAudioManager != null) {
+             mAudioManager.setBluetoothScoOn(false);
+        }
         if (mPhoneProxy != null) {
             if (DBG) Log.d(TAG,"Unbinding service...");
             synchronized (mConnection) {
