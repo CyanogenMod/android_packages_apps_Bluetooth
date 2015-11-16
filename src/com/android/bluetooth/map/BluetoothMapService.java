@@ -407,7 +407,7 @@ public class BluetoothMapService extends ProfileService {
                     if (DEBUG) Log.d(TAG,"ContentObserver Registration MASID: " + msg.arg1
                         + " Enable: " + msg.arg2);
                     BluetoothMapMasInstance masInst = mMasInstances.get(msg.arg1);
-                    if (masInst != null) {
+                    if (masInst != null && masInst.mObserver != null) {
                         try {
                             if (msg.arg2 == BluetoothMapAppParams.NOTIFICATION_STATUS_YES) {
                                 masInst.mObserver.registerObserver();
@@ -573,6 +573,12 @@ public class BluetoothMapService extends ProfileService {
         if (DEBUG) Log.d(TAG, "start()");
         if(!VERBOSE)
         VERBOSE = Log.isLoggable(LOG_TAG, Log.VERBOSE);
+
+        if (!Utils.checkCaller()) {
+            Log.w(TAG, "start received for non-active user, ignoring");
+            return false;
+        }
+
         if (VERBOSE) Log.v(TAG, "verbose logging is enabled");
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);

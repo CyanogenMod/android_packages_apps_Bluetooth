@@ -193,8 +193,10 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             ContentValues updateValues;
 
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+            if (V) Log.v(TAG, "Is ContentResolverUpdateThread Interrupted :" + isInterrupted());
+            /*  Check if the Operation is interrupted before entering into loop */
 
-            while (true) {
+            while ( !isInterrupted() ) {
                 updateValues = new ContentValues();
                 updateValues.put(BluetoothShare.CURRENT_BYTES, position);
                 mContext1.getContentResolver().update(contentUri, updateValues,

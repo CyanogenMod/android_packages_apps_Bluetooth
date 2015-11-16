@@ -48,6 +48,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 import android.widget.Toast;
+import com.android.bluetooth.Utils;
 
 /**
  * Receives and handles: system broadcasts; Intents from other applications;
@@ -62,6 +63,10 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
 
+        if (!Utils.checkCaller()) {
+            Log.w(TAG, action + " received for non-active user, ignoring!!");
+            return;
+        }
 
         if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
             if (BluetoothAdapter.STATE_ON == intent.getIntExtra(

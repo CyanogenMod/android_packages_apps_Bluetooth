@@ -486,10 +486,20 @@ public class SapService extends ProfileService {
     };
 
     private void setState(int state) {
-        setState(state, BluetoothSap.RESULT_SUCCESS);
+        setState(state, BluetoothSap.RESULT_SUCCESS, false);
     }
 
-    private synchronized void setState(int state, int result) {
+    private void setState(int state, int result, boolean force) {
+        if (!force) {
+            synchronized (this) {
+                setState(state, result);
+            }
+        } else {
+            setState(state, result);
+        }
+    }
+
+    private void setState(int state, int result) {
         if (state != mState) {
             if (DEBUG) Log.d(TAG, "Sap state " + mState + " -> " + state + ", result = "
                     + result);
@@ -527,7 +537,8 @@ public class SapService extends ProfileService {
                 switch (mState) {
                     case BluetoothSap.STATE_CONNECTED:
                         closeConnectionSocket();
-                        setState(BluetoothSap.STATE_DISCONNECTED, BluetoothSap.RESULT_CANCELED);
+                        setState(BluetoothSap.STATE_DISCONNECTED, BluetoothSap.RESULT_CANCELED,
+                            false);
                         result = true;
                         break;
                     default:
@@ -637,7 +648,7 @@ public class SapService extends ProfileService {
         } catch (Exception e) {
             Log.w(TAG,"Unable to unregister sap receiver",e);
         }
-        setState(BluetoothSap.STATE_DISCONNECTED, BluetoothSap.RESULT_CANCELED);
+        setState(BluetoothSap.STATE_DISCONNECTED, BluetoothSap.RESULT_CANCELED, true);
         CountDownLatch latch = new CountDownLatch(1);
         sendShutdownMessage(latch);
         // We need to wait for shutdown to complete to avoid being garbage collected before
@@ -661,7 +672,7 @@ public class SapService extends ProfileService {
     }
 
     public boolean cleanup()  {
-        setState(BluetoothSap.STATE_DISCONNECTED, BluetoothSap.RESULT_CANCELED);
+        setState(BluetoothSap.STATE_DISCONNECTED, BluetoothSap.RESULT_CANCELED, true);
         closeService(null); // No latch needed as the call is blocking
         if(mSessionStatusHandler != null) {
             mSessionStatusHandler.removeCallbacksAndMessages(null);

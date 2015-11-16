@@ -3630,6 +3630,9 @@ public final class Avrcp {
                             reqItems = count;
                         }
                         cursor.moveToFirst();
+                        for (int i = 0; i < start; i++) {
+                            cursor.moveToNext();
+                        }
                         int index = 0;
                         for (index = 0; index < reqItems; index++) {
                             itemType[index] = TYPE_FOLDER_ITEM;

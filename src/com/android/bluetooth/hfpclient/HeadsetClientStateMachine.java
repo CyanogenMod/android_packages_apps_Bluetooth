@@ -1290,6 +1290,11 @@ final class HeadsetClientStateMachine extends StateMachine {
     }
 
     public void doQuit() {
+        Log.d(TAG, "doQuit");
+        if (mAudioManager != null)
+        {
+            mAudioManager.setParameters("hfp_enable=false");
+        }
         quitNow();
     }
 
@@ -1520,7 +1525,12 @@ final class HeadsetClientStateMachine extends StateMachine {
                         }
                     }
                     transitionTo(mConnected);
-
+                    // the other profile connection should be initiated
+                    AdapterService adapterService = AdapterService.getAdapterService();
+                    if (adapterService != null) {
+                        adapterService.connectOtherProfile(device,
+                                AdapterService.PROFILE_CONN_CONNECTED);
+                    }
                     // TODO get max stream volume and scale 0-15
                     sendMessage(obtainMessage(HeadsetClientStateMachine.SET_SPEAKER_VOLUME,
                             mAudioManager.getStreamVolume(AudioManager.STREAM_BLUETOOTH_SCO), 0));
@@ -2325,6 +2335,12 @@ final class HeadsetClientStateMachine extends StateMachine {
                     }
 
                     transitionTo(mConnected);
+                    // the other profile connection should be initiated
+                    AdapterService adapterService = AdapterService.getAdapterService();
+                    if (adapterService != null) {
+                        adapterService.connectOtherProfile(device,
+                                AdapterService.PROFILE_CONN_CONNECTED);
+                    }
                     break;
                 default:
                     Log.e(TAG, "Audio State Device: " + device + " bad state: " + state);

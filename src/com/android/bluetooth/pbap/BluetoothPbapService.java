@@ -200,6 +200,11 @@ public class BluetoothPbapService extends Service {
         mInterrupted = false;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
+        if (!Utils.checkCaller()) {
+            Log.w(TAG, "onCreate received for non-active user, ignoring");
+            return;
+        }
+
         if (!mHasStarted) {
             mHasStarted = true;
             if (VERBOSE) Log.v(TAG, "Starting PBAP service");
@@ -756,8 +761,8 @@ public class BluetoothPbapService extends Service {
             int prevState = mState;
             mState = state;
             Intent intent = new Intent(BluetoothPbap.PBAP_STATE_CHANGED_ACTION);
-            intent.putExtra(BluetoothPbap.PBAP_PREVIOUS_STATE, prevState);
-            intent.putExtra(BluetoothPbap.PBAP_STATE, mState);
+            intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
+            intent.putExtra(BluetoothProfile.EXTRA_STATE, mState);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
             sendBroadcast(intent, BLUETOOTH_PERM);
             AdapterService s = AdapterService.getAdapterService();
