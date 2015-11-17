@@ -109,7 +109,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     boolean mTransferInProgress = false;
 
-    private ContentResolverUpdateThread uiUpdateThread = null;
+    private int position;
 
     public BluetoothOppObexServerSession(Context context, ObexTransport transport) {
         mContext = context;
@@ -171,39 +171,44 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     private class ContentResolverUpdateThread extends Thread {
 
+        private static final int sSleepTime = 1000;
         private Uri contentUri;
         private Context mContext1;
-        private long position;
-
-        public ContentResolverUpdateThread(Context context, Uri cntUri, long pos) {
+        private volatile boolean interrupted = false;
+        public ContentResolverUpdateThread(Context context, Uri cntUri) {
             super("BtOpp Server ContentResolverUpdateThread");
             mContext1 = context;
             contentUri = cntUri;
-            position = pos;
         }
 
         @Override
         public void run() {
 
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-            synchronized (BluetoothOppObexServerSession.this) {
-                if (uiUpdateThread != this) {
-                    throw new IllegalStateException(
-                        "multiple UpdateThreads in BluetoothOppObexServerSession");
-                }
-            }
+            ContentValues updateValues;
             if (V) Log.v(TAG, "Is ContentResolverUpdateThread Interrupted :" + isInterrupted());
             /*  Check if the Operation is interrupted before entering into loop */
+            while ( !isInterrupted() ) {
+               updateValues = new ContentValues();
+               updateValues.put(BluetoothShare.CURRENT_BYTES, position);
+               mContext1.getContentResolver().update(contentUri, updateValues,
+                   null, null);
+               /* Check if the Operation is interrupted before entering sleep */
+               if (isInterrupted()) {
+                   if (V) Log.v(TAG, "ContentResolverUpdateThread was interrupted before sleep !,"+
+                                     " exiting");
+                   return ;
+               }
 
-                ContentValues  updateValues = new ContentValues();
-                updateValues.put(BluetoothShare.CURRENT_BYTES, position);
-                mContext1.getContentResolver().update(contentUri, updateValues,
-                        null, null);
-             synchronized (BluetoothOppObexServerSession.this) {
-                uiUpdateThread = null;
-             }
-
-       }
+               try {
+                   Thread.sleep(sSleepTime);
+               } catch (InterruptedException e1) {
+                   if (V) Log.v(TAG, "Server ContentResolverUpdateThread was interrupted (1),"+
+                                     " exiting");
+                   return ;
+               }
+            }
+        }
     }
     /*
     * Called when a ABORT request is received.
@@ -501,6 +506,8 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         long beginTime = 0;
         int status = -1;
         BufferedOutputStream bos = null;
+        ContentResolverUpdateThread uiUpdateThread = null;
+
 
         InputStream is = null;
         boolean error = false;
@@ -520,7 +527,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             mContext.getContentResolver().update(contentUri, updateValues, null, null);
         }
 
-        long position = 0;
+        position = 0;
         if (!error) {
             bos = new BufferedOutputStream(fileInfo.mOutputStream, 0x10000);
         }
@@ -552,7 +559,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                     }
 
                     if (uiUpdateThread == null) {
-                        uiUpdateThread = new ContentResolverUpdateThread (mContext, contentUri, position);
+                        uiUpdateThread = new ContentResolverUpdateThread (mContext, contentUri);
                         if (V) Log.v(TAG, "Worker for Updation : Created");
                         uiUpdateThread.start();
                     }
