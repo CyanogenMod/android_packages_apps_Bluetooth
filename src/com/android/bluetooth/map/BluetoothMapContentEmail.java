@@ -1787,6 +1787,10 @@ public class BluetoothMapContentEmail extends BluetoothMapContent {
                    message.setType(TYPE.EMAIL);
                    message.setVersionString(mMessageVersion);
                    message.setContentType("Content-Type: text/plain; charset=\"UTF-8\"");
+                   message.setDate(c.getLong(c.getColumnIndex(BluetoothMapEmailContract
+                       .ExtEmailMessageColumns.TIMESTAMP)));
+                   message.setSubject(c.getString(c.getColumnIndex(BluetoothMapContract
+                       .MessageColumns.SUBJECT)));
                    // Set folder:
                    long folderId = c.getLong( c.getColumnIndex(BluetoothMapEmailContract
                            .ExtEmailMessageColumns.MAILBOX_KEY));
