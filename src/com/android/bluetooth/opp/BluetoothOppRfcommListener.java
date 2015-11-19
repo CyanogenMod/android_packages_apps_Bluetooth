@@ -170,9 +170,23 @@ public class BluetoothOppRfcommListener {
                                 }
                             } catch (IOException e) {
                                 Log.e(TAG, "Error accept connection " + e);
+                                // Need to break out of this loop if BT is being turned off.
+                                if (V) Log.v(TAG, "Checking Bluetooth State ");
+                                if (mAdapter == null) break;
+                                int state = mAdapter.getState();
+                                if ((state != BluetoothAdapter.STATE_TURNING_ON) &&
+                                    (state != BluetoothAdapter.STATE_ON)) {
+                                    Log.w(TAG, state+" RFCOMM listener failed as BT is being "
+                                            +"turned off");
+                                    break;
+                                }
+
                                 try {
                                     Thread.sleep(500);
-                                } catch (InterruptedException ie) {}
+                                } catch (InterruptedException ie) {
+                                    Log.e(TAG, "mSocketAcceptThread was interrupted " + ie);
+                                    mInterrupted = true;
+                                }
                             }
                         }
                         Log.i(TAG, "BluetoothSocket listen thread finished");
