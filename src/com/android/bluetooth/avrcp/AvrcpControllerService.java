@@ -308,7 +308,8 @@ public class AvrcpControllerService extends ProfileService {
         public String toString() {
             return "Metadata [artist=" + artist + " trackTitle= " + trackTitle + " albumTitle= " +
             albumTitle + " genre= " +genre+" trackNum= "+Long.toString(trackNum) + " cur_time: "+
-            Long.toString(playTime)  + " total_time = "+ Long.toString(totalTrackLen) + "]";
+            Long.toString(playTime)  + " total_time = "+ Long.toString(totalTrackLen) +
+            "playStatus=" + playStatus + "]";
         }
     };
 
