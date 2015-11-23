@@ -340,22 +340,28 @@ public class BluetoothPbapVcardManager {
         final Uri myUri = DevicePolicyUtils.getEnterprisePhoneUri(mContext);
         Cursor contactCursor = null;
         try {
-            contactCursor = mResolver.query(myUri, PHONES_CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
-                    null, Phone.CONTACT_ID);
+            if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_INDEXED) {
+                if (V) Log.v(TAG, "getPhonebookNameList, order by index");
+                contactCursor = mResolver.query(myUri, PHONES_CONTACTS_PROJECTION,
+                    CLAUSE_ONLY_VISIBLE, null, Phone.CONTACT_ID);
+            } else if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL) {
+                /*we are getting the contacts from the database in the alphabetical sorted order
+                  itself rather than appying sorting afterwards since that sort the owner
+                  contact too which was added in the beginning and can mess up the behavior
+                 */
+                if (V) Log.v(TAG, "getPhonebookNameList, order by alpha");
+                contactCursor = mResolver.query(myUri, PHONES_CONTACTS_PROJECTION,
+                    CLAUSE_ONLY_VISIBLE, null, Contacts.DISPLAY_NAME);
+            }
             if (contactCursor != null) {
                 appendDistinctNameIdList(nameList,
                         mContext.getString(android.R.string.unknownName),
                         contactCursor);
-                if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_INDEXED) {
-                    if (V) Log.v(TAG, "getPhonebookNameList, order by index");
-                    // Do not need to do anything, as we sort it by index already
-                } else if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL) {
-                    if (V) Log.v(TAG, "getPhonebookNameList, order by alpha");
-                    Collections.sort(nameList);
-                }
             }
+        } catch (CursorWindowAllocationException e) {
+            Log.e(TAG, "CursorWindowAllocationException while getting phonebook name list");
         } catch (Exception e) {
-            Log.e(TAG, "Exception while getting Phonebook name list", e);
+            Log.e(TAG, "Exception while getting phonebook name list", e);
         } finally {
             if (contactCursor != null) {
                 contactCursor.close();
@@ -635,17 +641,32 @@ public class BluetoothPbapVcardManager {
         Cursor contactIdCursor = new MatrixCursor(new String[] {
             Phone.CONTACT_ID
         });
-        try {
-            contactCursor = mResolver.query(myUri, PHONES_CONTACTS_PROJECTION,
-                    CLAUSE_ONLY_VISIBLE, null, Phone.CONTACT_ID);
-            contactIdCursor = ContactCursorFilter.filterByOffset(contactCursor, offset);
-
-        } catch (CursorWindowAllocationException e) {
-            Log.e(TAG,
+        if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_INDEXED) {
+            try {
+                contactCursor = mResolver.query(myUri, PHONES_CONTACTS_PROJECTION,
+                        CLAUSE_ONLY_VISIBLE, null, Phone.CONTACT_ID);
+                contactIdCursor = ContactCursorFilter.filterByOffset(contactCursor, offset);
+            } catch (CursorWindowAllocationException e) {
+                Log.e(TAG,
                     "CursorWindowAllocationException while composing phonebook one vcard");
-        } finally {
-            if (contactCursor != null) {
-                contactCursor.close();
+            } finally {
+                if (contactCursor != null) {
+                    contactCursor.close();
+                }
+            }
+        } else if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL) {
+            try {
+                contactCursor = mResolver.query(myUri, PHONES_CONTACTS_PROJECTION,
+                        CLAUSE_ONLY_VISIBLE, null, Phone.DISPLAY_NAME);
+                contactIdCursor = ContactCursorFilter.filterByOffset(contactCursor, offset);
+
+            } catch (CursorWindowAllocationException e) {
+                Log.e(TAG,
+                    "CursorWindowAllocationException while composing phonebook one vcard");
+            } finally {
+                if (contactCursor != null) {
+                    contactCursor.close();
+                }
             }
         }
         return composeContactsAndSendVCards(op, contactIdCursor, vcardType21, ownerVCard,
