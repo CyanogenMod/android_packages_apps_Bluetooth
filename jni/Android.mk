@@ -2,6 +2,8 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
+LOCAL_CLANG := false
+
 LOCAL_SRC_FILES:= \
     com_android_bluetooth_btservice_AdapterService.cpp \
     com_android_bluetooth_hfp.cpp \
