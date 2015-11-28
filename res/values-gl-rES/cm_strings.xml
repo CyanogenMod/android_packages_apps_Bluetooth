@@ -18,4 +18,5 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <string name="empty_file_notification_sent">Bluetooth: rexeitouse o ficheiro baleiro <xliff:g id="file">%1$s</xliff:g></string>
+  <string name="upload_fail_waiting">Non se puido enviar o ficheiro, vólvese tentar\u2026</string>
 </resources>
