@@ -23,13 +23,6 @@
     -->
     <string name="permlab_bluetoothShareManager">Access download manager.</string>
     <!--
-        This is the short description of a permission associated with the
-        Bluetooth Avrcp Data Manager. It is displayed as part of the description of
-        any application that was granted that permission. This specific
-        permission controls access to the Bluetooth Avrcp Data Manager.
-    -->
-    <string name="permlab_bluetoothAvrcpDataManager">Access avrcp metadata.</string>
-    <!--
         This is the long description of a permission associated with the
         Android Download Manager. It is displayed as part of the description
         of any application that was granted that permission. This specific
@@ -38,14 +31,6 @@
     -->
     <string name="permdesc_bluetoothShareManager">Allows the app to access the
         BluetoothShare manager and use it to transfer files. </string>
-    <!--
-        This is the long description of a permission associated with the
-        Bluetooth Avrcp Data Manager. It is displayed as part of the description of
-        any application that was granted that permission. This specific
-        permission controls access to the Bluetooth Avrcp Data Manager.
-    -->
-    <string name="permdesc_bluetoothAvrcpDataManager">Allows the app to access the
-        BluetoothAvrcpData manager and use it to display on UI. </string>
 
     <string name="permlab_bluetoothWhitelist">Whitelist bluetooth device access.</string>
 
@@ -260,5 +245,4 @@
     <string name="bluetooth_map_settings_app_icon">Application Icon</string>
     <string name="bluetooth_map_settings_title">Bluetooth Message Sharing Settings</string>
     <string name="bluetooth_map_settings_no_account_slots_left">Cannot select account. 0 slots left</string>
-    <string name="upload_fail_waiting">Ongoing send file preparation, automatic retransmission later</string>
 </resources>
