@@ -38,7 +38,6 @@
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"接受来自“<xliff:g id="SENDER">%1$s</xliff:g>”的文件时发生超时"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"有人发送文件给您"</string>
     <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g>已准备好发送<xliff:g id="FILE">%2$s</xliff:g>"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"从其他设备传入了文件，请确认是否要接收。"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"蓝牙共享：正在接收“<xliff:g id="FILE">%1$s</xliff:g>”"</string>
     <string name="notification_received" msgid="3324588019186687985">"蓝牙共享：已接收“<xliff:g id="FILE">%1$s</xliff:g>”"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"蓝牙共享：未收到文件“<xliff:g id="FILE">%1$s</xliff:g>”"</string>
@@ -127,7 +126,6 @@
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"选择您要通过蓝牙共享的帐号。连接时，您仍必须接受所有帐号访问请求。"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"剩余空档数："</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"应用图标"</string>
-    <string name="upload_fail_waiting">正在进行数据准备，稍后自动重发</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"蓝牙消息共享设置"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"无法选择帐号，目前没有任何空档"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"蓝牙音频已连接"</string>
