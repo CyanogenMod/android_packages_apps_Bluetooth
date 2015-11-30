@@ -841,7 +841,7 @@ public class BluetoothPbapVcardManager {
     }
     /**
      * Get size of the cursor without duplicated contact id. This assumes the
-     * given cursor is sorted by CONATCT_ID.
+     * given cursor is sorted by CONTACT_ID.
      */
     /**
      * Count number of rows having distinct contact id. It assumes
@@ -891,9 +891,9 @@ public class BluetoothPbapVcardManager {
                 displayName = defaultName;
             }
 
-            if (previousContactId != contactId) {
-                previousContactId = contactId;
-                resultList.add(displayName + "," + contactId);
+            String newString = displayName + "," + contactId;
+            if (!resultList.contains(newString)) {
+                resultList.add(newString);
             }
         }
         if (V) {
