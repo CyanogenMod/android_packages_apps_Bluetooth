@@ -198,7 +198,7 @@ final class AdapterState extends StateMachine {
                    sendMessageDelayed(BREDR_START_TIMEOUT, BREDR_START_TIMEOUT_DELAY);
                    adapterService.startCoreServices();
                    break;
-
+               case BLE_TURN_OFF:
                case USER_TURN_OFF:
                    notifyAdapterStateChange(BluetoothAdapter.STATE_BLE_TURNING_OFF);
                    mPendingCommandState.setBleTurningOff(true);
@@ -214,7 +214,8 @@ final class AdapterState extends StateMachine {
                         notifyAdapterStateChange(BluetoothAdapter.STATE_BLE_ON);
                    }
                    break;
-
+                case BLE_TURN_ON:
+                   break;
                default:
                    return false;
             }
