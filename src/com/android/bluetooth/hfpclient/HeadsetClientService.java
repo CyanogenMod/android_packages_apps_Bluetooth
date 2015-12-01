@@ -98,9 +98,16 @@ public class HeadsetClientService extends ProfileService {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
 
+            // We handle the volume changes for Voice calls here since HFP audio volume control does
+            // not go through audio manager (audio mixer). We check if the voice call volume has
+            // changed and subsequently change the SCO volume see
+            // ({@link HeadsetClientStateMachine#SET_SPEAKER_VOLUME} in
+            // {@link HeadsetClientStateMachine} for details.
             if (action.equals(AudioManager.VOLUME_CHANGED_ACTION)) {
+                Log.d(TAG, "Volume changed for stream: " +
+                    intent.getExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE));
                 int streamType = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1);
-                if (streamType == AudioManager.STREAM_BLUETOOTH_SCO) {
+                if (streamType == AudioManager.STREAM_VOICE_CALL) {
                     int streamValue = intent
                             .getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE, -1);
                     int streamPrevValue = intent.getIntExtra(

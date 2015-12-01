@@ -307,15 +307,6 @@ final class HeadsetClientStateMachine extends StateMachine {
         if (state == c.getState()) {
             return;
         }
-        //abandon focus here
-        if (state == BluetoothHeadsetClientCall.CALL_STATE_TERMINATED) {
-            if (mAudioManager.getMode() != AudioManager.MODE_NORMAL) {
-                mAudioManager.setMode(AudioManager.MODE_NORMAL);
-                Log.d(TAG, "abandonAudioFocus ");
-                // abandon audio focus after the mode has been set back to normal
-                mAudioManager.abandonAudioFocusForCall();
-            }
-        }
         c.setState(state);
         sendCallChangedIntent(c);
     }
@@ -1495,7 +1486,9 @@ final class HeadsetClientStateMachine extends StateMachine {
 
                     // TODO get max stream volume and scale 0-15
                     sendMessage(obtainMessage(HeadsetClientStateMachine.SET_SPEAKER_VOLUME,
-                            mAudioManager.getStreamVolume(AudioManager.STREAM_BLUETOOTH_SCO), 0));
+                            mAudioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL), 0));
+                    // Mic is either in ON state (full volume) or OFF state. There is no way in
+                    // Android to change the MIC volume.
                     sendMessage(obtainMessage(HeadsetClientStateMachine.SET_MIC_VOLUME,
                             mAudioManager.isMicrophoneMute() ? 0 : 15, 0));
 
@@ -1615,6 +1608,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                         }
                     }
                     break;
+                // Called only for Mute/Un-mute - Mic volume change is not allowed.
                 case SET_MIC_VOLUME:
                     if (mVgmFromStack) {
                         mVgmFromStack = false;
@@ -1841,11 +1835,15 @@ final class HeadsetClientStateMachine extends StateMachine {
                             break;
                         case EVENT_TYPE_VOLUME_CHANGED:
                             if (event.valueInt == HeadsetClientHalConstants.VOLUME_TYPE_SPK) {
-                                mAudioManager.setStreamVolume(AudioManager.STREAM_BLUETOOTH_SCO,
-                                        event.valueInt2, AudioManager.FLAG_SHOW_UI);
+                                mAudioManager.setStreamVolume(
+                                    AudioManager.STREAM_VOICE_CALL,
+                                    event.valueInt2,
+                                    AudioManager.FLAG_SHOW_UI);
                                 mVgsFromStack = true;
-                            } else if (event.valueInt == HeadsetClientHalConstants.VOLUME_TYPE_MIC) {
+                            } else if (event.valueInt ==
+                                HeadsetClientHalConstants.VOLUME_TYPE_MIC) {
                                 mAudioManager.setMicrophoneMute(event.valueInt2 == 0);
+
                                 mVgmFromStack = true;
                             }
                             break;
@@ -1965,6 +1963,9 @@ final class HeadsetClientStateMachine extends StateMachine {
                             mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
                             break;
                         case EVENT_TYPE_RING_INDICATION:
+                            // Ringing is not handled at this indication and rather should be
+                            // implemented (by the client of this service). Use the
+                            // CALL_STATE_INCOMING (and similar) handle ringing.
                             break;
                         default:
                             Log.e(TAG, "Unknown stack event: " + event.type);
@@ -2028,23 +2029,19 @@ final class HeadsetClientStateMachine extends StateMachine {
                         break;
                     }
 
+                    // Audio state is split in two parts, the audio focus is maintained by the
+                    // entity exercising this service (typically the Telecom stack) and audio
+                    // routing is handled by the bluetooth stack itself. The only reason to do so is
+                    // because Bluetooth SCO connection from the HF role is not entirely supported
+                    // for routing and volume purposes.
+                    // NOTE: All calls here are routed via the setParameters which changes the
+                    // routing at the Audio HAL level.
                     mAudioState = BluetoothHeadsetClient.STATE_AUDIO_CONNECTED;
-                    // request audio focus for call
-                    int newAudioMode = AudioManager.MODE_IN_CALL;
-                    int currMode = mAudioManager.getMode();
-                    if (currMode != newAudioMode) {
-                         // request audio focus before setting the new mode
-                         mAudioManager.requestAudioFocusForCall(AudioManager.STREAM_VOICE_CALL,
-                                 AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
-                         Log.d(TAG, "setAudioMode Setting audio mode from "
-                            + currMode + " to " + newAudioMode);
-                         mAudioManager.setMode(newAudioMode);
-                    }
 
                     // We need to set the volume after switching into HFP mode as some Audio HALs
                     // reset the volume to a known-default on mode switch.
                     final int volume =
-                            mAudioManager.getStreamVolume(AudioManager.STREAM_BLUETOOTH_SCO);
+                            mAudioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
                     Log.d(TAG,"hfp_enable=true");
                     Log.d(TAG,"mAudioWbs is " + mAudioWbs);
                     if (mAudioWbs) {
@@ -2088,9 +2085,6 @@ final class HeadsetClientStateMachine extends StateMachine {
         @Override
         public void enter() {
             Log.d(TAG, "Enter AudioOn: " + getCurrentMessage().what);
-
-            mAudioManager.setStreamSolo(AudioManager.STREAM_BLUETOOTH_SCO, true);
-
             broadcastAudioState(mCurrentDevice, BluetoothHeadsetClient.STATE_AUDIO_CONNECTED,
                 BluetoothHeadsetClient.STATE_AUDIO_CONNECTING);
         }
@@ -2124,13 +2118,6 @@ final class HeadsetClientStateMachine extends StateMachine {
                      */
                     if (disconnectAudioNative(getByteAddress(mCurrentDevice))) {
                         mAudioState = BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED;
-                        //abandon audio focus
-                        if (mAudioManager.getMode() != AudioManager.MODE_NORMAL) {
-                                mAudioManager.setMode(AudioManager.MODE_NORMAL);
-                                Log.d(TAG, "abandonAudioFocus");
-                                // abandon audio focus after the mode has been set back to normal
-                                mAudioManager.abandonAudioFocusForCall();
-                        }
                         Log.d(TAG,"hfp_enable=false");
                         mAudioManager.setParameters("hfp_enable=false");
                         broadcastAudioState(mCurrentDevice,
@@ -2197,13 +2184,10 @@ final class HeadsetClientStateMachine extends StateMachine {
                 case HeadsetClientHalConstants.AUDIO_STATE_DISCONNECTED:
                     if (mAudioState != BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED) {
                         mAudioState = BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED;
-                        //abandon audio focus for call
-                        if (mAudioManager.getMode() != AudioManager.MODE_NORMAL) {
-                              mAudioManager.setMode(AudioManager.MODE_NORMAL);
-                              Log.d(TAG, "abandonAudioFocus");
-                                // abandon audio focus after the mode has been set back to normal
-                                mAudioManager.abandonAudioFocusForCall();
-                        }
+                        // Audio focus may still be held by the entity controlling the actual call
+                        // (such as Telecom) and hence this will still keep the call around, there
+                        // is not much we can do here since dropping the call without user consent
+                        // even if the audio connection snapped may not be a good idea.
                         Log.d(TAG,"hfp_enable=false");
                         mAudioManager.setParameters("hfp_enable=false");
                         broadcastAudioState(device,
@@ -2222,8 +2206,6 @@ final class HeadsetClientStateMachine extends StateMachine {
         @Override
         public void exit() {
             Log.d(TAG, "Exit AudioOn: " + getCurrentMessage().what);
-
-            mAudioManager.setStreamSolo(AudioManager.STREAM_BLUETOOTH_SCO, false);
         }
     }
 
