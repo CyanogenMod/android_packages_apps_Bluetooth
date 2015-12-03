@@ -346,6 +346,7 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
         }
     }
 
+
     public void onClick(DialogInterface dialog, int which) {
         switch (which) {
             case DialogInterface.BUTTON_POSITIVE:
@@ -371,6 +372,13 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
                             .cancel(mTransInfo.mID);
 
                     // retry the failed transfer
+                    Uri uri = BluetoothOppUtility.originalUri(Uri.parse(mTransInfo.mFileUri));
+                    BluetoothOppSendFileInfo sendFileInfo =
+                        BluetoothOppSendFileInfo.generateFileInfo(BluetoothOppTransferActivity.this,
+                        uri,mTransInfo.mFileType);
+                    uri = BluetoothOppUtility.generateUri(uri, sendFileInfo);
+                    BluetoothOppUtility.putSendFileInfo(uri, sendFileInfo);
+                    mTransInfo.mFileUri = uri.toString();
                     BluetoothOppUtility.retryTransfer(this, mTransInfo);
 
                     BluetoothDevice remoteDevice = mAdapter.getRemoteDevice(mTransInfo.mDestAddr);

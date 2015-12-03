@@ -250,11 +250,13 @@ public class BluetoothOppManager {
         synchronized (BluetoothOppManager.this) {
             mMultipleFlag = false;
             mMimeTypeOfSendingFile = mimeType;
-            mUriOfSendingFile = uriString;
             mIsHandoverInitiated = isHandover;
             Uri uri = Uri.parse(uriString);
-            BluetoothOppUtility.putSendFileInfo(uri,
-                    BluetoothOppSendFileInfo.generateFileInfo(mContext, uri, mimeType));
+            BluetoothOppSendFileInfo sendFileInfo =
+                BluetoothOppSendFileInfo.generateFileInfo(mContext, uri, mimeType);
+            uri = BluetoothOppUtility.generateUri(uri, sendFileInfo);
+            BluetoothOppUtility.putSendFileInfo(uri, sendFileInfo);
+            mUriOfSendingFile = uri.toString();
             storeApplicationData();
         }
     }
@@ -263,11 +265,14 @@ public class BluetoothOppManager {
         synchronized (BluetoothOppManager.this) {
             mMultipleFlag = true;
             mMimeTypeOfSendingFiles = mimeType;
-            mUrisOfSendingFiles = uris;
+            mUrisOfSendingFiles = new ArrayList<Uri>();
             mIsHandoverInitiated = isHandover;
             for (Uri uri : uris) {
-                BluetoothOppUtility.putSendFileInfo(uri,
-                        BluetoothOppSendFileInfo.generateFileInfo(mContext, uri, mimeType));
+                BluetoothOppSendFileInfo sendFileInfo =
+                    BluetoothOppSendFileInfo.generateFileInfo(mContext, uri, mimeType);
+                uri = BluetoothOppUtility.generateUri(uri, sendFileInfo);
+                mUrisOfSendingFiles.add(uri);
+                BluetoothOppUtility.putSendFileInfo(uri, sendFileInfo);
             }
             storeApplicationData();
         }
@@ -426,15 +431,16 @@ public class BluetoothOppManager {
             Long ts = System.currentTimeMillis();
             for (int i = 0; i < count; i++) {
                 Uri fileUri = mUris.get(i);
+                ContentValues values = new ContentValues();
+                values.put(BluetoothShare.URI, fileUri.toString());
                 ContentResolver contentResolver = mContext.getContentResolver();
+                fileUri = BluetoothOppUtility.originalUri(fileUri);
                 String contentType = contentResolver.getType(fileUri);
                 if (V) Log.v(TAG, "Got mimetype: " + contentType + "  Got uri: " + fileUri);
                 if (TextUtils.isEmpty(contentType)) {
                     contentType = mTypeOfMultipleFiles;
                 }
 
-                ContentValues values = new ContentValues();
-                values.put(BluetoothShare.URI, fileUri.toString());
                 values.put(BluetoothShare.MIMETYPE, contentType);
                 values.put(BluetoothShare.DESTINATION, mRemoteDevice.getAddress());
                 values.put(BluetoothShare.TIMESTAMP, ts);
