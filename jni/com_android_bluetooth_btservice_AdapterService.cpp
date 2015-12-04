@@ -447,7 +447,8 @@ static void le_test_mode_recv_callback (bt_status_t status, uint16_t packet_coun
     ALOGV("%s: status:%d packet_count:%d ", __FUNCTION__, status, packet_count);
 }
 
-static void energy_info_recv_callback(bt_activity_energy_info *p_energy_info)
+static void energy_info_recv_callback(bt_activity_energy_info *p_energy_info,
+                                      bt_uid_traffic_t* /* uid_data */)
 {
     if (!checkCallbackThread()) {
        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
@@ -1002,7 +1003,7 @@ static jboolean getRemoteServicesNative(JNIEnv *env, jobject obj, jbyteArray add
 }
 
 static int connectSocketNative(JNIEnv *env, jobject object, jbyteArray address, jint type,
-                                   jbyteArray uuidObj, jint channel, jint flag) {
+                                   jbyteArray uuidObj, jint channel, jint flag, jint callingUid) {
     jbyte *addr = NULL, *uuid = NULL;
     int socket_fd;
     bt_status_t status;
@@ -1024,7 +1025,8 @@ static int connectSocketNative(JNIEnv *env, jobject object, jbyteArray address, 
     }
 
     if ( (status = sBluetoothSocketInterface->connect((bt_bdaddr_t *) addr, (btsock_type_t) type,
-                       (const uint8_t*) uuid, channel, &socket_fd, flag)) != BT_STATUS_SUCCESS) {
+                       (const uint8_t*) uuid, channel, &socket_fd, flag, callingUid))
+            != BT_STATUS_SUCCESS) {
         ALOGE("Socket connection failed: %d", status);
         goto Fail;
     }
@@ -1047,7 +1049,7 @@ Fail:
 
 static int createSocketChannelNative(JNIEnv *env, jobject object, jint type,
                                      jstring name_str, jbyteArray uuidObj,
-                                     jint channel, jint flag) {
+                                     jint channel, jint flag, jint callingUid) {
     const char *service_name = NULL;
     jbyte *uuid = NULL;
     int socket_fd;
@@ -1069,7 +1071,8 @@ static int createSocketChannelNative(JNIEnv *env, jobject object, jint type,
         }
     }
     if ( (status = sBluetoothSocketInterface->listen((btsock_type_t) type, service_name,
-                       (const uint8_t*) uuid, channel, &socket_fd, flag)) != BT_STATUS_SUCCESS) {
+                       (const uint8_t*) uuid, channel, &socket_fd, flag, callingUid))
+            != BT_STATUS_SUCCESS) {
         ALOGE("Socket listen failed: %d", status);
         goto Fail;
     }
@@ -1151,8 +1154,8 @@ static JNINativeMethod sMethods[] = {
     {"pinReplyNative", "([BZI[B)Z", (void*) pinReplyNative},
     {"sspReplyNative", "([BIZI)Z", (void*) sspReplyNative},
     {"getRemoteServicesNative", "([B)Z", (void*) getRemoteServicesNative},
-    {"connectSocketNative", "([BI[BII)I", (void*) connectSocketNative},
-    {"createSocketChannelNative", "(ILjava/lang/String;[BII)I",
+    {"connectSocketNative", "([BI[BIII)I", (void*) connectSocketNative},
+    {"createSocketChannelNative", "(ILjava/lang/String;[BIII)I",
      (void*) createSocketChannelNative},
     {"configHciSnoopLogNative", "(Z)Z", (void*) configHciSnoopLogNative},
     {"alarmFiredNative", "()V", (void *) alarmFiredNative},
