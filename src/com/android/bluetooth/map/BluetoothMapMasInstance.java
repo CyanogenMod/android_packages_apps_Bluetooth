@@ -396,7 +396,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
         return (mConnSocket != null);
     }
 
-    public void shutdown() {
+    public synchronized void shutdown() {
         if (D) Log.d(TAG, "MAP Service shutdown");
 
         if (mServerSession != null) {
