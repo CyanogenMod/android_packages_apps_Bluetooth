@@ -77,6 +77,8 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
     private final int MIN_FILE_LEN_FOR_TPUT_MEASUREMENT = 500000;
 
+    private long position;
+
     public BluetoothOppObexClientSession(Context context, ObexTransport transport) {
         if (transport == null) {
             throw new NullPointerException("transport is null");
@@ -123,29 +125,26 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
     }
 
     private class ContentResolverUpdateThread extends Thread {
-        private static final int sSleepTime = 500;
+        private static final int sSleepTime = 1000;
         private Uri contentUri;
         private Context mContext1;
-        private long position;
 
-        public ContentResolverUpdateThread(Context context, Uri cntUri, long pos) {
+        public ContentResolverUpdateThread(Context context, Uri cntUri) {
             super("BtOpp ContentResolverUpdateThread");
             mContext1 = context;
             contentUri = cntUri;
-            position = pos;
         }
 
-        public void updateProgress (long pos) {
-            position = pos;
-        }
 
         @Override
         public void run() {
+
             ContentValues updateValues;
 
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-
-            while (true) {
+            if (V) Log.v(TAG, "Is ContentResolverUpdateThread Interrupted :" + isInterrupted());
+            /*  Check if the Operation is interrupted before entering into loop */
+            while (!isInterrupted()) {
                 updateValues = new ContentValues();
                 updateValues.put(BluetoothShare.CURRENT_BYTES, position);
                 mContext1.getContentResolver().update(contentUri, updateValues,
@@ -379,7 +378,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
         private int sendFile(BluetoothOppSendFileInfo fileInfo) {
             boolean error = false;
             int responseCode = -1;
-            long position = 0;
+            position = 0;
             int status = BluetoothShare.STATUS_SUCCESS;
             Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + mInfo.mId);
             ContentValues updateValues;
@@ -522,10 +521,9 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
                                 if (uiUpdateThread == null) {
                                     uiUpdateThread = new ContentResolverUpdateThread (mContext1,
-                                                                    contentUri, position);
+                                                             contentUri);
+                                    if (V) Log.v(TAG, "Worker for Updation : Created");
                                     uiUpdateThread.start ( );
-                                } else {
-                                    uiUpdateThread.updateProgress (position);
                                 }
                             }
                         }
@@ -533,6 +531,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
                     if (uiUpdateThread != null) {
                         try {
+                            if (V) Log.v(TAG, "Worker for Updation : Destroying");
                             uiUpdateThread.interrupt ();
                             uiUpdateThread.join ();
                             uiUpdateThread = null;

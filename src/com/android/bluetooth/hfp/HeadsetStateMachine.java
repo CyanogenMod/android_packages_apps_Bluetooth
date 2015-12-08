@@ -59,6 +59,7 @@ import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.SystemProperties;
 import android.os.PowerManager;
 import android.os.UserHandle;
 import android.os.PowerManager.WakeLock;
@@ -301,10 +302,16 @@ final class HeadsetStateMachine extends StateMachine {
 
     public void doQuit() {
         log("quit");
+        if (mAudioManager != null) {
+             mAudioManager.setBluetoothScoOn(false);
+        }
         quitNow();
     }
 
     public void cleanup() {
+        if (mAudioManager != null) {
+             mAudioManager.setBluetoothScoOn(false);
+        }
         if (mPhoneProxy != null) {
             if (DBG) Log.d(TAG,"Unbinding service...");
             synchronized (mConnection) {
@@ -1753,8 +1760,15 @@ final class HeadsetStateMachine extends StateMachine {
             int volumeValue = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE, 0);
             if (mPhoneState.getSpeakerVolume() != volumeValue) {
                 mPhoneState.setSpeakerVolume(volumeValue);
-                setVolumeNative(HeadsetHalConstants.VOLUME_TYPE_SPK,
+            boolean scoVolume =
+                    SystemProperties.getBoolean("bt.pts.certification", false);
+                if (!scoVolume) {
+                    setVolumeNative(HeadsetHalConstants.VOLUME_TYPE_SPK,
                                         volumeValue, getByteAddress(device));
+                } else {
+                    setVolumeNative(HeadsetHalConstants.VOLUME_TYPE_SPK,
+                                        0, getByteAddress(device));
+                }
             }
         }
 
@@ -2310,8 +2324,15 @@ final class HeadsetStateMachine extends StateMachine {
             int volumeValue = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE, 0);
             if (mPhoneState.getSpeakerVolume() != volumeValue) {
                 mPhoneState.setSpeakerVolume(volumeValue);
-                setVolumeNative(HeadsetHalConstants.VOLUME_TYPE_SPK,
-                                    volumeValue, getByteAddress(device));
+            boolean scoVolume =
+                    SystemProperties.getBoolean("bt.pts.certification", false);
+                if (!scoVolume) {
+                    setVolumeNative(HeadsetHalConstants.VOLUME_TYPE_SPK,
+                                        volumeValue, getByteAddress(device));
+                } else {
+                    setVolumeNative(HeadsetHalConstants.VOLUME_TYPE_SPK,
+                                        0, getByteAddress(device));
+                }
             }
         }
     }

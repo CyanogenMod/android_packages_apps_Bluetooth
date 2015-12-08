@@ -215,9 +215,8 @@ public class SapServer extends Thread implements Callback {
         /* For PTS TC_SERVER_DCN_BV_03_I we need to expose the option to send immediate disconnect
          * without first sending a graceful disconnect.
          * To enable this option set
-         * bt.sap.pts="true" */
-        String pts_enabled = SystemProperties.get("bt.sap.pts");
-        Boolean pts_test = Boolean.parseBoolean(pts_enabled);
+         * bt.pts.certification="true" */
+        Boolean pts_test = SystemProperties.getBoolean("bt.pts.certification", false);
 
         /* put notification up for the user to be able to disconnect from the client*/
         Intent sapDisconnectIntent = new Intent(SapServer.SAP_DISCONNECT_ACTION);
