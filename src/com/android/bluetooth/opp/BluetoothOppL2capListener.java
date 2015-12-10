@@ -138,7 +138,10 @@ public class BluetoothOppL2capListener {
                                 Log.e(TAG, "Error accept connection " + e);
                                 try {
                                     Thread.sleep(500);
-                                } catch (InterruptedException ie) {}
+                                } catch (InterruptedException ie) {
+                                    Log.e(TAG, "mSocketAcceptThread was interrupted " + ie);
+                                    mInterrupted = true;
+                                }
                             }
                         }
                         Log.i(TAG, "BluetoothSocket listen thread finished");
@@ -180,17 +183,12 @@ public class BluetoothOppL2capListener {
                     }
                 }
             }
-            try {
+            if (mSocketAcceptThread != null) {
+                if (V) Log.v(TAG, "Interrupting mSocketAcceptThread :" + mSocketAcceptThread);
                 mSocketAcceptThread.interrupt();
-                if (V) Log.v(TAG, "waiting for thread to terminate");
-                //mSocketAcceptThread.join(JOIN_TIMEOUT_MS);
-                mSocketAcceptThread.join();
-                if (V) Log.v(TAG, "done waiting for thread to terminate");
-                mSocketAcceptThread = null;
-                mCallback = null;
-            } catch (InterruptedException e) {
-                if (V) Log.v(TAG, "Interrupted waiting for Accept Thread to join");
             }
+            mSocketAcceptThread = null;
+            mCallback = null;
         }
     }
 
