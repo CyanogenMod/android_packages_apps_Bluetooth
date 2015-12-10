@@ -370,15 +370,6 @@ public class BluetoothPbapVcardManager {
     public final ArrayList<String> getSIMContactNamesByNumber(final String phoneNumber) {
         ArrayList<String> nameList = new ArrayList<String>();
         ArrayList<String> startNameList = new ArrayList<String>();
-        StringBuilder onlyphoneNumber = new StringBuilder();
-        for (int j=0; j<phoneNumber.length(); j++) {
-            char c = phoneNumber.charAt(j);
-                if (c >= '0' && c <= '9') {
-                    onlyphoneNumber = onlyphoneNumber.append(c);
-                }
-        }
-        String SearchOnlyNumber = onlyphoneNumber.toString();
-
         Cursor contactCursor = null;
         final Uri uri = Uri.parse(SIM_URI);
 
@@ -393,32 +384,22 @@ public class BluetoothPbapVcardManager {
                         if (V) Log.v(TAG, "number is null");
                         continue;
                     }
-                    StringBuilder onlyNumber = new StringBuilder();
-                    for (int j=0; j<number.length(); j++) {
-                        char c = number.charAt(j);
-                        if (c >= '0' && c <= '9') {
-                            onlyNumber = onlyNumber.append(c);
-                        }
-                    }
-                    String tmpNumber = onlyNumber.toString();
-                    if (V) Log.v(TAG, "number: "+number+" onlyNumber:"+onlyNumber+" tmpNumber:"+tmpNumber);
-                    if (tmpNumber.endsWith(SearchOnlyNumber)) {
+
+                    if (V) Log.v(TAG, "number: " + number + " phoneNumber:" + phoneNumber);
+                    if ((number.endsWith(phoneNumber)) || (number.startsWith(phoneNumber))) {
                         String name = contactCursor.getString(SIM_NAME_COLUMN_INDEX);
                         if (TextUtils.isEmpty(name)) {
                             name = mContext.getString(android.R.string.unknownName);
                         }
                         if (V) Log.v(TAG, "got name " + name + " by number " + phoneNumber);
-                        if (V) Log.v(TAG, "Adding to end name list");
-                        nameList.add(name);
-                    }
-                    if (tmpNumber.startsWith(SearchOnlyNumber)) {
-                        String name = contactCursor.getString(SIM_NAME_COLUMN_INDEX);
-                        if (TextUtils.isEmpty(name)) {
-                            name = mContext.getString(android.R.string.unknownName);
+
+                        if (number.endsWith(phoneNumber)) {
+                            if (V) Log.v(TAG, "Adding to end name list");
+                            nameList.add(name);
+                        } else {
+                            if (V) Log.v(TAG, "Adding to start name list");
+                            startNameList.add(name);
                         }
-                        if (V) Log.v(TAG, "got name " + name + " by number " + phoneNumber);
-                        if (V) Log.v(TAG, "Adding to start name list");
-                        startNameList.add(name);
                     }
                 }
             }
