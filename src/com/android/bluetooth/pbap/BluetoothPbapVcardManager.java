@@ -860,7 +860,6 @@ public class BluetoothPbapVcardManager {
         HandlerForStringBuffer buffer = null;
         try {
 
-            VCardFilter vcardfilter = new VCardFilter(ignorefilter ? null : filter);
             composer = new BluetoothPbapCallLogComposer(mContext);
             buffer = new HandlerForStringBuffer(op, ownerVCard);
             if (!composer.init(CallLog.Calls.CONTENT_URI, selection, null, CALLLOG_SORT_ORDER)
@@ -875,9 +874,6 @@ public class BluetoothPbapVcardManager {
                     break;
                 }
                 String vcard = composer.createOneEntry(vcardType21);
-                if (vcard != null) {
-                    vcard = vcardfilter.apply(vcard, vcardType21);
-                }
                 if (vcard == null) {
                     Log.e(TAG,
                             "Failed to read a contact. Error reason: " + composer.getErrorReason());

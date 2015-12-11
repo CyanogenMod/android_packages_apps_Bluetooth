@@ -674,12 +674,13 @@ public class GattService extends ProfileService {
     private boolean hasScanResultPermission(final ScanClient client) {
         final boolean requiresLocationEnabled =
                 getResources().getBoolean(R.bool.strict_location_check);
-        final boolean locationEnabled = Settings.Secure.getInt(getContentResolver(),
+        final boolean locationEnabledSetting = Settings.Secure.getInt(getContentResolver(),
                 Settings.Secure.LOCATION_MODE, Settings.Secure.LOCATION_MODE_OFF)
                 != Settings.Secure.LOCATION_MODE_OFF;
-
-        return (client.hasPeersMacAddressPermission ||
-                (client.hasLocationPermission && (!requiresLocationEnabled || locationEnabled)));
+        final boolean locationEnabled = !requiresLocationEnabled || locationEnabledSetting
+                || client.legacyForegroundApp;
+        return (client.hasPeersMacAddressPermission
+                || (client.hasLocationPermission && locationEnabled));
     }
 
     // Check if a scan record matches a specific filters.
@@ -1411,12 +1412,12 @@ public class GattService extends ProfileService {
         if (needsPrivilegedPermissionForScan(settings)) {
             enforcePrivilegedPermission();
         }
-        boolean hasLocationPermission = Utils.checkCallerHasLocationPermission(this,
-                mAppOps, callingPackage);
         final ScanClient scanClient = new ScanClient(appIf, isServer, settings, filters, storages);
-        scanClient.hasLocationPermission = hasLocationPermission;
+        scanClient.hasLocationPermission = Utils.checkCallerHasLocationPermission(this, mAppOps,
+                callingPackage);
         scanClient.hasPeersMacAddressPermission = Utils.checkCallerHasPeersMacAddressPermission(
                 this);
+        scanClient.legacyForegroundApp = Utils.isLegacyForegroundApp(this, callingPackage);
         mScanManager.startScan(scanClient);
     }
 

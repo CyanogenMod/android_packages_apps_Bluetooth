@@ -33,6 +33,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH_MAP" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <!-- WRITE_CONTACTS is used for test cases only -->
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
@@ -96,6 +97,14 @@
             <path-permission
                     android:pathPrefix="/btavrcp_ct"
                     android:permission="android.permission.ACCESS_BLUETOOTH_AVRCP_CT_DATA" />
+        </provider>
+        <provider android:name="android.support.v4.content.FileProvider"
+            android:authorities="com.google.android.bluetooth.fileprovider"
+            android:grantUriPermissions="true"
+            android:exported="false">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
         </provider>
         <service
             android:process="@string/process"

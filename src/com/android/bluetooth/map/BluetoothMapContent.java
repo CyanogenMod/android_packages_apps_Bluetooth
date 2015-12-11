@@ -117,7 +117,7 @@ public class BluetoothMapContent {
     // MAP specification states that the default value for parameter mask are
     // the #REQUIRED attributes in the DTD, and not all enabled
     public static final long PARAMETER_MASK_ALL_ENABLED = 0xFFFFFFFFL;
-    public static final long PARAMETER_MASK_DEFAULT = 0x5E3L;
+    public static final long PARAMETER_MASK_DEFAULT = 0x5EBL;
     public static final long CONVO_PARAMETER_MASK_ALL_ENABLED = 0xFFFFFFFFL;
     public static final long CONVO_PARAMETER_MASK_DEFAULT =
             CONVO_PARAM_MASK_CONVO_NAME |
