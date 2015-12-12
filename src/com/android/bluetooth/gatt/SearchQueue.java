@@ -86,6 +86,16 @@ import java.util.List;
         return mEntries.isEmpty();
     }
 
+    boolean isEmptyFor(int connId) {
+        for (Iterator<Entry> it = mEntries.iterator(); it.hasNext();) {
+            Entry entry = it.next();
+            if (entry.connId == connId) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     void clear() {
         mEntries.clear();
     }

@@ -2138,7 +2138,20 @@ public class GattService extends ProfileService {
     }
 
     private void continueSearch(int connId, int status) throws RemoteException {
-        if (status == 0 && !mSearchQueue.isEmpty()) {
+
+        // Search is complete when there was error, or nothing more to process
+        if (status != 0 || mSearchQueue.isEmptyFor(connId)) {
+            // In case we complete because of error, clean up
+            // any remaining operations for this connection.
+            mSearchQueue.removeConnId(connId);
+
+            ClientMap.App app = mClientMap.getByConnId(connId);
+            if (app != null) {
+                app.callback.onSearchComplete(mClientMap.addressByConnId(connId), status);
+            }
+        }
+
+        if (!mSearchQueue.isEmpty()) {
             SearchQueue.Entry svc = mSearchQueue.pop();
 
             if (svc.charUuidLsb == 0) {
@@ -2150,11 +2163,6 @@ public class GattService extends ProfileService {
                 gattClientGetDescriptorNative(svc.connId, svc.srvcType,
                     svc.srvcInstId, svc.srvcUuidLsb, svc.srvcUuidMsb,
                     svc.charInstId, svc.charUuidLsb, svc.charUuidMsb, 0, 0, 0);
-            }
-        } else {
-            ClientMap.App app = mClientMap.getByConnId(connId);
-            if (app != null) {
-                app.callback.onSearchComplete(mClientMap.addressByConnId(connId), status);
             }
         }
     }
