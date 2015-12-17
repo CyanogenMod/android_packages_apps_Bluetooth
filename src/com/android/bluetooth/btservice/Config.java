@@ -17,10 +17,15 @@
 package com.android.bluetooth.btservice;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+import android.bluetooth.BluetoothProfile;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.SystemProperties;
+import android.provider.Settings;
 import android.util.Log;
 
 import com.android.bluetooth.R;
@@ -84,10 +89,11 @@ public class Config {
         if (resources == null) {
             return;
         }
+
         ArrayList<Class> profiles = new ArrayList<Class>(PROFILE_SERVICES.length);
         for (int i=0; i < PROFILE_SERVICES_FLAG.length; i++) {
             boolean supported = resources.getBoolean(PROFILE_SERVICES_FLAG[i]);
-            if (supported) {
+            if (supported && !isProfileDisabled(ctx, PROFILE_SERVICES[i])) {
                 Log.d(TAG, "Adding " + PROFILE_SERVICES[i].getSimpleName());
                 profiles.add(PROFILE_SERVICES[i]);
             }
@@ -99,5 +105,45 @@ public class Config {
 
     static Class[]  getSupportedProfiles() {
         return SUPPORTED_PROFILES;
+    }
+
+    private static boolean isProfileDisabled(Context context, Class profile) {
+        int profileIndex = -1;
+
+        if (profile == HeadsetService.class) {
+            profileIndex = BluetoothProfile.HEADSET;
+        } else if (profile == A2dpService.class) {
+            profileIndex = BluetoothProfile.A2DP;
+        } else if (profile == A2dpSinkService.class) {
+            profileIndex = BluetoothProfile.A2DP_SINK;
+        } else if (profile == HidService.class) {
+            profileIndex = BluetoothProfile.HID;
+        } else if (profile == HealthService.class) {
+            profileIndex = BluetoothProfile.HDP;
+        } else if (profile == PanService.class) {
+            profileIndex = BluetoothProfile.PAN;
+        } else if (profile == GattService.class) {
+            profileIndex = BluetoothProfile.GATT;
+        } else if (profile == BluetoothMapService.class) {
+            profileIndex = BluetoothProfile.MAP;
+        } else if (profile == HeadsetClientService.class) {
+            profileIndex = BluetoothProfile.HEADSET_CLIENT;
+        } else if (profile == AvrcpControllerService.class) {
+            profileIndex = BluetoothProfile.AVRCP_CONTROLLER;
+        } else if (profile == SapService.class) {
+            profileIndex = BluetoothProfile.SAP;
+        }
+
+        if (profileIndex == -1) {
+            Log.d(TAG, "Could not find profile bit mask");
+            return false;
+        }
+
+        final ContentResolver resolver = context.getContentResolver();
+        final long disabledProfilesBitMask = Settings.Global.getLong(resolver,
+                Settings.Global.BLUETOOTH_DISABLED_PROFILES, 0);
+        long profileBit = 1 << profileIndex;
+
+        return (disabledProfilesBitMask & profileBit) != 0;
     }
 }
