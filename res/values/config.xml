@@ -33,4 +33,9 @@
          fire Bluetooth LE scan result callbacks in addition to having one
          of the location permissions. -->
     <bool name="strict_location_check">true</bool>
+
+    <!-- For AVRCP absolute volume feature. If the threshold is non-zero,
+         restrict the initial volume to the threshold.
+         Valid value is 1-14, and recommended value is 8 -->
+    <integer name="a2dp_absolute_volume_initial_threshold">8</integer>
 </resources>
