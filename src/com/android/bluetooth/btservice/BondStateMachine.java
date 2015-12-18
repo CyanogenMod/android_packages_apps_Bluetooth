@@ -462,6 +462,10 @@ final class BondStateMachine extends StateMachine {
             a2dpService.setPriority(device,BluetoothProfile.PRIORITY_UNDEFINED);
         if(headsetService != null)
             headsetService.setPriority(device,BluetoothProfile.PRIORITY_UNDEFINED);
+
+        // Clear Absolute Volume black list
+        if(a2dpService != null)
+            a2dpService.resetAvrcpBlacklist(device);
     }
 
     private void infoLog(String msg) {
