@@ -117,9 +117,9 @@ public class Config {
         } else if (profile == A2dpSinkService.class) {
             profileIndex = BluetoothProfile.A2DP_SINK;
         } else if (profile == HidService.class) {
-            profileIndex = BluetoothProfile.HID;
+            profileIndex = BluetoothProfile.INPUT_DEVICE;
         } else if (profile == HealthService.class) {
-            profileIndex = BluetoothProfile.HDP;
+            profileIndex = BluetoothProfile.HEALTH;
         } else if (profile == PanService.class) {
             profileIndex = BluetoothProfile.PAN;
         } else if (profile == GattService.class) {
