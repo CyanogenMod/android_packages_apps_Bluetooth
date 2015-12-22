@@ -139,6 +139,15 @@ public class BluetoothMapContent {
     public static final int MMS_BCC     = 0x81;
     public static final int MMS_CC      = 0x82;
 
+    /* OMA-TS-MMS-ENC defined many types in X-Mms-Message-Type.
+       Only m-send-req (128) m-retrieve-conf (132), m-notification-ind (130)
+       are interested by user */
+    private static final String INTERESTED_MESSAGE_TYPE_CLAUSE = String
+            .format("( %s = %d OR %s = %d OR %s = %d )", Mms.MESSAGE_TYPE,
+            PduHeaders.MESSAGE_TYPE_SEND_REQ, Mms.MESSAGE_TYPE,
+            PduHeaders.MESSAGE_TYPE_RETRIEVE_CONF, Mms.MESSAGE_TYPE,
+            PduHeaders.MESSAGE_TYPE_NOTIFICATION_IND );
+
     public static final String INSERT_ADDRES_TOKEN = "insert-address-token";
 
     private final Context mContext;
@@ -2119,6 +2128,7 @@ public class BluetoothMapContent {
                 }
                 fi.mMsgType = FilterInfo.TYPE_MMS;
                 String where = setWhereFilter(folderElement, fi, ap);
+                where += " AND " + INTERESTED_MESSAGE_TYPE_CLAUSE;
                 if(!where.isEmpty()) {
                     if (D) Log.d(TAG, "msgType: " + fi.mMsgType + " where: " + where);
                     mmsCursor = mResolver.query(Mms.CONTENT_URI,
