@@ -17,6 +17,6 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="empty_file_notification_sent">Partilha bluetooth: o dispositivo remoto rejeitou o ficheiro <xliff:g id="file">%1$s</xliff:g></string>
-  <string name="upload_fail_waiting">Não foi possível enviar o ficheiro. A tentar novamente\u2026</string>
+  <string name="empty_file_notification_sent">บลูทูธที่ใช้ร่วมกัน: อุปกรณ์ปฏิเสธระยะไกลไฟล์ความยาวเป็นศูนย์ <xliff:g id="file"> %1$s</xliff:g></string>
+  <string name="upload_fail_waiting">ไม่สามารถส่งไฟล์ได้ กำลังลองอีกครั้ง\u2026</string>
 </resources>
