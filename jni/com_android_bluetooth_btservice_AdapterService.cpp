@@ -31,6 +31,8 @@
 
 namespace android {
 
+#define OOB_TK_SIZE 16
+
 #define ADDITIONAL_NREFS 50
 static jmethodID method_stateChangeCallback;
 static jmethodID method_adapterPropertyChangedCallback;
@@ -771,6 +773,54 @@ static jboolean createBondNative(JNIEnv* env, jobject obj, jbyteArray address, j
     return result;
 }
 
+static jbyteArray callByteArrayGetter(JNIEnv* env, jobject object, char* className, char* methodName) {
+    jclass myClass = env->FindClass(className);
+    jmethodID myMethod = env->GetMethodID(myClass, methodName, "()[B");
+    return (jbyteArray) env->CallObjectMethod(object, myMethod);
+}
+
+static jboolean createBondOutOfBandNative(JNIEnv* env, jobject obj, jbyteArray address,
+                jint transport, jobject oobData) {
+    jbyte *addr;
+    jboolean result = JNI_FALSE;
+    bt_out_of_band_data_t oob_data;
+
+    memset(&oob_data, 0, sizeof(oob_data));
+
+    if (!sBluetoothInterface) return result;
+
+    addr = env->GetByteArrayElements(address, NULL);
+    if (addr == NULL) {
+        jniThrowIOException(env, EINVAL);
+        return result;
+    }
+
+    jbyte* smTKBytes = NULL;
+    jbyteArray smTK = callByteArrayGetter(env, oobData, "android/bluetooth/OobData", "getSecurityManagerTk");
+    if (smTK != NULL) {
+        smTKBytes = env->GetByteArrayElements(smTK, NULL);
+        int len = env->GetArrayLength(smTK);
+        if (len != OOB_TK_SIZE) {
+            ALOGI("%s: wrong length of smTK, should be empty or %d bytes.", __FUNCTION__, OOB_TK_SIZE);
+            jniThrowIOException(env, EINVAL);
+            goto done;
+        }
+        memcpy(oob_data.sm_tk, smTKBytes, len);
+    }
+
+    if (sBluetoothInterface->create_bond_out_of_band((bt_bdaddr_t *)addr, transport, &oob_data)
+        == BT_STATUS_SUCCESS)
+        result = JNI_TRUE;
+
+done:
+    env->ReleaseByteArrayElements(address, addr, 0);
+
+    if (smTK != NULL)
+        env->ReleaseByteArrayElements(smTK, smTKBytes, 0);
+
+    return result;
+}
+
 static jboolean removeBondNative(JNIEnv* env, jobject obj, jbyteArray address) {
     ALOGV("%s:",__FUNCTION__);
 
@@ -1145,6 +1195,7 @@ static JNINativeMethod sMethods[] = {
     {"startDiscoveryNative", "()Z", (void*) startDiscoveryNative},
     {"cancelDiscoveryNative", "()Z", (void*) cancelDiscoveryNative},
     {"createBondNative", "([BI)Z", (void*) createBondNative},
+    {"createBondOutOfBandNative", "([BILandroid/bluetooth/OobData;)Z", (void*) createBondOutOfBandNative},
     {"removeBondNative", "([B)Z", (void*) removeBondNative},
     {"cancelBondNative", "([B)Z", (void*) cancelBondNative},
     {"getConnectionStateNative", "([B)I", (void*) getConnectionStateNative},

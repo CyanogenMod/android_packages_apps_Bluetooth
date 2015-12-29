@@ -33,6 +33,7 @@ import android.bluetooth.IBluetoothCallback;
 import android.bluetooth.IBluetoothManager;
 import android.bluetooth.IBluetoothManagerCallback;
 import android.bluetooth.BluetoothActivityEnergyInfo;
+import android.bluetooth.OobData;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -972,7 +973,18 @@ public class AdapterService extends Service {
 
             AdapterService service = getService();
             if (service == null) return false;
-            return service.createBond(device, transport);
+            return service.createBond(device, transport, null);
+        }
+
+        public boolean createBondOutOfBand(BluetoothDevice device, int transport, OobData oobData) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "createBondOutOfBand() - Not allowed for non-active user");
+                return false;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.createBond(device, transport, oobData);
         }
 
         public boolean cancelBondProcess(BluetoothDevice device) {
@@ -1469,8 +1481,7 @@ public class AdapterService extends Service {
          }
      }
 
-
-     boolean createBond(BluetoothDevice device, int transport) {
+     boolean createBond(BluetoothDevice device, int transport, OobData oobData) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
             "Need BLUETOOTH ADMIN permission");
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
@@ -1485,6 +1496,12 @@ public class AdapterService extends Service {
         Message msg = mBondStateMachine.obtainMessage(BondStateMachine.CREATE_BOND);
         msg.obj = device;
         msg.arg1 = transport;
+
+        if (oobData != null) {
+            Bundle oobDataBundle = new Bundle();
+            oobDataBundle.putParcelable(BondStateMachine.OOBDATA, oobData);
+            msg.setData(oobDataBundle);
+        }
         mBondStateMachine.sendMessage(msg);
         return true;
     }
@@ -2144,6 +2161,7 @@ public class AdapterService extends Service {
     /*package*/ native boolean getDevicePropertyNative(byte[] address, int type);
 
     /*package*/ native boolean createBondNative(byte[] address, int transport);
+    /*package*/ native boolean createBondOutOfBandNative(byte[] address, int transport, OobData oobData);
     /*package*/ native boolean removeBondNative(byte[] address);
     /*package*/ native boolean cancelBondNative(byte[] address);
     /*package*/ native boolean sdpSearchNative(byte[] address, byte[] uuid);
