@@ -72,8 +72,7 @@ static void btavrcp_remote_features_callback(bt_bdaddr_t* bd_addr, btrc_remote_f
     }
 
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
-    /* TODO: I think we leak the addr object, we should add a
-     * sCallbackEnv->DeleteLocalRef(addr) */
+    sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void btavrcp_get_play_status_callback() {
