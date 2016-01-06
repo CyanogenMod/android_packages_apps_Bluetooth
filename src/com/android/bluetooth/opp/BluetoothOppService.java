@@ -413,8 +413,9 @@ public class BluetoothOppService extends Service {
             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
                 switch (mAdapter.getState()) {
                     case BluetoothAdapter.STATE_ON:
-                        Log.d(TAG, "Receiver BLUETOOTH_STATE_CHANGED_ACTION, STATE_ON");
-                        startSocketListener();
+                        if (V) Log.v(TAG,
+                                    "Receiver BLUETOOTH_STATE_CHANGED_ACTION, BLUETOOTH_STATE_ON");
+                        mHandler.sendMessage(mHandler.obtainMessage(START_LISTENER));
                         break;
                     case BluetoothAdapter.STATE_TURNING_OFF:
                         Log.d(TAG, "Receiver BLUETOOTH_STATE_CHANGED_ACTION, STATE_TURNING_OFF");
