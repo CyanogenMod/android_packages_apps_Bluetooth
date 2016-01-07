@@ -859,10 +859,12 @@ public class BluetoothMapService extends ProfileService {
 
     private void cancelUserTimeoutAlarm(){
         if (DEBUG) Log.d(TAG,"cancelUserTimeOutAlarm()");
-        Intent intent = new Intent(this, BluetoothMapService.class);
-        PendingIntent sender = PendingIntent.getBroadcast(this, 0, intent, 0);
+        Intent timeoutIntent = new Intent(USER_CONFIRM_TIMEOUT_ACTION);
+        PendingIntent pIntent = PendingIntent.getBroadcast(this, 0, timeoutIntent, 0);
+        pIntent.cancel();
+
         AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.cancel(sender);
+        alarmManager.cancel(pIntent);
         mRemoveTimeoutMsg = false;
     }
 
