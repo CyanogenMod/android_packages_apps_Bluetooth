@@ -37,6 +37,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningAppProcessInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
@@ -57,6 +59,7 @@ public class BluetoothMapAccountEmailLoader extends BluetoothMapAccountLoader {
     private int mAccountsEnabledCount = 0;
     private ContentProviderClient mProviderClient = null;
     private static final long PROVIDER_ANR_TIMEOUT = 20 * DateUtils.SECOND_IN_MILLIS;
+    private static final String DEFAULT_EMAIL_PROCESS_NAME = "com.android.email";
     public BluetoothMapAccountEmailLoader(Context ctx) {
         super(ctx);
         mEmailContext = ctx;
@@ -81,45 +84,78 @@ public class BluetoothMapAccountEmailLoader extends BluetoothMapAccountLoader {
                                   ArrayList<BluetoothMapAccountItem>>();
                 // reset the counter every time this method is called.
         mAccountsEnabledCount=0;
-        groups = super.parsePackages(includeIcon);
-        Log.d(TAG, "Groups SIZE: "+groups.size());
+        /* Disable BluetoothMapAccountLoader parsePackages based on
+         * "android.bluetooth.action.BLUETOOTH_MAP_PROVIDER" and "android.bluetooth.action
+         *     .BLUETOOTH_MAP_IM_PROVIDER" intent filters to fix the possible stability issues
+         * while interacting with native contentprovider on main UI thread to fetch the packages.
+         * TODO: Enable this feature when above intent interfacing implemented from AOSP
+         * is available and supported from email and IM Apps */
+        //groups = super.parsePackages(includeIcon);
+        Log.d(TAG, "Groups SIZE: " + groups.size());
         if(groups.size() == 0) {
             /* Support ONLY account(s) configured from default or primary Email App,
             * accisible with "com.android.email.permission.ACCESS_PROVIDER",
             * similar to MAP email instance as on QCOM KK and L releas(es).*/
             Log.d(TAG,"Found 0 applications - Support legacy default or primary email Account");
             if( mEmailContext != null ) {
+                /* Check if "com.android.email" is a Running Process*/
+                boolean isEmailAppStarted = false;
+                ActivityManager activityManager = (ActivityManager) mEmailContext
+                    .getSystemService(Context.ACTIVITY_SERVICE);
+                List<RunningAppProcessInfo> appProcesses = activityManager
+                    .getRunningAppProcesses();
+                if (appProcesses == null) {
+                    return groups;
+                }
+                if(V) Log.v(TAG,"Running Process size: " + appProcesses.size());
+                for (RunningAppProcessInfo appProcess : appProcesses) {
+                    if (appProcess.processName.equals(DEFAULT_EMAIL_PROCESS_NAME)) {
+                        isEmailAppStarted = true;
+                        break;
+                    }
+                }
+                Log.d(TAG,"isEmailAppStarted: " + isEmailAppStarted);
+                /* MAS Email SDP is promoted only if Email App is running.
+                 * However, register AppObserver for any value of 'isEmailAppStarted'
+                 * to support the dynamic EMAIL SDP registration.  */
                 BluetoothMapAccountItem app = BluetoothMapAccountItem.create(
                     "0",
                     null,
-                    "com.android.email",
+                    DEFAULT_EMAIL_PROCESS_NAME,
                     BluetoothMapEmailContract.EMAIL_AUTHORITY,
                     null ,
                     BluetoothMapUtils.TYPE.EMAIL);
-                    if (app != null){
-                        ArrayList<BluetoothMapAccountItem> accounts = parseEmailAccounts(app);
-                        Log.d(TAG,"parseAccnts: " + accounts.size());
-                        // we do not want to list apps without accounts
-                        if(accounts.size() > 0)
-                        {   // we need to make sure that the "select all" checkbox
-                            // is checked if all accounts in the list are checked
-                            app.mIsChecked = true;
-                            for (BluetoothMapAccountItem acc: accounts)
-                            {
-                                if(!acc.mIsChecked)
+                    if (app != null) {
+                        if (isEmailAppStarted) {
+                            ArrayList<BluetoothMapAccountItem> accounts = parseEmailAccounts(app);
+                            Log.d(TAG,"parseAccnts: " + accounts.size());
+                            // we do not want to list apps without accounts
+                            if(accounts.size() > 0)
+                            {   // we need to make sure that the "select all" checkbox
+                                // is checked if all accounts in the list are checked
+                                app.mIsChecked = true;
+                                for (BluetoothMapAccountItem acc: accounts)
                                 {
-                                    app.mIsChecked = false;
-                                    break;
+                                    if(!acc.mIsChecked)
+                                    {
+                                        app.mIsChecked = false;
+                                        break;
+                                    }
                                 }
-                            }
-                            groups.put(app, accounts);
+                                groups.put(app, accounts);
+                           } else {
+                               //Handle dynamic email account add configuration
+                               groups.put(app, null);
+                           }
                        } else {
-                           //Handle dynamic email account add configuration
+                           //Handle Email App process start in run-time
                            groups.put(app, null);
                        }
+                   } else {
+                       Log.w(TAG,"mEmailContext Cannot Access DefaultEmail");
                    }
                 } else {
-                    Log.d(TAG,"mEmailContext NOT Assigned - NULL");
+                    Log.w(TAG,"mEmailContext NOT Assigned - NULL");
                }
         }
         return groups;
@@ -152,7 +188,7 @@ public class BluetoothMapAccountEmailLoader extends BluetoothMapAccountLoader {
      */
     public ArrayList<BluetoothMapAccountItem> parseEmailAccounts(BluetoothMapAccountItem app)  {
         Cursor c = null;
-        if(D) Log.d(TAG,"Finding accounts for app "+app.getPackageName());
+        if(D) Log.d(TAG,"Finding accounts for App " + app.getPackageName());
         ArrayList<BluetoothMapAccountItem> children = new ArrayList<BluetoothMapAccountItem>();
         // Get the list of accounts from the email apps content resolver (if possible)
         mResolver = mEmailContext.getContentResolver();
