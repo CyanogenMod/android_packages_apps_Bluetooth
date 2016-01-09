@@ -211,8 +211,9 @@ final public class Utils {
             ok = (foregroundUser == callingUser);
             if (!ok) {
                 // Always allow SystemUI/System access.
-                int systemUiUid = ActivityThread.getPackageManager().getPackageUid(
-                        "com.android.systemui", UserHandle.USER_SYSTEM);
+                final int systemUiUid = ActivityThread.getPackageManager().getPackageUid(
+                        "com.android.systemui", PackageManager.MATCH_SYSTEM_ONLY,
+                        UserHandle.USER_SYSTEM);
                 ok = (systemUiUid == callingUid) || (Process.SYSTEM_UID == callingUid);
             }
         } catch (Exception ex) {
@@ -245,8 +246,9 @@ final public class Utils {
                     (foregroundUser == parentUser);
             if (!ok) {
                 // Always allow SystemUI/System access.
-                int systemUiUid = ActivityThread.getPackageManager().getPackageUid(
-                        "com.android.systemui", UserHandle.USER_SYSTEM);
+                final int systemUiUid = ActivityThread.getPackageManager().getPackageUid(
+                        "com.android.systemui", PackageManager.MATCH_SYSTEM_ONLY,
+                        UserHandle.USER_SYSTEM);
                 ok = (systemUiUid == callingUid) || (Process.SYSTEM_UID == callingUid);
             }
         } catch (Exception ex) {
