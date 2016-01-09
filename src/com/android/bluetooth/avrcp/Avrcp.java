@@ -2418,28 +2418,33 @@ public final class Avrcp {
                 case FOLDER_DOWN:
                     if (deviceFeatures[deviceIndex].mCurrentPathUid == null) {
                         Cursor cursor = null;
+                        String[] playlistMemberCols = new String[] {
+                            MediaStore.Audio.Playlists.Members._ID,
+                            MediaStore.Audio.Media.TITLE,
+                            MediaStore.Audio.Media.DATA,
+                            MediaStore.Audio.Media.ALBUM,
+                            MediaStore.Audio.Media.ARTIST,
+                            MediaStore.Audio.Media.DURATION,
+                            MediaStore.Audio.Playlists.Members.PLAY_ORDER,
+                            MediaStore.Audio.Playlists.Members.AUDIO_ID,
+                            MediaStore.Audio.Media.IS_MUSIC
+                        };
                         try {
-                            String[] cols = new String[] {
-                                MediaStore.Audio.Playlists._ID,
-                                MediaStore.Audio.Playlists.NAME
-                            };
-
+                            Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external",
+                                               folderUid);
                             StringBuilder where = new StringBuilder();
-                            where.append(MediaStore.Audio.Playlists.NAME + " != ''");
-
-                            cursor = mContext.getContentResolver().query(
-                                MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
-                                cols, MediaStore.Audio.Playlists._ID + "=" + folderUid,
-                                null, null);
-
-                            if ((cursor == null) || (cursor.getCount() == 0)) {
-                                status = DOES_NOT_EXIST;
-                            } else{
-                                numberOfItems = cursor.getCount();
+                            where.append(MediaStore.Audio.Media.TITLE + " != ''");
+                            cursor = mContext.getContentResolver().query(uri, playlistMemberCols,
+                                            where.toString(), null,
+                                            MediaStore.Audio.Playlists.Members.DEFAULT_SORT_ORDER);
+                            if (cursor != null) {
+                                numberOfItems =  cursor.getCount();
                                 deviceFeatures[deviceIndex].mCurrentPathUid =
                                         String.valueOf(folderUid);
                                 deviceFeatures[deviceIndex].mCurrentPath =
                                         PATH_PLAYLISTS;
+                            } else {
+                                status = DOES_NOT_EXIST;
                             }
                         } catch (Exception e) {
                             Log.e(TAG, "Exception " + e);

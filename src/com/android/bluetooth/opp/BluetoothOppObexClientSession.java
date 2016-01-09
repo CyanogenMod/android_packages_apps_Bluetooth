@@ -149,7 +149,6 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                 updateValues.put(BluetoothShare.CURRENT_BYTES, position);
                 mContext1.getContentResolver().update(contentUri, updateValues,
                         null, null);
-
                 try {
                     Thread.sleep(sSleepTime);
                 } catch (InterruptedException e1) {
@@ -521,7 +520,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
                                 if (uiUpdateThread == null) {
                                     uiUpdateThread = new ContentResolverUpdateThread (mContext1,
-                                                             contentUri);
+                                                                    contentUri);
                                     if (V) Log.v(TAG, "Worker for Updation : Created");
                                     uiUpdateThread.start ( );
                                 }

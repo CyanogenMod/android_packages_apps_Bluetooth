@@ -178,6 +178,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         private Uri contentUri;
         private Context mContext1;
         private volatile boolean interrupted = false;
+
         public ContentResolverUpdateThread(Context context, Uri cntUri) {
             super("BtOpp Server ContentResolverUpdateThread");
             mContext1 = context;

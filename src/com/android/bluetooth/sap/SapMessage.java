@@ -28,6 +28,7 @@ public class SapMessage {
     public static final String TAG = "SapMessage";
     public static final boolean DEBUG = Log.isLoggable(SapService.LOG_TAG, Log.DEBUG);
     public static final boolean VERBOSE = Log.isLoggable(SapService.LOG_TAG, Log.VERBOSE);
+    public static final boolean TEST = false;
 
     /* Message IDs - SAP specification */
     public static final int ID_CONNECT_REQ        = 0x00;
