@@ -16,5 +16,6 @@
      limitations under the License.
 -->
 <resources>
+  <string name="permlab_bluetoothAvrcpDataManager">Acesso aos metadados AVRCP.</string>
   <string name="upload_fail_waiting">Não foi possível enviar o arquivo, tentando novamente\u2026</string>
 </resources>

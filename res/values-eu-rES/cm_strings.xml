@@ -17,6 +17,5 @@
 -->
 <resources>
   <string name="permlab_bluetoothAvrcpDataManager">Atzitu AVRCP metadatuak.</string>
-  <string name="permdesc_bluetoothAvrcpDataManager">BluetoothAvrcpData kudeatzailea atzitu eta interfazean erakusteko irakurtzea ahalbidetzen dio aplikazioari.</string>
   <string name="upload_fail_waiting">Ezin izan da fitxategia bidali, berriro saiatzen\u2026</string>
 </resources>

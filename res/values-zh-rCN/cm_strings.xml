@@ -17,6 +17,6 @@
 -->
 <resources>
   <string name="permlab_bluetoothAvrcpDataManager">访问 AVRCP 元数据。</string>
-  <string name="permdesc_bluetoothAvrcpDataManager">允许此应用访问 BluetoothAvrcpData 管理器并将其显示在界面上。</string>
+  <string name="permdesc_bluetoothAvrcpDataManager">允许应用访问蓝牙 AVRCP 元数据并显示于用户界面上。</string>
   <string name="upload_fail_waiting">无法发送文件，正在重试\u2026</string>
 </resources>

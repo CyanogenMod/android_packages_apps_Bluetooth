@@ -16,5 +16,7 @@
      limitations under the License.
 -->
 <resources>
+  <string name="permlab_bluetoothAvrcpDataManager">auf AVRCP-Metadaten zugreifen</string>
+  <string name="permdesc_bluetoothAvrcpDataManager">Ermöglicht der App, auf Bluetooth-AVRCP-Metadaten zuzugreifen und sie anzuzeigen.</string>
   <string name="upload_fail_waiting">Datei kann nicht versendet werden. Wiederhole\u2026</string>
 </resources>

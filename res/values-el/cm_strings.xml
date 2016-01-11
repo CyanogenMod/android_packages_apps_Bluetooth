@@ -17,6 +17,6 @@
 -->
 <resources>
   <string name="permlab_bluetoothAvrcpDataManager">Πρόσβαση στα μετα-δεδομένα AVRCP.</string>
-  <string name="permdesc_bluetoothAvrcpDataManager">Επιτρέπει στην εφαρμογή να αποκτά πρόσβαση στο πρόγραμμα διαχείρισης BluetoothAvrcpData και να το χρησιμοποιεί για εμφάνιση στην οθόνη.</string>
+  <string name="permdesc_bluetoothAvrcpDataManager">Επιτρέπει στην εφαρμογή να αποκτά πρόσβαση στα μεταδεδομένα Bluetooth AVRCP και να τα χρησιμοποιεί για εμφάνιση στην οθόνη.</string>
   <string name="upload_fail_waiting">Το αρχείο δεν στάλθηκε, προσπάθεια ξανά\u2026</string>
 </resources>

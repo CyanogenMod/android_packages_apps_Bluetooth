@@ -17,6 +17,5 @@
 -->
 <resources>
   <string name="permlab_bluetoothAvrcpDataManager">Lukea AVRCP-metadataa.</string>
-  <string name="permdesc_bluetoothAvrcpDataManager">Sallii sovelluksen käyttää BluetoothAvcrpData manageria ja näyttää sen käyttöliittymässä.</string>
   <string name="upload_fail_waiting">Tiedoston lähetys epäonnistui, yritetään uudelleen\u2026</string>
 </resources>
