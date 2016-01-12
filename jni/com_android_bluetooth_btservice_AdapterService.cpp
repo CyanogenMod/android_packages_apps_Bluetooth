@@ -1115,7 +1115,8 @@ static int readEnergyInfo()
     return result;
 }
 
-static void dumpNative(JNIEnv *env, jobject obj, jobject fdObj)
+static void dumpNative(JNIEnv *env, jobject obj, jobject fdObj,
+                       jobjectArray argArray)
 {
     ALOGV("%s()", __FUNCTION__);
     if (!sBluetoothInterface) return;
@@ -1123,7 +1124,24 @@ static void dumpNative(JNIEnv *env, jobject obj, jobject fdObj)
     int fd = jniGetFDFromFileDescriptor(env, fdObj);
     if (fd < 0) return;
 
-    sBluetoothInterface->dump(fd);
+    int numArgs = env->GetArrayLength(argArray);
+
+    jstring *argObjs = new jstring[numArgs];
+    const char **args = new const char*[numArgs];
+
+    for (int i = 0; i < numArgs; i++) {
+      argObjs[i] = (jstring) env->GetObjectArrayElement(argArray, i);
+      args[i] = env->GetStringUTFChars(argObjs[i], NULL);
+    }
+
+    sBluetoothInterface->dump(fd, args);
+
+    for (int i = 0; i < numArgs; i++) {
+      env->ReleaseStringUTFChars(argObjs[i], args[i]);
+    }
+
+    delete[] args;
+    delete[] argObjs;
 }
 
 static jboolean factoryResetNative(JNIEnv *env, jobject obj) {
@@ -1160,7 +1178,7 @@ static JNINativeMethod sMethods[] = {
     {"configHciSnoopLogNative", "(Z)Z", (void*) configHciSnoopLogNative},
     {"alarmFiredNative", "()V", (void *) alarmFiredNative},
     {"readEnergyInfo", "()I", (void*) readEnergyInfo},
-    {"dumpNative", "(Ljava/io/FileDescriptor;)V", (void*) dumpNative},
+    {"dumpNative", "(Ljava/io/FileDescriptor;[Ljava/lang/String;)V", (void*) dumpNative},
     {"factoryResetNative", "()Z", (void*)factoryResetNative}
 };
 
