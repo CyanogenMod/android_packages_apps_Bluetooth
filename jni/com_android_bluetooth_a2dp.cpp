@@ -27,6 +27,7 @@
 #include "android_runtime/AndroidRuntime.h"
 
 #include <string.h>
+#include <pthread.h>
 
 namespace android {
 static jmethodID method_onConnectionStateChanged;
@@ -38,6 +39,8 @@ static jmethodID method_onMulticastStateChanged;
 static const btav_interface_t *sBluetoothA2dpInterface = NULL;
 static jobject mCallbacksObj = NULL;
 static JNIEnv *sCallbackEnv = NULL;
+
+static pthread_mutex_t mMutex = PTHREAD_MUTEX_INITIALIZER;
 
 static bool checkCallbackThread() {
     // Always fetch the latest callbackEnv from AdapterService.
@@ -58,10 +61,6 @@ static void bta2dp_connection_state_callback(btav_connection_state_t state, bt_b
 
     ALOGI("%s", __FUNCTION__);
 
-    if (mCallbacksObj == NULL) {
-        ALOGE("Callbacks Obj is no more valid: '%s", __FUNCTION__);
-        return;
-    }
     if (!checkCallbackThread()) {                                       \
         ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__); \
         return;                                                         \
@@ -75,8 +74,16 @@ static void bta2dp_connection_state_callback(btav_connection_state_t state, bt_b
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConnectionStateChanged, (jint) state,
-                                 addr);
+
+    pthread_mutex_lock(&mMutex);
+    if (mCallbacksObj != NULL) {
+        sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConnectionStateChanged,
+                        (jint) state, addr);
+    } else {
+        ALOGE("Callbacks Obj is no more valid: '%s", __FUNCTION__);
+    }
+    pthread_mutex_unlock(&mMutex);
+
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
@@ -86,10 +93,6 @@ static void bta2dp_audio_state_callback(btav_audio_state_t state, bt_bdaddr_t* b
 
     ALOGI("%s", __FUNCTION__);
 
-    if (mCallbacksObj == NULL) {
-        ALOGE("Callbacks Obj is no more valid: '%s", __FUNCTION__);
-        return;
-    }
     if (!checkCallbackThread()) {                                       \
         ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__); \
         return;                                                         \
@@ -102,8 +105,16 @@ static void bta2dp_audio_state_callback(btav_audio_state_t state, bt_bdaddr_t* b
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAudioStateChanged, (jint) state,
-                                 addr);
+
+    pthread_mutex_lock(&mMutex);
+    if (mCallbacksObj != NULL) {
+        sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAudioStateChanged,
+                        (jint) state, addr);
+    } else {
+        ALOGE("Callbacks Obj is no more valid: '%s", __FUNCTION__);
+    }
+    pthread_mutex_unlock(&mMutex);
+
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
@@ -113,10 +124,6 @@ static void bta2dp_connection_priority_callback(bt_bdaddr_t* bd_addr) {
 
     ALOGI("%s", __FUNCTION__);
 
-    if (mCallbacksObj == NULL) {
-        ALOGE("Callbacks Obj is no more valid: '%s", __FUNCTION__);
-        return;
-    }
     if (!checkCallbackThread()) {                                       \
         ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__); \
         return;                                                         \
@@ -129,7 +136,16 @@ static void bta2dp_connection_priority_callback(bt_bdaddr_t* bd_addr) {
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onCheckConnectionPriority, addr);
+
+    pthread_mutex_lock(&mMutex);
+    if (mCallbacksObj != NULL) {
+        sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onCheckConnectionPriority,
+                        addr);
+    } else {
+        ALOGE("Callbacks Obj is no more valid: '%s", __FUNCTION__);
+    }
+    pthread_mutex_unlock(&mMutex);
+
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
@@ -138,16 +154,20 @@ static void bta2dp_multicast_enabled_callback(int state) {
 
     ALOGI("%s", __FUNCTION__);
 
-    if (mCallbacksObj == NULL) {
-        ALOGE("Callbacks Obj is no more valid: '%s", __FUNCTION__);
-        return;
-    }
     if (!checkCallbackThread()) {                                       \
         ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__); \
         return;                                                         \
     }
 
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onMulticastStateChanged, state);
+    pthread_mutex_lock(&mMutex);
+    if (mCallbacksObj != NULL) {
+        sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onMulticastStateChanged,
+                        state);
+    } else {
+        ALOGE("Callbacks Obj is no more valid: '%s", __FUNCTION__);
+    }
+    pthread_mutex_unlock(&mMutex);
+
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
@@ -218,29 +238,32 @@ static void initNative(JNIEnv *env, jobject object, jint maxA2dpConnections,
          sBluetoothA2dpInterface = NULL;
     }
 
-    if (mCallbacksObj != NULL) {
-         ALOGW("Cleaning up A2DP callback object");
-         env->DeleteGlobalRef(mCallbacksObj);
-         mCallbacksObj = NULL;
-    }
-
     if ( (sBluetoothA2dpInterface = (btav_interface_t *)
           btInf->get_profile_interface(BT_PROFILE_ADVANCED_AUDIO_ID)) == NULL) {
         ALOGE("Failed to get Bluetooth A2DP Interface");
         return;
     }
 
+    pthread_mutex_lock(&mMutex);
+    if (mCallbacksObj != NULL) {
+         ALOGW("Cleaning up A2DP callback object");
+         env->DeleteGlobalRef(mCallbacksObj);
+         mCallbacksObj = NULL;
+    }
     mCallbacksObj = env->NewGlobalRef(object);
+    pthread_mutex_unlock(&mMutex);
 
     if ( (status = sBluetoothA2dpInterface->init(&sBluetoothA2dpCallbacks,
             maxA2dpConnections, multiCastState)) != BT_STATUS_SUCCESS) {
         ALOGE("Failed to initialize Bluetooth A2DP, status: %d", status);
         sBluetoothA2dpInterface = NULL;
+        pthread_mutex_lock(&mMutex);
         if (mCallbacksObj != NULL) {
              ALOGW("Clean up A2DP callback object");
              env->DeleteGlobalRef(mCallbacksObj);
              mCallbacksObj = NULL;
         }
+        pthread_mutex_unlock(&mMutex);
         return;
     }
 
@@ -260,10 +283,12 @@ static void cleanupNative(JNIEnv *env, jobject object) {
         sBluetoothA2dpInterface = NULL;
     }
 
+    pthread_mutex_lock(&mMutex);
     if (mCallbacksObj != NULL) {
         env->DeleteGlobalRef(mCallbacksObj);
         mCallbacksObj = NULL;
     }
+    pthread_mutex_unlock(&mMutex);
 }
 
 static jboolean connectA2dpNative(JNIEnv *env, jobject object, jbyteArray address) {
