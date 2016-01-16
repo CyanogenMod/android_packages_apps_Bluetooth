@@ -31,11 +31,13 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.internal.app.IBatteryStats;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -77,6 +79,7 @@ public class ScanManager {
 
     private Integer curUsedTrackableAdvertisements;
     private GattService mService;
+    private IBatteryStats mBatteryStats;
     private BroadcastReceiver mBatchAlarmReceiver;
     private boolean mBatchAlarmReceiverRegistered;
     private ScanNative mScanNative;
@@ -96,6 +99,7 @@ public class ScanManager {
     }
 
     void start() {
+        mBatteryStats = IBatteryStats.Stub.asInterface(ServiceManager.getService("batterystats"));
         HandlerThread thread = new HandlerThread("BluetoothScanManager");
         thread.start();
         mHandler = new ClientHandler(thread.getLooper());
@@ -217,16 +221,36 @@ public class ScanManager {
                 if (!mScanNative.isOpportunisticScanClient(client)) {
                     mScanNative.configureRegularScanParams();
                 }
+
+                // Update BatteryStats with this workload.
+                try {
+                    mBatteryStats.noteBleScanStarted(client.workSource);
+                } catch (RemoteException e) {
+                    /* ignore */
+                }
             }
         }
 
         void handleStopScan(ScanClient client) {
             Utils.enforceAdminPermission(mService);
             if (client == null) return;
+
+            // The ScanClient passed in just holds the clientIf. We retrieve the real client,
+            // which may have workSource set.
+            client = mScanNative.getClient(client.clientIf);
+            if (client == null) return;
+
             if (mRegularScanClients.contains(client)) {
                 mScanNative.stopRegularScan(client);
                 if (!mScanNative.isOpportunisticScanClient(client)) {
                     mScanNative.configureRegularScanParams();
+                }
+
+                // Update BatteryStats with this workload.
+                try {
+                    mBatteryStats.noteBleScanStopped(client.workSource);
+                } catch (RemoteException e) {
+                    /* ignore */
                 }
             } else {
                 mScanNative.stopBatchScan(client);
@@ -598,7 +622,6 @@ public class ScanManager {
 
         void stopRegularScan(ScanClient client) {
             // Remove scan filters and recycle filter indices.
-            client = getClient(client.clientIf);
             if (client == null) return;
             int deliveryMode = getDeliveryMode(client);
             if (deliveryMode == DELIVERY_MODE_ON_FOUND_LOST) {

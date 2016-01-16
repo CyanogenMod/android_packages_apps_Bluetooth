@@ -39,7 +39,7 @@ import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.os.SystemClock;
-import android.os.UserHandle;
+import android.os.WorkSource;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -314,10 +314,12 @@ public class GattService extends ProfileService {
 
         @Override
         public void startScan(int appIf, boolean isServer, ScanSettings settings,
-                List<ScanFilter> filters, List storages, String callingPackage) {
+                List<ScanFilter> filters, WorkSource workSource, List storages,
+                String callingPackage) {
             GattService service = getService();
             if (service == null) return;
-            service.startScan(appIf, isServer, settings, filters, storages, callingPackage);
+            service.startScan(appIf, isServer, settings, filters, workSource, storages,
+                    callingPackage);
         }
 
         public void stopScan(int appIf, boolean isServer) {
@@ -1376,14 +1378,21 @@ public class GattService extends ProfileService {
     }
 
     void startScan(int appIf, boolean isServer, ScanSettings settings,
-            List<ScanFilter> filters, List<List<ResultStorageDescriptor>> storages,
-            String callingPackage) {
+            List<ScanFilter> filters, WorkSource workSource,
+            List<List<ResultStorageDescriptor>> storages, String callingPackage) {
         if (DBG) Log.d(TAG, "start scan with filters");
         enforceAdminPermission();
         if (needsPrivilegedPermissionForScan(settings)) {
             enforcePrivilegedPermission();
         }
-        final ScanClient scanClient = new ScanClient(appIf, isServer, settings, filters, storages);
+        if (workSource != null) {
+            enforceImpersonatationPermission();
+        } else {
+            // Blame the caller if the work source is unspecified.
+            workSource = new WorkSource(Binder.getCallingUid(), callingPackage);
+        }
+        final ScanClient scanClient = new ScanClient(appIf, isServer, settings, filters, workSource,
+                storages);
         scanClient.hasLocationPermission = Utils.checkCallerHasLocationPermission(this, mAppOps,
                 callingPackage);
         scanClient.hasPeersMacAddressPermission = Utils.checkCallerHasPeersMacAddressPermission(
@@ -2166,6 +2175,14 @@ public class GattService extends ProfileService {
     private void enforcePrivilegedPermission() {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
             "Need BLUETOOTH_PRIVILEGED permission");
+    }
+
+    // Enforce caller has UPDATE_DEVICE_STATS permission, which allows the caller to blame other
+    // apps for Bluetooth usage. A {@link SecurityException} will be thrown if the caller app does
+    // not have UPDATE_DEVICE_STATS permission.
+    private void enforceImpersonatationPermission() {
+        enforceCallingOrSelfPermission(android.Manifest.permission.UPDATE_DEVICE_STATS,
+                "Need UPDATE_DEVICE_STATS permission");
     }
 
     private void continueSearch(int connId, int status) throws RemoteException {
