@@ -144,6 +144,7 @@ public class BluetoothMapService extends ProfileService {
 
     private boolean mIsWaitingAuthorization = false;
     private boolean mRemoveTimeoutMsg = false;
+    private boolean mRegisteredMapReceiver = false;
     private int mPermission = BluetoothDevice.ACCESS_UNKNOWN;
     private boolean mAccountChanged = false;
     private boolean mSdpSearchInitiated = false;
@@ -194,7 +195,7 @@ public class BluetoothMapService extends ProfileService {
         }
         mRemoteDevice = null;
 
-        if (VERBOSE) Log.v(TAG, "MAP Service closeService out");
+        if (DEBUG) Log.d(TAG, "MAP Service closeService out");
         if(latch != null) {
             latch.countDown();
         }
@@ -232,7 +233,7 @@ public class BluetoothMapService extends ProfileService {
                     "StartingObexMapTransaction");
             mWakeLock.setReferenceCounted(false);
             mWakeLock.acquire();
-            if (VERBOSE) Log.v(TAG, "startObexSessions(): Acquire Wake Lock");
+            if (DEBUG) Log.d(TAG, "startObexSessions(): Acquire Wake Lock");
         }
 
         if(mBluetoothMnsObexClient == null) {
@@ -265,7 +266,7 @@ public class BluetoothMapService extends ProfileService {
         mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
                 .obtainMessage(MSG_RELEASE_WAKE_LOCK), RELEASE_WAKE_LOCK_DELAY);
 
-        if (VERBOSE) Log.v(TAG, "startObexServerSessions() success!");
+        if (DEBUG) Log.d(TAG, "startObexServerSessions() success!");
     }
 
     public Handler getHandler() {
@@ -329,7 +330,7 @@ public class BluetoothMapService extends ProfileService {
         }
         @Override
         public void handleMessage(Message msg) {
-            if (DEBUG) Log.v(TAG, "Handler(): got msg=" + msg.what);
+            if (DEBUG) Log.d(TAG, "Handler(): got msg=" + msg.what);
 
             switch (msg.what) {
                 case UPDATE_MAS_INSTANCES:
@@ -612,12 +613,14 @@ public class BluetoothMapService extends ProfileService {
         } catch (MalformedMimeTypeException e) {
             Log.e(TAG, "Wrong mime type!!!", e);
         }
-
-        try {
-            registerReceiver(mMapReceiver, filter);
-            registerReceiver(mMapReceiver, filterMessageSent);
-        } catch (Exception e) {
-            Log.w(TAG,"Unable to register map receiver",e);
+        if (!mRegisteredMapReceiver) {
+            try {
+                registerReceiver(mMapReceiver, filter);
+                registerReceiver(mMapReceiver, filterMessageSent);
+                mRegisteredMapReceiver = true;
+            } catch (Exception e) {
+                Log.e(TAG,"Unable to register map receiver",e);
+            }
         }
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mAppObserver = new BluetoothMapAppObserver(this, this);
@@ -785,11 +788,14 @@ public class BluetoothMapService extends ProfileService {
     @Override
     protected boolean stop() {
         if (DEBUG) Log.d(TAG, "stop()");
-        try {
-            unregisterReceiver(mMapReceiver);
-            mAppObserver.shutdown();
-        } catch (Exception e) {
-            Log.w(TAG,"Unable to unregister map receiver",e);
+        if (mRegisteredMapReceiver) {
+            try {
+                mRegisteredMapReceiver = false;
+                unregisterReceiver(mMapReceiver);
+                mAppObserver.shutdown();
+            } catch (Exception e) {
+                Log.e(TAG,"Unable to unregister map receiver",e);
+            }
         }
         CountDownLatch latch = new CountDownLatch(1);
         sendShutdownMessage(latch);
@@ -810,7 +816,7 @@ public class BluetoothMapService extends ProfileService {
             mSessionStatusHandler = null;
         }
         setState(BluetoothMap.STATE_DISCONNECTED, BluetoothMap.RESULT_CANCELED);
-        if (VERBOSE) Log.d(TAG, "stop() out");
+        if (DEBUG) Log.d(TAG, "stop() out");
         return true;
     }
 
@@ -954,19 +960,22 @@ public class BluetoothMapService extends ProfileService {
             mIsWaitingAuthorization = false;
             cancelUserTimeoutAlarm();
         }
-        mSessionStatusHandler.removeCallbacksAndMessages(null);
-        // Request release of all resources
-        Message msg = mSessionStatusHandler.obtainMessage(SHUTDOWN,latch);
-        if( mSessionStatusHandler.sendMessage(msg) == false) {
+        if (mSessionStatusHandler != null) {
+            mSessionStatusHandler.removeCallbacksAndMessages(null);
+            // Request release of all resources
+            Message msg = mSessionStatusHandler.obtainMessage(SHUTDOWN,latch);
+            if( mSessionStatusHandler.sendMessage(msg) == false) {
             /* most likely caused by shutdown being called from multiple sources - e.g.BT off
              * signaled through intent and a service shutdown simultaneously.
              * Intended behavior not documented, hence we need to be able to handle all cases. */
-            Log.e(TAG, "mSessionStatusHandler.sendMessage() failed trigger latch locally");
-            if(latch != null) {
-                latch.countDown();
+                Log.e(TAG, "mSessionStatusHandler.sendMessage() failed trigger latch locally");
+                if(latch != null) {
+                    latch.countDown();
+                }
+            } else {
+                if(DEBUG)
+                    Log.e(TAG, "mSessionStatusHandler.sendMessage() dispatched shutdown message");
             }
-        } else {
-            if(DEBUG) Log.e(TAG, "mSessionStatusHandler.sendMessage() dispatched shutdown message");
         }
     }
 

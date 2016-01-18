@@ -1242,6 +1242,8 @@ public class BluetoothMapContent {
             }
             if (subject != null && subject.length() > subLength) {
                 subject = subject.substring(0, subLength);
+            } else if (subject == null ) {
+                subject = "";
             }
             if (V) Log.d(TAG, "setSubject: " + subject);
             e.setSubject(subject);
