@@ -2432,7 +2432,7 @@ final class HeadsetStateMachine extends StateMachine {
             sco disconnect issued in AudioOn state. This was causing a mismatch in the
             Incall screen UI. */
 
-            if (getCurrentState() == mAudioOn && mCurrentDevice.equals(device)
+            if (mActiveScoDevice != null && mActiveScoDevice.equals(device)
                 && mAudioState != BluetoothHeadset.STATE_AUDIO_DISCONNECTED)
             {
                 return true;
