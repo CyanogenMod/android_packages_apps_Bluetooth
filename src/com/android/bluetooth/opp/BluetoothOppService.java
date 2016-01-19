@@ -357,12 +357,29 @@ public class BluetoothOppService extends Service {
     private void startSocketListener() {
 
        if (V) Log.v(TAG, "start Socket Listeners");
-       mBtRfcServerSocket = mSocketListener.openRfcommSocket();
-       mBtL2cServerSocket = mL2cSocketListener.openL2capSocket();
-       mOppSdpHandle = SdpManager.getDefaultManager().createOppOpsRecord("OBEX Object Push",
-       mBtRfcServerSocket.getChannel(),mBtL2cServerSocket.getChannel(),0x0102,SdpManager.OPP_FORMAT_ALL);
-       mSocketListener.start(mHandler);
-       mL2cSocketListener.start(mHandler);
+       if (mSocketListener != null ) {
+           mBtRfcServerSocket = mSocketListener.openRfcommSocket();
+       }
+
+       if (mL2cSocketListener != null) {
+           mBtL2cServerSocket = mL2cSocketListener.openL2capSocket();
+       }
+
+       if (mBtRfcServerSocket != null && mBtL2cServerSocket != null) {
+           mOppSdpHandle = SdpManager.getDefaultManager().createOppOpsRecord("OBEX Object Push",
+              mBtRfcServerSocket.getChannel(), mBtL2cServerSocket.getChannel(),
+                 0x0102, SdpManager.OPP_FORMAT_ALL);
+       } else {
+           Log.e(TAG, "ERROR:serversocket object is NULL");
+       }
+
+       if (mSocketListener != null) {
+          mSocketListener.start(mHandler);
+       }
+
+       if (mL2cSocketListener != null) {
+          mL2cSocketListener.start(mHandler);
+       }
 
     }
 
