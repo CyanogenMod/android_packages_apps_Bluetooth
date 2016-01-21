@@ -15,6 +15,8 @@
  */
 package com.android.bluetooth.gatt;
 
+import android.content.Context;
+import android.os.Binder;
 import android.os.IBinder;
 import android.os.IBinder.DeathRecipient;
 import android.os.IInterface;
@@ -23,6 +25,7 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -37,6 +40,46 @@ import java.util.Map;
  */
 /*package*/ class ContextMap<T> {
     private static final String TAG = GattServiceConfig.TAG_PREFIX + "ContextMap";
+
+    /**
+     * ScanStats class helps keep track of information about scans
+     * on a per application basis.
+     */
+    class ScanStats {
+        static final int NUM_SCAN_DURATIONS_KEPT = 5;
+
+        int scansStarted = 0;
+        int scansStopped = 0;
+        boolean isScanning = false;
+        boolean isRegistered = false;
+        long minScanTime = Long.MAX_VALUE;
+        long maxScanTime = 0;
+        long totalScanTime = 0;
+        List<Long> lastScans = new ArrayList<Long>(NUM_SCAN_DURATIONS_KEPT + 1);
+        long startTime = 0;
+        long stopTime = 0;
+
+        void startScan() {
+            this.scansStarted++;
+            isScanning = true;
+            startTime = System.currentTimeMillis();
+        }
+
+        void stopScan() {
+            this.scansStopped++;
+            isScanning = false;
+            stopTime = System.currentTimeMillis();
+            long currTime = stopTime - startTime;
+
+            minScanTime = Math.min(currTime, minScanTime);
+            maxScanTime = Math.max(currTime, maxScanTime);
+            totalScanTime += currTime;
+            lastScans.add(currTime);
+            if (lastScans.size() > NUM_SCAN_DURATIONS_KEPT) {
+                lastScans.remove(0);
+            }
+        }
+    }
 
     /**
      * Connection class helps map connection IDs to device addresses.
@@ -63,6 +106,9 @@ import java.util.Map;
         /** The id of the application */
         int id;
 
+        /** The package name of the application */
+        String name;
+
         /** Application callbacks */
         T callback;
 
@@ -78,9 +124,10 @@ import java.util.Map;
         /**
          * Creates a new app context.
          */
-        App(UUID uuid, T callback) {
+        App(UUID uuid, T callback, String name) {
             this.uuid = uuid;
             this.callback = callback;
+            this.name = name;
         }
 
         /**
@@ -123,15 +170,30 @@ import java.util.Map;
     /** Our internal application list */
     List<App> mApps = new ArrayList<App>();
 
+    /** Internal map to keep track of logging information by app name */
+    HashMap<String, ScanStats> mScanStats = new HashMap<String, ScanStats>();
+
     /** Internal list of connected devices **/
     Set<Connection> mConnections = new HashSet<Connection>();
 
     /**
      * Add an entry to the application context list.
      */
-    void add(UUID uuid, T callback) {
+    void add(UUID uuid, T callback, Context context) {
+        String appName = context.getPackageManager().getNameForUid(
+                             Binder.getCallingUid());
+        if (appName == null) {
+            // Assign an app name if one isn't found
+            appName = "Unknown App (UID: " + Binder.getCallingUid() + ")";
+        }
         synchronized (mApps) {
-            mApps.add(new App(uuid, callback));
+            mApps.add(new App(uuid, callback, appName));
+            ScanStats scanStats = mScanStats.get(appName);
+            if (scanStats == null) {
+                scanStats = new ScanStats();
+                mScanStats.put(appName, scanStats);
+            }
+            scanStats.isRegistered = true;
         }
     }
 
@@ -141,10 +203,11 @@ import java.util.Map;
     void remove(UUID uuid) {
         synchronized (mApps) {
             Iterator<App> i = mApps.iterator();
-            while(i.hasNext()) {
+            while (i.hasNext()) {
                 App entry = i.next();
                 if (entry.uuid.equals(uuid)) {
                     entry.unlinkToDeath();
+                    mScanStats.get(entry.name).isRegistered = false;
                     i.remove();
                     break;
                 }
@@ -158,10 +221,11 @@ import java.util.Map;
     void remove(int id) {
         synchronized (mApps) {
             Iterator<App> i = mApps.iterator();
-            while(i.hasNext()) {
+            while (i.hasNext()) {
                 App entry = i.next();
                 if (entry.id == id) {
                     entry.unlinkToDeath();
+                    mScanStats.get(entry.name).isRegistered = false;
                     i.remove();
                     break;
                 }
@@ -187,7 +251,7 @@ import java.util.Map;
     void removeConnection(int id, int connId) {
         synchronized (mConnections) {
             Iterator<Connection> i = mConnections.iterator();
-            while(i.hasNext()) {
+            while (i.hasNext()) {
                 Connection connection = i.next();
                 if (connection.connId == connId) {
                     i.remove();
@@ -202,7 +266,7 @@ import java.util.Map;
      */
     App getById(int id) {
         Iterator<App> i = mApps.iterator();
-        while(i.hasNext()) {
+        while (i.hasNext()) {
             App entry = i.next();
             if (entry.id == id) return entry;
         }
@@ -215,11 +279,35 @@ import java.util.Map;
      */
     App getByUuid(UUID uuid) {
         Iterator<App> i = mApps.iterator();
-        while(i.hasNext()) {
+        while (i.hasNext()) {
             App entry = i.next();
             if (entry.uuid.equals(uuid)) return entry;
         }
         Log.e(TAG, "Context not found for UUID " + uuid);
+        return null;
+    }
+
+    /**
+     * Get an application context by the calling Apps name.
+     */
+    App getByName(String name) {
+        Iterator<App> i = mApps.iterator();
+        while (i.hasNext()) {
+            App entry = i.next();
+            if (entry.name.equals(name)) return entry;
+        }
+        Log.e(TAG, "Context not found for name " + name);
+        return null;
+    }
+
+    /**
+     * Get Logging info by ID
+     */
+    ScanStats getScanStatsById(int id) {
+        App temp = getById(id);
+        if (temp != null) {
+            return mScanStats.get(temp.name);
+        }
         return null;
     }
 
@@ -229,7 +317,7 @@ import java.util.Map;
     Set<String> getConnectedDevices() {
         Set<String> addresses = new HashSet<String>();
         Iterator<Connection> i = mConnections.iterator();
-        while(i.hasNext()) {
+        while (i.hasNext()) {
             Connection connection = i.next();
             addresses.add(connection.address);
         }
@@ -241,7 +329,7 @@ import java.util.Map;
      */
     App getByConnId(int connId) {
         Iterator<Connection> ii = mConnections.iterator();
-        while(ii.hasNext()) {
+        while (ii.hasNext()) {
             Connection connection = ii.next();
             if (connection.connId == connId){
                 return getById(connection.appId);
@@ -258,7 +346,7 @@ import java.util.Map;
         if (entry == null) return null;
 
         Iterator<Connection> i = mConnections.iterator();
-        while(i.hasNext()) {
+        while (i.hasNext()) {
             Connection connection = i.next();
             if (connection.address.equals(address) && connection.appId == id)
                 return connection.connId;
@@ -271,7 +359,7 @@ import java.util.Map;
      */
     String addressByConnId(int connId) {
         Iterator<Connection> i = mConnections.iterator();
-        while(i.hasNext()) {
+        while (i.hasNext()) {
             Connection connection = i.next();
             if (connection.connId == connId) return connection.address;
         }
@@ -281,7 +369,7 @@ import java.util.Map;
     List<Connection> getConnectionByApp(int appId) {
         List<Connection> currentConnections = new ArrayList<Connection>();
         Iterator<Connection> i = mConnections.iterator();
-        while(i.hasNext()) {
+        while (i.hasNext()) {
             Connection connection = i.next();
             if (connection.appId == appId)
                 currentConnections.add(connection);
@@ -295,7 +383,7 @@ import java.util.Map;
     void clear() {
         synchronized (mApps) {
             Iterator<App> i = mApps.iterator();
-            while(i.hasNext()) {
+            while (i.hasNext()) {
                 App entry = i.next();
                 entry.unlinkToDeath();
                 i.remove();
@@ -322,22 +410,86 @@ import java.util.Map;
      * Logs debug information.
      */
     void dump(StringBuilder sb) {
-        sb.append("  Entries: " + mApps.size() + "\n");
+        long currTime = System.currentTimeMillis();
 
-        Iterator<App> i = mApps.iterator();
-        while(i.hasNext()) {
-            App entry = i.next();
-            List<Connection> connections = getConnectionByApp(entry.id);
+        sb.append("  Entries: " + mScanStats.size() + "\n\n");
 
-            sb.append("\n  Application Id: " + entry.id + "\n");
-            sb.append("  UUID: " + entry.uuid + "\n");
-            sb.append("  Connections: " + connections.size() + "\n");
+        Iterator<Map.Entry<String,ScanStats>> i = mScanStats.entrySet().iterator();
+        while (i.hasNext()) {
+            Map.Entry<String, ScanStats> entry = i.next();
 
-            Iterator<Connection> ii = connections.iterator();
-            while(ii.hasNext()) {
-                Connection connection = ii.next();
-                sb.append("    " + connection.connId + ": " + connection.address + "\n");
+            String name = entry.getKey();
+            ScanStats scanStats = entry.getValue();
+
+            long maxScanTime = scanStats.maxScanTime;
+            long minScanTime = scanStats.minScanTime;
+            long currScanTime = 0;
+
+            if (scanStats.isScanning) {
+                currScanTime = currTime - scanStats.startTime;
+                minScanTime = Math.min(currScanTime, minScanTime);
+                maxScanTime = Math.max(currScanTime, maxScanTime);
             }
+
+            if (minScanTime == Long.MAX_VALUE) {
+                minScanTime = 0;
+            }
+
+            long lastScan = 0;
+            if (scanStats.stopTime != 0) {
+                lastScan = currTime - scanStats.stopTime;
+            }
+
+            long avgScanTime = 0;
+            if (scanStats.scansStarted > 0) {
+                avgScanTime = (scanStats.totalScanTime + currScanTime) /
+                              scanStats.scansStarted;
+            }
+
+            sb.append("  Application Name: " + name);
+            if (scanStats.isRegistered) sb.append(" (Registered)");
+            sb.append("\n");
+
+            sb.append("  LE scans (started/stopped)       : " +
+                      scanStats.scansStarted + " / " +
+                      scanStats.scansStopped + "\n");
+            sb.append("  Scan time in ms (min/max/avg)    : " +
+                      minScanTime + " / " +
+                      maxScanTime + " / " +
+                      avgScanTime + "\n");
+
+            sb.append("  Time since last scan ended in ms : " + lastScan + "\n");
+
+            sb.append("  Last " + scanStats.lastScans.size() +
+                      " scans in ms (oldest first): ");
+            for (Long time : scanStats.lastScans) {
+                sb.append(time + " ");
+            }
+            sb.append("\n");
+
+            if (scanStats.isRegistered) {
+                App appEntry = getByName(name);
+                sb.append("  Application ID                   : " +
+                          appEntry.id + "\n");
+                sb.append("  UUID                             : " +
+                          appEntry.uuid + "\n");
+
+                if (scanStats.isScanning) {
+                    sb.append("  Current scan duration            : " +
+                              currScanTime + "\n");
+                }
+
+                List<Connection> connections = getConnectionByApp(appEntry.id);
+                sb.append("  Connections: " + connections.size() + "\n");
+
+                Iterator<Connection> ii = connections.iterator();
+                while(ii.hasNext()) {
+                    Connection connection = ii.next();
+                    sb.append("    " + connection.connId + ": " +
+                              connection.address + "\n");
+                }
+            }
+            sb.append("\n");
         }
     }
 }
