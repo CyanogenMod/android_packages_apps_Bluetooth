@@ -48,6 +48,11 @@ static jmethodID method_acquireWakeLock;
 static jmethodID method_releaseWakeLock;
 static jmethodID method_energyInfo;
 
+static struct {
+    jclass clazz;
+    jmethodID constructor;
+} android_bluetooth_UidTraffic;
+
 static const bt_interface_t *sBluetoothInterface = NULL;
 static const btsock_interface_t *sBluetoothSocketInterface = NULL;
 static JNIEnv *callbackEnv = NULL;
@@ -449,18 +454,36 @@ static void le_test_mode_recv_callback (bt_status_t status, uint16_t packet_coun
     ALOGV("%s: status:%d packet_count:%d ", __FUNCTION__, status, packet_count);
 }
 
-static void energy_info_recv_callback(bt_activity_energy_info *p_energy_info)
+static void energy_info_recv_callback(bt_activity_energy_info *p_energy_info,
+                                      bt_uid_traffic_t* uid_data)
 {
     if (!checkCallbackThread()) {
        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
        return;
     }
 
+    jsize len = 0;
+    for (bt_uid_traffic_t* data = uid_data; data->app_uid != -1; data++) {
+        len++;
+    }
+
+    jobjectArray array = callbackEnv->NewObjectArray(len, android_bluetooth_UidTraffic.clazz, NULL);
+    jsize i = 0;
+    for (bt_uid_traffic_t* data = uid_data; data->app_uid != -1; data++) {
+        jobject uidObj = callbackEnv->NewObject(android_bluetooth_UidTraffic.clazz,
+                                                android_bluetooth_UidTraffic.constructor,
+                                                (jint) data->app_uid, (jlong) data->rx_bytes,
+                                                (jlong) data->tx_bytes);
+        callbackEnv->SetObjectArrayElement(array, i++, uidObj);
+        callbackEnv->DeleteLocalRef(uidObj);
+    }
+
     callbackEnv->CallVoidMethod(sJniAdapterServiceObj, method_energyInfo, p_energy_info->status,
         p_energy_info->ctrl_state, p_energy_info->tx_time, p_energy_info->rx_time,
-        p_energy_info->idle_time, p_energy_info->energy_used);
+        p_energy_info->idle_time, p_energy_info->energy_used, array);
 
     checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
+    callbackEnv->DeleteLocalRef(array);
 }
 
 static bt_callbacks_t sBluetoothCallbacks = {
@@ -605,6 +628,11 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     int err;
     hw_module_t* module;
 
+
+    jclass jniUidTrafficClass = env->FindClass("android/bluetooth/UidTraffic");
+    android_bluetooth_UidTraffic.constructor = env->GetMethodID(jniUidTrafficClass,
+                                                                "<init>", "(IJJ)V");
+
     jclass jniCallbackClass =
         env->FindClass("com/android/bluetooth/btservice/JniCallbacks");
     sJniCallbacksField = env->GetFieldID(clazz, "mJniCallbacks",
@@ -636,7 +664,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_setWakeAlarm = env->GetMethodID(clazz, "setWakeAlarm", "(JZ)Z");
     method_acquireWakeLock = env->GetMethodID(clazz, "acquireWakeLock", "(Ljava/lang/String;)Z");
     method_releaseWakeLock = env->GetMethodID(clazz, "releaseWakeLock", "(Ljava/lang/String;)Z");
-    method_energyInfo = env->GetMethodID(clazz, "energyInfoCallback", "(IIJJJJ)V");
+    method_energyInfo = env->GetMethodID(clazz, "energyInfoCallback", "(IIJJJJ[Landroid/bluetooth/UidTraffic;)V");
 
     char value[PROPERTY_VALUE_MAX];
     property_get("bluetooth.mock_stack", value, "");
@@ -661,6 +689,9 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
 static bool initNative(JNIEnv* env, jobject obj) {
     ALOGV("%s:",__FUNCTION__);
+
+    android_bluetooth_UidTraffic.clazz = (jclass) env->NewGlobalRef(
+            env->FindClass("android/bluetooth/UidTraffic"));
 
     sJniAdapterServiceObj = env->NewGlobalRef(obj);
     sJniCallbacksObj = env->NewGlobalRef(env->GetObjectField(obj, sJniCallbacksField));
@@ -701,6 +732,8 @@ static bool cleanupNative(JNIEnv *env, jobject obj) {
 
     env->DeleteGlobalRef(sJniCallbacksObj);
     env->DeleteGlobalRef(sJniAdapterServiceObj);
+    env->DeleteGlobalRef(android_bluetooth_UidTraffic.clazz);
+    android_bluetooth_UidTraffic.clazz = NULL;
     return JNI_TRUE;
 }
 
@@ -1052,7 +1085,7 @@ static jboolean getRemoteServicesNative(JNIEnv *env, jobject obj, jbyteArray add
 }
 
 static int connectSocketNative(JNIEnv *env, jobject object, jbyteArray address, jint type,
-                                   jbyteArray uuidObj, jint channel, jint flag) {
+                                   jbyteArray uuidObj, jint channel, jint flag, jint callingUid) {
     jbyte *addr = NULL, *uuid = NULL;
     int socket_fd;
     bt_status_t status;
@@ -1074,7 +1107,8 @@ static int connectSocketNative(JNIEnv *env, jobject object, jbyteArray address, 
     }
 
     if ( (status = sBluetoothSocketInterface->connect((bt_bdaddr_t *) addr, (btsock_type_t) type,
-                       (const uint8_t*) uuid, channel, &socket_fd, flag)) != BT_STATUS_SUCCESS) {
+                       (const uint8_t*) uuid, channel, &socket_fd, flag, callingUid))
+            != BT_STATUS_SUCCESS) {
         ALOGE("Socket connection failed: %d", status);
         goto Fail;
     }
@@ -1097,7 +1131,7 @@ Fail:
 
 static int createSocketChannelNative(JNIEnv *env, jobject object, jint type,
                                      jstring name_str, jbyteArray uuidObj,
-                                     jint channel, jint flag) {
+                                     jint channel, jint flag, jint callingUid) {
     const char *service_name = NULL;
     jbyte *uuid = NULL;
     int socket_fd;
@@ -1119,7 +1153,8 @@ static int createSocketChannelNative(JNIEnv *env, jobject object, jint type,
         }
     }
     if ( (status = sBluetoothSocketInterface->listen((btsock_type_t) type, service_name,
-                       (const uint8_t*) uuid, channel, &socket_fd, flag)) != BT_STATUS_SUCCESS) {
+                       (const uint8_t*) uuid, channel, &socket_fd, flag, callingUid))
+            != BT_STATUS_SUCCESS) {
         ALOGE("Socket listen failed: %d", status);
         goto Fail;
     }
@@ -1202,8 +1237,8 @@ static JNINativeMethod sMethods[] = {
     {"pinReplyNative", "([BZI[B)Z", (void*) pinReplyNative},
     {"sspReplyNative", "([BIZI)Z", (void*) sspReplyNative},
     {"getRemoteServicesNative", "([B)Z", (void*) getRemoteServicesNative},
-    {"connectSocketNative", "([BI[BII)I", (void*) connectSocketNative},
-    {"createSocketChannelNative", "(ILjava/lang/String;[BII)I",
+    {"connectSocketNative", "([BI[BIII)I", (void*) connectSocketNative},
+    {"createSocketChannelNative", "(ILjava/lang/String;[BIII)I",
      (void*) createSocketChannelNative},
     {"configHciSnoopLogNative", "(Z)Z", (void*) configHciSnoopLogNative},
     {"alarmFiredNative", "()V", (void *) alarmFiredNative},

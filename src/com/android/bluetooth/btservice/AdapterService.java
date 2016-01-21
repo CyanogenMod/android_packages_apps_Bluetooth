@@ -34,6 +34,7 @@ import android.bluetooth.IBluetoothManager;
 import android.bluetooth.IBluetoothManagerCallback;
 import android.bluetooth.BluetoothActivityEnergyInfo;
 import android.bluetooth.OobData;
+import android.bluetooth.UidTraffic;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -57,6 +58,7 @@ import android.util.EventLog;
 import android.util.Log;
 import android.util.Pair;
 
+import android.util.SparseArray;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.a2dp.A2dpSinkService;
 import com.android.bluetooth.hid.HidService;
@@ -72,6 +74,7 @@ import java.io.FileDescriptor;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.Map;
@@ -97,6 +100,7 @@ public class AdapterService extends Service {
     private int mRxTimeTotalMs;
     private int mIdleTimeTotalMs;
     private int mEnergyUsedTotalVoltAmpSecMicro;
+    private SparseArray<UidTraffic> mUidTraffic = new SparseArray<>();
 
     private final ArrayList<ProfileService> mProfiles = new ArrayList<ProfileService>();
 
@@ -1855,7 +1859,7 @@ public class AdapterService extends Service {
                                               ParcelUuid uuid, int port, int flag) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         int fd = connectSocketNative(Utils.getBytesFromAddress(device.getAddress()),
-                   type, Utils.uuidToByteArray(uuid), port, flag);
+                   type, Utils.uuidToByteArray(uuid), port, flag, Binder.getCallingUid());
         if (fd < 0) {
             errorLog("Failed to connect socket");
             return null;
@@ -1867,7 +1871,7 @@ public class AdapterService extends Service {
                                                     ParcelUuid uuid, int port, int flag) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         int fd =  createSocketChannelNative(type, serviceName,
-                                 Utils.uuidToByteArray(uuid), port, flag);
+                                 Utils.uuidToByteArray(uuid), port, flag, Binder.getCallingUid());
         if (fd < 0) {
             errorLog("Failed to create socket channel");
             return null;
@@ -1943,7 +1947,32 @@ public class AdapterService extends Service {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED, "Need BLUETOOTH permission");
         BluetoothActivityEnergyInfo info =
             new BluetoothActivityEnergyInfo(SystemClock.elapsedRealtime(), mStackReportedState,
-                    mTxTimeTotalMs, mRxTimeTotalMs, mIdleTimeTotalMs, mEnergyUsedTotalVoltAmpSecMicro);
+                    mTxTimeTotalMs, mRxTimeTotalMs, mIdleTimeTotalMs,
+                    mEnergyUsedTotalVoltAmpSecMicro);
+
+        // Count the number of entries that have byte counts > 0
+        int arrayLen = 0;
+        for (int i = 0; i < mUidTraffic.size(); i++) {
+            final UidTraffic traffic = mUidTraffic.valueAt(i);
+            if (traffic.getTxBytes() != 0 || traffic.getRxBytes() != 0) {
+                arrayLen++;
+            }
+        }
+
+        // Copy the traffic objects whose byte counts are > 0 and reset the originals.
+        final UidTraffic[] result = arrayLen > 0 ? new UidTraffic[arrayLen] : null;
+        int putIdx = 0;
+        for (int i = 0; i < mUidTraffic.size(); i++) {
+            final UidTraffic traffic = mUidTraffic.valueAt(i);
+            if (traffic.getTxBytes() != 0 || traffic.getRxBytes() != 0) {
+                result[putIdx++] = traffic.clone();
+                traffic.setRxBytes(0);
+                traffic.setTxBytes(0);
+            }
+        }
+
+        info.setUidTraffic(result);
+
         // Read on clear values; a record of data is created with
         // timstamp and new samples are collected until read again
         mStackReportedState = 0;
@@ -2058,9 +2087,9 @@ public class AdapterService extends Service {
         return true;
     }
 
-    private void energyInfoCallback (int status, int ctrl_state,
-        long tx_time, long rx_time, long idle_time, long energy_used)
-        throws RemoteException {
+    private void energyInfoCallback(int status, int ctrl_state, long tx_time, long rx_time,
+                                    long idle_time, long energy_used, UidTraffic[] data)
+            throws RemoteException {
         if (ctrl_state >= BluetoothActivityEnergyInfo.BT_STACK_STATE_INVALID &&
                 ctrl_state <= BluetoothActivityEnergyInfo.BT_STACK_STATE_STATE_IDLE) {
             mStackReportedState = ctrl_state;
@@ -2075,12 +2104,23 @@ public class AdapterService extends Service {
                     + mIdleTimeTotalMs * getIdleCurrentMa()) * getOperatingVolt());
             }
             mEnergyUsedTotalVoltAmpSecMicro += energy_used;
+
+            for (UidTraffic traffic : data) {
+                UidTraffic existingTraffic = mUidTraffic.get(traffic.getUid());
+                if (existingTraffic == null) {
+                    mUidTraffic.put(traffic.getUid(), traffic);
+                } else {
+                    existingTraffic.addRxBytes(traffic.getRxBytes());
+                    existingTraffic.addTxBytes(traffic.getTxBytes());
+                }
+            }
         }
 
         debugLog("energyInfoCallback() status = " + status +
             "tx_time = " + tx_time + "rx_time = " + rx_time +
             "idle_time = " + idle_time + "energy_used = " + energy_used +
-            "ctrl_state = " + ctrl_state);
+            "ctrl_state = " + ctrl_state +
+            "traffic = " + Arrays.toString(data));
     }
 
     private int getIdleCurrentMa() {
@@ -2181,9 +2221,9 @@ public class AdapterService extends Service {
     private native int readEnergyInfo();
     // TODO(BT) move this to ../btsock dir
     private native int connectSocketNative(byte[] address, int type,
-                                           byte[] uuid, int port, int flag);
+                                           byte[] uuid, int port, int flag, int callingUid);
     private native int createSocketChannelNative(int type, String serviceName,
-                                                 byte[] uuid, int port, int flag);
+                                                 byte[] uuid, int port, int flag, int callingUid);
 
     /*package*/ native boolean configHciSnoopLogNative(boolean enable);
     /*package*/ native boolean factoryResetNative();
