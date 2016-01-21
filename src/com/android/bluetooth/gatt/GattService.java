@@ -1389,6 +1389,7 @@ public class GattService extends ProfileService {
         scanClient.hasPeersMacAddressPermission = Utils.checkCallerHasPeersMacAddressPermission(
                 this);
         scanClient.legacyForegroundApp = Utils.isLegacyForegroundApp(this, callingPackage);
+        mClientMap.getScanStatsById(appIf).startScan();
         mScanManager.startScan(scanClient);
     }
 
@@ -1403,6 +1404,7 @@ public class GattService extends ProfileService {
         int scanQueueSize = mScanManager.getBatchScanQueue().size() +
                 mScanManager.getRegularScanQueue().size();
         if (DBG) Log.d(TAG, "stopScan() - queue size =" + scanQueueSize);
+        mClientMap.getScanStatsById(client.clientIf).stopScan();
         mScanManager.stopScan(client);
     }
 
@@ -1431,7 +1433,7 @@ public class GattService extends ProfileService {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         if (DBG) Log.d(TAG, "registerClient() - UUID=" + uuid);
-        mClientMap.add(uuid, callback);
+        mClientMap.add(uuid, callback, this);
         gattClientRegisterAppNative(uuid.getLeastSignificantBits(),
                                     uuid.getMostSignificantBits());
     }
@@ -1969,7 +1971,7 @@ public class GattService extends ProfileService {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         if (DBG) Log.d(TAG, "registerServer() - UUID=" + uuid);
-        mServerMap.add(uuid, callback);
+        mServerMap.add(uuid, callback, this);
         gattServerRegisterAppNative(uuid.getLeastSignificantBits(),
                                     uuid.getMostSignificantBits());
     }
