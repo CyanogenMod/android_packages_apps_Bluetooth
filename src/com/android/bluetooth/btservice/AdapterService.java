@@ -1821,7 +1821,7 @@ public class AdapterService extends Service {
                                               ParcelUuid uuid, int port, int flag) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         int fd = connectSocketNative(Utils.getBytesFromAddress(device.getAddress()),
-                   type, Utils.uuidToByteArray(uuid), port, flag);
+                   type, Utils.uuidToByteArray(uuid), port, flag, Binder.getCallingUid());
         if (fd < 0) {
             errorLog("Failed to connect socket");
             return null;
@@ -1833,7 +1833,7 @@ public class AdapterService extends Service {
                                                     ParcelUuid uuid, int port, int flag) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         int fd =  createSocketChannelNative(type, serviceName,
-                                 Utils.uuidToByteArray(uuid), port, flag);
+                                 Utils.uuidToByteArray(uuid), port, flag, Binder.getCallingUid());
         if (fd < 0) {
             errorLog("Failed to create socket channel");
             return null;
@@ -2146,9 +2146,9 @@ public class AdapterService extends Service {
     private native int readEnergyInfo();
     // TODO(BT) move this to ../btsock dir
     private native int connectSocketNative(byte[] address, int type,
-                                           byte[] uuid, int port, int flag);
+                                           byte[] uuid, int port, int flag, int callingUid);
     private native int createSocketChannelNative(int type, String serviceName,
-                                                 byte[] uuid, int port, int flag);
+                                                 byte[] uuid, int port, int flag, int callingUid);
 
     /*package*/ native boolean configHciSnoopLogNative(boolean enable);
     /*package*/ native boolean factoryResetNative();
