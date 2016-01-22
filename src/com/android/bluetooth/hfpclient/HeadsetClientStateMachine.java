@@ -105,6 +105,9 @@ final class HeadsetClientStateMachine extends StateMachine {
     // special action to handle terminating specific call from multiparty call
     static final int TERMINATE_SPECIFIC_CALL = 53;
 
+    static final int MAX_HFP_SCO_VOICE_CALL_VOLUME = 15; // HFP 1.5 spec.
+    static final int MIN_HFP_SCO_VOICE_CALL_VOLUME = 1; // HFP 1.5 spec.
+
     private static final int STACK_EVENT = 100;
 
     private final Disconnected mDisconnected;
@@ -134,6 +137,9 @@ final class HeadsetClientStateMachine extends StateMachine {
 
     private int mVoiceRecognitionActive;
     private int mInBandRingtone;
+
+    private int mMaxAmVcVol;
+    private int mMinAmVcVol;
 
     // queue of send actions (pair action, action_data)
     private Queue<Pair<Integer, Object>> mQueuedActions;
@@ -1218,6 +1224,9 @@ final class HeadsetClientStateMachine extends StateMachine {
         mIndicatorCallSetup = -1;
         mIndicatorCallHeld = -1;
 
+        mMaxAmVcVol = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL);
+        mMinAmVcVol = mAudioManager.getStreamMinVolume(AudioManager.STREAM_VOICE_CALL);
+
         mOperatorName = null;
         mSubscriberInfo = null;
 
@@ -1263,6 +1272,25 @@ final class HeadsetClientStateMachine extends StateMachine {
             cleanupNative();
             mNativeAvailable = false;
         }
+    }
+
+    private int hfToAmVol(int hfVol) {
+        int amRange = mMaxAmVcVol - mMinAmVcVol;
+        int hfRange = MAX_HFP_SCO_VOICE_CALL_VOLUME - MIN_HFP_SCO_VOICE_CALL_VOLUME;
+        int amOffset =
+            (amRange * (hfVol - MIN_HFP_SCO_VOICE_CALL_VOLUME)) / hfRange;
+        int amVol = mMinAmVcVol + amOffset;
+        Log.d(TAG, "HF -> AM " + hfVol + " " + amVol);
+        return amVol;
+    }
+
+    private int amToHfVol(int amVol) {
+        int amRange = mMaxAmVcVol - mMinAmVcVol;
+        int hfRange = MAX_HFP_SCO_VOICE_CALL_VOLUME - MIN_HFP_SCO_VOICE_CALL_VOLUME;
+        int hfOffset = (hfRange * (amVol - mMinAmVcVol)) / amRange;
+        int hfVol = MIN_HFP_SCO_VOICE_CALL_VOLUME + hfOffset;
+        Log.d(TAG, "AM -> HF " + amVol + " " + hfVol);
+        return hfVol;
     }
 
     private class Disconnected extends State {
@@ -1484,9 +1512,9 @@ final class HeadsetClientStateMachine extends StateMachine {
                     }
                     transitionTo(mConnected);
 
-                    // TODO get max stream volume and scale 0-15
-                    sendMessage(obtainMessage(HeadsetClientStateMachine.SET_SPEAKER_VOLUME,
-                            mAudioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL), 0));
+                    int amVol = mAudioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
+                    sendMessage(
+                            obtainMessage(HeadsetClientStateMachine.SET_SPEAKER_VOLUME, amVol, 0));
                     // Mic is either in ON state (full volume) or OFF state. There is no way in
                     // Android to change the MIC volume.
                     sendMessage(obtainMessage(HeadsetClientStateMachine.SET_MIC_VOLUME,
@@ -1619,13 +1647,16 @@ final class HeadsetClientStateMachine extends StateMachine {
                     }
                     break;
                 case SET_SPEAKER_VOLUME:
-                    Log.d(TAG,"Volume is set to " + message.arg1);
-                    mAudioManager.setParameters("hfp_volume=" + message.arg1);
+                    // This message should always contain the volume in AudioManager max normalized.
+                    int amVol = message.arg1;
+                    int hfVol = amToHfVol(amVol);
+                    Log.d(TAG,"HF volume is set to " + hfVol);
+                    mAudioManager.setParameters("hfp_volume=" + hfVol);
                     if (mVgsFromStack) {
                         mVgsFromStack = false;
                         break;
                     }
-                    if (setVolumeNative(HeadsetClientHalConstants.VOLUME_TYPE_SPK, message.arg1)) {
+                    if (setVolumeNative(HeadsetClientHalConstants.VOLUME_TYPE_SPK, hfVol)) {
                         addQueuedAction(SET_SPEAKER_VOLUME);
                     }
                     break;
@@ -1835,9 +1866,11 @@ final class HeadsetClientStateMachine extends StateMachine {
                             break;
                         case EVENT_TYPE_VOLUME_CHANGED:
                             if (event.valueInt == HeadsetClientHalConstants.VOLUME_TYPE_SPK) {
+                                Log.d(TAG, "AM volume set to " +
+                                      hfToAmVol(event.valueInt2));
                                 mAudioManager.setStreamVolume(
                                     AudioManager.STREAM_VOICE_CALL,
-                                    event.valueInt2,
+                                    hfToAmVol(event.valueInt2),
                                     AudioManager.FLAG_SHOW_UI);
                                 mVgsFromStack = true;
                             } else if (event.valueInt ==
@@ -2040,8 +2073,10 @@ final class HeadsetClientStateMachine extends StateMachine {
 
                     // We need to set the volume after switching into HFP mode as some Audio HALs
                     // reset the volume to a known-default on mode switch.
-                    final int volume =
+                    final int amVol =
                             mAudioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
+                    final int hfVol = amToHfVol(amVol);
+
                     Log.d(TAG,"hfp_enable=true");
                     Log.d(TAG,"mAudioWbs is " + mAudioWbs);
                     if (mAudioWbs) {
@@ -2052,8 +2087,9 @@ final class HeadsetClientStateMachine extends StateMachine {
                         Log.d(TAG,"Setting sampling rate as 8000");
                         mAudioManager.setParameters("hfp_set_sampling_rate=8000");
                     }
+                    Log.d(TAG, "hf_volume " + hfVol);
                     mAudioManager.setParameters("hfp_enable=true");
-                    mAudioManager.setParameters("hfp_volume=" + volume);
+                    mAudioManager.setParameters("hfp_volume=" + hfVol);
                     transitionTo(mAudioOn);
                     break;
                 case HeadsetClientHalConstants.AUDIO_STATE_CONNECTING:
