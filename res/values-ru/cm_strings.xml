@@ -17,5 +17,6 @@
 -->
 <resources>
   <string name="permlab_bluetoothAvrcpDataManager">Доступ к метаданным AVRCP.</string>
+  <string name="permdesc_bluetoothAvrcpDataManager">Приложение получит доступ к метаданным Bluetooth AVRCP и сможет использовать их для отображения на экране.</string>
   <string name="upload_fail_waiting">Не удалось отправить файл. Повторная попытка\u2026</string>
 </resources>

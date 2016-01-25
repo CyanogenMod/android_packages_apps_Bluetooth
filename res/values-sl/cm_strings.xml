@@ -17,5 +17,6 @@
 -->
 <resources>
   <string name="permlab_bluetoothAvrcpDataManager">Dostop do metapodatkov AVRCP.</string>
+  <string name="permdesc_bluetoothAvrcpDataManager">Omogoča programu dostop do metapodatkov Bluetooth AVRCP za prikaz na uporabniškem vmesniku.</string>
   <string name="upload_fail_waiting">Datoteke ni mogoče poslati, ponovno poskušanje \u2026</string>
 </resources>

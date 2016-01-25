@@ -16,5 +16,6 @@
      limitations under the License.
 -->
 <resources>
+  <string name="permlab_bluetoothAvrcpDataManager">Accesează informațiile AVRCP.</string>
   <string name="upload_fail_waiting">Imposibil de transmis fișierul, se reîncearcă\u2026</string>
 </resources>

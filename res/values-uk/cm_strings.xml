@@ -16,5 +16,7 @@
      limitations under the License.
 -->
 <resources>
+  <string name="permlab_bluetoothAvrcpDataManager">Доступ до метаданих AVRCP.</string>
+  <string name="permdesc_bluetoothAvrcpDataManager">Дозволяє програмі отримувати доступ до метаданих Bluetooth AVRCP і використовувати його для відображення інтерфейсу користувача.</string>
   <string name="upload_fail_waiting">Не вдається надіслати файл, повторна спроба\u2026</string>
 </resources>

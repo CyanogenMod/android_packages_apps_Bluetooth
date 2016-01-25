@@ -17,5 +17,6 @@
 -->
 <resources>
   <string name="permlab_bluetoothAvrcpDataManager">גישה לנתוני העל של AVRCP.</string>
+  <string name="permdesc_bluetoothAvrcpDataManager">מאפשר ליישום גישה לנתוני העל של ה-Bluetooth AVRCP ולהשתמש בהם להצגה על גבי ממשק המשתמש.</string>
   <string name="upload_fail_waiting">שליחת הקובץ נכשלה, מנסה שנית\u2026</string>
 </resources>

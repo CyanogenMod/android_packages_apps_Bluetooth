@@ -16,5 +16,7 @@
      limitations under the License.
 -->
 <resources>
+  <string name="permlab_bluetoothAvrcpDataManager">Op d\'AVRCP-Metadaten zougräifen.</string>
+  <string name="permdesc_bluetoothAvrcpDataManager">Erméiglecht der App, op Bluetooth-AVRCP-Metadaten zouzegräifen a se unzeweisen.</string>
   <string name="upload_fail_waiting">Konnt de Fichier net schécken, gëtt nees probéiert\u2026</string>
 </resources>
