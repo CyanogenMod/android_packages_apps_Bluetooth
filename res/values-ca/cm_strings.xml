@@ -17,5 +17,6 @@
 -->
 <resources>
   <string name="permlab_bluetoothAvrcpDataManager">Accés a metadades AVRCP.</string>
+  <string name="permdesc_bluetoothAvrcpDataManager">Permet a l\'aplicació accedir a les metadades de Bluetooth AVRCP i utilitzar-les per mostrar-les a l\'UI.</string>
   <string name="upload_fail_waiting">No es pot enviar el fitxer, s\'està reintentant\u2026</string>
 </resources>
