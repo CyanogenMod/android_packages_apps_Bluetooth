@@ -68,8 +68,10 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 
 import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -125,6 +127,13 @@ public class AdapterService extends Service {
             "sim_access_permission";
 
     private static final int ADAPTER_SERVICE_TYPE=Service.START_STICKY;
+
+    private static final String[] DEVICE_TYPE_NAMES = new String[] {
+      "???",
+      "BR/EDR",
+      "LE",
+      "DUAL"
+    };
 
     static {
         classInitNative();
@@ -1289,12 +1298,6 @@ public class AdapterService extends Service {
              return service.reportActivityInfo();
          }
 
-         public void dump(ParcelFileDescriptor fd) {
-            AdapterService service = getService();
-            if (service == null) return;
-            service.dump(fd.getFileDescriptor());
-         }
-
          public void onLeServiceUp(){
              AdapterService service = getService();
              if (service == null) return;
@@ -1305,6 +1308,12 @@ public class AdapterService extends Service {
              AdapterService service = getService();
              if (service == null) return;
              service.onBrEdrDown();
+         }
+
+         public void dump(FileDescriptor fd, String[] args) {
+            PrintWriter writer = new PrintWriter(new FileOutputStream(fd));
+            AdapterService service = getService();
+            service.dump(fd, writer, args);
          }
     };
 
@@ -2065,8 +2074,24 @@ public class AdapterService extends Service {
         return getResources().getInteger(R.integer.config_bluetooth_operating_voltage_mv) / 1000.0;
     }
 
-    private void dump(FileDescriptor fd) {
-        // Collect profile information
+    @Override
+    protected void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
+        enforceCallingOrSelfPermission(android.Manifest.permission.DUMP, TAG);
+
+        writer.println("Bluetooth Status");
+        writer.println("  enabled: " + isEnabled());
+        writer.println("  state: " + getState());
+        writer.println("  address: " + getAddress());
+        writer.println("  name: " + getName() + "\n");
+
+        writer.println("Bonded devices:");
+        for (BluetoothDevice device : getBondedDevices()) {
+          writer.println("  " + device.getAddress() +
+              " [" + DEVICE_TYPE_NAMES[device.getType()] + "] " +
+              device.getName());
+        }
+
+        // Dump profile information
         StringBuilder sb = new StringBuilder();
         synchronized (mProfiles) {
             for (ProfileService profile : mProfiles) {
@@ -2074,25 +2099,11 @@ public class AdapterService extends Service {
             }
         }
 
-        // Dump Java based profiles first
-        FileWriter fw = null;
-        try {
-            fw = new FileWriter(fd);
-            fw.write(sb.toString());
-        } catch (IOException ex) {
-            errorLog("IOException writing profile status!");
-        } finally {
-            if (fw != null) {
-                try {
-                    fw.close();
-                } catch (IOException ex) {
-                    debugLog("IOException closing a file after writing the profile status");
-                }
-            }
-        }
+        writer.write(sb.toString());
+        writer.flush();
 
         // Add native logs
-        dumpNative(fd);
+        dumpNative(fd, args);
     }
 
     private void debugLog(String msg) {
@@ -2154,7 +2165,7 @@ public class AdapterService extends Service {
     /*package*/ native boolean factoryResetNative();
 
     private native void alarmFiredNative();
-    private native void dumpNative(FileDescriptor fd);
+    private native void dumpNative(FileDescriptor fd, String[] arguments);
 
     protected void finalize() {
         cleanup();
