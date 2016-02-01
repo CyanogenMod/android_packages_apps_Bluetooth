@@ -150,6 +150,7 @@ public class BluetoothMapService extends ProfileService {
     private boolean mSdpSearchInitiated = false;
     SdpMnsRecord mMnsRecord = null;
     private MapServiceMessageHandler mSessionStatusHandler;
+    private boolean mStartError = true;
 
     // package and class name to which we send intent to check phone book access permission
     private static final String ACCESS_AUTHORITY_PACKAGE = "com.android.settings";
@@ -465,6 +466,10 @@ public class BluetoothMapService extends ProfileService {
         return mState;
     }
 
+    protected boolean isMapStarted() {
+        return !mStartError;
+    }
+
     public static BluetoothDevice getRemoteDevice() {
         return mRemoteDevice;
     }
@@ -504,7 +509,7 @@ public class BluetoothMapService extends ProfileService {
     public boolean disconnectMap(BluetoothDevice device) {
         boolean result = false;
         if (DEBUG) Log.d(TAG, "disconnectMap");
-        if (getRemoteDevice().equals(device)) {
+        if (getRemoteDevice()!= null && getRemoteDevice().equals(device)) {
             switch (mState) {
                 case BluetoothMap.STATE_CONNECTED:
                     /* Disconnect all connections and restart all MAS instances */
@@ -589,9 +594,14 @@ public class BluetoothMapService extends ProfileService {
             Log.w(TAG, "start received for non-active user, ignoring");
             return false;
         }
+        //Start MapProfile if not already done.
+        if (isMapStarted()) {
+            Log.w(TAG, "start received for already started, ignoring");
+            return false;
+        }
+
 
         if (VERBOSE) Log.v(TAG, "verbose logging is enabled");
-
         HandlerThread thread = new HandlerThread("BluetoothMapHandler");
         thread.start();
         Looper looper = thread.getLooper();
@@ -631,7 +641,8 @@ public class BluetoothMapService extends ProfileService {
 
         // start RFCOMM listener
         sendStartListenerMessage(-1);
-        return true;
+        mStartError = false;
+        return !mStartError;
     }
 
     /**
@@ -797,17 +808,25 @@ public class BluetoothMapService extends ProfileService {
                 Log.e(TAG,"Unable to unregister map receiver",e);
             }
         }
-        CountDownLatch latch = new CountDownLatch(1);
-        sendShutdownMessage(latch);
-        // We need to wait for shutdown to complete to avoid being garbage collected before
-        // shutdown completes.
-        if(DEBUG) Log.i(TAG, "Waiting for shutdown to complete");
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            Log.e(TAG, "Interrupt received while waiting for shutdown to complete", e);
+        //Stop MapProfile if already started.
+        //TODO: Check if the profile state can be retreived from ProfileService or AdapterService.
+        if (!isMapStarted()) {
+            if (DEBUG) Log.d(TAG, "Service Not Available to STOP, ignoring");
+            return true;
+        } else {
+            if (VERBOSE) Log.d(TAG, "Service Stoping()");
         }
         if (mSessionStatusHandler != null) {
+            CountDownLatch latch = new CountDownLatch(1);
+            sendShutdownMessage(latch);
+            // We need to wait for shutdown to complete to avoid being garbage collected before
+            // shutdown completes.
+            if(DEBUG) Log.i(TAG, "Waiting for shutdown to complete");
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                Log.e(TAG, "Interrupt received while waiting for shutdown to complete", e);
+            }
             mSessionStatusHandler.removeCallbacksAndMessages(null);
             Looper looper = mSessionStatusHandler.getLooper();
             if (looper != null) {
@@ -815,6 +834,7 @@ public class BluetoothMapService extends ProfileService {
             }
             mSessionStatusHandler = null;
         }
+        mStartError = true;
         setState(BluetoothMap.STATE_DISCONNECTED, BluetoothMap.RESULT_CANCELED);
         if (DEBUG) Log.d(TAG, "stop() out");
         return true;

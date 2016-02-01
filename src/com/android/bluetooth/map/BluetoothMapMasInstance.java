@@ -421,7 +421,8 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
 
         closeConnectionSocket();
 
-        closeServerSockets(true);
+        if(V) Log.v(TAG, "Block acceptThreads: FALSE");
+        closeServerSockets(false);
     }
 
     /**
