@@ -31,7 +31,7 @@
     <string name="bt_enable_cancel" msgid="1988832367505151727">"Anulo"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"Aktivizo"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"Transferimi i skedarit"</string>
-    <string name="incoming_file_confirm_content" msgid="2752605552743148036">"Të pranohet skedari hyrës?"</string>
+    <string name="incoming_file_confirm_content" msgid="2752605552743148036">"Të pranohet skedari?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Refuzo"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Prano"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"Në rregull!"</string>
@@ -40,12 +40,12 @@
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Dëshiron ta marrësh këtë skedar?"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Skedar hyrës nga një tjetër pajisje. Konfirmo që dëshiron ta marrësh këtë skedar."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Shpërndarja përmes bluetooth-it: Po merret skedari <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received" msgid="3324588019186687985">"Shpërndarja përmes bluetooth-it: Skedari <xliff:g id="FILE">%1$s</xliff:g> u mor"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Shpërndarja përmes bluetooth-it: Skedari <xliff:g id="FILE">%1$s</xliff:g> nuk u mor"</string>
+    <string name="notification_received" msgid="3324588019186687985">"Shpërndarja përmes bluetooth-it: U pranua skedari <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"Shpërndarja përmes bluetooth-it: Skedari <xliff:g id="FILE">%1$s</xliff:g> nuk u pranua"</string>
     <string name="notification_sending" msgid="3035748958534983833">"Shpërndarja përmes bluetooth-it: Po dërgohet skedari <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"Shpërndarja përmes bluetooth-it: Skedari <xliff:g id="FILE">%1$s</xliff:g> u dërgua"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"Shpërndarja përmes Bluetooth-it: Skedari <xliff:g id="FILE">%1$s</xliff:g> u dërgua"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"100% i përfunduar"</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"Shpërndarja përmes bluetooth-it: Skedari <xliff:g id="FILE">%1$s</xliff:g> nuk u dërgua"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"Shpërndarja përmes Bluetooth-it: Skedari <xliff:g id="FILE">%1$s</xliff:g> nuk u dërgua"</string>
     <string name="download_title" msgid="3353228219772092586">"Transferimi i skedarit"</string>
     <string name="download_line1" msgid="4926604799202134144">"Nga: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"Skedari: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -93,7 +93,7 @@
     <string name="status_running" msgid="6562808920311008696">"Transferimi i skedarit është duke u kryer."</string>
     <string name="status_success" msgid="239573225847565868">"Transferimi i skedarit përfundoi me sukses."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"Përmbajtja nuk mbështetet"</string>
-    <string name="status_forbidden" msgid="613956401054050725">"Transferimi ndalohet nga pajisja e shënjestruar."</string>
+    <string name="status_forbidden" msgid="613956401054050725">"Transferimi ndalohet nga pajisja pritëse."</string>
     <string name="status_canceled" msgid="6664490318773098285">"Transferimi u anulua nga përdoruesi."</string>
     <string name="status_file_error" msgid="3671917770630165299">"Problem me hapësirën ruajtëse."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Nuk ka hapësirë ruajtëse USB."</string>
@@ -101,16 +101,23 @@
     <string name="status_connection_error" msgid="947681831523219891">"Lidhja ishte e pasuksesshme."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"Kërkesa nuk mund të trajtohet si duhet."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Gabim i panjohur."</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth-i u pranua"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"Marrjet përmes Bluetooth-it"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> - Marrja përfundoi."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Dërgimi përfundoi."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Transferimet hyrëse"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Transferimet dalëse"</string>
     <string name="no_transfers" msgid="3482965619151865672">"Historiku i transferimeve është bosh."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Të gjithë artikujt do të pastrohen nga lista."</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"Shpërndarja përmes bluetooth-it: Skedarët e dërguar"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"Shpërndarja përmes bluetooth-it: Skedarët e marrë"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> me sukses, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> pa sukses."</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Shpërndarja përmes Bluetooth-it: Skedarët e dërguar"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Shpërndarja përmes bluetooth-it: Skedarët e pranuar"</string>
+    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
+      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> të pasuksesshme.</item>
+      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> i pasuksesshëm.</item>
+    </plurals>
+    <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
+      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> të suksesshme, %2$s</item>
+      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> i suksesshëm, %2$s</item>
+    </plurals>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Pastro listën"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Hap"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Pastro nga lista"</string>
