@@ -54,17 +54,22 @@ public class OolConnManager {
 
     public static void setSdpInitiatedAddress(BluetoothDevice remBtDev) {
 
+        if (remBtDev != null)
+            mAddress = remBtDev.getAddress();
+        else
+            mAddress = null;
         Log.d(TAG,"setSdpInitiatedAddress "+ mAddress);
-        mAddress = remBtDev.getAddress();
+
     }
 
     public static int getL2cPSM(BluetoothDevice remBtDev) {
 
         int waitCount = 0;
         int channelNo = -1;
-        while(!sdpDone && waitCount < 8) {
+        while(!sdpDone && waitCount < 100) {
+
            try {
-               Thread.sleep(500);
+               Thread.sleep(100);
            } catch (InterruptedException e) {
                Log.e(TAG, "Interrupted", e);
            }

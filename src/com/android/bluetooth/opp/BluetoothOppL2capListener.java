@@ -115,9 +115,6 @@ public class BluetoothOppL2capListener {
                         while (!mInterrupted) {
                             try {
                                 if (V) Log.v(TAG, "Accepting connection...");
-                                if (mBtServerSocket == null) {
-
-                                }
                                 BluetoothServerSocket sSocket = mBtServerSocket;
                                 if (sSocket ==null) {
                                     mInterrupted = true;
@@ -208,9 +205,12 @@ public class BluetoothOppL2capListener {
         }
     }
 
-    public int getL2capChannel() {
-            Log.d(TAG,"L2C channel is " +mBtServerSocket.getChannel());
+    public int getL2capPsm() {
+        if (mBtServerSocket != null) {
+            Log.d(TAG, "L2CAP psm is " + mBtServerSocket.getChannel());
             return mBtServerSocket.getChannel();
+        }
+        return -1;
     }
 
     public BluetoothServerSocket openL2capSocket(){

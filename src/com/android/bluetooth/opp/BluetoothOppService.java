@@ -139,8 +139,6 @@ public class BluetoothOppService extends Service {
     private int mIncomingRetries = 0;
 
     private ObexTransport mPendingConnection = null;
-    private BluetoothServerSocket mBtRfcServerSocket = null;
-    private BluetoothServerSocket mBtL2cServerSocket = null;
     private int mOppSdpHandle = -1;
 
     /*
@@ -160,8 +158,6 @@ public class BluetoothOppService extends Service {
         super.onCreate();
         if (V) Log.v(TAG, "onCreate");
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mSocketListener = new BluetoothOppRfcommListener(mAdapter);
-        mL2cSocketListener = new BluetoothOppL2capListener(mAdapter);
         mShares = Lists.newArrayList();
         mBatchs = Lists.newArrayList();
         mObserver = new BluetoothShareContentObserver();
@@ -235,11 +231,19 @@ public class BluetoothOppService extends Service {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case STOP_LISTENER:
-                    if(mSocketListener != null){
-                        mSocketListener.stop();
+                    if (mOppSdpHandle >= 0 &&
+                        SdpManager.getDefaultManager() != null) {
+                        if (D) Log.d(TAG, "Removing SDP record mOppSdpHandle :" + mOppSdpHandle);
+                        SdpManager.getDefaultManager().removeSdpRecord(mOppSdpHandle);
+                        mOppSdpHandle = -1;
                     }
-                    if(mL2cSocketListener != null){
+                    if (mSocketListener != null) {
+                        mSocketListener.stop();
+                        mSocketListener = null;
+                    }
+                    if (mL2cSocketListener != null) {
                         mL2cSocketListener.stop();
+                        mL2cSocketListener = null;
                     }
                     mListenStarted = false;
                     //Stop Active INBOUND Transfer
@@ -354,14 +358,35 @@ public class BluetoothOppService extends Service {
 
     private void startSocketListener() {
 
-       if (V) Log.v(TAG, "start Socket Listeners");
-       mBtRfcServerSocket = mSocketListener.openRfcommSocket();
-       mBtL2cServerSocket = mL2cSocketListener.openL2capSocket();
-       mOppSdpHandle = SdpManager.getDefaultManager().createOppOpsRecord("OBEX Object Push",
-       mBtRfcServerSocket.getChannel(),mBtL2cServerSocket.getChannel(),0x0102,SdpManager.OPP_FORMAT_ALL);
-       mSocketListener.start(mHandler);
-       mL2cSocketListener.start(mHandler);
+        if (V) Log.v(TAG, "start Socket Listeners");
+        if (mSocketListener != null) {
+            if (D) Log.d(TAG, "rfcomm listener active, stopping it");
+            mSocketListener.stop();
+            mSocketListener = null;
+        }
+        if (mL2cSocketListener != null) {
+            if (D) Log.d(TAG, "l2cap listener active, stopping it");
+            mL2cSocketListener.stop();
+            mL2cSocketListener = null;
+        }
+        mSocketListener = new BluetoothOppRfcommListener(mAdapter);
+        mL2cSocketListener = new BluetoothOppL2capListener(mAdapter);
 
+       if (V) Log.v(TAG, "start Socket Listeners");
+       if (mSocketListener != null && mL2cSocketListener != null) {
+
+           if ( ( mSocketListener.openRfcommSocket() != null) &&
+                ( mL2cSocketListener.openL2capSocket() != null) &&
+                SdpManager.getDefaultManager() != null) {
+               mOppSdpHandle = SdpManager.getDefaultManager()
+                   .createOppOpsRecord("OBEX Object Push", mSocketListener.getRfcommChannel(),
+                        mL2cSocketListener.getL2capPsm(), 0x0102, SdpManager.OPP_FORMAT_ALL);
+              mSocketListener.start(mHandler);
+              mL2cSocketListener.start(mHandler);
+           } else {
+               Log.e(TAG, "ERROR:serversocket object is NULL");
+           }
+       }
     }
 
     @Override
@@ -370,8 +395,14 @@ public class BluetoothOppService extends Service {
         super.onDestroy();
         getContentResolver().unregisterContentObserver(mObserver);
         unregisterReceiver(mBluetoothReceiver);
-        mSocketListener.stop();
-        mL2cSocketListener.stop();
+        if (mSocketListener != null) {
+            mSocketListener.stop();
+            mSocketListener = null;
+        }
+        if (mL2cSocketListener != null) {
+            mL2cSocketListener.stop();
+            mL2cSocketListener = null;
+        }
 
         if(mBatchs != null) {
             mBatchs.clear();
