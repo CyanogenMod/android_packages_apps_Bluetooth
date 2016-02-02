@@ -39,13 +39,13 @@
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Compartir por Bluetooth: Archivo entrante"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"¿Quieres recibir este archivo?"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Hay un archivo entrante de otro dispositivo. Confirma que quieres recibirlo."</string>
-    <string name="notification_receiving" msgid="4674648179652543984">"Compartir por Bluetooth: Recibiendo <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_received" msgid="3324588019186687985">"Compartir por Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> Recibido"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Compartir por Bluetooth: No se recibió el archivo <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sending" msgid="3035748958534983833">"Compartir por Bluetooth: Enviando <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"Compartir por Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> enviado"</string>
+    <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth: recibiendo <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_received" msgid="3324588019186687985">"Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> recibido"</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth: no se recibió el archivo <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sending" msgid="3035748958534983833">"Bluetooth: enviando <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> enviado"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"Completado el 100%"</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"Compartir por Bluetooth: No se envió el archivo <xliff:g id="FILE">%1$s</xliff:g>"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth: no se envió el archivo <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_title" msgid="3353228219772092586">"Transferencia de archivo"</string>
     <string name="download_line1" msgid="4926604799202134144">"De: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"Archivo: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -108,9 +108,16 @@
     <string name="outbound_history_title" msgid="4279418703178140526">"Transferencias de salida"</string>
     <string name="no_transfers" msgid="3482965619151865672">"El historial de transferencias está vacío."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Se borrarán todos los elementos de la lista."</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"Compartir con Bluetooth: Archivos enviados"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"Compartir con Bluetooth: Archivos recibidos"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> correcto, error en <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g>"</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth: archivos enviados"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth: archivos recibidos"</string>
+    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
+      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> con error</item>
+      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> con error</item>
+    </plurals>
+    <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
+      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> correctos, %2$s</item>
+      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> correcto, %2$s</item>
+    </plurals>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Eliminar lista"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Abrir"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Eliminar de la lista"</string>

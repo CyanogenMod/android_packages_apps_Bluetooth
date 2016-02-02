@@ -24,9 +24,9 @@
     <string name="unknown_device" msgid="9221903979877041009">"Onbekend apparaat"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Onbekend"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Vliegtuigmodus"</string>
-    <string name="airplane_error_msg" msgid="8698965595254137230">"U kunt Bluetooth niet gebruiken in Vliegtuigmodus."</string>
+    <string name="airplane_error_msg" msgid="8698965595254137230">"Je kunt Bluetooth niet gebruiken in Vliegtuigmodus."</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
-    <string name="bt_enable_line1" msgid="7203551583048149">"Als u Bluetooth-services wilt gebruiken, moet u eerst Bluetooth inschakelen."</string>
+    <string name="bt_enable_line1" msgid="7203551583048149">"Als je Bluetooth-services wilt gebruiken, moet je eerst Bluetooth inschakelen."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Bluetooth nu inschakelen?"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"Annuleren"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"Inschakelen"</string>
@@ -37,8 +37,8 @@
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Er is een time-out opgetreden bij het accepteren van een inkomend bestand van \'<xliff:g id="SENDER">%1$s</xliff:g>\'"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Delen via Bluetooth: inkomend bestand"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Wilt u dit bestand ontvangen?"</string>
-    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Er is een inkomend bestand van een ander apparaat beschikbaar. Bevestig dat u dit bestand wilt ontvangen."</string>
+    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Wilt je dit bestand ontvangen?"</string>
+    <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Er is een inkomend bestand van een ander apparaat beschikbaar. Bevestig dat je dit bestand wilt ontvangen."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Delen via Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> ontvangen"</string>
     <string name="notification_received" msgid="3324588019186687985">"Delen via Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> ontvangen"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Delen via Bluetooth: bestand <xliff:g id="FILE">%1$s</xliff:g> niet ontvangen"</string>
@@ -56,7 +56,7 @@
     <string name="download_ok" msgid="5000360731674466039">"Verbergen"</string>
     <string name="incoming_line1" msgid="2127419875681087545">"Van"</string>
     <string name="incoming_line2" msgid="3348994249285315873">"Bestandsnaam"</string>
-    <string name="incoming_line3" msgid="7954237069667474024">"Gootte"</string>
+    <string name="incoming_line3" msgid="7954237069667474024">"Grootte"</string>
     <string name="download_fail_line1" msgid="3846450148862894552">"Bestand niet ontvangen"</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"Bestand: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_fail_line3" msgid="3451040656154861722">"Reden: <xliff:g id="REASON">%1$s</xliff:g>"</string>
@@ -79,7 +79,7 @@
     <string name="not_exist_file_desc" msgid="4059531573790529229">"Het bestand bestaat niet. \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Een ogenblik geduld..."</string>
     <string name="enabling_progress_content" msgid="4601542238119927904">"Bluetooth inschakelen…"</string>
-    <string name="bt_toast_1" msgid="972182708034353383">"Het bestand wordt ontvangen. U kunt de voortgang controleren in het venster \'Meldingen\'."</string>
+    <string name="bt_toast_1" msgid="972182708034353383">"Het bestand wordt ontvangen. Je kunt de voortgang controleren in het venster \'Meldingen\'."</string>
     <string name="bt_toast_2" msgid="8602553334099066582">"Het bestand kan niet worden opgehaald."</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"Ontvangen van bestand van \'<xliff:g id="SENDER">%1$s</xliff:g>\' is beëindigd"</string>
     <string name="bt_toast_4" msgid="4678812947604395649">"Bestand verzenden naar \'<xliff:g id="RECIPIENT">%1$s</xliff:g>\'"</string>
@@ -107,17 +107,24 @@
     <string name="inbound_history_title" msgid="6940914942271327563">"Inkomende overdrachten"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Uitgaande overdrachten"</string>
     <string name="no_transfers" msgid="3482965619151865672">"Overdrachtsgeschiedenis is leeg."</string>
-    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Alle items worden gewist uit de lijst."</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth-share: verzonden bestanden"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth-share: ontvangen bestanden"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> geslaagd, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> mislukt."</string>
+    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Alle items op de lijst worden gewist."</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Delen via Bluetooth: verzonden bestanden"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Delen via Bluetooth: ontvangen bestanden"</string>
+    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
+      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> mislukt.</item>
+      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> mislukt.</item>
+    </plurals>
+    <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
+      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> geslaagd, %2$s</item>
+      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> geslaagd, %2$s</item>
+    </plurals>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Lijst wissen"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Openen"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Wissen uit lijst"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Wissen"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Opslaan"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Annuleren"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Selecteer de accounts die u wilt delen via Bluetooth. U moet nog steeds elke toegang tot de accounts accepteren wanneer er verbinding wordt gemaakt."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Selecteer de accounts die je wilt delen via Bluetooth. Je moet nog steeds elke toegang tot de accounts accepteren wanneer er verbinding wordt gemaakt."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Plaatsen over:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"App-pictogram"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Instellingen voor delen van berichten via Bluetooth"</string>

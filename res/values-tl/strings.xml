@@ -68,7 +68,7 @@
     <string name="upload_line5" msgid="7759322537674229752">"Nagpapadala ng file..."</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"Naipadala ang file"</string>
     <string name="upload_succ_ok" msgid="7705428476405478828">"OK"</string>
-    <string name="upload_fail_line1" msgid="7899394672421491701">"Hindi naipadala ang file kay \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"."</string>
+    <string name="upload_fail_line1" msgid="7899394672421491701">"Hindi naipadala ang file kay \"<xliff:g id="RECIPIENT">%1$s</xliff:g>.\""</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"File: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="upload_fail_ok" msgid="5807702461606714296">"Subukang muli"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Isara"</string>
@@ -101,16 +101,23 @@
     <string name="status_connection_error" msgid="947681831523219891">"Hindi matagumpay ang koneksyon."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"Hindi mapangasiwaan nang tama ang kahilingan."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Hindi kilalang error."</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Natanggap ang bluetooth"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"Natanggap sa bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Kumpleto na ang pagtanggap."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Kumpleto na ang pagpapadala."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Mga inbound na paglilipat"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Mga palabas na paglilipat"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"Walang laman ang kasaysayan ng paglilipat."</string>
+    <string name="no_transfers" msgid="3482965619151865672">"Walang laman ang history ng paglilipat."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Iki-clear ang lahat ng mga item mula sa listahan."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth share: Mga naipadalang file"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth share: Mga natanggap na file"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> ang matagumpay, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> ang hindi matagumpay."</string>
+    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
+      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> ang hindi matagumpay.</item>
+      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> ang hindi matagumpay.</item>
+    </plurals>
+    <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
+      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> ang matagumpay, %2$s</item>
+      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> ang matagumpay, %2$s</item>
+    </plurals>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"I-clear ang listahan"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Buksan"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"I-clear mula sa listahan"</string>
