@@ -16,5 +16,7 @@
      limitations under the License.
 -->
 <resources>
+  <string name="permlab_bluetoothAvrcpDataManager">Toegang na AVRCP metadata.</string>
+  <string name="permdesc_bluetoothAvrcpDataManager">Laat die toep toegang toe na Bluetooth AVRCP metadata en gebruik dit om op die skerm te wys.</string>
   <string name="upload_fail_waiting">Kan nie lêer stuur nie, probeer weer\u2026</string>
 </resources>

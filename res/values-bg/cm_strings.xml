@@ -16,7 +16,7 @@
      limitations under the License.
 -->
 <resources>
-  <string name="permlab_bluetoothAvrcpDataManager">Adgang til AVRCP metadata.</string>
-  <string name="permdesc_bluetoothAvrcpDataManager">Tillader app\'en at få adgang til Bluetooth AVRCP metadata og anvende det til at blive vist på UI.</string>
-  <string name="upload_fail_waiting">Kunne ikke sende filen, prøver igen\u2026</string>
+  <string name="permlab_bluetoothAvrcpDataManager">Достъп до мета-данните на AVRCP.</string>
+  <string name="permdesc_bluetoothAvrcpDataManager">Позволява на приложението достъп до Bluetooth AVRCP метаданни и да го използвате за показване на потребителския интерфейс.</string>
+  <string name="upload_fail_waiting">Файлът не може да бъде изпратен, опитайте пак\u2026</string>
 </resources>
