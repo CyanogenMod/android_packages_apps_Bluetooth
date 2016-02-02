@@ -139,8 +139,6 @@ public class BluetoothOppService extends Service {
     private int mIncomingRetries = 0;
 
     private ObexTransport mPendingConnection = null;
-    private BluetoothServerSocket mBtRfcServerSocket = null;
-    private BluetoothServerSocket mBtL2cServerSocket = null;
     private int mOppSdpHandle = -1;
 
     /*
@@ -237,6 +235,12 @@ public class BluetoothOppService extends Service {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case STOP_LISTENER:
+                    if (mOppSdpHandle >= 0 &&
+                        SdpManager.getDefaultManager() != null) {
+                        if (D) Log.d(TAG, "Removing SDP record");
+                        SdpManager.getDefaultManager().removeSdpRecord(mOppSdpHandle);
+                        mOppSdpHandle = -1;
+                    }
                     if(mSocketListener != null){
                         mSocketListener.stop();
                     }
@@ -357,30 +361,21 @@ public class BluetoothOppService extends Service {
     private void startSocketListener() {
 
        if (V) Log.v(TAG, "start Socket Listeners");
-       if (mSocketListener != null ) {
-           mBtRfcServerSocket = mSocketListener.openRfcommSocket();
-       }
 
-       if (mL2cSocketListener != null) {
-           mBtL2cServerSocket = mL2cSocketListener.openL2capSocket();
-       }
+       if (mSocketListener != null && mL2cSocketListener != null) {
 
-       if (mBtRfcServerSocket != null && mBtL2cServerSocket != null) {
-           mOppSdpHandle = SdpManager.getDefaultManager().createOppOpsRecord("OBEX Object Push",
-              mBtRfcServerSocket.getChannel(), mBtL2cServerSocket.getChannel(),
-                 0x0102, SdpManager.OPP_FORMAT_ALL);
-       } else {
-           Log.e(TAG, "ERROR:serversocket object is NULL");
+           if ( ( mSocketListener.openRfcommSocket() != null) &&
+                ( mL2cSocketListener.openL2capSocket() != null) &&
+                SdpManager.getDefaultManager() != null) {
+               mOppSdpHandle = SdpManager.getDefaultManager()
+                   .createOppOpsRecord("OBEX Object Push", mSocketListener.getRfcommChannel(),
+                        mL2cSocketListener.getL2capPsm(), 0x0102, SdpManager.OPP_FORMAT_ALL);
+              mSocketListener.start(mHandler);
+              mL2cSocketListener.start(mHandler);
+           } else {
+               Log.e(TAG, "ERROR:serversocket object is NULL");
+           }
        }
-
-       if (mSocketListener != null) {
-          mSocketListener.start(mHandler);
-       }
-
-       if (mL2cSocketListener != null) {
-          mL2cSocketListener.start(mHandler);
-       }
-
     }
 
     @Override
