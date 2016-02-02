@@ -110,16 +110,23 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"所有内容都将从列表中清除。"</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"蓝牙共享：已发送文件"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"蓝牙共享：已接收文件"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g>个成功，<xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g>个失败。"</string>
+    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
+      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> 个文件传输失败。</item>
+      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> 个文件传输失败。</item>
+    </plurals>
+    <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
+      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> 个文件传输成功，%2$s</item>
+      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> 个文件传输成功，%2$s</item>
+    </plurals>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"清除列表"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"打开"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"从列表中清除"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"清除"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"保存"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"取消"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"选中您要通过蓝牙共享的帐户。建立连接后，您仍需接受对这些帐户的所有访问请求。"</string>
+    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"选中您要通过蓝牙共享的帐号。建立连接后，您仍需接受对这些帐号的所有访问请求。"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"剩余空档数："</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"应用图标"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"蓝牙消息共享设置"</string>
-    <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"无法选择帐户，目前没有任何空档"</string>
+    <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"无法选择帐号，目前没有任何空档"</string>
 </resources>
