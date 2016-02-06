@@ -41,6 +41,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.BatteryStats;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
@@ -86,6 +87,7 @@ import java.util.List;
 
 import android.content.pm.PackageManager;
 import android.os.ServiceManager;
+import com.android.internal.app.IBatteryStats;
 
 public class AdapterService extends Service {
     private static final String TAG = "BluetoothAdapterService";
@@ -199,6 +201,7 @@ public class AdapterService extends Service {
 
     private AlarmManager mAlarmManager;
     private PendingIntent mPendingAlarm;
+    private IBatteryStats mBatteryStats;
     private PowerManager mPowerManager;
     private PowerManager.WakeLock mWakeLock;
     private String mWakeLockName;
@@ -428,6 +431,8 @@ public class AdapterService extends Service {
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDNAME);
         mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        mBatteryStats = IBatteryStats.Stub.asInterface(ServiceManager.getService(
+                BatteryStats.SERVICE_NAME));
 
         mSdpManager = SdpManager.init(this);
         registerReceiver(mAlarmBroadcastReceiver, new IntentFilter(ACTION_ALARM_WAKEUP));
@@ -481,6 +486,12 @@ public class AdapterService extends Service {
         mBondStateMachine = BondStateMachine.make(this, mAdapterProperties, mRemoteDevices);
 
         mJniCallbacks.init(mBondStateMachine,mRemoteDevices);
+
+        try {
+            mBatteryStats.noteResetBleScan();
+        } catch (RemoteException e) {
+            // Ignore.
+        }
 
         //FIXME: Set static instance here???
         setAdapterService(this);
