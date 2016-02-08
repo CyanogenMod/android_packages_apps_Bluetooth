@@ -1209,7 +1209,9 @@ static void dumpNative(JNIEnv *env, jobject obj, jobject fdObj,
     int numArgs = env->GetArrayLength(argArray);
 
     jstring *argObjs = new jstring[numArgs];
-    const char **args = new const char*[numArgs];
+    const char **args = nullptr;
+    if (numArgs > 0)
+      args = new const char*[numArgs];
 
     for (int i = 0; i < numArgs; i++) {
       argObjs[i] = (jstring) env->GetObjectArrayElement(argArray, i);
