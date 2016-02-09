@@ -238,7 +238,7 @@
 
     <string name="bluetooth_map_settings_save">Save</string>
     <string name="bluetooth_map_settings_cancel">Cancel</string>
-    <string name="bluetooth_map_settings_intro">Select the accounts you want to share through Bluetooth. You still have to accept any acceess to the accounts when connecting.</string>
+    <string name="bluetooth_map_settings_intro">Select the accounts you want to share through Bluetooth. You still have to accept any access to the accounts when connecting.</string>
     <string name="bluetooth_map_settings_count">Slots left:</string>
     <string name="bluetooth_map_settings_app_icon">Application Icon</string>
     <string name="bluetooth_map_settings_title">Bluetooth Message Sharing Settings</string>
