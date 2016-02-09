@@ -168,23 +168,19 @@ public class BluetoothMapService extends ProfileService {
     }
 
 
-    private synchronized void closeService(CountDownLatch latch) {
+    private synchronized void closeService() {
         if (DEBUG) Log.d(TAG, "MAP Service closeService in");
 
         if (mBluetoothMnsObexClient != null) {
             mBluetoothMnsObexClient.shutdown();
             mBluetoothMnsObexClient = null;
         }
-
-        for(int i=0, c=mMasInstances.size(); i < c; i++) {
-            mMasInstances.valueAt(i).shutdown();
+        if (mMasInstances.size() > 0) {
+            for(int i=0, c=mMasInstances.size(); i < c; i++) {
+                mMasInstances.valueAt(i).shutdown();
+            }
+            mMasInstances.clear();
         }
-        mMasInstances.clear();
-
-        if (mSessionStatusHandler != null) {
-            mSessionStatusHandler.removeCallbacksAndMessages(null);
-        }
-
         mIsWaitingAuthorization = false;
         mPermission = BluetoothDevice.ACCESS_UNKNOWN;
         setState(BluetoothMap.STATE_DISCONNECTED);
@@ -194,12 +190,21 @@ public class BluetoothMapService extends ProfileService {
             if (VERBOSE) Log.v(TAG, "CloseService(): Release Wake Lock");
             mWakeLock = null;
         }
-        mRemoteDevice = null;
-
-        if (DEBUG) Log.d(TAG, "MAP Service closeService out");
-        if(latch != null) {
-            latch.countDown();
+        /* Only one SHUTDOWN message expected to closeService.
+         * Hence, quit looper and Handler on first SHUTDOWN message*/
+        if (mSessionStatusHandler != null) {
+        //Perform cleanup in Handler running on worker Thread
+            mSessionStatusHandler.removeCallbacksAndMessages(null);
+            Looper looper = mSessionStatusHandler.getLooper();
+            if (looper != null) {
+                looper.quit();
+                if(VERBOSE) Log.i(TAG, "Quit looper");
+            }
+            mSessionStatusHandler = null;
+            if(VERBOSE) Log.i(TAG, "Remove Handler");
         }
+        mRemoteDevice = null;
+        if (DEBUG) Log.d(TAG, "MAP Service closeService out");
     }
 
     /**
@@ -380,8 +385,7 @@ public class BluetoothMapService extends ProfileService {
                 case SHUTDOWN:
                     /* Ensure to call close from this handler to avoid starting new stuff
                        because of pending messages */
-                    CountDownLatch latch = (CountDownLatch) msg.obj;
-                    closeService(latch);
+                    closeService();
                     break;
                 case MSG_ACQUIRE_WAKE_LOCK:
                     if (VERBOSE) Log.v(TAG, "Acquire Wake Lock request message");
@@ -817,22 +821,7 @@ public class BluetoothMapService extends ProfileService {
             if (VERBOSE) Log.d(TAG, "Service Stoping()");
         }
         if (mSessionStatusHandler != null) {
-            CountDownLatch latch = new CountDownLatch(1);
-            sendShutdownMessage(latch);
-            // We need to wait for shutdown to complete to avoid being garbage collected before
-            // shutdown completes.
-            if(DEBUG) Log.i(TAG, "Waiting for shutdown to complete");
-            try {
-                latch.await();
-            } catch (InterruptedException e) {
-                Log.e(TAG, "Interrupt received while waiting for shutdown to complete", e);
-            }
-            mSessionStatusHandler.removeCallbacksAndMessages(null);
-            Looper looper = mSessionStatusHandler.getLooper();
-            if (looper != null) {
-                looper.quit();
-            }
-            mSessionStatusHandler = null;
+            sendShutdownMessage();
         }
         mStartError = true;
         setState(BluetoothMap.STATE_DISCONNECTED, BluetoothMap.RESULT_CANCELED);
@@ -843,8 +832,9 @@ public class BluetoothMapService extends ProfileService {
     public boolean cleanup()  {
         if (DEBUG) Log.d(TAG, "cleanup()");
         setState(BluetoothMap.STATE_DISCONNECTED, BluetoothMap.RESULT_CANCELED);
-        // TODO: Change to use message? - do we need to wait for completion?
-        closeService(null); // Stop() should be called to handle cleanup - hence this is not needed
+        //Cleanup already handled in Stop().
+        //Move this  extra check to Handler.
+        sendShutdownMessage();
         return true;
     }
 
@@ -938,13 +928,16 @@ public class BluetoothMapService extends ProfileService {
      * @param masId the MasID to start. Use -1 to start all listeners.
      */
     public void sendStartListenerMessage(int masId) {
-        if(mSessionStatusHandler != null) {
+        if(mSessionStatusHandler != null && ! mSessionStatusHandler.hasMessages(START_LISTENER)) {
             Message msg = mSessionStatusHandler.obtainMessage(START_LISTENER, masId, 0);
             /* We add a small delay here to ensure the call returns true before this message is
              * handled. It seems wrong to add a delay, but the alternative is to build a lock
              * system to handle synchronization, which isn't nice either... */
             mSessionStatusHandler.sendMessageDelayed(msg, 20);
-        } // Can only be null during shutdown
+        } else if(mSessionStatusHandler != null ) {
+                if(DEBUG)
+                    Log.w(TAG, "mSessionStatusHandler START_LISTENER message already in Queue");
+        }
     }
 
     private void sendConnectMessage(int masId) {
@@ -970,7 +963,8 @@ public class BluetoothMapService extends ProfileService {
         } // Can only be null during shutdown
     }
 
-    private void sendShutdownMessage(CountDownLatch latch) {
+    private void sendShutdownMessage() {
+        if (VERBOSE) Log.d(TAG, "sendShutdownMessage() In");
         /* Any pending messages are no longer valid.
         To speed up things, simply delete them. */
         if (mRemoveTimeoutMsg) {
@@ -980,23 +974,23 @@ public class BluetoothMapService extends ProfileService {
             mIsWaitingAuthorization = false;
             cancelUserTimeoutAlarm();
         }
-        if (mSessionStatusHandler != null) {
+        if (mSessionStatusHandler != null && !mSessionStatusHandler.hasMessages(SHUTDOWN)) {
             mSessionStatusHandler.removeCallbacksAndMessages(null);
             // Request release of all resources
-            Message msg = mSessionStatusHandler.obtainMessage(SHUTDOWN,latch);
+            Message msg = mSessionStatusHandler.obtainMessage(SHUTDOWN);
             if( mSessionStatusHandler.sendMessage(msg) == false) {
             /* most likely caused by shutdown being called from multiple sources - e.g.BT off
              * signaled through intent and a service shutdown simultaneously.
              * Intended behavior not documented, hence we need to be able to handle all cases. */
-                Log.e(TAG, "mSessionStatusHandler.sendMessage() failed trigger latch locally");
-                if(latch != null) {
-                    latch.countDown();
-                }
             } else {
                 if(DEBUG)
                     Log.e(TAG, "mSessionStatusHandler.sendMessage() dispatched shutdown message");
             }
+        } else if(mSessionStatusHandler != null) {
+                if(DEBUG)
+                    Log.w(TAG, "mSessionStatusHandler shutdown message already in Queue");
         }
+        if (VERBOSE) Log.d(TAG, "sendShutdownMessage() Out");
     }
 
     private MapBroadcastReceiver mMapReceiver = new MapBroadcastReceiver();
@@ -1012,7 +1006,7 @@ public class BluetoothMapService extends ProfileService {
                                                BluetoothAdapter.ERROR);
                 if (state == BluetoothAdapter.STATE_TURNING_OFF) {
                     if (DEBUG) Log.d(TAG, "STATE_TURNING_OFF");
-                    sendShutdownMessage(null);
+                    sendShutdownMessage();
                 } else if (state == BluetoothAdapter.STATE_ON) {
                     if (DEBUG) Log.d(TAG, "STATE_ON");
                     // start ServerSocket listener threads
