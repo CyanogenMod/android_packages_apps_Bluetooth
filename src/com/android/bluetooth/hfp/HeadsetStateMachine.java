@@ -824,11 +824,6 @@ final class HeadsetStateMachine extends StateMachine {
     private class Connected extends State {
         @Override
         public void enter() {
-            // Remove pending connection attempts that were deferred during the pending
-            // state. This is to prevent auto connect attempts from disconnecting
-            // devices that previously successfully connected.
-            // TODO: This needs to check for multiple HFP connections, once supported...
-            removeDeferredMessages(CONNECT);
             Log.d(TAG, "Enter Connected: " + getCurrentMessage().what +
                            ", size: " + mConnectedDevicesList.size());
             // start phone state listener here so that the CIND response as part of SLC can be
@@ -3113,11 +3108,6 @@ final class HeadsetStateMachine extends StateMachine {
                 }
                 atResponseCodeNative(HeadsetHalConstants.AT_RESPONSE_OK,
                                                        0, getByteAddress(device));
-                removeMessages(DIALING_OUT_TIMEOUT);
-        } else if (callState.mCallState ==
-                HeadsetHalConstants.CALL_STATE_ACTIVE || callState.mCallState
-                == HeadsetHalConstants.CALL_STATE_IDLE) {
-                mDialingOut = false;
         }
 
         /* Set ActiveScoDevice to null when call ends */
