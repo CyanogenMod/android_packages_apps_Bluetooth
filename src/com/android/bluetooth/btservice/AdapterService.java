@@ -623,6 +623,24 @@ public class AdapterService extends Service {
         return false;
     }
 
+    void disableProfileServices() {
+        Class[] services = Config.getSupportedProfiles();
+            for (int i=0; i<services.length; i++) {
+                boolean res = false;
+                String serviceName = services[i].getName();
+
+                mProfileServicesState.put(serviceName,BluetoothAdapter.STATE_OFF);
+                Intent intent = new Intent(this,services[i]);
+                intent.putExtra(EXTRA_ACTION,ACTION_SERVICE_STATE_CHANGED);
+                intent.putExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_OFF);
+                intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+                res = stopService(intent);
+                Log.d(TAG, "disableProfileServices() - Stopping service "
+                    + serviceName + " with result: " + res);
+            }
+        return;
+    }
+
     boolean stopGattProfileService() {
         //TODO: can optimize this instead of looping around all supported profiles
         debugLog("stopGattProfileService()");
