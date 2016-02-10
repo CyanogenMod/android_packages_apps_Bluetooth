@@ -152,9 +152,11 @@ public class SapService extends ProfileService {
                 //       for multiple connections.
                 mServerSocket = mAdapter.listenUsingRfcommOn(
                         BluetoothAdapter.SOCKET_CHANNEL_AUTO_STATIC_NO_SDP, true, true);
-                if (mSdpHandle >= 0 && SdpManager.getDefaultManager() != null) {
+                if (mAdapter != null && mSdpHandle >= 0 &&
+                                SdpManager.getDefaultManager() != null) {
                     if (DEBUG) Log.d(TAG, "Removing SDP record");
-                    SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
+                    boolean status = SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
+                    Log.d(TAG, "RemoveSDPrecord returns " + status);
                     mSdpHandle = -1;
                 }
                 mSdpHandle = SdpManager.getDefaultManager().createSapsRecord(SDP_SAP_SERVICE_NAME,
@@ -730,9 +732,11 @@ public class SapService extends ProfileService {
             mIsWaitingAuthorization = false;
             cancelUserTimeoutAlarm();
         }
-        if (mSdpHandle >= 0 && SdpManager.getDefaultManager() != null) {
+        if (mAdapter != null && mSdpHandle >= 0 &&
+                            SdpManager.getDefaultManager() != null) {
             if (DEBUG) Log.d(TAG, "Removing SDP record");
-            SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
+            boolean status = SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
+            Log.d(TAG, "RemoveSDPrecord returns " + status);
             mSdpHandle = -1;
         }
         if (mSessionStatusHandler != null) {
