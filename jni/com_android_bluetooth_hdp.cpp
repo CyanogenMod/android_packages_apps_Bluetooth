@@ -195,7 +195,10 @@ static jint registerHealthAppNative(JNIEnv *env, jobject object, jint data_type,
     bthl_reg_param_t reg_param;
     int app_id;
 
-    if (!sBluetoothHdpInterface) return NULL;
+    if (!sBluetoothHdpInterface) {
+        ALOGE("Failed to register health app. No Bluetooth Health Interface available");
+        return -1;
+    }
 
     mdep_cfg.mdep_role = (bthl_mdep_role_t) role;
     mdep_cfg.data_type = data_type;
