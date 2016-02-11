@@ -44,6 +44,7 @@ import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothDevicePicker;
 import android.content.Intent;
+import android.content.ClipData;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
@@ -87,6 +88,11 @@ public class BluetoothOppLauncherActivity extends Activity {
                 finish();
                 return;
             }
+
+            /*
+             * SECURITY_EXCEPTION Google Photo grant-uri-permission
+             */
+            grantReadPermissionToUri(intent.getClipData());
 
             /*
              * Other application is trying to share a file via Bluetooth,
@@ -378,5 +384,32 @@ public class BluetoothOppLauncherActivity extends Activity {
         }
         return text;
     }
+
+    /*
+     *  Grant permission to access a specific Uri.
+     */
+    private void grantReadPermissionToUri(ClipData clipData) {
+        if (clipData == null) {
+            Log.i(TAG,"ClipData is null ");
+            return;
+        }
+        try {
+            String packageName = getPackageName();
+            for (int i = 0; i < clipData.getItemCount(); i++) {
+                ClipData.Item item = clipData.getItemAt(i);
+                Uri uri = item.getUri();
+                if (uri != null) {
+                    String scheme = uri.getScheme();
+                    if (scheme != null && scheme.equals(ContentResolver.SCHEME_CONTENT)) {
+                        grantUriPermission(packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    }
+                }
+            }
+        } catch (Exception e) {
+          Log.e(TAG,"GrantUriPermission :" + e.toString());
+        }
+    }
+
+
 }
 
