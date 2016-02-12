@@ -40,6 +40,12 @@ final class AvrcpControllerConstants {
     public static final boolean DBG = true;
     public static final boolean VDBG = true;
     /*
+     * Whether to push broadcast updates about metadata.
+     */
+    public static final int START_METADATA_BROADCASTS = 0;
+    public static final int STOP_METADATA_BROADCASTS = 1;
+
+    /*
      * Scopes of operation
      */
     public static final int AVRCP_SCOPE_NOW_PLAYING = 0;
@@ -153,6 +159,10 @@ final class AvrcpControllerConstants {
 
     public static final int MESSAGE_PROCESS_RC_FEATURES = 1100;
     public static final int MESSAGE_PROCESS_CONNECTION_CHANGE = 1200;
+
+    public static final int MESSAGE_STOP_METADATA_BROADCASTS = 201;
+    public static final int MESSAGE_START_METADATA_BROADCASTS = 202;
+
 
     public static String dumpMessageString(int message)
     {

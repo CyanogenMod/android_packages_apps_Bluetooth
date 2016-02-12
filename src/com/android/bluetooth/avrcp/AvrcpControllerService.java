@@ -294,6 +294,16 @@ public class AvrcpControllerService extends ProfileService {
         }
     }
 
+    public void startAvrcpUpdates() {
+        mHandler.obtainMessage(
+            AvrcpControllerConstants.MESSAGE_START_METADATA_BROADCASTS).sendToTarget();
+    }
+
+    public void stopAvrcpUpdates() {
+        mHandler.obtainMessage(
+            AvrcpControllerConstants.MESSAGE_STOP_METADATA_BROADCASTS).sendToTarget();
+    }
+
     public MediaMetadata getMetaData(BluetoothDevice device) {
         Log.d(TAG, "getMetaData = ");
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
@@ -507,10 +517,10 @@ public class AvrcpControllerService extends ProfileService {
                                                    AvrcpUtils.displayMetaData(mMetaData));
         sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
     }
-    private void broadcastPlayBackStateChanged(PlaybackState mState) {
+    private void broadcastPlayBackStateChanged(PlaybackState state) {
         Intent intent = new Intent(BluetoothAvrcpController.ACTION_TRACK_EVENT);
-        intent.putExtra(BluetoothAvrcpController.EXTRA_PLAYBACK, mState);
-        if(DBG) Log.d(TAG," broadcastPlayBackStateChanged = " + mState.toString());
+        intent.putExtra(BluetoothAvrcpController.EXTRA_PLAYBACK, state);
+        if(DBG) Log.d(TAG," broadcastPlayBackStateChanged = " + state.toString());
         sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
     }
     private void broadcastPlayerAppSettingChanged(BluetoothAvrcpPlayerSettings mPlAppSetting) {
@@ -522,6 +532,8 @@ public class AvrcpControllerService extends ProfileService {
     }
     /** Handles Avrcp messages. */
     private final class AvrcpMessageHandler extends Handler {
+        private boolean mBroadcastMetadata = false;
+
         private AvrcpMessageHandler(Looper looper) {
             super(looper);
         }
@@ -530,15 +542,34 @@ public class AvrcpControllerService extends ProfileService {
         public void handleMessage(Message msg) {
             Log.d(TAG," HandleMessage: "+ AvrcpControllerConstants.dumpMessageString(msg.what) +
                   " Remote Connected " + !mConnectedDevices.isEmpty());
+            A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
             switch (msg.what) {
+            case AvrcpControllerConstants.MESSAGE_STOP_METADATA_BROADCASTS:
+                // Any messages hence forth about play pos/play status/song info will be ignored.
+                if(mRemoteMediaPlayers != null) {
+                    mRemoteMediaPlayers.getAddressedPlayer().mPlayStatus =
+                            AvrcpControllerConstants.PLAY_STATUS_PAUSED;
+                    broadcastPlayBackStateChanged(AvrcpUtils.mapBtPlayStatustoPlayBackState
+                            (mRemoteMediaPlayers.getAddressedPlayer().mPlayStatus,
+                             mRemoteMediaPlayers.getAddressedPlayer().mPlayTime));
+                }
+                mBroadcastMetadata = false;
+                break;
+            case AvrcpControllerConstants.MESSAGE_START_METADATA_BROADCASTS:
+                // Any messages hence forth about play pos/play status/song info will be sent.
+                if(mRemoteMediaPlayers != null) {
+                    broadcastPlayBackStateChanged(getCurrentPlayBackState());
+                    broadcastMetaDataChanged(
+                        getCurrentMetaData(AvrcpControllerConstants.AVRCP_SCOPE_NOW_PLAYING, 0));
+                }
+                mBroadcastMetadata = true;
+                break;
             case AvrcpControllerConstants.MESSAGE_SEND_PASS_THROUGH_CMD:
                 BluetoothDevice device = (BluetoothDevice)msg.obj;
                 sendPassThroughCommandNative(getByteAddress(device), msg.arg1, msg.arg2);
-                A2dpSinkService a2dpSnkService = A2dpSinkService.getA2dpSinkService();
-                if((a2dpSnkService != null)&&(!mConnectedDevices.isEmpty())) {
+                if((a2dpSinkService != null)&&(!mConnectedDevices.isEmpty())) {
                     Log.d(TAG," inform AVRCP Commands to A2DP Sink ");
-                    a2dpSnkService.informAvrcpPassThroughCmd(device,
-                            msg.arg1, msg.arg2);
+                    a2dpSinkService.informAvrcpPassThroughCmd(device, msg.arg1, msg.arg2);
                 }
                 break;
             case AvrcpControllerConstants.MESSAGE_SEND_GROUP_NAVIGATION_CMD:
@@ -639,6 +670,12 @@ public class AvrcpControllerService extends ProfileService {
             case AvrcpControllerConstants.MESSAGE_PROCESS_TRACK_CHANGED:
                 if(mRemoteNowPlayingList != null) {
                     mRemoteNowPlayingList.updateCurrentTrack((TrackInfo)msg.obj);
+
+                    if (!mBroadcastMetadata) {
+                        Log.d(TAG, "Metadata is not broadcasted, ignoring.");
+                        return;
+                    }
+
                     broadcastMetaDataChanged(AvrcpUtils.getMediaMetaData
                                        (mRemoteNowPlayingList.getCurrentTrack()));
                 }
@@ -646,6 +683,12 @@ public class AvrcpControllerService extends ProfileService {
             case AvrcpControllerConstants.MESSAGE_PROCESS_PLAY_POS_CHANGED:
                 if(mRemoteMediaPlayers != null) {
                     mRemoteMediaPlayers.getAddressedPlayer().mPlayTime = msg.arg2;
+
+                    if (!mBroadcastMetadata) {
+                        Log.d(TAG, "Metadata is not broadcasted, ignoring.");
+                        return;
+                    }
+
                     broadcastPlayBackStateChanged(AvrcpUtils.mapBtPlayStatustoPlayBackState
                             (mRemoteMediaPlayers.getAddressedPlayer().mPlayStatus,
                                     mRemoteMediaPlayers.getAddressedPlayer().mPlayTime));
@@ -656,17 +699,22 @@ public class AvrcpControllerService extends ProfileService {
                 break;
             case AvrcpControllerConstants.MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
                 if(mRemoteMediaPlayers != null) {
-                    mRemoteMediaPlayers.getAddressedPlayer().mPlayStatus = (byte)msg.arg1;
-                    broadcastPlayBackStateChanged(AvrcpUtils.mapBtPlayStatustoPlayBackState
-                            (mRemoteMediaPlayers.getAddressedPlayer().mPlayStatus,
-                                    mRemoteMediaPlayers.getAddressedPlayer().mPlayTime));
-                    if(mRemoteMediaPlayers.getPlayStatus() == AvrcpControllerConstants.
-                                                                        PLAY_STATUS_PLAYING) {
-                        A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
-                        if((a2dpSinkService != null)&&(!mConnectedDevices.isEmpty())) {
-                            Log.d(TAG," State = PLAYING, inform A2DP SINK");
-                            a2dpSinkService.informAvrcpStatePlaying(mConnectedDevices.get(0));
-                        }
+                    int status = msg.arg1;
+                    mRemoteMediaPlayers.getAddressedPlayer().mPlayStatus = (byte) status;
+                    if (status == AvrcpControllerConstants.PLAY_STATUS_PLAYING) {
+                        a2dpSinkService.informTGStatePlaying(mConnectedDevices.get(0), true);
+                    } else if (status == AvrcpControllerConstants.PLAY_STATUS_PAUSED ||
+                               status == AvrcpControllerConstants.PLAY_STATUS_STOPPED) {
+                        a2dpSinkService.informTGStatePlaying(mConnectedDevices.get(0), false);
+                    }
+
+                    if (mBroadcastMetadata) {
+                        broadcastPlayBackStateChanged(AvrcpUtils.mapBtPlayStatustoPlayBackState
+                                (mRemoteMediaPlayers.getAddressedPlayer().mPlayStatus,
+                                 mRemoteMediaPlayers.getAddressedPlayer().mPlayTime));
+                    } else {
+                        Log.d(TAG, "Metadata is not broadcasted, ignoring.");
+                        return;
                     }
                 }
                 break;
@@ -755,8 +803,7 @@ public class AvrcpControllerService extends ProfileService {
     };
 
     private void handlePassthroughRsp(int id, int keyState) {
-        Log.d(TAG, "passthrough response received as: key: "
-                                + id + " state: " + keyState);
+        Log.d(TAG, "passthrough response received as: key: " + id + " state: " + keyState);
     }
 
     private void onConnectionStateChanged(boolean connected, byte[] address) {

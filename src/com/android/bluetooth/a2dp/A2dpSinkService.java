@@ -17,6 +17,7 @@
 package com.android.bluetooth.a2dp;
 
 import android.bluetooth.BluetoothAudioConfig;
+import android.bluetooth.BluetoothAvrcpController;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothA2dpSink;
@@ -33,7 +34,7 @@ import java.util.Map;
  * @hide
  */
 public class A2dpSinkService extends ProfileService {
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
     private static final String TAG = "A2dpSinkService";
 
     private A2dpSinkStateMachine mStateMachine;
@@ -165,15 +166,42 @@ public class A2dpSinkService extends ProfileService {
         return priority;
     }
 
-    public void informAvrcpStatePlaying(BluetoothDevice device) {
-        if(mStateMachine != null)
-            mStateMachine.informAvrcpStatePlaying(device);
+    /**
+     * Called by AVRCP controller to provide information about the last user intent on CT.
+     *
+     * If the user has pressed play in the last attempt then A2DP Sink component will grant focus to
+     * any incoming sound from the phone (and also retain focus for a few seconds before
+     * relinquishing. On the other hand if the user has pressed pause/stop then the A2DP sink
+     * component will take the focus away but also notify the stack to throw away incoming data.
+     */
+    public void informAvrcpPassThroughCmd(BluetoothDevice device, int keyCode, int keyState) {
+        if (mStateMachine != null) {
+            if (keyCode == BluetoothAvrcpController.PASS_THRU_CMD_ID_PLAY &&
+                keyState == BluetoothAvrcpController.KEY_STATE_RELEASED) {
+                mStateMachine.sendMessage(A2dpSinkStateMachine.EVENT_AVRCP_CT_PLAY);
+            } else if ((keyCode == BluetoothAvrcpController.PASS_THRU_CMD_ID_PAUSE ||
+                       keyCode == BluetoothAvrcpController.PASS_THRU_CMD_ID_STOP) &&
+                       keyState == BluetoothAvrcpController.KEY_STATE_RELEASED) {
+                mStateMachine.sendMessage(A2dpSinkStateMachine.EVENT_AVRCP_CT_PAUSE);
+            }
+        }
     }
 
-    public void informAvrcpPassThroughCmd(BluetoothDevice device, int keyCode,
-            int keyState) {
-        if(mStateMachine != null)
-            mStateMachine.informAvrcpPassThroughCmd(device, keyCode, keyState);
+    /**
+     * Called by AVRCP controller to provide information about the last user intent on TG.
+     *
+     * Tf the user has pressed pause on the TG then we can preempt streaming music. This is opposed
+     * to when the streaming stops abruptly (jitter) in which case we will wait for sometime before
+     * stopping playback.
+     */
+    public void informTGStatePlaying(BluetoothDevice device, boolean isPlaying) {
+        if (mStateMachine != null) {
+            if (!isPlaying) {
+                mStateMachine.sendMessage(A2dpSinkStateMachine.EVENT_AVRCP_TG_PAUSE);
+            } else {
+                mStateMachine.sendMessage(A2dpSinkStateMachine.EVENT_AVRCP_TG_PLAY);
+            }
+        }
     }
 
     synchronized boolean isA2dpPlaying(BluetoothDevice device) {
