@@ -46,6 +46,7 @@ import android.util.Log;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.BluetoothProto;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.util.NumberUtils;
 import com.android.internal.annotations.VisibleForTesting;
@@ -2384,6 +2385,12 @@ public class GattService extends ProfileService {
 
         sb.append("\nGATT Handle Map\n");
         mHandleMap.dump(sb);
+    }
+
+    @Override
+    public void dumpProto(BluetoothProto.BluetoothLog proto) {
+        mClientMap.dumpProto(proto);
+        mServerMap.dumpProto(proto);
     }
 
     /**************************************************************************

@@ -164,6 +164,10 @@ public abstract class ProfileService extends Service {
         sb.append("\nProfile: " + mName + "\n");
     }
 
+    public void dumpProto(BluetoothProto.BluetoothLog proto) {
+        // Do nothing
+    }
+
     // with indenting for subclasses
     public static void println(StringBuilder sb, String s) {
         sb.append("  ");

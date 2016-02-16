@@ -2168,8 +2168,11 @@ public class AdapterService extends Service {
             debugLog("dumpsys arguments, skipping normal dumpsys: " +
                     TextUtils.join(" ", args));
             if (args[0].startsWith("--proto")) {
-                dumpNative(fd, args);
-                // TODO(jamuraa): gather protobuf details here and merge
+                if (args[0].equals("--proto-java-bin")) {
+                    dumpJava(fd);
+                } else {
+                    dumpNative(fd, args);
+                }
             }
             return;
         }
@@ -2198,8 +2201,23 @@ public class AdapterService extends Service {
         writer.write(sb.toString());
         writer.flush();
 
-        // Add native logs
         dumpNative(fd, args);
+    }
+
+    private void dumpJava(FileDescriptor fd) {
+        BluetoothProto.BluetoothLog log = new BluetoothProto.BluetoothLog();
+
+        for (ProfileService profile : mProfiles) {
+            profile.dumpProto(log);
+        }
+
+        try {
+            FileOutputStream protoOut = new FileOutputStream(fd);
+            protoOut.write(log.toByteArray());
+            protoOut.close();
+        } catch (IOException e) {
+            errorLog("Unable to write Java protobuf to file descriptor.");
+        }
     }
 
     private void debugLog(String msg) {

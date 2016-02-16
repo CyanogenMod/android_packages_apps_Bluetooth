@@ -33,6 +33,8 @@ import java.util.UUID;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.android.bluetooth.btservice.BluetoothProto;
+
 /**
  * Helper class that keeps track of registered GATT applications.
  * This class manages application callbacks and keeps track of GATT connections.
@@ -41,6 +43,10 @@ import java.util.Map;
 /*package*/ class ContextMap<T> {
     private static final String TAG = GattServiceConfig.TAG_PREFIX + "ContextMap";
 
+    static final int NUM_SCAN_EVENTS_KEPT = 20;
+    ArrayList<BluetoothProto.ScanEvent> mScanEvents =
+      new ArrayList<BluetoothProto.ScanEvent>(NUM_SCAN_EVENTS_KEPT);
+
     /**
      * ScanStats class helps keep track of information about scans
      * on a per application basis.
@@ -48,6 +54,7 @@ import java.util.Map;
     class ScanStats {
         static final int NUM_SCAN_DURATIONS_KEPT = 5;
 
+        String appName;
         int scansStarted = 0;
         int scansStopped = 0;
         boolean isScanning = false;
@@ -59,10 +66,25 @@ import java.util.Map;
         long startTime = 0;
         long stopTime = 0;
 
+        public ScanStats(String name) {
+            appName = name;
+        }
+
         void startScan() {
             this.scansStarted++;
             isScanning = true;
             startTime = System.currentTimeMillis();
+
+            BluetoothProto.ScanEvent scanEvent = new BluetoothProto.ScanEvent();
+            scanEvent.setScanEventType(BluetoothProto.ScanEvent.SCAN_EVENT_START);
+            scanEvent.setScanTechnologyType(BluetoothProto.ScanEvent.SCAN_TECH_TYPE_LE);
+            scanEvent.setInitiator(appName);
+            scanEvent.setEventTimeMillis(System.currentTimeMillis());
+            synchronized(mScanEvents) {
+                if(mScanEvents.size() == NUM_SCAN_EVENTS_KEPT)
+                    mScanEvents.remove(0);
+                mScanEvents.add(scanEvent);
+            }
         }
 
         void stopScan() {
@@ -77,6 +99,17 @@ import java.util.Map;
             lastScans.add(currTime);
             if (lastScans.size() > NUM_SCAN_DURATIONS_KEPT) {
                 lastScans.remove(0);
+            }
+
+            BluetoothProto.ScanEvent scanEvent = new BluetoothProto.ScanEvent();
+            scanEvent.setScanEventType(BluetoothProto.ScanEvent.SCAN_EVENT_STOP);
+            scanEvent.setScanTechnologyType(BluetoothProto.ScanEvent.SCAN_TECH_TYPE_LE);
+            scanEvent.setInitiator(appName);
+            scanEvent.setEventTimeMillis(System.currentTimeMillis());
+            synchronized(mScanEvents) {
+                if (mScanEvents.size() == NUM_SCAN_EVENTS_KEPT)
+                    mScanEvents.remove(0);
+                mScanEvents.add(scanEvent);
             }
         }
     }
@@ -190,7 +223,7 @@ import java.util.Map;
             mApps.add(new App(uuid, callback, appName));
             ScanStats scanStats = mScanStats.get(appName);
             if (scanStats == null) {
-                scanStats = new ScanStats();
+                scanStats = new ScanStats(appName);
                 mScanStats.put(appName, scanStats);
             }
             scanStats.isRegistered = true;
@@ -309,6 +342,13 @@ import java.util.Map;
             return mScanStats.get(temp.name);
         }
         return null;
+    }
+
+    /**
+     * Get Logging info by application name
+     */
+    ScanStats getScanStatsByName(String name) {
+        return mScanStats.get(name);
     }
 
     /**
@@ -490,6 +530,14 @@ import java.util.Map;
                 }
             }
             sb.append("\n");
+        }
+    }
+
+    void dumpProto(BluetoothProto.BluetoothLog proto) {
+        synchronized(mScanEvents) {
+            for (BluetoothProto.ScanEvent event : mScanEvents) {
+                proto.addScanEvent(event);
+            }
         }
     }
 }
