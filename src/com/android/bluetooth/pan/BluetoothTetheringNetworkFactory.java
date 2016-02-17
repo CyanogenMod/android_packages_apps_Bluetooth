@@ -27,7 +27,8 @@ import android.net.NetworkFactory;
 import android.net.NetworkInfo;
 import android.net.NetworkInfo.DetailedState;
 import android.net.NetworkRequest;
-import android.net.NetworkUtils;
+import android.net.ip.IpManager;
+import android.net.ip.IpManager.WaitForProvisioningCallback;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
@@ -56,7 +57,8 @@ public class BluetoothTetheringNetworkFactory extends NetworkFactory {
 
     // All accesses to these must be synchronized(this).
     private final NetworkInfo mNetworkInfo;
-    private LinkProperties mLinkProperties;
+    private IpManager mIpManager;
+    private String mInterfaceName;
     private NetworkAgent mNetworkAgent;
 
     public BluetoothTetheringNetworkFactory(Context context, Looper looper, PanService panService) {
@@ -66,10 +68,16 @@ public class BluetoothTetheringNetworkFactory extends NetworkFactory {
         mPanService = panService;
 
         mNetworkInfo = new NetworkInfo(ConnectivityManager.TYPE_BLUETOOTH, 0, NETWORK_TYPE, "");
-        mLinkProperties = new LinkProperties();
         mNetworkCapabilities = new NetworkCapabilities();
         initNetworkCapabilities();
         setCapabilityFilter(mNetworkCapabilities);
+    }
+
+    private void stopIpManagerLocked() {
+        if (mIpManager != null) {
+            mIpManager.shutdown();
+            mIpManager = null;
+        }
     }
 
     // Called by NetworkFactory when PanService and NetworkFactory both desire a Bluetooth
@@ -77,43 +85,55 @@ public class BluetoothTetheringNetworkFactory extends NetworkFactory {
     // assumed to be available because we only register our NetworkFactory when it is so.
     @Override
     protected void startNetwork() {
-        // TODO: Handle DHCP renew.
-        Thread dhcpThread = new Thread(new Runnable() {
+        // TODO: Figure out how to replace this thread with simple invocations
+        // of IpManager. This will likely necessitate a rethink about
+        // NetworkAgent, NetworkInfo, and associated instance lifetimes.
+        Thread ipProvisioningThread = new Thread(new Runnable() {
             public void run() {
                 LinkProperties linkProperties;
+                final WaitForProvisioningCallback ipmCallback = new WaitForProvisioningCallback() {
+                    @Override
+                    public void onLinkPropertiesChange(LinkProperties newLp) {
+                        synchronized (BluetoothTetheringNetworkFactory.this) {
+                            if (mNetworkAgent != null && mNetworkInfo.isConnected()) {
+                                mNetworkAgent.sendLinkProperties(newLp);
+                            }
+                        }
+                    }
+                };
+
                 synchronized (BluetoothTetheringNetworkFactory.this) {
-                    linkProperties = mLinkProperties;
-                    if (linkProperties.getInterfaceName() == null) {
+                    if (TextUtils.isEmpty(mInterfaceName)) {
                         Slog.e(TAG, "attempted to reverse tether without interface name");
                         return;
                     }
-                    log("dhcpThread(+" + linkProperties.getInterfaceName() +
-                            "): mNetworkInfo=" + mNetworkInfo);
+                    log("ipProvisioningThread(+" + mInterfaceName + "): " +
+                            "mNetworkInfo=" + mNetworkInfo);
+                    mIpManager = new IpManager(mContext, mInterfaceName, ipmCallback);
+                    mIpManager.startProvisioning(
+                            mIpManager.buildProvisioningConfiguration()
+                                    .withoutIpReachabilityMonitor()
+                                    .build());
+                    mNetworkInfo.setDetailedState(DetailedState.OBTAINING_IPADDR, null, null);
                 }
 
-                DhcpResults dhcpResults = new DhcpResults();
-                // TODO: Handle DHCP renewals better.
-                // In general runDhcp handles DHCP renewals for us, because
-                // the dhcp client stays running, but if the renewal fails,
-                // we will lose our IP address and connectivity without
-                // noticing.
-                if (!NetworkUtils.runDhcp(linkProperties.getInterfaceName(), dhcpResults)) {
-                    Slog.e(TAG, "DHCP request error:" + NetworkUtils.getDhcpError());
+                linkProperties = ipmCallback.waitForProvisioning();
+                if (linkProperties == null) {
+                    Slog.e(TAG, "IP provisioning error.");
                     synchronized(BluetoothTetheringNetworkFactory.this) {
+                        stopIpManagerLocked();
                         setScoreFilter(-1);
                     }
                     return;
                 }
 
                 synchronized(BluetoothTetheringNetworkFactory.this) {
-                    mLinkProperties = dhcpResults.toLinkProperties(
-                            linkProperties.getInterfaceName());
                     mNetworkInfo.setIsAvailable(true);
                     mNetworkInfo.setDetailedState(DetailedState.CONNECTED, null, null);
 
                     // Create our NetworkAgent.
                     mNetworkAgent = new NetworkAgent(getLooper(), mContext, NETWORK_TYPE,
-                            mNetworkInfo, mNetworkCapabilities, mLinkProperties, NETWORK_SCORE) {
+                            mNetworkInfo, mNetworkCapabilities, linkProperties, NETWORK_SCORE) {
                         public void unwanted() {
                             BluetoothTetheringNetworkFactory.this.onCancelRequest();
                         };
@@ -121,7 +141,7 @@ public class BluetoothTetheringNetworkFactory extends NetworkFactory {
                 }
             }
         });
-        dhcpThread.start();
+        ipProvisioningThread.start();
     }
 
     // Called from NetworkFactory to indicate ConnectivityService no longer desires a Bluetooth
@@ -133,10 +153,9 @@ public class BluetoothTetheringNetworkFactory extends NetworkFactory {
 
     // Called by the NetworkFactory, NetworkAgent or PanService to tear down network.
     private synchronized void onCancelRequest() {
-        if (!TextUtils.isEmpty(mLinkProperties.getInterfaceName())) {
-            NetworkUtils.stopDhcp(mLinkProperties.getInterfaceName());
-        }
-        mLinkProperties.clear();
+        stopIpManagerLocked();
+        mInterfaceName = "";
+
         mNetworkInfo.setDetailedState(DetailedState.DISCONNECTED, null, null);
         if (mNetworkAgent != null) {
             mNetworkAgent.sendNetworkInfo(mNetworkInfo);
@@ -155,12 +174,11 @@ public class BluetoothTetheringNetworkFactory extends NetworkFactory {
             return;
         }
         synchronized(this) {
-            if (mLinkProperties.getInterfaceName() != null) {
+            if (!TextUtils.isEmpty(mInterfaceName)) {
                 Slog.e(TAG, "attempted to reverse tether while already in process");
                 return;
             }
-            mLinkProperties = new LinkProperties();
-            mLinkProperties.setInterfaceName(iface);
+            mInterfaceName = iface;
             // Advertise ourselves to ConnectivityService.
             register();
             setScoreFilter(NETWORK_SCORE);
@@ -170,7 +188,7 @@ public class BluetoothTetheringNetworkFactory extends NetworkFactory {
     // Called by PanService when a network interface for Bluetooth reverse-tethering
     // goes away.  We stop advertising ourselves to ConnectivityService at this point.
     public synchronized void stopReverseTether() {
-        if (TextUtils.isEmpty(mLinkProperties.getInterfaceName())) {
+        if (TextUtils.isEmpty(mInterfaceName)) {
             Slog.e(TAG, "attempted to stop reverse tether with nothing tethered");
             return;
         }
