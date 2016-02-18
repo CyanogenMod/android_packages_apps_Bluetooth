@@ -56,6 +56,7 @@ import android.os.RemoteException;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.EventLog;
 import android.util.Log;
 import android.util.Pair;
@@ -77,6 +78,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -2213,7 +2215,9 @@ public class AdapterService extends Service {
 
         try {
             FileOutputStream protoOut = new FileOutputStream(fd);
-            protoOut.write(log.toByteArray());
+            String protoOutString =
+                Base64.encodeToString(log.toByteArray(), Base64.DEFAULT);
+            protoOut.write(protoOutString.getBytes(StandardCharsets.UTF_8));
             protoOut.close();
         } catch (IOException e) {
             errorLog("Unable to write Java protobuf to file descriptor.");
