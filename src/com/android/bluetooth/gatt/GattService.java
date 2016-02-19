@@ -2380,10 +2380,10 @@ public class GattService extends ProfileService {
         sb.append("\nGATT Client Map\n");
         mClientMap.dump(sb);
 
-        sb.append("\nGATT Server Map\n");
+        sb.append("GATT Server Map\n");
         mServerMap.dump(sb);
 
-        sb.append("\nGATT Handle Map\n");
+        sb.append("GATT Handle Map\n");
         mHandleMap.dump(sb);
     }
 
