@@ -768,7 +768,7 @@ public class BluetoothMapContentObserver {
                             subject.substring(0,subject.length() < 256 ? subject.length() : 256));
                 }
                 if (senderName != null) {
-                    xmlEvtReport.attribute("", "senderName", senderName);
+                    xmlEvtReport.attribute("", "sender_name", senderName);
                 }
                 if (priority != null) {
                     xmlEvtReport.attribute("", "priority", priority);
