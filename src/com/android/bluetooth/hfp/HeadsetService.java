@@ -37,6 +37,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
 import java.util.Map;
+import android.telecom.TelecomManager;
+
 
 /**
  * Provides Bluetooth Headset and Handsfree profile, as a service in
@@ -66,6 +68,7 @@ public class HeadsetService extends ProfileService {
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
         filter.addAction(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED);
         filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(TelecomManager.ACTION_CALL_TYPE);
         try {
             registerReceiver(mHeadsetReceiver, filter);
         } catch (Exception e) {
@@ -122,6 +125,9 @@ public class HeadsetService extends ProfileService {
             } else if (intent.getAction().equals(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED)) {
                Log.v(TAG, "HeadsetService -  Received BluetoothA2dp Conn State changed");
                mStateMachine.sendMessage(HeadsetStateMachine.UPDATE_A2DP_CONN_STATE, intent);
+            } else if (intent.getAction().equals(TelecomManager.ACTION_CALL_TYPE)) {
+               Log.v(TAG, "HeadsetService -  Received BluetoothHeadset.ACTION_CALL_TYPE");
+               mStateMachine.sendMessage(HeadsetStateMachine.UPDATE_CALL_TYPE, intent);
             }
         }
     };

@@ -56,6 +56,9 @@ class HeadsetPhoneState {
     // Type of Phone Number
     private int mType = 0;
 
+    // If CS call
+    private boolean mIsCsCall = true;
+
     // HFP 1.6 CIND signal
     private int mSignal = 0;
 
@@ -156,6 +159,14 @@ class HeadsetPhoneState {
 
     void setNumActiveCall(int numActive) {
         mNumActive = numActive;
+    }
+
+    boolean getIsCsCall() {
+        return mIsCsCall;
+    }
+
+    void setIsCsCall(boolean isCsCall) {
+        mIsCsCall = isCsCall;
     }
 
     int getCallState() {
