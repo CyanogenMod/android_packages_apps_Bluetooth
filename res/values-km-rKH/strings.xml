@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"សម្អាត"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"រក្សាទុក"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"បោះបង់"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"ជ្រើសគណនីដែលអ្នកចង់ចែករំលែកតាមរយៈប៊្លូធូស។ អ្នកនៅតែត្រូវទទួលការចូលដំណើរការទាំងឡាយទៅកាន់គណនីនេះដដែល នៅពេលភ្ជាប់។"</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"ជ្រើសគណនីដែលអ្នកចង់ចែករំលែកតាមរយៈប៊្លូធូស។ អ្នកនៅតែត្រូវទទួលយកលទ្ធភាពចូលដំណើរការទាំងឡាយទៅកាន់គណនីនេះដដែល នៅពេលភ្ជាប់។"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"រន្ធនៅសល់៖"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"រូបតំណាងកម្មវិធី"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"កំណត់ការចែករំលែកសារតាមប៊្លូធូស"</string>

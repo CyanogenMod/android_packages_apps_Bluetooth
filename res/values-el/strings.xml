@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Διαγραφή"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Αποθήκευση"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Ακύρωση"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Επιλέξτε τους λογαριασμούς που θέλετε να μοιραστείτε μέσω Bluetooth. Θα πρέπει ακόμη να αποδεχτείτε τυχόν αιτήματα πρόσβασης στους λογαριασμούς κατά τη σύνδεση."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Επιλέξτε τους λογαριασμούς που θέλετε να μοιραστείτε μέσω Bluetooth. Θα πρέπει ακόμη να αποδεχτείτε τυχόν αιτήματα πρόσβασης στους λογαριασμούς κατά τη σύνδεση."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Υποδοχές που απομένουν:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Εικονίδιο εφαρμογής"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Ρυθμίσεις κοινής χρήσης μηνυμάτων μέσω Bluetooth"</string>

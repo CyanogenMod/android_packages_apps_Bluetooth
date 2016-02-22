@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"క్లియర్ చేయి"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"సేవ్ చేయి"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"రద్దు చేయి"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"మీరు బ్లూటూత్ ద్వారా భాగస్వామ్యం చేయాలనుకునే ఖాతాలను ఎంచుకోండి. మీరు ఇప్పటికీ కనెక్ట్ చేస్తున్నప్పుడు ఖాతాలకు అందించే ఏ ప్రాప్యతనైనా ఆమోదించాలి."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"మీరు బ్లూటూత్ ద్వారా భాగస్వామ్యం చేయాలనుకునే ఖాతాలను ఎంచుకోండి. మీరు ఇప్పటికీ కనెక్ట్ చేస్తున్నప్పుడు ఖాతాలకు అందించే ఏ ప్రాప్యతనైనా ఆమోదించాల్సి ఉంటుంది."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"మిగిలిన స్లాట్‌లు:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"అనువర్తన చిహ్నం"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"బ్లూటూత్ సందేశ భాగస్వామ్య సెట్టింగ్‌లు"</string>

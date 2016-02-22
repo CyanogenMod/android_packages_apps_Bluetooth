@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"清除"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"儲存"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"取消"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"選取您要透過藍牙分享的帳戶。連線時，您仍須接受所有帳戶存取要求。"</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"選取您要透過藍牙分享的帳戶。連線時，您仍須接受所有帳戶存取要求。"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"剩餘插槽數："</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"應用程式圖示"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"藍牙郵件分享設定"</string>

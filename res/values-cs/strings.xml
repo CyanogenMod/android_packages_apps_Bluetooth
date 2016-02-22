@@ -127,7 +127,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Vymazat"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Uložit"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Zrušit"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Vyberte účty, které chcete sdílet prostřednictvím rozhraní Bluetooth. Při připojování bude třeba přístup k účtům i nadále schvalovat."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Vyberte účty, které chcete sdílet prostřednictvím rozhraní Bluetooth. Při připojování budete přístup k účtům muset i nadále schválit."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Zbývající sloty:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Ikona aplikace"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Nastavení sdílení zpráv přes Bluetooth"</string>

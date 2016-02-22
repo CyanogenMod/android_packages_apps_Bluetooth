@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Garbitu"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Gorde"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Utzi"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Hautatu Bluetooth bidez partekatu nahi dituzun kontuak. Konektatzean, kontuetarako sarbidea eman behar duzu."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Hautatu Bluetooth bidez partekatu nahi dituzun kontuak. Konektatzean, berariaz eman beharko duzu kontuetarako sarbidea."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Geratzen diren erretenak:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Aplikazioaren ikonoa"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Bluetooth bidez mezuak partekatzeko ezarpenak"</string>

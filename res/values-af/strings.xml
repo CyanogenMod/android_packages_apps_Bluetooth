@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Vee uit"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Stoor"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Kanselleer"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Kies die rekeninge wat jy deur Bluetooth wil deel. Jy moet steeds enige toegang tot die rekeninge aanvaar wanneer jy koppel."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Kies die rekeninge wat jy deur Bluetooth wil deel. Jy moet steeds enige toegang tot die rekeninge aanvaar wanneer jy koppel."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Gleuwe oor:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Programikoon"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Bluetooth-boodskapdeelinstellings"</string>

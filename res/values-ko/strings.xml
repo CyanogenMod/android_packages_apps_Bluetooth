@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"지우기"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"저장"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"취소"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"블루투스를 통해 공유하려는 계정을 선택하세요. 연결할 때 계정에 대한 모든 액세스를 수락해야 합니다."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"블루투스를 통해 공유하려는 계정을 선택하세요. 연결할 때 계정에 대한 모든 액세스를 수락해야 합니다."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"남은 슬롯:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"애플리케이션 아이콘"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"블루투스 메시지 공유 설정"</string>

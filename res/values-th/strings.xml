@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"ล้าง"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"บันทึก"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"ยกเลิก"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"เลือกบัญชีที่คุณต้องการแชร์ผ่านบลูทูธ คุณยังคงต้องยอมรับการเข้าถึงบัญชีทั้งหมดเมื่อเชื่อมต่อ"</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"เลือกบัญชีที่คุณต้องการแชร์ผ่านบลูทูธ คุณยังคงต้องยอมรับการเข้าถึงบัญชีทั้งหมดเมื่อเชื่อมต่อ"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"ช่องที่เหลือ:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"ไอคอนแอปพลิเคชัน"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"การตั้งค่าการแชร์ข้อความผ่านบลูทูธ"</string>

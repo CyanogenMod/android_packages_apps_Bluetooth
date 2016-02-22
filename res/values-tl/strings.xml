@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"I-clear"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"I-save"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Kanselahin"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Piliin ang mga account na gusto mong ibahagi sa pamamagitan ng Bluetooth. Kailangan mo pa ring tumanggap ng access sa mga account kapag kumokonekta."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Piliin ang mga account na gusto mong ibahagi sa pamamagitan ng Bluetooth. Kailangan mo pa ring tanggapin ang anumang pag-access sa mga account kapag kumokonekta."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Mga slot na natitira:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Icon ng Application"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Mga Setting ng Pagbabahagi ng Mensahe sa Bluetooth"</string>

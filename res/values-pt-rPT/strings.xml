@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Limpar"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Guardar"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Cancelar"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Selecione as contas que pretende partilhar através de Bluetooth. Ao ligar, ainda tem de aceitar eventuais acessos às contas."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Selecione as contas que pretende partilhar através de Bluetooth. Ao ligar, ainda tem de aceitar eventuais acessos às contas."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Ranhuras restantes:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Ícone de aplicação"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Definições de partilha de mensagens por Bluetooth"</string>

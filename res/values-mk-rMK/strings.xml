@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Исчисти"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Зачувај"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Откажи"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Изберете ги сметките што сакате да ги споделите преку Bluetooth. Сепак, ќе мора да го прифаќате секој пристап до сметките при поврзувањето."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Изберете ги сметките што сакате да ги споделите преку Bluetooth. Сепак, ќе мора да го прифаќате секој пристап до сметките при поврзување."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Слободни отвори:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Икона на апликацијата"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Поставки за споделување пораки преку Bluetooth"</string>

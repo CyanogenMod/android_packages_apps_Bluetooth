@@ -127,7 +127,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Очистити"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Зберегти"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Скасувати"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Виберіть облікові записи, до яких ви хочете надати доступ через Bluetooth. Під час підключення все одно потрібно буде схвалити доступ до облікових записів."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Виберіть облікові записи, до яких ви хочете надати доступ через Bluetooth. Під час підключення все одно потрібно буде схвалити доступ до облікових записів."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Залишилося місць:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Значок додатка"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Параметри надсилання повідомлень через Bluetooth"</string>

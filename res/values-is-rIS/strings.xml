@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Hreinsa"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Vista"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Hætta við"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Veldu reikningana sem þú vilt deila í gegnum Bluetooth. Þú þarft samt að samþykkja allan aðgang að reikningunum við tengingu."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Veldu reikningana sem þú vilt deila í gegnum Bluetooth. Þú þarft samt að samþykkja allan aðgang að reikningunum við tengingu."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Hólf eftir:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Forritstákn"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Deilingarstillingar Bluetooth-skilaboða"</string>

@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Ջնջել"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Պահել"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Չեղարկել"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Ընտրեք հաշիվները, որոնք ցանկանում եք համօգտագործել Bluetooth-ի միջոցով: Ամեն դեպքում, կապակցվելիս պետք է ընդունեք հաշիվներն օգտագործելու թույլտվությունը:"</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Ընտրեք հաշիվները, որոնք ցանկանում եք հասանելի դարձնել Bluetooth-ի միջոցով: Ամեն դեպքում, կապակցվելիս պետք է ընդունեք հաշիվներն օգտագործելու թույլտվությունը:"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Մնացած տողերի քանակը՝"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Հավելվածի պատկերակը"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Հաղորդագրությունների համօգտագործման Bluetooth-ի կարգավորումներ"</string>

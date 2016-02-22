@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"ತೆರವುಗೊಳಿಸು"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"ಉಳಿಸು"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"ರದ್ದುಮಾಡು"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"ಬ್ಲೂಟೂತ್‌ ಮೂಲಕ ಹಂಚಿಕೊಳ್ಳಲು ಬಯಸುವ ಖಾತೆಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ. ಸಂಪರ್ಕಿಸುವಾಗ ಖಾತೆಗಳಿಗೆ ಯಾವುದೇ ಪ್ರವೇಶವನ್ನು ನೀವು ಈಗಲೂ ಒಪ್ಪಿಕೊಳ್ಳಬೇಕಾಗುತ್ತದೆ."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"ಬ್ಲೂಟೂತ್‌ ಮೂಲಕ ಹಂಚಿಕೊಳ್ಳಲು ಬಯಸುವ ಖಾತೆಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ. ಸಂಪರ್ಕಪಡಿಸುವಾಗ ಖಾತೆಗಳಿಗೆ ಯಾವುದೇ ಪ್ರವೇಶವನ್ನು ನೀವು ಈಗಲೂ ಸಮ್ಮತಿಸಬೇಕಾಗುತ್ತದೆ."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"ಉಳಿದಿರುವ ಸ್ಲಾಟ್‌ಗಳು:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"ಅಪ್ಲಿಕೇಶನ್‌ ಐಕಾನ್‌"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"ಬ್ಲೂಟೂತ್ ಸಂದೇಶ ಹಂಚಿಕೆ ಸೆಟ್ಟಿಂಗ್‌ಗಳು"</string>

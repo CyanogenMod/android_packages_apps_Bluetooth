@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"அழி"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"சேமி"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"ரத்துசெய்"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"புளுடூத் வழியாகப் பகிர விரும்பும் மின்னஞ்சல் கணக்குகளைத் தேர்வுசெய்யவும். இணைக்கும்போது கணக்கிற்கான எந்த அணுகல்களையும் ஏற்க வேண்டும்."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"புளூடூத் வழியாகப் பகிர விரும்பும் கணக்குகளைத் தேர்ந்தெடுக்கவும். இணைக்கும் போது கணக்குகளுக்கான அணுகலை மீண்டும் ஏற்க வேண்டும்."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"மீதமுள்ள ஸ்லாட்கள்:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"பயன்பாட்டு ஐகான்"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"புளூடூத் செய்தி பகிர்தல் அமைப்புகள்"</string>

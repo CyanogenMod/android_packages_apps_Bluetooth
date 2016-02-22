@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Futa"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Hifadhi"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Ghairi"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Chagua akaunti unazotaka kushiriki kupitia Bluetooth. Bado unatakiwa kukubali ufikiaji wowote kwenye akaunti yako wakati unaunganisha."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Chagua akaunti unazotaka kushiriki kupitia Bluetooth. Bado unatakiwa kutoa idhini ya ufikiaji wowote kwenye akaunti yako wakati unaunganisha."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Nafasi zilizosalia:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Aikoni ya programu"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Mipangilio ya Kushiriki Ujumbe wa Bluetooth"</string>

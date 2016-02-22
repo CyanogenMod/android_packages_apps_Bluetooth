@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"හිස් කරන්න"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"සුරකින්න"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"අවලංගු කරන්න"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"බ්ලූටූත් හරහා ඔබට බෙදාගැනීමට අවශ්‍ය ගිණුම් තෝරන්න. සම්බන්ධ වන විට ගිණුම් වෙත ඕනෑම ප්‍රවේශයක් ඔබ තවමත් පිළිගත යුතුයි."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"ඔබට බ්ලූටූත් හරහා බෙදා ගැනීමට අවශ්‍ය ගිණුම් තෝරන්න. සම්බන්ධ වන විට ඔබට තවම ගිණුම් වෙත ඕනෑම ප්‍රවේශයක් පිළිගැනීමට සිදු වේ."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"ඉතිරිව ඇති විවර:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"යෙදුම් නිරූපකය"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"බ්ලූටූත් පණිවිඩ බෙදාගැනීමේ සැකසීම්"</string>

@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Temizle"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Kaydet"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"İptal"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Bluetooth üzerinden paylaşmak istediğiniz hesapları seçin. Bağlanırken yine de hesaplara erişimi kabul etmeniz gerekmektedir."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Bluetooth üzerinden paylaşmak istediğiniz hesapları seçin. Bağlanırken yine de hesaplara erişimi kabul etmeniz gerekmektedir."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Kalan yuva sayısı:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Uygulama Simgesi"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Bluetooth İleti Paylaşımı Ayarları"</string>

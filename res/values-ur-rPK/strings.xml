@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"صاف کریں"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"محفوظ کریں"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"منسوخ کریں"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"ان اکاؤنٹس کو منتخب کریں جن کا آپ بلوٹوتھ کے ذریعے اشتراک کرنا چاہتے ہیں۔ آپ کو ابھی بھی منسلک ہوتے وقت اکاؤنٹس تک کسی رسائی کو قبول کرنا ہوگا۔"</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"ان اکاؤنٹس کو منتخب کریں جن کا آپ بلوٹوتھ کے ذریعے اشتراک کرنا چاہتے ہیں۔ آپ کو ابھی بھی منسلک ہوتے وقت اکاؤنٹس تک کسی بھی رسائی کو قبول کرنا ہوگا۔"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"بچے ہوئے سلاٹس:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"ایپلیکیشن کا آئیکن"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"بلوٹوتھ پیغام کے اشتراک کی ترتیبات"</string>

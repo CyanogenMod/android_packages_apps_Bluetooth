@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Effacer"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Enregistrer"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Annuler"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Sélectionnez les comptes que vous voulez partager via le Bluetooth. Vous devez toujours accepter l\'accès à ces comptes lors de la connexion."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Sélectionnez les comptes que vous voulez partager via le Bluetooth. Vous devez toujours accepter l\'accès à ces comptes lors de la connexion."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Espaces libres :"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Icône de l\'application"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Paramètres de partage de la messagerie via le Bluetooth"</string>

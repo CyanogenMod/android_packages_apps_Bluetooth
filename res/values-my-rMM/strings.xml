@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"ရှင်းလင်းရန်"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"သိမ်းဆည်းရန်"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"ဖျက်သိမ်းရန်"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"သင် ဘလူးတုသ်မှတဆင့် မျှဝေလိုသော အကောင့်အသစ်များအား ရွေးချယ်ပါ။ ချိတ်ဆက်နေစဉ် အကောင့်များအား ဝင်ရောက်သုံးခွင့်များကို သင်လက်ခံရန် လိုအပ်ပါဦးမည်။"</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"ဘလူးတုသ်မှ မျှဝေလိုသော အကောင့်များကို ရွေးပါ။ ချိတ်ဆက်သည့်အခါ အကောင့်များအား ဝင်ခွင့်ပြုဖို့ လက်ခံပေးရပါလိမ့်ဦးမည်။"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"ကျန်နေသည့် အပေါက်များ:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"အပလီကေးရှင်း အိုင်ကွန်"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"ဘလူးတုသ် စာ မျှဝေရေး ဆက်တင်များ"</string>

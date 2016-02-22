@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"ამოშლა"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"შენახვა"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"გაუქმება"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"აირჩიეთ ანგარიშები, რომელთა გაზიარებაც გსურთ Bluetooth-ის მეშვეობით. ანგარიშებზე ნებისმიერი წვდომის დადასტურება მაინც მოგიწევთ დაკავშირებისას."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"აირჩიეთ ანგარიშები, რომელთა გაზიარებაც Bluetooth-ის მეშვეობით გსურთ. დაკავშირებისას ანგარიშებზე წვდომის დადასტურება მაინც მოგიწევთ."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"დარჩენილი სლოტი:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"აპლიკაციის ხატულა"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Bluetooth შეტყობინების გაზიარების პარამეტრები"</string>

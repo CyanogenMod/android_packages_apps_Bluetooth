@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"ລຶບ"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"ບັນທຶກ"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"ຍົກເລີກ"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"ເລືອກ​ບັນ​ຊີ​​ທີ່​ທ່ານ​ຕ້ອງ​ການ​​ແບ່ງ​ປັນ​ຜ່ານ Bluetooth. ​ທ່ານ​ຍັງ​ຄົງ​ຕ້ອງຍອມ​ຮັບ​ການ​ເຂົ້າ​ເຖິງ​ໃດໆ​ຕໍ່​ບັນ​ຊີ​ຕ່າງໆ​ເມື່ອ​ທຳ​ການ​ເຊື່ອມ​ຕໍ່."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"ເລືອກ​ບັນ​ຊີ​​ທີ່​ທ່ານ​ຕ້ອງ​ການ​​ແບ່ງ​ປັນ​ຜ່ານ Bluetooth. ​ທ່ານ​ຍັງ​ຈຳເປັນຕ້ອງຍອມ​ຮັບທຸກ​ການ​ເຂົ້າ​ເຖິງ​ບັນ​ຊີ​ຕ່າງໆ​ໃນເວລາ​ເຊື່ອມ​ຕໍ່."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"ຊ່ອງ​ຊ້າຍ:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"​ໄອ​ຄອນ​ແອັບ​ພລິ​ເຄ​ຊັນ"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"ການ​ຕັ້ງ​ຄ່າ​ແບ່ງ​ປັນ​ຂໍ້​ຄວາມ Bluetooth"</string>

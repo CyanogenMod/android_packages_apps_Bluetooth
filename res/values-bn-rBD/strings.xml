@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"সাফ করুন"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"সংরক্ষণ করুন"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"বাতিল করুন"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"আপনি Bluetooth এর মাধ্যমে যেই অ্যাকাউন্টগুলি শেয়ার করতে চান সেগুলি নির্বাচন করুন। সংযোগের সময়ে আপনাকে এখনও পর্যন্ত অ্যাকাউন্টের যে কোনো অ্যাক্সেস গ্রহণ করতে হবে।"</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"আপনি Bluetooth এর মাধ্যমে যে অ্যাকাউন্টগুলি শেয়ার করতে চান সেগুলি নির্বাচন করুন। সংযোগের সময়ে আপনাকে এখনো অ্যাকাউন্টের যে কোনো অ্যাক্সেস গ্রহণ করতে হবে।"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"যে স্লটগুলি বাকি আছে:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"অ্যাপ্লিকেশান আইকন"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Bluetooth মারফত বার্তা শেয়ার করার সেটিংস"</string>

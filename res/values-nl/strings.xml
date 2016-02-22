@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Wissen"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Opslaan"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Annuleren"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Selecteer de accounts die je wilt delen via Bluetooth. Je moet nog steeds elke toegang tot de accounts accepteren wanneer er verbinding wordt gemaakt."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Selecteer de accounts die je wilt delen via Bluetooth. Je moet nog steeds elke toegang tot de accounts accepteren wanneer er verbinding wordt gemaakt."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Plaatsen over:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"App-pictogram"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Instellingen voor delen van berichten via Bluetooth"</string>

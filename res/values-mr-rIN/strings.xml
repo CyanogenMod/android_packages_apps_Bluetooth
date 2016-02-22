@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"साफ करा"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"जतन करा"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"रद्द करा"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"आपण ब्लूटुथद्वारे सामायिक करू इच्छित असलेली खाती निवडा. कनेक्‍ट करताना अद्याप आपल्‍याला खात्यांमधील कोणताही प्रवेश स्वीकारण्‍याची आवश्‍यकता आहे."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"आपण ब्लूटुथद्वारे सामायिक करू इच्छित असलेली खाती निवडा. कनेक्ट करताना अद्याप आपल्याला खात्यांमधील कोणताही प्रवेश स्वीकारण्याची आवश्यकता आहे."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"स्लॉट शिल्लक:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"अनुप्रयोग चिन्ह"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"ब्लूटुथ संदेश सामायिकरण सेटिंग्ज"</string>

@@ -123,7 +123,7 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Hapus"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Simpan"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Batal"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Pilih akun yang ingin Anda bagikan melalui Bluetooth. Anda harus menerima akses apa pun ke akun saat menyambungkan."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Pilih akun yang ingin Anda bagikan melalui Bluetooth. Anda masih harus menerima akses apa pun ke akun saat menghubungkan."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Sisa Slot:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Ikon Aplikasi"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Setelan Berbagi Pesan Bluetooth"</string>
