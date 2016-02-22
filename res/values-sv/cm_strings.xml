@@ -17,5 +17,6 @@
 -->
 <resources>
   <string name="permlab_bluetoothAvrcpDataManager">Komma åt AVRCP metadata.</string>
+  <string name="permdesc_bluetoothAvrcpDataManager">Tillåter att appen kommer åt Bluetooth AVRCP metadata och använder det för att visa på UI.</string>
   <string name="upload_fail_waiting">Kunde inte skicka filen, försöker igen\u2026</string>
 </resources>

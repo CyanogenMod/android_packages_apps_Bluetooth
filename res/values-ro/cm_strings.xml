@@ -17,5 +17,6 @@
 -->
 <resources>
   <string name="permlab_bluetoothAvrcpDataManager">Accesează informațiile AVRCP.</string>
+  <string name="permdesc_bluetoothAvrcpDataManager">Permite aplicației să acceseze metadata Bluetooth-ului AVRCP și folosirea ei în afișarea pe IU.</string>
   <string name="upload_fail_waiting">Imposibil de transmis fișierul, se reîncearcă\u2026</string>
 </resources>
