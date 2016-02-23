@@ -196,37 +196,12 @@ static bthh_callbacks_t sBluetoothHidCallbacks = {
 // Define native functions
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
-    int err;
-//    const bt_interface_t* btInf;
-//    bt_status_t status;
-
     method_onConnectStateChanged = env->GetMethodID(clazz, "onConnectStateChanged", "([BI)V");
     method_onGetProtocolMode = env->GetMethodID(clazz, "onGetProtocolMode", "([BI)V");
     method_onGetReport = env->GetMethodID(clazz, "onGetReport", "([B[BI)V");
     method_onHandshake = env->GetMethodID(clazz, "onHandshake", "([BI)V");
     method_onVirtualUnplug = env->GetMethodID(clazz, "onVirtualUnplug", "([BI)V");
 
-/*
-    if ( (btInf = getBluetoothInterface()) == NULL) {
-        ALOGE("Bluetooth module is not loaded");
-        return;
-    }
-
-    if ( (sBluetoothHidInterface = (bthh_interface_t *)
-          btInf->get_profile_interface(BT_PROFILE_HIDHOST_ID)) == NULL) {
-        ALOGE("Failed to get Bluetooth Handsfree Interface");
-        return;
-    }
-
-    // TODO(BT) do this only once or
-    //          Do we need to do this every time the BT reenables?
-    if ( (status = sBluetoothHidInterface->init(&sBluetoothHidCallbacks)) != BT_STATUS_SUCCESS) {
-        ALOGE("Failed to initialize Bluetooth HID, status: %d", status);
-        sBluetoothHidInterface = NULL;
-        return;
-    }
-
-*/
     ALOGI("%s: succeeds", __FUNCTION__);
 }
 
@@ -271,7 +246,6 @@ static void initializeNative(JNIEnv *env, jobject object) {
 
 static void cleanupNative(JNIEnv *env, jobject object) {
     const bt_interface_t* btInf;
-    bt_status_t status;
 
     if ( (btInf = getBluetoothInterface()) == NULL) {
         ALOGE("Bluetooth module is not loaded");

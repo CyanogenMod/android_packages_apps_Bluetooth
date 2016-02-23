@@ -33,8 +33,6 @@ static const uint8_t  UUID_MAP_MAS[] = {0x00, 0x00, 0x11, 0x32, 0x00, 0x00, 0x10
                                         0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
 static const uint8_t  UUID_MAP_MNS[] = {0x00, 0x00, 0x11, 0x33, 0x00, 0x00, 0x10, 0x00,
                                         0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
-static const uint8_t  UUID_SPP[] = {0x00, 0x00, 0x11, 0x01, 0x00, 0x00, 0x10, 0x00,
-                                    0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
 static const uint8_t  UUID_SAP[] = {0x00, 0x00, 0x11, 0x2D, 0x00, 0x00, 0x10, 0x00,
                                     0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
 // TODO:
@@ -81,7 +79,6 @@ static bool checkCallbackThread() {
 
 static void initializeNative(JNIEnv *env, jobject object) {
     const bt_interface_t* btInf;
-    bt_status_t status;
 
     if ( (btInf = getBluetoothInterface()) == NULL) {
         ALOGE("Bluetooth module is not loaded");
@@ -151,7 +148,7 @@ static jboolean sdpSearchNative(JNIEnv *env, jobject obj, jbyteArray address, jb
         ALOGE("failed to get uuid");
         goto Fail;
     }
-    ALOGD("%s UUID %.*X",__FUNCTION__,16, (uint8_t*)uuid);
+    ALOGD("%s UUID %.*s",__FUNCTION__,16, (uint8_t*)uuid);
 
 
     if ((ret = sBluetoothSdpInterface->sdp_search((bt_bdaddr_t *)addr,
@@ -537,7 +534,6 @@ static jboolean sdpRemoveSdpRecordNative(JNIEnv *env, jobject obj, jint record_i
 
 static void cleanupNative(JNIEnv *env, jobject object) {
     const bt_interface_t* btInf;
-    bt_status_t status;
 
     if ( (btInf = getBluetoothInterface()) == NULL) {
         ALOGE("Bluetooth module is not loaded");

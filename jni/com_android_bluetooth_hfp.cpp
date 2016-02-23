@@ -399,12 +399,6 @@ static bthf_callbacks_t sBluetoothHfpCallbacks = {
 };
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
-    int err;
-    /*
-    const bt_interface_t* btInf;
-    bt_status_t status;
-    */
-
     method_onConnectionStateChanged =
         env->GetMethodID(clazz, "onConnectionStateChanged", "(I[B)V");
     method_onAudioStateChanged = env->GetMethodID(clazz, "onAudioStateChanged", "(I[B)V");
@@ -423,27 +417,6 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onAtClcc = env->GetMethodID(clazz, "onAtClcc", "([B)V");
     method_onUnknownAt = env->GetMethodID(clazz, "onUnknownAt", "(Ljava/lang/String;[B)V");
     method_onKeyPressed = env->GetMethodID(clazz, "onKeyPressed", "([B)V");
-
-    /*
-    if ( (btInf = getBluetoothInterface()) == NULL) {
-        ALOGE("Bluetooth module is not loaded");
-        return;
-    }
-
-    if ( (sBluetoothHfpInterface = (bthf_interface_t *)
-          btInf->get_profile_interface(BT_PROFILE_HANDSFREE_ID)) == NULL) {
-        ALOGE("Failed to get Bluetooth Handsfree Interface");
-        return;
-    }
-
-    // TODO(BT) do this only once or
-    //          Do we need to do this every time the BT reenables?
-    if ( (status = sBluetoothHfpInterface->init(&sBluetoothHfpCallbacks)) != BT_STATUS_SUCCESS) {
-        ALOGE("Failed to initialize Bluetooth HFP, status: %d", status);
-        sBluetoothHfpInterface = NULL;
-        return;
-    }
-    */
 
     ALOGI("%s: succeeds", __FUNCTION__);
 }
@@ -487,7 +460,6 @@ static void initializeNative(JNIEnv *env, jobject object, jint max_hf_clients) {
 
 static void cleanupNative(JNIEnv *env, jobject object) {
     const bt_interface_t* btInf;
-    bt_status_t status;
 
     if ( (btInf = getBluetoothInterface()) == NULL) {
         ALOGE("Bluetooth module is not loaded");

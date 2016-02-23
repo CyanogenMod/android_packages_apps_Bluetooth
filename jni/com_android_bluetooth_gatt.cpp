@@ -952,7 +952,6 @@ static void initializeNative(JNIEnv *env, jobject object) {
 }
 
 static void cleanupNative(JNIEnv *env, jobject object) {
-    bt_status_t status;
     if (!btIf) return;
 
     if (sGattIf != NULL) {
