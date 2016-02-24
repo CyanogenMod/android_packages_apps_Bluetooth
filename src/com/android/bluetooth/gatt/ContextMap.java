@@ -15,6 +15,7 @@
  */
 package com.android.bluetooth.gatt;
 
+import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.os.Binder;
 import android.os.IBinder;
@@ -63,6 +64,8 @@ import com.android.bluetooth.btservice.BluetoothProto;
         int scansStopped = 0;
         boolean isScanning = false;
         boolean isRegistered = false;
+        boolean isOpportunisticScan = false;
+        boolean isBackgroundScan = false;
         long minScanTime = Long.MAX_VALUE;
         long maxScanTime = 0;
         long totalScanTime = 0;
@@ -75,10 +78,14 @@ import com.android.bluetooth.btservice.BluetoothProto;
             appName = name;
         }
 
-        void startScan() {
+        void recordScanStart(ScanSettings settings) {
             this.scansStarted++;
             isScanning = true;
             startTime = System.currentTimeMillis();
+            if (settings != null) {
+                isOpportunisticScan = settings.getScanMode() == ScanSettings.SCAN_MODE_OPPORTUNISTIC;
+                isBackgroundScan = (settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_FIRST_MATCH) != 0;
+            }
 
             BluetoothProto.ScanEvent scanEvent = new BluetoothProto.ScanEvent();
             scanEvent.setScanEventType(BluetoothProto.ScanEvent.SCAN_EVENT_START);
@@ -98,11 +105,14 @@ import com.android.bluetooth.btservice.BluetoothProto;
             }
         }
 
-        void stopScan() {
+        void recordScanStop() {
             this.scansStopped++;
             isScanning = false;
             stopTime = System.currentTimeMillis();
             long currTime = stopTime - startTime;
+
+            isOpportunisticScan = false;
+            isBackgroundScan = false;
 
             minScanTime = Math.min(currTime, minScanTime);
             maxScanTime = Math.max(currTime, maxScanTime);
@@ -499,6 +509,8 @@ import com.android.bluetooth.btservice.BluetoothProto;
 
             sb.append("  " + name);
             if (scanStats.isRegistered) sb.append(" (Registered)");
+            if (scanStats.isOpportunisticScan) sb.append(" (Opportunistic)");
+            if (scanStats.isBackgroundScan) sb.append(" (Background)");
             sb.append("\n");
 
             sb.append("  LE scans (started/stopped)       : " +

@@ -1399,7 +1399,7 @@ public class GattService extends ProfileService {
         scanClient.hasPeersMacAddressPermission = Utils.checkCallerHasPeersMacAddressPermission(
                 this);
         scanClient.legacyForegroundApp = Utils.isLegacyForegroundApp(this, callingPackage);
-        mClientMap.getScanStatsById(appIf).startScan();
+        mClientMap.getScanStatsById(appIf).recordScanStart(settings);
         mScanManager.startScan(scanClient);
     }
 
@@ -1414,7 +1414,7 @@ public class GattService extends ProfileService {
         int scanQueueSize = mScanManager.getBatchScanQueue().size() +
                 mScanManager.getRegularScanQueue().size();
         if (DBG) Log.d(TAG, "stopScan() - queue size =" + scanQueueSize);
-        mClientMap.getScanStatsById(client.clientIf).stopScan();
+        mClientMap.getScanStatsById(client.clientIf).recordScanStop();
         mScanManager.stopScan(client);
     }
 
