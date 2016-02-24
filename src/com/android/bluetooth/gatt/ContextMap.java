@@ -22,7 +22,10 @@ import android.os.IBinder.DeathRecipient;
 import android.os.IInterface;
 import android.os.RemoteException;
 import android.util.Log;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -43,6 +46,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
 /*package*/ class ContextMap<T> {
     private static final String TAG = GattServiceConfig.TAG_PREFIX + "ContextMap";
 
+    static final DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
     static final int NUM_SCAN_EVENTS_KEPT = 20;
     ArrayList<BluetoothProto.ScanEvent> mScanEvents =
       new ArrayList<BluetoothProto.ScanEvent>(NUM_SCAN_EVENTS_KEPT);
@@ -63,6 +67,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
         long maxScanTime = 0;
         long totalScanTime = 0;
         List<Long> lastScans = new ArrayList<Long>(NUM_SCAN_DURATIONS_KEPT + 1);
+        List<Long> lastScanTimestamps = new ArrayList<Long>(NUM_SCAN_DURATIONS_KEPT + 1);
         long startTime = 0;
         long stopTime = 0;
 
@@ -80,6 +85,12 @@ import com.android.bluetooth.btservice.BluetoothProto;
             scanEvent.setScanTechnologyType(BluetoothProto.ScanEvent.SCAN_TECH_TYPE_LE);
             scanEvent.setInitiator(appName);
             scanEvent.setEventTimeMillis(System.currentTimeMillis());
+
+            lastScanTimestamps.add(startTime);
+            if (lastScanTimestamps.size() > NUM_SCAN_DURATIONS_KEPT) {
+                lastScanTimestamps.remove(0);
+            }
+
             synchronized(mScanEvents) {
                 if(mScanEvents.size() == NUM_SCAN_EVENTS_KEPT)
                     mScanEvents.remove(0);
@@ -454,9 +465,9 @@ import com.android.bluetooth.btservice.BluetoothProto;
 
         sb.append("  Entries: " + mScanStats.size() + "\n\n");
 
-        Iterator<Map.Entry<String,ScanStats>> i = mScanStats.entrySet().iterator();
-        while (i.hasNext()) {
-            Map.Entry<String, ScanStats> entry = i.next();
+        Iterator<Map.Entry<String,ScanStats>> it = mScanStats.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, ScanStats> entry = it.next();
 
             String name = entry.getKey();
             ScanStats scanStats = entry.getValue();
@@ -486,7 +497,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
                               scanStats.scansStarted;
             }
 
-            sb.append("  Application Name: " + name);
+            sb.append("  " + name);
             if (scanStats.isRegistered) sb.append(" (Registered)");
             sb.append("\n");
 
@@ -498,14 +509,16 @@ import com.android.bluetooth.btservice.BluetoothProto;
                       maxScanTime + " / " +
                       avgScanTime + "\n");
 
-            sb.append("  Time since last scan ended in ms : " + lastScan + "\n");
+            if (scanStats.lastScans.size() != 0) {
+                sb.append("  Last " + scanStats.lastScans.size() +
+                          " scans (timestamp - duration):\n");
 
-            sb.append("  Last " + scanStats.lastScans.size() +
-                      " scans in ms (oldest first): ");
-            for (Long time : scanStats.lastScans) {
-                sb.append(time + " ");
+                for (int i = 0; i < scanStats.lastScans.size(); i++) {
+                    Date timestamp = new Date(scanStats.lastScanTimestamps.get(i));
+                    sb.append("    " + dateFormat.format(timestamp) + " - ");
+                    sb.append(scanStats.lastScans.get(i) + "ms\n");
+                }
             }
-            sb.append("\n");
 
             if (scanStats.isRegistered) {
                 App appEntry = getByName(name);
@@ -515,7 +528,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
                           appEntry.uuid + "\n");
 
                 if (scanStats.isScanning) {
-                    sb.append("  Current scan duration            : " +
+                    sb.append("  Current scan duration in ms      : " +
                               currScanTime + "\n");
                 }
 
