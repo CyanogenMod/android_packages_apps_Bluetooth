@@ -1130,6 +1130,27 @@ static jboolean factoryResetNative(JNIEnv *env, jobject obj) {
     return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
+static void interopDatabaseClearNative(JNIEnv *env, jobject obj) {
+    ALOGV("%s()", __FUNCTION__);
+    if (!sBluetoothInterface) return;
+    sBluetoothInterface->interop_database_clear();
+}
+
+static void interopDatabaseAddNative(JNIEnv *env, jobject obj, int feature,
+                                      jbyteArray address, int length) {
+    ALOGV("%s()", __FUNCTION__);
+    if (!sBluetoothInterface) return;
+
+    jbyte *addr = env->GetByteArrayElements(address, NULL);
+    if (addr == NULL) {
+        jniThrowIOException(env, EINVAL);
+        return;
+    }
+
+    sBluetoothInterface->interop_database_add(feature, (bt_bdaddr_t *)addr, length);
+    env->ReleaseByteArrayElements(address, addr, 0);
+}
+
 static JNINativeMethod sMethods[] = {
     /* name, signature, funcPtr */
     {"classInitNative", "()V", (void *) classInitNative},
@@ -1158,7 +1179,9 @@ static JNINativeMethod sMethods[] = {
     {"alarmFiredNative", "()V", (void *) alarmFiredNative},
     {"readEnergyInfo", "()I", (void*) readEnergyInfo},
     {"dumpNative", "(Ljava/io/FileDescriptor;)V", (void*) dumpNative},
-    {"factoryResetNative", "()Z", (void*)factoryResetNative}
+    {"factoryResetNative", "()Z", (void*)factoryResetNative},
+    {"interopDatabaseClearNative", "()V", (void*) interopDatabaseClearNative},
+    {"interopDatabaseAddNative", "(I[BI)V", (void*) interopDatabaseAddNative}
 };
 
 int register_com_android_bluetooth_btservice_AdapterService(JNIEnv* env)
