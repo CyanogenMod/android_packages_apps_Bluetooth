@@ -360,6 +360,8 @@ public class AdapterService extends Service {
             mAdapterStateMachine.sendMessage(mAdapterStateMachine.obtainMessage(AdapterState.BREDR_STOPPED));
 
         } else if (isTurningOn) {
+            updateInteropDatabase();
+
             //Process start pending
             //Check if all services are started if so, update state
             synchronized (mProfileServicesState) {
@@ -382,6 +384,59 @@ public class AdapterService extends Service {
             mProfilesStarted=true;
             //Send message to state machine
             mAdapterStateMachine.sendMessage(mAdapterStateMachine.obtainMessage(AdapterState.BREDR_STARTED));
+        }
+    }
+
+    private void updateInteropDatabase() {
+        interopDatabaseClearNative();
+
+        String interop_string = Settings.Global.getString(getContentResolver(),
+                                            Settings.Global.BLUETOOTH_INTEROPERABILITY_LIST);
+        if (interop_string == null) return;
+        Log.d(TAG, "updateInteropDatabase: [" + interop_string + "]");
+
+        String[] entries = interop_string.split(";");
+        for (String entry : entries) {
+            String[] tokens = entry.split(",");
+            if (tokens.length != 2) continue;
+
+            // Get feature
+            int feature = 0;
+            try {
+                feature = Integer.parseInt(tokens[1]);
+            } catch (NumberFormatException e) {
+                Log.e(TAG, "updateInteropDatabase: Invalid feature '" + tokens[1] + "'");
+                continue;
+            }
+
+            // Get address bytes and length
+            int length = (tokens[0].length() + 1) / 3;
+            if (length < 1 || length > 6) {
+                Log.e(TAG, "updateInteropDatabase: Malformed address string '" + tokens[0] + "'");
+                continue;
+            }
+
+            byte[] addr = new byte[6];
+            int offset = 0;
+            for (int i = 0; i < tokens[0].length(); ) {
+                if (tokens[0].charAt(i) == ':') {
+                    i += 1;
+                } else {
+                    try {
+                        addr[offset++] = (byte) Integer.parseInt(tokens[0].substring(i, i + 2), 16);
+                    } catch (NumberFormatException e) {
+                        offset = 0;
+                        break;
+                    }
+                    i += 2;
+                }
+            }
+
+            // Check if address was parsed ok, otherwise, move on...
+            if (offset == 0) continue;
+
+            // Add entry
+            interopDatabaseAddNative(feature, addr, length);
         }
     }
 
@@ -2138,6 +2193,9 @@ public class AdapterService extends Service {
 
     private native void alarmFiredNative();
     private native void dumpNative(FileDescriptor fd);
+
+    private native void interopDatabaseClearNative();
+    private native void interopDatabaseAddNative(int feature, byte[] address, int length);
 
     protected void finalize() {
         cleanup();
