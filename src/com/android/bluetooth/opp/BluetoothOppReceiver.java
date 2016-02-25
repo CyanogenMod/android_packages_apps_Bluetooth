@@ -62,6 +62,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
+        if (D) Log.d(TAG, "Action :" + action);
 
         /* Ignore if Broadcast action is not transfer complete and Invalid user */
         if (!Utils.checkCaller() && !action.equals(BluetoothShare.TRANSFER_COMPLETED_ACTION)) {

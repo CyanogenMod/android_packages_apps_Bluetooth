@@ -535,6 +535,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                if (mBluetoothReceiver != null){
                   mContext.unregisterReceiver(mBluetoothReceiver);
                    mBluetoothReceiver = null;
+                   if (V) Log.v(TAG, "Un Registered mBluetoothReceiver");
                }
            } catch (Exception e) {
                Log.e(TAG, "Exception:unregisterReceiver");
