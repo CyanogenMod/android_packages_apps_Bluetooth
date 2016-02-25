@@ -65,6 +65,7 @@ public class SapService extends ProfileService {
     public static final int MSG_ACQUIRE_WAKE_LOCK = 5005;
     public static final int MSG_RELEASE_WAKE_LOCK = 5006;
 
+    public static final int MSG_CHANGE_STATE = 5007;
     /* Each time a transaction between the SIM and the BT Client is detected a wakelock is taken.
      * After an idle period of RELEASE_WAKE_LOCK_DELAY ms the wakelock is released.
      *
@@ -285,8 +286,6 @@ public class SapService extends ProfileService {
             mWakeLock.acquire();
         }
 
-        setState(BluetoothSap.STATE_CONNECTED);
-
         /* Start the SAP I/O thread and associate with message handler */
         mSapServer = new SapServer(mSessionStatusHandler, this, mConnSocket.getInputStream(), mConnSocket.getOutputStream());
         mSapServer.start();
@@ -471,6 +470,10 @@ public class SapService extends ProfileService {
                         mWakeLock.release();
                         if (DEBUG) Log.d(TAG, "  Released Wake Lock by message");
                     }
+                    break;
+                case MSG_CHANGE_STATE:
+                    if (VERBOSE) Log.v(TAG, "change state message: newState = " + msg.arg1);
+                    setState(msg.arg1);
                     break;
                 case SHUTDOWN:
                     /* Ensure to call close from this handler to avoid starting new stuff
@@ -834,13 +837,16 @@ public class SapService extends ProfileService {
 
                 if (DEBUG) Log.d(TAG,"ACL disconnected for " + device);
 
-                if (mRemoteDevice.equals(device) && mRemoveTimeoutMsg) {
-                    // Send any pending timeout now, as ACL got disconnected.
-                    cancelUserTimeoutAlarm();
-                    mSessionStatusHandler.removeMessages(USER_TIMEOUT);
-                    sendCancelUserConfirmationIntent(mRemoteDevice);
+                if (mRemoteDevice.equals(device)) {
+                    if (mRemoveTimeoutMsg) {
+                        // Send any pending timeout now, as ACL got disconnected.
+                        cancelUserTimeoutAlarm();
+                        mSessionStatusHandler.removeMessages(USER_TIMEOUT);
+                        sendCancelUserConfirmationIntent(mRemoteDevice);
+                        mRemoveTimeoutMsg = false;
+                    }
                     mIsWaitingAuthorization = false;
-                    mRemoveTimeoutMsg = false;
+                    setState(BluetoothSap.STATE_DISCONNECTED);
                     // Ensure proper cleanup, and prepare for new connect.
                     mSessionStatusHandler.sendEmptyMessage(MSG_SERVERSESSION_CLOSE);
                 }

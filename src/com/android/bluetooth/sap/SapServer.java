@@ -30,6 +30,7 @@ import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.bluetooth.BluetoothSap;
 
 //import com.android.internal.telephony.RIL;
 import com.google.protobuf.micro.CodedOutputStreamMicro;
@@ -313,7 +314,6 @@ public class SapServer extends Thread implements Callback {
 
             mRilBtReceiver = new SapRilReceiver(mSapHandler, mSapServiceHandler);
             mRilBtReceiverThread = new Thread(mRilBtReceiver, "RilBtReceiver");
-            setNotification(SapMessage.DISC_GRACEFULL,0);
             boolean done = false;
             while (!done) {
                 if(VERBOSE) Log.v(TAG, "Waiting for incomming RFCOMM message...");
@@ -349,16 +349,23 @@ public class SapServer extends Thread implements Callback {
                              *       close socket-streams and initiate cleanup */
                             if(DEBUG) Log.d(TAG, "DISCONNECT_REQ");
 
-                            clearPendingRilResponses(msg);
-
-                            changeState(SAP_STATE.DISCONNECTING);
-
-                            sendRilThreadMessage(msg);
-                            /* We simply need to forward to RIL, but not change state to busy
-                             * - hence send and set message to null. */
-                            msg = null; // don't send twice
-                            /*cancel the timer for the hard-disconnect intent*/
-                            stopDisconnectTimer();
+                            if (mState ==  SAP_STATE.CONNECTING_CALL_ONGOING) {
+                                Log.d(TAG, "disconnect received when call was ongoing, " +
+                                     "send disconnect response");
+                                changeState(SAP_STATE.DISCONNECTING);
+                                SapMessage reply = new SapMessage(SapMessage.ID_DISCONNECT_RESP);
+                                sendClientMessage(reply);
+                                msg = null; // No message needs to be sent to RIL
+                            } else {
+                                clearPendingRilResponses(msg);
+                                changeState(SAP_STATE.DISCONNECTING);
+                                sendRilThreadMessage(msg);
+                                /* We simply need to forward to RIL, but not change state to busy
+                                 * - hence send and set message to null. */
+                                msg = null; // don't send twice
+                                /*cancel the timer for the hard-disconnect intent*/
+                                stopDisconnectTimer();
+                            }
                             break;
                         case SapMessage.ID_POWER_SIM_OFF_REQ: // Fall through
                         case SapMessage.ID_RESET_SIM_REQ:
@@ -786,6 +793,14 @@ public class SapServer extends Thread implements Callback {
                             mState == SAP_STATE.CONNECTING ||
                             mState == SAP_STATE.DISCONNECTING) {
                         sapMsg = null;
+                    }
+                    if (mSapServiceHandler != null && mState == SAP_STATE.CONNECTED) {
+                        Message msg = Message.obtain(mSapServiceHandler);
+                        msg.what = SapService.MSG_CHANGE_STATE;
+                        msg.arg1 = BluetoothSap.STATE_CONNECTED;
+                        msg.sendToTarget();
+                        setNotification(SapMessage.DISC_GRACEFULL, 0);
+                        if (DEBUG) Log.d(TAG, "MSG_CHANGE_STATE sent out.");
                     }
                     break;
                 default:
