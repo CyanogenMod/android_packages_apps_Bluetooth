@@ -96,11 +96,6 @@ public class GattService extends ProfileService {
     };
 
     /**
-     * Search queue to serialize remote onbject inspection.
-     */
-    SearchQueue mSearchQueue = new SearchQueue();
-
-    /**
      * List of our registered clients.
      */
 
@@ -194,7 +189,6 @@ public class GattService extends ProfileService {
         if (DBG) Log.d(TAG, "stop()");
         mClientMap.clear();
         mServerMap.clear();
-        mSearchQueue.clear();
         mHandleMap.clear();
         mServiceDeclarations.clear();
         mReliableQueue.clear();
@@ -705,7 +699,6 @@ public class GattService extends ProfileService {
             + ", connId=" + connId + ", address=" + address);
 
         mClientMap.removeConnection(clientIf, connId);
-        mSearchQueue.removeConnId(connId);
         ClientMap.App app = mClientMap.getById(clientIf);
         if (app != null) {
             app.callback.onClientConnectionState(status, clientIf, false, address);
@@ -714,124 +707,79 @@ public class GattService extends ProfileService {
 
     void onSearchCompleted(int connId, int status) throws RemoteException {
         if (DBG) Log.d(TAG, "onSearchCompleted() - connId=" + connId+ ", status=" + status);
-        // We got all services, now let's explore characteristics...
-        continueSearch(connId, status);
+        // Gatt DB is ready!
+        gattClientGetGattDbNative(connId);
     }
 
-    void onSearchResult(int connId, int srvcType,
-            int srvcInstId, long srvcUuidLsb, long srvcUuidMsb)
-            throws RemoteException {
-        UUID uuid = new UUID(srvcUuidMsb, srvcUuidLsb);
+    GattDbElement GetSampleGattDbElement() {
+        return new GattDbElement();
+    }
+
+    void onGetGattDb(int connId, ArrayList<GattDbElement> db) throws RemoteException {
         String address = mClientMap.addressByConnId(connId);
 
-        if (VDBG) Log.d(TAG, "onSearchResult() - address=" + address + ", uuid=" + uuid);
-
-        mSearchQueue.add(connId, srvcType, srvcInstId, srvcUuidLsb, srvcUuidMsb);
+        if (DBG) Log.d(TAG, "onGetGattDb() - address=" + address);
 
         ClientMap.App app = mClientMap.getByConnId(connId);
-        if (app != null) {
-            app.callback.onGetService(address, srvcType, srvcInstId,
-                                        new ParcelUuid(uuid));
+        if (app == null || app.callback == null) {
+            Log.e(TAG, "app or callback is null");
+            return;
         }
-    }
 
-    void onGetCharacteristic(int connId, int status, int srvcType,
-            int srvcInstId, long srvcUuidLsb, long srvcUuidMsb,
-            int charInstId, long charUuidLsb, long charUuidMsb,
-            int charProp) throws RemoteException {
+        ParcelUuid currSrvcUuid = null;
+        int currSrvcType = 0;
+        int currSrvcInstId = 0;
+        ParcelUuid currCharUuid = null;
+        int currCharInstId = 0;
 
-        UUID srvcUuid = new UUID(srvcUuidMsb, srvcUuidLsb);
-        UUID charUuid = new UUID(charUuidMsb, charUuidLsb);
-        String address = mClientMap.addressByConnId(connId);
+        for (GattDbElement el: db) {
+            ParcelUuid uuid = new ParcelUuid(el.uuid);
 
-        if (VDBG) Log.d(TAG, "onGetCharacteristic() - address=" + address
-            + ", status=" + status + ", charUuid=" + charUuid + ", prop=" + charProp);
+            switch (el.type)
+            {
+                case GattDbElement.TYPE_PRIMARY_SERVICE:
+                case GattDbElement.TYPE_SECONDARY_SERVICE:
+                    if (DBG) Log.d(TAG, "got service with UUID=" + uuid);
+                    currSrvcType = el.type;
+                    currSrvcInstId = el.id;
+                    currSrvcUuid = uuid;
 
-        if (status == 0) {
-            mSearchQueue.add(connId, srvcType,
-                            srvcInstId, srvcUuidLsb, srvcUuidMsb,
-                            charInstId, charUuidLsb, charUuidMsb);
+                    app.callback.onGetService(address, currSrvcType,
+                                currSrvcInstId, currSrvcUuid);
+                    break;
 
-            ClientMap.App app = mClientMap.getByConnId(connId);
-            if (app != null) {
-                app.callback.onGetCharacteristic(address, srvcType,
-                            srvcInstId, new ParcelUuid(srvcUuid),
-                            charInstId, new ParcelUuid(charUuid), charProp);
+                case GattDbElement.TYPE_CHARACTERISTIC:
+                    if (DBG) Log.d(TAG, "got characteristic with UUID=" + uuid);
+                    currCharUuid = uuid;
+                    currCharInstId = el.id;
+
+                    app.callback.onGetCharacteristic(address, currSrvcType,
+                                currSrvcInstId, currSrvcUuid,
+                                currCharInstId, currCharUuid, el.properties);
+                    break;
+
+                case GattDbElement.TYPE_DESCRIPTOR:
+                    if (DBG) Log.d(TAG, "got descriptor with UUID=" + uuid);
+                    app.callback.onGetDescriptor(address, currSrvcType,
+                                currSrvcInstId, currSrvcUuid,
+                                currCharInstId, currCharUuid,
+                                el.id, uuid);
+                    break;
+
+                case GattDbElement.TYPE_INCLUDED_SERVICE:
+                    if (DBG) Log.d(TAG, "got included service with UUID=" + uuid);
+                    app.callback.onGetIncludedService(address, currSrvcType,
+                                currSrvcInstId, currSrvcUuid,
+                                el.type, el.id, uuid);
+                    break;
+
+                default:
+                    Log.e(TAG, "got unknown element with type=" + el.type + " and UUID=" + uuid);
             }
-
-            // Get next characteristic in the current service
-            gattClientGetCharacteristicNative(connId, srvcType,
-                                        srvcInstId, srvcUuidLsb, srvcUuidMsb,
-                                        charInstId, charUuidLsb, charUuidMsb);
-        } else {
-            // Check for included services next
-            gattClientGetIncludedServiceNative(connId,
-                srvcType, srvcInstId, srvcUuidLsb, srvcUuidMsb,
-                0,0,0,0);
         }
-    }
 
-    void onGetDescriptor(int connId, int status, int srvcType,
-            int srvcInstId, long srvcUuidLsb, long srvcUuidMsb,
-            int charInstId, long charUuidLsb, long charUuidMsb,
-            int descrInstId, long descrUuidLsb, long descrUuidMsb) throws RemoteException {
-
-        UUID srvcUuid = new UUID(srvcUuidMsb, srvcUuidLsb);
-        UUID charUuid = new UUID(charUuidMsb, charUuidLsb);
-        UUID descUuid = new UUID(descrUuidMsb, descrUuidLsb);
-        String address = mClientMap.addressByConnId(connId);
-
-        if (VDBG) Log.d(TAG, "onGetDescriptor() - address=" + address
-            + ", status=" + status + ", descUuid=" + descUuid);
-
-        if (status == 0) {
-            ClientMap.App app = mClientMap.getByConnId(connId);
-            if (app != null) {
-                app.callback.onGetDescriptor(address, srvcType,
-                            srvcInstId, new ParcelUuid(srvcUuid),
-                            charInstId, new ParcelUuid(charUuid),
-                            descrInstId, new ParcelUuid(descUuid));
-            }
-
-            // Get next descriptor for the current characteristic
-            gattClientGetDescriptorNative(connId, srvcType,
-                                    srvcInstId, srvcUuidLsb, srvcUuidMsb,
-                                    charInstId, charUuidLsb, charUuidMsb,
-                                    descrInstId, descrUuidLsb, descrUuidMsb);
-        } else {
-            // Explore the next service
-            continueSearch(connId, 0);
-        }
-    }
-
-    void onGetIncludedService(int connId, int status, int srvcType,
-            int srvcInstId, long srvcUuidLsb, long srvcUuidMsb, int inclSrvcType,
-            int inclSrvcInstId, long inclSrvcUuidLsb, long inclSrvcUuidMsb)
-            throws RemoteException {
-        UUID srvcUuid = new UUID(srvcUuidMsb, srvcUuidLsb);
-        UUID inclSrvcUuid = new UUID(inclSrvcUuidMsb, inclSrvcUuidLsb);
-        String address = mClientMap.addressByConnId(connId);
-
-        if (VDBG) Log.d(TAG, "onGetIncludedService() - address=" + address
-            + ", status=" + status + ", uuid=" + srvcUuid
-            + ", inclUuid=" + inclSrvcUuid);
-
-        if (status == 0) {
-            ClientMap.App app = mClientMap.getByConnId(connId);
-            if (app != null) {
-                app.callback.onGetIncludedService(address,
-                    srvcType, srvcInstId, new ParcelUuid(srvcUuid),
-                    inclSrvcType, inclSrvcInstId, new ParcelUuid(inclSrvcUuid));
-            }
-
-            // Find additional included services
-            gattClientGetIncludedServiceNative(connId,
-                srvcType, srvcInstId, srvcUuidLsb, srvcUuidMsb,
-                inclSrvcType, inclSrvcInstId, inclSrvcUuidLsb, inclSrvcUuidMsb);
-        } else {
-            // Discover descriptors now
-            continueSearch(connId, 0);
-        }
+        // Search is complete when there was error, or nothing more to process
+        app.callback.onSearchComplete(address, 0 /* status */);
     }
 
     void onRegisterForNotifications(int connId, int status, int registered, int srvcType,
@@ -2186,36 +2134,6 @@ public class GattService extends ProfileService {
                 "Need UPDATE_DEVICE_STATS permission");
     }
 
-    private void continueSearch(int connId, int status) throws RemoteException {
-
-        // Search is complete when there was error, or nothing more to process
-        if (status != 0 || mSearchQueue.isEmptyFor(connId)) {
-            // In case we complete because of error, clean up
-            // any remaining operations for this connection.
-            mSearchQueue.removeConnId(connId);
-
-            ClientMap.App app = mClientMap.getByConnId(connId);
-            if (app != null) {
-                app.callback.onSearchComplete(mClientMap.addressByConnId(connId), status);
-            }
-        }
-
-        if (!mSearchQueue.isEmpty()) {
-            SearchQueue.Entry svc = mSearchQueue.pop();
-
-            if (svc.charUuidLsb == 0) {
-                // Characteristic is up next
-                gattClientGetCharacteristicNative(svc.connId, svc.srvcType,
-                    svc.srvcInstId, svc.srvcUuidLsb, svc.srvcUuidMsb, 0, 0, 0);
-            } else {
-                // Descriptor is up next
-                gattClientGetDescriptorNative(svc.connId, svc.srvcType,
-                    svc.srvcInstId, svc.srvcUuidLsb, svc.srvcUuidMsb,
-                    svc.charInstId, svc.charUuidLsb, svc.charUuidMsb, 0, 0, 0);
-            }
-        }
-    }
-
     private void continueServiceDeclaration(int serverIf, int status, int srvcHandle) throws RemoteException {
         if (mServiceDeclarations.size() == 0) return;
         if (DBG) Log.d(TAG, "continueServiceDeclaration() - srvcHandle=" + srvcHandle);
@@ -2437,21 +2355,7 @@ public class GattService extends ProfileService {
     private native void gattClientSearchServiceNative(int conn_id,
             boolean search_all, long service_uuid_lsb, long service_uuid_msb);
 
-    private native void gattClientGetCharacteristicNative(int conn_id,
-            int service_type, int service_id_inst_id, long service_id_uuid_lsb,
-            long service_id_uuid_msb, int char_id_inst_id, long char_id_uuid_lsb,
-            long char_id_uuid_msb);
-
-    private native void gattClientGetDescriptorNative(int conn_id, int service_type,
-            int service_id_inst_id, long service_id_uuid_lsb, long service_id_uuid_msb,
-            int char_id_inst_id, long char_id_uuid_lsb, long char_id_uuid_msb,
-            int descr_id_inst_id, long descr_id_uuid_lsb, long descr_id_uuid_msb);
-
-    private native void gattClientGetIncludedServiceNative(int conn_id,
-            int service_type, int service_id_inst_id,
-            long service_id_uuid_lsb, long service_id_uuid_msb,
-            int incl_service_id_inst_id, int incl_service_type,
-            long incl_service_id_uuid_lsb, long incl_service_id_uuid_msb);
+    private native void gattClientGetGattDbNative(int conn_id);
 
     private native void gattClientReadCharacteristicNative(int conn_id,
             int service_type, int service_id_inst_id, long service_id_uuid_lsb,

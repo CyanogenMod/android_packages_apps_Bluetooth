@@ -63,7 +63,7 @@ static void set_uuid(uint8_t* uuid, jlong uuid_msb, jlong uuid_lsb)
     }
 }
 
-static uint64_t uuid_lsb(bt_uuid_t* uuid)
+static uint64_t uuid_lsb(const bt_uuid_t* uuid)
 {
     uint64_t  lsb = 0;
     int i;
@@ -77,7 +77,7 @@ static uint64_t uuid_lsb(bt_uuid_t* uuid)
     return lsb;
 }
 
-static uint64_t uuid_msb(bt_uuid_t* uuid)
+static uint64_t uuid_msb(const bt_uuid_t* uuid)
 {
     uint64_t msb = 0;
     int i;
@@ -148,13 +148,9 @@ static jmethodID method_onReadCharacteristic;
 static jmethodID method_onWriteCharacteristic;
 static jmethodID method_onExecuteCompleted;
 static jmethodID method_onSearchCompleted;
-static jmethodID method_onSearchResult;
 static jmethodID method_onReadDescriptor;
 static jmethodID method_onWriteDescriptor;
 static jmethodID method_onNotify;
-static jmethodID method_onGetCharacteristic;
-static jmethodID method_onGetDescriptor;
-static jmethodID method_onGetIncludedService;
 static jmethodID method_onRegisterForNotifications;
 static jmethodID method_onReadRemoteRssi;
 static jmethodID method_onAdvertiseCallback;
@@ -175,6 +171,8 @@ static jmethodID method_onBatchScanThresholdCrossed;
 static jmethodID method_CreateonTrackAdvFoundLostObject;
 static jmethodID method_onTrackAdvFoundLost;
 static jmethodID method_onScanParamSetupCompleted;
+static jmethodID method_getSampleGattDbElement;
+static jmethodID method_onGetGattDb;
 
 /**
  * Server callback methods
@@ -281,45 +279,6 @@ void btgattc_search_complete_cb(int conn_id, int status)
     CHECK_CALLBACK_ENV
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onSearchCompleted,
                                  conn_id, status);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
-}
-
-void btgattc_search_result_cb(int conn_id, btgatt_srvc_id_t *srvc_id)
-{
-    CHECK_CALLBACK_ENV
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onSearchResult, conn_id,
-        SRVC_ID_PARAMS(srvc_id));
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
-}
-
-void btgattc_get_characteristic_cb(int conn_id, int status,
-                btgatt_srvc_id_t *srvc_id, btgatt_gatt_id_t *char_id,
-                int char_prop)
-{
-    CHECK_CALLBACK_ENV
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetCharacteristic
-        , conn_id, status, SRVC_ID_PARAMS(srvc_id), GATT_ID_PARAMS(char_id)
-        , char_prop);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
-}
-
-void btgattc_get_descriptor_cb(int conn_id, int status,
-                btgatt_srvc_id_t *srvc_id, btgatt_gatt_id_t *char_id,
-                btgatt_gatt_id_t *descr_id)
-{
-    CHECK_CALLBACK_ENV
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetDescriptor
-        , conn_id, status, SRVC_ID_PARAMS(srvc_id), GATT_ID_PARAMS(char_id)
-        , GATT_ID_PARAMS(descr_id));
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
-}
-
-void btgattc_get_included_service_cb(int conn_id, int status,
-                btgatt_srvc_id_t *srvc_id, btgatt_srvc_id_t *incl_srvc_id)
-{
-    CHECK_CALLBACK_ENV
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetIncludedService
-        , conn_id, status, SRVC_ID_PARAMS(srvc_id), SRVC_ID_PARAMS(incl_srvc_id));
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
@@ -599,16 +558,73 @@ void btgattc_scan_parameter_setup_completed_cb(int client_if, btgattc_error_t st
     checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
 }
 
+void btgattc_get_gatt_db_cb(int conn_id, btgatt_db_element_t *db, int count)
+{
+    CHECK_CALLBACK_ENV
+
+    // Because JNI uses a different class loader in the callback context, we cannot simply get the class.
+    // As a workaround, we have to make sure we obtain an object of the class first, as this will cause
+    // class loader to load it.
+    jobject objectForClass = sCallbackEnv->CallObjectMethod(mCallbacksObj, method_getSampleGattDbElement);
+    jclass gattDbElementClazz = sCallbackEnv->GetObjectClass(objectForClass);
+
+    jmethodID gattDbElementConstructor = sCallbackEnv->GetMethodID(gattDbElementClazz, "<init>", "()V");
+
+    jclass arrayListclazz = sCallbackEnv->FindClass("java/util/ArrayList");
+    jobject array = sCallbackEnv->NewObject(arrayListclazz, sCallbackEnv->GetMethodID(arrayListclazz, "<init>", "()V"));
+    jmethodID arrayAdd = sCallbackEnv->GetMethodID(arrayListclazz, "add", "(Ljava/lang/Object;)Z");
+
+    jclass uuidClazz = sCallbackEnv->FindClass("java/util/UUID");
+    jmethodID uuidConstructor = sCallbackEnv->GetMethodID(uuidClazz, "<init>", "(JJ)V");
+
+    for (int i = 0; i < count; i++) {
+        const btgatt_db_element_t &curr = db[i];
+
+        jobject element = sCallbackEnv->NewObject(gattDbElementClazz, gattDbElementConstructor);
+
+        jfieldID fid;
+
+        fid = sCallbackEnv->GetFieldID(gattDbElementClazz, "id", "I");
+        sCallbackEnv->SetIntField(element, fid, curr.id);
+
+        jobject uuid = sCallbackEnv->NewObject(uuidClazz, uuidConstructor, uuid_msb(&curr.uuid), uuid_lsb(&curr.uuid));
+        fid = sCallbackEnv->GetFieldID(gattDbElementClazz, "uuid", "java/util/UUID");
+        sCallbackEnv->SetObjectField(element, fid, uuid);
+
+        fid = sCallbackEnv->GetFieldID(gattDbElementClazz, "type", "I");
+        sCallbackEnv->SetIntField(element, fid, curr.type);
+
+        fid = sCallbackEnv->GetFieldID(gattDbElementClazz, "attributeHandle", "I");
+        sCallbackEnv->SetIntField(element, fid, curr.attribute_handle);
+
+        fid = sCallbackEnv->GetFieldID(gattDbElementClazz, "startHandle", "I");
+        sCallbackEnv->SetIntField(element, fid, curr.start_handle);
+
+        fid = sCallbackEnv->GetFieldID(gattDbElementClazz, "endHandle", "I");
+        sCallbackEnv->SetIntField(element, fid, curr.end_handle);
+
+        fid = sCallbackEnv->GetFieldID(gattDbElementClazz, "properties", "I");
+        sCallbackEnv->SetIntField(element, fid, curr.properties);
+
+        sCallbackEnv->CallBooleanMethod(array, arrayAdd, element);
+
+        sCallbackEnv->DeleteLocalRef(element);
+    }
+
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetGattDb, conn_id, array);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+}
+
 static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_register_app_cb,
     btgattc_scan_result_cb,
     btgattc_open_cb,
     btgattc_close_cb,
     btgattc_search_complete_cb,
-    btgattc_search_result_cb,
-    btgattc_get_characteristic_cb,
-    btgattc_get_descriptor_cb,
-    btgattc_get_included_service_cb,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
     btgattc_register_for_notification_cb,
     btgattc_notify_cb,
     btgattc_read_characteristic_cb,
@@ -633,7 +649,7 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_batchscan_threshold_cb,
     btgattc_track_adv_event_cb,
     btgattc_scan_parameter_setup_completed_cb,
-    NULL, /* get_gatt_db_cb */
+    btgattc_get_gatt_db_cb,
     NULL, /* services_removed_cb */
     NULL  /* services_added_cb */
 };
@@ -865,13 +881,9 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onWriteCharacteristic = env->GetMethodID(clazz, "onWriteCharacteristic", "(IIIIJJIJJ)V");
     method_onExecuteCompleted = env->GetMethodID(clazz, "onExecuteCompleted",  "(II)V");
     method_onSearchCompleted = env->GetMethodID(clazz, "onSearchCompleted",  "(II)V");
-    method_onSearchResult = env->GetMethodID(clazz, "onSearchResult", "(IIIJJ)V");
     method_onReadDescriptor = env->GetMethodID(clazz, "onReadDescriptor", "(IIIIJJIJJIJJI[B)V");
     method_onWriteDescriptor = env->GetMethodID(clazz, "onWriteDescriptor", "(IIIIJJIJJIJJ)V");
     method_onNotify = env->GetMethodID(clazz, "onNotify", "(ILjava/lang/String;IIJJIJJZ[B)V");
-    method_onGetCharacteristic = env->GetMethodID(clazz, "onGetCharacteristic", "(IIIIJJIJJI)V");
-    method_onGetDescriptor = env->GetMethodID(clazz, "onGetDescriptor", "(IIIIJJIJJIJJ)V");
-    method_onGetIncludedService = env->GetMethodID(clazz, "onGetIncludedService", "(IIIIJJIIJJ)V");
     method_onRegisterForNotifications = env->GetMethodID(clazz, "onRegisterForNotifications", "(IIIIIJJIJJ)V");
     method_onReadRemoteRssi = env->GetMethodID(clazz, "onReadRemoteRssi", "(ILjava/lang/String;II)V");
     method_onConfigureMTU = env->GetMethodID(clazz, "onConfigureMTU", "(III)V");
@@ -892,6 +904,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onTrackAdvFoundLost = env->GetMethodID(clazz, "onTrackAdvFoundLost",
                                                          "(Lcom/android/bluetooth/gatt/AdvtFilterOnFoundOnLostInfo;)V");
     method_onScanParamSetupCompleted = env->GetMethodID(clazz, "onScanParamSetupCompleted", "(II)V");
+    method_getSampleGattDbElement = env->GetMethodID(clazz, "GetSampleGattDbElement", "()Lcom/android/bluetooth/gatt/GattDbElement;");
+    method_onGetGattDb = env->GetMethodID(clazz, "onGetGattDb", "(ILjava/util/ArrayList;)V");
 
     // Server callbacks
 
@@ -1042,89 +1056,12 @@ static void gattClientSearchServiceNative(JNIEnv* env, jobject object, jint conn
     sGattIf->client->search_service(conn_id, search_all ? 0 : &uuid);
 }
 
-static void gattClientGetCharacteristicNative(JNIEnv* env, jobject object,
-    jint conn_id,
-    jint  service_type, jint  service_id_inst_id,
-    jlong service_id_uuid_lsb, jlong service_id_uuid_msb,
-    jint  char_id_inst_id,
-    jlong char_id_uuid_lsb, jlong char_id_uuid_msb)
+static void gattClientGetGattDbNative(JNIEnv* env, jobject object,
+    jint conn_id)
 {
     if (!sGattIf) return;
 
-    btgatt_srvc_id_t srvc_id;
-    srvc_id.id.inst_id = (uint8_t) service_id_inst_id;
-    srvc_id.is_primary = (service_type == BTGATT_SERVICE_TYPE_PRIMARY ? 1 : 0);
-
-    set_uuid(srvc_id.id.uuid.uu, service_id_uuid_msb, service_id_uuid_lsb);
-
-    btgatt_gatt_id_t char_id;
-    char_id.inst_id = (uint8_t) char_id_inst_id;
-    set_uuid(char_id.uuid.uu, char_id_uuid_msb, char_id_uuid_lsb);
-
-    if (char_id_uuid_lsb == 0)
-    {
-        sGattIf->client->get_characteristic(conn_id, &srvc_id, 0);
-    } else {
-        sGattIf->client->get_characteristic(conn_id, &srvc_id, &char_id);
-    }
-}
-
-static void gattClientGetDescriptorNative(JNIEnv* env, jobject object,
-    jint conn_id,
-    jint  service_type, jint  service_id_inst_id,
-    jlong service_id_uuid_lsb, jlong service_id_uuid_msb,
-    jint  char_id_inst_id,
-    jlong char_id_uuid_lsb, jlong char_id_uuid_msb,
-    jint descr_id_inst_id,
-    jlong descr_id_uuid_lsb, jlong descr_id_uuid_msb)
-{
-    if (!sGattIf) return;
-
-    btgatt_srvc_id_t srvc_id;
-    srvc_id.id.inst_id = (uint8_t) service_id_inst_id;
-    srvc_id.is_primary = (service_type == BTGATT_SERVICE_TYPE_PRIMARY ? 1 : 0);
-    set_uuid(srvc_id.id.uuid.uu, service_id_uuid_msb, service_id_uuid_lsb);
-
-    btgatt_gatt_id_t char_id;
-    char_id.inst_id = (uint8_t) char_id_inst_id;
-    set_uuid(char_id.uuid.uu, char_id_uuid_msb, char_id_uuid_lsb);
-
-    btgatt_gatt_id_t descr_id;
-    descr_id.inst_id = (uint8_t) descr_id_inst_id;
-    set_uuid(descr_id.uuid.uu, descr_id_uuid_msb, descr_id_uuid_lsb);
-
-    if (descr_id_uuid_lsb == 0)
-    {
-        sGattIf->client->get_descriptor(conn_id, &srvc_id, &char_id, 0);
-    } else {
-        sGattIf->client->get_descriptor(conn_id, &srvc_id, &char_id, &descr_id);
-    }
-}
-
-static void gattClientGetIncludedServiceNative(JNIEnv* env, jobject object,
-    jint conn_id, jint service_type, jint service_id_inst_id,
-    jlong service_id_uuid_lsb, jlong service_id_uuid_msb,
-    jint incl_service_id_inst_id, jint incl_service_type,
-    jlong incl_service_id_uuid_lsb, jlong incl_service_id_uuid_msb)
-{
-    if (!sGattIf) return;
-
-    btgatt_srvc_id_t srvc_id;
-    srvc_id.id.inst_id = (uint8_t) service_id_inst_id;
-    srvc_id.is_primary = (service_type == BTGATT_SERVICE_TYPE_PRIMARY ? 1 : 0);
-    set_uuid(srvc_id.id.uuid.uu, service_id_uuid_msb, service_id_uuid_lsb);
-
-    btgatt_srvc_id_t  incl_srvc_id;
-    incl_srvc_id.id.inst_id = (uint8_t) incl_service_id_inst_id;
-    incl_srvc_id.is_primary = (incl_service_type == BTGATT_SERVICE_TYPE_PRIMARY ? 1 : 0);
-    set_uuid(incl_srvc_id.id.uuid.uu, incl_service_id_uuid_msb, incl_service_id_uuid_lsb);
-
-    if (incl_service_id_uuid_lsb == 0)
-    {
-        sGattIf->client->get_included_service(conn_id, &srvc_id, 0);
-    } else {
-        sGattIf->client->get_included_service(conn_id, &srvc_id, &incl_srvc_id);
-    }
+    sGattIf->client->get_gatt_db(conn_id);
 }
 
 static void gattClientReadCharacteristicNative(JNIEnv* env, jobject object,
@@ -1851,9 +1788,7 @@ static JNINativeMethod sMethods[] = {
     {"gattClientDisconnectNative", "(ILjava/lang/String;I)V", (void *) gattClientDisconnectNative},
     {"gattClientRefreshNative", "(ILjava/lang/String;)V", (void *) gattClientRefreshNative},
     {"gattClientSearchServiceNative", "(IZJJ)V", (void *) gattClientSearchServiceNative},
-    {"gattClientGetCharacteristicNative", "(IIIJJIJJ)V", (void *) gattClientGetCharacteristicNative},
-    {"gattClientGetDescriptorNative", "(IIIJJIJJIJJ)V", (void *) gattClientGetDescriptorNative},
-    {"gattClientGetIncludedServiceNative", "(IIIJJIIJJ)V", (void *) gattClientGetIncludedServiceNative},
+    {"gattClientGetGattDbNative", "(I)V", (void *) gattClientGetGattDbNative},
     {"gattClientReadCharacteristicNative", "(IIIJJIJJI)V", (void *) gattClientReadCharacteristicNative},
     {"gattClientReadDescriptorNative", "(IIIJJIJJIJJI)V", (void *) gattClientReadDescriptorNative},
     {"gattClientWriteCharacteristicNative", "(IIIJJIJJII[B)V", (void *) gattClientWriteCharacteristicNative},
