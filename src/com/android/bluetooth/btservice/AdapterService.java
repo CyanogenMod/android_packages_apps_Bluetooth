@@ -2223,7 +2223,7 @@ public class AdapterService extends Service {
         enforceCallingOrSelfPermission(android.Manifest.permission.DUMP, TAG);
 
         if (args.length > 0) {
-            debugLog("dumpsys arguments, skipping normal dumpsys: " +
+            debugLog("dumpsys arguments, check for protobuf output: " +
                     TextUtils.join(" ", args));
             if (args[0].startsWith("--proto")) {
                 if (args[0].equals("--proto-java-bin")) {
@@ -2231,8 +2231,8 @@ public class AdapterService extends Service {
                 } else {
                     dumpNative(fd, args);
                 }
+                return;
             }
-            return;
         }
 
         writer.println("Bluetooth Status");
