@@ -107,7 +107,36 @@ public class Config {
         return SUPPORTED_PROFILES;
     }
 
+    static long getSupportedProfilesBitMask() {
+        long mask = 0;
+        for (final Class profileClass : getSupportedProfiles()) {
+            final int profileIndex = getProfileIndex(profileClass);
+
+            if (profileIndex != -1) {
+                mask |= 1 << getProfileIndex(profileClass);
+            }
+        }
+
+        return mask;
+    }
+
     private static boolean isProfileDisabled(Context context, Class profile) {
+        final int profileIndex = getProfileIndex(profile);
+
+        if (profileIndex == -1) {
+            Log.w(TAG, "Could not find profile bit mask");
+            return false;
+        }
+
+        final ContentResolver resolver = context.getContentResolver();
+        final long disabledProfilesBitMask = Settings.Global.getLong(resolver,
+                Settings.Global.BLUETOOTH_DISABLED_PROFILES, 0);
+        final long profileBit = 1 << profileIndex;
+
+        return (disabledProfilesBitMask & profileBit) != 0;
+    }
+
+    private static int getProfileIndex(Class profile) {
         int profileIndex = -1;
 
         if (profile == HeadsetService.class) {
@@ -134,16 +163,6 @@ public class Config {
             profileIndex = BluetoothProfile.SAP;
         }
 
-        if (profileIndex == -1) {
-            Log.d(TAG, "Could not find profile bit mask");
-            return false;
-        }
-
-        final ContentResolver resolver = context.getContentResolver();
-        final long disabledProfilesBitMask = Settings.Global.getLong(resolver,
-                Settings.Global.BLUETOOTH_DISABLED_PROFILES, 0);
-        long profileBit = 1 << profileIndex;
-
-        return (disabledProfilesBitMask & profileBit) != 0;
+        return profileIndex;
     }
 }
