@@ -50,6 +50,8 @@ static jmethodID method_onAtCops;
 static jmethodID method_onAtClcc;
 static jmethodID method_onUnknownAt;
 static jmethodID method_onKeyPressed;
+static jmethodID method_onAtBind;
+static jmethodID method_onAtBiev;
 
 static const bthf_interface_t *sBluetoothHfpInterface = NULL;
 static jobject mCallbacksObj = NULL;
@@ -377,6 +379,34 @@ static void key_pressed_callback(bt_bdaddr_t* bd_addr) {
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
+static void at_bind_callback(char *at_string, bt_bdaddr_t *bd_addr) {
+    CHECK_CALLBACK_ENV
+
+    jbyteArray addr = marshall_bda(bd_addr);
+    if (addr == NULL)
+        return;
+
+    jstring js_at_string = sCallbackEnv->NewStringUTF(at_string);
+
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtBind, js_at_string, addr);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+
+    sCallbackEnv->DeleteLocalRef(js_at_string);
+    sCallbackEnv->DeleteLocalRef(addr);
+}
+
+static void at_biev_callback(bthf_hf_ind_type_t ind_id, int ind_value, bt_bdaddr_t *bd_addr) {
+    CHECK_CALLBACK_ENV
+
+    jbyteArray addr = marshall_bda(bd_addr);
+    if (addr == NULL)
+        return;
+
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtBiev, ind_id, (jint)ind_value, addr);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+    sCallbackEnv->DeleteLocalRef(addr);
+}
+
 static bthf_callbacks_t sBluetoothHfpCallbacks = {
     sizeof(sBluetoothHfpCallbacks),
     connection_state_callback,
@@ -395,6 +425,8 @@ static bthf_callbacks_t sBluetoothHfpCallbacks = {
     at_cops_callback,
     at_clcc_callback,
     unknown_at_callback,
+    at_bind_callback,
+    at_biev_callback,
     key_pressed_callback
 };
 
@@ -417,6 +449,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onAtClcc = env->GetMethodID(clazz, "onAtClcc", "([B)V");
     method_onUnknownAt = env->GetMethodID(clazz, "onUnknownAt", "(Ljava/lang/String;[B)V");
     method_onKeyPressed = env->GetMethodID(clazz, "onKeyPressed", "([B)V");
+    method_onAtBind = env->GetMethodID(clazz, "onATBind", "(Ljava/lang/String;[B)V");
+    method_onAtBiev = env->GetMethodID(clazz, "onATBiev", "(II[B)V");
 
     ALOGI("%s: succeeds", __FUNCTION__);
 }
@@ -678,6 +712,30 @@ static jboolean cindResponseNative(JNIEnv *env, jobject object,
     return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
+static jboolean bindResponseNative(JNIEnv *env,jobject object,
+                                jint ind_id, jboolean ind_status,
+                                jbyteArray address) {
+    ALOGI("%s: sBluetoothHfpInterface: %p", __FUNCTION__, sBluetoothHfpInterface);
+
+    if (!sBluetoothHfpInterface)
+        return JNI_FALSE;
+
+    jbyte *addr = env->GetByteArrayElements(address, NULL);
+    if (!addr) {
+        jniThrowIOException(env, EINVAL);
+        return JNI_FALSE;
+    }
+
+    bt_status_t status = sBluetoothHfpInterface->bind_response((bthf_hf_ind_type_t) ind_id,
+                   ind_status ? BTHF_HF_IND_ENABLED : BTHF_HF_IND_DISABLED,
+                   (bt_bdaddr_t *)addr);
+
+    if (status != BT_STATUS_SUCCESS)
+        ALOGE("%s: Failed bind_response, status: %d", __FUNCTION__, status);
+
+    env->ReleaseByteArrayElements(address, addr, 0);
+    return (status == BT_STATUS_SUCCESS ? JNI_TRUE : JNI_FALSE);
+}
 
 static jboolean atResponseStringNative(JNIEnv *env, jobject object, jstring response_str,
                                                  jbyteArray address) {
@@ -806,6 +864,7 @@ static JNINativeMethod sMethods[] = {
     {"notifyDeviceStatusNative", "(IIII)Z", (void *) notifyDeviceStatusNative},
     {"copsResponseNative", "(Ljava/lang/String;[B)Z", (void *) copsResponseNative},
     {"cindResponseNative", "(IIIIIII[B)Z", (void *) cindResponseNative},
+    {"bindResponseNative", "(IZ[B)Z", (void *)bindResponseNative},
     {"atResponseStringNative", "(Ljava/lang/String;[B)Z", (void *) atResponseStringNative},
     {"atResponseCodeNative", "(II[B)Z", (void *)atResponseCodeNative},
     {"clccResponseNative", "(IIIIZLjava/lang/String;I[B)Z", (void *) clccResponseNative},

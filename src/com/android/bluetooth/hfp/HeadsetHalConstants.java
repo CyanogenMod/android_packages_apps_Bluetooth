@@ -64,4 +64,8 @@ final public class HeadsetHalConstants {
     final static int CALL_STATE_INCOMING = 4;
     final static int CALL_STATE_WAITING = 5;
     final static int CALL_STATE_IDLE = 6;
+
+    // Match up with bthf_hf_ind_type_t of bt_hf.h
+    final static int HF_INDICATOR_ENHANCED_DRIVER_SAFETY = 1;
+    final static int HF_INDICATOR_BATTERY_LEVEL_STATUS = 2;
 }
