@@ -78,7 +78,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
             appName = name;
         }
 
-        void recordScanStart(ScanSettings settings) {
+        synchronized void recordScanStart(ScanSettings settings) {
             if (isScanning)
                 return;
 
@@ -109,7 +109,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
             }
         }
 
-        void recordScanStop() {
+        synchronized void recordScanStop() {
             if (!isScanning)
               return;
 
@@ -139,6 +139,82 @@ import com.android.bluetooth.btservice.BluetoothProto;
                     mScanEvents.remove(0);
                 mScanEvents.add(scanEvent);
             }
+        }
+
+        synchronized void dumpToString(StringBuilder sb) {
+            long currTime = System.currentTimeMillis();
+            long maxScan = maxScanTime;
+            long minScan = minScanTime;
+            long currScan = 0;
+
+            if (isScanning) {
+                currScan = currTime - startTime;
+                minScan = Math.min(currScan, minScan);
+                maxScan = Math.max(currScan, maxScan);
+            }
+
+            if (minScan == Long.MAX_VALUE) {
+                minScan = 0;
+            }
+
+            long lastScan = 0;
+            if (stopTime != 0) {
+                lastScan = currTime - stopTime;
+            }
+
+            long avgScan = 0;
+            if (scansStarted > 0) {
+                avgScan = (totalScanTime + currScan) / scansStarted;
+            }
+
+            sb.append("  " + appName);
+            if (isRegistered) sb.append(" (Registered)");
+            if (isOpportunisticScan) sb.append(" (Opportunistic)");
+            if (isBackgroundScan) sb.append(" (Background)");
+            sb.append("\n");
+
+            sb.append("  LE scans (started/stopped)       : " +
+                      scansStarted + " / " +
+                      scansStopped + "\n");
+            sb.append("  Scan time in ms (min/max/avg)    : " +
+                      minScan + " / " +
+                      maxScan + " / " +
+                      avgScan + "\n");
+
+            if (lastScans.size() != 0) {
+                sb.append("  Last " + lastScans.size() +
+                          " scans (timestamp - duration):\n");
+
+                for (int i = 0; i < lastScans.size(); i++) {
+                    Date timestamp = new Date(lastScanTimestamps.get(i));
+                    sb.append("    " + dateFormat.format(timestamp) + " - ");
+                    sb.append(lastScans.get(i) + "ms\n");
+                }
+            }
+
+            if (isRegistered) {
+                App appEntry = getByName(appName);
+                sb.append("  Application ID                   : " +
+                          appEntry.id + "\n");
+                sb.append("  UUID                             : " +
+                          appEntry.uuid + "\n");
+
+                if (isScanning) {
+                    sb.append("  Current scan duration in ms      : " +
+                              currScan + "\n");
+                }
+
+                List<Connection> connections = getConnectionByApp(appEntry.id);
+                sb.append("  Connections: " + connections.size() + "\n");
+
+                Iterator<Connection> ii = connections.iterator();
+                while(ii.hasNext()) {
+                    Connection connection = ii.next();
+                    sb.append("    " + connection.connId + ": " +
+                              connection.address + "\n");
+                }
+            }
+            sb.append("\n");
         }
     }
 
@@ -478,8 +554,6 @@ import com.android.bluetooth.btservice.BluetoothProto;
      * Logs debug information.
      */
     void dump(StringBuilder sb) {
-        long currTime = System.currentTimeMillis();
-
         sb.append("  Entries: " + mScanStats.size() + "\n\n");
 
         Iterator<Map.Entry<String,ScanStats>> it = mScanStats.entrySet().iterator();
@@ -488,80 +562,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
 
             String name = entry.getKey();
             ScanStats scanStats = entry.getValue();
-
-            long maxScanTime = scanStats.maxScanTime;
-            long minScanTime = scanStats.minScanTime;
-            long currScanTime = 0;
-
-            if (scanStats.isScanning) {
-                currScanTime = currTime - scanStats.startTime;
-                minScanTime = Math.min(currScanTime, minScanTime);
-                maxScanTime = Math.max(currScanTime, maxScanTime);
-            }
-
-            if (minScanTime == Long.MAX_VALUE) {
-                minScanTime = 0;
-            }
-
-            long lastScan = 0;
-            if (scanStats.stopTime != 0) {
-                lastScan = currTime - scanStats.stopTime;
-            }
-
-            long avgScanTime = 0;
-            if (scanStats.scansStarted > 0) {
-                avgScanTime = (scanStats.totalScanTime + currScanTime) /
-                              scanStats.scansStarted;
-            }
-
-            sb.append("  " + name);
-            if (scanStats.isRegistered) sb.append(" (Registered)");
-            if (scanStats.isOpportunisticScan) sb.append(" (Opportunistic)");
-            if (scanStats.isBackgroundScan) sb.append(" (Background)");
-            sb.append("\n");
-
-            sb.append("  LE scans (started/stopped)       : " +
-                      scanStats.scansStarted + " / " +
-                      scanStats.scansStopped + "\n");
-            sb.append("  Scan time in ms (min/max/avg)    : " +
-                      minScanTime + " / " +
-                      maxScanTime + " / " +
-                      avgScanTime + "\n");
-
-            if (scanStats.lastScans.size() != 0) {
-                sb.append("  Last " + scanStats.lastScans.size() +
-                          " scans (timestamp - duration):\n");
-
-                for (int i = 0; i < scanStats.lastScans.size(); i++) {
-                    Date timestamp = new Date(scanStats.lastScanTimestamps.get(i));
-                    sb.append("    " + dateFormat.format(timestamp) + " - ");
-                    sb.append(scanStats.lastScans.get(i) + "ms\n");
-                }
-            }
-
-            if (scanStats.isRegistered) {
-                App appEntry = getByName(name);
-                sb.append("  Application ID                   : " +
-                          appEntry.id + "\n");
-                sb.append("  UUID                             : " +
-                          appEntry.uuid + "\n");
-
-                if (scanStats.isScanning) {
-                    sb.append("  Current scan duration in ms      : " +
-                              currScanTime + "\n");
-                }
-
-                List<Connection> connections = getConnectionByApp(appEntry.id);
-                sb.append("  Connections: " + connections.size() + "\n");
-
-                Iterator<Connection> ii = connections.iterator();
-                while(ii.hasNext()) {
-                    Connection connection = ii.next();
-                    sb.append("    " + connection.connId + ": " +
-                              connection.address + "\n");
-                }
-            }
-            sb.append("\n");
+            scanStats.dumpToString(sb);
         }
     }
 
