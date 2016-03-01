@@ -102,6 +102,7 @@ public class AdapterService extends Service {
     //For Debugging only
     private static int sRefCount=0;
 
+    private final Object mEnergyInfoLock = new Object();
     private int mStackReportedState;
     private int mTxTimeTotalMs;
     private int mRxTimeTotalMs;
@@ -2024,42 +2025,45 @@ public class AdapterService extends Service {
 
     private BluetoothActivityEnergyInfo reportActivityInfo() {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED, "Need BLUETOOTH permission");
-        BluetoothActivityEnergyInfo info =
-            new BluetoothActivityEnergyInfo(SystemClock.elapsedRealtime(), mStackReportedState,
+        synchronized (mEnergyInfoLock) {
+            final BluetoothActivityEnergyInfo info = new BluetoothActivityEnergyInfo(
+                    SystemClock.elapsedRealtime(),
+                    mStackReportedState,
                     mTxTimeTotalMs, mRxTimeTotalMs, mIdleTimeTotalMs,
                     mEnergyUsedTotalVoltAmpSecMicro);
 
-        // Count the number of entries that have byte counts > 0
-        int arrayLen = 0;
-        for (int i = 0; i < mUidTraffic.size(); i++) {
-            final UidTraffic traffic = mUidTraffic.valueAt(i);
-            if (traffic.getTxBytes() != 0 || traffic.getRxBytes() != 0) {
-                arrayLen++;
+            // Count the number of entries that have byte counts > 0
+            int arrayLen = 0;
+            for (int i = 0; i < mUidTraffic.size(); i++) {
+                final UidTraffic traffic = mUidTraffic.valueAt(i);
+                if (traffic.getTxBytes() != 0 || traffic.getRxBytes() != 0) {
+                    arrayLen++;
+                }
             }
-        }
 
-        // Copy the traffic objects whose byte counts are > 0 and reset the originals.
-        final UidTraffic[] result = arrayLen > 0 ? new UidTraffic[arrayLen] : null;
-        int putIdx = 0;
-        for (int i = 0; i < mUidTraffic.size(); i++) {
-            final UidTraffic traffic = mUidTraffic.valueAt(i);
-            if (traffic.getTxBytes() != 0 || traffic.getRxBytes() != 0) {
-                result[putIdx++] = traffic.clone();
-                traffic.setRxBytes(0);
-                traffic.setTxBytes(0);
+            // Copy the traffic objects whose byte counts are > 0 and reset the originals.
+            final UidTraffic[] result = arrayLen > 0 ? new UidTraffic[arrayLen] : null;
+            int putIdx = 0;
+            for (int i = 0; i < mUidTraffic.size(); i++) {
+                final UidTraffic traffic = mUidTraffic.valueAt(i);
+                if (traffic.getTxBytes() != 0 || traffic.getRxBytes() != 0) {
+                    result[putIdx++] = traffic.clone();
+                    traffic.setRxBytes(0);
+                    traffic.setTxBytes(0);
+                }
             }
+
+            info.setUidTraffic(result);
+
+            // Read on clear values; a record of data is created with
+            // timstamp and new samples are collected until read again
+            mStackReportedState = 0;
+            mTxTimeTotalMs = 0;
+            mRxTimeTotalMs = 0;
+            mIdleTimeTotalMs = 0;
+            mEnergyUsedTotalVoltAmpSecMicro = 0;
+            return info;
         }
-
-        info.setUidTraffic(result);
-
-        // Read on clear values; a record of data is created with
-        // timstamp and new samples are collected until read again
-        mStackReportedState = 0;
-        mTxTimeTotalMs = 0;
-        mRxTimeTotalMs = 0;
-        mIdleTimeTotalMs = 0;
-        mEnergyUsedTotalVoltAmpSecMicro = 0;
-        return info;
     }
 
     public int getTotalNumOfTrackableAdvertisements() {
@@ -2171,35 +2175,38 @@ public class AdapterService extends Service {
             throws RemoteException {
         if (ctrl_state >= BluetoothActivityEnergyInfo.BT_STACK_STATE_INVALID &&
                 ctrl_state <= BluetoothActivityEnergyInfo.BT_STACK_STATE_STATE_IDLE) {
-            mStackReportedState = ctrl_state;
-            mTxTimeTotalMs += tx_time;
-            mRxTimeTotalMs += rx_time;
-            mIdleTimeTotalMs += idle_time;
             // Energy is product of mA, V and ms. If the chipset doesn't
             // report it, we have to compute it from time
             if (energy_used == 0) {
-                energy_used = (long)((mTxTimeTotalMs * getTxCurrentMa()
-                    + mRxTimeTotalMs * getRxCurrentMa()
-                    + mIdleTimeTotalMs * getIdleCurrentMa()) * getOperatingVolt());
+                energy_used = (long)((tx_time * getTxCurrentMa()
+                        + rx_time * getRxCurrentMa()
+                        + idle_time * getIdleCurrentMa()) * getOperatingVolt());
             }
-            mEnergyUsedTotalVoltAmpSecMicro += energy_used;
 
-            for (UidTraffic traffic : data) {
-                UidTraffic existingTraffic = mUidTraffic.get(traffic.getUid());
-                if (existingTraffic == null) {
-                    mUidTraffic.put(traffic.getUid(), traffic);
-                } else {
-                    existingTraffic.addRxBytes(traffic.getRxBytes());
-                    existingTraffic.addTxBytes(traffic.getTxBytes());
+            synchronized (mEnergyInfoLock) {
+                mStackReportedState = ctrl_state;
+                mTxTimeTotalMs += tx_time;
+                mRxTimeTotalMs += rx_time;
+                mIdleTimeTotalMs += idle_time;
+                mEnergyUsedTotalVoltAmpSecMicro += energy_used;
+
+                for (UidTraffic traffic : data) {
+                    UidTraffic existingTraffic = mUidTraffic.get(traffic.getUid());
+                    if (existingTraffic == null) {
+                        mUidTraffic.put(traffic.getUid(), traffic);
+                    } else {
+                        existingTraffic.addRxBytes(traffic.getRxBytes());
+                        existingTraffic.addTxBytes(traffic.getTxBytes());
+                    }
                 }
             }
         }
 
         debugLog("energyInfoCallback() status = " + status +
-            "tx_time = " + tx_time + "rx_time = " + rx_time +
-            "idle_time = " + idle_time + "energy_used = " + energy_used +
-            "ctrl_state = " + ctrl_state +
-            "traffic = " + Arrays.toString(data));
+                "tx_time = " + tx_time + "rx_time = " + rx_time +
+                "idle_time = " + idle_time + "energy_used = " + energy_used +
+                "ctrl_state = " + ctrl_state +
+                "traffic = " + Arrays.toString(data));
     }
 
     private int getIdleCurrentMa() {
