@@ -356,7 +356,8 @@ static void discovery_state_changed_callback(bt_discovery_state_t state) {
 
 static void pin_request_callback(bt_bdaddr_t *bd_addr, bt_bdname_t *bdname, uint32_t cod,
         bool min_16_digits) {
-    jbyteArray addr, devname;
+    jbyteArray addr = NULL;
+    jbyteArray devname = NULL;
     if (!checkCallbackThread()) {
        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
        return;
@@ -391,7 +392,8 @@ Fail:
 
 static void ssp_request_callback(bt_bdaddr_t *bd_addr, bt_bdname_t *bdname, uint32_t cod,
                                  bt_ssp_variant_t pairing_variant, uint32_t pass_key) {
-    jbyteArray addr, devname;
+    jbyteArray addr = NULL;
+    jbyteArray devname = NULL;
     if (!checkCallbackThread()) {
        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
        return;
@@ -803,7 +805,9 @@ static jboolean createBondNative(JNIEnv* env, jobject obj, jbyteArray address, j
     return result;
 }
 
-static jbyteArray callByteArrayGetter(JNIEnv* env, jobject object, char* className, char* methodName) {
+static jbyteArray callByteArrayGetter(JNIEnv* env, jobject object,
+                                      const char* className,
+                                      const char* methodName) {
     jclass myClass = env->FindClass(className);
     jmethodID myMethod = env->GetMethodID(myClass, methodName, "()[B");
     return (jbyteArray) env->CallObjectMethod(object, myMethod);

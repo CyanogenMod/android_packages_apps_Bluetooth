@@ -632,7 +632,10 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_batchscan_reports_cb,
     btgattc_batchscan_threshold_cb,
     btgattc_track_adv_event_cb,
-    btgattc_scan_parameter_setup_completed_cb
+    btgattc_scan_parameter_setup_completed_cb,
+    NULL, /* get_gatt_db_cb */
+    NULL, /* services_removed_cb */
+    NULL  /* services_added_cb */
 };
 
 

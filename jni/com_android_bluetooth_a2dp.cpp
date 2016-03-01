@@ -96,7 +96,9 @@ static void bta2dp_audio_state_callback(btav_audio_state_t state, bt_bdaddr_t* b
 static btav_callbacks_t sBluetoothA2dpCallbacks = {
     sizeof(sBluetoothA2dpCallbacks),
     bta2dp_connection_state_callback,
-    bta2dp_audio_state_callback
+    bta2dp_audio_state_callback,
+    NULL, /* audio_config_cb */
+    NULL  /* audio_focus_request_cb */
 };
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
@@ -215,7 +217,7 @@ static JNINativeMethod sMethods[] = {
 
 int register_com_android_bluetooth_a2dp(JNIEnv* env)
 {
-    return jniRegisterNativeMethods(env, "com/android/bluetooth/a2dp/A2dpStateMachine", 
+    return jniRegisterNativeMethods(env, "com/android/bluetooth/a2dp/A2dpStateMachine",
                                     sMethods, NELEM(sMethods));
 }
 
