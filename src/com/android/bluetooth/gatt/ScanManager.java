@@ -235,12 +235,12 @@ public class ScanManager {
             Utils.enforceAdminPermission(mService);
             if (client == null) return;
 
-            // The ScanClient passed in just holds the clientIf. We retrieve the real client,
-            // which may have workSource set.
-            client = mScanNative.getClient(client.clientIf);
-            if (client == null) return;
-
             if (mRegularScanClients.contains(client)) {
+                // The ScanClient passed in just holds the clientIf. We retrieve the real client,
+                // which may have workSource set.
+                client = mScanNative.getRegularScanClient(client.clientIf);
+                if (client == null) return;
+
                 mScanNative.stopRegularScan(client);
                 if (!mScanNative.isOpportunisticScanClient(client)) {
                     mScanNative.configureRegularScanParams();
@@ -647,8 +647,8 @@ public class ScanManager {
             removeScanFilters(client.clientIf);
         }
 
-        // Find the scan client information
-        ScanClient getClient(int clientIf) {
+        // Find the regular scan client information.
+        ScanClient getRegularScanClient(int clientIf) {
             for (ScanClient client : mRegularScanClients) {
               if (client.clientIf == clientIf) return client;
             }
