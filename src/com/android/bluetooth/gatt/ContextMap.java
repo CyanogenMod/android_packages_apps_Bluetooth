@@ -57,6 +57,22 @@ import com.android.bluetooth.btservice.BluetoothProto;
      * on a per application basis.
      */
     class ScanStats {
+
+        class LastScan {
+            long durration;
+            long timestamp;
+            boolean opportunistic;
+            boolean background;
+
+            public LastScan(long timestamp, long durration,
+                            boolean opportunistic, boolean background) {
+                this.durration = durration;
+                this.timestamp = timestamp;
+                this.opportunistic = opportunistic;
+                this.background = background;
+            }
+        }
+
         static final int NUM_SCAN_DURATIONS_KEPT = 5;
 
         String appName;
@@ -69,8 +85,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
         long minScanTime = Long.MAX_VALUE;
         long maxScanTime = 0;
         long totalScanTime = 0;
-        List<Long> lastScans = new ArrayList<Long>(NUM_SCAN_DURATIONS_KEPT + 1);
-        List<Long> lastScanTimestamps = new ArrayList<Long>(NUM_SCAN_DURATIONS_KEPT + 1);
+        List<LastScan> lastScans = new ArrayList<LastScan>(NUM_SCAN_DURATIONS_KEPT + 1);
         long startTime = 0;
         long stopTime = 0;
 
@@ -97,9 +112,11 @@ import com.android.bluetooth.btservice.BluetoothProto;
             scanEvent.setInitiator(appName);
             scanEvent.setEventTimeMillis(System.currentTimeMillis());
 
-            lastScanTimestamps.add(startTime);
-            if (lastScanTimestamps.size() > NUM_SCAN_DURATIONS_KEPT) {
-                lastScanTimestamps.remove(0);
+            lastScans.add(new LastScan(startTime, 0, false, false));
+
+            if (settings != null) {
+              isOpportunisticScan = settings.getScanMode() == ScanSettings.SCAN_MODE_OPPORTUNISTIC;
+              isBackgroundScan = (settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_FIRST_MATCH) != 0;
             }
 
             synchronized(mScanEvents) {
@@ -118,13 +135,18 @@ import com.android.bluetooth.btservice.BluetoothProto;
             stopTime = System.currentTimeMillis();
             long currTime = stopTime - startTime;
 
-            isOpportunisticScan = false;
-            isBackgroundScan = false;
-
             minScanTime = Math.min(currTime, minScanTime);
             maxScanTime = Math.max(currTime, maxScanTime);
             totalScanTime += currTime;
-            lastScans.add(currTime);
+
+            LastScan curr = lastScans.get(lastScans.size() - 1);
+            curr.durration = currTime;
+            curr.opportunistic = isOpportunisticScan;
+            curr.background = isBackgroundScan;
+
+            isOpportunisticScan = false;
+            isBackgroundScan = false;
+
             if (lastScans.size() > NUM_SCAN_DURATIONS_KEPT) {
                 lastScans.remove(0);
             }
@@ -173,34 +195,41 @@ import com.android.bluetooth.btservice.BluetoothProto;
             if (isBackgroundScan) sb.append(" (Background)");
             sb.append("\n");
 
-            sb.append("  LE scans (started/stopped)       : " +
+            sb.append("  LE scans (started/stopped)         : " +
                       scansStarted + " / " +
                       scansStopped + "\n");
-            sb.append("  Scan time in ms (min/max/avg)    : " +
+            sb.append("  Scan time in ms (min/max/avg/total): " +
                       minScan + " / " +
                       maxScan + " / " +
-                      avgScan + "\n");
+                      avgScan + " / " +
+                      totalScanTime + "\n");
 
             if (lastScans.size() != 0) {
-                sb.append("  Last " + lastScans.size() +
-                          " scans (timestamp - duration):\n");
+                int lastScansSize = scansStopped < NUM_SCAN_DURATIONS_KEPT ?
+                                    scansStopped : NUM_SCAN_DURATIONS_KEPT;
+                sb.append("  Last " + lastScansSize +
+                          " scans                       :\n");
 
-                for (int i = 0; i < lastScans.size(); i++) {
-                    Date timestamp = new Date(lastScanTimestamps.get(i));
+                for (int i = 0; i < lastScansSize; i++) {
+                    LastScan scan = lastScans.get(i);
+                    Date timestamp = new Date(scan.timestamp);
                     sb.append("    " + dateFormat.format(timestamp) + " - ");
-                    sb.append(lastScans.get(i) + "ms\n");
+                    sb.append(scan.durration + "ms ");
+                    if (scan.opportunistic) sb.append("Opp ");
+                    if (scan.background) sb.append("Back");
+                    sb.append("\n");
                 }
             }
 
             if (isRegistered) {
                 App appEntry = getByName(appName);
-                sb.append("  Application ID                   : " +
+                sb.append("  Application ID                     : " +
                           appEntry.id + "\n");
-                sb.append("  UUID                             : " +
+                sb.append("  UUID                               : " +
                           appEntry.uuid + "\n");
 
                 if (isScanning) {
-                    sb.append("  Current scan duration in ms      : " +
+                    sb.append("  Current scan duration in ms        : " +
                               currScan + "\n");
                 }
 
@@ -210,8 +239,9 @@ import com.android.bluetooth.btservice.BluetoothProto;
                 Iterator<Connection> ii = connections.iterator();
                 while(ii.hasNext()) {
                     Connection connection = ii.next();
+                    long connectionTime = System.currentTimeMillis() - connection.startTime;
                     sb.append("    " + connection.connId + ": " +
-                              connection.address + "\n");
+                              connection.address + " " + connectionTime + "ms\n");
                 }
             }
             sb.append("\n");
@@ -225,11 +255,13 @@ import com.android.bluetooth.btservice.BluetoothProto;
         int connId;
         String address;
         int appId;
+        long startTime;
 
         Connection(int connId, String address,int appId) {
             this.connId = connId;
             this.address = address;
             this.appId = appId;
+            this.startTime = System.currentTimeMillis();
         }
     }
 
