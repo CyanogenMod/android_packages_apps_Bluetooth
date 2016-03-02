@@ -21,6 +21,10 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattIncludedService;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothGatt;
 import android.bluetooth.IBluetoothGattCallback;
@@ -726,60 +730,48 @@ public class GattService extends ProfileService {
             return;
         }
 
-        ParcelUuid currSrvcUuid = null;
-        int currSrvcType = 0;
-        int currSrvcInstId = 0;
-        ParcelUuid currCharUuid = null;
-        int currCharInstId = 0;
+        List<BluetoothGattService> db_out = new ArrayList<BluetoothGattService>();
+
+        BluetoothGattService currSrvc = null;
+        BluetoothGattCharacteristic currChar = null;
 
         for (GattDbElement el: db) {
-            ParcelUuid uuid = new ParcelUuid(el.uuid);
-
             switch (el.type)
             {
                 case GattDbElement.TYPE_PRIMARY_SERVICE:
                 case GattDbElement.TYPE_SECONDARY_SERVICE:
-                    if (DBG) Log.d(TAG, "got service with UUID=" + uuid);
-                    currSrvcType = el.type;
-                    currSrvcInstId = el.id;
-                    currSrvcUuid = uuid;
+                    if (DBG) Log.d(TAG, "got service with UUID=" + el.uuid);
 
-                    app.callback.onGetService(address, currSrvcType,
-                                currSrvcInstId, currSrvcUuid);
+                    currSrvc = new BluetoothGattService(el.uuid, el.id, el.type);
+                    db_out.add(currSrvc);
                     break;
 
                 case GattDbElement.TYPE_CHARACTERISTIC:
-                    if (DBG) Log.d(TAG, "got characteristic with UUID=" + uuid);
-                    currCharUuid = uuid;
-                    currCharInstId = el.id;
+                    if (DBG) Log.d(TAG, "got characteristic with UUID=" + el.uuid);
 
-                    app.callback.onGetCharacteristic(address, currSrvcType,
-                                currSrvcInstId, currSrvcUuid,
-                                currCharInstId, currCharUuid, el.properties);
+                    currChar = new BluetoothGattCharacteristic(el.uuid, el.id, el.properties, 0);
+                    currSrvc.addCharacteristic(currChar);
                     break;
 
                 case GattDbElement.TYPE_DESCRIPTOR:
-                    if (DBG) Log.d(TAG, "got descriptor with UUID=" + uuid);
-                    app.callback.onGetDescriptor(address, currSrvcType,
-                                currSrvcInstId, currSrvcUuid,
-                                currCharInstId, currCharUuid,
-                                el.id, uuid);
+                    if (DBG) Log.d(TAG, "got descriptor with UUID=" + el.uuid);
+
+                    currChar.addDescriptor(new BluetoothGattDescriptor(el.uuid, el.id, 0));
                     break;
 
                 case GattDbElement.TYPE_INCLUDED_SERVICE:
-                    if (DBG) Log.d(TAG, "got included service with UUID=" + uuid);
-                    app.callback.onGetIncludedService(address, currSrvcType,
-                                currSrvcInstId, currSrvcUuid,
-                                el.type, el.id, uuid);
+                    if (DBG) Log.d(TAG, "got included service with UUID=" + el.uuid);
+
+                    currSrvc.addIncludedService(new BluetoothGattService(el.uuid, el.id, el.type));
                     break;
 
                 default:
-                    Log.e(TAG, "got unknown element with type=" + el.type + " and UUID=" + uuid);
+                    Log.e(TAG, "got unknown element with type=" + el.type + " and UUID=" + el.uuid);
             }
         }
 
         // Search is complete when there was error, or nothing more to process
-        app.callback.onSearchComplete(address, 0 /* status */);
+        app.callback.onSearchComplete(address, db_out, 0 /* status */);
     }
 
     void onRegisterForNotifications(int connId, int status, int registered, int srvcType,
