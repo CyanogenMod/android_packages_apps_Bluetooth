@@ -16,7 +16,19 @@
      limitations under the License.
 -->
 <resources>
+  <!--
+        This is the short description of a permission associated with the
+        Bluetooth Avrcp Data Manager. It is displayed as part of the description of
+        any application that was granted that permission. This specific
+        permission controls access to the Bluetooth Avrcp Data Manager.
+    -->
   <string name="permlab_bluetoothAvrcpDataManager">AVRCP 메타 데이터에 접근</string>
+  <!--
+        This is the long description of a permission associated with the
+        Bluetooth Avrcp Data Manager. It is displayed as part of the description of
+        any application that was granted that permission. This specific
+        permission controls access to the Bluetooth Avrcp Data Manager.
+    -->
   <string name="permdesc_bluetoothAvrcpDataManager">앱이 블루투스 AVRCP 메타데이터에 접근하고 UI에 표시하는 데 사용하도록 허용합니다.</string>
   <string name="upload_fail_waiting">파일 전송 실패, 재시도 중\u2026</string>
 </resources>
