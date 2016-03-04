@@ -16,7 +16,19 @@
      limitations under the License.
 -->
 <resources>
+  <!--
+        This is the short description of a permission associated with the
+        Bluetooth Avrcp Data Manager. It is displayed as part of the description of
+        any application that was granted that permission. This specific
+        permission controls access to the Bluetooth Avrcp Data Manager.
+    -->
   <string name="permlab_bluetoothAvrcpDataManager">Toegang na AVRCP metadata.</string>
+  <!--
+        This is the long description of a permission associated with the
+        Bluetooth Avrcp Data Manager. It is displayed as part of the description of
+        any application that was granted that permission. This specific
+        permission controls access to the Bluetooth Avrcp Data Manager.
+    -->
   <string name="permdesc_bluetoothAvrcpDataManager">Laat die toep toegang toe na Bluetooth AVRCP metadata en gebruik dit om op die skerm te wys.</string>
   <string name="upload_fail_waiting">Kan nie lêer stuur nie, probeer weer\u2026</string>
 </resources>

@@ -16,5 +16,17 @@
      limitations under the License.
 -->
 <resources>
+  <!--
+        This is the short description of a permission associated with the
+        Bluetooth Avrcp Data Manager. It is displayed as part of the description of
+        any application that was granted that permission. This specific
+        permission controls access to the Bluetooth Avrcp Data Manager.
+    -->
+  <!--
+        This is the long description of a permission associated with the
+        Bluetooth Avrcp Data Manager. It is displayed as part of the description of
+        any application that was granted that permission. This specific
+        permission controls access to the Bluetooth Avrcp Data Manager.
+    -->
   <string name="upload_fail_waiting">ಕಡತ ಕಳುಹಿಸಲು ಸಾಧವಾಗುತ್ತಿಲ್ಲ, ಮರುಪ್ರಯತ್ನಿಸುತ್ತಿದೆ\u2026</string>
 </resources>
