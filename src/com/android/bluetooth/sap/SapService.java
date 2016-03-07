@@ -121,7 +121,14 @@ public class SapService extends ProfileService {
         }
     }
 
-
+    private void removeSdpRecord() {
+        if (mAdapter != null && mSdpHandle >= 0 &&
+                                SdpManager.getDefaultManager() != null) {
+            if(VERBOSE) Log.d(TAG, "Removing SDP record handle: " + mSdpHandle);
+            boolean status = SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
+            mSdpHandle = -1;
+        }
+    }
 
     private void startRfcommSocketListener() {
         if (VERBOSE) Log.v(TAG, "Sap Service startRfcommSocketListener");
@@ -148,10 +155,7 @@ public class SapService extends ProfileService {
                 //       for multiple connections.
                 mServerSocket = mAdapter.listenUsingRfcommOn(
                         BluetoothAdapter.SOCKET_CHANNEL_AUTO_STATIC_NO_SDP, true, true);
-                if (mSdpHandle >= 0) {
-                    SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
-                    if (VERBOSE) Log.d(TAG, "Removing SDP record");
-                }
+                removeSdpRecord();
                 mSdpHandle = SdpManager.getDefaultManager().createSapsRecord(SDP_SAP_SERVICE_NAME,
                         mServerSocket.getChannel(), SDP_SAP_VERSION);
             } catch (IOException e) {
@@ -656,6 +660,7 @@ public class SapService extends ProfileService {
             mIsWaitingAuthorization = false;
             cancelUserTimeoutAlarm();
         }
+        removeSdpRecord();
         mSessionStatusHandler.removeCallbacksAndMessages(null);
         // Request release of all resources
         mSessionStatusHandler.obtainMessage(SHUTDOWN).sendToTarget();
