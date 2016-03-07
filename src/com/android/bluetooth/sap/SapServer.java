@@ -350,16 +350,20 @@ public class SapServer extends Thread implements Callback {
                              *       close socket-streams and initiate cleanup */
                             if(VERBOSE) Log.d(TAG, "DISCONNECT_REQ");
 
-                            clearPendingRilResponses(msg);
-
-                            changeState(SAP_STATE.DISCONNECTING);
-
-                            sendRilThreadMessage(msg);
-                            /* We simply need to forward to RIL, but not change state to busy
-                             * - hence send and set message to null. */
-                            msg = null; // don't send twice
-                            /*cancel the timer for the hard-disconnect intent*/
-                            stopDisconnectTimer();
+                            if (mState ==  SAP_STATE.CONNECTING_CALL_ONGOING) {
+                                Log.d(TAG, "disconnect received when call was ongoing, " +
+                                     "send disconnect response");
+                                changeState(SAP_STATE.DISCONNECTING);
+                                SapMessage reply = new SapMessage(SapMessage.ID_DISCONNECT_RESP);
+                                sendClientMessage(reply);
+                            } else {
+                                clearPendingRilResponses(msg);
+                                changeState(SAP_STATE.DISCONNECTING);
+                                sendRilThreadMessage(msg);
+                                /*cancel the timer for the hard-disconnect intent*/
+                                stopDisconnectTimer();
+                            }
+                            msg = null; // No message needs to be sent to RIL
                             break;
                         case SapMessage.ID_POWER_SIM_OFF_REQ: // Fall through
                         case SapMessage.ID_RESET_SIM_REQ:
