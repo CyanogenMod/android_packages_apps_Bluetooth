@@ -44,14 +44,19 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.IntentFilter.MalformedMimeTypeException;
 import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.text.format.Time;
+import android.os.Build;
 import android.os.Binder;
 import android.os.Handler;
+import android.os.Message;
+import android.os.ParcelFileDescriptor;
 import android.os.Process;
+import android.os.RemoteException;
 import android.provider.BaseColumns;
 import android.provider.Telephony;
 import android.provider.Telephony.Mms;
@@ -63,6 +68,8 @@ import android.telephony.ServiceState;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
+import android.text.format.DateUtils;
+import android.util.EventLog;
 import android.util.Log;
 import android.util.Xml;
 import android.os.Looper;
@@ -1148,6 +1155,9 @@ public class BluetoothMapContentObserver {
     private static final String ACTION_MESSAGE_SENT =
         "com.android.bluetooth.BluetoothMapContentObserver.action.MESSAGE_SENT";
 
+    public static final String EXTRA_MESSAGE_SENT_URI = "uri";
+    public static final String EXTRA_MESSAGE_SENT_TRANSPARENT = "transparent";
+
     private SmsBroadcastReceiver mSmsBroadcastReceiver = new SmsBroadcastReceiver();
 
     private class SmsBroadcastReceiver extends BroadcastReceiver {
@@ -1160,6 +1170,12 @@ public class BluetoothMapContentObserver {
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction(ACTION_MESSAGE_DELIVERY);
             intentFilter.addAction(ACTION_MESSAGE_SENT);
+            try{
+                intentFilter.addDataType("message/*");
+            } catch (MalformedMimeTypeException e) {
+                Log.e(TAG, "Wrong mime type!!!", e);
+            }
+
             mContext.registerReceiver(this, intentFilter, null, handler);
         }
 
@@ -1307,6 +1323,62 @@ public class BluetoothMapContentObserver {
             }
 
             mPushMsgList.remove(msgInfo.id);
+        }
+    }
+
+    static public void actionMessageSentDisconnected(Context context, Intent intent, int result) {
+        /* Check permission for message deletion. */
+        if (context.checkCallingOrSelfPermission(android.Manifest.permission.WRITE_SMS)
+              != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "actionMessageSentDisconnected: Not allowed to delete SMS/MMS messages");
+            EventLog.writeEvent(0x534e4554, "b/22343270", Binder.getCallingUid(), "");
+            return;
+        }
+
+        boolean delete = false;
+        //int retry = intent.getIntExtra(EXTRA_MESSAGE_SENT_RETRY, 0);
+        int transparent = intent.getIntExtra(EXTRA_MESSAGE_SENT_TRANSPARENT, 0);
+        String uriString = intent.getStringExtra(EXTRA_MESSAGE_SENT_URI);
+        if(uriString == null) {
+            // Nothing we can do about it, just bail out
+            return;
+        }
+        Uri uri = Uri.parse(uriString);
+
+        if (result == Activity.RESULT_OK) {
+            Log.d(TAG, "actionMessageSentDisconnected: result OK");
+            if (transparent == 0) {
+                if (!Sms.moveMessageToFolder(context, uri,
+                        Sms.MESSAGE_TYPE_SENT, 0)) {
+                    Log.d(TAG, "Failed to move " + uri + " to SENT");
+                }
+            } else {
+                delete = true;
+            }
+        } else {
+            /*if (retry == 1) {
+                 The retry feature only works while connected, else we fail the send,
+                 * and move the message to failed, to let the user/app resend manually later.
+            } else */{
+                if (transparent == 0) {
+                    if (!Sms.moveMessageToFolder(context, uri,
+                            Sms.MESSAGE_TYPE_FAILED, 0)) {
+                        Log.d(TAG, "Failed to move " + uri + " to FAILED");
+                    }
+                } else {
+                    delete = true;
+                }
+            }
+        }
+
+        if (delete) {
+            /* Delete from DB */
+            ContentResolver resolver = context.getContentResolver();
+            if (resolver != null) {
+                resolver.delete(uri, null, null);
+            } else {
+                Log.w(TAG, "Unable to get resolver");
+            }
         }
     }
 
