@@ -670,7 +670,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             }
         } else {
             if (searchValue != null) {
-                compareValue = searchValue.trim();
+                compareValue = searchValue.trim().toLowerCase();
             }
             for (int pos = listStartOffset; pos < listSize &&
                     itemsFound < requestSize; pos++) {
@@ -678,7 +678,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 if (currentValue.contains(","))
                     currentValue = currentValue.substring(0, currentValue.lastIndexOf(','));
 
-                if (searchValue.isEmpty() || ((currentValue.toLowerCase()).equals(compareValue.toLowerCase()))) {
+                if (searchValue.isEmpty() || ((currentValue.toLowerCase()).startsWith(compareValue))) {
                     itemsFound++;
                     writeVCardEntry(pos, currentValue,result);
                 }
