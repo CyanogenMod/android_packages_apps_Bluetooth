@@ -92,6 +92,7 @@ public class SapService extends ProfileService {
     private boolean mRemoveTimeoutMsg = false;
 
     private boolean mIsWaitingAuthorization = false;
+    private boolean mIsRegistered = false;
 
     // package and class name to which we send intent to check message access access permission
     private static final String ACCESS_AUTHORITY_PACKAGE = "com.android.settings";
@@ -181,11 +182,6 @@ public class SapService extends ProfileService {
             } else {
                 break;
             }
-        }
-        if (mInterrupted) {
-            initSocketOK = false;
-            // close server socket to avoid resource leakage
-            closeServerSocket();
         }
 
         if (initSocketOK) {
@@ -584,6 +580,7 @@ public class SapService extends ProfileService {
 
         try {
             registerReceiver(mSapReceiver, filter);
+            mIsRegistered = true;
         } catch (Exception e) {
             Log.w(TAG,"Unable to register sap receiver",e);
         }
@@ -598,7 +595,12 @@ public class SapService extends ProfileService {
     @Override
     protected boolean stop() {
         Log.v(TAG, "stop()");
+        if (!mIsRegistered){
+            Log.i(TAG, "Avoid unregister when receiver it is not registered");
+            return true;
+        }
         try {
+            mIsRegistered = false;
             unregisterReceiver(mSapReceiver);
         } catch (Exception e) {
             Log.w(TAG,"Unable to unregister sap receiver",e);
