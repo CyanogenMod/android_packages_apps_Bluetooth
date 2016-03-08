@@ -48,6 +48,7 @@ import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
+import android.util.EventLog;
 import android.util.Log;
 import android.util.Xml;
 import android.text.TextUtils;
@@ -3272,6 +3273,7 @@ public class BluetoothMapContentObserver {
             (context.checkCallingOrSelfPermission("android.Manifest.permission.WRITE_SMS")
                     != PackageManager.PERMISSION_GRANTED)) {
             Log.w(TAG, "actionSmsSentDisconnected: Not allowed to delete SMS/MMS messages");
+            EventLog.writeEvent(0x534e4554, "b/22343270", Binder.getCallingUid(), "");
             return;
         }
 
