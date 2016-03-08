@@ -58,8 +58,6 @@ import android.os.ParcelFileDescriptor;
 import android.os.Process;
 import android.os.RemoteException;
 import android.provider.BaseColumns;
-import com.android.bluetooth.mapapi.BluetoothMapContract;
-import com.android.bluetooth.mapapi.BluetoothMapContract.MessageColumns;
 import android.provider.Telephony;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.MmsSms;
@@ -1156,6 +1154,9 @@ public class BluetoothMapContentObserver {
         "com.android.bluetooth.BluetoothMapContentObserver.action.MESSAGE_DELIVERY";
     private static final String ACTION_MESSAGE_SENT =
         "com.android.bluetooth.BluetoothMapContentObserver.action.MESSAGE_SENT";
+
+    public static final String EXTRA_MESSAGE_SENT_URI = "uri";
+    public static final String EXTRA_MESSAGE_SENT_TRANSPARENT = "transparent";
 
     private SmsBroadcastReceiver mSmsBroadcastReceiver = new SmsBroadcastReceiver();
 
