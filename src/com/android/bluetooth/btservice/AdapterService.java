@@ -101,7 +101,8 @@ public class AdapterService extends Service {
     private static final int MIN_OFFLOADED_FILTERS = 10;
     private static final int MIN_OFFLOADED_SCAN_STORAGE_BYTES = 1024;
     //For Debugging only
-    private static int sRefCount=0;
+    private static int sRefCount = 0;
+    private long mBluetoothStartTime = 0;
 
     private final Object mEnergyInfoLock = new Object();
     private int mStackReportedState;
@@ -1471,6 +1472,7 @@ public class AdapterService extends Service {
          mQuietmode = quietMode;
          Message m = mAdapterStateMachine.obtainMessage(AdapterState.BLE_TURN_ON);
          mAdapterStateMachine.sendMessage(m);
+         mBluetoothStartTime = System.currentTimeMillis();
          return true;
      }
 
@@ -2285,11 +2287,19 @@ public class AdapterService extends Service {
             }
         }
 
+        long onDuration = System.currentTimeMillis() - mBluetoothStartTime;
+        String onDurationString = String.format("%02d:%02d:%02d.%03d",
+                                      (int)(onDuration / (1000 * 60 * 60)),
+                                      (int)((onDuration / (1000 * 60)) % 60),
+                                      (int)((onDuration / 1000) % 60),
+                                      (int)(onDuration % 1000));
+
         writer.println("Bluetooth Status");
         writer.println("  enabled: " + isEnabled());
         writer.println("  state: " + getState());
         writer.println("  address: " + getAddress());
-        writer.println("  name: " + getName() + "\n");
+        writer.println("  name: " + getName());
+        writer.println("  time since enabled: " + onDurationString + "\n");
 
         writer.println("Bonded devices:");
         for (BluetoothDevice device : getBondedDevices()) {
