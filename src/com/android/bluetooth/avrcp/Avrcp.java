@@ -146,7 +146,7 @@ public final class Avrcp {
     private static final int SKIP_DOUBLE_INTERVAL = 3000;
     private static final long MAX_MULTIPLIER_VALUE = 128L;
     private static final int CMD_TIMEOUT_DELAY = 2000;
-    private static final int MAX_ERROR_RETRY_TIMES = 3;
+    private static final int MAX_ERROR_RETRY_TIMES = 6;
     private static final int AVRCP_MAX_VOL = 127;
     private static final int AVRCP_BASE_VOLUME_STEP = 1;
 
@@ -532,6 +532,8 @@ public final class Avrcp {
                 mVolCmdSetInProgress = false;
                 if (mAbsVolRetryTimes >= MAX_ERROR_RETRY_TIMES) {
                     mAbsVolRetryTimes = 0;
+                    /* too many volume change failures, black list the device */
+                    blackListCurrentDevice();
                 } else {
                     mAbsVolRetryTimes += 1;
                     if (setVolumeNative(mLastRemoteVolume)) {
