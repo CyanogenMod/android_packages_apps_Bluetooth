@@ -128,6 +128,13 @@ public class GattService extends ProfileService {
     private Map<Integer, List<BluetoothGattService>> gattClientDatabases =
             new HashMap<Integer, List<BluetoothGattService>>();
 
+    static final int NUM_SCAN_EVENTS_KEPT = 20;
+    /**
+     * Internal list of scan events to use with the proto
+     */
+    ArrayList<BluetoothProto.ScanEvent> mScanEvents =
+        new ArrayList<BluetoothProto.ScanEvent>(NUM_SCAN_EVENTS_KEPT);
+
     private ServiceDeclaration addDeclaration() {
         synchronized (mServiceDeclarations) {
             mServiceDeclarations.add(new ServiceDeclaration());
@@ -592,6 +599,8 @@ public class GattService extends ProfileService {
         if (VDBG) Log.d(TAG, "onScanResult() - address=" + address
                     + ", rssi=" + rssi);
         List<UUID> remoteUuids = parseUuids(adv_data);
+        addScanResult();
+
         for (ScanClient client : mScanManager.getRegularScanQueue()) {
             if (client.uuids.length > 0) {
                 int matches = 0;
@@ -621,6 +630,7 @@ public class GattService extends ProfileService {
                             ScanSettings settings = client.settings;
                             if ((settings.getCallbackType() &
                                     ScanSettings.CALLBACK_TYPE_ALL_MATCHES) != 0) {
+                                app.appScanStats.addResult();
                                 app.callback.onScanResult(result);
                             }
                         } catch (RemoteException e) {
@@ -2228,10 +2238,29 @@ public class GattService extends ProfileService {
         mHandleMap.dump(sb);
     }
 
+    void addScanResult() {
+        if (mScanEvents.isEmpty())
+            return;
+
+        BluetoothProto.ScanEvent curr = mScanEvents.get(mScanEvents.size() - 1);
+        curr.setNumberResults(curr.getNumberResults() + 1);
+    }
+
+    void addScanEvent(BluetoothProto.ScanEvent event) {
+        synchronized(mScanEvents) {
+            if (mScanEvents.size() == NUM_SCAN_EVENTS_KEPT)
+                mScanEvents.remove(0);
+            mScanEvents.add(event);
+        }
+    }
+
     @Override
     public void dumpProto(BluetoothProto.BluetoothLog proto) {
-        mClientMap.dumpProto(proto);
-        mServerMap.dumpProto(proto);
+        synchronized(mScanEvents) {
+            for (BluetoothProto.ScanEvent event : mScanEvents) {
+                proto.addScanEvent(event);
+            }
+        }
     }
 
     /**************************************************************************

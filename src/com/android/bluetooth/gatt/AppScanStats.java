@@ -35,11 +35,15 @@ import com.android.bluetooth.btservice.BluetoothProto;
     /* ContextMap here is needed to grab Apps and Connections */
     ContextMap contextMap;
 
+    /* GattService is needed to add scan event protos to be dumped later */
+    GattService gattService;
+
     class LastScan {
         long duration;
         long timestamp;
         boolean opportunistic;
         boolean background;
+        int results;
 
         public LastScan(long timestamp, long duration,
                         boolean opportunistic, boolean background) {
@@ -47,6 +51,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
             this.timestamp = timestamp;
             this.opportunistic = opportunistic;
             this.background = background;
+            this.results = 0;
         }
     }
 
@@ -63,10 +68,19 @@ import com.android.bluetooth.btservice.BluetoothProto;
     List<LastScan> lastScans = new ArrayList<LastScan>(NUM_SCAN_DURATIONS_KEPT + 1);
     long startTime = 0;
     long stopTime = 0;
+    int results = 0;
 
-    public AppScanStats(String name, ContextMap map) {
+    public AppScanStats(String name, ContextMap map, GattService service) {
         appName = name;
         contextMap = map;
+        gattService = service;
+    }
+
+    synchronized void addResult() {
+        if (!lastScans.isEmpty())
+            lastScans.get(lastScans.size() - 1).results++;
+
+        results++;
     }
 
     synchronized void recordScanStart(ScanSettings settings) {
@@ -89,7 +103,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
         scanEvent.setScanTechnologyType(BluetoothProto.ScanEvent.SCAN_TECH_TYPE_LE);
         scanEvent.setInitiator(appName);
         scanEvent.setEventTimeMillis(System.currentTimeMillis());
-        contextMap.addScanEvent(scanEvent);
+        gattService.addScanEvent(scanEvent);
     }
 
     synchronized void recordScanStop() {
@@ -117,7 +131,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
         scanEvent.setScanTechnologyType(BluetoothProto.ScanEvent.SCAN_TECH_TYPE_LE);
         scanEvent.setInitiator(appName);
         scanEvent.setEventTimeMillis(System.currentTimeMillis());
-        contextMap.addScanEvent(scanEvent);
+        gattService.addScanEvent(scanEvent);
     }
 
     synchronized void dumpToString(StringBuilder sb) {
@@ -159,6 +173,8 @@ import com.android.bluetooth.btservice.BluetoothProto;
                   maxScan + " / " +
                   avgScan + " / " +
                   totalScanTime + "\n");
+        sb.append("  Total number of results            : " +
+                  results + "\n");
 
         if (lastScans.size() != 0) {
             int lastScansSize = scansStopped < NUM_SCAN_DURATIONS_KEPT ?
@@ -172,7 +188,8 @@ import com.android.bluetooth.btservice.BluetoothProto;
                 sb.append("    " + dateFormat.format(timestamp) + " - ");
                 sb.append(scan.duration + "ms ");
                 if (scan.opportunistic) sb.append("Opp ");
-                if (scan.background) sb.append("Back");
+                if (scan.background) sb.append("Back ");
+                sb.append(scan.results + " results");
                 sb.append("\n");
             }
         }

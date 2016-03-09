@@ -40,7 +40,6 @@ import com.android.bluetooth.btservice.BluetoothProto;
  */
 /*package*/ class ContextMap<T> {
     private static final String TAG = GattServiceConfig.TAG_PREFIX + "ContextMap";
-    static final int NUM_SCAN_EVENTS_KEPT = 20;
 
     /**
      * Connection class helps map connection IDs to device addresses.
@@ -72,6 +71,9 @@ import com.android.bluetooth.btservice.BluetoothProto;
         /** The package name of the application */
         String name;
 
+        /** Statistics for this app */
+        AppScanStats appScanStats;
+
         /** Application callbacks */
         T callback;
 
@@ -87,10 +89,11 @@ import com.android.bluetooth.btservice.BluetoothProto;
         /**
          * Creates a new app context.
          */
-        App(UUID uuid, T callback, String name) {
+        App(UUID uuid, T callback, String name, AppScanStats appScanStats) {
             this.uuid = uuid;
             this.callback = callback;
             this.name = name;
+            this.appScanStats = appScanStats;
         }
 
         /**
@@ -136,28 +139,24 @@ import com.android.bluetooth.btservice.BluetoothProto;
     /** Internal map to keep track of logging information by app name */
     HashMap<String, AppScanStats> mAppScanStats = new HashMap<String, AppScanStats>();
 
-    /** Internal list of scan events to use with the proto */
-    ArrayList<BluetoothProto.ScanEvent> mScanEvents =
-        new ArrayList<BluetoothProto.ScanEvent>(NUM_SCAN_EVENTS_KEPT);
-
     /** Internal list of connected devices **/
     Set<Connection> mConnections = new HashSet<Connection>();
 
     /**
      * Add an entry to the application context list.
      */
-    void add(UUID uuid, T callback, Context context) {
-        String appName = context.getPackageManager().getNameForUid(
+    void add(UUID uuid, T callback, GattService service) {
+        String appName = service.getPackageManager().getNameForUid(
                              Binder.getCallingUid());
         if (appName == null) {
             // Assign an app name if one isn't found
             appName = "Unknown App (UID: " + Binder.getCallingUid() + ")";
         }
         synchronized (mApps) {
-            mApps.add(new App(uuid, callback, appName));
             AppScanStats appScanStats = mAppScanStats.get(appName);
+            mApps.add(new App(uuid, callback, appName, appScanStats));
             if (appScanStats == null) {
-                appScanStats = new AppScanStats(appName, this);
+                appScanStats = new AppScanStats(appName, this, service);
                 mAppScanStats.put(appName, appScanStats);
             }
             appScanStats.isRegistered = true;
@@ -174,7 +173,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
                 App entry = i.next();
                 if (entry.uuid.equals(uuid)) {
                     entry.unlinkToDeath();
-                    mAppScanStats.get(entry.name).isRegistered = false;
+                    entry.appScanStats.isRegistered = false;
                     i.remove();
                     break;
                 }
@@ -273,7 +272,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
     AppScanStats getAppScanStatsById(int id) {
         App temp = getById(id);
         if (temp != null) {
-            return mAppScanStats.get(temp.name);
+            return temp.appScanStats;
         }
         return null;
     }
@@ -380,14 +379,6 @@ import com.android.bluetooth.btservice.BluetoothProto;
         return connectedmap;
     }
 
-    void addScanEvent(BluetoothProto.ScanEvent event) {
-        synchronized(mScanEvents) {
-            if (mScanEvents.size() == NUM_SCAN_EVENTS_KEPT)
-                mScanEvents.remove(0);
-            mScanEvents.add(event);
-        }
-    }
-
     /**
      * Logs debug information.
      */
@@ -401,14 +392,6 @@ import com.android.bluetooth.btservice.BluetoothProto;
             String name = entry.getKey();
             AppScanStats appScanStats = entry.getValue();
             appScanStats.dumpToString(sb);
-        }
-    }
-
-    void dumpProto(BluetoothProto.BluetoothLog proto) {
-        synchronized(mScanEvents) {
-            for (BluetoothProto.ScanEvent event : mScanEvents) {
-                proto.addScanEvent(event);
-            }
         }
     }
 }
