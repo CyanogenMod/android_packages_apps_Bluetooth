@@ -30,9 +30,9 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <!-- WRITE_CONTACTS is used for test cases only -->
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <uses-permission android:name="android.permission.WRITE_CALL_LOG" />
     <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.NFC_HANDOVER_STATUS" />
@@ -349,6 +349,23 @@
                 <!-- Mechanism for Telecom stack to connect -->
                 <action android:name="android.telecom.ConnectionService" />
             </intent-filter>
+        </service>
+        <service
+            android:process="@string/process"
+            android:name = ".pbapclient.PbapClientService"
+            android:enabled="@bool/profile_supported_pbapclient">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothPbapClient" />
+            </intent-filter>
+        </service>
+        <!-- Authenticator for PBAP account. -->
+        <service android:name=".AuthenticationService" android:exported="true">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/authenticator" />
         </service>
     </application>
 </manifest>

@@ -69,6 +69,7 @@ import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
 import com.android.bluetooth.hdp.HealthService;
 import com.android.bluetooth.pan.PanService;
+import com.android.bluetooth.pbapclient.PbapClientService;
 import com.android.bluetooth.sdp.SdpManager;
 import com.android.internal.R;
 import com.android.bluetooth.Utils;
@@ -1634,6 +1635,7 @@ public class AdapterService extends Service {
              // Car Kitt profiles.
              autoConnectHeadsetClient();
              autoConnectA2dpSink();
+             autoConnectPbapClient();
          }
          else {
              debugLog( "autoConnect() - BT is in quiet mode. Not initiating auto connections");
@@ -1695,6 +1697,19 @@ public class AdapterService extends Service {
              a2dpSinkService.connect(device);
          }
      }
+
+     private void autoConnectPbapClient(){
+         PbapClientService pbapClientService = PbapClientService.getPbapClientService();
+         BluetoothDevice bondedDevices[] = getBondedDevices();
+         if ((bondedDevices == null) ||(pbapClientService == null)) {
+             return;
+         }
+         for (BluetoothDevice device : bondedDevices) {
+             debugLog("autoConnectPbapClient() - Connecting PBAP Client with " + device.toString());
+             pbapClientService.connect(device);
+         }
+    }
+
 
      public void connectOtherProfile(BluetoothDevice device, int firstProfileStatus){
         if ((mHandler.hasMessages(MESSAGE_CONNECT_OTHER_PROFILES) == false) &&
