@@ -3259,10 +3259,11 @@ final class HeadsetStateMachine extends StateMachine {
     private void processSendClccResponse(HeadsetClccResponse clcc) {
         BluetoothDevice device = getDeviceForMessage(CLCC_RSP_TIMEOUT);
         if (device == null) {
+            Log.w(TAG, "device is null, not sending clcc response");
             return;
         }
         if (clcc.mIndex == 0) {
-            removeMessages(CLCC_RSP_TIMEOUT);
+            getHandler().removeMessages(CLCC_RSP_TIMEOUT, device);
         }
         clccResponseNative(clcc.mIndex, clcc.mDirection, clcc.mStatus, clcc.mMode, clcc.mMpty,
                            clcc.mNumber, clcc.mType, getByteAddress(device));
