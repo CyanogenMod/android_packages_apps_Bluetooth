@@ -160,7 +160,7 @@ public class BluetoothMapAppObserver{
     public void registerObserver(BluetoothMapAccountItem app) {
         Uri uri = BluetoothMapContract.buildAccountUri(app.getProviderAuthority());
         if (V) Log.d(TAG, "registerObserver for URI "+uri.toString()+"\n");
-        ContentObserver observer = new ContentObserver(new Handler()) {
+        ContentObserver observer = new ContentObserver(null) {
             @Override
             public void onChange(boolean selfChange) {
                 onChange(selfChange, null);
@@ -179,7 +179,8 @@ public class BluetoothMapAppObserver{
             }
         };
         mObserverMap.put(uri.toString(), observer);
-        mResolver.registerContentObserver(uri, true, observer);
+        //False "notifyForDescendents" : Get notified whenever a change occurs to the exact URI.
+        mResolver.registerContentObserver(uri, false, observer);
     }
 
     public void unregisterObserver(BluetoothMapAccountItem app) {

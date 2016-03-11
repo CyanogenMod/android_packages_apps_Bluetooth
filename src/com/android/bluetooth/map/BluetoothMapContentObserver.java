@@ -468,8 +468,7 @@ public class BluetoothMapContentObserver {
         return smsType;
     }
 
-    private final ContentObserver mObserver = new ContentObserver(
-            new Handler(Looper.getMainLooper())) {
+    private final ContentObserver mObserver = new ContentObserver(new Handler()) {
         @Override
         public void onChange(boolean selfChange) {
             onChange(selfChange, null);
@@ -3399,7 +3398,9 @@ public class BluetoothMapContentObserver {
     };
 
     public void init() {
-        mSmsBroadcastReceiver.register();
+        if (mSmsBroadcastReceiver != null) {
+            mSmsBroadcastReceiver.register();
+        }
         registerPhoneServiceStateListener();
         mInitialized = true;
     }
@@ -3407,7 +3408,9 @@ public class BluetoothMapContentObserver {
     public void deinit() {
         mInitialized = false;
         unregisterObserver();
-        mSmsBroadcastReceiver.unregister();
+        if (mSmsBroadcastReceiver != null) {
+            mSmsBroadcastReceiver.unregister();
+        }
         unRegisterPhoneServiceStateListener();
         failPendingMessages();
         removeDeletedMessages();
