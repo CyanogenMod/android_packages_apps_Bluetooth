@@ -431,10 +431,13 @@ public abstract class BluetoothMapbMessage {
         public String getLine() {
             try {
                 byte[] line = getLineAsBytes();
-                if (line.length == 0)
-                    return null;
-                else
-                    return new String(line, "UTF-8");
+                if (line == null) {
+                   return null;
+                } else if (line.length == 0) {
+                   return null;
+                } else {
+                   return new String(line, "UTF-8");
+                }
             } catch (UnsupportedEncodingException e) {
                 Log.w(TAG, e);
                 return null;
@@ -482,12 +485,18 @@ public abstract class BluetoothMapbMessage {
          */
         public void expect(String subString, String subString2) throws IllegalArgumentException{
             String line = getLine();
-            if(!line.toUpperCase().contains(subString.toUpperCase()))
+            if (line == null || subString == null) {
+                throw new IllegalArgumentException("Line or substring is null");
+            } else if (!line.toUpperCase().contains(subString.toUpperCase())) {
                 throw new IllegalArgumentException("Expected \"" + subString + "\" in: \""
                                                    + line + "\"");
-            if(!line.toUpperCase().contains(subString2.toUpperCase()))
+            }
+            if (line == null || subString2 == null) {
+                throw new IllegalArgumentException("Line or substring is null");
+            } else if (!line.toUpperCase().contains(subString2.toUpperCase())) {
                 throw new IllegalArgumentException("Expected \"" + subString + "\" in: \""
                                                    + line + "\"");
+            }
         }
 
         /**
@@ -521,10 +530,10 @@ public abstract class BluetoothMapbMessage {
         public String getLastStringTerminator(String terminator) {
             StringBuilder dataStr = new StringBuilder();
             String lineCur = getLineTerminator();
-            while ( lineCur != null ) {
+            while (lineCur != null) {
                 String firstOccur = getStringTerminator(terminator);
-                if (firstOccur != null ) {
-                    if (dataStr.length() != 0 ) {
+                if (firstOccur != null) {
+                    if (dataStr.length() != 0) {
                         dataStr.append(terminator);
                         dataStr.append("\r\n");
                     }
@@ -549,7 +558,7 @@ public abstract class BluetoothMapbMessage {
         public String getStringTerminator(String terminator) {
             StringBuilder dataStr= new StringBuilder();
             String lineCur = getLineTerminator();
-            while( lineCur != null && (!lineCur.equals(terminator))) {
+            while (lineCur != null && (!lineCur.equals(terminator))) {
                 dataStr.append(lineCur);
                 if (!lineCur.equals("\r\n")) {
                    dataStr.append("\r\n");
@@ -557,7 +566,7 @@ public abstract class BluetoothMapbMessage {
                 lineCur = getLineTerminator();
            }
            //Return string if only terminator is present.
-           if ( lineCur != null && lineCur.equals(terminator)) {
+           if (lineCur != null && lineCur.equals(terminator)) {
                return dataStr.toString();
            } else {
                return null;
@@ -857,24 +866,16 @@ public abstract class BluetoothMapbMessage {
                  * END:MSG in the actual message content, it is now safe to use the END:MSG tag
                  * as terminator, and simply ignore the length field.*/
 
-                /* 2 added to compensate for the removed \r\n */
-                byte[] rawData = reader.getDataBytes(mBMsgLength - (line.getBytes().length + 2));
-                String data;
-                try {
-                    data = new String(rawData, "UTF-8");
+                String data = reader.getStringTerminator("END:MSG");
                     if(V) {
                         Log.v(TAG,"MsgLength: " + mBMsgLength);
-                        Log.v(TAG,"line.getBytes().length: " + line.getBytes().length);
+                        Log.v(TAG,"data.getBytes().length: " + data.getBytes().length);
                         String debug = line.replaceAll("\\n", "<LF>\n");
                         debug = debug.replaceAll("\\r", "<CR>");
                         Log.v(TAG,"The line: \"" + debug + "\"");
                         debug = data.replaceAll("\\n", "<LF>\n");
                         debug = debug.replaceAll("\\r", "<CR>");
-                        Log.v(TAG,"The msgString: \"" + debug + "\"");
-                    }
-                } catch (UnsupportedEncodingException e) {
-                    Log.w(TAG,e);
-                    throw new IllegalArgumentException("Unable to convert to UTF-8");
+                        Log.v(TAG, "The msgString: \"" + data + "\"");
                 }
                 /* Decoding of MSG:
                  * 1) split on "\r\nEND:MSG\r\n"
