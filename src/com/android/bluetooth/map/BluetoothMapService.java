@@ -141,10 +141,12 @@ public class BluetoothMapService extends ProfileService {
 
     private boolean mIsWaitingAuthorization = false;
     private boolean mRemoveTimeoutMsg = false;
+    private boolean mRegisteredMapReceiver = false;
     private int mPermission = BluetoothDevice.ACCESS_UNKNOWN;
     private boolean mAccountChanged = false;
     private boolean mSdpSearchInitiated = false;
     SdpMnsRecord mMnsRecord = null;
+    private boolean mStartError = true;
 
     // package and class name to which we send intent to check phone book access permission
     private static final String ACCESS_AUTHORITY_PACKAGE = "com.android.settings";
@@ -452,6 +454,9 @@ public class BluetoothMapService extends ProfileService {
         return mState;
     }
 
+    protected boolean isMapStarted() {
+        return !mStartError;
+    }
     public BluetoothDevice getRemoteDevice() {
         return mRemoteDevice;
     }
@@ -569,6 +574,10 @@ public class BluetoothMapService extends ProfileService {
     @Override
     protected boolean start() {
         if (DEBUG) Log.d(TAG, "start()");
+        if (isMapStarted()) {
+            Log.w(TAG, "start received for already started, ignoring");
+            return false;
+        }
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
@@ -585,12 +594,14 @@ public class BluetoothMapService extends ProfileService {
         } catch (MalformedMimeTypeException e) {
             Log.e(TAG, "Wrong mime type!!!", e);
         }
-
-        try {
-            registerReceiver(mMapReceiver, filter);
-            registerReceiver(mMapReceiver, filterMessageSent);
-        } catch (Exception e) {
-            Log.w(TAG,"Unable to register map receiver",e);
+        if (!mRegisteredMapReceiver) {
+            try {
+                registerReceiver(mMapReceiver, filter);
+                registerReceiver(mMapReceiver, filterMessageSent);
+                mRegisteredMapReceiver = true;
+            } catch (Exception e) {
+                Log.e(TAG,"Unable to register map receiver",e);
+            }
         }
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mAppObserver = new BluetoothMapAppObserver(this, this);
@@ -601,7 +612,8 @@ public class BluetoothMapService extends ProfileService {
 
         // start RFCOMM listener
         sendStartListenerMessage(-1);
-        return true;
+        mStartError = false;
+        return !mStartError;
     }
 
     /**
@@ -762,13 +774,24 @@ public class BluetoothMapService extends ProfileService {
     @Override
     protected boolean stop() {
         if (DEBUG) Log.d(TAG, "stop()");
-        try {
-            unregisterReceiver(mMapReceiver);
-            mAppObserver.shutdown();
-        } catch (Exception e) {
-            Log.w(TAG,"Unable to unregister map receiver",e);
+        if (mRegisteredMapReceiver) {
+            try {
+                mRegisteredMapReceiver = false;
+                unregisterReceiver(mMapReceiver);
+                mAppObserver.shutdown();
+            } catch (Exception e) {
+                Log.e(TAG,"Unable to unregister map receiver",e);
+            }
         }
-
+        //Stop MapProfile if already started.
+        //TODO: Check if the profile state can be retreived from ProfileService or AdapterService.
+        if (!isMapStarted()) {
+            if (DEBUG) Log.d(TAG, "Service Not Available to STOP, ignoring");
+            return true;
+        } else {
+            if (VERBOSE) Log.d(TAG, "Service Stoping()");
+        }
+        mStartError = true;
         setState(BluetoothMap.STATE_DISCONNECTED, BluetoothMap.RESULT_CANCELED);
         sendShutdownMessage();
         return true;
