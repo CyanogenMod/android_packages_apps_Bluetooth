@@ -101,7 +101,7 @@
     <string name="status_connection_error" msgid="947681831523219891">"కనెక్షన్ విఫలమైంది."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"అభ్యర్థన సరిగ్గా నిర్వహించబడదు."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"తెలియని లోపం."</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"బ్లూటూత్‌తో స్వీకరించినవి"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"బ్లూటూత్ స్వీకరించబడింది"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> స్వీకరించడం పూర్తయింది."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> పంపడం పూర్తయింది."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"స్వీకృత బదిలీలు"</string>
@@ -110,14 +110,7 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"జాబితా నుండి అన్ని అంశాలు క్లియర్ చేయబడతాయి."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"బ్లూటూత్ భాగస్వామ్యం: పంపిన ఫైల్‌లు"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"బ్లూటూత్ భాగస్వామ్యం: స్వీకరించబడిన ఫైల్‌లు"</string>
-    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
-      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> విఫలం.</item>
-      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> విఫలం.</item>
-    </plurals>
-    <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
-      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> విజయవంతం, %2$s</item>
-      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> విజయవంతం, %2$s</item>
-    </plurals>
+    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> విజయవంతమయ్యాయి, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> విఫలమయ్యాయి."</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"జాబితాను క్లియర్ చేయి"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"తెరువు"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"జాబితా నుండి క్లియర్ చేయి"</string>

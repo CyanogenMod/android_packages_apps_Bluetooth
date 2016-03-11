@@ -106,18 +106,11 @@
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Sent complete."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Inbound transfers"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Outbound transfers"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"Transfer history is empty."</string>
+    <string name="no_transfers" msgid="3482965619151865672">"Browser history is empty."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"All items will be cleared from the list."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth share: Sent files"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth share: Received files"</string>
-    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
-      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> unsuccessful.</item>
-      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> unsuccessful.</item>
-    </plurals>
-    <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
-      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> successful, %2$s</item>
-      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> successful, %2$s</item>
-    </plurals>
+    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> successful, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> unsuccessful."</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Clear list"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Open"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Clear from list"</string>

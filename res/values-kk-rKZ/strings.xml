@@ -68,9 +68,9 @@
     <string name="upload_line5" msgid="7759322537674229752">"Файлды жіберуде…"</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"Файл жіберілді"</string>
     <string name="upload_succ_ok" msgid="7705428476405478828">"Жарайды"</string>
-    <string name="upload_fail_line1" msgid="7899394672421491701">"Файл \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" құрылғысына жіберілмеді."</string>
+    <string name="upload_fail_line1" msgid="7899394672421491701">"Файл \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" байланысына жіберілмеді."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Файл: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_ok" msgid="5807702461606714296">"Қайталау"</string>
+    <string name="upload_fail_ok" msgid="5807702461606714296">"Қайта әрекеттену"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Жабу"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"Жарайды"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Белгісіз файл"</string>
@@ -93,8 +93,8 @@
     <string name="status_running" msgid="6562808920311008696">"Файлды аудару орындалуда."</string>
     <string name="status_success" msgid="239573225847565868">"Файлды аудару сәтті орындалды."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"Мазмұн қолдауы жоқ."</string>
-    <string name="status_forbidden" msgid="613956401054050725">"Аударуға қабылдайтын құрылғы тыйым салды."</string>
-    <string name="status_canceled" msgid="6664490318773098285">"Тасымалды пайдаланушы тоқтатты."</string>
+    <string name="status_forbidden" msgid="613956401054050725">"Аударуға нысанды құрылғы тыйым салды."</string>
+    <string name="status_canceled" msgid="6664490318773098285">"Аударуды пайдаланушы тоқтатты."</string>
     <string name="status_file_error" msgid="3671917770630165299">"Жад ақаулығы."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Ешқандай USB жады жоқ."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"SD картасы жоқ. Аударылған файлдарды сақтау үшін SD картасын енгізіңіз."</string>
@@ -103,21 +103,14 @@
     <string name="status_unknown_error" msgid="8156660554237824912">"Белгісіз қателік."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth қабылданды"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Толығымен қабылданды."</string>
-    <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Жіберіліп болды."</string>
-    <string name="inbound_history_title" msgid="6940914942271327563">"Келген аударым"</string>
-    <string name="outbound_history_title" msgid="4279418703178140526">"Кеткен аударымдар"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"Тасымал туралы дерек жоқ."</string>
+    <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Жіберу аяқталды."</string>
+    <string name="inbound_history_title" msgid="6940914942271327563">"Келген аударулар"</string>
+    <string name="outbound_history_title" msgid="4279418703178140526">"Шығыс аударулар"</string>
+    <string name="no_transfers" msgid="3482965619151865672">"Аудару тарихы бос."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Тізімнен барлық элементтер алынады."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth бөлісу: Жіберілген файлдар"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth бөлісу: Қабылданған файлдар"</string>
-    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
-      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> сәтсіз.</item>
-      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> сәтсіз.</item>
-    </plurals>
-    <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
-      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> сәтті, %2$s</item>
-      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> сәтті, %2$s</item>
-    </plurals>
+    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> сәтті, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> сәтсіз."</string>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Тізімді өшіру"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Ашу"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Тізімнен өшіру."</string>

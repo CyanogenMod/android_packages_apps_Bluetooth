@@ -259,6 +259,21 @@ public class HeadsetService extends ProfileService {
             return service.disconnectAudio();
         }
 
+        public void setAudioRouteAllowed(boolean allowed) {
+            HeadsetService service = getService();
+            if (service == null) return;
+            service.setAudioRouteAllowed(allowed);
+        }
+
+        public boolean getAudioRouteAllowed() {
+            HeadsetService service = getService();
+            if (service != null) {
+                return service.getAudioRouteAllowed();
+            }
+
+            return false;
+        }
+
         public boolean startScoUsingVirtualVoiceCall(BluetoothDevice device) {
             HeadsetService service = getService();
             if (service == null) return false;
@@ -482,6 +497,14 @@ public class HeadsetService extends ProfileService {
 
     int getAudioState(BluetoothDevice device) {
         return mStateMachine.getAudioState(device);
+    }
+
+    public void setAudioRouteAllowed(boolean allowed) {
+        mStateMachine.setAudioRouteAllowed(allowed);
+    }
+
+    public boolean getAudioRouteAllowed() {
+        return mStateMachine.getAudioRouteAllowed();
     }
 
     boolean connectAudio() {

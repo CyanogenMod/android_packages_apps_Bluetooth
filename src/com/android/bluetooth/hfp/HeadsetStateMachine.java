@@ -194,6 +194,8 @@ final class HeadsetStateMachine extends StateMachine {
     private boolean mPendingCiev;
     //ConcurrentLinkeQueue is used so that it is threadsafe
     private ConcurrentLinkedQueue<HeadsetCallState> mPendingCallStates = new ConcurrentLinkedQueue<HeadsetCallState>();
+    // Indicates whether audio can be routed to the device.
+    private boolean mAudioRouteAllowed = true;
 
     // mCurrentDevice is the device connected before the state changes
     // mTargetDevice is the device to be connected
@@ -2440,6 +2442,14 @@ final class HeadsetStateMachine extends StateMachine {
         return false;
     }
 
+    public void setAudioRouteAllowed(boolean allowed) {
+        mAudioRouteAllowed = allowed;
+    }
+
+    public boolean getAudioRouteAllowed() {
+        return mAudioRouteAllowed;
+    }
+
     int getAudioState(BluetoothDevice device) {
         synchronized(this) {
             if (mConnectedDevicesList.size() == 0) {
@@ -3869,7 +3879,7 @@ final class HeadsetStateMachine extends StateMachine {
     // Accept incoming SCO only when there is active call, VR activated,
     // active VOIP call
     private boolean isScoAcceptable() {
-        return (mVoiceRecognitionStarted || isInCall());
+        return mAudioRouteAllowed && (mVoiceRecognitionStarted || isInCall());
     }
 
     boolean isConnected() {
