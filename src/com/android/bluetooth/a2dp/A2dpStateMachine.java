@@ -452,10 +452,15 @@ final class A2dpStateMachine extends StateMachine {
                     loge("Another connecting event on the incoming device");
                 } else {
                     // We get an incoming connecting request while Pending
-                    // TODO(BT) is stack handing this case? let's ignore it for now
                     log("Incoming connection while pending, accept it");
                     broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
                                              BluetoothProfile.STATE_DISCONNECTED);
+                    // Keep UI in proper state and broadcast disconnect for mTargetDevice
+                    // Stack is replacing BT handle with the incoming device
+                    if (mTargetDevice != null && !mTargetDevice.equals(device)) {
+                        broadcastConnectionState(mTargetDevice, BluetoothProfile.STATE_DISCONNECTED,
+                                                 BluetoothProfile.STATE_CONNECTING);
+                    }
                     mIncomingDevice = device;
                 }
                 break;
