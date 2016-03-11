@@ -89,6 +89,16 @@ class AdvertiseManager {
     void cleanup() {
         logd("advertise clients cleared");
         mAdvertiseClients.clear();
+
+        if (mHandler != null) {
+            // Shut down the thread
+            mHandler.removeCallbacksAndMessages(null);
+            Looper looper = mHandler.getLooper();
+            if (looper != null) {
+                looper.quit();
+            }
+            mHandler = null;
+        }
     }
 
     /**

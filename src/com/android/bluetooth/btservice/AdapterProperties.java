@@ -605,6 +605,10 @@ class AdapterProperties {
         }
     }
 
+    void clearDisableFlag() {
+        mBluetoothDisabling = false;
+    }
+
     void onBluetoothDisable() {
         // From STATE_ON to BLE_ON
         // When BT disable is invoked, set the scan_mode to NONE
