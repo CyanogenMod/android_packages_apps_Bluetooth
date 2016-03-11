@@ -130,6 +130,17 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
         init();
     }
 
+    private void removeSdpRecord() {
+        if (mAdapter != null && mSdpHandle >= 0 &&
+                SdpManager.getDefaultManager() != null) {
+            if (V) Log.d(TAG, "Removing SDP record for MAS instance: " + mMasInstanceId +
+                    " Object reference: " + this + "SDP handle: " + mSdpHandle);
+            boolean status = SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
+            Log.d(TAG, "RemoveSDPrecord returns " + status);
+            mSdpHandle = -1;
+        }
+    }
+
     /* Needed only for test */
     protected BluetoothMapMasInstance() {
         TAG = "BluetoothMapMasInstance" + sInstanceCounter++;
@@ -277,11 +288,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
                 Log.e(TAG, "Failed to start the listeners");
                 return;
             }
-            if(mSdpHandle >= 0) {
-                SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
-                if(V) Log.d(TAG, "Removing SDP record for MAS instance: " + mMasInstanceId +
-                        " Object reference: " + this + "SDP handle: " + mSdpHandle);
-            }
+            removeSdpRecord();
             mSdpHandle = createMasSdpRecord(mServerSockets.getRfcommChannel(),
                     mServerSockets.getL2capPsm());
             // Here we might have changed crucial data, hence reset DB identifier
@@ -398,6 +405,8 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
             mObserver.deinit();
             mObserver = null;
         }
+
+        removeSdpRecord();
 
         closeConnectionSocket();
 
