@@ -334,12 +334,20 @@
                 <action android:name="android.bluetooth.IBluetoothPan" />
             </intent-filter>
         </service>
-    <service
+        <service
             android:process="@string/process"
             android:name = ".hfpclient.HeadsetClientService"
             android:enabled="@bool/profile_supported_hfpclient">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothHeadsetClient" />
+            </intent-filter>
+        </service>
+        <service android:name=".hfpclient.connserv.HfpClientConnectionService"
+                 android:permission="android.permission.BIND_CONNECTION_SERVICE"
+                 android:enabled="@bool/profile_supported_hfpclient">
+            <intent-filter>
+                <!-- Mechanism for Telecom stack to connect -->
+                <action android:name="android.telecom.ConnectionService" />
             </intent-filter>
         </service>
     </application>

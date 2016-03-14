@@ -51,13 +51,15 @@ import android.media.AudioManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.telecom.TelecomManager;
 
-import com.android.internal.util.IState;
-import com.android.internal.util.State;
-import com.android.internal.util.StateMachine;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.hfpclient.connserv.HfpClientConnectionService;
+import com.android.internal.util.IState;
+import com.android.internal.util.State;
+import com.android.internal.util.StateMachine;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -155,6 +157,7 @@ final class HeadsetClientStateMachine extends StateMachine {
     private boolean mAudioWbs;
     private final BluetoothAdapter mAdapter;
     private boolean mNativeAvailable;
+    private TelecomManager mTelecomManager;
 
     // currently connected device
     private BluetoothDevice mCurrentDevice = null;
@@ -318,6 +321,7 @@ final class HeadsetClientStateMachine extends StateMachine {
     }
 
     private void sendCallChangedIntent(BluetoothHeadsetClientCall c) {
+        Log.d(TAG, "sendCallChangedIntent " + c);
         Intent intent = new Intent(BluetoothHeadsetClient.ACTION_CALL_CHANGED);
         intent.putExtra(BluetoothHeadsetClient.EXTRA_CALL, c);
         mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
@@ -1213,6 +1217,8 @@ final class HeadsetClientStateMachine extends StateMachine {
 
         mAudioRouteAllowed = context.getResources().getBoolean(
                 R.bool.headset_client_initial_audio_route_allowed);
+
+        mTelecomManager = (TelecomManager) context.getSystemService(context.TELECOM_SERVICE);
 
         mIndicatorNetworkState = HeadsetClientHalConstants.NETWORK_STATE_NOT_AVAILABLE;
         mIndicatorNetworkType = HeadsetClientHalConstants.SERVICE_TYPE_HOME;
@@ -2344,6 +2350,19 @@ final class HeadsetClientStateMachine extends StateMachine {
                     HeadsetClientHalConstants.CHLD_FEAT_MERGE_DETACH) {
                 intent.putExtra(BluetoothHeadsetClient.EXTRA_AG_FEATURE_MERGE_AND_DETACH, true);
             }
+
+            // If we are connected to HFP AG, then register the phone account so that telecom can
+            // make calls via HFP.
+            mTelecomManager.registerPhoneAccount(
+                HfpClientConnectionService.getAccount(mService, device));
+            mTelecomManager.enablePhoneAccount(
+                HfpClientConnectionService.getAccount(mService, device).getAccountHandle(), true);
+            mTelecomManager.setUserSelectedOutgoingPhoneAccount(
+                HfpClientConnectionService.getHandle(mService));
+            mService.startService(new Intent(mService, HfpClientConnectionService.class));
+        } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+            mTelecomManager.unregisterPhoneAccount(HfpClientConnectionService.getHandle(mService));
+            mService.stopService(new Intent(mService, HfpClientConnectionService.class));
         }
 
         mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
