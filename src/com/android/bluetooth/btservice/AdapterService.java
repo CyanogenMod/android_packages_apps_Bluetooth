@@ -2270,6 +2270,28 @@ public class AdapterService extends Service {
         return getResources().getInteger(R.integer.config_bluetooth_operating_voltage_mv) / 1000.0;
     }
 
+    private String getStateString() {
+        int state = getState();
+        switch (state) {
+            case BluetoothAdapter.STATE_OFF:
+                return "STATE_OFF";
+            case BluetoothAdapter.STATE_TURNING_ON:
+                return "STATE_TURNING_ON";
+            case BluetoothAdapter.STATE_ON:
+                return "STATE_ON";
+            case BluetoothAdapter.STATE_TURNING_OFF:
+                return "STATE_TURNING_OFF";
+            case BluetoothAdapter.STATE_BLE_TURNING_ON:
+                return "STATE_BLE_TURNING_ON";
+            case BluetoothAdapter.STATE_BLE_ON:
+                return "STATE_BLE_ON";
+            case BluetoothAdapter.STATE_BLE_TURNING_OFF:
+                return "STATE_BLE_TURNING_OFF";
+            default:
+                return "UNKNOWN STATE: " + state;
+        }
+    }
+
     @Override
     protected void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
         enforceCallingOrSelfPermission(android.Manifest.permission.DUMP, TAG);
@@ -2296,7 +2318,7 @@ public class AdapterService extends Service {
 
         writer.println("Bluetooth Status");
         writer.println("  enabled: " + isEnabled());
-        writer.println("  state: " + getState());
+        writer.println("  state: " + getStateString());
         writer.println("  address: " + getAddress());
         writer.println("  name: " + getName());
         writer.println("  time since enabled: " + onDurationString + "\n");
