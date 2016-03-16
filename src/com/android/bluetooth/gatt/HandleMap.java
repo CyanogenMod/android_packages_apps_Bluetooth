@@ -69,7 +69,6 @@ class HandleMap {
             this.type = type;
             this.handle = handle;
             this.uuid = uuid;
-            this.instance = instance;
             this.serviceHandle = serviceHandle;
         }
 
@@ -78,7 +77,6 @@ class HandleMap {
             this.type = type;
             this.handle = handle;
             this.uuid = uuid;
-            this.instance = instance;
             this.serviceHandle = serviceHandle;
             this.charHandle = charHandle;
         }
