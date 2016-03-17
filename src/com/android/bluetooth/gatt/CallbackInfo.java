@@ -27,21 +27,12 @@ import java.util.UUID;
 class CallbackInfo {
     String address;
     int status;
-    int srvcType;
-    int srvcInstId;
-    UUID srvcUuid;
-    int charInstId;
-    UUID charUuid;
+    int handle;
 
-    CallbackInfo(String address, int status, int srvcType, int srvcInstId,
-            UUID srvcUuid, int charInstId, UUID charUuid) {
+    CallbackInfo(String address, int status, int handle) {
         this.address = address;
         this.status = status;
-        this.srvcType = srvcType;
-        this.srvcInstId = srvcInstId;
-        this.srvcUuid = srvcUuid;
-        this.charInstId = charInstId;
-        this.charUuid = charUuid;
+        this.handle = handle;
     }
 
     CallbackInfo(String address, int status) {

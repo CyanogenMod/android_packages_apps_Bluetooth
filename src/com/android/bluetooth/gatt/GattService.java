@@ -125,6 +125,9 @@ public class GattService extends ProfileService {
      */
     private List<ServiceDeclaration> mServiceDeclarations = new ArrayList<ServiceDeclaration>();
 
+    private Map<Integer, List<BluetoothGattService>> gattClientDatabases =
+            new HashMap<Integer, List<BluetoothGattService>>();
+
     private ServiceDeclaration addDeclaration() {
         synchronized (mServiceDeclarations) {
             mServiceDeclarations.add(new ServiceDeclaration());
@@ -206,6 +209,36 @@ public class GattService extends ProfileService {
         cleanupNative();
         if (mAdvertiseManager != null) mAdvertiseManager.cleanup();
         if (mScanManager != null) mScanManager.cleanup();
+        return true;
+    }
+
+    boolean permissionCheck(int connId, int handle) {
+        List<BluetoothGattService> db = gattClientDatabases.get(connId);
+
+        for (BluetoothGattService service : db) {
+            for (BluetoothGattCharacteristic characteristic: service.getCharacteristics()) {
+                if (handle == characteristic.getInstanceId()) {
+                    if ((isRestrictedCharUuid(characteristic.getUuid()) ||
+                         isRestrictedSrvcUuid(service.getUuid())) &&
+                        (0 != checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED)))
+                        return false;
+                    else
+                        return true;
+                }
+
+                for (BluetoothGattDescriptor descriptor: characteristic.getDescriptors()) {
+                    if (handle == descriptor.getInstanceId()) {
+                        if ((isRestrictedCharUuid(characteristic.getUuid()) ||
+                             isRestrictedSrvcUuid(service.getUuid())) &&
+                            (0 != checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED)))
+                            return false;
+                        else
+                            return true;
+                    }
+                }
+            }
+        }
+
         return true;
     }
 
@@ -358,55 +391,30 @@ public class GattService extends ProfileService {
             service.discoverServices(clientIf, address);
         }
 
-        public void readCharacteristic(int clientIf, String address, int srvcType,
-                                       int srvcInstanceId, ParcelUuid srvcId,
-                                       int charInstanceId, ParcelUuid charId,
-                                       int authReq) {
+        public void readCharacteristic(int clientIf, String address, int handle, int authReq) {
             GattService service = getService();
             if (service == null) return;
-            service.readCharacteristic(clientIf, address, srvcType, srvcInstanceId,
-                                       srvcId.getUuid(), charInstanceId,
-                                       charId.getUuid(), authReq);
+            service.readCharacteristic(clientIf, address, handle, authReq);
         }
 
-        public void writeCharacteristic(int clientIf, String address, int srvcType,
-                             int srvcInstanceId, ParcelUuid srvcId,
-                             int charInstanceId, ParcelUuid charId,
+        public void writeCharacteristic(int clientIf, String address, int handle,
                              int writeType, int authReq, byte[] value) {
             GattService service = getService();
             if (service == null) return;
-            service.writeCharacteristic(clientIf, address, srvcType, srvcInstanceId,
-                                       srvcId.getUuid(), charInstanceId,
-                                       charId.getUuid(), writeType, authReq,
-                                       value);
+            service.writeCharacteristic(clientIf, address, handle, writeType, authReq, value);
         }
 
-        public void readDescriptor(int clientIf, String address, int srvcType,
-                            int srvcInstanceId, ParcelUuid srvcId,
-                            int charInstanceId, ParcelUuid charId,
-                            int descrInstanceId, ParcelUuid descrId,
-                            int authReq) {
+        public void readDescriptor(int clientIf, String address, int handle, int authReq) {
             GattService service = getService();
             if (service == null) return;
-            service.readDescriptor(clientIf, address, srvcType,
-                                   srvcInstanceId, srvcId.getUuid(),
-                                   charInstanceId, charId.getUuid(),
-                                   descrInstanceId, descrId.getUuid(),
-                                   authReq);
+            service.readDescriptor(clientIf, address, handle, authReq);
         }
 
-        public void writeDescriptor(int clientIf, String address, int srvcType,
-                            int srvcInstanceId, ParcelUuid srvcId,
-                            int charInstanceId, ParcelUuid charId,
-                            int descrInstanceId, ParcelUuid descrId,
-                            int writeType, int authReq, byte[] value) {
+        public void writeDescriptor(int clientIf, String address, int handle,
+                                    int writeType, int authReq, byte[] value) {
             GattService service = getService();
             if (service == null) return;
-            service.writeDescriptor(clientIf, address, srvcType,
-                                    srvcInstanceId, srvcId.getUuid(),
-                                    charInstanceId, charId.getUuid(),
-                                    descrInstanceId, descrId.getUuid(),
-                                    writeType, authReq, value);
+            service.writeDescriptor(clientIf, address, handle, writeType, authReq, value);
         }
 
         public void beginReliableWrite(int clientIf, String address) {
@@ -421,15 +429,10 @@ public class GattService extends ProfileService {
             service.endReliableWrite(clientIf, address, execute);
         }
 
-        public void registerForNotification(int clientIf, String address, int srvcType,
-                            int srvcInstanceId, ParcelUuid srvcId,
-                            int charInstanceId, ParcelUuid charId,
-                            boolean enable) {
+        public void registerForNotification(int clientIf, String address, int handle, boolean enable) {
             GattService service = getService();
             if (service == null) return;
-            service.registerForNotification(clientIf, address, srvcType, srvcInstanceId,
-                                       srvcId.getUuid(), charInstanceId,
-                                       charId.getUuid(), enable);
+            service.registerForNotification(clientIf, address, handle, enable);
         }
 
         public void readRemoteRssi(int clientIf, String address) {
@@ -771,53 +774,36 @@ public class GattService extends ProfileService {
         }
 
         // Search is complete when there was error, or nothing more to process
+        gattClientDatabases.put(connId, db_out);
         app.callback.onSearchComplete(address, db_out, 0 /* status */);
     }
 
-    void onRegisterForNotifications(int connId, int status, int registered, int srvcType,
-            int srvcInstId, long srvcUuidLsb, long srvcUuidMsb,
-            int charInstId, long charUuidLsb, long charUuidMsb) {
-        UUID srvcUuid = new UUID(srvcUuidMsb, srvcUuidLsb);
-        UUID charUuid = new UUID(charUuidMsb, charUuidLsb);
+    void onRegisterForNotifications(int connId, int status, int registered, int handle) {
         String address = mClientMap.addressByConnId(connId);
 
         if (DBG) Log.d(TAG, "onRegisterForNotifications() - address=" + address
             + ", status=" + status + ", registered=" + registered
-            + ", charUuid=" + charUuid);
+            + ", handle=" + handle);
     }
 
-    void onNotify(int connId, String address, int srvcType,
-            int srvcInstId, long srvcUuidLsb, long srvcUuidMsb,
-            int charInstId, long charUuidLsb, long charUuidMsb,
+    void onNotify(int connId, String address, int handle,
             boolean isNotify, byte[] data) throws RemoteException {
-        UUID srvcUuid = new UUID(srvcUuidMsb, srvcUuidLsb);
-        UUID charUuid = new UUID(charUuidMsb, charUuidLsb);
 
         if (VDBG) Log.d(TAG, "onNotify() - address=" + address
-            + ", charUuid=" + charUuid + ", length=" + data.length);
+            + ", handle=" + handle + ", length=" + data.length);
 
-
-        if (isRestrictedCharUuid(charUuid) || isRestrictedSrvcUuid(srvcUuid) &&
-               (0 != checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED))) {
+        if (!permissionCheck(connId, handle)) {
+            if (VDBG) Log.d(TAG, "onNotify() - permission check failed!");
             return;
         }
 
         ClientMap.App app = mClientMap.getByConnId(connId);
         if (app != null) {
-            app.callback.onNotify(address, srvcType,
-                        srvcInstId, new ParcelUuid(srvcUuid),
-                        charInstId, new ParcelUuid(charUuid),
-                        data);
+            app.callback.onNotify(address, handle, data);
         }
     }
 
-    void onReadCharacteristic(int connId, int status, int srvcType,
-            int srvcInstId, long srvcUuidLsb, long srvcUuidMsb,
-            int charInstId, long charUuidLsb, long charUuidMsb,
-            int charType, byte[] data) throws RemoteException {
-
-        UUID srvcUuid = new UUID(srvcUuidMsb, srvcUuidLsb);
-        UUID charUuid = new UUID(charUuidMsb, charUuidLsb);
+    void onReadCharacteristic(int connId, int status, int handle, byte[] data) throws RemoteException {
         String address = mClientMap.addressByConnId(connId);
 
         if (VDBG) Log.d(TAG, "onReadCharacteristic() - address=" + address
@@ -825,19 +811,12 @@ public class GattService extends ProfileService {
 
         ClientMap.App app = mClientMap.getByConnId(connId);
         if (app != null) {
-            app.callback.onCharacteristicRead(address, status, srvcType,
-                        srvcInstId, new ParcelUuid(srvcUuid),
-                        charInstId, new ParcelUuid(charUuid), data);
+            app.callback.onCharacteristicRead(address, status, handle, data);
         }
     }
 
-    void onWriteCharacteristic(int connId, int status, int srvcType,
-            int srvcInstId, long srvcUuidLsb, long srvcUuidMsb,
-            int charInstId, long charUuidLsb, long charUuidMsb)
+    void onWriteCharacteristic(int connId, int status, int handle)
             throws RemoteException {
-
-        UUID srvcUuid = new UUID(srvcUuidMsb, srvcUuidLsb);
-        UUID charUuid = new UUID(charUuidMsb, charUuidLsb);
         String address = mClientMap.addressByConnId(connId);
 
         if (VDBG) Log.d(TAG, "onWriteCharacteristic() - address=" + address
@@ -847,15 +826,12 @@ public class GattService extends ProfileService {
         if (app == null) return;
 
         if (!app.isCongested) {
-            app.callback.onCharacteristicWrite(address, status, srvcType,
-                    srvcInstId, new ParcelUuid(srvcUuid),
-                    charInstId, new ParcelUuid(charUuid));
+            app.callback.onCharacteristicWrite(address, status, handle);
         } else {
             if (status == BluetoothGatt.GATT_CONNECTION_CONGESTED) {
                 status = BluetoothGatt.GATT_SUCCESS;
             }
-            CallbackInfo callbackInfo = new CallbackInfo(address, status, srvcType,
-                    srvcInstId, srvcUuid, charInstId, charUuid);
+            CallbackInfo callbackInfo = new CallbackInfo(address, status, handle);
             app.queueCallback(callbackInfo);
         }
     }
@@ -871,15 +847,7 @@ public class GattService extends ProfileService {
         }
     }
 
-    void onReadDescriptor(int connId, int status, int srvcType,
-            int srvcInstId, long srvcUuidLsb, long srvcUuidMsb,
-            int charInstId, long charUuidLsb, long charUuidMsb,
-            int descrInstId, long descrUuidLsb, long descrUuidMsb,
-            int charType, byte[] data) throws RemoteException {
-
-        UUID srvcUuid = new UUID(srvcUuidMsb, srvcUuidLsb);
-        UUID charUuid = new UUID(charUuidMsb, charUuidLsb);
-        UUID descrUuid = new UUID(descrUuidMsb, descrUuidLsb);
+    void onReadDescriptor(int connId, int status, int handle, byte[] data) throws RemoteException {
         String address = mClientMap.addressByConnId(connId);
 
         if (VDBG) Log.d(TAG, "onReadDescriptor() - address=" + address
@@ -887,21 +855,11 @@ public class GattService extends ProfileService {
 
         ClientMap.App app = mClientMap.getByConnId(connId);
         if (app != null) {
-            app.callback.onDescriptorRead(address, status, srvcType,
-                        srvcInstId, new ParcelUuid(srvcUuid),
-                        charInstId, new ParcelUuid(charUuid),
-                        descrInstId, new ParcelUuid(descrUuid), data);
+            app.callback.onDescriptorRead(address, status, handle, data);
         }
     }
 
-    void onWriteDescriptor(int connId, int status, int srvcType,
-            int srvcInstId, long srvcUuidLsb, long srvcUuidMsb,
-            int charInstId, long charUuidLsb, long charUuidMsb,
-            int descrInstId, long descrUuidLsb, long descrUuidMsb) throws RemoteException {
-
-        UUID srvcUuid = new UUID(srvcUuidMsb, srvcUuidLsb);
-        UUID charUuid = new UUID(charUuidMsb, charUuidLsb);
-        UUID descrUuid = new UUID(descrUuidMsb, descrUuidLsb);
+    void onWriteDescriptor(int connId, int status, int handle) throws RemoteException {
         String address = mClientMap.addressByConnId(connId);
 
         if (VDBG) Log.d(TAG, "onWriteDescriptor() - address=" + address
@@ -909,10 +867,7 @@ public class GattService extends ProfileService {
 
         ClientMap.App app = mClientMap.getByConnId(connId);
         if (app != null) {
-            app.callback.onDescriptorWrite(address, status, srvcType,
-                        srvcInstId, new ParcelUuid(srvcUuid),
-                        charInstId, new ParcelUuid(charUuid),
-                        descrInstId, new ParcelUuid(descrUuid));
+            app.callback.onDescriptorWrite(address, status, handle);
         }
     }
 
@@ -1262,9 +1217,7 @@ public class GattService extends ProfileService {
                 CallbackInfo callbackInfo = app.popQueuedCallback();
                 if (callbackInfo == null)  return;
                 app.callback.onCharacteristicWrite(callbackInfo.address,
-                        callbackInfo.status, callbackInfo.srvcType,
-                        callbackInfo.srvcInstId, new ParcelUuid(callbackInfo.srvcUuid),
-                        callbackInfo.charInstId, new ParcelUuid(callbackInfo.charUuid));
+                        callbackInfo.status, callbackInfo.handle);
             }
         }
     }
@@ -1467,101 +1420,83 @@ public class GattService extends ProfileService {
             Log.e(TAG, "discoverServices() - No connection for " + address + "...");
     }
 
-    void readCharacteristic(int clientIf, String address, int srvcType,
-                            int srvcInstanceId, UUID srvcUuid,
-                            int charInstanceId, UUID charUuid, int authReq) {
+    void readCharacteristic(int clientIf, String address, int handle, int authReq) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        if (isRestrictedCharUuid(charUuid) || isRestrictedSrvcUuid(srvcUuid)) {
-            enforcePrivilegedPermission();
-        }
 
         if (VDBG) Log.d(TAG, "readCharacteristic() - address=" + address);
 
         Integer connId = mClientMap.connIdByAddress(clientIf, address);
-        if (connId != null)
-            gattClientReadCharacteristicNative(connId, srvcType,
-                srvcInstanceId, srvcUuid.getLeastSignificantBits(),
-                srvcUuid.getMostSignificantBits(), charInstanceId,
-                charUuid.getLeastSignificantBits(), charUuid.getMostSignificantBits(),
-                authReq);
-        else
+        if (connId == null) {
             Log.e(TAG, "readCharacteristic() - No connection for " + address + "...");
+            return;
+        }
+
+        if (!permissionCheck(connId, handle)) {
+            if (VDBG) Log.d(TAG, "readCharacteristic() - permission check failed!");
+            return;
+        }
+
+        gattClientReadCharacteristicNative(connId, handle, authReq);
     }
 
-    void writeCharacteristic(int clientIf, String address, int srvcType,
-                             int srvcInstanceId, UUID srvcUuid,
-                             int charInstanceId, UUID charUuid, int writeType,
+    void writeCharacteristic(int clientIf, String address, int handle, int writeType,
                              int authReq, byte[] value) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        if (isRestrictedCharUuid(charUuid) || isRestrictedSrvcUuid(srvcUuid)) {
-            enforcePrivilegedPermission();
-        }
 
         if (VDBG) Log.d(TAG, "writeCharacteristic() - address=" + address);
 
         if (mReliableQueue.contains(address)) writeType = 3; // Prepared write
 
         Integer connId = mClientMap.connIdByAddress(clientIf, address);
-        if (connId != null)
-            gattClientWriteCharacteristicNative(connId, srvcType,
-                srvcInstanceId, srvcUuid.getLeastSignificantBits(),
-                srvcUuid.getMostSignificantBits(), charInstanceId,
-                charUuid.getLeastSignificantBits(), charUuid.getMostSignificantBits(),
-                writeType, authReq, value);
-        else
+        if (connId == null) {
             Log.e(TAG, "writeCharacteristic() - No connection for " + address + "...");
+            return;
+        }
+
+        if (!permissionCheck(connId, handle)) {
+            if (VDBG) Log.d(TAG, "writeCharacteristic() - permission check failed!");
+            return;
+        }
+
+        gattClientWriteCharacteristicNative(connId, handle, writeType, authReq, value);
     }
 
-    void readDescriptor(int clientIf, String address, int srvcType,
-                            int srvcInstanceId, UUID srvcUuid,
-                            int charInstanceId, UUID charUuid,
-                            int descrInstanceId, UUID descrUuid,
-                            int authReq) {
+    void readDescriptor(int clientIf, String address, int handle, int authReq) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        if (isRestrictedCharUuid(charUuid) || isRestrictedSrvcUuid(srvcUuid)) {
-            enforcePrivilegedPermission();
-        }
 
         if (VDBG) Log.d(TAG, "readDescriptor() - address=" + address);
 
         Integer connId = mClientMap.connIdByAddress(clientIf, address);
-        if (connId != null)
-            gattClientReadDescriptorNative(connId, srvcType,
-                srvcInstanceId,
-                srvcUuid.getLeastSignificantBits(), srvcUuid.getMostSignificantBits(),
-                charInstanceId,
-                charUuid.getLeastSignificantBits(), charUuid.getMostSignificantBits(),
-                descrInstanceId,
-                descrUuid.getLeastSignificantBits(), descrUuid.getMostSignificantBits(),
-                authReq);
-        else
+        if (connId == null) {
             Log.e(TAG, "readDescriptor() - No connection for " + address + "...");
-    };
-
-    void writeDescriptor(int clientIf, String address, int srvcType,
-                            int srvcInstanceId, UUID srvcUuid,
-                            int charInstanceId, UUID charUuid,
-                            int descrInstanceId, UUID descrUuid,
-                            int writeType, int authReq, byte[] value) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        if (isRestrictedCharUuid(charUuid) || isRestrictedSrvcUuid(srvcUuid)) {
-            enforcePrivilegedPermission();
+            return;
         }
 
+        if (!permissionCheck(connId, handle)) {
+            if (VDBG) Log.d(TAG, "readDescriptor() - permission check failed!");
+            return;
+        }
+
+        gattClientReadDescriptorNative(connId, handle, authReq);
+    };
+
+    void writeDescriptor(int clientIf, String address, int handle,
+                            int writeType, int authReq, byte[] value) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         if (VDBG) Log.d(TAG, "writeDescriptor() - address=" + address);
 
         Integer connId = mClientMap.connIdByAddress(clientIf, address);
-        if (connId != null)
-            gattClientWriteDescriptorNative(connId, srvcType,
-                srvcInstanceId,
-                srvcUuid.getLeastSignificantBits(), srvcUuid.getMostSignificantBits(),
-                charInstanceId,
-                charUuid.getLeastSignificantBits(), charUuid.getMostSignificantBits(),
-                descrInstanceId,
-                descrUuid.getLeastSignificantBits(), descrUuid.getMostSignificantBits(),
-                writeType, authReq, value);
-        else
+        if (connId == null) {
             Log.e(TAG, "writeDescriptor() - No connection for " + address + "...");
+            return;
+        }
+
+        if (!permissionCheck(connId, handle)) {
+            if (VDBG) Log.d(TAG, "writeDescriptor() - permission check failed!");
+            return;
+        }
+
+        gattClientWriteDescriptorNative(connId, handle, writeType, authReq, value);
     }
 
     void beginReliableWrite(int clientIf, String address) {
@@ -1582,27 +1517,23 @@ public class GattService extends ProfileService {
         if (connId != null) gattClientExecuteWriteNative(connId, execute);
     }
 
-    void registerForNotification(int clientIf, String address, int srvcType,
-                int srvcInstanceId, UUID srvcUuid,
-                int charInstanceId, UUID charUuid,
-                boolean enable) {
+    void registerForNotification(int clientIf, String address, int handle, boolean enable) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        if (isRestrictedCharUuid(charUuid) || isRestrictedSrvcUuid(srvcUuid)) {
-            enforcePrivilegedPermission();
-        }
 
         if (DBG) Log.d(TAG, "registerForNotification() - address=" + address + " enable: " + enable);
 
         Integer connId = mClientMap.connIdByAddress(clientIf, address);
         if (connId != null) {
-            gattClientRegisterForNotificationsNative(clientIf, address,
-                srvcType, srvcInstanceId, srvcUuid.getLeastSignificantBits(),
-                srvcUuid.getMostSignificantBits(), charInstanceId,
-                charUuid.getLeastSignificantBits(), charUuid.getMostSignificantBits(),
-                enable);
-        } else {
             Log.e(TAG, "registerForNotification() - No connection for " + address + "...");
+            return;
         }
+
+        if (!permissionCheck(connId, handle)) {
+            if (VDBG) Log.d(TAG, "writeDescriptor() - permission check failed!");
+            return;
+        }
+
+        gattClientRegisterForNotificationsNative(clientIf, address, handle, enable);
     }
 
     void readRemoteRssi(int clientIf, String address) {
@@ -2349,35 +2280,20 @@ public class GattService extends ProfileService {
 
     private native void gattClientGetGattDbNative(int conn_id);
 
-    private native void gattClientReadCharacteristicNative(int conn_id,
-            int service_type, int service_id_inst_id, long service_id_uuid_lsb,
-            long service_id_uuid_msb, int char_id_inst_id, long char_id_uuid_lsb,
-            long char_id_uuid_msb, int authReq);
+    private native void gattClientReadCharacteristicNative(int conn_id, int handle, int authReq);
 
-    private native void gattClientReadDescriptorNative(int conn_id, int service_type,
-            int service_id_inst_id, long service_id_uuid_lsb, long service_id_uuid_msb,
-            int char_id_inst_id, long char_id_uuid_lsb, long char_id_uuid_msb,
-            int descr_id_inst_id, long descr_id_uuid_lsb, long descr_id_uuid_msb,
-            int authReq);
+    private native void gattClientReadDescriptorNative(int conn_id, int handle, int authReq);
 
     private native void gattClientWriteCharacteristicNative(int conn_id,
-            int service_type, int service_id_inst_id, long service_id_uuid_lsb,
-            long service_id_uuid_msb, int char_id_inst_id, long char_id_uuid_lsb,
-            long char_id_uuid_msb, int write_type, int auth_req, byte[] value);
+            int handle, int write_type, int auth_req, byte[] value);
 
-    private native void gattClientWriteDescriptorNative(int conn_id, int service_type,
-            int service_id_inst_id, long service_id_uuid_lsb, long service_id_uuid_msb,
-            int char_id_inst_id, long char_id_uuid_lsb, long char_id_uuid_msb,
-            int descr_id_inst_id, long descr_id_uuid_lsb, long descr_id_uuid_msb,
+    private native void gattClientWriteDescriptorNative(int conn_id, int handle,
             int write_type, int auth_req, byte[] value);
 
     private native void gattClientExecuteWriteNative(int conn_id, boolean execute);
 
     private native void gattClientRegisterForNotificationsNative(int clientIf,
-            String address, int service_type, int service_id_inst_id,
-            long service_id_uuid_lsb, long service_id_uuid_msb,
-            int char_id_inst_id, long char_id_uuid_lsb, long char_id_uuid_msb,
-            boolean enable);
+            String address, int handle, boolean enable);
 
     private native void gattClientReadRemoteRssiNative(int clientIf,
             String address);
