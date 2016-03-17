@@ -22,11 +22,13 @@
         any application that was granted that permission. This specific
         permission controls access to the Bluetooth Avrcp Data Manager.
     -->
+  <string name="permlab_bluetoothAvrcpDataManager">AVRCP ಮೆಟಾಡಾಟಾ ಪ್ರವೇಶ ಮಾಡಿ.</string>
   <!--
         This is the long description of a permission associated with the
         Bluetooth Avrcp Data Manager. It is displayed as part of the description of
         any application that was granted that permission. This specific
         permission controls access to the Bluetooth Avrcp Data Manager.
     -->
+  <string name="permdesc_bluetoothAvrcpDataManager">ಬ್ಲೂಟೂತ್‌ AVRCP ಮೆಟಾಡಾಟಾ ಅಕ್ಸೆಸ್‌ಗೆ ಒಂದು ಅಪ್ಲಿ‌ಗೆ ಅನುಮತಿಸುತ್ತದೆ ಮತ್ತು UI ನಲ್ಲಿ ಪ್ರದರ್ಶನಕ್ಕೆ ಇದು ಬಳಕೆಯಾಗುತ್ತದೆ.</string>
   <string name="upload_fail_waiting">ಕಡತ ಕಳುಹಿಸಲು ಸಾಧವಾಗುತ್ತಿಲ್ಲ, ಮರುಪ್ರಯತ್ನಿಸುತ್ತಿದೆ\u2026</string>
 </resources>

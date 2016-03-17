@@ -185,6 +185,14 @@
   <string name="transfer_clear_dlg_msg">All d\'Elementer ginn aus der Lëscht erausgeholl.</string>
   <string name="outbound_noti_title">Bluetooth-Fräigab: Geschéckt Fichieren</string>
   <string name="inbound_noti_title">Bluetooth-Fräigab: Emfaange Fichieren</string>
+  <plurals name="noti_caption_unsuccessful">
+    <item quantity="one"><xliff:g id="unsuccessful_number">%1$d</xliff:g> net erfollegräich.</item>
+    <item quantity="other"><xliff:g id="unsuccessful_number">%1$d</xliff:g> net erfollegräich.</item>
+  </plurals>
+  <plurals name="noti_caption_success">
+    <item quantity="one"><xliff:g id="successful_number">%1$d</xliff:g> erfollegräich, %2$s</item>
+    <item quantity="other"><xliff:g id="successful_number">%1$d</xliff:g> erfollegräich, %2$s</item>
+  </plurals>
   <string name="transfer_menu_clear_all">Lëscht eidel maachen</string>
   <string name="transfer_menu_open">Opmaachen</string>
   <string name="transfer_menu_clear">Aus der Lëscht ewechhuelen</string>
@@ -193,5 +201,7 @@
   <!-- Used to run Bluetooth.apk in another process if needed -->
   <!-- Do not translate. android:sharedUserId string of this application. -->
   <!-- Do not translate. android:process of this application. -->
+  <string name="bluetooth_map_settings_save">Späicheren</string>
   <string name="bluetooth_map_settings_cancel">Ofbriechen</string>
+  <string name="bluetooth_map_settings_app_icon">App-Symbol</string>
 </resources>

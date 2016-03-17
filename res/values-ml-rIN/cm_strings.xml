@@ -28,4 +28,5 @@
         any application that was granted that permission. This specific
         permission controls access to the Bluetooth Avrcp Data Manager.
     -->
+  <string name="upload_fail_waiting">ഫയൽ അയക്കാൻ കഴിയുന്നില്ല, വീണ്ടും ശ്രമിക്കുന്നു\u2026</string>
 </resources>
