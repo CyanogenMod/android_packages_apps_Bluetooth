@@ -510,7 +510,7 @@ static void *sAlarmCallbackData;
 
 static JavaVMAttachArgs sAttachArgs = {
   .version = JNI_VERSION_1_6,
-  .name = "bluedroid wake/alarm thread",
+  .name = "bluetooth wake",
   .group = NULL
 };
 
@@ -554,54 +554,62 @@ static int acquire_wake_lock_callout(const char *lock_name) {
     jint status = vm->GetEnv((void **)&env, JNI_VERSION_1_6);
     if (status != JNI_OK && status != JNI_EDETACHED) {
         ALOGE("%s unable to get environment for JNI call", __func__);
-        return BT_STATUS_FAIL;
+        return BT_STATUS_JNI_ENVIRONMENT_ERROR;
     }
     if (status == JNI_EDETACHED && vm->AttachCurrentThread(&env, &sAttachArgs) != 0) {
         ALOGE("%s unable to attach thread to VM", __func__);
-        return BT_STATUS_FAIL;
+        return BT_STATUS_JNI_THREAD_ATTACH_ERROR;
     }
 
-    jboolean ret = JNI_FALSE;
+    jint ret = BT_STATUS_SUCCESS;
     jstring lock_name_jni = env->NewStringUTF(lock_name);
     if (lock_name_jni) {
-        ret = env->CallBooleanMethod(sJniAdapterServiceObj, method_acquireWakeLock, lock_name_jni);
+        bool acquired = env->CallBooleanMethod(sJniAdapterServiceObj,
+                            method_acquireWakeLock, lock_name_jni);
+        if (!acquired) ret = BT_STATUS_WAKELOCK_ERROR;
         env->DeleteLocalRef(lock_name_jni);
     } else {
         ALOGE("%s unable to allocate string: %s", __func__, lock_name);
+        ret = BT_STATUS_NOMEM;
     }
 
     if (status == JNI_EDETACHED) {
         vm->DetachCurrentThread();
     }
 
-    return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
+    return ret;
 }
 
 static int release_wake_lock_callout(const char *lock_name) {
     JNIEnv *env;
     JavaVM *vm = AndroidRuntime::getJavaVM();
     jint status = vm->GetEnv((void **)&env, JNI_VERSION_1_6);
-
     if (status != JNI_OK && status != JNI_EDETACHED) {
         ALOGE("%s unable to get environment for JNI call", __func__);
-        return BT_STATUS_FAIL;
+        return BT_STATUS_JNI_ENVIRONMENT_ERROR;
     }
     if (status == JNI_EDETACHED && vm->AttachCurrentThread(&env, &sAttachArgs) != 0) {
         ALOGE("%s unable to attach thread to VM", __func__);
-        return BT_STATUS_FAIL;
+        return BT_STATUS_JNI_THREAD_ATTACH_ERROR;
     }
-    jboolean ret = JNI_FALSE;
+
+    jint ret = BT_STATUS_SUCCESS;
     jstring lock_name_jni = env->NewStringUTF(lock_name);
     if (lock_name_jni) {
-        ret = env->CallBooleanMethod(sJniAdapterServiceObj, method_releaseWakeLock, lock_name_jni);
+        bool released = env->CallBooleanMethod(sJniAdapterServiceObj,
+                            method_releaseWakeLock, lock_name_jni);
+        if (!released) ret = BT_STATUS_WAKELOCK_ERROR;
         env->DeleteLocalRef(lock_name_jni);
     } else {
         ALOGE("%s unable to allocate string: %s", __func__, lock_name);
+        ret = BT_STATUS_NOMEM;
     }
+
     if (status == JNI_EDETACHED) {
         vm->DetachCurrentThread();
     }
-    return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
+
+    return ret;
 }
 
 // Called by Java code when alarm is fired. A wake lock is held by the caller
