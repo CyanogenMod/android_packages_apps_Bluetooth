@@ -22,11 +22,13 @@
         any application that was granted that permission. This specific
         permission controls access to the Bluetooth Avrcp Data Manager.
     -->
+  <string name="permlab_bluetoothAvrcpDataManager">Truy cập siêu dữ liệu AVRCP.</string>
   <!--
         This is the long description of a permission associated with the
         Bluetooth Avrcp Data Manager. It is displayed as part of the description of
         any application that was granted that permission. This specific
         permission controls access to the Bluetooth Avrcp Data Manager.
     -->
+  <string name="permdesc_bluetoothAvrcpDataManager">Cho phép ứng dụng truy cập siêu dữ liệu AVRCP của Bluetooth và dùng nó để hiện trên giao diện người dùng.</string>
   <string name="upload_fail_waiting">Không thể gửi tập tin, đang thử lại\u2026</string>
 </resources>
