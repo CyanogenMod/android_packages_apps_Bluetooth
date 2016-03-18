@@ -20,6 +20,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Message;
+import android.os.UserManager;
 import android.util.Log;
 
 import com.android.internal.util.State;
@@ -360,7 +361,8 @@ final class AdapterState extends StateMachine {
                     removeMessages(BLE_START_TIMEOUT);
 
                     //Enable
-                    if (!adapterService.enableNative()) {
+                    boolean isGuest = UserManager.get(mAdapterService).isGuestUser();
+                    if (!adapterService.enableNative(isGuest)) {
                         errorLog("Error while turning Bluetooth on");
                         notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
                         transitionTo(mOffState);
