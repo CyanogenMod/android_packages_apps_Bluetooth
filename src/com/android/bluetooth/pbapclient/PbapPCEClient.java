@@ -27,7 +27,11 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
+import android.os.Process;
 import android.net.Uri;
 import android.provider.CallLog;
 import android.provider.ContactsContract;
@@ -42,8 +46,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import java.lang.InterruptedException;
 import java.lang.Thread;
 /**
  * These are the possible paths that can be pulled:
@@ -58,26 +61,29 @@ import java.lang.Thread;
  */
 public class PbapPCEClient  implements PbapHandler.PbapListener {
     private static final String TAG = "PbapPCEClient";
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
     private final Queue<PullRequest> mPendingRequests = new ArrayDeque<PullRequest>();
-    private final AtomicBoolean mPendingPull = new AtomicBoolean(false);
     private BluetoothDevice mDevice;
     private BluetoothPbapClient mClient;
     private boolean mClientConnected = false;
     private PbapHandler mHandler;
     private Handler mSelfHandler;
     private PullRequest mLastPull;
+    private HandlerThread mContactHandlerThread;
+    private Handler mContactHandler;
     private Account mAccount = null;
     private Context mContext = null;
     private AccountManager mAccountManager;
-    private DeleteCallLogTask mDeleteCallLogTask;
 
     PbapPCEClient(Context context) {
         mContext = context;
         mSelfHandler = new Handler(mContext.getMainLooper());
         mHandler = new PbapHandler(this);
         mAccountManager = AccountManager.get(mContext);
-
+        mContactHandlerThread = new HandlerThread("PBAP contact handler",
+                Process.THREAD_PRIORITY_BACKGROUND);
+        mContactHandlerThread.start();
+        mContactHandler = new ContactHandler(mContactHandlerThread.getLooper());
     }
 
     public int getConnectionState() {
@@ -109,46 +115,30 @@ public class PbapPCEClient  implements PbapHandler.PbapListener {
         return mDevice;
     }
 
-    private synchronized boolean maybePull() {
+    private boolean processNextRequest() {
         if (DBG) {
-            Log.d(TAG,"Attempting to Pull");
+            Log.d(TAG,"processNextRequest()");
         }
-        if (!mClientConnected) {
-            Log.w(TAG, "Client not connected yet -- will execute on next cycle.");
+        if (mPendingRequests.isEmpty()) {
             return false;
         }
-        return maybePullLocked();
-    }
-
-    private boolean maybePullLocked() {
-        if (DBG) {
-            Log.d(TAG,"maybePullLocked()");
-        }
-        if (mPendingPull.compareAndSet(false, true)) {
-            if (mPendingRequests.isEmpty()) {
-                mPendingPull.set(false);
-                return false;
+        if (mClient != null  && mClient.getState() ==
+                BluetoothPbapClient.ConnectionState.CONNECTED) {
+            mLastPull = mPendingRequests.remove();
+            if (DBG) {
+                Log.d(TAG, "Pulling phone book from: " + mLastPull.path);
             }
-            if (mClient != null) {
-                mLastPull = mPendingRequests.remove();
-                if (DBG) {
-                    Log.d(TAG, "Pulling phone book from: " + mLastPull.path);
-                }
-                return mClient.pullPhoneBook(mLastPull.path);
-            }
+            return mClient.pullPhoneBook(mLastPull.path);
         }
         return false;
     }
 
-    private void pullComplete() {
-        mPendingPull.set(false);
-        maybePull();
-    }
 
     @Override
     public void onPhoneBookPullDone(List<VCardEntry> entries) {
-        mLastPull.onPullComplete(true, entries);
-        pullComplete();
+        mLastPull.setResults(entries);
+        mContactHandler.obtainMessage(ContactHandler.EVENT_ADD_CONTACTS,mLastPull).sendToTarget();
+        processNextRequest();
     }
 
     @Override
@@ -156,8 +146,7 @@ public class PbapPCEClient  implements PbapHandler.PbapListener {
         if (DBG) {
             Log.d(TAG, "Error, mLastPull = "  + mLastPull);
         }
-        mLastPull.onPullComplete(false, null);
-        pullComplete();
+        processNextRequest();
     }
 
     @Override
@@ -167,7 +156,9 @@ public class PbapPCEClient  implements PbapHandler.PbapListener {
             // If we are disconnected then whatever the current device is we should simply clean up.
             handleDisconnect(null);
         }
-        if (mClientConnected == true) maybePullLocked();
+        if (mClientConnected == true) {
+            processNextRequest();
+        }
     }
 
     public void handleConnect(BluetoothDevice device) {
@@ -184,26 +175,15 @@ public class PbapPCEClient  implements PbapHandler.PbapListener {
             Log.w(TAG, "Got a connected event for the same device. Ignoring!");
             return;
         }
-        resetState();
-        // Cancel any pending delete tasks that might race.
-        if (mDeleteCallLogTask != null) {
-            mDeleteCallLogTask.cancel(true);
-        }
-        mDeleteCallLogTask = new DeleteCallLogTask();
-
-        // Cleanup any existing accounts if we get a connected event but previous account state was
-        // left hanging (such as unclean shutdown).
-        removeUncleanAccounts();
-
         // Update the device.
         mDevice = device;
         mClient = new BluetoothPbapClient(mDevice, mAccount, mHandler);
-        mClient.connect();
-
         // Add the account. This should give us a place to stash the data.
-        addAccount(device.getAddress());
+        mAccount = new Account(device.getAddress(), mContext.getString(R.string.pbap_account_type));
+        mContactHandler.obtainMessage(ContactHandler.EVENT_ADD_ACCOUNT,mAccount).sendToTarget();
         downloadPhoneBook();
         downloadCallLogs();
+        mClient.connect();
     }
 
     public void handleDisconnect(BluetoothDevice device) {
@@ -220,11 +200,6 @@ public class PbapPCEClient  implements PbapHandler.PbapListener {
                        " disconnecting device = " + device);
             return;
         }
-
-        if (device != null) {
-            removeAccount(mAccount);
-            mAccount = null;
-        }
         resetState();
     }
 
@@ -235,52 +210,47 @@ public class PbapPCEClient  implements PbapHandler.PbapListener {
             return;
         }
         // Device is NULL, we go on remove any unclean shutdown accounts.
-        removeUncleanAccounts();
-        resetState();
+        mContactHandler.obtainMessage(ContactHandler.EVENT_CLEANUP).sendToTarget();
     }
 
     private void resetState() {
-        Log.d(TAG,"resetState()");
+        if (DBG) {
+            Log.d(TAG,"resetState()");
+        }
         if (mClient != null) {
             // This should abort any inflight messages.
             mClient.disconnect();
         }
         mClient = null;
         mClientConnected = false;
-        if (mDeleteCallLogTask != null &&
-            mDeleteCallLogTask.getStatus() == AsyncTask.Status.PENDING) {
-            mDeleteCallLogTask.execute();
-        }
+
+        mContactHandler.removeCallbacksAndMessages(null);
+        mContactHandlerThread.interrupt();
+        mContactHandler.obtainMessage(ContactHandler.EVENT_CLEANUP).sendToTarget();
+
         mDevice = null;
         mAccount = null;
-        Log.d(TAG,"resetState Complete");
-
-    }
-
-    private void removeUncleanAccounts() {
-        // Find all accounts that match the type "pbap" and delete them. This section is
-        // executed only if the device was shut down in an unclean state and contacts persisted.
-        Account[] accounts =
-            mAccountManager.getAccountsByType(mContext.getString(R.string.pbap_account_type));
-        Log.w(TAG, "Found " + accounts.length + " unclean accounts");
-        for (Account acc : accounts) {
-            Log.w(TAG, "Deleting " + acc);
-            // The device ID is the name of the account.
-            removeAccount(acc);
+        mPendingRequests.clear();
+        if (DBG) {
+            Log.d(TAG,"resetState Complete");
         }
+
     }
 
     private void downloadCallLogs() {
         // Download Incoming Call Logs.
-        CallLogPullRequest ichCallLog = new CallLogPullRequest(mContext, BluetoothPbapClient.ICH_PATH);
+        CallLogPullRequest ichCallLog =
+                new CallLogPullRequest(mContext, BluetoothPbapClient.ICH_PATH);
         addPullRequest(ichCallLog);
 
         // Downoad Outgoing Call Logs.
-        CallLogPullRequest ochCallLog = new CallLogPullRequest(mContext, BluetoothPbapClient.OCH_PATH);
+        CallLogPullRequest ochCallLog =
+                new CallLogPullRequest(mContext, BluetoothPbapClient.OCH_PATH);
         addPullRequest(ochCallLog);
 
         // Downoad Missed Call Logs.
-        CallLogPullRequest mchCallLog = new CallLogPullRequest(mContext, BluetoothPbapClient.MCH_PATH);
+        CallLogPullRequest mchCallLog =
+                new CallLogPullRequest(mContext, BluetoothPbapClient.MCH_PATH);
         addPullRequest(mchCallLog);
     }
 
@@ -290,44 +260,7 @@ public class PbapPCEClient  implements PbapHandler.PbapListener {
         addPullRequest(pb);
     }
 
-    private class DeleteCallLogTask extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected Void doInBackground(Void... unused) {
-            if (isCancelled()) {
-                return null;
-            }
-
-            mContext.getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null);
-            if (DBG) {
-                Log.d(TAG, "Call logs deleted.");
-            }
-            return null;
-        }
-    }
-
-    private boolean addAccount(String id) {
-        mAccount = new Account(id, mContext.getString(R.string.pbap_account_type));
-        if (mAccountManager.addAccountExplicitly(mAccount, null, null)) {
-            if (DBG) {
-                Log.d(TAG, "Added account " + mAccount);
-            }
-            return true;
-        }
-        throw new IllegalStateException(TAG + ":Failed to add account!");
-    }
-
-    private boolean removeAccount(Account acc) {
-        if (mAccountManager.removeAccountExplicitly(acc)) {
-            if (DBG) {
-                Log.d(TAG, "Removed account " + acc);
-            }
-            return true;
-        }
-        Log.e(TAG, "Failed to remove account " + mAccount);
-        return false;
-    }
-
-    public void addPullRequest(PullRequest r) {
+    private void addPullRequest(PullRequest r) {
         if (DBG) {
             Log.d(TAG, "pull request mClient=" + mClient + " connected= " +
                     mClientConnected + " mDevice=" + mDevice + " path= " + r.path);
@@ -336,10 +269,90 @@ public class PbapPCEClient  implements PbapHandler.PbapListener {
             // It seems we want to pull but the bt connection isn't up, fail it
             // immediately.
             Log.w(TAG, "aborting pull request.");
-            r.onPullComplete(false, null);
             return;
         }
         mPendingRequests.add(r);
-        maybePull();
     }
+
+    private class ContactHandler extends Handler {
+        public static final int EVENT_ADD_ACCOUNT = 1;
+        public static final int EVENT_ADD_CONTACTS = 2;
+        public static final int EVENT_CLEANUP = 3;
+
+        public ContactHandler(Looper looper) {
+          super(looper);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            if (DBG) {
+                Log.d(TAG, "Contact Handler Message " + msg.what + " with " + msg.obj);
+            }
+            switch (msg.what) {
+                case EVENT_ADD_ACCOUNT:
+                    if (msg.obj instanceof Account) {
+                        Account account = (Account) msg.obj;
+                        addAccount(account);
+                    }
+                    break;
+
+                case EVENT_ADD_CONTACTS:
+                    if (msg.obj instanceof PullRequest) {
+                        PullRequest req = (PullRequest) msg.obj;
+                        req.onPullComplete();
+                    }
+                    else {
+                        Log.w(TAG, "invalid Instance in contact handler");
+                    }
+                    break;
+
+                case EVENT_CLEANUP:
+                    Thread.currentThread().interrupted();  //clear state of interrupt.
+                    removeUncleanAccounts();
+                    mContext.getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null);
+                    if (DBG) {
+                        Log.d(TAG, "Call logs deleted.");
+                    }
+                    break;
+
+                default:
+                    Log.e(TAG, "Unknown Request to Contact Handler");
+                    break;
+            }
+        }
+
+        private void removeUncleanAccounts() {
+            // Find all accounts that match the type "pbap" and delete them. This section is
+            // executed only if the device was shut down in an unclean state and contacts persisted.
+            Account[] accounts =
+                mAccountManager.getAccountsByType(mContext.getString(R.string.pbap_account_type));
+            Log.w(TAG, "Found " + accounts.length + " unclean accounts");
+            for (Account acc : accounts) {
+                Log.w(TAG, "Deleting " + acc);
+                // The device ID is the name of the account.
+                removeAccount(acc);
+            }
+        }
+
+        private boolean addAccount(Account account) {
+            if (mAccountManager.addAccountExplicitly(account, null, null)) {
+                if (DBG) {
+                    Log.d(TAG, "Added account " + mAccount);
+                }
+                return true;
+            }
+            throw new IllegalStateException(TAG + ":Failed to add account!");
+        }
+
+        private boolean removeAccount(Account acc) {
+            if (mAccountManager.removeAccountExplicitly(acc)) {
+                if (DBG) {
+                    Log.d(TAG, "Removed account " + acc);
+                }
+                return true;
+            }
+            Log.e(TAG, "Failed to remove account " + mAccount);
+            return false;
+        }
+   }
 }

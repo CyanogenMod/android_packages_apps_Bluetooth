@@ -48,14 +48,14 @@ public class CallLogPullRequest extends PullRequest {
     }
 
     @Override
-    public void onPullComplete(boolean success, List<VCardEntry> entries) {
-        if (entries == null) {
+    public void onPullComplete() {
+        if (mEntries == null) {
             Log.e(TAG, "onPullComplete entries is null.");
             return;
         }
 
         if (DBG) {
-            Log.d(TAG, "onPullComplete with " + entries.size() + " count.");
+            Log.d(TAG, "onPullComplete with " + mEntries.size() + " count.");
         }
         int type;
         try {
@@ -70,13 +70,8 @@ public class CallLogPullRequest extends PullRequest {
                 return;
             }
 
-            if (entries == null) {
-                // Nothing to do. Return.
-                return;
-            }
-
             ArrayList<ContentProviderOperation> ops = new ArrayList<>();
-            for (VCardEntry vcard : entries) {
+            for (VCardEntry vcard : mEntries) {
                 List<PhoneData> phones = vcard.getPhoneList();
                 if (phones == null || phones.size() != 1) {
                     Log.d(TAG, "Incorrect number of phones: " + vcard);

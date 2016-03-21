@@ -22,6 +22,7 @@ import android.util.Log;
 
 import com.android.vcard.VCardEntry;
 
+import java.lang.InterruptedException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -119,9 +120,12 @@ public class PhonebookPullRequest extends PullRequest {
     }
 
     private void addContacts(List<PhonebookEntry> entries)
-            throws RemoteException, OperationApplicationException {
+            throws RemoteException, OperationApplicationException, InterruptedException {
         ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
         for (PhonebookEntry e : entries) {
+            if (Thread.currentThread().isInterrupted()) {
+                throw new InterruptedException();
+            }
             int index = ops.size();
             // Add an entry.
             ops.add(ContentProviderOperation.newInsert(RawContacts.CONTENT_URI)
@@ -177,27 +181,23 @@ public class PhonebookPullRequest extends PullRequest {
     }
 
     @Override
-    public void onPullComplete(boolean success, List<VCardEntry> entries) {
-        if (entries == null) {
+    public void onPullComplete() {
+        if (mEntries == null) {
             Log.e(TAG, "onPullComplete entries is null.");
             return;
         }
 
         if (DBG) {
-            Log.d(TAG, "onPullComplete with " + entries.size() + " count.");
+            Log.d(TAG, "onPullComplete with " + mEntries.size() + " count.");
         }
         try {
-            if (!success) {
-                Log.e(TAG, "Pull finished with errors.");
-                return;
-            }
 
             HashMap<PhonebookEntry.Name, PhonebookEntry> contacts = fetchExistingContacts();
 
             List<PhonebookEntry> contactsToAdd = new ArrayList<PhonebookEntry>();
             List<PhonebookEntry> contactsToDelete = new ArrayList<PhonebookEntry>();
 
-            for (VCardEntry e : entries) {
+            for (VCardEntry e : mEntries) {
                 PhonebookEntry current = new PhonebookEntry(e);
                 PhonebookEntry.Name key = current.name;
 
@@ -229,6 +229,8 @@ public class PhonebookPullRequest extends PullRequest {
                     + " delete=" + contactsToDelete.size());
         } catch (OperationApplicationException | RemoteException | NumberFormatException e) {
             Log.d(TAG, "Got exception: ", e);
+        } catch (InterruptedException e) {
+            Log.d(TAG, "Interrupted durring insert.");
         } finally {
             complete = true;
         }
