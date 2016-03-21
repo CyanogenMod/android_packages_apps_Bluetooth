@@ -27,6 +27,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser.MediaItem;
+import android.media.session.MediaController;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
@@ -348,6 +349,21 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
 
     private void msgTrack(PlaybackState pb, MediaMetadata mmd) {
         Log.d(TAG, "msgTrack: playback: " + pb + " mmd: " + mmd);
+        // Log the current track position/content.
+        MediaController controller = mSession.getController();
+        PlaybackState prevPS = controller.getPlaybackState();
+        MediaMetadata prevMM = controller.getMetadata();
+
+        if (prevPS != null) {
+            Log.d(TAG, "prevPS " + prevPS);
+        }
+
+        if (prevMM != null) {
+            String title = prevMM.getString(MediaMetadata.METADATA_KEY_TITLE);
+            long trackLen = prevMM.getLong(MediaMetadata.METADATA_KEY_DURATION);
+            Log.d(TAG, "prev MM title " + title + " track len " + trackLen);
+        }
+
         if (mmd != null) {
             Log.d(TAG, "msgTrack() mmd " + mmd.getDescription());
             mSession.setMetadata(mmd);

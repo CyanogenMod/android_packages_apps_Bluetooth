@@ -547,10 +547,11 @@ public class AvrcpControllerService extends ProfileService {
             case AvrcpControllerConstants.MESSAGE_STOP_METADATA_BROADCASTS:
                 // Any messages hence forth about play pos/play status/song info will be ignored.
                 if(mRemoteMediaPlayers != null) {
-                    mRemoteMediaPlayers.getAddressedPlayer().mPlayStatus =
-                            AvrcpControllerConstants.PLAY_STATUS_PAUSED;
+                    // Mock the current state to *look like* it is paused. The remote play state is
+                    // still cached in mRemoteMediaPlayers and will be restored when the
+                    // startAvrcpUpdates is called again.
                     broadcastPlayBackStateChanged(AvrcpUtils.mapBtPlayStatustoPlayBackState
-                            (mRemoteMediaPlayers.getAddressedPlayer().mPlayStatus,
+                            ((byte) AvrcpControllerConstants.PLAY_STATUS_PAUSED,
                              mRemoteMediaPlayers.getAddressedPlayer().mPlayTime));
                 }
                 mBroadcastMetadata = false;
