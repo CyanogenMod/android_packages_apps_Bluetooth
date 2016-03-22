@@ -21,11 +21,16 @@ import java.util.List;
 
 public abstract class PullRequest {
     public String path;
-    public abstract void onPullComplete(boolean success, List<VCardEntry> entries);
+    protected List<VCardEntry> mEntries;
+    public abstract void onPullComplete();
 
     @Override
     public String toString() {
         return "PullRequest: { path=" + path + " }";
+    }
+
+    public void setResults(List<VCardEntry> results) {
+        mEntries = results;
     }
 }
 
