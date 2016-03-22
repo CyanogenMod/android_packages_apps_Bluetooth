@@ -1523,7 +1523,7 @@ public class GattService extends ProfileService {
         if (DBG) Log.d(TAG, "registerForNotification() - address=" + address + " enable: " + enable);
 
         Integer connId = mClientMap.connIdByAddress(clientIf, address);
-        if (connId != null) {
+        if (connId == null) {
             Log.e(TAG, "registerForNotification() - No connection for " + address + "...");
             return;
         }
