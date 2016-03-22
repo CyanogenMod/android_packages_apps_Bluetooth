@@ -812,6 +812,22 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         return pushBytes(op, result.toString());
     }
 
+    private String getHandle(String value) {
+        if (value != null) {
+            return value.substring(value.lastIndexOf(',') + 1, value.length());
+        }
+        return "-1";
+    }
+
+    private ArrayList<Integer> addToListAtPos(ArrayList<Integer> list, int pos, String handle) {
+        if (handle != null && Integer.parseInt(handle) >= 0) {
+            list.add(Integer.parseInt(handle));
+        } else {
+            list.add(pos);
+        }
+        return list;
+    }
+
     private int createList(final int maxListCount, final int listStartOffset, boolean vcard21,
         int needSendBody, int size, byte[] vCardSelector, String vCardSelectorOperator,
         final String searchValue, StringBuilder result, String type, boolean SIM) {
@@ -845,16 +861,20 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                   names = mVcardManager.getContactNamesByNumber(searchValue);
             }
             for (int i = 0; i < names.size(); i++) {
+                String handle = "-1";
                 compareValue = names.get(i).trim();
                 if (D) Log.d(TAG, "compareValue=" + compareValue);
                 for (pos = 0; pos < listSize; pos++) {
                     currentValue = nameList.get(pos);
                     if (D) Log.d(TAG, "currentValue=" + currentValue);
                     if (currentValue.equals(compareValue)) {
-                        if (currentValue.contains(","))
+                        if (currentValue.contains(",")){
+                            handle = getHandle(currentValue);
+                            if (V) Log.v(TAG, "handle" + handle);
                             currentValue = currentValue.substring(0, currentValue.lastIndexOf(','));
+                        }
                         selectedNameList.add(currentValue);
-                        savedPosList.add(pos);
+                        savedPosList = addToListAtPos(savedPosList, pos, handle);
                     }
                 }
             }
@@ -873,15 +893,20 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 compareValue = searchValue.trim().toLowerCase();
             }
             for (pos = 0; pos < listSize; pos++) {
+                String handle = "-1";
                 currentValue = nameList.get(pos);
 
-                if (currentValue.contains(","))
+                if (currentValue.contains(",")){
+                    handle = getHandle(currentValue);
+                    if (V) Log.v(TAG, "handle" + handle);
                     currentValue = currentValue.substring(0, currentValue.lastIndexOf(','));
+                }
 
                 if (searchValue != null) {
-                    if (searchValue.isEmpty() || ((currentValue.toLowerCase()).startsWith(compareValue.toLowerCase()))) {
+                    if (searchValue.isEmpty() ||
+                        ((currentValue.toLowerCase()).startsWith(compareValue.toLowerCase()))) {
                         selectedNameList.add(currentValue);
-                        savedPosList.add(pos);
+                        savedPosList = addToListAtPos(savedPosList, pos, handle);
                     }
                 }
             }
@@ -1200,6 +1225,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         if (strIndex.trim().length() != 0) {
             try {
                 intIndex = Integer.parseInt(strIndex);
+                if (D) Log.d(TAG, "Index: " + intIndex + "orderby: " + mOrderBy);
             } catch (NumberFormatException e) {
                 Log.e(TAG, "catch number format exception " + e.toString());
                 return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;

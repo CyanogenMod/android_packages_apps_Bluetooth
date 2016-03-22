@@ -344,7 +344,7 @@ public class BluetoothPbapVcardManager {
         if (ownerName == null || ownerName.length()==0) {
             ownerName = BluetoothPbapService.getLocalPhoneName();
         }
-        nameList.add(ownerName);
+        nameList.add(ownerName + "," + "0");
         //End enhancement
 
         final Uri myUri = DevicePolicyUtils.getEnterprisePhoneUri(mContext);
@@ -409,7 +409,7 @@ public class BluetoothPbapVcardManager {
         if (ownerName == null || ownerName.length()==0) {
             ownerName = BluetoothPbapService.getLocalPhoneName();
         }
-        nameList.add(ownerName);
+        nameList.add(ownerName + "," + "0");
         //End enhancement
 
         final Uri myUri = DevicePolicyUtils.getEnterprisePhoneUri(mContext);
@@ -881,15 +881,27 @@ public class BluetoothPbapVcardManager {
             final MatrixCursor contactIdsCursor = new MatrixCursor(new String[]{
                     Phone.CONTACT_ID
             });
-            while (contactCursor.moveToNext() && currentOffset <= endPoint) {
-                long currentContactId = contactCursor.getLong(contactIdColumn);
-                if (previousContactId != currentContactId) {
-                    previousContactId = currentContactId;
-                    if (currentOffset >= startPoint) {
+
+            if (startPoint == endPoint) {
+                while (contactCursor.moveToNext()) {
+                    long currentContactId = contactCursor.getLong(contactIdColumn);
+                    if (currentContactId == startPoint) {
                         contactIdsCursor.addRow(new Long[]{currentContactId});
                         if (V) Log.v(TAG, "contactIdsCursor.addRow: " + currentContactId);
+                        break;
                     }
-                    currentOffset++;
+                }
+            } else {
+                while (contactCursor.moveToNext() && currentOffset <= endPoint) {
+                   long currentContactId = contactCursor.getLong(contactIdColumn);
+                   if (previousContactId != currentContactId) {
+                       previousContactId = currentContactId;
+                       if (currentOffset >= startPoint) {
+                           contactIdsCursor.addRow(new Long[]{currentContactId});
+                           if (V) Log.v(TAG, "contactIdsCursor.addRow: " + currentContactId);
+                       }
+                       currentOffset++;
+                   }
                 }
             }
             return contactIdsCursor;
