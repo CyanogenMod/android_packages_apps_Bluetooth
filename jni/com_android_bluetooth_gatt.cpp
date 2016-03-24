@@ -559,6 +559,7 @@ void btgattc_get_gatt_db_cb(int conn_id, btgatt_db_element_t *db, int count)
     // class loader to load it.
     jobject objectForClass = sCallbackEnv->CallObjectMethod(mCallbacksObj, method_getSampleGattDbElement);
     jclass gattDbElementClazz = sCallbackEnv->GetObjectClass(objectForClass);
+    sCallbackEnv->DeleteLocalRef(objectForClass);
 
     jmethodID gattDbElementConstructor = sCallbackEnv->GetMethodID(gattDbElementClazz, "<init>", "()V");
 
@@ -574,14 +575,13 @@ void btgattc_get_gatt_db_cb(int conn_id, btgatt_db_element_t *db, int count)
 
         jobject element = sCallbackEnv->NewObject(gattDbElementClazz, gattDbElementConstructor);
 
-        jfieldID fid;
-
-        fid = sCallbackEnv->GetFieldID(gattDbElementClazz, "id", "I");
+        jfieldID fid = sCallbackEnv->GetFieldID(gattDbElementClazz, "id", "I");
         sCallbackEnv->SetIntField(element, fid, curr.id);
 
         jobject uuid = sCallbackEnv->NewObject(uuidClazz, uuidConstructor, uuid_msb(&curr.uuid), uuid_lsb(&curr.uuid));
         fid = sCallbackEnv->GetFieldID(gattDbElementClazz, "uuid", "java/util/UUID");
         sCallbackEnv->SetObjectField(element, fid, uuid);
+        sCallbackEnv->DeleteLocalRef(uuid);
 
         fid = sCallbackEnv->GetFieldID(gattDbElementClazz, "type", "I");
         sCallbackEnv->SetIntField(element, fid, curr.type);
@@ -599,11 +599,12 @@ void btgattc_get_gatt_db_cb(int conn_id, btgatt_db_element_t *db, int count)
         sCallbackEnv->SetIntField(element, fid, curr.properties);
 
         sCallbackEnv->CallBooleanMethod(array, arrayAdd, element);
-
         sCallbackEnv->DeleteLocalRef(element);
     }
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetGattDb, conn_id, array);
+    sCallbackEnv->DeleteLocalRef(array);
+
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
