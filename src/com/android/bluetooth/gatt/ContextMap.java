@@ -154,11 +154,11 @@ import com.android.bluetooth.btservice.BluetoothProto;
         }
         synchronized (mApps) {
             AppScanStats appScanStats = mAppScanStats.get(appName);
-            mApps.add(new App(uuid, callback, appName, appScanStats));
             if (appScanStats == null) {
                 appScanStats = new AppScanStats(appName, this, service);
                 mAppScanStats.put(appName, appScanStats);
             }
+            mApps.add(new App(uuid, callback, appName, appScanStats));
             appScanStats.isRegistered = true;
         }
     }
