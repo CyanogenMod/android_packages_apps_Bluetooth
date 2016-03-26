@@ -128,11 +128,13 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
         private static final int sSleepTime = 1000;
         private Uri contentUri;
         private Context mContext1;
+        private volatile boolean interrupted = false;
 
         public ContentResolverUpdateThread(Context context, Uri cntUri) {
             super("BtOpp ContentResolverUpdateThread");
             mContext1 = context;
             contentUri = cntUri;
+            interrupted = false;
         }
 
 
@@ -143,18 +145,32 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             ContentValues updateValues;
             if (V) Log.v(TAG, "Is ContentResolverUpdateThread Interrupted :" + isInterrupted());
             /*  Check if the Operation is interrupted before entering into loop */
-            while (!isInterrupted()) {
+            while (!interrupted) {
                 updateValues = new ContentValues();
                 updateValues.put(BluetoothShare.CURRENT_BYTES, position);
                 mContext1.getContentResolver().update(contentUri, updateValues,
                         null, null);
+
+                /* Check if the Operation is interrupted before entering sleep */
+                if (interrupted) {
+                    if (V) Log.v(TAG, "ContentResolverUpdateThread was interrupted before sleep !, exiting");
+                    return;
+                }
+
                 try {
                     Thread.sleep(sSleepTime);
                 } catch (InterruptedException e1) {
                     if (V) Log.v(TAG, "ContentResolverUpdateThread was interrupted (1), exiting");
+                    interrupted = true;
                     return;
                 }
             }
+        }
+
+        @Override
+        public void interrupt() {
+            interrupted = true;
+            super.interrupt();
         }
     }
 
