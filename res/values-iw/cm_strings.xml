@@ -29,6 +29,6 @@
         any application that was granted that permission. This specific
         permission controls access to the Bluetooth Avrcp Data Manager.
     -->
-  <string name="permdesc_bluetoothAvrcpDataManager">מאפשר ליישום גישה לנתוני העל של ה-Bluetooth AVRCP ולהשתמש בהם להצגה על גבי ממשק המשתמש.</string>
+  <string name="permdesc_bluetoothAvrcpDataManager">מאפשר ליישום לגשת לנתוני העל של ה-Bluetooth AVRCP ולהשתמש בהם להצגה על גבי ממשק המשתמש.</string>
   <string name="upload_fail_waiting">שליחת הקובץ נכשלה, מנסה שנית\u2026</string>
 </resources>
