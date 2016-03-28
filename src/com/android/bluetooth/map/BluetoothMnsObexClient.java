@@ -60,12 +60,16 @@ public class BluetoothMnsObexClient {
 
     private HeaderSet mHsConnect = null;
     private Handler mCallback = null;
-    private final SdpMnsRecord mMnsRecord;
+    private SdpMnsRecord mMnsRecord;
     // Used by the MAS to forward notification registrations
     public static final int MSG_MNS_NOTIFICATION_REGISTRATION = 1;
     public static final int MSG_MNS_SEND_EVENT = 2;
+    public static final int MSG_MNS_SDP_SEARCH_REGISTRATION = 3;
 
-
+    //Copy SdpManager.SDP_INTENT_DELAY - The timeout to wait for reply from native.
+    private final int MNS_SDP_SEARCH_DELAY = 6000;
+    public MnsSdpSearchInfo mMnsLstRegRqst = null;
+    private static final int MNS_NOTIFICATION_DELAY = 10;
     public static final ParcelUuid BLUETOOTH_UUID_OBEX_MNS =
             ParcelUuid.fromString("00001133-0000-1000-8000-00805F9B34FB");
 
@@ -90,6 +94,26 @@ public class BluetoothMnsObexClient {
         return mHandler;
     }
 
+    class MnsSdpSearchInfo {
+        private boolean isSearchInProgress;
+        int lastMasId;
+        int lastNotificationStatus;
+
+        MnsSdpSearchInfo (boolean isSearchON, int masId, int notification) {
+            isSearchInProgress = isSearchON;
+            lastMasId = masId;
+            lastNotificationStatus = notification;
+        }
+
+        public boolean isSearchInProgress() {
+            return isSearchInProgress;
+        }
+
+        public void setIsSearchInProgress(boolean isSearchON) {
+            isSearchInProgress = isSearchON;
+        }
+    }
+
     private final class MnsObexClientHandler extends Handler {
         private MnsObexClientHandler(Looper looper) {
             super(looper);
@@ -99,10 +123,28 @@ public class BluetoothMnsObexClient {
         public void handleMessage(Message msg) {
             switch (msg.what) {
             case MSG_MNS_NOTIFICATION_REGISTRATION:
-                handleRegistration(msg.arg1 /*masId*/, msg.arg2 /*status*/);
+                if (V) Log.v(TAG, "Reg  masId:  " + msg.arg1 + " notfStatus: " + msg.arg2);
+                if (isValidMnsRecord()) {
+                    handleRegistration(msg.arg1 /*masId*/, msg.arg2 /*status*/);
+                } else {
+                    //Should not happen
+                    if (D) Log.d(TAG, "MNS SDP info not available yet - Cannot Connect.");
+                }
                 break;
             case MSG_MNS_SEND_EVENT:
                 sendEventHandler((byte[])msg.obj/*byte[]*/, msg.arg1 /*masId*/);
+                break;
+            case MSG_MNS_SDP_SEARCH_REGISTRATION:
+                //Initiate SDP Search
+                notifyMnsSdpSearch();
+                //Save the mns search info
+                mMnsLstRegRqst = new MnsSdpSearchInfo(true, msg.arg1, msg.arg2);
+                //Handle notification registration.
+                Message msgReg =
+                        mHandler.obtainMessage(MSG_MNS_NOTIFICATION_REGISTRATION,
+                                msg.arg1, msg.arg2);
+                if (V) Log.v(TAG, "SearchReg  masId:  " + msg.arg1 + " notfStatus: " + msg.arg2);
+                mHandler.sendMessageDelayed(msgReg, MNS_SDP_SEARCH_DELAY);
                 break;
             default:
                 break;
@@ -153,7 +195,7 @@ public class BluetoothMnsObexClient {
     /**
      * Shutdown the MNS.
      */
-    public void shutdown() {
+    public synchronized void shutdown() {
         /* should shutdown handler thread first to make sure
          * handleRegistration won't be called when disconnect
          */
@@ -178,25 +220,81 @@ public class BluetoothMnsObexClient {
      * @param masId
      * @param notificationStatus
      */
-    public void handleRegistration(int masId, int notificationStatus){
+    public synchronized void handleRegistration(int masId, int notificationStatus){
         if(D) Log.d(TAG, "handleRegistration( " + masId + ", " + notificationStatus + ")");
-
-        if(notificationStatus == BluetoothMapAppParams.NOTIFICATION_STATUS_NO) {
+        boolean sendObserverRegistration = true;
+        if (notificationStatus == BluetoothMapAppParams.NOTIFICATION_STATUS_NO) {
             mRegisteredMasIds.delete(masId);
-        } else if(notificationStatus == BluetoothMapAppParams.NOTIFICATION_STATUS_YES) {
+            if (mMnsLstRegRqst != null &&  mMnsLstRegRqst.lastMasId == masId) {
+                //Clear last saved MNSSdpSearchInfo , if Disconnect requested for same MasId.
+                mMnsLstRegRqst = null;
+            }
+        } else if (notificationStatus == BluetoothMapAppParams.NOTIFICATION_STATUS_YES) {
             /* Connect if we do not have a connection, and start the content observers providing
              * this thread as Handler.
              */
-            if(isConnected() == false) {
+            if (isConnected() == false) {
                 if(D) Log.d(TAG, "handleRegistration: connect");
                 connect();
             }
+            sendObserverRegistration = isConnected();
             mRegisteredMasIds.put(masId, true); // We don't use the value for anything
+
+            // Clear last saved MNSSdpSearchInfo after connect is processed.
+            mMnsLstRegRqst = null;
         }
-        if(mRegisteredMasIds.size() == 0) {
+
+        if (mRegisteredMasIds.size() == 0) {
             // No more registrations - disconnect
             if(D) Log.d(TAG, "handleRegistration: disconnect");
             disconnect();
+        }
+
+        //Register ContentObserver After connect/disconnect MNS channel.
+        if (V) Log.v(TAG, "Send  registerObserver: " + sendObserverRegistration);
+        if (mCallback != null && sendObserverRegistration) {
+            Message msg = Message.obtain(mCallback);
+            msg.what = BluetoothMapService.MSG_OBSERVER_REGISTRATION;
+            msg.arg1 = masId;
+            msg.arg2 = notificationStatus;
+            msg.sendToTarget();
+        }
+    }
+
+    public boolean isValidMnsRecord() {
+        return (mMnsRecord != null);
+    }
+
+    public void setMnsRecord(SdpMnsRecord mnsRecord) {
+        if (V) Log.v(TAG, "setMNSRecord");
+        if (isValidMnsRecord()) {
+           Log.w(TAG,"MNS Record already available. Still update.");
+        }
+        mMnsRecord = mnsRecord;
+        if (mMnsLstRegRqst != null) {
+            //SDP Search completed.
+            mMnsLstRegRqst.setIsSearchInProgress(false);
+            if (mHandler.hasMessages(MSG_MNS_NOTIFICATION_REGISTRATION)) {
+                mHandler.removeMessages(MSG_MNS_NOTIFICATION_REGISTRATION);
+                //Search Result obtained within MNS_SDP_SEARCH_DELAY timeout
+                if (!isValidMnsRecord()) {
+                    // SDP info still not available for last trial.
+                    // Clear saved info.
+                    mMnsLstRegRqst = null;
+                } else {
+                    if (V) Log.v(TAG, "Handle registration for last saved request");
+                    Message msgReg =
+                            mHandler.obtainMessage(MSG_MNS_NOTIFICATION_REGISTRATION);
+                    msgReg.arg1 = mMnsLstRegRqst.lastMasId;
+                    msgReg.arg2 = mMnsLstRegRqst.lastNotificationStatus;
+                    if (V) Log.v(TAG, "SearchReg  masId:  " + msgReg.arg1
+                        + " notfStatus: " + msgReg.arg2);
+                    //Handle notification registration.
+                    mHandler.sendMessageDelayed(msgReg, MNS_NOTIFICATION_DELAY);
+                }
+            }
+        } else {
+           if (V) Log.v(TAG, "No last saved MNSSDPInfo to handle");
         }
     }
 
@@ -207,11 +305,11 @@ public class BluetoothMnsObexClient {
         BluetoothSocket btSocket = null;
         try {
             // TODO: Do SDP record search again?
-            if(mMnsRecord != null && mMnsRecord.getL2capPsm() > 0) {
+            if (isValidMnsRecord() && mMnsRecord.getL2capPsm() > 0) {
                 // Do L2CAP connect
                 btSocket = mRemoteDevice.createL2capSocket(mMnsRecord.getL2capPsm());
 
-            } else if (mMnsRecord != null && mMnsRecord.getRfcommChannelNumber() > 0) {
+            } else if (isValidMnsRecord() && mMnsRecord.getRfcommChannelNumber() > 0) {
                 // Do Rfcomm connect
                 btSocket = mRemoteDevice.createRfcommSocket(mMnsRecord.getRfcommChannelNumber());
             } else {
@@ -278,6 +376,14 @@ public class BluetoothMnsObexClient {
             }
         }
         notifyUpdateWakeLock();
+    }
+
+    private void notifyMnsSdpSearch() {
+        if (mCallback != null) {
+            Message msg = Message.obtain(mCallback);
+            msg.what = BluetoothMapService.MSG_MNS_SDP_SEARCH;
+            msg.sendToTarget();
+        }
     }
 
     private int sendEventHandler(byte[] eventBytes, int masInstanceId) {
