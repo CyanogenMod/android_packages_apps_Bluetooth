@@ -744,12 +744,13 @@ static bool cleanupNative(JNIEnv *env, jobject obj) {
     return JNI_TRUE;
 }
 
-static jboolean enableNative(JNIEnv* env, jobject obj, jboolean isGuest) {
+static jboolean enableNative(JNIEnv* env, jobject obj) {
     ALOGV("%s:",__FUNCTION__);
 
     jboolean result = JNI_FALSE;
     if (!sBluetoothInterface) return result;
-    int ret = sBluetoothInterface->enable(isGuest == JNI_TRUE ? 1 : 0);
+
+    int ret = sBluetoothInterface->enable();
     result = (ret == BT_STATUS_SUCCESS || ret == BT_STATUS_DONE) ? JNI_TRUE : JNI_FALSE;
     return result;
 }
@@ -1269,7 +1270,7 @@ static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
     {"initNative", "()Z", (void *) initNative},
     {"cleanupNative", "()V", (void*) cleanupNative},
-    {"enableNative", "(Z)Z",  (void*) enableNative},
+    {"enableNative", "()Z",  (void*) enableNative},
     {"disableNative", "()Z",  (void*) disableNative},
     {"setAdapterPropertyNative", "(I[B)Z", (void*) setAdapterPropertyNative},
     {"getAdapterPropertiesNative", "()Z", (void*) getAdapterPropertiesNative},
