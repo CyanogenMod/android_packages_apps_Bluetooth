@@ -216,15 +216,7 @@ final class BondStateMachine extends StateMachine {
                             mAdapterService.setSimAccessPermission(dev,
                                     BluetoothDevice.ACCESS_UNKNOWN);
                             // Set the profile Priorities to undefined
-                            clearProfilePriorty(dev);
-                        }
-                        else if (newState == BluetoothDevice.BOND_BONDED)
-                        {
-                           // Do not set profile priority
-                           // Profile priority should be set after SDP completion
-
-                           // Restore the profile priorty settings
-                           //setProfilePriorty(dev);
+                            clearProfilePriority(dev);
                         }
                     }
                     else if(!mDevices.contains(dev))
@@ -450,28 +442,7 @@ final class BondStateMachine extends StateMachine {
         sendMessage(msg);
     }
 
-    private void setProfilePriorty (BluetoothDevice device){
-        HidService hidService = HidService.getHidService();
-        A2dpService a2dpService = A2dpService.getA2dpService();
-        HeadsetService headsetService = HeadsetService.getHeadsetService();
-
-        if ((hidService != null) &&
-            (hidService.getPriority(device) == BluetoothProfile.PRIORITY_UNDEFINED)){
-            hidService.setPriority(device,BluetoothProfile.PRIORITY_ON);
-        }
-
-        if ((a2dpService != null) &&
-            (a2dpService.getPriority(device) == BluetoothProfile.PRIORITY_UNDEFINED)){
-            a2dpService.setPriority(device,BluetoothProfile.PRIORITY_ON);
-        }
-
-        if ((headsetService != null) &&
-            (headsetService.getPriority(device) == BluetoothProfile.PRIORITY_UNDEFINED)){
-            headsetService.setPriority(device,BluetoothProfile.PRIORITY_ON);
-        }
-    }
-
-    private void clearProfilePriorty (BluetoothDevice device){
+    private void clearProfilePriority(BluetoothDevice device) {
         HidService hidService = HidService.getHidService();
         A2dpService a2dpService = A2dpService.getA2dpService();
         HeadsetService headsetService = HeadsetService.getHeadsetService();

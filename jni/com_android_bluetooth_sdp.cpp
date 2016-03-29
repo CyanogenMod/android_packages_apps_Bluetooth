@@ -547,7 +547,7 @@ static void cleanupNative(JNIEnv *env, jobject object) {
     }
 
     if (sCallbacksObj != NULL) {
-        ALOGW("Cleaning up Bluetooth Health object");
+        ALOGW("Cleaning up Bluetooth SDP object");
         env->DeleteGlobalRef(sCallbacksObj);
         sCallbacksObj = NULL;
     }

@@ -214,7 +214,9 @@ public class A2dpService extends ProfileService {
     }
 
     public void resetAvrcpBlacklist(BluetoothDevice device) {
-        mAvrcp.resetBlackList(device.getAddress());
+        if (mAvrcp != null) {
+            mAvrcp.resetBlackList(device.getAddress());
+        }
     }
 
     synchronized boolean isA2dpPlaying(BluetoothDevice device) {
