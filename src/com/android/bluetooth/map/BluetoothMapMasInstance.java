@@ -277,10 +277,13 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
                 Log.e(TAG, "Failed to start the listeners");
                 return;
             }
-            if(mSdpHandle >= 0) {
-                SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
+            if (mAdapter != null && mSdpHandle >= 0 &&
+                                    SdpManager.getDefaultManager() != null) {
                 if(V) Log.d(TAG, "Removing SDP record for MAS instance: " + mMasInstanceId +
                     " Object reference: " + this + "SDP handle: " + mSdpHandle);
+                boolean status = SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
+                Log.d(TAG, "RemoveSDPrecord returns " + status);
+                mSdpHandle = -1;
             }
             mSdpHandle = createMasSdpRecord(mServerSockets.getRfcommChannel(),
                     mServerSockets.getL2capPsm());
@@ -396,7 +399,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
         return (mConnSocket != null);
     }
 
-    public void shutdown() {
+    public synchronized void shutdown() {
         if (D) Log.d(TAG, "MAP Service shutdown");
 
         if (mServerSession != null) {
@@ -407,10 +410,13 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
             mObserver.deinit();
             mObserver = null;
         }
-        if (mSdpHandle >= 0) {
-            SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
+        if (mAdapter != null && mSdpHandle >= 0 &&
+                            SdpManager.getDefaultManager() != null) {
             if(V) Log.d(TAG, "Removing SDP record for MAS instance: " + mMasInstanceId +
                 " Object reference: " + this + "SDP handle: " + mSdpHandle);
+            boolean status = SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
+            Log.d(TAG, "RemoveSDPrecord returns " + status);
+            mSdpHandle = -1;
         }
 
         closeConnectionSocket();

@@ -469,8 +469,7 @@ public class BluetoothMapContentObserver {
         return smsType;
     }
 
-    private final ContentObserver mObserver = new ContentObserver(
-            new Handler(Looper.getMainLooper())) {
+    private final ContentObserver mObserver = new ContentObserver(new Handler()) {
         @Override
         public void onChange(boolean selfChange) {
             onChange(selfChange, null);
