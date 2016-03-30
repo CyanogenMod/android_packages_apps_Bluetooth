@@ -39,7 +39,7 @@ import android.util.Log;
 import android.util.Pair;
 
 import com.android.vcard.VCardEntry;
-import com.android.bluetooth.pbapclient.BluetoothPbapClient;
+import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.R;
 
 import java.util.ArrayDeque;
@@ -67,7 +67,7 @@ public class PbapPCEClient  implements PbapHandler.PbapListener {
     private BluetoothPbapClient mClient;
     private boolean mClientConnected = false;
     private PbapHandler mHandler;
-    private Handler mSelfHandler;
+    private ConnectionHandler mConnectionHandler;
     private PullRequest mLastPull;
     private HandlerThread mContactHandlerThread;
     private Handler mContactHandler;
@@ -77,7 +77,7 @@ public class PbapPCEClient  implements PbapHandler.PbapListener {
 
     PbapPCEClient(Context context) {
         mContext = context;
-        mSelfHandler = new Handler(mContext.getMainLooper());
+        mConnectionHandler = new ConnectionHandler(mContext.getMainLooper());
         mHandler = new PbapHandler(this);
         mAccountManager = AccountManager.get(mContext);
         mContactHandlerThread = new HandlerThread("PBAP contact handler",
@@ -154,53 +154,131 @@ public class PbapPCEClient  implements PbapHandler.PbapListener {
         mClientConnected = status;
         if (mClientConnected == false) {
             // If we are disconnected then whatever the current device is we should simply clean up.
-            handleDisconnect(null);
+            onConnectionStateChanged(mDevice, BluetoothProfile.STATE_CONNECTING,
+                    BluetoothProfile.STATE_DISCONNECTED);
+            disconnect(null);
         }
         if (mClientConnected == true) {
+            onConnectionStateChanged(mDevice, BluetoothProfile.STATE_CONNECTING,
+                    BluetoothProfile.STATE_CONNECTED);
             processNextRequest();
         }
     }
 
-    public void handleConnect(BluetoothDevice device) {
-        if (device == null) {
-            throw new IllegalStateException(TAG + ":Connect with null device!");
-        } else if (mDevice != null && !mDevice.equals(device)) {
-            // Check that we are not already connected to an existing different device.
-            // Since the device can be connected to multiple external devices -- we use the honor
-            // protocol and only accept the first connecting device.
-            Log.e(TAG, ":Got a connected event when connected to a different device. " +
-                  "existing = " + mDevice + " new = " + device);
-            return;
-        } else if (device.equals(mDevice)) {
-            Log.w(TAG, "Got a connected event for the same device. Ignoring!");
-            return;
+    private class ConnectionHandler extends Handler {
+        public static final int EVENT_CONNECT = 1;
+        public static final int EVENT_DISCONNECT = 2;
+
+        public ConnectionHandler(Looper looper) {
+            super(looper);
         }
-        // Update the device.
-        mDevice = device;
-        mClient = new BluetoothPbapClient(mDevice, mAccount, mHandler);
-        // Add the account. This should give us a place to stash the data.
-        mAccount = new Account(device.getAddress(), mContext.getString(R.string.pbap_account_type));
-        mContactHandler.obtainMessage(ContactHandler.EVENT_ADD_ACCOUNT,mAccount).sendToTarget();
-        downloadPhoneBook();
-        downloadCallLogs();
-        mClient.connect();
+
+        @Override
+        public void handleMessage(Message msg) {
+            if (DBG) {
+                Log.d(TAG, "Connection Handler Message " + msg.what + " with " + msg.obj);
+            }
+            switch (msg.what) {
+                case EVENT_CONNECT:
+                    if (msg.obj instanceof BluetoothDevice) {
+                        BluetoothDevice device = (BluetoothDevice) msg.obj;
+                        int oldState = getConnectionState();
+                        if (oldState != BluetoothProfile.STATE_DISCONNECTED) {
+                            return;
+                        }
+                        onConnectionStateChanged(device, oldState,
+                                BluetoothProfile.STATE_CONNECTING);
+                        handleConnect(device);
+                    } else {
+                        Log.e(TAG, "Invalid instance in Connection Handler:Connect");
+                    }
+                    break;
+
+                case EVENT_DISCONNECT:
+                    if (mDevice == null) {
+                        return;
+                    }
+                    if (msg.obj == null || msg.obj instanceof BluetoothDevice) {
+                        BluetoothDevice device = (BluetoothDevice) msg.obj;
+                        if (!mDevice.equals(device)) {
+                            return;
+                        }
+                        int oldState = getConnectionState();
+                        handleDisconnect(device);
+                        int newState = getConnectionState();
+                        if (device != null) {
+                            onConnectionStateChanged(device, oldState, newState);
+                        }
+                    } else {
+                        Log.e(TAG, "Invalid instance in Connection Handler:Disconnect");
+                    }
+                    break;
+
+                default:
+                    Log.e(TAG, "Unknown Request to Connection Handler");
+                    break;
+            }
+        }
+
+        private void handleConnect(BluetoothDevice device) {
+            if (device == null) {
+                throw new IllegalStateException(TAG + ":Connect with null device!");
+            } else if (mDevice != null && !mDevice.equals(device)) {
+                // Check that we are not already connected to an existing different device.
+                // Since the device can be connected to multiple external devices -- we use the honor
+                // protocol and only accept the first connecting device.
+                Log.e(TAG, ":Got a connected event when connected to a different device. " +
+                      "existing = " + mDevice + " new = " + device);
+                return;
+            } else if (device.equals(mDevice)) {
+                Log.w(TAG, "Got a connected event for the same device. Ignoring!");
+                return;
+            }
+            // Update the device.
+            mDevice = device;
+            mClient = new BluetoothPbapClient(mDevice, mAccount, mHandler);
+            // Add the account. This should give us a place to stash the data.
+            mAccount = new Account(device.getAddress(), mContext.getString(R.string.pbap_account_type));
+            mContactHandler.obtainMessage(ContactHandler.EVENT_ADD_ACCOUNT,mAccount).sendToTarget();
+            downloadPhoneBook();
+            downloadCallLogs();
+            mClient.connect();
+        }
+
+        private void handleDisconnect(BluetoothDevice device) {
+            Log.w(TAG, "pbap disconnecting from = " + device);
+
+            if (device == null) {
+                // If we have a null device then disconnect the current device.
+                device = mDevice;
+            } else if (mDevice == null) {
+                Log.w(TAG, "No existing device connected to service - ignoring device = " + device);
+                return;
+            } else if (!mDevice.equals(device)) {
+                Log.w(TAG, "Existing device different from disconnected device. existing = " + mDevice +
+                           " disconnecting device = " + device);
+                return;
+            }
+            resetState();
+        }
     }
 
-    public void handleDisconnect(BluetoothDevice device) {
-        Log.w(TAG, "pbap disconnecting from = " + device);
+    private void onConnectionStateChanged(BluetoothDevice device, int prevState, int state) {
+        Intent intent = new Intent(android.bluetooth.BluetoothPbapClient.ACTION_CONNECTION_STATE_CHANGED);
+        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
+        intent.putExtra(BluetoothProfile.EXTRA_STATE, state);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+        mContext.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+        Log.d(TAG,"Connection state " + device + ": " + prevState + "->" + state);
+    }
 
-        if (device == null) {
-            // If we have a null device then disconnect the current device.
-            device = mDevice;
-        } else if (mDevice == null) {
-            Log.w(TAG, "No existing device connected to service - ignoring device = " + device);
-            return;
-        } else if (!mDevice.equals(device)) {
-            Log.w(TAG, "Existing device different from disconnected device. existing = " + mDevice +
-                       " disconnecting device = " + device);
-            return;
-        }
-        resetState();
+    public void connect(BluetoothDevice device) {
+        mConnectionHandler.obtainMessage(ConnectionHandler.EVENT_CONNECT,device).sendToTarget();
+    }
+
+    public void disconnect(BluetoothDevice device) {
+        mConnectionHandler.obtainMessage(ConnectionHandler.EVENT_DISCONNECT,device).sendToTarget();
     }
 
     public void start() {
@@ -293,6 +371,8 @@ public class PbapPCEClient  implements PbapHandler.PbapListener {
                     if (msg.obj instanceof Account) {
                         Account account = (Account) msg.obj;
                         addAccount(account);
+                    } else {
+                        Log.e(TAG, "invalid Instance in Contact Handler: Add Account");
                     }
                     break;
 
@@ -300,9 +380,8 @@ public class PbapPCEClient  implements PbapHandler.PbapListener {
                     if (msg.obj instanceof PullRequest) {
                         PullRequest req = (PullRequest) msg.obj;
                         req.onPullComplete();
-                    }
-                    else {
-                        Log.w(TAG, "invalid Instance in contact handler");
+                    } else {
+                        Log.e(TAG, "invalid Instance in Contact Handler: Add Contacts");
                     }
                     break;
 

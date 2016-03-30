@@ -1702,12 +1702,14 @@ public class AdapterService extends Service {
      private void autoConnectPbapClient(){
          PbapClientService pbapClientService = PbapClientService.getPbapClientService();
          BluetoothDevice bondedDevices[] = getBondedDevices();
-         if ((bondedDevices == null) ||(pbapClientService == null)) {
+         if ((bondedDevices == null) || (pbapClientService == null)) {
              return;
          }
          for (BluetoothDevice device : bondedDevices) {
-             debugLog("autoConnectPbapClient() - Connecting PBAP Client with " + device.toString());
-             pbapClientService.connect(device);
+             if (pbapClientService.getPriority(device) >= BluetoothProfile.PRIORITY_ON ){
+                 debugLog("autoConnectPbapClient() - Connecting PBAP Client with " + device.toString());
+                 pbapClientService.connect(device);
+             }
          }
     }
 
@@ -1762,16 +1764,6 @@ public class AdapterService extends Service {
                hsService.setPriority(device, BluetoothProfile.PRIORITY_ON);
            }
         }
-     }
-
-     private void adjustOtherSinkPriorities(A2dpService a2dpService,
-                                                BluetoothDevice connectedDevice) {
-         for (BluetoothDevice device : getBondedDevices()) {
-             if (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_AUTO_CONNECT &&
-                 !device.equals(connectedDevice)) {
-                 a2dpService.setPriority(device, BluetoothProfile.PRIORITY_ON);
-             }
-         }
      }
 
      void setProfileAutoConnectionPriority (BluetoothDevice device, int profileId){
