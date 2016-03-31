@@ -30,7 +30,7 @@ import android.util.Log;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.a2dp.A2dpService;
-import com.android.bluetooth.a2dp.A2dpSinkService;
+import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.avrcp.AvrcpControllerService;
 import com.android.bluetooth.hdp.HealthService;
 import com.android.bluetooth.hfp.HeadsetService;

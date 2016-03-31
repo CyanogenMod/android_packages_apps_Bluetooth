@@ -63,7 +63,7 @@ import android.util.Pair;
 
 import android.util.SparseArray;
 import com.android.bluetooth.a2dp.A2dpService;
-import com.android.bluetooth.a2dp.A2dpSinkService;
+import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.hid.HidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;

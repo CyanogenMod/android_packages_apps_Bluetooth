@@ -34,7 +34,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.media.AudioManager;
-import com.android.bluetooth.a2dp.A2dpSinkService;
+import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
 import java.util.ArrayList;

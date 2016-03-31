@@ -297,10 +297,19 @@
         </service>
         <service
             android:process="@string/process"
-            android:name = ".a2dp.A2dpSinkService"
+            android:name = ".a2dpsink.A2dpSinkService"
             android:enabled="@bool/profile_supported_a2dp_sink">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothA2dpSink" />
+            </intent-filter>
+        </service>
+        <service
+            android:process="@string/process"
+            android:name=".a2dpsink.mbs.A2dpMediaBrowserService"
+            android:exported="true"
+            android:enabled="@bool/profile_supported_a2dp_sink">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
         <service
@@ -343,9 +352,11 @@
                 <action android:name="android.bluetooth.IBluetoothHeadsetClient" />
             </intent-filter>
         </service>
-        <service android:name=".hfpclient.connserv.HfpClientConnectionService"
-                 android:permission="android.permission.BIND_CONNECTION_SERVICE"
-                 android:enabled="@bool/profile_supported_hfpclient">
+        <service
+            android:process="@string/process"
+            android:name=".hfpclient.connserv.HfpClientConnectionService"
+            android:permission="android.permission.BIND_CONNECTION_SERVICE"
+            android:enabled="@bool/profile_supported_hfpclient">
             <intent-filter>
                 <!-- Mechanism for Telecom stack to connect -->
                 <action android:name="android.telecom.ConnectionService" />
@@ -361,6 +372,7 @@
         </service>
         <!-- Authenticator for PBAP account. -->
         <service
+            android:process="@string/process"
             android:name=".AuthenticationService"
             android:exported="true"
             android:enabled="@bool/profile_supported_pbapclient">
