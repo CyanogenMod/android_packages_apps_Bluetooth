@@ -465,7 +465,7 @@ public class BluetoothOppService extends Service {
                  * contains an entry that's not in the array, insert a new entry
                  * in the array, move to next cursor row and next array entry.
                  */
-                while (!isAfterLast || arrayPos < mShares.size()) {
+                while ( (!isAfterLast || arrayPos < mShares.size()) && mListenStarted ) {
                     if (isAfterLast) {
                         // We're beyond the end of the cursor but there's still
                         // some
