@@ -61,7 +61,7 @@ import java.lang.Thread;
  */
 public class PbapPCEClient  implements PbapHandler.PbapListener {
     private static final String TAG = "PbapPCEClient";
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
     private final Queue<PullRequest> mPendingRequests = new ArrayDeque<PullRequest>();
     private BluetoothDevice mDevice;
     private BluetoothPbapClient mClient;
@@ -186,8 +186,6 @@ public class PbapPCEClient  implements PbapHandler.PbapListener {
                         if (oldState != BluetoothProfile.STATE_DISCONNECTED) {
                             return;
                         }
-                        onConnectionStateChanged(device, oldState,
-                                BluetoothProfile.STATE_CONNECTING);
                         handleConnect(device);
                     } else {
                         Log.e(TAG, "Invalid instance in Connection Handler:Connect");
@@ -221,6 +219,7 @@ public class PbapPCEClient  implements PbapHandler.PbapListener {
         }
 
         private void handleConnect(BluetoothDevice device) {
+          Log.d(TAG,"HANDLECONNECT" + device);
             if (device == null) {
                 throw new IllegalStateException(TAG + ":Connect with null device!");
             } else if (mDevice != null && !mDevice.equals(device)) {
@@ -236,10 +235,14 @@ public class PbapPCEClient  implements PbapHandler.PbapListener {
             }
             // Update the device.
             mDevice = device;
-            mClient = new BluetoothPbapClient(mDevice, mAccount, mHandler);
+            onConnectionStateChanged(mDevice,BluetoothProfile.STATE_DISCONNECTED,
+                    BluetoothProfile.STATE_CONNECTING);
             // Add the account. This should give us a place to stash the data.
-            mAccount = new Account(device.getAddress(), mContext.getString(R.string.pbap_account_type));
-            mContactHandler.obtainMessage(ContactHandler.EVENT_ADD_ACCOUNT,mAccount).sendToTarget();
+            mAccount = new Account(device.getAddress(),
+                    mContext.getString(R.string.pbap_account_type));
+            mContactHandler.obtainMessage(ContactHandler.EVENT_ADD_ACCOUNT, mAccount)
+                    .sendToTarget();
+            mClient = new BluetoothPbapClient(mDevice, mAccount, mHandler);
             downloadPhoneBook();
             downloadCallLogs();
             mClient.connect();
@@ -420,7 +423,7 @@ public class PbapPCEClient  implements PbapHandler.PbapListener {
                 }
                 return true;
             }
-            throw new IllegalStateException(TAG + ":Failed to add account!");
+            return false;
         }
 
         private boolean removeAccount(Account acc) {

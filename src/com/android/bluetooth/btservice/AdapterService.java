@@ -1680,9 +1680,11 @@ public class AdapterService extends Service {
         }
 
         for (BluetoothDevice device : bondedDevices) {
-             debugLog("autoConnectHeadsetClient() - Connecting Headset Client with " +
-                 device.toString());
-             headsetClientService.connect(device);
+            if (headsetClientService.getPriority(device) == BluetoothProfile.PRIORITY_AUTO_CONNECT){
+            debugLog("autoConnectHeadsetClient() - Connecting Headset Client with " +
+                device.toString());
+            headsetClientService.connect(device);
+            }
         }
     }
 
@@ -1694,8 +1696,10 @@ public class AdapterService extends Service {
          }
 
          for (BluetoothDevice device : bondedDevices) {
-             debugLog("autoConnectA2dpSink() - Connecting A2DP Sink with " + device.toString());
-             a2dpSinkService.connect(device);
+             if (a2dpSinkService.getPriority(device) == BluetoothProfile.PRIORITY_AUTO_CONNECT) {
+                 debugLog("autoConnectA2dpSink() - Connecting A2DP Sink with " + device.toString());
+                 a2dpSinkService.connect(device);
+             }
          }
      }
 
@@ -1706,8 +1710,9 @@ public class AdapterService extends Service {
              return;
          }
          for (BluetoothDevice device : bondedDevices) {
-             if (pbapClientService.getPriority(device) >= BluetoothProfile.PRIORITY_ON ){
-                 debugLog("autoConnectPbapClient() - Connecting PBAP Client with " + device.toString());
+             if (pbapClientService.getPriority(device) == BluetoothProfile.PRIORITY_AUTO_CONNECT) {
+                 debugLog("autoConnectPbapClient() - Connecting PBAP Client with " +
+                         device.toString());
                  pbapClientService.connect(device);
              }
          }
@@ -1757,7 +1762,7 @@ public class AdapterService extends Service {
     }
 
      private void adjustOtherHeadsetPriorities(HeadsetService  hsService,
-                                                    List<BluetoothDevice> connectedDeviceList) {
+             List<BluetoothDevice> connectedDeviceList) {
         for (BluetoothDevice device : getBondedDevices()) {
            if (hsService.getPriority(device) >= BluetoothProfile.PRIORITY_AUTO_CONNECT &&
                !connectedDeviceList.contains(device)) {
@@ -1766,15 +1771,98 @@ public class AdapterService extends Service {
         }
      }
 
-     void setProfileAutoConnectionPriority (BluetoothDevice device, int profileId){
-         if (profileId == BluetoothProfile.HEADSET) {
-             HeadsetService  hsService = HeadsetService.getHeadsetService();
-             List<BluetoothDevice> deviceList = hsService.getConnectedDevices();
-             if ((hsService != null) &&
-                (BluetoothProfile.PRIORITY_AUTO_CONNECT != hsService.getPriority(device))){
-                 adjustOtherHeadsetPriorities(hsService, deviceList);
-                 hsService.setPriority(device,BluetoothProfile.PRIORITY_AUTO_CONNECT);
+    private void adjustOtherSinkPriorities(A2dpService a2dpService,
+             BluetoothDevice connectedDevice) {
+         for (BluetoothDevice device : getBondedDevices()) {
+             if (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_AUTO_CONNECT &&
+                 !device.equals(connectedDevice)) {
+                 a2dpService.setPriority(device, BluetoothProfile.PRIORITY_ON);
              }
+         }
+     }
+
+    private void adjustOtherHeadsetClientPriorities(HeadsetClientService hsService,
+            BluetoothDevice connectedDevice) {
+        for (BluetoothDevice device : getBondedDevices()) {
+           if (hsService.getPriority(device) >= BluetoothProfile.PRIORITY_AUTO_CONNECT &&
+               !device.equals(connectedDevice)) {
+               hsService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+           }
+        }
+     }
+
+    private void adjustOtherA2dpSinkPriorities(A2dpSinkService a2dpService,
+            BluetoothDevice connectedDevice) {
+        for (BluetoothDevice device : getBondedDevices()) {
+            if (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_AUTO_CONNECT &&
+                !device.equals(connectedDevice)) {
+                a2dpService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+            }
+        }
+    }
+
+    private void adjustOtherPbapClientPriorities(PbapClientService pbapService,
+            BluetoothDevice connectedDevice) {
+        for (BluetoothDevice device : getBondedDevices()) {
+           if (pbapService.getPriority(device) >= BluetoothProfile.PRIORITY_AUTO_CONNECT &&
+               !device.equals(connectedDevice)) {
+               pbapService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+           }
+        }
+     }
+
+    void setProfileAutoConnectionPriority (BluetoothDevice device, int profileId){
+        switch (profileId) {
+            case BluetoothProfile.HEADSET:
+                HeadsetService  hsService = HeadsetService.getHeadsetService();
+                List<BluetoothDevice> deviceList = hsService.getConnectedDevices();
+                if ((hsService != null) &&
+                   (BluetoothProfile.PRIORITY_AUTO_CONNECT != hsService.getPriority(device))) {
+                    adjustOtherHeadsetPriorities(hsService, deviceList);
+                    hsService.setPriority(device,BluetoothProfile.PRIORITY_AUTO_CONNECT);
+                }
+                break;
+
+            case BluetoothProfile.A2DP:
+                A2dpService a2dpService = A2dpService.getA2dpService();
+                if ((a2dpService != null) && (BluetoothProfile.PRIORITY_AUTO_CONNECT !=
+                        a2dpService.getPriority(device))) {
+                    adjustOtherSinkPriorities(a2dpService, device);
+                    a2dpService.setPriority(device,BluetoothProfile.PRIORITY_AUTO_CONNECT);
+                }
+                break;
+
+           case BluetoothProfile.A2DP_SINK:
+                A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
+                if ((a2dpSinkService != null) && (BluetoothProfile.PRIORITY_AUTO_CONNECT !=
+                        a2dpSinkService.getPriority(device))) {
+                    adjustOtherA2dpSinkPriorities(a2dpSinkService, device);
+                    a2dpSinkService.setPriority(device,BluetoothProfile.PRIORITY_AUTO_CONNECT);
+                }
+                break;
+
+            case BluetoothProfile.HEADSET_CLIENT:
+                HeadsetClientService headsetClientService =
+                        HeadsetClientService.getHeadsetClientService();
+                if ((headsetClientService != null) && (BluetoothProfile.PRIORITY_AUTO_CONNECT !=
+                        headsetClientService.getPriority(device))) {
+                    adjustOtherHeadsetClientPriorities(headsetClientService, device);
+                    headsetClientService.setPriority(device,BluetoothProfile.PRIORITY_AUTO_CONNECT);
+                }
+                break;
+
+            case BluetoothProfile.PBAP_CLIENT:
+                PbapClientService pbapClientService = PbapClientService.getPbapClientService();
+                if ((pbapClientService != null) && (BluetoothProfile.PRIORITY_AUTO_CONNECT !=
+                        pbapClientService.getPriority(device))) {
+                    adjustOtherPbapClientPriorities(pbapClientService, device);
+                    pbapClientService.setPriority(device,BluetoothProfile.PRIORITY_AUTO_CONNECT);
+                }
+                break;
+
+            default:
+                Log.w(TAG, "Attempting to set Auto Connect priority on invalid profile");
+                break;
          }
     }
 
@@ -1796,7 +1884,7 @@ public class AdapterService extends Service {
         return true;
     }
 
-     int getBondState(BluetoothDevice device) {
+    int getBondState(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp == null) {

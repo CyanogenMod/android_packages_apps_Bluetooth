@@ -51,6 +51,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH_STACK" />
     <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS"/>
     <uses-permission android:name="android.permission.MANAGE_USERS"/>
+    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
     <uses-permission android:name="com.google.android.gallery3d.permission.GALLERY_PROVIDER"/>
     <uses-permission android:name="com.android.gallery3d.permission.GALLERY_PROVIDER"/>
     <uses-permission android:name="android.permission.RECEIVE_SMS" />

@@ -62,22 +62,6 @@ public class PbapClientService extends ProfileService {
     private static PbapClientService sPbapClientService;
     private PbapBroadcastReceiver mPbapBroadcastReceiver = new PbapBroadcastReceiver();
 
-    private Account getAccount(BluetoothDevice device) {
-        Account account = null;
-        Account[] accounts =  mAccountManager.
-                getAccountsByType("com.android.bluetooth.pbapclient");
-        for (Account acc : accounts) {
-            if (acc.name.equals(device.getAddress())) {
-                 account = acc;
-            }
-        }
-        if (account == null) {
-            account = new Account(device.getAddress(), "com.android.bluetooth.pbapclient");
-            mAccountManager.addAccountExplicitly(account, null, null);
-        }
-        return account;
-    }
-
     @Override
     protected String getName() {
         return TAG;
