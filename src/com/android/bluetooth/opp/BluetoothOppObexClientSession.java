@@ -38,6 +38,7 @@ import javax.obex.HeaderSet;
 import javax.obex.ObexTransport;
 import javax.obex.ResponseCodes;
 
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
@@ -74,6 +75,8 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
     private volatile boolean mWaitingForRemote;
 
     private Handler mCallback;
+
+    private int position;
 
     public BluetoothOppObexClientSession(Context context, ObexTransport transport) {
         if (transport == null) {
@@ -118,6 +121,57 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             done += got;
         }
         return done;
+    }
+
+    private class ContentResolverUpdateThread extends Thread {
+
+        private static final int sSleepTime = 1000;
+        private Uri contentUri;
+        private boolean interrupted = false;
+        private ContentResolver cr;
+
+        public ContentResolverUpdateThread(Context context, Uri cntUri) {
+            super("BtOpp ContentResolverUpdateThread");
+            contentUri = cntUri;
+            interrupted = false;
+            cr = context.getContentResolver();
+        }
+
+
+        @Override
+        public void run() {
+
+            ContentValues updateValues;
+
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+            if (V) Log.v(TAG, "Is ContentResolverUpdateThread Interrupted :" + interrupted);
+            /*  Check if the Operation is interrupted before entering into loop */
+            while (!interrupted) {
+                updateValues = new ContentValues();
+                updateValues.put(BluetoothShare.CURRENT_BYTES, position);
+                cr.update(contentUri, updateValues, null, null);
+
+                /* Check if the Operation is interrupted before entering sleep */
+                if (interrupted) {
+                    if (V) Log.v(TAG, "CR Thread was interrupted before sleep !, exiting ");
+                    return;
+                }
+
+                try {
+                    Thread.sleep(sSleepTime);
+                } catch (InterruptedException e1) {
+                    if (V) Log.v(TAG, "ContentResolverUpdateThread was interrupted, exiting");
+                    interrupted = true;
+                    return;
+                }
+            }
+        }
+
+        @Override
+        public void interrupt() {
+            interrupted = true;
+            super.interrupt();
+        }
     }
 
     private class ClientThread extends Thread {
@@ -338,10 +392,11 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
         private int sendFile(BluetoothOppSendFileInfo fileInfo) {
             boolean error = false;
             int responseCode = -1;
-            long position = 0;
+            position = 0;
             int status = BluetoothShare.STATUS_SUCCESS;
             Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + mInfo.mId);
             ContentValues updateValues;
+            ContentResolverUpdateThread uiUpdateThread = null;
             HeaderSet request;
             request = new HeaderSet();
             request.setHeader(HeaderSet.NAME, fileInfo.mFileName);
@@ -394,8 +449,6 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
                 if (!error) {
                     int readLength = 0;
-                    long percent = 0;
-                    long prevPercent = 0;
                     long readbytesleft = 0;
                     boolean okToProceed = false;
                     long timestamp = 0;
@@ -469,17 +522,32 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                                         + " readLength " + readLength + " bytes took "
                                         + (System.currentTimeMillis() - timestamp) + " ms");
                             }
-                            // Update the Progress Bar only if there is change in percentage
-                            percent = position * 100 / fileInfo.mLength;
-                            if (percent > prevPercent) {
+                            if (uiUpdateThread == null) {
+                                uiUpdateThread = new ContentResolverUpdateThread (mContext1,
+                                                         contentUri);
+                                if (V) Log.v(TAG, "Worker for Updation : Created");
+                                uiUpdateThread.start ( );
+                            }
+                        }
+                    }
+
+
+                    if (uiUpdateThread != null) {
+                        try {
+                            if (V) Log.v(TAG, "Worker for Updation : Destroying");
+                            uiUpdateThread.interrupt ();
+                            uiUpdateThread.join ();
+                            uiUpdateThread = null;
+                            if (V) Log.v(TAG, "Worker for Updation : Destroyed");
                                 updateValues = new ContentValues();
                                 updateValues.put(BluetoothShare.CURRENT_BYTES, position);
                                 mContext1.getContentResolver().update(contentUri, updateValues,
                                         null, null);
-                                prevPercent = percent;
-                            }
+                        } catch (InterruptedException ie) {
+                            if (V) Log.v(TAG, "Interrupted waiting for uiUpdateThread to join");
                         }
                     }
+
 
                     if (responseCode == ResponseCodes.OBEX_HTTP_FORBIDDEN
                             || responseCode == ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE) {
@@ -491,11 +559,12 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                         status = BluetoothShare.STATUS_NOT_ACCEPTABLE;
                     } else if (!mInterrupted && position == fileInfo.mLength) {
                         long endTime = System.currentTimeMillis();
-                        Log.i(TAG, "SendFile finished send out file " + fileInfo.mFileName
+                        if(V) {
+                            Log.i(TAG, "SendFile finished send out file " + fileInfo.mFileName
                                 + " length " + fileInfo.mLength + " Bytes. Approx. throughput is "
-                                +BluetoothShare.throughputInKbps(fileInfo.mLength,
-                                        (endTime - beginTime))
+                                +BluetoothShare.throughputInKbps(fileInfo.mLength,(endTime - beginTime))
                                 + " Kbps");
+                        }
                         status = BluetoothShare.STATUS_SUCCESS;
                     } else {
                         error = true;
