@@ -261,6 +261,7 @@ public class AdapterService extends Service {
         A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
         HeadsetService headsetService = HeadsetService.getHeadsetService();
         HeadsetClientService headsetClientService = HeadsetClientService.getHeadsetClientService();
+        PbapClientService pbapClientService = PbapClientService.getPbapClientService();
 
         // Set profile priorities only for the profiles discovered on the remote device.
         // This avoids needless auto-connect attempts to profiles non-existent on the remote device
@@ -299,6 +300,11 @@ public class AdapterService extends Service {
             a2dpSinkService.setPriority(device, BluetoothProfile.PRIORITY_ON);
         }
 
+        if ((pbapClientService != null) &&
+            (BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.PBAP_PSE) &&
+             (pbapClientService.getPriority(device) == BluetoothProfile.PRIORITY_UNDEFINED))) {
+            pbapClientService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+        }
     }
 
     private void processProfileStateChanged(BluetoothDevice device, int profileId, int newState, int prevState) {
