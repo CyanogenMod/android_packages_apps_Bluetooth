@@ -21,8 +21,11 @@ import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothDevice;
 import com.android.bluetooth.a2dp.A2dpService;
-import com.android.bluetooth.hid.HidService;
+import com.android.bluetooth.a2dp.A2dpSinkService;
 import com.android.bluetooth.hfp.HeadsetService;
+import com.android.bluetooth.hfpclient.HeadsetClientService;
+import com.android.bluetooth.hid.HidService;
+import com.android.bluetooth.pbapclient.PbapClientService;
 
 import android.bluetooth.OobData;
 import android.content.Context;
@@ -446,13 +449,22 @@ final class BondStateMachine extends StateMachine {
         HidService hidService = HidService.getHidService();
         A2dpService a2dpService = A2dpService.getA2dpService();
         HeadsetService headsetService = HeadsetService.getHeadsetService();
+        A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
+        HeadsetClientService hsClientService = HeadsetClientService.getHeadsetClientService();
+        PbapClientService pbapClientService = PbapClientService.getPbapClientService();
 
         if (hidService != null)
-            hidService.setPriority(device,BluetoothProfile.PRIORITY_UNDEFINED);
+            hidService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
         if(a2dpService != null)
-            a2dpService.setPriority(device,BluetoothProfile.PRIORITY_UNDEFINED);
+            a2dpService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
         if(headsetService != null)
-            headsetService.setPriority(device,BluetoothProfile.PRIORITY_UNDEFINED);
+            headsetService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
+        if (hsClientService != null)
+            hsClientService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
+        if (a2dpSinkService != null)
+            a2dpSinkService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
+        if(pbapClientService != null)
+            pbapClientService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
 
         // Clear Absolute Volume black list
         if(a2dpService != null)

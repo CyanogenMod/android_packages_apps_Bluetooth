@@ -148,7 +148,7 @@ public class A2dpSinkService extends ProfileService {
         return mStateMachine.getConnectedDevices();
     }
 
-    List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
+    public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         return mStateMachine.getDevicesMatchingConnectionStates(states);
     }

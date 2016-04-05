@@ -104,6 +104,9 @@ public class HfpClientConnectionService extends ConnectionService {
                         List<BluetoothHeadsetClientCall> calls =
                                 mHeadsetProfile.getCurrentCalls(mDevice);
                         Log.d(TAG, "Got calls " + calls);
+                        if (calls == null) {
+                            return;
+                        }
                         for (BluetoothHeadsetClientCall call : calls) {
                             handleCall(call);
                         }

@@ -1420,7 +1420,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                         // the other profile connection should be initiated
                         AdapterService adapterService = AdapterService.getAdapterService();
                         if (adapterService != null) {
-                            adapterService.connectOtherProfile(device,
+                            adapterService.connectOtherClientProfile(device,
                                     AdapterService.PROFILE_CONN_REJECTED);
                         }
                     }

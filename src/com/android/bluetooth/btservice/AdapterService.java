@@ -321,7 +321,7 @@ public class AdapterService extends Service {
              (profileId == BluetoothProfile.HEADSET_CLIENT)) &&
             (newState == BluetoothProfile.STATE_CONNECTED)) {
             debugLog( "Profile connected. Schedule missing profile connection if any");
-            connectOtherProfile(device, PROFILE_CONN_CONNECTED);
+            connectOtherClientProfile(device, PROFILE_CONN_CONNECTED);
             setProfileAutoConnectionPriority(device, profileId);
         }
 
@@ -727,9 +727,11 @@ public class AdapterService extends Service {
     private static final int MESSAGE_PROFILE_SERVICE_STATE_CHANGED = 1;
     private static final int MESSAGE_PROFILE_CONNECTION_STATE_CHANGED = 20;
     private static final int MESSAGE_CONNECT_OTHER_PROFILES = 30;
+    private static final int MESSAGE_CONNECT_OTHER_CLIENT_PROFILES = 31;
     private static final int MESSAGE_PROFILE_INIT_PRIORITIES=40;
     private static final int CONNECT_OTHER_PROFILES_TIMEOUT= 6000;
     private static final int CONNECT_OTHER_PROFILES_TIMEOUT_DELAYED = 10000;
+    private static final int CONNECT_OTHER_CLIENT_PROFILES_TIMEOUT= 2000;
 
     private final Handler mHandler = new Handler() {
         @Override
@@ -760,6 +762,10 @@ public class AdapterService extends Service {
                     debugLog( "handleMessage() - MESSAGE_CONNECT_OTHER_PROFILES");
                     processConnectOtherProfiles((BluetoothDevice) msg.obj,msg.arg1);
                 }
+                    break;
+                case MESSAGE_CONNECT_OTHER_CLIENT_PROFILES:
+                    debugLog( "handleMessage() - MESSAGE_CONNECT_OTHER_CLIENT_PROFILES ");
+                    processConnectOtherClientProfiles((BluetoothDevice) msg.obj, msg.arg1);
                     break;
             }
         }
@@ -1766,6 +1772,85 @@ public class AdapterService extends Service {
                 mHandler.sendMessageDelayed(m,CONNECT_OTHER_PROFILES_TIMEOUT_DELAYED);
             else
                 mHandler.sendMessageDelayed(m,CONNECT_OTHER_PROFILES_TIMEOUT);
+        }
+    }
+
+    public void connectOtherClientProfile(BluetoothDevice device, int firstProfileStatus){
+        if ((mHandler.hasMessages(MESSAGE_CONNECT_OTHER_CLIENT_PROFILES) == false) &&
+                (isQuietModeEnabled()== false)){
+            Log.d(TAG," connectOtherClientProfile profileStatus = " + firstProfileStatus);
+
+            A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();;
+            HeadsetClientService hsClientService = HeadsetClientService.getHeadsetClientService();
+
+            if ((a2dpSinkService == null) || (hsClientService == null)) {
+                return;
+            }
+            List<BluetoothDevice> a2dpConnDevList = a2dpSinkService.getConnectedDevices();;
+            List<BluetoothDevice> hfConnDevList = hsClientService.getConnectedDevices();;
+            Log.i(TAG, "a2dpConnListSize: " +a2dpConnDevList.size() + " hfConnListSize " +
+                    hfConnDevList.size());
+            if (!a2dpConnDevList.isEmpty() && !hfConnDevList.isEmpty()) {
+                Log.d(TAG," Both profiles are connected, don't que ");
+                return;
+            }
+            Message m = mHandler.obtainMessage(MESSAGE_CONNECT_OTHER_CLIENT_PROFILES);
+            m.obj = device;
+            m.arg1 = (int) firstProfileStatus;
+            mHandler.sendMessageDelayed(m, CONNECT_OTHER_CLIENT_PROFILES_TIMEOUT);
+        }
+    }
+
+    private void processConnectOtherClientProfiles (BluetoothDevice device, int firstProfileStatus){
+        // initiate connection for missing profile on device
+        Log.i(TAG," processConnectOtherClientProfiles device is " + device);
+        if (getState()!= BluetoothAdapter.STATE_ON){
+            return;
+        }
+
+        A2dpSinkService a2dpSinkService = null;
+        HeadsetClientService hsClientService = null;
+
+        a2dpSinkService = A2dpSinkService.getA2dpSinkService();
+        hsClientService = HeadsetClientService.getHeadsetClientService();
+
+        if ((a2dpSinkService == null) || (hsClientService == null)) {
+            return;
+        }
+        List<BluetoothDevice> a2dpConnDevList;
+        List<BluetoothDevice> hfConnDevList;
+
+        a2dpConnDevList = a2dpSinkService.getDevicesMatchingConnectionStates(
+                new int[] {BluetoothProfile.STATE_CONNECTED,
+                        BluetoothProfile.STATE_CONNECTING,
+                        BluetoothProfile.STATE_DISCONNECTING});
+        Log.i(TAG,"a2dpConnDevListSize: " +a2dpConnDevList.size());
+        hfConnDevList = hsClientService.getDevicesMatchingConnectionStates(
+                new int[] {BluetoothProfile.STATE_CONNECTED,
+                        BluetoothProfile.STATE_CONNECTING,
+                        BluetoothProfile.STATE_DISCONNECTING});
+        Log.i(TAG,"hfConnDevListSize: " +hfConnDevList.size());
+
+        // Check if the device is in disconnected state and if so return
+        // We ned to connect other profile only if one of the profile is still in connected state
+        // This is required to avoide a race condition in which profiles would
+        // automaticlly connect if the disconnection is initiated within 6 seconds of connection
+        //First profile connection being rejected is an exception
+        if((hfConnDevList.isEmpty() && a2dpConnDevList.isEmpty())&&
+                (PROFILE_CONN_CONNECTED  == firstProfileStatus)){
+            return;
+        }
+        // This change makes sure that we try to re-connect
+        // the profile if its connection failed and priority
+        // for desired profile is ON.
+        if((hfConnDevList.isEmpty()) &&
+                (hsClientService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)) {
+            hsClientService.connect(device);
+            return;
+        } else if ((a2dpConnDevList.isEmpty()) &&
+                   (a2dpSinkService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)) {
+                   a2dpSinkService.connect(device);
+                   return;
         }
     }
 

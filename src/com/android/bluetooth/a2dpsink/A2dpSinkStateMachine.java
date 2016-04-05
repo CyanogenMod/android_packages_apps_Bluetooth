@@ -264,8 +264,8 @@ final class A2dpSinkStateMachine extends StateMachine {
                     // the other profile connection should be initiated
                     AdapterService adapterService = AdapterService.getAdapterService();
                     if (adapterService != null) {
-                        adapterService.connectOtherProfile(device,
-                                                           AdapterService.PROFILE_CONN_REJECTED);
+                        adapterService.connectOtherClientProfile(device,
+                                AdapterService.PROFILE_CONN_REJECTED);
                     }
                 }
                 break;
@@ -286,8 +286,8 @@ final class A2dpSinkStateMachine extends StateMachine {
                     // the other profile connection should be initiated
                     AdapterService adapterService = AdapterService.getAdapterService();
                     if (adapterService != null) {
-                        adapterService.connectOtherProfile(device,
-                                                           AdapterService.PROFILE_CONN_REJECTED);
+                        adapterService.connectOtherClientProfile(device,
+                                AdapterService.PROFILE_CONN_REJECTED);
                     }
                 }
                 break;
@@ -500,6 +500,13 @@ final class A2dpSinkStateMachine extends StateMachine {
             broadcastAudioState(mCurrentDevice, BluetoothA2dpSink.STATE_NOT_PLAYING,
                                 BluetoothA2dpSink.STATE_PLAYING);
             mStreaming = A2dpSinkStreamingStateMachine.make(A2dpSinkStateMachine.this, mContext);
+            // the other profile connection should be initiated
+            AdapterService adapterService = AdapterService.getAdapterService();
+            if ((adapterService != null) && (mCurrentDevice != null)) {
+                log(" connectOtherProfile Connected");
+                adapterService.connectOtherClientProfile(mCurrentDevice,
+                        AdapterService.PROFILE_CONN_CONNECTED);
+            }
         }
 
         @Override
@@ -701,11 +708,12 @@ final class A2dpSinkStateMachine extends StateMachine {
     boolean okToConnect(BluetoothDevice device) {
         AdapterService adapterService = AdapterService.getAdapterService();
         int priority = mService.getPriority(device);
+        boolean ret = false;
         //check if this is an incoming connection in Quiet mode.
         if((adapterService == null) ||
            ((adapterService.isQuietModeEnabled() == true) &&
            (mTargetDevice == null))){
-            return false;
+            ret = false;
         }
         // check priority and accept or reject the connection. if priority is undefined
         // it is likely that our SDP has not completed and peer is initiating the
@@ -713,9 +721,9 @@ final class A2dpSinkStateMachine extends StateMachine {
         else if((BluetoothProfile.PRIORITY_OFF < priority) ||
                 ((BluetoothProfile.PRIORITY_UNDEFINED == priority) &&
                 (device.getBondState() != BluetoothDevice.BOND_NONE))){
-            return true;
+                    ret= true;
         }
-        return false;
+        return ret;
     }
 
     synchronized List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {

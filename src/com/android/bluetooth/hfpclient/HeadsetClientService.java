@@ -513,7 +513,7 @@ public class HeadsetClientService extends ProfileService {
         return mStateMachine.getConnectedDevices();
     }
 
-    private List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
+    public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         return mStateMachine.getDevicesMatchingConnectionStates(states);
     }
