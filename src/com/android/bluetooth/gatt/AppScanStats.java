@@ -101,8 +101,8 @@ import com.android.bluetooth.btservice.BluetoothProto;
         BluetoothProto.ScanEvent scanEvent = new BluetoothProto.ScanEvent();
         scanEvent.setScanEventType(BluetoothProto.ScanEvent.SCAN_EVENT_START);
         scanEvent.setScanTechnologyType(BluetoothProto.ScanEvent.SCAN_TECH_TYPE_LE);
-        scanEvent.setInitiator(appName);
         scanEvent.setEventTimeMillis(System.currentTimeMillis());
+        scanEvent.setInitiator(truncateAppName(appName));
         gattService.addScanEvent(scanEvent);
     }
 
@@ -129,9 +129,29 @@ import com.android.bluetooth.btservice.BluetoothProto;
         BluetoothProto.ScanEvent scanEvent = new BluetoothProto.ScanEvent();
         scanEvent.setScanEventType(BluetoothProto.ScanEvent.SCAN_EVENT_STOP);
         scanEvent.setScanTechnologyType(BluetoothProto.ScanEvent.SCAN_TECH_TYPE_LE);
-        scanEvent.setInitiator(appName);
         scanEvent.setEventTimeMillis(System.currentTimeMillis());
+        scanEvent.setInitiator(truncateAppName(appName));
         gattService.addScanEvent(scanEvent);
+    }
+
+    // This function truncates the app name for privacy reasons. Apps with
+    // four part package names or more get truncated to three parts, and apps
+    // with three part package names names get truncated to two. Apps with two
+    // or less package names names are untouched.
+    // Examples: one.two.three.four => one.two.three
+    //           one.two.three => one.two
+    private String truncateAppName(String name) {
+        String initiator = name;
+        String[] nameSplit = initiator.split("\\.");
+        if (nameSplit.length > 3) {
+            initiator = nameSplit[0] + "." +
+                        nameSplit[1] + "." +
+                        nameSplit[2];
+        } else if (nameSplit.length == 3) {
+            initiator = nameSplit[0] + "." + nameSplit[1];
+        }
+
+        return initiator;
     }
 
     synchronized void dumpToString(StringBuilder sb) {
