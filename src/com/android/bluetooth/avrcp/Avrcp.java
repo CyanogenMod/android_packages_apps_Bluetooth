@@ -272,6 +272,7 @@ public final class Avrcp {
 
         @Override
         public void onClientMetadataUpdate(MetadataEditor metadataEditor) {
+            Log.v(TAG, "RemoteControlDisplayer: Update Metadata");
             Handler handler = mLocalHandler.get();
             if (handler != null) {
                 handler.obtainMessage(MSG_SET_METADATA, 0, 0, metadataEditor).sendToTarget();
@@ -289,19 +290,19 @@ public final class Avrcp {
         public void handleMessage(Message msg) {
             switch (msg.what) {
             case MSG_UPDATE_STATE:
-                    updatePlayPauseState(msg.arg2, ((Long) msg.obj).longValue());
+                updatePlayPauseState(msg.arg2, ((Long) msg.obj).longValue());
                 break;
 
             case MSG_SET_METADATA:
-                    updateMetadata((MetadataEditor) msg.obj);
+                updateMetadata((MetadataEditor) msg.obj);
                 break;
 
             case MSG_SET_TRANSPORT_CONTROLS:
-                    updateTransportControls(msg.arg2);
+                updateTransportControls(msg.arg2);
                 break;
 
             case MSG_SET_GENERATION_ID:
-                if (DEBUG) Log.v(TAG, "New genId = " + msg.arg1 + ", clearing = " + msg.arg2);
+                Log.v(TAG, "New genId = " + msg.arg1 + ", clearing = " + msg.arg2);
                 break;
 
             case MESSAGE_GET_RC_FEATURES:
@@ -327,12 +328,11 @@ public final class Avrcp {
                 break;
 
             case MESSAGE_GET_ELEM_ATTRS:
-            {
                 String[] textArray;
                 int[] attrIds;
                 byte numAttr = (byte) msg.arg1;
                 ArrayList<Integer> attrList = (ArrayList<Integer>) msg.obj;
-                if (DEBUG) Log.v(TAG, "MESSAGE_GET_ELEM_ATTRS:numAttr=" + numAttr);
+                Log.v(TAG, "MESSAGE_GET_ELEM_ATTRS:numAttr=" + numAttr);
                 attrIds = new int[numAttr];
                 textArray = new String[numAttr];
                 for (int i = 0; i < numAttr; ++i) {
@@ -341,7 +341,7 @@ public final class Avrcp {
                 }
                 getElementAttrRspNative(numAttr, attrIds, textArray);
                 break;
-            }
+
             case MESSAGE_REGISTER_NOTIFICATION:
                 if (DEBUG) Log.v(TAG, "MESSAGE_REGISTER_NOTIFICATION:event=" + msg.arg1 +
                                       " param=" + msg.arg2);
@@ -719,6 +719,7 @@ public final class Avrcp {
         mMetadata.trackTitle = data.getString(MediaMetadataRetriever.METADATA_KEY_TITLE, null);
         mMetadata.albumTitle = data.getString(MediaMetadataRetriever.METADATA_KEY_ALBUM, null);
         if (!oldMetadata.equals(mMetadata.toString())) {
+            Log.v(TAG, "Metadata Changed to " + mMetadata.toString());
             mTrackNumber++;
             if (mTrackChangedNT == NOTIFICATION_TYPE_INTERIM) {
                 mTrackChangedNT = NOTIFICATION_TYPE_CHANGED;
@@ -738,12 +739,13 @@ public final class Avrcp {
                                                      (int)getPlayPosition());
                 mHandler.removeMessages(MESSAGE_PLAY_INTERVAL_TIMEOUT);
             }
+        } else {
+          Log.v(TAG, "Metadata updated but no change!");
         }
-        if (DEBUG) Log.v(TAG, "mMetadata=" + mMetadata.toString());
 
         mSongLengthMs = data.getLong(MediaMetadataRetriever.METADATA_KEY_DURATION,
                 RemoteControlClient.PLAYBACK_POSITION_INVALID);
-        if (DEBUG) Log.v(TAG, "duration=" + mSongLengthMs);
+        Log.v(TAG, "duration=" + mSongLengthMs);
     }
 
     private void getRcFeatures(byte[] address, int features) {
@@ -894,7 +896,7 @@ public final class Avrcp {
         if (attrStr == null) {
             attrStr = new String();
         }
-        if (DEBUG) Log.v(TAG, "getAttributeString:attrId=" + attrId + " str=" + attrStr);
+        Log.v(TAG, "getAttributeString:attrId=" + attrId + " str=" + attrStr);
         return attrStr;
     }
 
