@@ -29,6 +29,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentFilter.MalformedMimeTypeException;
+import android.Manifest;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelUuid;
@@ -560,7 +561,10 @@ public class BluetoothMapService extends ProfileService {
 
         try {
             registerReceiver(mMapReceiver, filter);
-            registerReceiver(mMapReceiver, filterMessageSent);
+            // We need WRITE_SMS permission to handle messages in
+            // actionMessageSentDisconnected()
+            registerReceiver(mMapReceiver, filterMessageSent,
+                Manifest.permission.WRITE_SMS, null);
         } catch (Exception e) {
             Log.w(TAG,"Unable to register map receiver",e);
         }
@@ -1012,8 +1016,12 @@ public class BluetoothMapService extends ProfileService {
                 {
                     /* We do not have a connection to a device, hence we need to move
                        the SMS to the correct folder. */
-                    BluetoothMapContentObserver
+                    try {
+                        BluetoothMapContentObserver
                             .actionMessageSentDisconnected(context, intent, result);
+                    } catch(IllegalArgumentException e) {
+                        return;
+                    }
                 }
             } else if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED) &&
                     mIsWaitingAuthorization) {
