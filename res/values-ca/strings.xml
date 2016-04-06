@@ -128,4 +128,6 @@
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Icona d\'aplicació"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Configuració per compartir missatges mitjançant el Bluetooth"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"No es pot seleccionar el compte. No queda cap espai."</string>
+    <string name="bluetooth_connected" msgid="6718623220072656906">"Àudio per Bluetooth connectat"</string>
+    <string name="bluetooth_disconnected" msgid="3318303728981478873">"Àudio per Bluetooth desconnectat"</string>
 </resources>
