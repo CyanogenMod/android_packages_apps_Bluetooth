@@ -128,4 +128,6 @@
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Alkalmazás ikonja"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Bluetooth-kapcsolaton keresztüli üzenetmegosztás beállításai"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"A fiók kiválasztása sikertelen. 0 hely maradt"</string>
+    <string name="bluetooth_connected" msgid="6718623220072656906">"Bluetooth audió csatlakoztatva"</string>
+    <string name="bluetooth_disconnected" msgid="3318303728981478873">"Bluetooth audió leválasztva"</string>
 </resources>

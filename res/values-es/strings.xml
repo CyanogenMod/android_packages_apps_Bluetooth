@@ -128,4 +128,6 @@
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Icono de aplicación"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Ajustes de mensajes compartidos por Bluetooth"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"No se puede seleccionar la cuenta. No quedan ranuras"</string>
+    <string name="bluetooth_connected" msgid="6718623220072656906">"Audio por Bluetooth conectado"</string>
+    <string name="bluetooth_disconnected" msgid="3318303728981478873">"Audio por Bluetooth desconectado"</string>
 </resources>
