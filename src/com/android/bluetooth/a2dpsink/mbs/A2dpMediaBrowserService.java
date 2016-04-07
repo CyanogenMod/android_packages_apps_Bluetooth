@@ -16,7 +16,6 @@
 
 package com.android.bluetooth.a2dpsink.mbs;
 
-import android.bluetooth.BluetoothA2dpSink;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAvrcpController;
 import android.bluetooth.BluetoothDevice;
@@ -132,7 +131,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         mAdapter.getProfileProxy(this, mServiceListener, BluetoothProfile.AVRCP_CONTROLLER);
 
         IntentFilter filter = new IntentFilter();
-        filter.addAction(BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothAvrcpController.ACTION_TRACK_EVENT);
         registerReceiver(mBtReceiver, filter);
     }
@@ -258,7 +257,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
                     (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
             int state = intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
 
-            if (BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
+            if (BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
                 Log.d(TAG, "handleConnectionStateChange: newState="
                         + state + " btDev=" + btDev);
 
