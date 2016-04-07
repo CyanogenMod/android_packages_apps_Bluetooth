@@ -50,7 +50,7 @@ public class HfpClientConnection extends Connection {
         }
         setAudioModeIsVoip(false);
         setAddress(number, TelecomManager.PRESENTATION_ALLOWED);
-        setInitializing();
+        setInitialized();
 
         if (mHeadsetProfile != null) {
             finishInitializing();
@@ -130,8 +130,9 @@ public class HfpClientConnection extends Connection {
         if (mCurrentCall == null) {
             String number = getAddress().getSchemeSpecificPart();
             Log.d(TAG, "Dialing " + number);
-            setInitialized();
             mHeadsetProfile.dial(mDevice, number);
+            setDialing();
+            // We will change state dependent on broadcasts from BluetoothHeadsetClientCall.
         } else {
             handleCallChanged(mCurrentCall);
         }

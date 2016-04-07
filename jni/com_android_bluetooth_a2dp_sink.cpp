@@ -236,8 +236,15 @@ static void informAudioFocusStateNative(JNIEnv *env, jobject object, jint focus_
     if (!sBluetoothA2dpInterface) return;
 
     sBluetoothA2dpInterface->set_audio_focus_state((uint8_t)focus_state);
+}
+
+static void informAudioTrackGainNative(JNIEnv *env, jobject object, jfloat gain) {
+    if (!sBluetoothA2dpInterface) return;
+
+    sBluetoothA2dpInterface->set_audio_track_gain((float) gain);
 
 }
+
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
     {"initNative", "()V", (void *) initNative},
@@ -245,6 +252,7 @@ static JNINativeMethod sMethods[] = {
     {"connectA2dpNative", "([B)Z", (void *) connectA2dpNative},
     {"disconnectA2dpNative", "([B)Z", (void *) disconnectA2dpNative},
     {"informAudioFocusStateNative", "(I)V", (void *) informAudioFocusStateNative},
+    {"informAudioTrackGainNative", "(F)V", (void *) informAudioTrackGainNative},
 };
 
 int register_com_android_bluetooth_a2dp_sink(JNIEnv* env)

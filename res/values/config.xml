@@ -50,4 +50,6 @@
          Valid value is 1-14, and recommended value is 8 -->
     <integer name="a2dp_absolute_volume_initial_threshold">8</integer>
 
+    <!-- For A2DP sink ducking volume feature. -->
+    <integer name="a2dp_sink_duck_percent">25</integer>
 </resources>

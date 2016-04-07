@@ -26,6 +26,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.android.bluetooth.avrcp.AvrcpControllerService;
+import com.android.bluetooth.R;
 import com.android.internal.util.IState;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -82,6 +83,9 @@ import com.android.internal.util.StateMachine;
 final class A2dpSinkStreamingStateMachine extends StateMachine {
     private static final boolean DBG = true;
     private static final String TAG = "A2dpSinkStreamingStateMachine";
+    private static final int ACT_PLAY_NUM_RETRIES = 5;
+    private static final int ACT_PLAY_RETRY_DELAY = 2000; // millis.
+    private static final int DEFAULT_DUCK_PERCENT = 25;
 
     // Streaming states (see the description above).
     private SRC_F_ACT_F mSrcFActF;
@@ -94,15 +98,17 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
     public static final int SRC_STR_STOP = 1;
     public static final int SRC_STR_STOP_JITTER_WAIT_OVER = 2;
     public static final int ACT_PLAY = 3;
-    public static final int ACT_PAUSE = 4;
-    public static final int AUDIO_FOCUS_CHANGE = 5;
-    public static final int DISCONNECT = 6;
+    public static final int ACT_PLAY_RETRY = 4;
+    public static final int ACT_PAUSE = 5;
+    public static final int AUDIO_FOCUS_CHANGE = 6;
+    public static final int DISCONNECT = 7;
 
     // Private variables.
     private A2dpSinkStateMachine mA2dpSinkSm;
     private Context mContext;
     private AudioManager mAudioManager;
-    private int mCurrentAudioFocus = -100;
+    // Set default focus to loss since we have never requested it before.
+    private int mCurrentAudioFocus = AudioManager.AUDIOFOCUS_LOSS;
 
      /* Used to indicate focus lost */
     private static final int STATE_FOCUS_LOST = 0;
@@ -156,9 +162,10 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
     /**
      * Utility functions that can be used by all states.
      */
-    private int requestAudioFocus() {
-        return mAudioManager.requestAudioFocus(
-            mAudioFocusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+    private boolean requestAudioFocus() {
+        return (mAudioManager.requestAudioFocus(
+            mAudioFocusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN) ==
+            AudioManager.AUDIOFOCUS_REQUEST_GRANTED);
     }
 
     private void startAvrcpUpdates() {
@@ -239,10 +246,15 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
 
     private void startFluorideStreaming() {
         mA2dpSinkSm.informAudioFocusStateNative(STATE_FOCUS_GRANTED);
+        mA2dpSinkSm.informAudioTrackGainNative(1.0f);
     }
 
     private void stopFluorideStreaming() {
         mA2dpSinkSm.informAudioFocusStateNative(STATE_FOCUS_LOST);
+    }
+
+    private void setFluorideAudioTrackGain(float gain) {
+        mA2dpSinkSm.informAudioTrackGainNative(gain);
     }
 
     private class SRC_F_ACT_F extends State {
@@ -266,7 +278,9 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
                     break;
 
                 case ACT_PLAY:
-                    // Wait in next state for actual playback.
+                    // Wait in next state for actual playback. We defer the message so that the next
+                    // state (SRC_F_ACT_T) can execute the retry logic.
+                    deferMessage(message);
                     transitionTo(mSrcFActT);
                     break;
 
@@ -283,17 +297,19 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
                         Log.d(STATE_TAG,
                             "prev focus " + mCurrentAudioFocus + " new focus " + newAudioFocus);
                     }
-                    if ((mCurrentAudioFocus == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT ||
-                         mCurrentAudioFocus == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) &&
+                    if (mCurrentAudioFocus == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT &&
                         newAudioFocus == AudioManager.AUDIOFOCUS_GAIN) {
                         sendAvrcpPlay();
-                        mCurrentAudioFocus = AudioManager.AUDIOFOCUS_GAIN;
+                        // We should transition to SRC_F_ACT_T after this message. We also send some
+                        // retries here because after phone calls we may have race conditions.
+                        sendMessageDelayed(
+                            ACT_PLAY_RETRY, ACT_PLAY_NUM_RETRIES, ACT_PLAY_RETRY_DELAY);
                     }
+                    mCurrentAudioFocus = newAudioFocus;
                     break;
 
                 default:
                     Log.e(TAG, "Don't know how to handle " + message.what);
-                    return NOT_HANDLED;
             }
             return HANDLED;
         }
@@ -301,6 +317,8 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
 
     private class SRC_F_ACT_T extends State {
         private static final String STATE_TAG = A2dpSinkStreamingStateMachine.TAG + ".SRC_F_ACT_T";
+        private boolean mPlay = false;
+
         @Override
         public void enter() {
             if (DBG) {
@@ -323,20 +341,47 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
                     transitionTo(mSrcFActF);
                     break;
 
+                case ACT_PLAY:
+                    // Retry if the remote has not yet started playing music. This is seen in some
+                    // devices where after the phone call it requires multiple play commands to
+                    // start music.
+                    break;
+
+                case ACT_PLAY_RETRY:
+                    if (message.arg1 > 0) {
+                        Log.d(STATE_TAG, "Retry " + message.arg1);
+                        sendAvrcpPlay();
+                        sendMessageDelayed(ACT_PLAY_RETRY, message.arg1 - 1, ACT_PLAY_RETRY_DELAY);
+                    }
+                    break;
+
+
                 case DISCONNECT:
                     deferMessage(message);
                     transitionTo(mSrcFActF);
+                    mPlay = false;
                     break;
 
-                // This is an intermediary state hence audio focus can be either handled in
-                // SRC_T_ACT_T or SRC_F_ACT_F.
                 case AUDIO_FOCUS_CHANGE:
-                    deferMessage(message);
+                    int newAudioFocus = message.arg1;
+                    if (DBG) {
+                        Log.d(STATE_TAG,
+                              "prev focus " + mCurrentAudioFocus + " new focus " + newAudioFocus);
+                    }
+                    if (newAudioFocus == AudioManager.AUDIOFOCUS_GAIN) {
+                        sendAvrcpPlay();
+                        mCurrentAudioFocus = newAudioFocus;
+                    } else if (newAudioFocus == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
+                        sendAvrcpPause();
+                        mCurrentAudioFocus = newAudioFocus;
+                    } else if (newAudioFocus == AudioManager.AUDIOFOCUS_LOSS) {
+                        mAudioManager.abandonAudioFocus(mAudioFocusListener);
+                        mCurrentAudioFocus = AudioManager.AUDIOFOCUS_LOSS;
+                    }
                     break;
 
                 default:
                     Log.e(TAG, "Don't know how to handle " + message.what);
-                    return NOT_HANDLED;
             }
             return HANDLED;
         }
@@ -371,15 +416,26 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
                     transitionTo(mSrcFActF);
                     break;
 
-                // This is an intermediary state hence audio focus can be either handled in
-                // SRC_T_ACT_T or SRC_F_ACT_F.
                 case AUDIO_FOCUS_CHANGE:
-                    deferMessage(message);
+                    // If we regain focus from TRANSIENT that means that the remote was playing all
+                    // this while although we must have sent a PAUSE (see focus loss in SRC_T_ACT_T
+                    // state). In any case, we should resume music here if that is the case.
+                    int newAudioFocus = message.arg1;
+                    if (DBG) {
+                        Log.d(STATE_TAG,
+                              "prev focus " + mCurrentAudioFocus + " new focus " + newAudioFocus);
+                    }
+                    if (newAudioFocus == AudioManager.AUDIOFOCUS_LOSS ||
+                        newAudioFocus == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
+                        sendAvrcpPause();
+                    } else if (newAudioFocus == AudioManager.AUDIOFOCUS_GAIN) {
+                        sendAvrcpPlay();
+                    }
+                    mCurrentAudioFocus = newAudioFocus;
                     break;
 
                 default:
                     Log.e(TAG, "Don't know how to handle " + message.what);
-                    return NOT_HANDLED;
             }
             return HANDLED;
         }
@@ -406,19 +462,39 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
                     stopAvrcpUpdates();
                     stopFluorideStreaming();
                     transitionTo(mSrcTActF);
+                    if (mCurrentAudioFocus == AudioManager.AUDIOFOCUS_GAIN) {
+                        // If we have focus gain and we still get pause that means that we must have
+                        // gotten a PAUSE by user explicitly pressing PAUSE on Car or Phone. Hence
+                        // we release focus.
+                        mAudioManager.abandonAudioFocus(mAudioFocusListener);
+                        mCurrentAudioFocus = AudioManager.AUDIOFOCUS_LOSS;
+                    }
                     break;
 
                 case SRC_STR_STOP:
                     stopAvrcpUpdates();
                     stopFluorideStreaming();
                     transitionTo(mSrcFActT);
+                    // This could be variety of reasons including that the remote is going to
+                    // (eventually send us pause) or the device is going to go into a call state
+                    // etc. Also it may simply be stutter of music. Instead of sending pause
+                    // prematurely we wait for either a Pause from remote or AudioFocus change owing
+                    // an ongoing call.
                     break;
 
                 case SRC_STR_START:
                 case ACT_PLAY:
-                    if (mCurrentAudioFocus == AudioManager.AUDIOFOCUS_GAIN ||
-                        requestAudioFocus() == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                        mCurrentAudioFocus = AudioManager.AUDIOFOCUS_GAIN;
+                    Log.d(STATE_TAG, "Current Audio Focus " + mCurrentAudioFocus);
+                    boolean startStream = true;
+                    if (mCurrentAudioFocus == AudioManager.AUDIOFOCUS_LOSS) {
+                        if (!requestAudioFocus()) {
+                            Log.e(STATE_TAG, "Cannot get focus, hence not starting streaming.");
+                            startStream = false;
+                        } else {
+                            mCurrentAudioFocus = AudioManager.AUDIOFOCUS_GAIN;
+                        }
+                    }
+                    if (startStream) {
                         startAvrcpUpdates();
                         startFluorideStreaming();
                     }
@@ -434,20 +510,38 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
                         Log.d(STATE_TAG,
                             "prev focus " + mCurrentAudioFocus + " new focus " + newAudioFocus);
                     }
-                    // Do nothing if the previous focus is the same as the new one.
-                    if (newAudioFocus == mCurrentAudioFocus) {
-                        break;
-                    }
+
                     if (newAudioFocus == AudioManager.AUDIOFOCUS_GAIN) {
-                        // Previous focus was not gain but current is.
+                        // We have gained focus so play with 1.0 gain.
                         sendAvrcpPlay();
                         startAvrcpUpdates();
                         startFluorideStreaming();
-                    } else if (mCurrentAudioFocus == AudioManager.AUDIOFOCUS_GAIN) {
-                        // Current focus is not gain but previous was.
+                        setFluorideAudioTrackGain(1.0f);
+                    } else if (newAudioFocus == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
+                        // Make the volume duck.
+                        int duckPercent =
+                            mContext.getResources().getInteger(R.integer.a2dp_sink_duck_percent);
+                        if (duckPercent < 0 || duckPercent > 100) {
+                            Log.e(STATE_TAG, "Invalid duck percent using default.");
+                            duckPercent = DEFAULT_DUCK_PERCENT;
+                        }
+                        float duckRatio = (float) ((duckPercent * 1.0f) / 100);
+                        Log.d(STATE_TAG,
+                            "Setting reduce gain on transient loss gain=" + duckRatio);
+                        setFluorideAudioTrackGain(duckRatio);
+                    } else {
+                        // We either are in transient loss or we are in permanent loss,
+                        // either ways we should stop streaming.
                         sendAvrcpPause();
                         stopAvrcpUpdates();
                         stopFluorideStreaming();
+
+                        // If it is permanent focus loss then we should abandon focus here and wait
+                        // for user to explicitly play again.
+                        if (newAudioFocus == AudioManager.AUDIOFOCUS_LOSS) {
+                            mAudioManager.abandonAudioFocus(mAudioFocusListener);
+                            mCurrentAudioFocus = AudioManager.AUDIOFOCUS_LOSS;
+                        }
                     }
                     mCurrentAudioFocus = newAudioFocus;
                     break;
@@ -459,7 +553,6 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
 
                 default:
                     Log.e(TAG, "Don't know how to handle " + message.what);
-                    return NOT_HANDLED;
             }
             return HANDLED;
         }

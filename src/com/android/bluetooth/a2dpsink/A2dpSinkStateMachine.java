@@ -875,4 +875,5 @@ final class A2dpSinkStateMachine extends StateMachine {
     private native boolean connectA2dpNative(byte[] address);
     private native boolean disconnectA2dpNative(byte[] address);
     public native void informAudioFocusStateNative(int focusGranted);
+    public native void informAudioTrackGainNative(float focusGranted);
 }
