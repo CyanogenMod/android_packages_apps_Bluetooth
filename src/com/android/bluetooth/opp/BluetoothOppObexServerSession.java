@@ -112,7 +112,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     boolean mTransferInProgress = false;
 
-    private int position;
+    private long  position;
 
     public BluetoothOppObexServerSession(Context context, ObexTransport transport) {
         mContext = context;
@@ -183,6 +183,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             super("BtOpp Server ContentResolverUpdateThread");
             mContext1 = context;
             contentUri = cntUri;
+            interrupted = false;
         }
 
         @Override
@@ -192,14 +193,15 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             ContentValues updateValues;
             if (V) Log.v(TAG, "Is ContentResolverUpdateThread Interrupted :" + isInterrupted());
             /*  Check if the Operation is interrupted before entering into loop */
-            while ( !isInterrupted() ) {
-               updateValues = new ContentValues();
-               updateValues.put(BluetoothShare.CURRENT_BYTES, position);
-               mContext1.getContentResolver().update(contentUri, updateValues,
-                   null, null);
-               /* Check if the Operation is interrupted before entering sleep */
-               if (isInterrupted()) {
-                   if (V) Log.v(TAG, "ContentResolverUpdateThread was interrupted before sleep !,"+
+            while (!interrupted) {
+
+                updateValues = new ContentValues();
+                updateValues.put(BluetoothShare.CURRENT_BYTES, position);
+                mContext1.getContentResolver().update(contentUri, updateValues,
+                        null, null);
+                /* Check if the Operation is interrupted before entering sleep */
+                if (interrupted) {
+                    if (V) Log.v(TAG, "ContentResolverUpdateThread was interrupted before sleep !,"+
                                      " exiting");
                    return ;
                }
@@ -209,9 +211,16 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                } catch (InterruptedException e1) {
                    if (V) Log.v(TAG, "Server ContentResolverUpdateThread was interrupted (1),"+
                                      " exiting");
+                   interrupted = true;
                    return ;
-               }
-            }
+              }
+           }
+       }
+
+        @Override
+        public void interrupt() {
+            interrupted = true;
+            super.interrupt();
         }
     }
     /*

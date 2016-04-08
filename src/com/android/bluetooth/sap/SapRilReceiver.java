@@ -18,7 +18,7 @@ import android.util.Log;
 public class SapRilReceiver implements Runnable {
 
     private static final String TAG = "SapRilReceiver";
-    public static final boolean DEBUG = Log.isLoggable(SapService.LOG_TAG, Log.DEBUG);
+    public static final boolean DEBUG = true;
     public static final boolean VERBOSE = Log.isLoggable(SapService.LOG_TAG, Log.VERBOSE);
 
     private static final String SOCKET_NAME_RIL_BT = "sap_uim_socket1";

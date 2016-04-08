@@ -119,8 +119,6 @@ public class BluetoothOppManager {
     // The time for which the whitelist entries remain valid.
     private static final int WHITELIST_DURATION_MS = 15000;
 
-    public boolean isOPPServiceUp = false;
-
     /**
      * Get singleton instance.
      */
@@ -429,28 +427,17 @@ public class BluetoothOppManager {
         @Override
         public void run() {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-            while (true) {
-                if (mRemoteDevice == null) {
-                    Log.e(TAG, "Target bt device is null!");
-                    return;
-                }
-
-                if (V) Log.v(TAG, "OPPServiceUP = " + isOPPServiceUp);
-                if (isOPPServiceUp) {
-                    if (mIsMultiple) {
-                        insertMultipleShare();
-                    } else {
-                        insertSingleShare();
-                    }
-
-                    synchronized (BluetoothOppManager.this) {
-                        mInsertShareThreadNum--;
-                    }
-                    return;
-                } else if (!isEnabled()) {
-                    Log.v(TAG, "BT is OFF");
-                    return;
-                }
+            if (mRemoteDevice == null) {
+                Log.e(TAG, "Target bt device is null!");
+                return;
+            }
+            if (mIsMultiple) {
+                insertMultipleShare();
+            } else {
+                insertSingleShare();
+            }
+            synchronized (BluetoothOppManager.this) {
+                mInsertShareThreadNum--;
             }
         }
 

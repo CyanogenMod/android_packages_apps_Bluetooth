@@ -48,7 +48,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 import android.widget.Toast;
-import com.android.bluetooth.Utils;
 
 /**
  * Receives and handles: system broadcasts; Intents from other applications;
@@ -62,13 +61,8 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
+        if (D) Log.d(TAG, "Action :" + action);
 
-        /* Ignore if Broadcast action is not transfer complete and Invalid user */
-        if (!Utils.checkCaller() && !action.equals(BluetoothShare.TRANSFER_COMPLETED_ACTION)) {
-            Log.w(TAG, action + " received for non-active user, ignoring!!");
-            return;
-        }
-        if (V) Log.v(TAG, action + " Intent received for active user");
 
         if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
             if (BluetoothAdapter.STATE_ON == intent.getIntExtra(
