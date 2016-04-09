@@ -128,8 +128,6 @@
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"பயன்பாட்டு ஐகான்"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"புளூடூத் செய்தி பகிர்தல் அமைப்புகள்"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"கணக்கைத் தேர்வுசெய்ய முடியாது. ஸ்லாட்கள் எதுவுமில்லை"</string>
-    <!-- no translation found for bluetooth_connected (6718623220072656906) -->
-    <skip />
-    <!-- no translation found for bluetooth_disconnected (3318303728981478873) -->
-    <skip />
+    <string name="bluetooth_connected" msgid="6718623220072656906">"புளூடூத் ஆடியோ இணைக்கப்பட்டது"</string>
+    <string name="bluetooth_disconnected" msgid="3318303728981478873">"புளூடூத் ஆடியோ துண்டிக்கப்பட்டது"</string>
 </resources>

@@ -128,8 +128,6 @@
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Հավելվածի պատկերակը"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Հաղորդագրությունների համօգտագործման Bluetooth-ի կարգավորումներ"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"Հնարավոր չէ ընտրել հաշիվը: Տող չի մնացել"</string>
-    <!-- no translation found for bluetooth_connected (6718623220072656906) -->
-    <skip />
-    <!-- no translation found for bluetooth_disconnected (3318303728981478873) -->
-    <skip />
+    <string name="bluetooth_connected" msgid="6718623220072656906">"Bluetooth աուդիոն կապակցված է"</string>
+    <string name="bluetooth_disconnected" msgid="3318303728981478873">"Bluetooth աուդիոն անջատված է"</string>
 </resources>

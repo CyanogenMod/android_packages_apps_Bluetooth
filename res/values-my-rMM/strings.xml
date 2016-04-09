@@ -128,8 +128,6 @@
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"အပလီကေးရှင်း အိုင်ကွန်"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"ဘလူးတုသ် စာ မျှဝေရေး ဆက်တင်များ"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"ရွေးထားသည့် အကောင့်ကို မရွေးနိုင်ပါ။ သုည အပေါက်များ ကျန်နေ"</string>
-    <!-- no translation found for bluetooth_connected (6718623220072656906) -->
-    <skip />
-    <!-- no translation found for bluetooth_disconnected (3318303728981478873) -->
-    <skip />
+    <string name="bluetooth_connected" msgid="6718623220072656906">"ဘလူးတုသ်အသံ ချိတ်ဆက်ပြီးပါပြီ"</string>
+    <string name="bluetooth_disconnected" msgid="3318303728981478873">"ဘလူးတုသ်အသံ မချိတ်ဆက်ထားပါ"</string>
 </resources>

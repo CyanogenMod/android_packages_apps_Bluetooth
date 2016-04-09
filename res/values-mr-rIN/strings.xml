@@ -128,8 +128,6 @@
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"अनुप्रयोग चिन्ह"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"ब्लूटुथ संदेश सामायिकरण सेटिंग्ज"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"खाते निवडू शकत नाही. 0 स्लॉट शिल्लक"</string>
-    <!-- no translation found for bluetooth_connected (6718623220072656906) -->
-    <skip />
-    <!-- no translation found for bluetooth_disconnected (3318303728981478873) -->
-    <skip />
+    <string name="bluetooth_connected" msgid="6718623220072656906">"ब्लूटुथ ऑडिओ कनेक्ट केला"</string>
+    <string name="bluetooth_disconnected" msgid="3318303728981478873">"ब्लूटुथ ऑडिओ डिस्कनेक्ट केला"</string>
 </resources>

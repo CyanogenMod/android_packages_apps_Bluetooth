@@ -128,8 +128,6 @@
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Forritstákn"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Deilingarstillingar Bluetooth-skilaboða"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"Ekki er hægt að velja reikning. Engin hólf eftir"</string>
-    <!-- no translation found for bluetooth_connected (6718623220072656906) -->
-    <skip />
-    <!-- no translation found for bluetooth_disconnected (3318303728981478873) -->
-    <skip />
+    <string name="bluetooth_connected" msgid="6718623220072656906">"Bluetooth-hljóð tengt"</string>
+    <string name="bluetooth_disconnected" msgid="3318303728981478873">"Bluetooth-hljóð aftengt"</string>
 </resources>
