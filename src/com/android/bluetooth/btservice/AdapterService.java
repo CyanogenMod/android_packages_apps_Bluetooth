@@ -21,7 +21,6 @@
 package com.android.bluetooth.btservice;
 
 import android.app.AlarmManager;
-import android.app.Application;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -30,13 +29,10 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothCallback;
-import android.bluetooth.IBluetoothManager;
-import android.bluetooth.IBluetoothManagerCallback;
 import android.bluetooth.BluetoothActivityEnergyInfo;
 import android.bluetooth.OobData;
 import android.bluetooth.UidTraffic;
 import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -53,13 +49,13 @@ import android.os.PowerManager;
 import android.os.Process;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
+import android.os.ResultReceiver;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.EventLog;
 import android.util.Log;
-import android.util.Pair;
 
 import android.util.SparseArray;
 import com.android.bluetooth.a2dp.A2dpService;
@@ -67,8 +63,6 @@ import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.hid.HidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
-import com.android.bluetooth.hdp.HealthService;
-import com.android.bluetooth.pan.PanService;
 import com.android.bluetooth.pbapclient.PbapClientService;
 import com.android.bluetooth.sdp.SdpManager;
 import com.android.internal.R;
@@ -77,20 +71,16 @@ import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.Map;
 import java.util.Iterator;
-import java.util.Map.Entry;
 import java.util.List;
 
-import android.content.pm.PackageManager;
 import android.os.ServiceManager;
 import com.android.internal.app.IBatteryStats;
 
@@ -1432,7 +1422,14 @@ public class AdapterService extends Service {
              return service.reportActivityInfo();
          }
 
-         public void onLeServiceUp(){
+         public void requestActivityInfo(ResultReceiver result) {
+             Bundle bundle = new Bundle();
+             bundle.putParcelable(BatteryStats.RESULT_RECEIVER_CONTROLLER_KEY,
+                     reportActivityInfo());
+             result.send(0, bundle);
+         }
+
+        public void onLeServiceUp(){
              AdapterService service = getService();
              if (service == null) return;
              service.onLeServiceUp();
