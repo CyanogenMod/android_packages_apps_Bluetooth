@@ -76,7 +76,9 @@
         android:persistent="false"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:usesCleartextTraffic="false">
+        android:usesCleartextTraffic="false"
+        android:directBootAware="true"
+        android:defaultToDeviceProtectedStorage="true">
         <uses-library android:name="javax.obex" />
         <provider android:name=".opp.BluetoothOppProvider"
             android:authorities="com.android.bluetooth.opp"
