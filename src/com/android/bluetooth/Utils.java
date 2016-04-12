@@ -291,8 +291,13 @@ final public class Utils {
         }
         // Enforce location permission for apps targeting M and later versions
         if (isMApp(context, callingPackage)) {
-            throw new SecurityException("Need ACCESS_COARSE_LOCATION or "
-                    + "ACCESS_FINE_LOCATION permission to get scan results");
+            // PEERS_MAC_ADDRESS is another way to get scan results without
+            // requiring location permissions, so only throw an exception here
+            // if PEERS_MAC_ADDRESS permission is missing as well
+            if (!checkCallerHasPeersMacAddressPermission(context)) {
+                throw new SecurityException("Need ACCESS_COARSE_LOCATION or "
+                        + "ACCESS_FINE_LOCATION permission to get scan results");
+            }
         } else {
             // Pre-M apps running in the foreground should continue getting scan results
             if (isForegroundApp(context, callingPackage)) {
