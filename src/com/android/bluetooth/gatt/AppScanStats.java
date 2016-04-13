@@ -42,6 +42,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
         long duration;
         long timestamp;
         boolean opportunistic;
+        boolean timeout;
         boolean background;
         int results;
 
@@ -56,6 +57,12 @@ import com.android.bluetooth.btservice.BluetoothProto;
     }
 
     static final int NUM_SCAN_DURATIONS_KEPT = 5;
+
+    // This constant defines the time window an app can scan multiple times.
+    // Any single app can scan up to |NUM_SCAN_DURATIONS_KEPT| times during
+    // this window. Once they reach this limit, they must wait until their
+    // earliest recorded scan exits this window.
+    static final long EXCESSIVE_SCANNING_PERIOD_MS = 30 * 1000;
 
     String appName;
     int scansStarted = 0;
@@ -134,6 +141,25 @@ import com.android.bluetooth.btservice.BluetoothProto;
         gattService.addScanEvent(scanEvent);
     }
 
+    synchronized void setScanTimeout() {
+        if (!isScanning)
+          return;
+
+        if (!lastScans.isEmpty()) {
+            LastScan curr = lastScans.get(lastScans.size() - 1);
+            curr.timeout = true;
+        }
+    }
+
+    synchronized boolean isScanningTooFrequently() {
+        if (lastScans.size() < NUM_SCAN_DURATIONS_KEPT) {
+            return false;
+        }
+
+        return (System.currentTimeMillis() - lastScans.get(0).timestamp) <
+            EXCESSIVE_SCANNING_PERIOD_MS;
+    }
+
     // This function truncates the app name for privacy reasons. Apps with
     // four part package names or more get truncated to three parts, and apps
     // with three part package names names get truncated to two. Apps with two
@@ -183,6 +209,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
         if (isRegistered) sb.append(" (Registered)");
         if (lastScan.opportunistic) sb.append(" (Opportunistic)");
         if (lastScan.background) sb.append(" (Background)");
+        if (lastScan.timeout) sb.append(" (Forced-Opportunistic)");
         sb.append("\n");
 
         sb.append("  LE scans (started/stopped)         : " +
@@ -209,6 +236,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
                 sb.append(scan.duration + "ms ");
                 if (scan.opportunistic) sb.append("Opp ");
                 if (scan.background) sb.append("Back ");
+                if (scan.timeout) sb.append("Forced ");
                 sb.append(scan.results + " results");
                 sb.append("\n");
             }
