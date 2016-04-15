@@ -161,7 +161,7 @@ public final class Avrcp {
         mPlayStatusChangedNT = NOTIFICATION_TYPE_CHANGED;
         mTrackChangedNT = NOTIFICATION_TYPE_CHANGED;
         mTrackNumber = -1L;
-        mCurrentPosMs = 0L;
+        mCurrentPosMs = RemoteControlClient.PLAYBACK_POSITION_ALWAYS_UNKNOWN;
         mPlayStartTimeMs = -1L;
         mSongLengthMs = 0L;
         mPlaybackIntervalMs = 0L;
@@ -244,6 +244,7 @@ public final class Avrcp {
         @Override
         public void onClientPlaybackStateUpdate(int state) {
             // Should never be called with the existing code, but just in case
+            if (DEBUG) Log.v(TAG, "RemoteControlDisplayer: Update playbackState state=" + state + " position=null");
             Handler handler = mLocalHandler.get();
             if (handler != null) {
                 handler.obtainMessage(MSG_UPDATE_STATE, 0, state,
@@ -254,6 +255,7 @@ public final class Avrcp {
         @Override
         public void onClientPlaybackStateUpdate(int state, long stateChangeTimeMs,
                 long currentPosMs, float speed) {
+            if (DEBUG) Log.v(TAG, "RemoteControlDisplayer: Update playbackState state=" + state + " position=" + currentPosMs);
             Handler handler = mLocalHandler.get();
             if (handler != null) {
                 handler.obtainMessage(MSG_UPDATE_STATE, 0, state,
@@ -727,7 +729,6 @@ public final class Avrcp {
             }
 
             if (mCurrentPosMs != RemoteControlClient.PLAYBACK_POSITION_ALWAYS_UNKNOWN) {
-                mCurrentPosMs = 0L;
                 if (mCurrentPlayState == RemoteControlClient.PLAYSTATE_PLAYING) {
                     mPlayStartTimeMs = SystemClock.elapsedRealtime();
                 }
@@ -745,7 +746,6 @@ public final class Avrcp {
 
         mSongLengthMs = data.getLong(MediaMetadataRetriever.METADATA_KEY_DURATION,
                 RemoteControlClient.PLAYBACK_POSITION_INVALID);
-        Log.v(TAG, "duration=" + mSongLengthMs);
     }
 
     private void getRcFeatures(byte[] address, int features) {
