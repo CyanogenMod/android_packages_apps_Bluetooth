@@ -235,7 +235,7 @@ static jboolean disconnectA2dpNative(JNIEnv *env, jobject object, jbyteArray add
 static void informAudioFocusStateNative(JNIEnv *env, jobject object, jint focus_state) {
     if (!sBluetoothA2dpInterface) return;
 
-    sBluetoothA2dpInterface->audio_focus_state((uint8_t)focus_state);
+    sBluetoothA2dpInterface->set_audio_focus_state((uint8_t)focus_state);
 
 }
 static JNINativeMethod sMethods[] = {
