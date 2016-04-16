@@ -22,13 +22,10 @@
         any application that was granted that permission. This specific
         permission controls access to the Bluetooth Avrcp Data Manager.
     -->
-  <string name="permlab_bluetoothAvrcpDataManager">Akses metadata AVRCP.</string>
   <!--
         This is the long description of a permission associated with the
         Bluetooth Avrcp Data Manager. It is displayed as part of the description of
         any application that was granted that permission. This specific
         permission controls access to the Bluetooth Avrcp Data Manager.
     -->
-  <string name="permdesc_bluetoothAvrcpDataManager">Izinkan aplikasi untuk mengakses metadata Bluetooth AVRCP dan gunakan untuk menampilkan di antarmuka pengguna (UI).</string>
-  <string name="upload_fail_waiting">Tidak dapat mengirim berkas, mencoba kembali\u2026</string>
 </resources>
