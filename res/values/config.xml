@@ -44,4 +44,9 @@
     <integer name="gatt_low_power_max_interval">100</integer>
 
     <bool name="headset_client_initial_audio_route_allowed">true</bool>
+
+    <!-- For AVRCP absolute volume feature. If the threshold is non-zero,
+         restrict the initial volume to the threshold.
+         Valid value is 1-14, and recommended value is 8 -->
+    <integer name="a2dp_absolute_volume_initial_threshold">8</integer>
 </resources>

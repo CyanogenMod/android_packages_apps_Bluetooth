@@ -30,6 +30,8 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Resources;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.IRemoteControlDisplay;
@@ -53,6 +55,7 @@ import android.view.KeyEvent;
 
 import android.content.BroadcastReceiver;
 import com.android.bluetooth.a2dp.A2dpService;
+import com.android.bluetooth.R;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
@@ -62,6 +65,7 @@ import com.android.internal.util.StateMachine;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.Iterator;
@@ -82,6 +86,7 @@ import android.app.NotificationManager;
 public final class Avrcp {
     private static final boolean DEBUG = false;
     private static final String TAG = "Avrcp";
+    private static final String ABSOLUTE_VOLUME_BLACKLIST = "absolute_volume_blacklist";
 
     private Context mContext;
     private final AudioManager mAudioManager;
@@ -102,10 +107,27 @@ public final class Avrcp {
     private long mPlaybackIntervalMs;
     private int mPlayPosChangedNT;
     private long mSkipStartTime;
-    private final int mVolumeStep;
-    private final int mAudioStreamMax;
     private static final String BLUETOOTH_ADMIN_PERM = android.Manifest.permission.BLUETOOTH_ADMIN;
     private static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
+    private int mFeatures;
+    private int mRemoteVolume;
+    private int mLastRemoteVolume;
+    private int mInitialRemoteVolume;
+
+    /* Local volume in audio index 0-15 */
+    private int mLocalVolume;
+    private int mLastLocalVolume;
+    private int mAbsVolThreshold;
+
+    private String mAddress;
+    private HashMap<Integer, Integer> mVolumeMapping;
+
+    private int mLastDirection;
+    private final int mVolumeStep;
+    private final int mAudioStreamMax;
+    private boolean mVolCmdAdjustInProgress;
+    private boolean mVolCmdSetInProgress;
+    private int mAbsVolRetryTimes;
     private int mSkipAmount;
     private final BluetoothAdapter mAdapter;
     private static Uri mMediaUriStatic;
@@ -393,6 +415,7 @@ public final class Avrcp {
         mCurrentPosMs = -1L;
         mPlayStartTimeMs = -1L;
         mSongLengthMs = 0L;
+<<<<<<< HEAD
         mA2dpService = svc;
         maxAvrcpConnections = maxConnections;
         deviceFeatures = new DeviceDependentFeature[maxAvrcpConnections];
@@ -401,6 +424,23 @@ public final class Avrcp {
         for(int i = 0; i < maxAvrcpConnections; i++) {
             deviceFeatures[i] = new DeviceDependentFeature();
         }
+=======
+        mPlaybackIntervalMs = 0L;
+        mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
+        mFeatures = 0;
+        mRemoteVolume = -1;
+        mInitialRemoteVolume = -1;
+        mLastRemoteVolume = -1;
+        mLastDirection = 0;
+        mVolCmdAdjustInProgress = false;
+        mVolCmdSetInProgress = false;
+        mAbsVolRetryTimes = 0;
+        mLocalVolume = -1;
+        mLastLocalVolume = -1;
+        mAbsVolThreshold = 0;
+        mVolumeMapping = new HashMap<Integer, Integer>();
+
+>>>>>>> android-6.0.1_r30
         mContext = context;
 
         initNative(maxConnections);
@@ -408,6 +448,10 @@ public final class Avrcp {
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         mAudioStreamMax = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         mVolumeStep = Math.max(AVRCP_BASE_VOLUME_STEP, AVRCP_MAX_VOL/mAudioStreamMax);
+        Resources resources = context.getResources();
+        if (resources != null) {
+            mAbsVolThreshold = resources.getInteger(R.integer.a2dp_absolute_volume_initial_threshold);
+        }
     }
 
     private void start() {
@@ -701,6 +745,8 @@ public final class Avrcp {
         if (DEBUG)
             Log.v(TAG, "cleanup");
         cleanupNative();
+        if (mVolumeMapping != null)
+            mVolumeMapping.clear();
     }
 
     private static class RemoteControllerWeak implements RemoteController.OnClientUpdateListener {
@@ -980,6 +1026,7 @@ public final class Avrcp {
             case MESSAGE_GET_RC_FEATURES:
             {
                 String address = (String) msg.obj;
+<<<<<<< HEAD
                 if (DEBUG)
                     Log.v(TAG, "MESSAGE_GET_RC_FEATURES: address="+address+
                             ", features="+msg.arg1);
@@ -1013,6 +1060,20 @@ public final class Avrcp {
                     manager.notify(NOTIFICATION_ID, notification);
                     Log.v(TAG," update notification manager on remote repair request");
                 }
+=======
+                if (DEBUG) Log.v(TAG, "MESSAGE_GET_RC_FEATURES: address="+address+
+                                                             ", features="+msg.arg1);
+                mFeatures = msg.arg1;
+                mFeatures = modifyRcFeatureFromBlacklist(mFeatures, address);
+                mAudioManager.avrcpSupportsAbsoluteVolume(address, isAbsoluteVolumeSupported());
+                mLastLocalVolume = -1;
+                mRemoteVolume = -1;
+                mLocalVolume = -1;
+                mInitialRemoteVolume = -1;
+                mAddress = address;
+                if (mVolumeMapping != null)
+                    mVolumeMapping.clear();
+>>>>>>> android-6.0.1_r30
                 break;
             }
             case MESSAGE_GET_PLAY_STATUS:
@@ -1101,6 +1162,7 @@ public final class Avrcp {
                 break;
 
             case MESSAGE_VOLUME_CHANGED:
+<<<<<<< HEAD
                 if (DEBUG)
                     Log.v(TAG, "MESSAGE_VOLUME_CHANGED: volume=" + ((byte)msg.arg1 & 0x7f)
                                                         + " ctype=" + msg.arg2);
@@ -1112,10 +1174,25 @@ public final class Avrcp {
                 }
                 if (msg.arg2 == AVRC_RSP_ACCEPT || msg.arg2 == AVRC_RSP_REJ) {
                     if (deviceFeatures[deviceIndex].mVolCmdInProgress == false) {
+=======
+                if (!isAbsoluteVolumeSupported()) {
+                    if (DEBUG) Log.v(TAG, "ignore MESSAGE_VOLUME_CHANGED");
+                    break;
+                }
+
+                if (DEBUG) Log.v(TAG, "MESSAGE_VOLUME_CHANGED: volume=" + ((byte)msg.arg1 & 0x7f)
+                                                        + " ctype=" + msg.arg2);
+
+
+                boolean volAdj = false;
+                if (msg.arg2 == AVRC_RSP_ACCEPT || msg.arg2 == AVRC_RSP_REJ) {
+                    if (mVolCmdAdjustInProgress == false && mVolCmdSetInProgress == false) {
+>>>>>>> android-6.0.1_r30
                         Log.e(TAG, "Unsolicited response, ignored");
                         break;
                     }
                     removeMessages(MESSAGE_ABS_VOL_TIMEOUT);
+<<<<<<< HEAD
                     deviceFeatures[deviceIndex].mVolCmdInProgress = false;
                     deviceFeatures[deviceIndex].mAbsVolRetryTimes = 0;
                 }
@@ -1125,6 +1202,56 @@ public final class Avrcp {
                         msg.arg2 == AVRC_RSP_INTERIM)) {
                     byte absVol = (byte)((byte)msg.arg1 & 0x7f); // discard MSB as it is RFD
                     deviceFeatures[deviceIndex].mAbsoluteVolume = absVol;
+=======
+
+                    volAdj = mVolCmdAdjustInProgress;
+                    mVolCmdAdjustInProgress = false;
+                    mVolCmdSetInProgress = false;
+                    mAbsVolRetryTimes = 0;
+                }
+
+                byte absVol = (byte)((byte)msg.arg1 & 0x7f); // discard MSB as it is RFD
+                // convert remote volume to local volume
+                int volIndex = convertToAudioStreamVolume(absVol);
+                if (mInitialRemoteVolume == -1) {
+                    mInitialRemoteVolume = absVol;
+                    if (mAbsVolThreshold > 0 && mAbsVolThreshold < mAudioStreamMax && volIndex > mAbsVolThreshold) {
+                        if (DEBUG) Log.v(TAG, "remote inital volume too high " + volIndex + ">" + mAbsVolThreshold);
+                        Message msg1 = mHandler.obtainMessage(MESSAGE_SET_ABSOLUTE_VOLUME, mAbsVolThreshold , 0);
+                        mHandler.sendMessage(msg1);
+                        mRemoteVolume = absVol;
+                        mLocalVolume = volIndex;
+                        break;
+                    }
+                }
+
+                if (mLocalVolume != volIndex &&
+                                                   (msg.arg2 == AVRC_RSP_ACCEPT ||
+                                                    msg.arg2 == AVRC_RSP_CHANGED ||
+                                                    msg.arg2 == AVRC_RSP_INTERIM)) {
+                    /* If the volume has successfully changed */
+                    mLocalVolume = volIndex;
+                    if (mLastLocalVolume != -1 && msg.arg2 == AVRC_RSP_ACCEPT) {
+                        if (mLastLocalVolume != volIndex) {
+                            /* remote volume changed more than requested due to
+                             * local and remote has different volume steps */
+                            if (DEBUG) Log.d(TAG, "Remote returned volume does not match desired volume "
+                                + mLastLocalVolume + " vs "
+                                + volIndex);
+                            mLastLocalVolume = mLocalVolume;
+                        }
+                    }
+                    // remember the remote volume value, as it's the one supported by remote
+                    if (volAdj) {
+                        synchronized (mVolumeMapping) {
+                            mVolumeMapping.put(volIndex, (int)absVol);
+                            if (DEBUG) Log.v(TAG, "remember volume mapping " +volIndex+ "-"+absVol);
+                        }
+                    }
+
+                    notifyVolumeChanged(mLocalVolume);
+                    mRemoteVolume = absVol;
+>>>>>>> android-6.0.1_r30
                     long pecentVolChanged = ((long)absVol * 100) / 0x7f;
                     Log.v(TAG, "Absolute Volume change received as: " + absVol);
                     Log.v(TAG, "Percent volume changed: " + pecentVolChanged + "%");
@@ -1136,12 +1263,31 @@ public final class Avrcp {
                                     deviceFeatures[deviceIndex].mCurrentDevice);
                     }
                 } else if (msg.arg2 == AVRC_RSP_REJ) {
+<<<<<<< HEAD
                     if (DEBUG)
                         Log.v(TAG, "setAbsoluteVolume call rejected");
+=======
+                    Log.e(TAG, "setAbsoluteVolume call rejected");
+                } else if (volAdj && mLastRemoteVolume > 0 && mLastRemoteVolume < AVRCP_MAX_VOL &&
+                           mLocalVolume == volIndex &&
+                                                   (msg.arg2 == AVRC_RSP_ACCEPT )) {
+                    /* oops, the volume is still same, remote does not like the value
+                     * retry a volume one step up/down */
+                    if (DEBUG) Log.d(TAG, "Remote device didn't tune volume, let's try one more step.");
+                    int retry_volume = Math.min(AVRCP_MAX_VOL,
+                            Math.max(0, mLastRemoteVolume + mLastDirection));
+                    if (setVolumeNative(retry_volume)) {
+                        mLastRemoteVolume = retry_volume;
+                        sendMessageDelayed(obtainMessage(MESSAGE_ABS_VOL_TIMEOUT),
+                                           CMD_TIMEOUT_DELAY);
+                        mVolCmdAdjustInProgress = true;
+                    }
+>>>>>>> android-6.0.1_r30
                 }
                 break;
 
             case MESSAGE_ADJUST_VOLUME:
+<<<<<<< HEAD
             {
                 List<BluetoothDevice> playingDevice = mA2dpService.getA2dpPlayingDevice();
                 if (DEBUG)
@@ -1179,11 +1325,80 @@ public final class Avrcp {
                         }
                     } else {
                         Log.e(TAG, "Unknown direction in MESSAGE_ADJUST_VOLUME");
+=======
+                if (!isAbsoluteVolumeSupported()) {
+                    if (DEBUG) Log.v(TAG, "ignore MESSAGE_ADJUST_VOLUME");
+                    break;
+                }
+
+                if (DEBUG) Log.d(TAG, "MESSAGE_ADJUST_VOLUME: direction=" + msg.arg1);
+
+                if (mVolCmdAdjustInProgress || mVolCmdSetInProgress) {
+                    if (DEBUG) Log.w(TAG, "There is already a volume command in progress.");
+                    break;
+                }
+
+                // Remote device didn't set initial volume. Let's black list it
+                if (mInitialRemoteVolume == -1) {
+                    Log.d(TAG, "remote " + mAddress + " never tell us initial volume, black list it.");
+                    blackListCurrentDevice();
+                    break;
+                }
+
+                // Wait on verification on volume from device, before changing the volume.
+                if (mRemoteVolume != -1 && (msg.arg1 == -1 || msg.arg1 == 1)) {
+                    int setVol = -1;
+                    int targetVolIndex = -1;
+                    if (mLocalVolume == 0 && msg.arg1 == -1) {
+                        if (DEBUG) Log.w(TAG, "No need to Vol down from 0.");
+                        break;
+                    }
+                    if (mLocalVolume == mAudioStreamMax && msg.arg1 == 1) {
+                        if (DEBUG) Log.w(TAG, "No need to Vol up from max.");
+                        break;
+                    }
+
+                    targetVolIndex = mLocalVolume + msg.arg1;
+                    if (DEBUG) Log.d(TAG, "Adjusting volume to  " + targetVolIndex);
+
+                    Integer i;
+                    synchronized (mVolumeMapping) {
+                        i = mVolumeMapping.get(targetVolIndex);
+                    }
+
+                    if (i != null) {
+                        /* if we already know this volume mapping, use it */
+                        setVol = i.byteValue();
+                        if (setVol == mRemoteVolume) {
+                            if (DEBUG) Log.d(TAG, "got same volume from mapping for " + targetVolIndex + ", ignore.");
+                            setVol = -1;
+                        }
+                        if (DEBUG) Log.d(TAG, "set volume from mapping " + targetVolIndex + "-" + setVol);
+                    }
+
+                    if (setVol == -1) {
+                        /* otherwise use phone steps */
+                        setVol = Math.min(AVRCP_MAX_VOL,
+                                 convertToAvrcpVolume(Math.max(0, targetVolIndex)));
+                        if (DEBUG) Log.d(TAG, "set volume from local volume "+ targetVolIndex+"-"+ setVol);
+                    }
+
+                    if (setVolumeNative(setVol)) {
+                        sendMessageDelayed(obtainMessage(MESSAGE_ABS_VOL_TIMEOUT),
+                                           CMD_TIMEOUT_DELAY);
+                        mVolCmdAdjustInProgress = true;
+                        mLastDirection = msg.arg1;
+                        mLastRemoteVolume = setVol;
+                        mLastLocalVolume = targetVolIndex;
+                    } else {
+                         if (DEBUG) Log.d(TAG, "setVolumeNative failed");
+>>>>>>> android-6.0.1_r30
                     }
                 }
                 break;
             }
             case MESSAGE_SET_ABSOLUTE_VOLUME:
+<<<<<<< HEAD
             {
                 if (DEBUG)
                     Log.v(TAG, "MESSAGE_SET_ABSOLUTE_VOLUME");
@@ -1215,10 +1430,42 @@ public final class Avrcp {
                         deviceFeatures[deviceIndex].mVolCmdInProgress = true;
                         deviceFeatures[deviceIndex].mLastSetVolume = msg.arg1;
                     }
+=======
+                if (!isAbsoluteVolumeSupported()) {
+                    if (DEBUG) Log.v(TAG, "ignore MESSAGE_SET_ABSOLUTE_VOLUME");
+                    break;
+                }
+
+                if (DEBUG) Log.v(TAG, "MESSAGE_SET_ABSOLUTE_VOLUME");
+
+                if (mVolCmdSetInProgress || mVolCmdAdjustInProgress) {
+                    if (DEBUG) Log.w(TAG, "There is already a volume command in progress.");
+                    break;
+                }
+
+                // Remote device didn't set initial volume. Let's black list it
+                if (mInitialRemoteVolume == -1) {
+                    if (DEBUG) Log.d(TAG, "remote " + mAddress + " never tell us initial volume, black list it.");
+                    blackListCurrentDevice();
+                    break;
+                }
+
+                int avrcpVolume = convertToAvrcpVolume(msg.arg1);
+                avrcpVolume = Math.min(AVRCP_MAX_VOL, Math.max(0, avrcpVolume));
+                if (DEBUG) Log.d(TAG, "Setting volume to " + msg.arg1+"-"+avrcpVolume);
+                if (setVolumeNative(avrcpVolume)) {
+                    sendMessageDelayed(obtainMessage(MESSAGE_ABS_VOL_TIMEOUT), CMD_TIMEOUT_DELAY);
+                    mVolCmdSetInProgress = true;
+                    mLastRemoteVolume = avrcpVolume;
+                    mLastLocalVolume = msg.arg1;
+                } else {
+                     if (DEBUG) Log.d(TAG, "setVolumeNative failed");
+>>>>>>> android-6.0.1_r30
                 }
                 break;
             }
             case MESSAGE_ABS_VOL_TIMEOUT:
+<<<<<<< HEAD
                 if (DEBUG)
                     Log.v(TAG, "MESSAGE_ABS_VOL_TIMEOUT: Volume change cmd timed out.");
                 deviceIndex = getIndexForDevice((BluetoothDevice) msg.obj);
@@ -1242,6 +1489,19 @@ public final class Avrcp {
                         sendMessageDelayed(obtainMessage(MESSAGE_ABS_VOL_TIMEOUT,
                                 0, 0, msg.obj), CMD_TIMEOUT_DELAY);
                         deviceFeatures[deviceIndex].mVolCmdInProgress = true;
+=======
+                if (DEBUG) Log.v(TAG, "MESSAGE_ABS_VOL_TIMEOUT: Volume change cmd timed out.");
+                mVolCmdAdjustInProgress = false;
+                mVolCmdSetInProgress = false;
+                if (mAbsVolRetryTimes >= MAX_ERROR_RETRY_TIMES) {
+                    mAbsVolRetryTimes = 0;
+                } else {
+                    mAbsVolRetryTimes += 1;
+                    if (setVolumeNative(mLastRemoteVolume)) {
+                        sendMessageDelayed(obtainMessage(MESSAGE_ABS_VOL_TIMEOUT),
+                                           CMD_TIMEOUT_DELAY);
+                        mVolCmdSetInProgress = true;
+>>>>>>> android-6.0.1_r30
                     }
                 }
                 break;
@@ -4279,10 +4539,13 @@ public final class Avrcp {
     }
 
     public void setAbsoluteVolume(int volume) {
-        int avrcpVolume = convertToAvrcpVolume(volume);
-        avrcpVolume = Math.min(AVRCP_MAX_VOL, Math.max(0, avrcpVolume));
+        if (volume == mLocalVolume) {
+            if (DEBUG) Log.v(TAG, "setAbsoluteVolume is setting same index, ignore "+volume);
+            return;
+        }
+
         mHandler.removeMessages(MESSAGE_ADJUST_VOLUME);
-        Message msg = mHandler.obtainMessage(MESSAGE_SET_ABSOLUTE_VOLUME, avrcpVolume, 0);
+        Message msg = mHandler.obtainMessage(MESSAGE_SET_ABSOLUTE_VOLUME, volume, 0);
         mHandler.sendMessage(msg);
     }
 
@@ -4299,21 +4562,26 @@ public final class Avrcp {
         mHandler.sendMessage(msg);
     }
 
+<<<<<<< HEAD
     private void notifyVolumeChanged(int volume, BluetoothDevice device) {
         volume = convertToAudioStreamVolume(volume);
+=======
+    private void notifyVolumeChanged(int volume) {
+>>>>>>> android-6.0.1_r30
         mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume,
                       AudioManager.FLAG_SHOW_UI | AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
     }
 
     private int convertToAudioStreamVolume(int volume) {
         // Rescale volume to match AudioSystem's volume
-        return (int) Math.round((double) volume*mAudioStreamMax/AVRCP_MAX_VOL);
+        return (int) Math.floor((double) volume*mAudioStreamMax/AVRCP_MAX_VOL);
     }
 
     private int convertToAvrcpVolume(int volume) {
         return (int) Math.ceil((double) volume*AVRCP_MAX_VOL/mAudioStreamMax);
     }
 
+<<<<<<< HEAD
     private void updateLocalPlayerSettings( byte[] data) {
         if (DEBUG) Log.v(TAG, "updateLocalPlayerSettings");
         for (int i = 0; i < data.length; i += 2) {
@@ -4564,6 +4832,37 @@ public final class Avrcp {
         msg.obj = Utils.getAddressStringFromByte(address);
         mPendingCmds.add(new Integer(msg.arg1));
         mHandler.sendMessageDelayed(msg, 500);
+=======
+    private void blackListCurrentDevice() {
+        mFeatures &= ~BTRC_FEAT_ABSOLUTE_VOLUME;
+        mAudioManager.avrcpSupportsAbsoluteVolume(mAddress, isAbsoluteVolumeSupported());
+
+        SharedPreferences pref = mContext.getSharedPreferences(ABSOLUTE_VOLUME_BLACKLIST,
+                Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putBoolean(mAddress, true);
+        editor.commit();
+    }
+
+    private int modifyRcFeatureFromBlacklist(int feature, String address) {
+        SharedPreferences pref = mContext.getSharedPreferences(ABSOLUTE_VOLUME_BLACKLIST,
+                Context.MODE_PRIVATE);
+        if (!pref.contains(address)) {
+            return feature;
+        }
+        if (pref.getBoolean(address, false)) {
+            feature &= ~BTRC_FEAT_ABSOLUTE_VOLUME;
+        }
+        return feature;
+    }
+
+    public void resetBlackList(String address) {
+        SharedPreferences pref = mContext.getSharedPreferences(ABSOLUTE_VOLUME_BLACKLIST,
+                Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.remove(address);
+        editor.commit();
+>>>>>>> android-6.0.1_r30
     }
 
     /**
@@ -4707,6 +5006,7 @@ public final class Avrcp {
 
     public void dump(StringBuilder sb) {
         sb.append("AVRCP:\n");
+<<<<<<< HEAD
         for (int i = 0; i < maxAvrcpConnections; i++) {
             Log.v(TAG,"for index " + i);
             ProfileService.println(sb, "mMetadata: " + mMetadata);
@@ -4733,6 +5033,33 @@ public final class Avrcp {
             ProfileService.println(sb, "mAbsVolRetryTimes: " + deviceFeatures[i].mAbsVolRetryTimes);
             ProfileService.println(sb, "mSkipAmount: " + mSkipAmount);
         }
+=======
+        ProfileService.println(sb, "mMetadata: " + mMetadata);
+        ProfileService.println(sb, "mTransportControlFlags: " + mTransportControlFlags);
+        ProfileService.println(sb, "mCurrentPlayState: " + mCurrentPlayState);
+        ProfileService.println(sb, "mPlayStatusChangedNT: " + mPlayStatusChangedNT);
+        ProfileService.println(sb, "mTrackChangedNT: " + mTrackChangedNT);
+        ProfileService.println(sb, "mTrackNumber: " + mTrackNumber);
+        ProfileService.println(sb, "mCurrentPosMs: " + mCurrentPosMs);
+        ProfileService.println(sb, "mPlayStartTimeMs: " + mPlayStartTimeMs);
+        ProfileService.println(sb, "mSongLengthMs: " + mSongLengthMs);
+        ProfileService.println(sb, "mPlaybackIntervalMs: " + mPlaybackIntervalMs);
+        ProfileService.println(sb, "mPlayPosChangedNT: " + mPlayPosChangedNT);
+        ProfileService.println(sb, "mNextPosMs: " + mNextPosMs);
+        ProfileService.println(sb, "mPrevPosMs: " + mPrevPosMs);
+        ProfileService.println(sb, "mSkipStartTime: " + mSkipStartTime);
+        ProfileService.println(sb, "mFeatures: " + mFeatures);
+        ProfileService.println(sb, "mRemoteVolume: " + mRemoteVolume);
+        ProfileService.println(sb, "mLastRemoteVolume: " + mLastRemoteVolume);
+        ProfileService.println(sb, "mLastDirection: " + mLastDirection);
+        ProfileService.println(sb, "mVolumeStep: " + mVolumeStep);
+        ProfileService.println(sb, "mAudioStreamMax: " + mAudioStreamMax);
+        ProfileService.println(sb, "mVolCmdAdjustInProgress: " + mVolCmdAdjustInProgress);
+        ProfileService.println(sb, "mVolCmdSetInProgress: " + mVolCmdSetInProgress);
+        ProfileService.println(sb, "mAbsVolRetryTimes: " + mAbsVolRetryTimes);
+        ProfileService.println(sb, "mSkipAmount: " + mSkipAmount);
+        ProfileService.println(sb, "mVolumeMapping: " + mVolumeMapping.toString());
+>>>>>>> android-6.0.1_r30
     }
 
     // Do not modify without updating the HAL bt_rc.h files.

@@ -394,15 +394,16 @@ public class BluetoothMapUtils {
     static public byte[] truncateUtf8StringToBytearray(String utf8String, int maxLength)
             throws UnsupportedEncodingException {
 
-        byte[] utf8Bytes = null;
+        byte[] utf8Bytes = new byte[utf8String.length() + 1];
         try {
-            utf8Bytes = utf8String.getBytes("UTF-8");
+            System.arraycopy(utf8String.getBytes("UTF-8"), 0,
+                             utf8Bytes, 0, utf8String.length());
         } catch (UnsupportedEncodingException e) {
             Log.e(TAG,"truncateUtf8StringToBytearray: getBytes exception ", e);
             throw e;
         }
 
-        if (utf8Bytes.length > (maxLength - 1)) {
+        if (utf8Bytes.length > maxLength) {
             /* if 'continuation' byte is in place 200,
              * then strip previous bytes until utf-8 start byte is found */
             if ( (utf8Bytes[maxLength - 1] & 0xC0) == 0x80 ) {

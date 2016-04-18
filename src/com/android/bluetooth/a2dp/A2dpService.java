@@ -273,6 +273,10 @@ public class A2dpService extends ProfileService {
         }
     }
 
+    public void resetAvrcpBlacklist(BluetoothDevice device) {
+        mAvrcp.resetBlackList(device.getAddress());
+    }
+
     synchronized boolean isA2dpPlaying(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM,
                                        "Need BLUETOOTH permission");
