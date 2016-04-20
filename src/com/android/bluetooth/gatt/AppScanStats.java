@@ -214,8 +214,8 @@ import com.android.bluetooth.btservice.BluetoothProto;
             }
         }
 
-        if (isRegistered) {
-            ContextMap.App appEntry = contextMap.getByName(appName);
+        ContextMap.App appEntry = contextMap.getByName(appName);
+        if (appEntry != null && isRegistered) {
             sb.append("  Application ID                     : " +
                       appEntry.id + "\n");
             sb.append("  UUID                               : " +
