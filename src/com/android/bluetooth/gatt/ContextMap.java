@@ -191,7 +191,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
                 App entry = i.next();
                 if (entry.id == id) {
                     entry.unlinkToDeath();
-                    mAppScanStats.get(entry.name).isRegistered = false;
+                    entry.appScanStats.isRegistered = false;
                     i.remove();
                     break;
                 }
@@ -359,6 +359,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
             while (i.hasNext()) {
                 App entry = i.next();
                 entry.unlinkToDeath();
+                entry.appScanStats.isRegistered = false;
                 i.remove();
             }
         }
