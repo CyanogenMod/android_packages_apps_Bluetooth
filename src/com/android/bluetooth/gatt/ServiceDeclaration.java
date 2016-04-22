@@ -15,9 +15,7 @@
  */
 package com.android.bluetooth.gatt;
 
-import android.util.Log;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,11 +47,11 @@ class ServiceDeclaration {
         }
 
         Entry(UUID uuid, int serviceType, int instance, boolean advertisePreferred) {
-          this.type = TYPE_SERVICE;
-          this.uuid = uuid;
-          this.instance = instance;
-          this.serviceType = serviceType;
-          this.advertisePreferred = advertisePreferred;
+            this.type = TYPE_SERVICE;
+            this.uuid = uuid;
+            this.instance = instance;
+            this.serviceType = serviceType;
+            this.advertisePreferred = advertisePreferred;
         }
 
         Entry(UUID uuid, int properties, int permissions, int instance) {
@@ -71,57 +69,69 @@ class ServiceDeclaration {
         }
     }
 
-    List<Entry> mEntries = null;
-    int mNumHandles = 0;
-
-    ServiceDeclaration() {
-        mEntries = new ArrayList<Entry>();
-    }
+    // guards access to mEntries and mNumHandles in order to make this class thread-safe
+    private final Object mLock = new Object();
+    private final List<Entry> mEntries = new ArrayList<>();
+    private int mNumHandles = 0;
 
     void addService(UUID uuid, int serviceType, int instance, int minHandles,
-        boolean advertisePreferred) {
-        mEntries.add(new Entry(uuid, serviceType, instance, advertisePreferred));
-        if (minHandles == 0) {
-            ++mNumHandles;
-        } else {
-            mNumHandles = minHandles;
+            boolean advertisePreferred) {
+        synchronized (mLock) {
+            mEntries.add(new Entry(uuid, serviceType, instance, advertisePreferred));
+            if (minHandles == 0) {
+                ++mNumHandles;
+            } else {
+                mNumHandles = minHandles;
+            }
         }
     }
 
     void addIncludedService(UUID uuid, int serviceType, int instance) {
         Entry entry = new Entry(uuid, serviceType, instance);
         entry.type = TYPE_INCLUDED_SERVICE;
-        mEntries.add(entry);
-        ++mNumHandles;
+        synchronized (mLock) {
+            mEntries.add(entry);
+            ++mNumHandles;
+        }
     }
 
     void addCharacteristic(UUID uuid, int properties, int permissions) {
-        mEntries.add(new Entry(uuid, properties, permissions, 0 /*instance*/));
-        mNumHandles += 2;
+        synchronized (mLock) {
+            mEntries.add(new Entry(uuid, properties, permissions, 0 /*instance*/));
+            mNumHandles += 2;
+        }
     }
 
     void addDescriptor(UUID uuid, int permissions) {
-        mEntries.add(new Entry(uuid, permissions));
-        ++mNumHandles;
+        synchronized (mLock) {
+            mEntries.add(new Entry(uuid, permissions));
+            ++mNumHandles;
+        }
     }
 
     Entry getNext() {
-        if (mEntries.isEmpty()) return null;
-        Entry entry = mEntries.get(0);
-        mEntries.remove(0);
-        return entry;
+        synchronized (mLock) {
+            if (mEntries.isEmpty()) return null;
+            Entry entry = mEntries.get(0);
+            mEntries.remove(0);
+            return entry;
+        }
     }
 
     boolean isServiceAdvertisePreferred(UUID uuid) {
-      for (Entry entry : mEntries) {
-          if (entry.uuid.equals(uuid)) {
-              return entry.advertisePreferred;
-          }
-      }
-      return false;
+        synchronized (mLock) {
+            for (Entry entry : mEntries) {
+                if (entry.uuid.equals(uuid)) {
+                    return entry.advertisePreferred;
+                }
+            }
+            return false;
+        }
     }
 
     int getNumHandles() {
-        return mNumHandles;
+        synchronized (mLock) {
+            return mNumHandles;
+        }
     }
 }
