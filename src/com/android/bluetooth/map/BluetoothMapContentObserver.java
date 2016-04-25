@@ -3068,22 +3068,6 @@ public class BluetoothMapContentObserver {
                 int status = -1;
                 if(msgInfo.timestamp == timestamp) {
                     msgInfo.partsDelivered++;
-                    byte[] pdu = intent.getByteArrayExtra("pdu");
-                    String format = intent.getStringExtra("format");
-
-                    SmsMessage message = SmsMessage.createFromPdu(pdu, format);
-                    if (message == null) {
-                        Log.d(TAG, "actionMessageDelivery: Can't get message from pdu");
-                        return;
-                    }
-                    status = message.getStatus();
-                    if(status != 0/*0 is success*/) {
-                        msgInfo.statusDelivered = status;
-                        if(D) Log.d(TAG, "msgInfo.statusDelivered = " + status);
-                        Sms.moveMessageToFolder(mContext, msgInfo.uri, Sms.MESSAGE_TYPE_FAILED, 0);
-                    } else {
-                        Sms.moveMessageToFolder(mContext, msgInfo.uri, Sms.MESSAGE_TYPE_SENT, 0);
-                    }
                 }
                 if (msgInfo.partsDelivered == msgInfo.parts) {
                     actionMessageDelivery(context, intent, msgInfo);
