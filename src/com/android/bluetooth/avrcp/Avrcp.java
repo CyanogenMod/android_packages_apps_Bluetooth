@@ -27,7 +27,7 @@ import android.content.res.Resources;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.media.AudioManager;
-import android.media.MediaMetadataRetriever;
+import android.media.MediaDescription;
 import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
@@ -75,7 +75,7 @@ public final class Avrcp {
     private MediaSessionChangeListener mSessionChangeListener;
     private MediaController mMediaController;
     private MediaControllerListener mMediaControllerCb;
-    private Metadata mMetadata;
+    private MediaAttributes mMediaAttributes;
     private int mTransportControlFlags;
     private PlaybackState mCurrentPlayState;
     private int mPlayStatusChangedNT;
@@ -155,7 +155,7 @@ public final class Avrcp {
     }
 
     private Avrcp(Context context) {
-        mMetadata = new Metadata();
+        mMediaAttributes = new MediaAttributes(null);
         mCurrentPlayState = new PlaybackState.Builder().setState(PlaybackState.STATE_NONE, -1L, 0.0f).build();
         mPlayStatusChangedNT = NOTIFICATION_TYPE_CHANGED;
         mTrackChangedNT = NOTIFICATION_TYPE_CHANGED;
@@ -318,7 +318,9 @@ public final class Avrcp {
                 textArray = new String[numAttr];
                 for (int i = 0; i < numAttr; ++i) {
                     attrIds[i] = attrList.get(i).intValue();
-                    textArray[i] = getAttributeString(attrIds[i]);
+                    textArray[i] = mMediaAttributes.getString(attrIds[i]);
+                    Log.v(TAG, "getAttributeString:attrId=" + attrIds[i] +
+                               " str=" + textArray[i]);
                 }
                 getElementAttrRspNative(numAttr, attrIds, textArray);
                 break;
@@ -515,7 +517,7 @@ public final class Avrcp {
 
                 int avrcpVolume = convertToAvrcpVolume(msg.arg1);
                 avrcpVolume = Math.min(AVRCP_MAX_VOL, Math.max(0, avrcpVolume));
-                if (DEBUG) Log.d(TAG, "Setting volume to " + msg.arg1+"-"+avrcpVolume);
+                if (DEBUG) Log.d(TAG, "Setting volume to " + msg.arg1 + "-" + avrcpVolume);
                 if (setVolumeNative(avrcpVolume)) {
                     sendMessageDelayed(obtainMessage(MESSAGE_ABS_VOL_TIMEOUT), CMD_TIMEOUT_DELAY);
                     mVolCmdSetInProgress = true;
@@ -691,36 +693,124 @@ public final class Avrcp {
         mTransportControlFlags = transportControlFlags;
     }
 
-    class Metadata {
-        private String artist;
-        private String trackTitle;
-        private String albumTitle;
+    class MediaAttributes {
+        private boolean exists;
+        private String title;
+        private String artistName;
+        private String albumName;
+        private String mediaNumber;
+        private String mediaTotalNumber;
+        private String genre;
+        private String playingTimeMs;
 
-        public Metadata() {
-            artist = null;
-            trackTitle = null;
-            albumTitle = null;
+        private static final int ATTR_TITLE = 1;
+        private static final int ATTR_ARTIST_NAME = 2;
+        private static final int ATTR_ALBUM_NAME = 3;
+        private static final int ATTR_MEDIA_NUMBER = 4;
+        private static final int ATTR_MEDIA_TOTAL_NUMBER = 5;
+        private static final int ATTR_GENRE = 6;
+        private static final int ATTR_PLAYING_TIME_MS = 7;
+
+
+        public MediaAttributes(MediaMetadata data) {
+            exists = data != null;
+            if (!exists)
+                return;
+
+            artistName = stringOrBlank(data.getString(MediaMetadata.METADATA_KEY_ARTIST));
+            albumName = stringOrBlank(data.getString(MediaMetadata.METADATA_KEY_ALBUM));
+            mediaNumber = longStringOrBlank(data.getLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER));
+            mediaTotalNumber = longStringOrBlank(data.getLong(MediaMetadata.METADATA_KEY_NUM_TRACKS));
+            genre = stringOrBlank(data.getString(MediaMetadata.METADATA_KEY_GENRE));
+            playingTimeMs = longStringOrBlank(data.getLong(MediaMetadata.METADATA_KEY_DURATION));
+
+            // Try harder for the title.
+            title = data.getString(MediaMetadata.METADATA_KEY_TITLE);
+
+            if (title == null) {
+                MediaDescription desc = data.getDescription();
+                if (desc != null) {
+                    CharSequence val = desc.getDescription();
+                    if (val != null)
+                        title = val.toString();
+                }
+            }
+
+            if (title == null)
+                title = new String();
+        }
+
+        public boolean equals(MediaAttributes other) {
+            if (other == null)
+                return false;
+
+            if (exists != other.exists)
+                return false;
+
+            if (exists == false)
+                return true;
+
+            return (title.equals(other.title)) &&
+                (artistName.equals(other.artistName)) &&
+                (albumName.equals(other.albumName)) &&
+                (mediaNumber.equals(other.mediaNumber)) &&
+                (mediaTotalNumber.equals(other.mediaTotalNumber)) &&
+                (genre.equals(other.genre)) &&
+                (playingTimeMs.equals(other.playingTimeMs));
+        }
+
+        public String getString(int attrId) {
+            if (!exists)
+                return new String();
+
+            switch (attrId) {
+                case ATTR_TITLE:
+                    return title;
+                case ATTR_ARTIST_NAME:
+                    return artistName;
+                case ATTR_ALBUM_NAME:
+                    return albumName;
+                case ATTR_MEDIA_NUMBER:
+                    return mediaNumber;
+                case ATTR_MEDIA_TOTAL_NUMBER:
+                    return mediaTotalNumber;
+                case ATTR_GENRE:
+                    return genre;
+                case ATTR_PLAYING_TIME_MS:
+                    return playingTimeMs;
+                default:
+                    return new String();
+            }
+        }
+
+        private String stringOrBlank(String s) {
+            return s == null ? new String() : s;
+        }
+
+        private String longStringOrBlank(Long s) {
+            return s == null ? new String() : s.toString();
         }
 
         public String toString() {
-            return "Metadata[artist=" + artist + " trackTitle=" + trackTitle + " albumTitle=" +
-                    albumTitle + "]";
+            if (!exists)
+                return "[MediaAttributes: none]";
+
+            return "[MediaAttributes: " + title + " - " + albumName + " by "
+                + artistName + " (" + mediaNumber + "/" + mediaTotalNumber + ") "
+                + genre + "]";
         }
     }
 
     private void updateMetadata(MediaMetadata data) {
-        String oldMetadata = mMetadata.toString();
+        MediaAttributes oldAttributes = mMediaAttributes;
+        mMediaAttributes = new MediaAttributes(data);
         if (data == null) {
-            mMetadata = new Metadata();
             mSongLengthMs = 0L;
         } else {
-            mMetadata.artist = data.getString(MediaMetadata.METADATA_KEY_ARTIST);
-            mMetadata.trackTitle = data.getString(MediaMetadata.METADATA_KEY_TITLE);
-            mMetadata.albumTitle = data.getString(MediaMetadata.METADATA_KEY_ALBUM);
             mSongLengthMs = data.getLong(MediaMetadata.METADATA_KEY_DURATION);
         }
-        if (!oldMetadata.equals(mMetadata.toString())) {
-            Log.v(TAG, "Metadata Changed to " + mMetadata.toString());
+        if (!oldAttributes.equals(mMediaAttributes)) {
+            Log.v(TAG, "MediaAttributes Changed to " + mMediaAttributes.toString());
             mTrackNumber++;
             if (mTrackChangedNT == NOTIFICATION_TYPE_INTERIM) {
                 mTrackChangedNT = NOTIFICATION_TYPE_CHANGED;
@@ -739,7 +829,7 @@ public final class Avrcp {
                 mHandler.removeMessages(MESSAGE_PLAY_INTERVAL_TIMEOUT);
             }
         } else {
-            Log.v(TAG, "Metadata updated but no change!");
+            Log.v(TAG, "Updated " + mMediaAttributes.toString() + " but no change!");
         }
 
     }
@@ -865,35 +955,6 @@ public final class Avrcp {
         }
         if (DEBUG) Log.v(TAG, "position=" + songPosition);
         return songPosition;
-    }
-
-    private String getAttributeString(int attrId) {
-        String attrStr = null;
-        switch (attrId) {
-            case MEDIA_ATTR_TITLE:
-                attrStr = mMetadata.trackTitle;
-                break;
-
-            case MEDIA_ATTR_ARTIST:
-                attrStr = mMetadata.artist;
-                break;
-
-            case MEDIA_ATTR_ALBUM:
-                attrStr = mMetadata.albumTitle;
-                break;
-
-            case MEDIA_ATTR_PLAYING_TIME:
-                if (mSongLengthMs != 0L) {
-                    attrStr = Long.toString(mSongLengthMs);
-                }
-                break;
-
-        }
-        if (attrStr == null) {
-            attrStr = new String();
-        }
-        Log.v(TAG, "getAttributeString:attrId=" + attrId + " str=" + attrStr);
-        return attrStr;
     }
 
     private int convertPlayStateToPlayStatus(PlaybackState state) {
@@ -1032,7 +1093,7 @@ public final class Avrcp {
 
     public void dump(StringBuilder sb) {
         sb.append("AVRCP:\n");
-        ProfileService.println(sb, "mMetadata: " + mMetadata);
+        ProfileService.println(sb, "mMediaAttributes: " + mMediaAttributes);
         ProfileService.println(sb, "mTransportControlFlags: " + mTransportControlFlags);
         ProfileService.println(sb, "mCurrentPlayState: " + mCurrentPlayState);
         ProfileService.println(sb, "mPlayStatusChangedNT: " + mPlayStatusChangedNT);
