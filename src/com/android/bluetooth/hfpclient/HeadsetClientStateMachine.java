@@ -2350,21 +2350,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                     HeadsetClientHalConstants.CHLD_FEAT_MERGE_DETACH) {
                 intent.putExtra(BluetoothHeadsetClient.EXTRA_AG_FEATURE_MERGE_AND_DETACH, true);
             }
-
-            // If we are connected to HFP AG, then register the phone account so that telecom can
-            // make calls via HFP.
-            mTelecomManager.registerPhoneAccount(
-                HfpClientConnectionService.getAccount(mService, device));
-            mTelecomManager.enablePhoneAccount(
-                HfpClientConnectionService.getAccount(mService, device).getAccountHandle(), true);
-            mTelecomManager.setUserSelectedOutgoingPhoneAccount(
-                HfpClientConnectionService.getHandle(mService));
-            mService.startService(new Intent(mService, HfpClientConnectionService.class));
-        } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-            mTelecomManager.unregisterPhoneAccount(HfpClientConnectionService.getHandle(mService));
-            mService.stopService(new Intent(mService, HfpClientConnectionService.class));
         }
-
         mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
     }
 
