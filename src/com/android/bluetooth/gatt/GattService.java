@@ -803,7 +803,7 @@ public class GattService extends ProfileService {
             + ", handle=" + handle + ", length=" + data.length);
 
         if (!permissionCheck(connId, handle)) {
-            if (VDBG) Log.d(TAG, "onNotify() - permission check failed!");
+            Log.w(TAG, "onNotify() - permission check failed!");
             return;
         }
 
@@ -1458,7 +1458,7 @@ public class GattService extends ProfileService {
         }
 
         if (!permissionCheck(connId, handle)) {
-            if (VDBG) Log.d(TAG, "readCharacteristic() - permission check failed!");
+            Log.w(TAG, "readCharacteristic() - permission check failed!");
             return;
         }
 
@@ -1480,7 +1480,7 @@ public class GattService extends ProfileService {
         }
 
         if (!permissionCheck(connId, handle)) {
-            if (VDBG) Log.d(TAG, "writeCharacteristic() - permission check failed!");
+            Log.w(TAG, "writeCharacteristic() - permission check failed!");
             return;
         }
 
@@ -1499,7 +1499,7 @@ public class GattService extends ProfileService {
         }
 
         if (!permissionCheck(connId, handle)) {
-            if (VDBG) Log.d(TAG, "readDescriptor() - permission check failed!");
+            Log.w(TAG, "readDescriptor() - permission check failed!");
             return;
         }
 
@@ -1518,7 +1518,7 @@ public class GattService extends ProfileService {
         }
 
         if (!permissionCheck(connId, handle)) {
-            if (VDBG) Log.d(TAG, "writeDescriptor() - permission check failed!");
+            Log.w(TAG, "writeDescriptor() - permission check failed!");
             return;
         }
 
@@ -1555,7 +1555,7 @@ public class GattService extends ProfileService {
         }
 
         if (!permissionCheck(connId, handle)) {
-            if (VDBG) Log.d(TAG, "writeDescriptor() - permission check failed!");
+            Log.w(TAG, "registerForNotification() - permission check failed!");
             return;
         }
 
