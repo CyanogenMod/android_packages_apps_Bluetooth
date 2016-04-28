@@ -301,9 +301,22 @@ public class BluetoothMapService extends ProfileService {
         } // Else just close down it all
 
         /* Shutdown the MNS client - currently must happen before MAS close */
-        if(mBluetoothMnsObexClient != null && lastMasInst) {
-            mBluetoothMnsObexClient.shutdown();
-            mBluetoothMnsObexClient = null;
+        if (mBluetoothMnsObexClient != null ) {
+            if (lastMasInst) {
+                mBluetoothMnsObexClient.shutdown();
+                mBluetoothMnsObexClient = null;
+            } else if(masId != -1 && mMasInstances != null) {
+                //Trigger MNS OFF to handle MCE that dosen't issue MNS OFF before MAS DISC
+                BluetoothMapMasInstance masInst = mMasInstances.get(masId);
+                if (masInst != null && masInst.mObserver != null) {
+                    try {
+                        masInst.mObserver.setNotificationRegistration(BluetoothMapAppParams
+                            .NOTIFICATION_STATUS_NO);
+                    } catch (RemoteException e) {
+                        Log.e(TAG,"setNoficationRegistarion OFF Failed: "+ e);
+                    }
+                }
+            }
         }
 
         BluetoothMapMasInstance masInst = mMasInstances.get(masId); // returns null for -1
@@ -363,7 +376,6 @@ public class BluetoothMapService extends ProfileService {
                 case USER_TIMEOUT:
                     if (mIsWaitingAuthorization){
                         Intent intent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
-                        intent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
                         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
                         intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                         BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
@@ -824,7 +836,6 @@ public class BluetoothMapService extends ProfileService {
         }
         mStartError = true;
         setState(BluetoothMap.STATE_DISCONNECTED, BluetoothMap.RESULT_CANCELED);
-        sendShutdownMessage();
         return true;
     }
 
@@ -1127,8 +1138,7 @@ public class BluetoothMapService extends ProfileService {
                         return;
                     }
                 }
-            } else if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED) &&
-                    mIsWaitingAuthorization) {
+            } else if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
                 if (mRemoteDevice == null || device == null) {
@@ -1141,17 +1151,17 @@ public class BluetoothMapService extends ProfileService {
                 if (mRemoteDevice.equals(device)) {
                     // Send any pending timeout now, as ACL got disconnected.
                     mSessionStatusHandler.removeMessages(USER_TIMEOUT);
-
-                    Intent timeoutIntent =
-                            new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
-                    timeoutIntent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
-                    timeoutIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-                    timeoutIntent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
+                    if (mIsWaitingAuthorization) {
+                        Intent timeoutIntent =
+                                new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
+                        timeoutIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+                        timeoutIntent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                            BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
-                    timeoutIntent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
-                    sendBroadcast(timeoutIntent, BLUETOOTH_PERM);
-                    mIsWaitingAuthorization = false;
-                    cancelUserTimeoutAlarm();
+                        timeoutIntent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+                        sendBroadcast(timeoutIntent, BLUETOOTH_PERM);
+                        mIsWaitingAuthorization = false;
+                        cancelUserTimeoutAlarm();
+                    }
                     mSessionStatusHandler.obtainMessage(MSG_SERVERSESSION_CLOSE, -1, 0)
                             .sendToTarget();
                 }
