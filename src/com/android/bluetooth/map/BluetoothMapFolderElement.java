@@ -42,6 +42,7 @@ public class BluetoothMapFolderElement implements Comparable<BluetoothMapFolderE
     private String mName;
     private BluetoothMapFolderElement mParent = null;
     private long mFolderId = -1;
+    private int mFolderType = -1;
     private boolean mHasSmsMmsContent = false;
     private boolean mHasImContent = false;
     private boolean mHasEmailContent = false;
@@ -87,6 +88,9 @@ public class BluetoothMapFolderElement implements Comparable<BluetoothMapFolderE
     public void setFolderId(long folderId) {
         this.mFolderId = folderId;
     }
+    public void setFolderType(int folderType) {
+        this.mFolderType = folderType;
+    }
     public void setHasSmsMmsContent(boolean hasSmsMmsContent) {
         this.mHasSmsMmsContent = hasSmsMmsContent;
     }
@@ -126,6 +130,13 @@ public class BluetoothMapFolderElement implements Comparable<BluetoothMapFolderE
         return sb.toString();
     }
 
+    /**
+     * Return folder typ info
+     * @return a integer for email type.
+     */
+    public int getFolderType() {
+       return mFolderType;
+    }
 
     public BluetoothMapFolderElement getFolderByName(String name) {
         BluetoothMapFolderElement folderElement = this.getRoot();

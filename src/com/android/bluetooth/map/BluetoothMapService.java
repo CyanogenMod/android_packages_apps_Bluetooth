@@ -66,7 +66,7 @@ public class BluetoothMapService extends ProfileService {
 
     public static final boolean DEBUG = true; //FIXME set to false;
 
-    public static final boolean VERBOSE = false;
+    public static final boolean VERBOSE = true;
 
     /**
      * Intent indicating timeout for user confirmation, which is sent to
@@ -207,8 +207,7 @@ public class BluetoothMapService extends ProfileService {
             if(VERBOSE) Log.i(TAG, "Remove Handler");
         }
         mRemoteDevice = null;
-
-        if (VERBOSE) Log.v(TAG, "MAP Service closeService out");
+        if (DEBUG) Log.d(TAG, "MAP Service closeService out");
     }
 
     /**
@@ -243,7 +242,7 @@ public class BluetoothMapService extends ProfileService {
                     "StartingObexMapTransaction");
             mWakeLock.setReferenceCounted(false);
             mWakeLock.acquire();
-            if (VERBOSE) Log.v(TAG, "startObexSessions(): Acquire Wake Lock");
+            if (DEBUG) Log.d(TAG, "startObexSessions(): Acquire Wake Lock");
         }
 
         if(mBluetoothMnsObexClient == null) {
@@ -288,7 +287,7 @@ public class BluetoothMapService extends ProfileService {
      * @param masId use -1 to stop all instances
      */
     private void stopObexServerSessions(int masId) {
-        if (DEBUG) Log.d(TAG, "MAP Service STOP ObexServerSessions()");
+        if (DEBUG) Log.d(TAG, "MAP Service STOP ObexServerSessions() masId: " + masId);
 
         boolean lastMasInst = true;
 
@@ -340,7 +339,7 @@ public class BluetoothMapService extends ProfileService {
         }
         @Override
         public void handleMessage(Message msg) {
-            if (VERBOSE) Log.v(TAG, "Handler(): got msg=" + msg.what);
+            if (DEBUG) Log.d(TAG, "Handler(): got msg=" + msg.what);
 
             switch (msg.what) {
                 case UPDATE_MAS_INSTANCES:
@@ -680,7 +679,6 @@ public class BluetoothMapService extends ProfileService {
         if (DEBUG) Log.d(TAG,"updateMasInstancesHandler() state = " + getState());
         boolean changed = false;
 
-        if(getState() == BluetoothMap.STATE_DISCONNECTED) {
             ArrayList<BluetoothMapAccountItem> newAccountList =
                     mAppObserver.getEnabledAccountItems();
             ArrayList<BluetoothMapAccountItem> newAccounts = null;
@@ -740,9 +738,6 @@ public class BluetoothMapService extends ProfileService {
                 }
             }
             mAccountChanged = false;
-        } else {
-            mAccountChanged = true;
-        }
         return changed;
     }
 
@@ -970,6 +965,7 @@ public class BluetoothMapService extends ProfileService {
     }
 
     private void sendShutdownMessage() {
+        if (VERBOSE) Log.d(TAG, "sendShutdownMessage() In");
         /* Any pending messages are no longer valid.
         To speed up things, simply delete them. */
         if (mRemoveTimeoutMsg) {
