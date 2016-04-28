@@ -292,6 +292,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                 Message msg = Message.obtain(mCallback);
                 msg.what = BluetoothOppObexSession.MSG_SHARE_COMPLETE;
                 msg.obj = mInfo;
+                mInfo.mStatus = status;
                 msg.sendToTarget();
             } else {
                 Message msg = Message.obtain(mCallback);
