@@ -32,6 +32,7 @@
 
 package com.android.bluetooth.pbap;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -46,7 +47,10 @@ import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothPbap;
 import android.bluetooth.BluetoothUuid;
 import android.content.Context;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.database.ContentObserver;
+import android.database.sqlite.SQLiteException;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -56,10 +60,15 @@ import android.os.ServiceManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
+import java.util.Calendar;
+import java.util.concurrent.atomic.AtomicLong;
 
+import com.android.bluetooth.ObexServerSockets;
 import com.android.bluetooth.BluetoothObexTransport;
+import com.android.bluetooth.IObexConnectionHandler;
+import com.android.bluetooth.sdp.SdpManager;
 import com.android.bluetooth.Utils;
-
+import com.android.bluetooth.util.DevicePolicyUtils;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.btservice.AdapterService;
@@ -68,7 +77,7 @@ import java.io.IOException;
 
 import javax.obex.ServerSession;
 
-public class BluetoothPbapService extends Service {
+public class BluetoothPbapService extends Service implements IObexConnectionHandler{
     private static final String TAG = "BluetoothPbapService";
 
     /**
@@ -137,6 +146,11 @@ public class BluetoothPbapService extends Service {
 
     private static final int AUTH_TIMEOUT = 3;
 
+    private static final int SDP_PBAP_SERVER_VERSION = 0x0102;
+
+    private static final int SDP_PBAP_SUPPORTED_REPOSITORIES = 0x0003;
+
+    private static final int SDP_PBAP_SUPPORTED_FEATURES = 0x021F;
 
     private static final int USER_CONFIRM_TIMEOUT_VALUE = 30000;
 
@@ -161,7 +175,17 @@ public class BluetoothPbapService extends Service {
 
     private BluetoothServerSocket mServerSocket = null;
 
+    private ObexServerSockets mServerSockets = null;
+
+    private AlarmManager mAlarmManager = null;
+
+    private int mSdpHandle = -1;
+
+    private boolean mRemoveTimeoutMsg = false;
+
     private BluetoothSocket mConnSocket = null;
+
+    private int mConnType = -1;
 
     private BluetoothDevice mRemoteDevice = null;
 
@@ -170,6 +194,10 @@ public class BluetoothPbapService extends Service {
     private static String sLocalPhoneName = null;
 
     private static String sRemoteDeviceName = null;
+
+    private int mPermission = BluetoothDevice.ACCESS_UNKNOWN;
+
+    private boolean mSdpSearchInitiated = false;
 
     private boolean mHasStarted = false;
 
@@ -183,13 +211,28 @@ public class BluetoothPbapService extends Service {
 
     private boolean mIsWaitingAuthorization = false;
 
+    private static  AtomicLong mDbIndetifier = new AtomicLong();
+
     // package and class name to which we send intent to check phone book access permission
     private static final String ACCESS_AUTHORITY_PACKAGE = "com.android.settings";
     private static final String ACCESS_AUTHORITY_CLASS =
         "com.android.settings.bluetooth.BluetoothPermissionRequest";
 
+    private ContentObserver contactChangeObserver;
+    public static long primaryVersionCounter = 0;
+    public static long secondaryVersionCounter = 0;
+
     public BluetoothPbapService() {
         mState = BluetoothPbap.STATE_DISCONNECTED;
+        contactChangeObserver = new ContentObserver(null) {
+            @Override
+            public void onChange(boolean selfChange) {
+                Log.d(TAG,"**************onChange on contact uri ************");
+                primaryVersionCounter = primaryVersionCounter + 1;
+            }
+        };
+
+
     }
 
     @Override
@@ -210,6 +253,15 @@ public class BluetoothPbapService extends Service {
                         .obtainMessage(START_LISTENER));
             }
         }
+        // Register observer on contact to update version counter
+        try {
+            if (DEBUG) Log.d(TAG,"Registering observer");
+            getContentResolver().registerContentObserver(
+               DevicePolicyUtils.getEnterprisePhoneUri(this), false, contactChangeObserver);
+        } catch (SQLiteException e) {
+            Log.e(TAG, "SQLite exception: " + e);
+        }
+
     }
 
     @Override
@@ -339,6 +391,13 @@ public class BluetoothPbapService extends Service {
     public void onDestroy() {
         if (VERBOSE) Log.v(TAG, "Pbap Service onDestroy");
 
+        try {
+            if (DEBUG) Log.d(TAG,"Unregistering observer");
+                getContentResolver().unregisterContentObserver(contactChangeObserver);
+        } catch (SQLiteException e) {
+            Log.e(TAG, "SQLite exception: " + e);
+        }
+
         super.onDestroy();
         setState(BluetoothPbap.STATE_DISCONNECTED, BluetoothPbap.RESULT_CANCELED);
         closeService();
@@ -360,6 +419,152 @@ public class BluetoothPbapService extends Service {
             mAcceptThread = new SocketAcceptThread();
             mAcceptThread.setName("BluetoothPbapAcceptThread");
             mAcceptThread.start();
+        }
+    }
+
+    synchronized private void startSocketListeners() {
+        if (DEBUG) Log.d(TAG, "startsocketListener");
+
+        if (mServerSession != null) {
+            if (DEBUG) Log.d(TAG, "mServerSession exists - shutting it down...");
+            mServerSession.close();
+            mServerSession = null;
+        }
+
+        closeConnectionSocket();
+
+        if (mServerSockets != null) {
+            mServerSockets.prepareForNewConnect();
+        } else {
+            mServerSockets = ObexServerSockets.create(this);
+            if (mServerSockets == null) {
+                // TODO: Handle - was not handled before
+                Log.e(TAG, "Failed to start the listeners");
+                return;
+            }
+            if (mSdpHandle >= 0) {
+                SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
+                if (VERBOSE) Log.d(TAG, "Removing SDP record for PBAP with SDP handle: " +
+                    mSdpHandle);
+            }
+            mSdpHandle = SdpManager.getDefaultManager().createPbapPseRecord(
+                "OBEX Phonebook Access Server", mServerSockets.getRfcommChannel(),
+                    mServerSockets.getL2capPsm(), SDP_PBAP_SERVER_VERSION,
+                        SDP_PBAP_SUPPORTED_REPOSITORIES, SDP_PBAP_SUPPORTED_FEATURES);
+
+            // Here we might have changed crucial data, hence reset DB identifier
+            updateDbIdentifier();
+            if(VERBOSE) Log.d(TAG, "Creating new SDP record for PBAP server with handle: " + mSdpHandle);
+        }
+    }
+
+    private void updateDbIdentifier(){
+        mDbIndetifier.set(Calendar.getInstance().getTime().getTime());
+    }
+
+    public long getDbIdentifier() {
+        return mDbIndetifier.get();
+    }
+
+    public int getConnType() {
+        return mConnType;
+    }
+
+    private void setUserTimeoutAlarm(){
+        if (DEBUG) Log.d(TAG,"SetUserTimeOutAlarm()");
+        if (mAlarmManager == null) {
+            mAlarmManager =(AlarmManager) this.getSystemService (Context.ALARM_SERVICE);
+        }
+        mRemoveTimeoutMsg = true;
+        Intent timeoutIntent =
+                new Intent(USER_CONFIRM_TIMEOUT_ACTION);
+        PendingIntent pIntent = PendingIntent.getBroadcast(this, 0, timeoutIntent, 0);
+        mAlarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() +
+                USER_CONFIRM_TIMEOUT_VALUE,pIntent);
+    }
+
+    @Override
+    public boolean onConnect(BluetoothDevice remoteDevice, BluetoothSocket socket) {
+        mRemoteDevice = remoteDevice;
+        if (mRemoteDevice == null) {
+            Log.i(TAG, "getRemoteDevice() = null");
+            return false;
+        }
+
+        if (socket != null)
+            mConnSocket = socket;
+        else
+        return false;
+
+        sRemoteDeviceName = mRemoteDevice.getName();
+        // In case getRemoteName failed and return null
+        if (TextUtils.isEmpty(sRemoteDeviceName)) {
+            sRemoteDeviceName = getString(R.string.defaultname);
+        }
+
+        mConnType = mConnSocket.getConnectionType();
+        Log.d(TAG, "Connection type: " + mConnType);
+        int permission = mRemoteDevice.getPhonebookAccessPermission();
+        if (VERBOSE) Log.v(TAG, "getPhonebookAccessPermission() = " + permission);
+
+        if (permission == BluetoothDevice.ACCESS_ALLOWED) {
+            try {
+                if (VERBOSE) {
+                    Log.v(TAG, "incoming connection accepted from: " + sRemoteDeviceName
+                        + " automatically as already allowed device");
+                }
+                startObexServerSession();
+            } catch (IOException ex) {
+                Log.e(TAG, "Caught exception starting obex server session"
+                        + ex.toString());
+            }
+        } else if (permission == BluetoothDevice.ACCESS_REJECTED) {
+            if (VERBOSE) {
+                Log.v(TAG, "incoming connection rejected from: " + sRemoteDeviceName
+                        + " automatically as already rejected device");
+            }
+            return false;
+        } else {  // permission == BluetoothDevice.ACCESS_UNKNOWN
+            // Send an Intent to Settings app to ask user preference.
+            Intent intent =
+                    new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_REQUEST);
+            intent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
+            intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
+                    BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+            intent.putExtra(BluetoothDevice.EXTRA_PACKAGE_NAME, getPackageName());
+            intent.putExtra(BluetoothDevice.EXTRA_CLASS_NAME,
+                    BluetoothPbapReceiver.class.getName());
+
+            mIsWaitingAuthorization = true;
+            sendOrderedBroadcast(intent, BLUETOOTH_ADMIN_PERM);
+
+            if (VERBOSE) Log.v(TAG, "waiting for authorization for connection from: "
+                    + sRemoteDeviceName);
+
+            // In case car kit time out and try to use HFP for
+            // phonebook
+            // access, while UI still there waiting for user to
+            // confirm
+            mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
+                    .obtainMessage(USER_TIMEOUT), USER_CONFIRM_TIMEOUT_VALUE);
+            // We will continue the process when we receive
+            // BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY from Settings app.
+        }
+
+        return true;
+
+    };
+
+    /**
+     * Called when an unrecoverable error occurred in an accept thread.
+     * Close down the server socket, and restart.
+     * TODO: Change to message, to call start in correct context.
+     */
+    @Override
+    public synchronized void onAcceptFailed() {
+        if (mAdapter.isEnabled()) {
+            startSocketListeners();
         }
     }
 
@@ -499,7 +704,7 @@ public class BluetoothPbapService extends Service {
             }
         }
 
-        mPbapServer = new BluetoothPbapObexServer(mSessionStatusHandler, this);
+        mPbapServer = new BluetoothPbapObexServer(mSessionStatusHandler, this, this);
         synchronized (this) {
             mAuth = new BluetoothPbapAuthenticator(mSessionStatusHandler);
             mAuth.setChallenged(false);
@@ -541,7 +746,7 @@ public class BluetoothPbapService extends Service {
         // Last obex transaction is finished, we start to listen for incoming
         // connection again
         if (mAdapter.isEnabled()) {
-            startRfcommSocketListener();
+            startSocketListeners();
         }
         setState(BluetoothPbap.STATE_DISCONNECTED);
     }
@@ -683,7 +888,7 @@ public class BluetoothPbapService extends Service {
             switch (msg.what) {
                 case START_LISTENER:
                     if (mAdapter.isEnabled()) {
-                        startRfcommSocketListener();
+                        startSocketListeners();
                     } else {
                         closeService();// release all resources
                     }
