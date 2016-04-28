@@ -221,9 +221,13 @@ public class ObexServerSockets {
      * Signal to the {@link IObexConnectionHandler} that an error have occurred.
      */
     synchronized private void onAcceptFailed() {
-        Log.w(TAG,"onAcceptFailed() calling shutdown...");
-        mConHandler.onAcceptFailed();
-        shutdown(false);
+        shutdown(true);
+        BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
+        if((mAdapter != null) && (mAdapter.getState() == BluetoothAdapter.STATE_ON)) {
+            Log.d(TAG,"onAcceptFailed() calling shutdown...");
+            mConHandler.onAcceptFailed();
+        }
+
     }
 
     /**

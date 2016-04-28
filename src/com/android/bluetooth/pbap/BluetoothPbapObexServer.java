@@ -807,7 +807,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         }
         result.append("</vCard-listing>");
 
-        if (V) Log.v(TAG, "itemsFound =" + itemsFound);
+        if (D) Log.d(TAG, "itemsFound =" + itemsFound);
 
         return pushBytes(op, result.toString());
     }
@@ -957,7 +957,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         // In such case, PCE only want the number of index.
         // So response not contain any Body header.
         if (mNeedPhonebookSize) {
-            if (V) Log.v(TAG, "Need Phonebook size in response header.");
+            if (D) Log.d(TAG, "Need Phonebook size in response header.");
             mNeedPhonebookSize = false;
 
             byte[] pbsize = new byte[2];
@@ -1034,7 +1034,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         // NewMissedCalls is used only in the response, together with Body
         // header.
         if (mNeedNewMissedCallsNum) {
-            if (V) Log.v(TAG, "Need new missed call num in response header.");
+            if (D) Log.d(TAG, "Need new missed call num in response header.");
             mNeedNewMissedCallsNum = false;
             int nmnum = 0;
             ContentResolver contentResolver;
@@ -1154,7 +1154,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         }
 
         if (size == 0) {
-            if (V) Log.v(TAG, "PhonebookSize is 0, return.");
+            if (D) Log.d(TAG, "PhonebookSize is 0, return.");
             return ResponseCodes.OBEX_HTTP_OK;
         }
 
@@ -1165,7 +1165,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             if (D) Log.d(TAG, "Order parameter is not set by PCE. " +
                        "Assume order by 'Indexed' by default");
         } else if (!orderPara.equals("0") && !orderPara.equals("1")) {
-            if (V) Log.v(TAG, "Order parameter is not supported: " + appParamValue.order);
+            if (D) Log.d(TAG, "Order parameter is not supported: " + appParamValue.order);
             if (orderPara.equals("2")) {
                 // Order by sound is not supported currently
                 Log.w(TAG, "Do not support order by sound");
@@ -1208,7 +1208,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
         int size = mVcardManager.getPhonebookSize(appParamValue.needTag);
         if (size == 0) {
-            if (V) Log.v(TAG, "PhonebookSize is 0, return.");
+            if (D) Log.d(TAG, "PhonebookSize is 0, return.");
             return ResponseCodes.OBEX_HTTP_NOT_FOUND;
         }
 
@@ -1279,7 +1279,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         }
 
         if (pbSize == 0) {
-            if (V) Log.v(TAG, "PhonebookSize is 0, return.");
+            if (D) Log.d(TAG, "PhonebookSize is 0, return.");
             return ResponseCodes.OBEX_HTTP_OK;
         }
 
@@ -1366,7 +1366,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         }
 
         if (pbSize == 0) {
-            if (V) Log.v(TAG, "PhonebookSize is 0, return.");
+            if (D) Log.d(TAG, "PhonebookSize is 0, return.");
             return ResponseCodes.OBEX_HTTP_OK;
         }
 
