@@ -200,6 +200,7 @@ public class SapServer extends Thread implements Callback {
         } else {
             SapMessage msg = new SapMessage(SapMessage.ID_DISCONNECT_REQ);
             /* Force disconnect of RFCOMM - but first we need to clean up. */
+            if(DEBUG) Log.d(TAG, "Cleaning up before force disconnecting rfcomm");
             clearPendingRilResponses(msg);
 
             /* We simply need to forward to RIL, but not change state to busy - hence send and set
@@ -640,6 +641,7 @@ public class SapServer extends Thread implements Callback {
                - close RFCOMM after timeout if no response. */
             sendDisconnectInd(SapMessage.DISC_IMMEDIATE);
             startDisconnectTimer(SapMessage.DISC_RFCOMM, DISCONNECT_TIMEOUT_RFCOMM);
+            mDeinitSignal.countDown();
             break;
         default:
             /* Message not handled */
@@ -853,7 +855,10 @@ public class SapServer extends Thread implements Callback {
         try {
             if(mRilBtOutStream != null) {
                 sapMsg.writeReqToStream(mRilBtOutStream);
-            } /* Else SAP was enabled on a build that did not support SAP, which we will not
+            } else {
+                mDeinitSignal.countDown();
+            }
+            /* Else SAP was enabled on a build that did not support SAP, which we will not
                * handle. */
         } catch (IOException e) {
             Log.e(TAG_HANDLER, "Unable to send message to RIL", e);

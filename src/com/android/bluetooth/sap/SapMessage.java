@@ -722,6 +722,7 @@ public class SapMessage {
         msg.setToken(rilSerial);
         msg.setType(SapApi.REQUEST);
         msg.setError(SapApi.RIL_E_UNUSED);
+        if(DEBUG) Log.d(TAG, "Writing request, message type:" + mMsgType);
 
         switch(mMsgType) {
         case ID_CONNECT_REQ:
