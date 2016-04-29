@@ -96,8 +96,7 @@ final class A2dpSinkStateMachine extends StateMachine {
     private IntentBroadcastHandler mIntentBroadcastHandler;
 
     private static final int MSG_CONNECTION_STATE_CHANGED = 0;
-
-    private final Object mLockForPatch = new Object();
+    private static A2dpSinkStreamingStateMachine mStreaming;
 
     // mCurrentDevice is the device connected before the state changes
     // mTargetDevice is the device to be connected
@@ -160,10 +159,12 @@ final class A2dpSinkStateMachine extends StateMachine {
         Log.d("A2dpSinkStateMachine", "make");
         A2dpSinkStateMachine a2dpSm = new A2dpSinkStateMachine(svc, context);
         a2dpSm.start();
+        mStreaming = A2dpSinkStreamingStateMachine.make(a2dpSm, context);
         return a2dpSm;
     }
 
     public void doQuit() {
+        mStreaming.doQuit();
         quitNow();
     }
 
@@ -492,21 +493,12 @@ final class A2dpSinkStateMachine extends StateMachine {
     }
 
     private class Connected extends State {
-        private A2dpSinkStreamingStateMachine mStreaming;
         @Override
         public void enter() {
             log("Enter Connected: " + getCurrentMessage().what);
             // Upon connected, the audio starts out as stopped
             broadcastAudioState(mCurrentDevice, BluetoothA2dpSink.STATE_NOT_PLAYING,
                                 BluetoothA2dpSink.STATE_PLAYING);
-            mStreaming = A2dpSinkStreamingStateMachine.make(A2dpSinkStateMachine.this, mContext);
-            // the other profile connection should be initiated
-            AdapterService adapterService = AdapterService.getAdapterService();
-            if ((adapterService != null) && (mCurrentDevice != null)) {
-                log(" connectOtherProfile Connected");
-                adapterService.connectOtherClientProfile(mCurrentDevice,
-                        AdapterService.PROFILE_CONN_CONNECTED);
-            }
         }
 
         @Override
@@ -578,16 +570,9 @@ final class A2dpSinkStateMachine extends StateMachine {
                     }
                     break;
 
-                case EVENT_AVRCP_CT_PLAY:
                 case EVENT_AVRCP_TG_PLAY:
                     mStreaming.sendMessage(A2dpSinkStreamingStateMachine.ACT_PLAY);
                     break;
-
-                case EVENT_AVRCP_CT_PAUSE:
-                case EVENT_AVRCP_TG_PAUSE:
-                    mStreaming.sendMessage(A2dpSinkStreamingStateMachine.ACT_PAUSE);
-                    break;
-
 
                 default:
                     return NOT_HANDLED;

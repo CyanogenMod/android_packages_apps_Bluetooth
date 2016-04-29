@@ -88,10 +88,10 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
     private static final int DEFAULT_DUCK_PERCENT = 25;
 
     // Streaming states (see the description above).
-    private SRC_F_ACT_F mSrcFActF;
-    private SRC_F_ACT_T mSrcFActT;
-    private SRC_T_ACT_F mSrcTActF;
-    private SRC_T_ACT_T mSrcTActT;
+    private Idle mIdle;
+    private Focus_Granted mFGranted;
+    private Focus_Transient mFTransient;
+    private Focus_Loss mFLoss;
 
     // Transitions.
     public static final int SRC_STR_START = 0;
@@ -134,17 +134,17 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
         mContext = context;
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
-        mSrcFActF = new SRC_F_ACT_F();
-        mSrcFActT = new SRC_F_ACT_T();
-        mSrcTActF = new SRC_T_ACT_F();
-        mSrcTActT = new SRC_T_ACT_T();
+        mIdle = new Idle();
+        mFTransient = new Focus_Transient();
+        mFLoss = new Focus_Loss();
+        mFGranted = new Focus_Granted();
 
         // States are independent of each other. We simply use transitionTo.
-        addState(mSrcFActF);
-        addState(mSrcFActT);
-        addState(mSrcTActF);
-        addState(mSrcTActT);
-        setInitialState(mSrcFActF);
+        addState(mIdle);
+        addState(mFTransient);
+        addState(mFLoss);
+        addState(mFGranted);
+        setInitialState(mIdle);
 
     }
 
@@ -159,13 +159,34 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
         return a2dpStrStateMachine;
     }
 
+    public void doQuit() {
+        if ((getCurrentState() == mFTransient) ||
+                (getCurrentState() == mFGranted)) {
+            abandonAudioFocus();
+        }
+        quitNow();
+    }
+
     /**
      * Utility functions that can be used by all states.
      */
-    private boolean requestAudioFocus() {
-        return (mAudioManager.requestAudioFocus(
-            mAudioFocusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN) ==
-            AudioManager.AUDIOFOCUS_REQUEST_GRANTED);
+
+    private int abandonAudioFocus() {
+        mCurrentAudioFocus = AudioManager.AUDIOFOCUS_LOSS;
+        if (mAudioManager != null)
+            return mAudioManager.abandonAudioFocus(mAudioFocusListener);
+        else
+            return AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+    }
+
+    private int requestAudioFocus() {
+        if (mCurrentAudioFocus == AudioManager.AUDIOFOCUS_GAIN)
+            return AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+        int ret =  mAudioManager.requestAudioFocus(
+            mAudioFocusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        if (ret == AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
+            mCurrentAudioFocus = AudioManager.AUDIOFOCUS_GAIN;
+        return ret;
     }
 
     private void startAvrcpUpdates() {
@@ -257,13 +278,15 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
         mA2dpSinkSm.informAudioTrackGainNative(gain);
     }
 
-    private class SRC_F_ACT_F extends State {
-        private static final String STATE_TAG = A2dpSinkStreamingStateMachine.TAG + ".SRC_F_ACT_F";
+    private class Idle extends State {
+        private static final String STATE_TAG = A2dpSinkStreamingStateMachine.TAG + ".Idle";
         @Override
         public void enter() {
             if (DBG) {
                 Log.d(STATE_TAG, "Enter: " + getCurrentMessage().what);
             }
+            stopFluorideStreaming();
+            stopAvrcpUpdates();
         }
 
         @Override
@@ -273,20 +296,12 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
             }
             switch (message.what) {
                 case SRC_STR_START:
-                    // Opt out of all sounds without AVRCP play. We simply throw away.
-                    transitionTo(mSrcTActF);
-                    break;
-
-                case ACT_PLAY:
-                    // Wait in next state for actual playback. We defer the message so that the next
-                    // state (SRC_F_ACT_T) can execute the retry logic.
-                    deferMessage(message);
-                    transitionTo(mSrcFActT);
+                    if (requestAudioFocus() == AudioManager.AUDIOFOCUS_REQUEST_GRANTED);
+                        transitionTo(mFGranted);
                     break;
 
                 case DISCONNECT:
-                    mAudioManager.abandonAudioFocus(mAudioFocusListener);
-                    mCurrentAudioFocus = AudioManager.AUDIOFOCUS_LOSS;
+                    abandonAudioFocus();
                     break;
 
                 case AUDIO_FOCUS_CHANGE:
@@ -309,91 +324,22 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
                     break;
 
                 default:
-                    Log.e(TAG, "Don't know how to handle " + message.what);
+                    Log.e(STATE_TAG, "Don't know how to handle " + message.what);
+                    return NOT_HANDLED;
             }
             return HANDLED;
         }
     }
 
-    private class SRC_F_ACT_T extends State {
-        private static final String STATE_TAG = A2dpSinkStreamingStateMachine.TAG + ".SRC_F_ACT_T";
-        private boolean mPlay = false;
-
+    private class Focus_Granted extends State {
+        private static final String STATE_TAG = A2dpSinkStreamingStateMachine.TAG + ".F_Granted";
         @Override
         public void enter() {
             if (DBG) {
                 Log.d(STATE_TAG, "Enter: " + getCurrentMessage().what);
             }
-        }
-
-        @Override
-        public boolean processMessage(Message message) {
-            if (DBG) {
-                Log.d(STATE_TAG, " process message: " + message.what);
-            }
-            switch (message.what) {
-                case SRC_STR_START:
-                    deferMessage(message);
-                    transitionTo(mSrcTActT);
-                    break;
-
-                case ACT_PAUSE:
-                    transitionTo(mSrcFActF);
-                    break;
-
-                case ACT_PLAY:
-                    // Retry if the remote has not yet started playing music. This is seen in some
-                    // devices where after the phone call it requires multiple play commands to
-                    // start music.
-                    break;
-
-                case ACT_PLAY_RETRY:
-                    if (message.arg1 > 0) {
-                        Log.d(STATE_TAG, "Retry " + message.arg1);
-                        sendAvrcpPlay();
-                        sendMessageDelayed(ACT_PLAY_RETRY, message.arg1 - 1, ACT_PLAY_RETRY_DELAY);
-                    }
-                    break;
-
-
-                case DISCONNECT:
-                    deferMessage(message);
-                    transitionTo(mSrcFActF);
-                    mPlay = false;
-                    break;
-
-                case AUDIO_FOCUS_CHANGE:
-                    int newAudioFocus = message.arg1;
-                    if (DBG) {
-                        Log.d(STATE_TAG,
-                              "prev focus " + mCurrentAudioFocus + " new focus " + newAudioFocus);
-                    }
-                    if (newAudioFocus == AudioManager.AUDIOFOCUS_GAIN) {
-                        sendAvrcpPlay();
-                        mCurrentAudioFocus = newAudioFocus;
-                    } else if (newAudioFocus == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
-                        sendAvrcpPause();
-                        mCurrentAudioFocus = newAudioFocus;
-                    } else if (newAudioFocus == AudioManager.AUDIOFOCUS_LOSS) {
-                        mAudioManager.abandonAudioFocus(mAudioFocusListener);
-                        mCurrentAudioFocus = AudioManager.AUDIOFOCUS_LOSS;
-                    }
-                    break;
-
-                default:
-                    Log.e(TAG, "Don't know how to handle " + message.what);
-            }
-            return HANDLED;
-        }
-    }
-
-    private class SRC_T_ACT_F extends State {
-        private static final String STATE_TAG = A2dpSinkStreamingStateMachine.TAG + ".SRC_T_ACT_F";
-        @Override
-        public void enter() {
-            if (DBG) {
-                Log.d(STATE_TAG, "Enter: " + getCurrentMessage().what);
-            }
+            startAvrcpUpdates();
+            startFluorideStreaming();
         }
 
         @Override
@@ -403,52 +349,96 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
             }
             switch (message.what) {
                 case SRC_STR_STOP:
-                    transitionTo(mSrcFActF);
-                    break;
-
-                case ACT_PLAY:
-                    deferMessage(message);
-                    transitionTo(mSrcTActT);
-                    break;
-
                 case DISCONNECT:
-                    deferMessage(message);
-                    transitionTo(mSrcFActF);
+                    abandonAudioFocus();
+                    transitionTo(mIdle);
                     break;
 
                 case AUDIO_FOCUS_CHANGE:
-                    // If we regain focus from TRANSIENT that means that the remote was playing all
-                    // this while although we must have sent a PAUSE (see focus loss in SRC_T_ACT_T
-                    // state). In any case, we should resume music here if that is the case.
                     int newAudioFocus = message.arg1;
                     if (DBG) {
                         Log.d(STATE_TAG,
-                              "prev focus " + mCurrentAudioFocus + " new focus " + newAudioFocus);
+                                "prev focus " + mCurrentAudioFocus + " new focus " + newAudioFocus);
                     }
-                    if (newAudioFocus == AudioManager.AUDIOFOCUS_LOSS ||
-                        newAudioFocus == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
+                    if (newAudioFocus == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
                         sendAvrcpPause();
-                    } else if (newAudioFocus == AudioManager.AUDIOFOCUS_GAIN) {
-                        sendAvrcpPlay();
+                        transitionTo(mFTransient);
+                    }
+                    if (newAudioFocus == AudioManager.AUDIOFOCUS_LOSS) {
+                        sendAvrcpPause();
+                        transitionTo(mFLoss);
                     }
                     mCurrentAudioFocus = newAudioFocus;
                     break;
 
                 default:
-                    Log.e(TAG, "Don't know how to handle " + message.what);
+                    Log.e(STATE_TAG, "Don't know how to handle " + message.what);
+                    return NOT_HANDLED;
             }
             return HANDLED;
         }
     }
 
-    private class SRC_T_ACT_T extends State {
-        private static final String STATE_TAG = A2dpSinkStreamingStateMachine.TAG + ".SRC_T_ACT_T";
+    private class Focus_Transient extends State {
+        private static final String STATE_TAG = A2dpSinkStreamingStateMachine.TAG + ".F_Transient";
+        @Override
+        public void enter() {
+            if (DBG) {
+                Log.d(STATE_TAG, "Enter: " + getCurrentMessage().what);
+            }
+            stopFluorideStreaming();
+            stopAvrcpUpdates();
+        }
+
+        @Override
+        public boolean processMessage(Message message) {
+            if (DBG) {
+                Log.d(STATE_TAG, " process message: " + message.what);
+            }
+            switch (message.what) {
+                case SRC_STR_STOP:
+                    transitionTo(mIdle);
+                    break;
+
+                case DISCONNECT:
+                    abandonAudioFocus();
+                    transitionTo(mIdle);
+                    break;
+
+                case AUDIO_FOCUS_CHANGE:
+                    int newAudioFocus = message.arg1;
+                    if (DBG) {
+                        Log.d(STATE_TAG,
+                                "prev focus " + mCurrentAudioFocus + " new focus " + newAudioFocus);
+                    }
+                    if (newAudioFocus == AudioManager.AUDIOFOCUS_GAIN)
+                        sendAvrcpPlay();
+                        transitionTo(mFGranted);
+                    if (newAudioFocus == AudioManager.AUDIOFOCUS_LOSS) {
+                        abandonAudioFocus();
+                        transitionTo(mIdle);
+                    }
+                    mCurrentAudioFocus = newAudioFocus;
+                    break;
+
+                default:
+                    Log.e(STATE_TAG, "Don't know how to handle " + message.what);
+                    return NOT_HANDLED;
+            }
+            return HANDLED;
+        }
+    }
+
+    private class Focus_Loss extends State {
+        private static final String STATE_TAG = A2dpSinkStreamingStateMachine.TAG + ".F_Loss";
         private boolean mWaitForJitter = false;
         @Override
         public void enter() {
             if (DBG) {
                 Log.d(STATE_TAG, "Enter: " + getCurrentMessage().what);
             }
+            stopFluorideStreaming();
+            stopAvrcpUpdates();
         }
 
         @Override
@@ -457,102 +447,20 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
                 Log.d(STATE_TAG, " process message: " + message.what);
             }
             switch (message.what) {
-                case ACT_PAUSE:
-                    // Stop avrcp updates.
-                    stopAvrcpUpdates();
-                    stopFluorideStreaming();
-                    transitionTo(mSrcTActF);
-                    if (mCurrentAudioFocus == AudioManager.AUDIOFOCUS_GAIN) {
-                        // If we have focus gain and we still get pause that means that we must have
-                        // gotten a PAUSE by user explicitly pressing PAUSE on Car or Phone. Hence
-                        // we release focus.
-                        mAudioManager.abandonAudioFocus(mAudioFocusListener);
-                        mCurrentAudioFocus = AudioManager.AUDIOFOCUS_LOSS;
-                    }
-                    break;
-
                 case SRC_STR_STOP:
-                    stopAvrcpUpdates();
-                    stopFluorideStreaming();
-                    transitionTo(mSrcFActT);
-                    // This could be variety of reasons including that the remote is going to
-                    // (eventually send us pause) or the device is going to go into a call state
-                    // etc. Also it may simply be stutter of music. Instead of sending pause
-                    // prematurely we wait for either a Pause from remote or AudioFocus change owing
-                    // an ongoing call.
-                    break;
-
-                case SRC_STR_START:
-                case ACT_PLAY:
-                    Log.d(STATE_TAG, "Current Audio Focus " + mCurrentAudioFocus);
-                    boolean startStream = true;
-                    if (mCurrentAudioFocus == AudioManager.AUDIOFOCUS_LOSS) {
-                        if (!requestAudioFocus()) {
-                            Log.e(STATE_TAG, "Cannot get focus, hence not starting streaming.");
-                            startStream = false;
-                        } else {
-                            mCurrentAudioFocus = AudioManager.AUDIOFOCUS_GAIN;
-                        }
-                    }
-                    if (startStream) {
-                        startAvrcpUpdates();
-                        startFluorideStreaming();
-                    }
-                    // If we did not get focus, it may mean that the device in a call state and
-                    // hence we should wait for an audio focus event.
-                    break;
-
-                // On Audio Focus events we stay in the same state but this can potentially change
-                // if we playback.
-                case AUDIO_FOCUS_CHANGE:
-                    int newAudioFocus = (int) message.arg1;
-                    if (DBG) {
-                        Log.d(STATE_TAG,
-                            "prev focus " + mCurrentAudioFocus + " new focus " + newAudioFocus);
-                    }
-
-                    if (newAudioFocus == AudioManager.AUDIOFOCUS_GAIN) {
-                        // We have gained focus so play with 1.0 gain.
-                        sendAvrcpPlay();
-                        startAvrcpUpdates();
-                        startFluorideStreaming();
-                        setFluorideAudioTrackGain(1.0f);
-                    } else if (newAudioFocus == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
-                        // Make the volume duck.
-                        int duckPercent =
-                            mContext.getResources().getInteger(R.integer.a2dp_sink_duck_percent);
-                        if (duckPercent < 0 || duckPercent > 100) {
-                            Log.e(STATE_TAG, "Invalid duck percent using default.");
-                            duckPercent = DEFAULT_DUCK_PERCENT;
-                        }
-                        float duckRatio = (float) ((duckPercent * 1.0f) / 100);
-                        Log.d(STATE_TAG,
-                            "Setting reduce gain on transient loss gain=" + duckRatio);
-                        setFluorideAudioTrackGain(duckRatio);
-                    } else {
-                        // We either are in transient loss or we are in permanent loss,
-                        // either ways we should stop streaming.
-                        sendAvrcpPause();
-                        stopAvrcpUpdates();
-                        stopFluorideStreaming();
-
-                        // If it is permanent focus loss then we should abandon focus here and wait
-                        // for user to explicitly play again.
-                        if (newAudioFocus == AudioManager.AUDIOFOCUS_LOSS) {
-                            mAudioManager.abandonAudioFocus(mAudioFocusListener);
-                            mCurrentAudioFocus = AudioManager.AUDIOFOCUS_LOSS;
-                        }
-                    }
-                    mCurrentAudioFocus = newAudioFocus;
-                    break;
-
                 case DISCONNECT:
-                    deferMessage(message);
-                    transitionTo(mSrcFActF);
+                    abandonAudioFocus();
+                    transitionTo(mIdle);
+                    break;
+
+                case ACT_PLAY:
+                    if (requestAudioFocus() == AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
+                        transitionTo(mFGranted);
                     break;
 
                 default:
-                    Log.e(TAG, "Don't know how to handle " + message.what);
+                    Log.e(STATE_TAG, "Don't know how to handle " + message.what);
+                    return NOT_HANDLED;
             }
             return HANDLED;
         }
