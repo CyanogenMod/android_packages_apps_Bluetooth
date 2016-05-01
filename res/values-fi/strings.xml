@@ -99,7 +99,7 @@
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Ei USB-tallennustilaa."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Ei SD-korttia. Aseta SD-kortti, niin voit tallentaa siirrettyjä tiedostoja."</string>
     <string name="status_connection_error" msgid="947681831523219891">"Yhteys epäonnistui."</string>
-    <string name="status_protocol_error" msgid="3245444473429269539">"Pyyntöä ei voi käsitellä oikein."</string>
+    <string name="status_protocol_error" msgid="3245444473429269539">"Pyyntö ei ole käsiteltävissä."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Tuntematon virhe."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth, vastaanotettu"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> vastaanotto valmis."</string>
@@ -110,7 +110,14 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Koko luettelo tyhjennetään."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth-jako: Lähetetyt tiedostot"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth-jako: Vastaanotetut tiedostot"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> onnistui, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> epäonnistui."</string>
+    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
+      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> epäonnistui.</item>
+      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> epäonnistui.</item>
+    </plurals>
+    <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
+      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> onnistui, %2$s</item>
+      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> onnistui, %2$s</item>
+    </plurals>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Tyhjennä luettelo"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Avaa"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Poista luettelosta"</string>

@@ -94,7 +94,7 @@
     <string name="status_success" msgid="239573225847565868">"Le transfert de fichiers s\'est déroulé correctement."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"Le contenu n\'est pas compatible."</string>
     <string name="status_forbidden" msgid="613956401054050725">"L\'appareil cible n\'autorise pas le transfert."</string>
-    <string name="status_canceled" msgid="6664490318773098285">"Le transfert a été annulé par l\'utilisateur."</string>
+    <string name="status_canceled" msgid="6664490318773098285">"le transfert a été annulé par l\'utilisateur."</string>
     <string name="status_file_error" msgid="3671917770630165299">"Problème de mémoire."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Aucune mémoire de stockage USB"</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Carte SD absente. Insérez une carte SD pour enregistrer les fichiers transférés."</string>
@@ -110,7 +110,14 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Tous les éléments de la liste seront effacés."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Partage Bluetooth : fichiers envoyés"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Partage Bluetooth : fichiers reçus"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"Réussite : <xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g>, échec : <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g>"</string>
+    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
+      <item quantity="one">Échec de <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> élément</item>
+      <item quantity="other">Échec de <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> éléments</item>
+    </plurals>
+    <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
+      <item quantity="one">Réussite de <xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> élément, %2$s</item>
+      <item quantity="other">Réussite de <xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> éléments, %2$s</item>
+    </plurals>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Effacer la liste"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Ouvrir"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Effacer de la liste"</string>

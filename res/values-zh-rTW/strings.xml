@@ -93,7 +93,7 @@
     <string name="status_running" msgid="6562808920311008696">"正在進行檔案傳輸。"</string>
     <string name="status_success" msgid="239573225847565868">"已完成檔案傳輸。"</string>
     <string name="status_not_accept" msgid="1695082417193780738">"內容不受支援。"</string>
-    <string name="status_forbidden" msgid="613956401054050725">"目標裝置禁止這項傳輸。"</string>
+    <string name="status_forbidden" msgid="613956401054050725">"目標裝置禁止進行傳輸。"</string>
     <string name="status_canceled" msgid="6664490318773098285">"使用者已取消傳輸。"</string>
     <string name="status_file_error" msgid="3671917770630165299">"儲存空間問題。"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"沒有 USB 儲存裝置。"</string>
@@ -104,13 +104,20 @@
     <string name="btopp_live_folder" msgid="7967791481444474554">"已透過藍牙接收的檔案"</string>
     <string name="download_success" msgid="7036160438766730871">"已完成 <xliff:g id="FILE_SIZE">%1$s</xliff:g> 的接收作業。"</string>
     <string name="upload_success" msgid="4014469387779648949">"已完成 <xliff:g id="FILE_SIZE">%1$s</xliff:g> 的傳送作業。"</string>
-    <string name="inbound_history_title" msgid="6940914942271327563">"向內傳輸"</string>
-    <string name="outbound_history_title" msgid="4279418703178140526">"向外傳輸"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"傳輸記錄是空的。"</string>
-    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"將會從清單清除所有項目。"</string>
+    <string name="inbound_history_title" msgid="6940914942271327563">"傳入"</string>
+    <string name="outbound_history_title" msgid="4279418703178140526">"傳出"</string>
+    <string name="no_transfers" msgid="3482965619151865672">"傳輸紀錄是空的。"</string>
+    <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"所有項目都會從清單中清除。"</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"藍牙分享：傳送的檔案"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"藍牙分享：接收的檔案"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g> 個成功，<xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g> 個失敗。"</string>
+    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
+      <item quantity="other">未成功傳輸 <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> 個檔案。</item>
+      <item quantity="one">未成功傳輸 <xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> 個檔案。</item>
+    </plurals>
+    <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
+      <item quantity="other">成功傳輸 <xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> 個檔案，%2$s</item>
+      <item quantity="one">成功傳輸 <xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> 個檔案，%2$s</item>
+    </plurals>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"清除清單"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"開啟"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"從清單清除"</string>
