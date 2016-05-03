@@ -123,7 +123,7 @@ public class BluetoothOppLauncherActivity extends Activity {
                 } else if (extra_text != null && type != null) {
                     if (V) Log.v(TAG, "Get ACTION_SEND intent with Extra_text = "
                                 + extra_text.toString() + "; mimetype = " + type);
-                    final Uri fileUri = creatFileForSharedContent(this, extra_text);
+                    final Uri fileUri = creatFileForSharedContent(this.createCredentialProtectedStorageContext(), extra_text);
                     if (fileUri != null) {
                         Thread t = new Thread(new Runnable() {
                             public void run() {
