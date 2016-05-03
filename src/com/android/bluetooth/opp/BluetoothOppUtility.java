@@ -227,8 +227,8 @@ public class BluetoothOppUtility {
             }
 
             activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            activityIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            activityIntent.setFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            activityIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            activityIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
             try {
                 if (V) Log.d(TAG, "ACTION_VIEW intent sent out: " + path + " / " + mimetype);
