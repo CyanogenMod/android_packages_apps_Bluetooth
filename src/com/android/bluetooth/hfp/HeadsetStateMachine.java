@@ -868,6 +868,10 @@ final class HeadsetStateMachine extends StateMachine {
                 case CONNECT_AUDIO:
                 {
                     BluetoothDevice device = mCurrentDevice;
+                    if (!isScoAcceptable()) {
+                        Log.w(TAG,"No Active/Held call, MO call setup, not allowing SCO");
+                        break;
+                    }
                     // TODO(BT) when failure, broadcast audio connecting to disconnected intent
                     //          check if device matches mCurrentDevice
                     if (mActiveScoDevice != null) {
@@ -3409,7 +3413,8 @@ final class HeadsetStateMachine extends StateMachine {
 
     private boolean isInCall() {
         return ((mPhoneState.getNumActiveCall() > 0) || (mPhoneState.getNumHeldCall() > 0) ||
-                (mPhoneState.getCallState() != HeadsetHalConstants.CALL_STATE_IDLE));
+                ((mPhoneState.getCallState() != HeadsetHalConstants.CALL_STATE_IDLE) &&
+                 (mPhoneState.getCallState() != HeadsetHalConstants.CALL_STATE_INCOMING)));
     }
 
     // Accept incoming SCO only when there is active call, VR activated,
