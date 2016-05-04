@@ -79,6 +79,7 @@ public final class Avrcp {
     private AvrcpMessageHandler mHandler;
     private RemoteController mRemoteController;
     private RemoteControllerWeak mRemoteControllerCb;
+    private AvrcpRemoteControllerWeak mAvrcpRemoteControllerCb;
     private Metadata mMetadata;
     private int mTransportControlFlags;
     private int mCurrentPlayState;
@@ -374,7 +375,9 @@ public final class Avrcp {
         }
         registerMediaPlayers();
         mRemoteControllerCb = new RemoteControllerWeak(mHandler);
-        mRemoteController = new RemoteController(mContext, mRemoteControllerCb);
+        mAvrcpRemoteControllerCb = new AvrcpRemoteControllerWeak(mHandler);
+        mRemoteController = new RemoteController(mContext, mRemoteControllerCb,
+                null, mAvrcpRemoteControllerCb);
         mAudioManager.registerRemoteController(mRemoteController);
         mRemoteController.setSynchronizationMode(RemoteController.POSITION_SYNCHRONIZATION_CHECK);
     }
@@ -650,6 +653,15 @@ public final class Avrcp {
                 handler.obtainMessage(MSG_SET_METADATA, 0, 0, metadataEditor).sendToTarget();
             }
         }
+    }
+
+    private static class AvrcpRemoteControllerWeak implements
+            RemoteController.OnClientAvrcpUpdateListener {
+        private final WeakReference<Handler> mLocalHandler;
+
+        public AvrcpRemoteControllerWeak(Handler handler) {
+            mLocalHandler = new WeakReference<Handler>(handler);
+        }
 
         @Override
         public void onClientFolderInfoBrowsedPlayer(String stringUri) {
@@ -660,7 +672,7 @@ public final class Avrcp {
                 if (ExternalPath.length < 4) {
                     Log.d(TAG, "Wrong entries.");
                     handler.obtainMessage(MSG_UPDATE_BROWSED_PLAYER_FOLDER, 0, 0, null)
-                                                                        .sendToTarget();
+                            .sendToTarget();
                     return;
                 }
                 Uri uri = Uri.parse(stringUri);
@@ -676,14 +688,14 @@ public final class Avrcp {
                 }
                 mMediaUri = uri;
                 if (handler != null) {
-                     // Don't send the complete path to CK as few gets confused by that
+                    // Don't send the complete path to CK as few gets confused by that
                     // Send only the name of the root folder
                     handler.obtainMessage(MSG_UPDATE_BROWSED_PLAYER_FOLDER, NUM_ROOT_ELEMENTS,
-                                                1, SplitPath).sendToTarget();
+                            1, SplitPath).sendToTarget();
                 }
             } else {
                 handler.obtainMessage(MSG_UPDATE_BROWSED_PLAYER_FOLDER, 0, 0, null)
-                                                                    .sendToTarget();
+                        .sendToTarget();
             }
         }
 
@@ -693,7 +705,7 @@ public final class Avrcp {
             Handler handler = mLocalHandler.get();
             if (handler != null) {
                 handler.obtainMessage(MSG_NOW_PLAYING_ENTRIES_RECEIVED, 0, 0,
-                                                            playList).sendToTarget();
+                        playList).sendToTarget();
             }
         }
 
@@ -712,7 +724,7 @@ public final class Avrcp {
             Handler handler = mLocalHandler.get();
             if (handler != null) {
                 handler.obtainMessage(MSG_PLAY_ITEM_RESPONSE, 0, 0, new Boolean(success))
-                                                                            .sendToTarget();
+                        .sendToTarget();
             }
         }
     }
