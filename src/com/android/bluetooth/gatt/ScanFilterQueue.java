@@ -61,8 +61,10 @@ import java.util.UUID;
 
         @Override
         public int hashCode() {
-            return Objects.hash(address, addr_type, type, uuid, uuid_mask, name, company,
-                    company_mask, data, data_mask);
+            return Objects.hash(address, addr_type, type, uuid, uuid_mask,
+                                name, company, company_mask,
+                                Arrays.hashCode(data),
+                                Arrays.hashCode(data_mask));
         }
 
         @Override
