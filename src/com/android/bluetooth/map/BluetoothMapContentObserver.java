@@ -1316,14 +1316,14 @@ public class BluetoothMapContentObserver {
         boolean listChanged = false;
 
         Cursor c;
-        if (mMapEventReportVersion == BluetoothMapUtils.MAP_EVENT_REPORT_V10) {
-            c = mResolver.query(Sms.CONTENT_URI,
-                    SMS_PROJECTION_SHORT, null, null, null);
-        } else {
-            c = mResolver.query(Sms.CONTENT_URI,
-                    SMS_PROJECTION_SHORT_EXT, null, null, null);
-        }
         synchronized(getMsgListSms()) {
+            if (mMapEventReportVersion == BluetoothMapUtils.MAP_EVENT_REPORT_V10) {
+                c = mResolver.query(Sms.CONTENT_URI,
+                        SMS_PROJECTION_SHORT, null, null, null);
+            } else {
+                c = mResolver.query(Sms.CONTENT_URI,
+                        SMS_PROJECTION_SHORT_EXT, null, null, null);
+            }
             try {
                 if (c != null && c.moveToFirst()) {
                     do {
@@ -1465,15 +1465,15 @@ public class BluetoothMapContentObserver {
         HashMap<Long, Msg> msgListMms = new HashMap<Long, Msg>();
         boolean listChanged = false;
         Cursor c;
-        if (mMapEventReportVersion == BluetoothMapUtils.MAP_EVENT_REPORT_V10) {
-            c = mResolver.query(Mms.CONTENT_URI,
-                    MMS_PROJECTION_SHORT, null, null, null);
-        } else {
-            c = mResolver.query(Mms.CONTENT_URI,
-                    MMS_PROJECTION_SHORT_EXT, null, null, null);
-        }
-
         synchronized(getMsgListMms()) {
+            if (mMapEventReportVersion == BluetoothMapUtils.MAP_EVENT_REPORT_V10) {
+                c = mResolver.query(Mms.CONTENT_URI,
+                        MMS_PROJECTION_SHORT, null, null, null);
+            } else {
+                c = mResolver.query(Mms.CONTENT_URI,
+                        MMS_PROJECTION_SHORT_EXT, null, null, null);
+            }
+
             try{
                 if (c != null && c.moveToFirst()) {
                     do {
