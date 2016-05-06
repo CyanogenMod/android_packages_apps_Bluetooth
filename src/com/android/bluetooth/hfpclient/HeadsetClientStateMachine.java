@@ -74,7 +74,7 @@ import com.android.bluetooth.R;
 
 final class HeadsetClientStateMachine extends StateMachine {
     private static final String TAG = "HeadsetClientStateMachine";
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
 
     static final int NO_ACTION = 0;
 
@@ -881,19 +881,18 @@ final class HeadsetClientStateMachine extends StateMachine {
     private void queryCallsUpdate(int id, int state, String number, boolean multiParty,
             boolean outgoing) {
         Log.d(TAG, "queryCallsUpdate: " + id);
+        BluetoothHeadsetClientCall c =  new BluetoothHeadsetClientCall(mCurrentDevice, id, state, number, multiParty, outgoing);
 
         if (!mCalls.containsKey(id)) {
             Log.d(TAG, "adding call " + id);
-            mCalls.put(id, new BluetoothHeadsetClientCall(mCurrentDevice, id, state, number,
-                       multiParty, outgoing));
+            mCalls.put(id, c);
         }
         // should not happen
         if (mCallsUpdate == null) {
             return;
         }
 
-        mCallsUpdate.put(id, new BluetoothHeadsetClientCall(mCurrentDevice, id, state, number,
-                multiParty, outgoing));
+       mCallsUpdate.put(id, c);
     }
 
     // helper function for determining if query calls should be looped
