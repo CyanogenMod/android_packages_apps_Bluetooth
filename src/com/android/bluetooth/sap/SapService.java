@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
@@ -226,7 +225,7 @@ public class SapService extends ProfileService {
         }
     }
 
-    synchronized private final void closeService(CountDownLatch latch) {
+    synchronized private final void closeService() {
         if (VERBOSE) Log.v(TAG, "SAP Service closeService in");
 
         // exit initSocket early
@@ -247,8 +246,18 @@ public class SapService extends ProfileService {
         }
 
         releaseWakeLockResources();
-        if(latch != null) {
-            latch.countDown();
+        /* Only one SHUTDOWN message expected to closeService.
+             * Hence, quit looper and Handler on first SHUTDOWN message*/
+        if (mSessionStatusHandler != null) {
+            //Perform cleanup in Handler running on worker Thread
+            mSessionStatusHandler.removeCallbacksAndMessages(null);
+            Looper looper = mSessionStatusHandler.getLooper();
+            if (looper != null) {
+                looper.quit();
+                if(VERBOSE) Log.i(TAG, "Quit looper");
+            }
+            mSessionStatusHandler = null;
+            if(VERBOSE) Log.i(TAG, "Remove Handler");
         }
         if (VERBOSE) Log.v(TAG, "SAP Service closeService out");
     }
@@ -487,8 +496,7 @@ public class SapService extends ProfileService {
                      if (DEBUG) Log.d(TAG, "SHUTDOWN... Calling closeService()");
                     /* Ensure to call close from this handler to avoid starting new stuff
                        because of pending messages */
-                    CountDownLatch latch = (CountDownLatch)msg.obj;
-                    closeService(latch);
+                    closeService();
                     break;
                 default:
                     break;
@@ -662,34 +670,15 @@ public class SapService extends ProfileService {
             Log.w(TAG,"Unable to unregister sap receiver",e);
         }
         setState(BluetoothSap.STATE_DISCONNECTED, BluetoothSap.RESULT_CANCELED, true);
-        CountDownLatch latch = new CountDownLatch(1);
-        sendShutdownMessage(latch);
-        // We need to wait for shutdown to complete to avoid being garbage collected before
-        // shutdown completes.
-        if(DEBUG) Log.i(TAG, "Waiting for shutdown to complete");
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            Log.e(TAG, "Interrupt received while waiting for shutdown to complete", e);
-        }
-        if (mSessionStatusHandler != null) {
-            mSessionStatusHandler.removeCallbacksAndMessages(null);
-            Looper looper = mSessionStatusHandler.getLooper();
-            if (looper != null) {
-                looper.quit();
-            }
-            mSessionStatusHandler = null;
-        }
+        if (mSessionStatusHandler != null)
+            sendShutdownMessage();
         if(DEBUG) Log.v(TAG, "stop() out");
         return true;
     }
 
     public boolean cleanup()  {
         setState(BluetoothSap.STATE_DISCONNECTED, BluetoothSap.RESULT_CANCELED, true);
-        closeService(null); // No latch needed as the call is blocking
-        if(mSessionStatusHandler != null) {
-            mSessionStatusHandler.removeCallbacksAndMessages(null);
-        }
+        sendShutdownMessage();
         return true;
     }
 
@@ -726,7 +715,7 @@ public class SapService extends ProfileService {
         sendBroadcast(intent, BLUETOOTH_PERM);
     }
 
-    private void sendShutdownMessage(CountDownLatch latch) {
+    private void sendShutdownMessage() {
         /* Any pending messages are no longer valid.
         To speed up things, simply delete them. */
         if (mRemoveTimeoutMsg) {
@@ -737,19 +726,15 @@ public class SapService extends ProfileService {
             cancelUserTimeoutAlarm();
         }
         removeSdpRecord();
-        if (mSessionStatusHandler != null) {
+        if ((mSessionStatusHandler != null) && (!mSessionStatusHandler.hasMessages(SHUTDOWN))) {
             mSessionStatusHandler.removeCallbacksAndMessages(null);
             // Request release of all resources
-            Message msg = mSessionStatusHandler.obtainMessage(SHUTDOWN,latch);
+            Message msg = mSessionStatusHandler.obtainMessage(SHUTDOWN);
             if( mSessionStatusHandler.sendMessage(msg) == false) {
                 /* most likely caused by shutdown being called from multiple sources - e.g.BT off
                  * signaled through intent and a service shutdown simultaneously.
                  * Intended behavior not documented, hence we need to be able to handle all cases.
                  */
-                Log.e(TAG, "mSessionStatusHandler.sendMessage() failed trigger latch locally");
-                if(latch != null) {
-                    latch.countDown();
-                }
             } else {
                 if(DEBUG) Log.e(TAG, "mSessionStatusHandler.sendMessage() dispatched shutdown msg");
             }
@@ -777,7 +762,7 @@ public class SapService extends ProfileService {
                                                BluetoothAdapter.ERROR);
                 if (state == BluetoothAdapter.STATE_TURNING_OFF) {
                     if (DEBUG) Log.d(TAG, "STATE_TURNING_OFF");
-                    sendShutdownMessage(null);
+                    sendShutdownMessage();
                 } else if (state == BluetoothAdapter.STATE_ON) {
                     if (DEBUG) Log.d(TAG, "STATE_ON");
                     // start RFCOMM listener

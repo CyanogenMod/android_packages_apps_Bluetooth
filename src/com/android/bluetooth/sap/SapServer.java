@@ -855,8 +855,6 @@ public class SapServer extends Thread implements Callback {
         try {
             if(mRilBtOutStream != null) {
                 sapMsg.writeReqToStream(mRilBtOutStream);
-            } else {
-                mDeinitSignal.countDown();
             }
             /* Else SAP was enabled on a build that did not support SAP, which we will not
                * handle. */
