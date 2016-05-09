@@ -2758,8 +2758,10 @@ final class HeadsetStateMachine extends StateMachine {
         int mCodec = 0;
         HashMap<String, Integer> AudioParam = mHeadsetAudioParam.get(device);
         if (AudioParam != null && !AudioParam.isEmpty()) {
-            mCodec = AudioParam.get("codec");
-            mNrec = AudioParam.get("NREC");
+            if (AudioParam.containsKey("codec"))
+                mCodec =  AudioParam.get("codec");
+            if (AudioParam.containsKey("NREC"))
+                mNrec = AudioParam.get("NREC");
         } else {
             Log.e(TAG,"setAudioParameters: AudioParam not found");
         }
