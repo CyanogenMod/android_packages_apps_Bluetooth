@@ -32,9 +32,11 @@ import android.os.Message;
 import android.provider.Settings;
 import android.util.Log;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.hfpclient.connserv.HfpClientConnectionService;
 import com.android.bluetooth.Utils;
 import java.util.ArrayList;
 import java.util.List;
+
 
 /**
  * Provides Bluetooth Headset Client (HF Role) profile, as a service in the
@@ -48,6 +50,8 @@ public class HeadsetClientService extends ProfileService {
 
     private HeadsetClientStateMachine mStateMachine;
     private static HeadsetClientService sHeadsetClientService;
+
+    public static String HFP_CLIENT_STOP_TAG = "hfp_client_stop_tag";
 
     @Override
     protected String getName() {
@@ -70,6 +74,12 @@ public class HeadsetClientService extends ProfileService {
             Log.w(TAG, "Unable to register broadcat receiver", e);
         }
         setHeadsetClientService(this);
+
+        // Start the HfpClientConnectionService to create connection with telecom when HFP
+        // connection is available.
+        Intent startIntent = new Intent(this, HfpClientConnectionService.class);
+        startService(startIntent);
+
         return true;
     }
 
@@ -81,6 +91,12 @@ public class HeadsetClientService extends ProfileService {
             Log.w(TAG, "Unable to unregister broadcast receiver", e);
         }
         mStateMachine.doQuit();
+
+        // Stop the HfpClientConnectionService.
+        Intent stopIntent = new Intent(this, HfpClientConnectionService.class);
+        stopIntent.putExtra(HFP_CLIENT_STOP_TAG, true);
+        startService(stopIntent);
+
         return true;
     }
 

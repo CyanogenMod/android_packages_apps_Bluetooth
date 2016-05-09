@@ -36,6 +36,8 @@ import android.telecom.PhoneAccountHandle;
 import android.telecom.TelecomManager;
 import android.util.Log;
 
+import com.android.bluetooth.hfpclient.HeadsetClientService;
+
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,7 +51,11 @@ public class HfpClientConnectionService extends ConnectionService {
     public static final String HFP_SCHEME = "hfpc";
 
     private BluetoothAdapter mAdapter;
+    // Currently active device.
     private BluetoothDevice mDevice;
+    // Phone account associated with the above device.
+    private PhoneAccount mDevicePhoneAccount;
+    // BluetoothHeadset proxy.
     private BluetoothHeadsetClient mHeadsetProfile;
     private TelecomManager mTelecomManager;
 
@@ -65,11 +71,34 @@ public class HfpClientConnectionService extends ConnectionService {
             String action = intent != null ? intent.getAction() : null;
 
             if (BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
-                mDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 int newState = intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
 
-                Log.d(TAG, "Established connection with " + mDevice);
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    Log.d(TAG, "Established connection with " + device);
+                    synchronized (HfpClientConnectionService.this) {
+                        if (device.equals(mDevice)) {
+                            // We are already connected and this message can be safeuly ignored.
+                            Log.w(TAG, "Got connected for previously connected device, ignoring.");
+                        } else {
+                            // Since we are connected to a new device close down the previous
+                            // account and register the new one.
+                            if (mDevicePhoneAccount != null) {
+                                mTelecomManager.unregisterPhoneAccount(
+                                    mDevicePhoneAccount.getAccountHandle());
+                            }
+                            // Reset the device and the phone account associated.
+                            mDevice = device;
+                            mDevicePhoneAccount =
+                                getAccount(HfpClientConnectionService.this, device);
+                            mTelecomManager.registerPhoneAccount(mDevicePhoneAccount);
+                            mTelecomManager.enablePhoneAccount(
+                                mDevicePhoneAccount.getAccountHandle(), true);
+                            mTelecomManager.setUserSelectedOutgoingPhoneAccount(
+                                mDevicePhoneAccount.getAccountHandle());
+                        }
+                    }
+
                     // Add any existing calls to the telecom stack.
                     if (mHeadsetProfile != null) {
                         List<BluetoothHeadsetClientCall> calls =
@@ -81,8 +110,18 @@ public class HfpClientConnectionService extends ConnectionService {
                     } else {
                     }
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    Log.d(TAG, "Disconnecting from " + device);
                     // Disconnect any inflight calls from the connection service.
-                    disconnectAll();
+                    synchronized (HfpClientConnectionService.this) {
+                        if (device.equals(mDevice)) {
+                            Log.d(TAG, "Resetting state for " + device);
+                            mDevice = null;
+                            disconnectAll();
+                            mTelecomManager.unregisterPhoneAccount(
+                                mDevicePhoneAccount.getAccountHandle());
+                            mDevicePhoneAccount = null;
+                        }
+                    }
                 }
             } else if (BluetoothHeadsetClient.ACTION_CALL_CHANGED.equals(action)) {
                 // If we are not connected, then when we actually do get connected -- the calls should
@@ -105,21 +144,47 @@ public class HfpClientConnectionService extends ConnectionService {
 
     @Override
     public void onDestroy() {
+        Log.d(TAG, "onDestroy called");
+        // Close the profile.
         if (mHeadsetProfile != null) {
             mAdapter.closeProfileProxy(BluetoothProfile.HEADSET_CLIENT, mHeadsetProfile);
         }
-        unregisterReceiver(mBroadcastReceiver);
+
+        // Unregister the broadcast receiver.
+        try {
+            unregisterReceiver(mBroadcastReceiver);
+        } catch (IllegalArgumentException ex) {
+            Log.w(TAG, "Receiver was not registered.");
+        }
+
+        // Unregister the phone account. This should ideally happen when disconnection ensues but in
+        // case the service crashes we may need to force clean.
+        synchronized (this) {
+            mDevice = null;
+            if (mDevicePhoneAccount != null) {
+                mTelecomManager.unregisterPhoneAccount(mDevicePhoneAccount.getAccountHandle());
+                mDevicePhoneAccount = null;
+            }
+        }
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand " + intent);
-        String action = intent != null ? intent.getAction() : null;
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(BluetoothHeadsetClient.ACTION_CALL_CHANGED);
-        registerReceiver(mBroadcastReceiver, filter);
-        return START_STICKY;
+        // In order to make sure that the service is sticky (recovers from errors when HFP
+        // connection is still active) and to stop it we need a special intent since stopService
+        // only recreates it.
+        if (intent.getBooleanExtra(HeadsetClientService.HFP_CLIENT_STOP_TAG, false)) {
+            // Stop the service.
+            stopSelf();
+            return 0;
+        } else {
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
+            filter.addAction(BluetoothHeadsetClient.ACTION_CALL_CHANGED);
+            registerReceiver(mBroadcastReceiver, filter);
+            return START_STICKY;
+        }
     }
 
     private void handleCall(BluetoothHeadsetClientCall call) {
@@ -135,7 +200,7 @@ public class HfpClientConnectionService extends ConnectionService {
             // Create the connection here, trigger Telecom to bind to us.
             buildConnection(call.getDevice(), call, number);
 
-            PhoneAccountHandle handle = HfpClientConnectionService.getHandle(this);
+            PhoneAccountHandle handle = getHandle();
             TelecomManager manager =
                     (TelecomManager) getSystemService(Context.TELECOM_SERVICE);
 
@@ -169,7 +234,7 @@ public class HfpClientConnectionService extends ConnectionService {
             ConnectionRequest request) {
         Log.d(TAG, "onCreateIncomingConnection " + connectionManagerAccount + " req: " + request);
         if (connectionManagerAccount != null &&
-                !getHandle(this).equals(connectionManagerAccount)) {
+                !getHandle().equals(connectionManagerAccount)) {
             Log.w(TAG, "HfpClient does not support having a connection manager");
             return null;
         }
@@ -199,7 +264,7 @@ public class HfpClientConnectionService extends ConnectionService {
             ConnectionRequest request) {
         Log.d(TAG, "onCreateOutgoingConnection " + connectionManagerAccount);
         if (connectionManagerAccount != null &&
-                !getHandle(this).equals(connectionManagerAccount)) {
+                !getHandle().equals(connectionManagerAccount)) {
             Log.w(TAG, "HfpClient does not support having a connection manager");
             return null;
         }
@@ -219,7 +284,7 @@ public class HfpClientConnectionService extends ConnectionService {
             ConnectionRequest request) {
         Log.d(TAG, "onCreateUnknownConnection " + connectionManagerAccount);
         if (connectionManagerAccount != null &&
-                !getHandle(this).equals(connectionManagerAccount)) {
+                !getHandle().equals(connectionManagerAccount)) {
             Log.w(TAG, "HfpClient does not support having a connection manager");
             return null;
         }
@@ -246,8 +311,8 @@ public class HfpClientConnectionService extends ConnectionService {
     public void onConference(Connection connection1, Connection connection2) {
         Log.d(TAG, "onConference " + connection1 + " " + connection2);
         if (mConference == null) {
-            BluetoothDevice device = getDevice(getHandle(this));
-            mConference = new HfpClientConference(getHandle(this), device, mHeadsetProfile);
+            BluetoothDevice device = getDevice(getHandle());
+            mConference = new HfpClientConference(getHandle(), device, mHeadsetProfile);
             addConference(mConference);
         }
         mConference.setActive();
@@ -287,8 +352,8 @@ public class HfpClientConnectionService extends ConnectionService {
             connection.setConferenceableConnections(held);
         }
         if (group.size() > 1 && mConference == null) {
-            BluetoothDevice device = getDevice(getHandle(this));
-            mConference = new HfpClientConference(getHandle(this), device, mHeadsetProfile);
+            BluetoothDevice device = getDevice(getHandle());
+            mConference = new HfpClientConference(getHandle(), device, mHeadsetProfile);
             if (group.get(0).getState() == Connection.STATE_ACTIVE) {
                 mConference.setActive();
             } else {
@@ -361,6 +426,22 @@ public class HfpClientConnectionService extends ConnectionService {
             Log.d(TAG, "onServiceConnected");
             mHeadsetProfile = (BluetoothHeadsetClient) proxy;
 
+            List<BluetoothDevice> devices = mHeadsetProfile.getConnectedDevices();
+            if (devices == null || devices.size() != 1) {
+                Log.w(TAG, "No connected or more than one connected devices found." + devices);
+            } else { // We have exactly one device connected.
+                Log.d(TAG, "Creating phone account.");
+                synchronized (HfpClientConnectionService.this) {
+                    mDevice = devices.get(0);
+                    mDevicePhoneAccount = getAccount(HfpClientConnectionService.this, mDevice);
+                    mTelecomManager.registerPhoneAccount(mDevicePhoneAccount);
+                    mTelecomManager.enablePhoneAccount(
+                        mDevicePhoneAccount.getAccountHandle(), true);
+                    mTelecomManager.setUserSelectedOutgoingPhoneAccount(
+                        mDevicePhoneAccount.getAccountHandle());
+                }
+            }
+
             for (HfpClientConnection connection : mConnections.values()) {
                 connection.onHfpConnected(mHeadsetProfile);
             }
@@ -393,15 +474,17 @@ public class HfpClientConnectionService extends ConnectionService {
                 features.getBoolean(BluetoothHeadsetClient.EXTRA_AG_FEATURE_ECC, false);
     }
 
-    public static PhoneAccountHandle getHandle(Context context) {
-        return new PhoneAccountHandle(
-                new ComponentName(context, HfpClientConnectionService.class), "hfp");
+    public synchronized PhoneAccountHandle getHandle() {
+        if (mDevicePhoneAccount == null) throw new IllegalStateException("Handle null??");
+        return mDevicePhoneAccount.getAccountHandle();
     }
 
     public static PhoneAccount getAccount(Context context, BluetoothDevice device) {
         Uri addr = Uri.fromParts(HfpClientConnectionService.HFP_SCHEME, device.getAddress(), null);
+        PhoneAccountHandle handle = new PhoneAccountHandle(
+            new ComponentName(context, HfpClientConnectionService.class), device.getAddress());
         PhoneAccount account =
-                new PhoneAccount.Builder(HfpClientConnectionService.getHandle(context), "HFP")
+                new PhoneAccount.Builder(handle, "HFP")
                     .setAddress(addr)
                     .setSupportedUriSchemes(Arrays.asList(PhoneAccount.SCHEME_TEL))
                     .setCapabilities(PhoneAccount.CAPABILITY_CALL_PROVIDER)
