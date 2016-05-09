@@ -880,14 +880,9 @@ public final class Avrcp {
 
     private void sendTrackChangedRsp() {
         byte[] track = new byte[TRACK_ID_SIZE];
-
-        /* If no track is currently selected, then return
-           0xFFFFFFFFFFFFFFFF in the interim response */
         long trackNumberRsp = -1L;
 
-        if (isPlayingState(mCurrentPlayState)) {
-            trackNumberRsp = mTrackNumber;
-        }
+        trackNumberRsp = mTrackNumber;
 
         /* track is stored in big endian format */
         for (int i = 0; i < TRACK_ID_SIZE; ++i) {
