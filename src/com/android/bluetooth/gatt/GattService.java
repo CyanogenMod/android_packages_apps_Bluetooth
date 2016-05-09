@@ -66,6 +66,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 /**
  * Provides Bluetooth Gatt profile, as a service in
  * the Bluetooth application.
@@ -1309,7 +1310,16 @@ public class GattService extends ProfileService {
         } else {
             app = mClientMap.getAppScanStatsById(appIf);
         }
-        if (app != null) app.recordScanStart(settings);
+
+        if (app != null) {
+            if (app.isScanningTooFrequently() &&
+                checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED) != PERMISSION_GRANTED) {
+                Log.e(TAG, "App '" + app.appName + "' is scanning too frequently");
+                return;
+            }
+            scanClient.stats = app;
+            app.recordScanStart(settings);
+        }
 
         mScanManager.startScan(scanClient);
     }

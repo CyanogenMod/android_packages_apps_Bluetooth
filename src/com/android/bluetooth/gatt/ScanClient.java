@@ -47,6 +47,8 @@ import java.util.UUID;
     // Who is responsible for this scan.
     WorkSource workSource;
 
+    AppScanStats stats = null;
+
     private static final ScanSettings DEFAULT_SCAN_SETTINGS = new ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
 
