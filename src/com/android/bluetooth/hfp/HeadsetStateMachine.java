@@ -947,7 +947,7 @@ final class HeadsetStateMachine extends StateMachine {
                                    BluetoothProfile.STATE_CONNECTED);
                     if (!disconnectHfpNative(getByteAddress(device))) {
                         broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTED,
-                                       BluetoothProfile.STATE_DISCONNECTED);
+                                       BluetoothProfile.STATE_DISCONNECTING);
                         break;
                     }
 
