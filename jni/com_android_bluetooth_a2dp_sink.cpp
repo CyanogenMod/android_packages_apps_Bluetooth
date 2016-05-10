@@ -168,7 +168,7 @@ static void initNative(JNIEnv *env, jobject object, jint maxA2dpConnections,
     }
 
     if ( (status = sBluetoothA2dpInterface->init(&sBluetoothA2dpCallbacks,
-            maxA2dpConnections, multiCastState)) != BT_STATUS_SUCCESS) {
+            maxA2dpConnections, multiCastState, NULL)) != BT_STATUS_SUCCESS) {
         ALOGE("Failed to initialize Bluetooth A2DP Sink, status: %d", status);
         sBluetoothA2dpInterface = NULL;
         return;

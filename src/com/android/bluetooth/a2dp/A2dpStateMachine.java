@@ -148,7 +148,7 @@ final class A2dpStateMachine extends StateMachine {
     }
 
     private A2dpStateMachine(A2dpService svc, Context context, int
-            maxConnections, int multiCastState) {
+            maxConnections, int multiCastState, String offload_cap) {
         super("A2dpStateMachine");
         mService = svc;
         mContext = context;
@@ -162,7 +162,7 @@ final class A2dpStateMachine extends StateMachine {
             isMultiCastFeatureEnabled = false;
         }
 
-        initNative(maxA2dpConnections, multiCastState);
+        initNative(maxA2dpConnections, multiCastState, offload_cap);
 
         mDisconnected = new Disconnected();
         mPending = new Pending();
@@ -187,10 +187,10 @@ final class A2dpStateMachine extends StateMachine {
     }
 
     static A2dpStateMachine make(A2dpService svc, Context context,
-             int maxConnections, int multiCastState) {
+             int maxConnections, int multiCastState, String offload_cap) {
         Log.d("A2dpStateMachine", "make");
         A2dpStateMachine a2dpSm = new A2dpStateMachine(svc, context,
-                 maxConnections, multiCastState);
+                 maxConnections, multiCastState, offload_cap);
         a2dpSm.start();
         return a2dpSm;
     }
@@ -804,6 +804,9 @@ final class A2dpStateMachine extends StateMachine {
                         case EVENT_TYPE_AUDIO_STATE_CHANGED:
                             processAudioStateEvent(event.valueInt, event.device);
                             break;
+                        case EVENT_TYPE_RECONFIGURE_A2DP:
+                            processReconfigA2dp(event.valueInt, event.device);
+                            break;
                         default:
                             loge("Unexpected stack event: " + event.type);
                             break;
@@ -1085,6 +1088,17 @@ final class A2dpStateMachine extends StateMachine {
                   break;
             }
         }
+        private void processReconfigA2dp(int state, BluetoothDevice device){
+            log("processReconfigA2dp state" + state);
+            switch (state) {
+                case SOFT_HANDOFF:
+                    broadcastReconfigureA2dp(device);
+                    break;
+                default:
+                    loge("Unknown reconfigure state");
+                    break;
+            }
+        }
     }
     /* Add MultiConnectionPending state when atleast 1 HS is connected
         and disconnect/connect is initiated for new HS */
@@ -1142,6 +1156,9 @@ final class A2dpStateMachine extends StateMachine {
                             break;
                         case EVENT_TYPE_AUDIO_STATE_CHANGED:
                             processAudioStateEvent(event.valueInt, event.device);
+                            break;
+                        case EVENT_TYPE_RECONFIGURE_A2DP:
+                            processReconfigA2dp(event.valueInt, event.device);
                             break;
                         default:
                             loge("Unexpected stack event: " + event.type);
@@ -1476,6 +1493,18 @@ final class A2dpStateMachine extends StateMachine {
             }
         }
 
+        private void processReconfigA2dp(int state, BluetoothDevice device){
+            log("processReconfigA2dp state" + state);
+            switch (state) {
+                case SOFT_HANDOFF:
+                    broadcastReconfigureA2dp(device);
+                    break;
+                default:
+                    loge("Unknown reconfigure state");
+                    break;
+            }
+        }
+
         private void processMultiA2dpDisconnected(BluetoothDevice device) {
             log("processMultiA2dpDisconnected state: processMultiA2dpDisconnected");
 
@@ -1672,6 +1701,11 @@ final class A2dpStateMachine extends StateMachine {
         log("A2DP Playing state : device: " + device + " State:" + prevState + "->" + state);
     }
 
+    private void broadcastReconfigureA2dp(BluetoothDevice device) {
+        log("broadcastReconfigureA2dp");
+        mAudioManager.setParameters("reconfigA2dp=true");
+    }
+
     private byte[] getByteAddress(BluetoothDevice device) {
         return Utils.getBytesFromAddress(device.getAddress());
     }
@@ -1710,6 +1744,15 @@ final class A2dpStateMachine extends StateMachine {
             Log.i(TAG,"A2dp Multicast is Disabled");
             isMultiCastEnabled = false;
         }
+    }
+
+    private void onReconfigA2dpTriggered(int reason, byte[] address) {
+        BluetoothDevice device = getDevice(address);
+        Log.i(TAG,"onSoftHandoffTriggered to device " + device);
+        StackEvent event = new StackEvent(EVENT_TYPE_RECONFIGURE_A2DP);
+        event.valueInt = reason;//SOFT_HANDOFF;
+        event.device = device;
+        sendMessage(STACK_EVENT,event);
     }
 
     private BluetoothDevice getDevice(byte[] address) {
@@ -1762,6 +1805,10 @@ final class A2dpStateMachine extends StateMachine {
     final private static int EVENT_TYPE_NONE = 0;
     final private static int EVENT_TYPE_CONNECTION_STATE_CHANGED = 1;
     final private static int EVENT_TYPE_AUDIO_STATE_CHANGED = 2;
+    final private static int EVENT_TYPE_RECONFIGURE_A2DP = 3;
+
+    // Reason to Reconfig A2dp
+    final private static int SOFT_HANDOFF = 1;
 
    // Do not modify without updating the HAL bt_av.h files.
 
@@ -1778,7 +1825,7 @@ final class A2dpStateMachine extends StateMachine {
 
     private native static void classInitNative();
     private native void initNative(int maxA2dpConnectionsAllowed,
-            int multiCastState);
+            int multiCastState, String offload_cap);
     private native void cleanupNative();
     private native boolean connectA2dpNative(byte[] address);
     private native boolean disconnectA2dpNative(byte[] address);

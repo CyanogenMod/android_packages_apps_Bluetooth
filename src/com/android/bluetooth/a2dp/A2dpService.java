@@ -73,6 +73,12 @@ public class A2dpService extends ProfileService {
                 SystemProperties.getInt("persist.bt.max.a2dp.connections", 1);
         int a2dpMultiCastState =
                 SystemProperties.getInt("persist.bt.enable.multicast", 0);
+        String offload_cap =
+                SystemProperties.get("persist.bt.a2dp_offload_cap", null);
+        if (offload_cap != null && a2dpMultiCastState == 1) {
+            Log.i(TAG,"Split a2dp mode is enabled, disabling multicast");
+            a2dpMultiCastState = 0;
+        }
         if (a2dpMultiCastState == 1)
                 multiCastState = a2dpMultiCastState;
         if (maxA2dpConnection == 2)
@@ -85,7 +91,7 @@ public class A2dpService extends ProfileService {
         log( "maxA2dpConnections = " + maxConnections);
         log( "multiCastState = " + multiCastState);
         mStateMachine = A2dpStateMachine.make(this, this,
-                maxConnections, multiCastState);
+                maxConnections, multiCastState, offload_cap);
         setA2dpService(this);
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mAvrcp = Avrcp.make(this, this, maxConnections);
