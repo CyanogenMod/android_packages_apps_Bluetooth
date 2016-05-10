@@ -52,4 +52,7 @@
 
     <!-- For A2DP sink ducking volume feature. -->
     <integer name="a2dp_sink_duck_percent">25</integer>
+
+    <!-- For enabling the hfp client connection service -->
+    <bool name="hfp_client_connection_service_enabled">false</bool>
 </resources>

@@ -358,7 +358,7 @@
             android:process="@string/process"
             android:name=".hfpclient.connserv.HfpClientConnectionService"
             android:permission="android.permission.BIND_CONNECTION_SERVICE"
-            android:enabled="@bool/profile_supported_hfpclient">
+            android:enabled="@bool/hfp_client_connection_service_enabled">
             <intent-filter>
                 <!-- Mechanism for Telecom stack to connect -->
                 <action android:name="android.telecom.ConnectionService" />
