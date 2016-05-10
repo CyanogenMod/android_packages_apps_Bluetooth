@@ -139,6 +139,8 @@ public class AdapterService extends Service {
       "DUAL"
     };
 
+    private static final int CONTROLLER_ENERGY_UPDATE_TIMEOUT_MILLIS = 30;
+
     static {
         classInitNative();
     }
@@ -1410,12 +1412,6 @@ public class AdapterService extends Service {
              return service.isActivityAndEnergyReportingSupported();
          }
 
-         public void getActivityEnergyInfoFromController() {
-             AdapterService service = getService();
-             if (service == null) return;
-             service.getActivityEnergyInfoFromController();
-         }
-
          public BluetoothActivityEnergyInfo reportActivityInfo() {
              AdapterService service = getService();
              if (service == null) return null;
@@ -2160,16 +2156,24 @@ public class AdapterService extends Service {
           return mAdapterProperties.isActivityAndEnergyReportingSupported();
     }
 
-    private void getActivityEnergyInfoFromController() {
-        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED, "Need BLUETOOTH permission");
-        if (isActivityAndEnergyReportingSupported()) {
-            readEnergyInfo();
-        }
-    }
-
     private BluetoothActivityEnergyInfo reportActivityInfo() {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED, "Need BLUETOOTH permission");
+        if (mAdapterProperties.getState() != BluetoothAdapter.STATE_ON ||
+                !mAdapterProperties.isActivityAndEnergyReportingSupported()) {
+            return null;
+        }
+
+        // Pull the data. The callback will notify mEnergyInfoLock.
+        readEnergyInfo();
+
         synchronized (mEnergyInfoLock) {
+            try {
+                mEnergyInfoLock.wait(CONTROLLER_ENERGY_UPDATE_TIMEOUT_MILLIS);
+            } catch (InterruptedException e) {
+                // Just continue, the energy data may be stale but we won't miss anything next time
+                // we query.
+            }
+
             final BluetoothActivityEnergyInfo info = new BluetoothActivityEnergyInfo(
                     SystemClock.elapsedRealtime(),
                     mStackReportedState,
@@ -2336,6 +2340,7 @@ public class AdapterService extends Service {
                         existingTraffic.addTxBytes(traffic.getTxBytes());
                     }
                 }
+                mEnergyInfoLock.notifyAll();
             }
         }
 
