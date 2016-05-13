@@ -260,8 +260,15 @@ public class BluetoothOppUtility {
                 PackageManager.MATCH_DEFAULT_ONLY);
 
         if (list.size() == 0) {
-            if (D) Log.d(TAG, "NO application to handle MIME type " + mimetype);
-            ret = false;
+            mimetypeIntent = new Intent(Intent.ACTION_VIEW);
+            mimetypeIntent.setDataAndType(fileUri, mimetype);
+            list = context.getPackageManager().queryIntentActivities(mimetypeIntent,
+                    PackageManager.MATCH_DEFAULT_ONLY);
+
+            if (list.size() == 0) {
+                if (D) Log.d(TAG, "NO application to handle MIME type " + mimetype);
+                ret = false;
+            }
         }
         return ret;
     }
