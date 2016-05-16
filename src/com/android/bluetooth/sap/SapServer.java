@@ -50,8 +50,8 @@ import com.google.protobuf.micro.CodedOutputStreamMicro;
 public class SapServer extends Thread implements Callback {
     private static final String TAG = "SapServer";
     private static final String TAG_HANDLER = "SapServerHandler";
-    public static final boolean DEBUG = Log.isLoggable(SapService.LOG_TAG, Log.DEBUG);
-    public static final boolean VERBOSE = Log.isLoggable(SapService.LOG_TAG, Log.VERBOSE);
+    public static final boolean DEBUG = true;
+    public static final boolean VERBOSE = SapService.VERBOSE;
 
     private enum SAP_STATE    {
         DISCONNECTED, CONNECTING, CONNECTING_CALL_ONGOING, CONNECTED,
@@ -198,6 +198,7 @@ public class SapServer extends Thread implements Callback {
         } else {
             SapMessage msg = new SapMessage(SapMessage.ID_DISCONNECT_REQ);
             /* Force disconnect of RFCOMM - but first we need to clean up. */
+            if(DEBUG) Log.d(TAG, "Cleaning up before force disconnecting rfcomm");
             clearPendingRilResponses(msg);
 
             /* We simply need to forward to RIL, but not change state to busy - hence send and set

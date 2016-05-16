@@ -26,8 +26,8 @@ import android.util.Log;
 public class SapMessage {
 
     public static final String TAG = "SapMessage";
-    public static final boolean DEBUG = Log.isLoggable(SapService.LOG_TAG, Log.DEBUG);
-    public static final boolean VERBOSE = Log.isLoggable(SapService.LOG_TAG, Log.VERBOSE);
+    public static final boolean DEBUG = true;
+    public static final boolean VERBOSE = SapService.VERBOSE;
     public static final boolean TEST = false;
 
     /* Message IDs - SAP specification */
@@ -721,6 +721,7 @@ public class SapMessage {
         msg.setType(SapApi.REQUEST);
         msg.setError(SapApi.RIL_E_UNUSED);
 
+        if(DEBUG) Log.d(TAG, "Writing request, message type:" + mMsgType);
         switch(mMsgType) {
         case ID_CONNECT_REQ:
         {

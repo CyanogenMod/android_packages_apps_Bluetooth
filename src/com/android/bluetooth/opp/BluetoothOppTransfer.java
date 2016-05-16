@@ -535,6 +535,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                if (mBluetoothReceiver != null){
                   mContext.unregisterReceiver(mBluetoothReceiver);
                    mBluetoothReceiver = null;
+                   if (V) Log.v(TAG, "Un Registered mBluetoothReceiver");
                }
            } catch (Exception e) {
                Log.e(TAG, "Exception:unregisterReceiver");
@@ -566,10 +567,17 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             mConnectThread = new SocketConnectThread("localhost", Constants.TCP_DEBUG_PORT, 0);
             mConnectThread.start();
         } else {
-           OolConnManager.setSdpInitiatedAddress(mBatch.mDestination);
-           mBatch.mDestination.sdpSearch(BluetoothUuid.ObexObjectPush);
-           mConnectThread = new SocketConnectThread(mBatch.mDestination,false);
-           mConnectThread.start();
+            OolConnManager.setSdpInitiatedAddress(mBatch.mDestination);
+            if (!mBatch.mDestination.sdpSearch(BluetoothUuid.ObexObjectPush)) {
+                /* SDP failed, start rfcomm connect directly */
+                mConnectThread = new SocketConnectThread(mBatch.mDestination, false, false);
+                /* update bd address as sdp could not be started */
+                OolConnManager.setSdpInitiatedAddress(null);
+            } else {
+                /* SDP sucessfully started, start l2cap connect after sdp completes */
+                mConnectThread = new SocketConnectThread(mBatch.mDestination, false, true);
+            }
+            mConnectThread.start();
         }
     }
 
@@ -592,6 +600,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
         private boolean mRetry = false;
 
+        private boolean mSdpInitiated = false;
+
         /* create a TCP socket */
         public SocketConnectThread(String host, int port, int dummy) {
             super("Socket Connect Thread");
@@ -599,9 +609,10 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             this.channel = port;
             this.device = null;
             isConnected = false;
+            mSdpInitiated = false;
         }
 
-        /* create a Rfcomm Socket */
+        /* create a Rfcomm/L2CAP Socket */
         public SocketConnectThread(BluetoothDevice device, int channel, boolean
                 retry) {
             super("Socket Connect Thread");
@@ -610,17 +621,30 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             this.channel = channel;
             isConnected = false;
             mRetry = retry;
+            mSdpInitiated = false;
         }
 
-        /* create a Rfcomm Socket */
-        public SocketConnectThread(BluetoothDevice device, boolean
-                retry) {
+        /* create a Rfcomm/L2CAP Socket */
+        public SocketConnectThread(BluetoothDevice device, boolean retry) {
             super("Socket Connect Thread");
             this.device = device;
             this.host = null;
             this.channel = -1;
             isConnected = false;
             mRetry = retry;
+            mSdpInitiated = false;
+        }
+
+        /* create a Rfcomm/L2CAP Socket */
+        public SocketConnectThread(BluetoothDevice device, boolean retry,
+                boolean sdpInitiated) {
+            super("Socket Connect Thread");
+            this.device = device;
+            this.host = null;
+            this.channel = -1;
+            isConnected = false;
+            mRetry = retry;
+            mSdpInitiated = sdpInitiated;
         }
 
         public void interrupt() {
@@ -744,11 +768,32 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                     return ;
                 }
 
+                Log.d(TAG, "sdp initiated = " + mSdpInitiated);
+
+                // check if sdp initiated successfully for l2cap or not. If not connect
+                // directly to rfcomm
+                if (!mSdpInitiated) {
+                    /* sdp failed for some reason, connect on rfcomm */
+                    Log.d(TAG, "sdp not initiated, connecting on rfcomm");
+                    connectRfcommSocket();
+                    return;
+                }
+
+                /* Reset the flag */
+                mSdpInitiated = false;
+
                 /* Use BluetoothSocket to connect */
                 l2cChannel = 0;
                 try {
                     l2cChannel = OolConnManager.getL2cPSM(device);
-                    btSocket = device.createInsecureL2capSocket(l2cChannel);
+                    if (l2cChannel > 0) {
+                        Log.d(TAG, "Connecting to l2cap psm = " + l2cChannel);
+                        btSocket = device.createInsecureL2capSocket(l2cChannel);
+                    } else {
+                        Log.d(TAG, "L2cap psm not found, connecting on rfcomm");
+                        connectRfcommSocket();
+                        return;
+                    }
                 } catch (IOException e1) {
                   Log.e(TAG, "L2cap socket create error",e1);
                   connectRfcommSocket();

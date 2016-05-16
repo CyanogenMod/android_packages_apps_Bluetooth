@@ -55,6 +55,7 @@ public class BluetoothMapAppObserver{
     private PackageManager mPackageManager = null;
     BluetoothMapAccountEmailLoader mLoader;
     BluetoothMapService mMapService = null;
+    private boolean mRegisteredReceiver = false;
 
     public BluetoothMapAppObserver(final Context context, BluetoothMapService mapService) {
         mContext    = context;
@@ -283,12 +284,26 @@ public class BluetoothMapAppObserver{
                 }
             }
         };
-        mContext.registerReceiver(mReceiver,intentFilter);
+        if (!mRegisteredReceiver) {
+            try {
+                mContext.registerReceiver(mReceiver,intentFilter);
+                mRegisteredReceiver = true;
+            } catch (Exception e) {
+                Log.e(TAG,"Unable to register MapAppObserver receiver",e);
+            }
+        }
     }
 
     private void removeReceiver(){
         if(D)Log.d(TAG,"removeReceiver()\n");
-        mContext.unregisterReceiver(mReceiver);
+        if (mRegisteredReceiver) {
+            try {
+                mRegisteredReceiver = false;
+                mContext.unregisterReceiver(mReceiver);
+            } catch (Exception e) {
+                Log.e(TAG,"Unable to unregister mapAppObserver receiver",e);
+            }
+        }
     }
 
     /**

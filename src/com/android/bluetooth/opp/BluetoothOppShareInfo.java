@@ -60,17 +60,18 @@ public class BluetoothOppShareInfo {
 
     public int mStatus;
 
-    public int mTotalBytes;
+    public long  mTotalBytes;
 
-    public int mCurrentBytes;
+    public long mCurrentBytes;
 
     public long mTimestamp;
 
     public boolean mMediaScanned;
 
     public BluetoothOppShareInfo(int id, Uri uri, String hint, String filename, String mimetype,
-            int direction, String destination, int visibility, int confirm, int status,
-            int totalBytes, int currentBytes, int timestamp, boolean mediaScanned) {
+            int direction, String destination, int  visibility, int confirm, int status,
+            long totalBytes, long currentBytes, long  timestamp, boolean mediaScanned) {
+
         mId = id;
         mUri = uri;
         mHint = hint;
@@ -96,6 +97,7 @@ public class BluetoothOppShareInfo {
             if (mStatus == BluetoothShare.STATUS_PENDING && mUri != null) {
                 return true;
             }
+
         } else if (mDirection == BluetoothShare.DIRECTION_INBOUND) {
             if (mStatus == BluetoothShare.STATUS_PENDING) {
                 //&& mConfirm != BluetoothShare.USER_CONFIRMATION_PENDING) {
