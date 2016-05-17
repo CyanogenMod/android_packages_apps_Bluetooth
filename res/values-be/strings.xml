@@ -33,7 +33,9 @@
   <!-- string for "unknown device" -->
   <!-- string for "unknown" phone number" -->
   <!-- string for "the title of airplane mode error" -->
+  <string name="airplane_error_title">Рэжым лёту</string>
   <!-- string for "error message in airplane mode" -->
+  <string name="airplane_error_msg">Нельга выкарыстоўваць Bluetooth падчас рэжыма лёту.</string>
   <!-- Activate Bluetooth Confirmation Dialog -->
   <!--Title -->
   <!--Line 1 -->
