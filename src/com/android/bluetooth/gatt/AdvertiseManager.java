@@ -184,7 +184,7 @@ class AdvertiseManager {
         private void handleStartAdvertising(AdvertiseClient client) {
             Utils.enforceAdminPermission(mService);
             int clientIf = client.clientIf;
-            if (mAdvertiseClients.contains(clientIf)) {
+            if (mAdvertiseClients.contains(client)) {
                 postCallback(clientIf, AdvertiseCallback.ADVERTISE_FAILED_ALREADY_STARTED);
                 return;
             }
