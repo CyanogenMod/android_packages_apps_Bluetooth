@@ -1027,13 +1027,20 @@ public class BluetoothMapContentEmail extends BluetoothMapContent {
                 BluetoothMapEmailContract.buildMailboxUri(mAccount.getProviderAuthority());
         long accountId = mAccount.getAccountId();
         String where = BluetoothMapEmailContract.MailBoxColumns.ACCOUNT_KEY + "=" + accountId;
-        if(parentFolder.getFolderId() == -1) {
+        // Fix subFolder listing for mandatory folders added with folderId "-1".
+        if (parentFolder.getName().equals("msg") && parentFolder.getFolderId() == -1) {
+            //Fetch initial folders list, duplicate entries for name is already handled.
             where += " AND (" + BluetoothMapEmailContract.MailBoxColumns.PARENT_KEY +
                     " = " + parentFolder.getFolderId() + " OR "+
                     BluetoothMapEmailContract.MailBoxColumns.PARENT_SERVER_ID + " ISNULL )";
-         } else {
+         } else if( parentFolder.getFolderId() != -1) {
+           //Fetch subfolders
            where += " AND " + BluetoothMapEmailContract.MailBoxColumns.PARENT_KEY +
                     " = " + parentFolder.getFolderId();
+         } else {
+             if(V) Log.w(TAG,"Not a valid parentFolderId to fetch subFolders" +
+                     parentFolder.getName());
+             return;
          }
          if (V) Log.v(TAG, "addEmailFolders(): parentFolder: "+ parentFolder.getName() +
             "accountId: " + accountId+ " where: " + where);
