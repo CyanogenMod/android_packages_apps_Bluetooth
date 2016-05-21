@@ -2,7 +2,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="hello" msgid="1740533743008967039">"হ্যালো ওয়ার্ল্ড, TestActivity"</string>
-    <string name="app_name" msgid="1203877025577761792">"Bluetooth শেয়ার করা"</string>
+    <string name="app_name" msgid="1203877025577761792">"ব্লুটুথ শেয়ার করা"</string>
     <string name="insert_record" msgid="1450997173838378132">"রেকর্ড ঢোকান"</string>
     <string name="update_record" msgid="2480425402384910635">"রেকর্ড নিশ্চিত করুন"</string>
     <string name="ack_record" msgid="6716152390978472184">"Ack রেকর্ড"</string>
