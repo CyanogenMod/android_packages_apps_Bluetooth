@@ -69,7 +69,7 @@ public class ScanManager {
     private static final int MSG_SCAN_TIMEOUT = 3;
 
     // Maximum msec before scan gets downgraded to opportunistic
-    private static final int SCAN_TIMEOUT_MS = 5 * 60 * 1000;
+    private static final int SCAN_TIMEOUT_MS = 30 * 60 * 1000;
 
     private static final String ACTION_REFRESH_BATCHED_SCAN =
             "com.android.bluetooth.gatt.REFRESH_BATCHED_SCAN";
