@@ -566,6 +566,7 @@ void btgattc_get_gatt_db_cb(int conn_id, btgatt_db_element_t *db, int count)
     jclass arrayListclazz = sCallbackEnv->FindClass("java/util/ArrayList");
     jobject array = sCallbackEnv->NewObject(arrayListclazz, sCallbackEnv->GetMethodID(arrayListclazz, "<init>", "()V"));
     jmethodID arrayAdd = sCallbackEnv->GetMethodID(arrayListclazz, "add", "(Ljava/lang/Object;)Z");
+    sCallbackEnv->DeleteLocalRef(arrayListclazz);
 
     jclass uuidClazz = sCallbackEnv->FindClass("java/util/UUID");
     jmethodID uuidConstructor = sCallbackEnv->GetMethodID(uuidClazz, "<init>", "(JJ)V");
@@ -601,6 +602,9 @@ void btgattc_get_gatt_db_cb(int conn_id, btgatt_db_element_t *db, int count)
         sCallbackEnv->CallBooleanMethod(array, arrayAdd, element);
         sCallbackEnv->DeleteLocalRef(element);
     }
+
+    sCallbackEnv->DeleteLocalRef(gattDbElementClazz);
+    sCallbackEnv->DeleteLocalRef(uuidClazz);
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetGattDb, conn_id, array);
     sCallbackEnv->DeleteLocalRef(array);
