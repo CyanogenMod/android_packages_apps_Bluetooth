@@ -17,6 +17,7 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <!-- label for the notification if the zero length file is rejected by the remote device -->
   <string name="empty_file_notification_sent">บลูทูธที่ใช้ร่วมกัน: อุปกรณ์ปฏิเสธระยะไกลไฟล์ความยาวเป็นศูนย์ <xliff:g id="file"> %1$s</xliff:g></string>
   <string name="upload_fail_waiting">ไม่สามารถส่งไฟล์ได้ กำลังลองอีกครั้ง\u2026</string>
 </resources>

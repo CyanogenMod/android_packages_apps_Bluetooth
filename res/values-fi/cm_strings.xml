@@ -17,6 +17,7 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <!-- label for the notification if the zero length file is rejected by the remote device -->
   <string name="empty_file_notification_sent">Bluetooth-jako: etälaite hylkäsi tyhjän tiedoston <xliff:g id="file">%1$s</xliff:g></string>
   <string name="upload_fail_waiting">Tiedoston lähetys epäonnistui, yritetään uudelleen\u2026</string>
 </resources>

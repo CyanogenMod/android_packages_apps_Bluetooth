@@ -17,6 +17,7 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <!-- label for the notification if the zero length file is rejected by the remote device -->
   <string name="empty_file_notification_sent">블루투스 공유: 길이가 0인 파일 <xliff:g id="file">%1$s</xliff:g>의 전송이 거부되었습니다.</string>
   <string name="upload_fail_waiting">파일 전송 실패, 재시도 중\u2026</string>
 </resources>

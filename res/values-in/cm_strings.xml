@@ -17,6 +17,7 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="empty_file_notification_sent">Berbagi Bluetooth: Remote menolak berkas yang berukuran nol <xliff:g id="file">%1$s</xliff:g></string>
+  <!-- label for the notification if the zero length file is rejected by the remote device -->
+  <string name="empty_file_notification_sent">Berbagi Bluetooth: Target menolak berkas yang berukuran nol <xliff:g id="file">%1$s</xliff:g></string>
   <string name="upload_fail_waiting">Tidak dapat mengirim berkas, mencoba kembali\u2026</string>
 </resources>

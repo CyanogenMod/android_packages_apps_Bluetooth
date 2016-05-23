@@ -17,6 +17,7 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <!-- label for the notification if the zero length file is rejected by the remote device -->
   <string name="empty_file_notification_sent">ব্লুটুথ শেয়ারঃ দূরবর্তী শূন্য দৈর্ঘ্যের ফাইল প্রত্যাখ্যান করেছে <xliff:g id="file">%1$s</xliff:g></string>
   <string name="upload_fail_waiting">ফাইল পাঠাতে অক্ষম, পুনরায় চেষ্টা করা হচ্ছে\u2026</string>
 </resources>

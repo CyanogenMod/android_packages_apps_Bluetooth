@@ -17,6 +17,7 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <!-- label for the notification if the zero length file is rejected by the remote device -->
   <string name="empty_file_notification_sent">Partilha bluetooth: o dispositivo remoto rejeitou o ficheiro <xliff:g id="file">%1$s</xliff:g></string>
   <string name="upload_fail_waiting">Não foi possível enviar o ficheiro. A tentar novamente\u2026</string>
 </resources>
