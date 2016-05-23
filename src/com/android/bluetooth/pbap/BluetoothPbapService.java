@@ -304,11 +304,11 @@ public class BluetoothPbapService extends Service implements IObexConnectionHand
         if (action == null) return;             // Nothing to do
         if (DEBUG) Log.d(TAG, "action: " + action);
 
-        int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
-        if (VERBOSE) Log.v(TAG, "state: " + state);
 
         boolean removeTimeoutMsg = true;
         if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+            int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+            if (DEBUG) Log.d(TAG, "state: " + state);
             if (state == BluetoothAdapter.STATE_TURNING_OFF) {
                 // Send any pending timeout now, as this service will be destroyed.
                 if (mSessionStatusHandler != null){
@@ -326,6 +326,22 @@ public class BluetoothPbapService extends Service implements IObexConnectionHand
                         .obtainMessage(SHUTDOWN));
                 }
             } else {
+                if (state == BluetoothAdapter.STATE_ON && mSessionStatusHandler == null) {
+                    /* It is possible that PBAP service was not killed
+                     * when BT was off in previous iteration, so
+                     * listener would not be restart as service would
+                     * not be created again. Re-start the listeners explicitly.
+                     */
+                    if (DEBUG) Log.d(TAG, "Received BT on intent, while PBAP Service is not " +
+                        "killed, restarting listeners");
+                    HandlerThread thread = new HandlerThread("BluetoothPbapHandler");
+                    thread.start();
+                    Looper looper = thread.getLooper();
+                    mSessionStatusHandler = new PbapServiceMessageHandler(looper);
+                    if (mSessionStatusHandler != null)
+                        mSessionStatusHandler.sendMessage(mSessionStatusHandler
+                            .obtainMessage(START_LISTENER));
+                }
                 removeTimeoutMsg = false;
             }
         } else if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)
