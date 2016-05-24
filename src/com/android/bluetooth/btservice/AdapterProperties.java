@@ -39,20 +39,20 @@ class AdapterProperties {
     private static final String TAG = "BluetoothAdapterProperties";
 
     private static final int BD_ADDR_LEN = 6; // 6 bytes
-    private String mName;
-    private byte[] mAddress;
-    private int mBluetoothClass;
-    private int mScanMode;
-    private int mDiscoverableTimeout;
-    private ParcelUuid[] mUuids;
+    private volatile String mName;
+    private volatile byte[] mAddress;
+    private volatile int mBluetoothClass;
+    private volatile int mScanMode;
+    private volatile int mDiscoverableTimeout;
+    private volatile ParcelUuid[] mUuids;
     private CopyOnWriteArrayList<BluetoothDevice> mBondedDevices = new CopyOnWriteArrayList<BluetoothDevice>();
 
     private int mProfilesConnecting, mProfilesConnected, mProfilesDisconnecting;
     private HashMap<Integer, Pair<Integer, Integer>> mProfileConnectionState;
 
 
-    private int mConnectionState = BluetoothAdapter.STATE_DISCONNECTED;
-    private int mState = BluetoothAdapter.STATE_OFF;
+    private volatile int mConnectionState = BluetoothAdapter.STATE_DISCONNECTED;
+    private volatile int mState = BluetoothAdapter.STATE_OFF;
 
     private AdapterService mService;
     private boolean mDiscovering;
@@ -95,8 +95,7 @@ class AdapterProperties {
             mProfileConnectionState = null;
         }
         mService = null;
-        if (!mBondedDevices.isEmpty())
-            mBondedDevices.clear();
+        mBondedDevices.clear();
     }
 
     @Override
@@ -108,9 +107,7 @@ class AdapterProperties {
      * @return the mName
      */
     String getName() {
-        synchronized (mObject) {
-            return mName;
-        }
+        return mName;
     }
 
     /**
@@ -128,18 +125,14 @@ class AdapterProperties {
      * @return the mClass
      */
     int getBluetoothClass() {
-        synchronized (mObject) {
-            return mBluetoothClass;
-        }
+        return mBluetoothClass;
     }
 
     /**
      * @return the mScanMode
      */
     int getScanMode() {
-        synchronized (mObject) {
-            return mScanMode;
-        }
+        return mScanMode;
     }
 
     /**
@@ -158,9 +151,7 @@ class AdapterProperties {
      * @return the mUuids
      */
     ParcelUuid[] getUuids() {
-        synchronized (mObject) {
-            return mUuids;
-        }
+        return mUuids;
     }
 
     /**
@@ -179,45 +170,35 @@ class AdapterProperties {
      * @return the mAddress
      */
     byte[] getAddress() {
-        synchronized (mObject) {
-            return mAddress;
-        }
+        return mAddress;
     }
 
     /**
      * @param mConnectionState the mConnectionState to set
      */
     void setConnectionState(int mConnectionState) {
-        synchronized (mObject) {
-            this.mConnectionState = mConnectionState;
-        }
+        this.mConnectionState = mConnectionState;
     }
 
     /**
      * @return the mConnectionState
      */
     int getConnectionState() {
-        synchronized (mObject) {
-            return mConnectionState;
-        }
+        return mConnectionState;
     }
 
     /**
      * @param mState the mState to set
      */
     void setState(int mState) {
-        synchronized (mObject) {
-            debugLog("Setting state to " + mState);
-            this.mState = mState;
-        }
+        debugLog("Setting state to " + mState);
+        this.mState = mState;
     }
 
     /**
      * @return the mState
      */
     int getState() {
-        /* remove the lock to work around a platform deadlock problem */
-        /* and also for read access, it is safe to remove the lock to save CPU power */
         return mState;
     }
 
@@ -275,20 +256,15 @@ class AdapterProperties {
      */
     BluetoothDevice[] getBondedDevices() {
         BluetoothDevice[] bondedDeviceList = new BluetoothDevice[0];
-        synchronized (mObject) {
-            if(mBondedDevices.isEmpty())
-                return (new BluetoothDevice[0]);
-
-            try {
-                bondedDeviceList = mBondedDevices.toArray(bondedDeviceList);
-                infoLog("getBondedDevices: length="+bondedDeviceList.length);
-                return bondedDeviceList;
-            } catch(ArrayStoreException ee) {
-                errorLog("Error retrieving bonded device array");
-                return (new BluetoothDevice[0]);
-            }
+        try {
+            bondedDeviceList = mBondedDevices.toArray(bondedDeviceList);
+        } catch(ArrayStoreException ee) {
+            errorLog("Error retrieving bonded device array");
         }
+        infoLog("getBondedDevices: length=" + bondedDeviceList.length);
+        return bondedDeviceList;
     }
+
     // This function shall be invoked from BondStateMachine whenever the bond
     // state changes.
     void onBondStateChanged(BluetoothDevice device, int state)
@@ -322,9 +298,7 @@ class AdapterProperties {
     }
 
     int getDiscoverableTimeout() {
-        synchronized (mObject) {
-            return mDiscoverableTimeout;
-        }
+        return mDiscoverableTimeout;
     }
 
     boolean setDiscoverableTimeout(int timeout) {
@@ -344,9 +318,7 @@ class AdapterProperties {
     }
 
     boolean isDiscovering() {
-        synchronized (mObject) {
-            return mDiscovering;
-        }
+        return mDiscovering;
     }
 
     void sendConnectionStateChange(BluetoothDevice device, int profile, int state, int prevState) {
