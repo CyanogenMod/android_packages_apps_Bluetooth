@@ -285,9 +285,17 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
     private void cancelNotification(Context context, Uri uri) {
         NotificationManager notMgr = (NotificationManager)context
                 .getSystemService(Context.NOTIFICATION_SERVICE);
-        if (notMgr != null) {
-            notMgr.cancel((int)ContentUris.parseId(uri));
-            if (V) Log.v(TAG, "notMgr.cancel called");
+        if (notMgr == null) return;
+
+        int id = -1;
+        try {
+          id = (int) ContentUris.parseId(uri);
+        } catch (NumberFormatException ex) {
+          Log.v(TAG, "Can't parse notification ID from Uri!");
+          return;
         }
+
+        notMgr.cancel(id);
+        if (V) Log.v(TAG, "notMgr.cancel called");
     }
 }
