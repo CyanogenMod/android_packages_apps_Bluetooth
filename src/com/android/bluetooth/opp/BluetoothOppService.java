@@ -63,6 +63,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+
 import com.android.bluetooth.sdp.SdpManager;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
@@ -104,7 +106,7 @@ public class BluetoothOppService extends Service {
 
     private UpdateThread mUpdateThread;
 
-    private ArrayList<BluetoothOppShareInfo> mShares;
+    private final ArrayList<BluetoothOppShareInfo> mShares = new ArrayList<>();
 
     private ArrayList<BluetoothOppBatch> mBatchs;
 
@@ -158,7 +160,6 @@ public class BluetoothOppService extends Service {
         super.onCreate();
         if (D) Log.d(TAG, "onCreate");
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mShares = Lists.newArrayList();
         mBatchs = Lists.newArrayList();
         mObserver = new BluetoothShareContentObserver();
         getContentResolver().registerContentObserver(BluetoothShare.CONTENT_URI, true, mObserver);
@@ -177,15 +178,15 @@ public class BluetoothOppService extends Service {
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(mBluetoothReceiver, filter);
 
-        synchronized (BluetoothOppService.this) {
-            if (mAdapter == null) {
-                Log.w(TAG, "Local BT device is not enabled");
-            } else {
-                startListener();
-            }
-        }
-        if (V) BluetoothOppPreference.getInstance(this).dump();
-        updateFromProvider();
+//        synchronized (BluetoothOppService.this) {
+//            if (mAdapter == null) {
+//                Log.w(TAG, "Local BT device is not enabled");
+//            } else {
+//                startListener();
+//            }
+//        }
+//        if (V) BluetoothOppPreference.getInstance(this).dump();
+//        updateFromProvider();
     }
 
     @Override
@@ -408,7 +409,7 @@ public class BluetoothOppService extends Service {
         if(mBatchs != null) {
             mBatchs.clear();
         }
-        if(mShares != null) {
+        synchronized (mShares) {
             mShares.clear();
         }
         if(mHandler != null) {
@@ -541,6 +542,8 @@ public class BluetoothOppService extends Service {
                  * contains an entry that's not in the array, insert a new entry
                  * in the array, move to next cursor row and next array entry.
                  */
+                synchronized (mShares) {
+                Log.d(TAG, "shares: " + Arrays.toString(mShares.toArray()));
                 while (!isAfterLast || arrayPos < mShares.size()) {
                     if (isAfterLast) {
                         // We're beyond the end of the cursor but there's still
@@ -623,12 +626,14 @@ public class BluetoothOppService extends Service {
                             }
                         }
                     }
+                    Log.d(TAG, "shares: " + Arrays.toString(mShares.toArray()));
                 }
 
                 mNotifier.updateNotification();
 
                 cursor.close();
                 cursor = null;
+                }
             }
         }
 
@@ -679,7 +684,9 @@ public class BluetoothOppService extends Service {
             Log.v(TAG, "SCANNED : " + info.mMediaScanned);
         }
 
-        mShares.add(arrayPos, info);
+        synchronized (mShares) {
+            mShares.add(arrayPos, info);
+        }
 
         /* Mark the info as failed if it's in invalid status */
         if (info.isObsolete()) {
@@ -764,7 +771,10 @@ public class BluetoothOppService extends Service {
     }
 
     private void updateShare(Cursor cursor, int arrayPos, boolean userAccepted) {
-        BluetoothOppShareInfo info = mShares.get(arrayPos);
+        BluetoothOppShareInfo info;
+        synchronized (mShares) {
+            info = mShares.get(arrayPos);
+        }
         int statusColumn = cursor.getColumnIndexOrThrow(BluetoothShare.STATUS);
 
         info.mId = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID));
@@ -838,6 +848,10 @@ public class BluetoothOppService extends Service {
                                 + " doesn't match mTransfer id " + mTransfer.getBatchId());
                     }
                     mTransfer = null;
+                    synchronized (mShares) {
+                        mShares.clear();
+                    }
+                    stopSelf();
                 } else {
                     if (mServerTransfer == null) {
                         Log.e(TAG, "Unexpected error! mServerTransfer is null");
@@ -860,7 +874,9 @@ public class BluetoothOppService extends Service {
      * Removes the local copy of the info about a share.
      */
     private void deleteShare(int arrayPos) {
-        BluetoothOppShareInfo info = mShares.get(arrayPos);
+        Log.d(TAG, "deleteShare() called with: " + "arrayPos = [" + arrayPos + "]");
+        synchronized (mShares) {
+            BluetoothOppShareInfo info = mShares.get(arrayPos);
 
         /*
          * Delete arrayPos from a batch. The logic is
@@ -868,19 +884,20 @@ public class BluetoothOppService extends Service {
          * 2) cancel the batch
          * 3) If the batch become empty delete the batch
          */
-        int i = findBatchWithTimeStamp(info.mTimestamp);
-        if (i != -1) {
-            BluetoothOppBatch batch = mBatchs.get(i);
-            if (batch.hasShare(info)) {
-                if (V) Log.v(TAG, "Service cancel batch for share " + info.mId);
-                batch.cancelBatch();
+            int i = findBatchWithTimeStamp(info.mTimestamp);
+            if (i != -1) {
+                BluetoothOppBatch batch = mBatchs.get(i);
+                if (batch.hasShare(info)) {
+                    if (V) Log.v(TAG, "Service cancel batch for share " + info.mId);
+                    batch.cancelBatch();
+                }
+                if (batch.isEmpty()) {
+                    if (V) Log.v(TAG, "Service remove batch  " + batch.mId);
+                    removeBatch(batch);
+                }
             }
-            if (batch.isEmpty()) {
-                if (V) Log.v(TAG, "Service remove batch  " + batch.mId);
-                removeBatch(batch);
-            }
+            mShares.remove(arrayPos);
         }
-        mShares.remove(arrayPos);
     }
 
     private String stringFromCursor(String old, Cursor cursor, String column) {
@@ -956,20 +973,27 @@ public class BluetoothOppService extends Service {
     }
 
     private boolean needAction(int arrayPos) {
-        BluetoothOppShareInfo info = mShares.get(arrayPos);
-        if (BluetoothShare.isStatusCompleted(info.mStatus)) {
-            return false;
+        synchronized (mShares) {
+            BluetoothOppShareInfo info = mShares.get(arrayPos);
+            if (BluetoothShare.isStatusCompleted(info.mStatus)) {
+                return false;
+            }
         }
         return true;
     }
 
     private boolean visibleNotification(int arrayPos) {
-        BluetoothOppShareInfo info = mShares.get(arrayPos);
-        return info.hasCompletionNotification();
+        synchronized (mShares) {
+            BluetoothOppShareInfo info = mShares.get(arrayPos);
+            return info.hasCompletionNotification();
+        }
     }
 
     private boolean scanFile(Cursor cursor, int arrayPos) {
-        BluetoothOppShareInfo info = mShares.get(arrayPos);
+        BluetoothOppShareInfo info;
+        synchronized (mShares) {
+            info = mShares.get(arrayPos);
+        }
         synchronized (BluetoothOppService.this) {
             if (D) Log.d(TAG, "Scanning file " + info.mFilename);
             if (!mMediaScanInProgress) {
@@ -983,10 +1007,12 @@ public class BluetoothOppService extends Service {
     }
 
     private boolean shouldScanFile(int arrayPos) {
-        BluetoothOppShareInfo info = mShares.get(arrayPos);
-        return BluetoothShare.isStatusSuccess(info.mStatus)
-                && info.mDirection == BluetoothShare.DIRECTION_INBOUND && !info.mMediaScanned &&
-                info.mConfirm != BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED;
+        synchronized (mShares) {
+            BluetoothOppShareInfo info = mShares.get(arrayPos);
+            return BluetoothShare.isStatusSuccess(info.mStatus)
+                    && info.mDirection == BluetoothShare.DIRECTION_INBOUND && !info.mMediaScanned &&
+                    info.mConfirm != BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED;
+        }
     }
 
     // Run in a background thread at boot.
