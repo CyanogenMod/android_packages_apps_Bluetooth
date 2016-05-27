@@ -541,6 +541,7 @@ public class BluetoothOppService extends Service {
                  * contains an entry that's not in the array, insert a new entry
                  * in the array, move to next cursor row and next array entry.
                  */
+                Log.d(TAG, "shares: " + Arrays.toString(mShares.toArray()));
                 while (!isAfterLast || arrayPos < mShares.size()) {
                     if (isAfterLast) {
                         // We're beyond the end of the cursor but there's still
@@ -623,6 +624,7 @@ public class BluetoothOppService extends Service {
                             }
                         }
                     }
+                    Log.d(TAG, "shares: " + Arrays.toString(mShares.toArray()));
                 }
 
                 mNotifier.updateNotification();
@@ -838,6 +840,7 @@ public class BluetoothOppService extends Service {
                                 + " doesn't match mTransfer id " + mTransfer.getBatchId());
                     }
                     mTransfer = null;
+                    mShares.clear();
                 } else {
                     if (mServerTransfer == null) {
                         Log.e(TAG, "Unexpected error! mServerTransfer is null");
