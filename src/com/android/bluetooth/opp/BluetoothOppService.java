@@ -500,32 +500,31 @@ public class BluetoothOppService extends Service {
                         if (!mPowerManager.isInteractive())
                             Thread.sleep(1000);
                     } catch (InterruptedException e) {
-                            Log.e(TAG, "Interrupted", e);
+                        Log.e(TAG, "Interrupted", e);
                     }
 
                     mPendingUpdate = false;
-                }
-                Cursor cursor;
-                try {
-                    cursor = getContentResolver().query(BluetoothShare.CONTENT_URI, null, null,
-                        null, BluetoothShare._ID);
-                } catch (SQLiteException e) {
-                    cursor = null;
-                    Log.e(TAG, "SQLite exception: " + e);
-                }
+                    Cursor cursor;
+                    try {
+                        cursor = getContentResolver().query(BluetoothShare.CONTENT_URI, null, null,
+                                null, BluetoothShare._ID);
+                    } catch (SQLiteException e) {
+                        cursor = null;
+                        Log.e(TAG, "SQLite exception: " + e);
+                    }
 
-                if (cursor == null) {
-                    return;
-                }
+                    if (cursor == null) {
+                        return;
+                    }
 
-                cursor.moveToFirst();
+                    cursor.moveToFirst();
 
-                int arrayPos = 0;
+                    int arrayPos = 0;
 
-                keepService = false;
-                boolean isAfterLast = cursor.isAfterLast();
+                    keepService = false;
+                    boolean isAfterLast = cursor.isAfterLast();
 
-                int idColumn = cursor.getColumnIndexOrThrow(BluetoothShare._ID);
+                    int idColumn = cursor.getColumnIndexOrThrow(BluetoothShare._ID);
                 /*
                  * Walk the cursor and the local array to keep them in sync. The
                  * key to the algorithm is that the ids are unique and sorted
@@ -541,54 +540,26 @@ public class BluetoothOppService extends Service {
                  * contains an entry that's not in the array, insert a new entry
                  * in the array, move to next cursor row and next array entry.
                  */
-                while (!isAfterLast || arrayPos < mShares.size()) {
-                    if (isAfterLast) {
-                        // We're beyond the end of the cursor but there's still
-                        // some
-                        // stuff in the local array, which can only be junk
-                        if (mShares.size() != 0)
-                            if (V) Log.v(TAG, "Array update: trimming " +
-                                mShares.get(arrayPos).mId + " @ " + arrayPos);
-
-                        if (shouldScanFile(arrayPos)) {
-                            scanFile(null, arrayPos);
-                        }
-                        deleteShare(arrayPos); // this advances in the array
-                    } else {
-                        int id = cursor.getInt(idColumn);
-
-                        if (arrayPos == mShares.size()) {
-                            insertShare(cursor, arrayPos);
-                            if (V) Log.v(TAG, "Array update: inserting " + id + " @ " + arrayPos);
-                            if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
-                                keepService = true;
-                            }
-                            if (visibleNotification(arrayPos)) {
-                                keepService = true;
-                            }
-                            if (needAction(arrayPos)) {
-                                keepService = true;
-                            }
-
-                            ++arrayPos;
-                            cursor.moveToNext();
-                            isAfterLast = cursor.isAfterLast();
-                        } else {
-                            int arrayId = 0;
+                    while (!isAfterLast || arrayPos < mShares.size()) {
+                        if (isAfterLast) {
+                            // We're beyond the end of the cursor but there's still
+                            // some
+                            // stuff in the local array, which can only be junk
                             if (mShares.size() != 0)
-                                arrayId = mShares.get(arrayPos).mId;
+                                if (V) Log.v(TAG, "Array update: trimming " +
+                                        mShares.get(arrayPos).mId + " @ " + arrayPos);
 
-                            if (arrayId < id) {
-                                if (V) Log.v(TAG, "Array update: removing " + arrayId + " @ "
-                                            + arrayPos);
-                                if (shouldScanFile(arrayPos)) {
-                                    scanFile(null, arrayPos);
-                                }
-                                deleteShare(arrayPos);
-                            } else if (arrayId == id) {
-                                // This cursor row already exists in the stored
-                                // array
-                                updateShare(cursor, arrayPos, userAccepted);
+                            if (shouldScanFile(arrayPos)) {
+                                scanFile(null, arrayPos);
+                            }
+                            deleteShare(arrayPos); // this advances in the array
+                        } else {
+                            int id = cursor.getInt(idColumn);
+
+                            if (arrayPos == mShares.size()) {
+                                insertShare(cursor, arrayPos);
+                                if (V) Log.v(TAG,
+                                        "Array update: inserting " + id + " @ " + arrayPos);
                                 if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
                                     keepService = true;
                                 }
@@ -603,32 +574,63 @@ public class BluetoothOppService extends Service {
                                 cursor.moveToNext();
                                 isAfterLast = cursor.isAfterLast();
                             } else {
-                                // This cursor entry didn't exist in the stored
-                                // array
-                                if (V) Log.v(TAG, "Array update: appending " + id + " @ " + arrayPos);
-                                insertShare(cursor, arrayPos);
+                                int arrayId = 0;
+                                if (mShares.size() != 0)
+                                    arrayId = mShares.get(arrayPos).mId;
 
-                                if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
-                                    keepService = true;
+                                if (arrayId < id) {
+                                    if (V) Log.v(TAG, "Array update: removing " + arrayId + " @ "
+                                            + arrayPos);
+                                    if (shouldScanFile(arrayPos)) {
+                                        scanFile(null, arrayPos);
+                                    }
+                                    deleteShare(arrayPos);
+                                } else if (arrayId == id) {
+                                    // This cursor row already exists in the stored
+                                    // array
+                                    updateShare(cursor, arrayPos, userAccepted);
+                                    if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
+                                        keepService = true;
+                                    }
+                                    if (visibleNotification(arrayPos)) {
+                                        keepService = true;
+                                    }
+                                    if (needAction(arrayPos)) {
+                                        keepService = true;
+                                    }
+
+                                    ++arrayPos;
+                                    cursor.moveToNext();
+                                    isAfterLast = cursor.isAfterLast();
+                                } else {
+                                    // This cursor entry didn't exist in the stored
+                                    // array
+                                    if (V) Log.v(TAG,
+                                            "Array update: appending " + id + " @ " + arrayPos);
+                                    insertShare(cursor, arrayPos);
+
+                                    if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
+                                        keepService = true;
+                                    }
+                                    if (visibleNotification(arrayPos)) {
+                                        keepService = true;
+                                    }
+                                    if (needAction(arrayPos)) {
+                                        keepService = true;
+                                    }
+                                    ++arrayPos;
+                                    cursor.moveToNext();
+                                    isAfterLast = cursor.isAfterLast();
                                 }
-                                if (visibleNotification(arrayPos)) {
-                                    keepService = true;
-                                }
-                                if (needAction(arrayPos)) {
-                                    keepService = true;
-                                }
-                                ++arrayPos;
-                                cursor.moveToNext();
-                                isAfterLast = cursor.isAfterLast();
                             }
                         }
                     }
+
+                    mNotifier.updateNotification();
+
+                    cursor.close();
+                    cursor = null;
                 }
-
-                mNotifier.updateNotification();
-
-                cursor.close();
-                cursor = null;
             }
         }
 
