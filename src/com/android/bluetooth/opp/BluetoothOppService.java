@@ -838,6 +838,7 @@ public class BluetoothOppService extends Service {
                                 + " doesn't match mTransfer id " + mTransfer.getBatchId());
                     }
                     mTransfer = null;
+                    mShares.clear();
                 } else {
                     if (mServerTransfer == null) {
                         Log.e(TAG, "Unexpected error! mServerTransfer is null");
