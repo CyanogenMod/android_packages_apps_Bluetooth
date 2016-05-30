@@ -43,6 +43,7 @@ import java.util.Calendar;
 import javax.obex.HeaderSet;
 import javax.obex.Operation;
 import javax.obex.ResponseCodes;
+import android.telephony.TelephonyManager;
 import javax.obex.ServerRequestHandler;
 
 
@@ -598,6 +599,19 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             if(D) Log.d(TAG, "pushMessage: charset" + appParams.getCharset()+ "folderId: "
                     + folderElement.getFolderId() + "Name: " + folderName +"TYPE: "
                     + message.getType());
+            //Handle IOT Specific case for incorrect SMS Type in BMsg for PushMsg.
+            //Support only default telephony manager phone type.
+            if (message.getType().equals(TYPE.SMS_GSM) || message.getType().equals(TYPE.SMS_CDMA)) {
+                //Check to Auto convert to  the default Phone network Type.
+                TelephonyManager tm = (TelephonyManager)mContext
+                        .getSystemService(Context.TELEPHONY_SERVICE);
+                if (tm.getPhoneType() == TelephonyManager.PHONE_TYPE_GSM) {
+                        message.setType(TYPE.SMS_GSM);
+                } else if (tm.getPhoneType() == TelephonyManager.PHONE_TYPE_CDMA) {
+                        message.setType(TYPE.SMS_CDMA);
+                }
+                if (D) Log.d(TAG, "pushMsg: Is only allowed for SMS TYPE: " + message.getType());
+            }
             // Send message
             if (mObserver == null || message == null) {
                 // Should not happen except at shutdown.
