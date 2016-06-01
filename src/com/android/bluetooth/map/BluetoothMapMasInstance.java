@@ -277,8 +277,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
                 Log.e(TAG, "Failed to start the listeners");
                 return;
             }
-            if (mAdapter != null && mSdpHandle >= 0 &&
-                                    SdpManager.getDefaultManager() != null) {
+            if (mSdpHandle >= 0 && SdpManager.getDefaultManager() != null) {
                 if(V) Log.d(TAG, "Removing SDP record for MAS instance: " + mMasInstanceId +
                     " Object reference: " + this + "SDP handle: " + mSdpHandle);
                 boolean status = SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
@@ -410,8 +409,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
             mObserver.deinit();
             mObserver = null;
         }
-        if (mAdapter != null && mSdpHandle >= 0 &&
-                            SdpManager.getDefaultManager() != null) {
+        if (mSdpHandle >= 0 && SdpManager.getDefaultManager() != null) {
             if(V) Log.d(TAG, "Removing SDP record for MAS instance: " + mMasInstanceId +
                 " Object reference: " + this + "SDP handle: " + mSdpHandle);
             boolean status = SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);

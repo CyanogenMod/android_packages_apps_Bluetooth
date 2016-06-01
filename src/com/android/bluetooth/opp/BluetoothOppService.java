@@ -231,7 +231,7 @@ public class BluetoothOppService extends Service {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case STOP_LISTENER:
-                    if (mAdapter != null && mOppSdpHandle >= 0 &&
+                    if (mOppSdpHandle >= 0 &&
                         SdpManager.getDefaultManager() != null) {
                         if (D) Log.d(TAG, "Removing SDP record");
                         boolean status = SdpManager.getDefaultManager().
