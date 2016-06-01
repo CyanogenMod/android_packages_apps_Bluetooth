@@ -437,6 +437,7 @@ public class BluetoothOppService extends Service {
                         break;
                     case BluetoothAdapter.STATE_TURNING_OFF:
                         Log.d(TAG, "Receiver BLUETOOTH_STATE_CHANGED_ACTION, STATE_TURNING_OFF");
+                        mNotifier.updateNotification();
                         //FIX: Don't block main thread
                         /*
                         mSocketListener.stop();
