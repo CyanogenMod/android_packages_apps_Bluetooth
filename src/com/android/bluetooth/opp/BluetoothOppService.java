@@ -558,19 +558,21 @@ public class BluetoothOppService extends Service {
                         int id = cursor.getInt(idColumn);
 
                         if (arrayPos == mShares.size()) {
-                            insertShare(cursor, arrayPos);
-                            if (V) Log.v(TAG, "Array update: inserting " + id + " @ " + arrayPos);
-                            if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
-                                keepService = true;
-                            }
-                            if (visibleNotification(arrayPos)) {
-                                keepService = true;
-                            }
-                            if (needAction(arrayPos)) {
-                                keepService = true;
-                            }
+                            if(insertShare(cursor, arrayPos)) {
+                                if (V) Log.v(TAG,
+                                        "Array update: inserting " + id + " @ " + arrayPos);
+                                if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
+                                    keepService = true;
+                                }
+                                if (visibleNotification(arrayPos)) {
+                                    keepService = true;
+                                }
+                                if (needAction(arrayPos)) {
+                                    keepService = true;
+                                }
 
-                            ++arrayPos;
+                                ++arrayPos;
+                            }
                             cursor.moveToNext();
                             isAfterLast = cursor.isAfterLast();
                         } else {
@@ -588,36 +590,37 @@ public class BluetoothOppService extends Service {
                             } else if (arrayId == id) {
                                 // This cursor row already exists in the stored
                                 // array
-                                updateShare(cursor, arrayPos, userAccepted);
-                                if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
-                                    keepService = true;
-                                }
-                                if (visibleNotification(arrayPos)) {
-                                    keepService = true;
-                                }
-                                if (needAction(arrayPos)) {
-                                    keepService = true;
-                                }
+                                if (updateShare(cursor, arrayPos, userAccepted)) {
+                                    if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
+                                        keepService = true;
+                                    }
+                                    if (visibleNotification(arrayPos)) {
+                                        keepService = true;
+                                    }
+                                    if (needAction(arrayPos)) {
+                                        keepService = true;
+                                    }
 
-                                ++arrayPos;
+                                    ++arrayPos;
+                                }
                                 cursor.moveToNext();
                                 isAfterLast = cursor.isAfterLast();
                             } else {
                                 // This cursor entry didn't exist in the stored
                                 // array
                                 if (V) Log.v(TAG, "Array update: appending " + id + " @ " + arrayPos);
-                                insertShare(cursor, arrayPos);
-
-                                if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
-                                    keepService = true;
+                                if (insertShare(cursor, arrayPos)) {
+                                    if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
+                                        keepService = true;
+                                    }
+                                    if (visibleNotification(arrayPos)) {
+                                        keepService = true;
+                                    }
+                                    if (needAction(arrayPos)) {
+                                        keepService = true;
+                                    }
+                                    ++arrayPos;
                                 }
-                                if (visibleNotification(arrayPos)) {
-                                    keepService = true;
-                                }
-                                if (needAction(arrayPos)) {
-                                    keepService = true;
-                                }
-                                ++arrayPos;
                                 cursor.moveToNext();
                                 isAfterLast = cursor.isAfterLast();
                             }
@@ -634,7 +637,7 @@ public class BluetoothOppService extends Service {
 
     }
 
-    private void insertShare(Cursor cursor, int arrayPos) {
+    private boolean insertShare(Cursor cursor, int arrayPos) {
         String uriString = cursor.getString(cursor.getColumnIndexOrThrow(BluetoothShare.URI));
         Uri uri;
         if (uriString != null) {
@@ -643,6 +646,7 @@ public class BluetoothOppService extends Service {
         } else {
             uri = null;
             Log.e(TAG, "insertShare found null URI at cursor!");
+            return false;
         }
         BluetoothOppShareInfo info = new BluetoothOppShareInfo(
                 cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID)),
@@ -704,7 +708,7 @@ public class BluetoothOppService extends Service {
                     Log.e(TAG, "Can't open file for OUTBOUND info " + info.mId);
                     Constants.updateShareStatus(this, info.mId, BluetoothShare.STATUS_BAD_REQUEST);
                     BluetoothOppUtility.closeSendFileInfo(info.mUri);
-                    return;
+                    return true;
                 }
             }
             if (mBatchs.size() == 0) {
@@ -761,9 +765,10 @@ public class BluetoothOppService extends Service {
                 }
             }
         }
+        return true;
     }
 
-    private void updateShare(Cursor cursor, int arrayPos, boolean userAccepted) {
+    private boolean updateShare(Cursor cursor, int arrayPos, boolean userAccepted) {
         BluetoothOppShareInfo info = mShares.get(arrayPos);
         int statusColumn = cursor.getColumnIndexOrThrow(BluetoothShare.STATUS);
 
@@ -773,6 +778,7 @@ public class BluetoothOppService extends Service {
                     BluetoothShare.URI));
         } else {
             Log.w(TAG, "updateShare() called for ID " + info.mId + " with null URI");
+            return false;
         }
         info.mHint = stringFromCursor(info.mHint, cursor, BluetoothShare.FILENAME_HINT);
         info.mFilename = stringFromCursor(info.mFilename, cursor, BluetoothShare._DATA);
@@ -854,6 +860,7 @@ public class BluetoothOppService extends Service {
                 removeBatch(batch);
             }
         }
+        return true;
     }
 
     /**
