@@ -498,14 +498,14 @@ public class BluetoothOppService extends Service {
                         if (V) Log.v(TAG, "***returning from updatethread***");
                         return;
                     }
-                    try {
-                        if (!mPowerManager.isInteractive())
-                            Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                            Log.e(TAG, "Interrupted", e);
-                    }
 
                     mPendingUpdate = false;
+                }
+                try {
+                    if (!mPowerManager.isInteractive())
+                        Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "Interrupted", e);
                 }
                 Cursor cursor;
                 try {
