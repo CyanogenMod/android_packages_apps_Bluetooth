@@ -480,45 +480,51 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
          */
         synchronized (this) {
             try {
+                if (mBluetoothReceiver == null) {
+                    mBluetoothReceiver = createBluetoothReceiver();
+                }
                 IntentFilter filter = new IntentFilter();
                 filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
                 mContext.registerReceiver(mBluetoothReceiver, filter);
                 if (V) Log.v(TAG, "Registered mBluetoothReceiver");
             } catch (IllegalArgumentException e) {
+                e.printStackTrace();
             }
         }
     }
-
-    private BroadcastReceiver mBluetoothReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if (device == null) {
-                    Log.e(TAG, "Receive ACTION_ACL_DISCONNECTED, device null");
-                    return;
-                }
-                try {
-                    if (V) Log.v(TAG, "ACTION_ACL_DISCONNECTED for device " + device
-                        + "- OPP device: " + mBatch.mDestination);
-                    if (V) Log.v(TAG, "mCurrentShare.mConfirm == " + mCurrentShare.mConfirm);
-                    if ((device.equals(mBatch.mDestination)) &&
-                            (mCurrentShare.mConfirm == BluetoothShare.USER_CONFIRMATION_PENDING)) {
-                        if (V) Log.v(TAG, "ACTION_ACL_DISCONNECTED to be processed for batch: "
-                            + mBatch.mId);
-                        //Remove the timeout message triggered earlier during Obex Put
-                        mSessionHandler.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
-                        // Now reuse the same message to clean up the session.
-                        mSessionHandler.sendMessage(mSessionHandler.obtainMessage
-                            (BluetoothOppObexSession.MSG_CONNECT_TIMEOUT));
+    private BroadcastReceiver mBluetoothReceiver = null;
+    private BroadcastReceiver createBluetoothReceiver() {
+        return new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
+                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                    if (device == null) {
+                        Log.e(TAG, "Receive ACTION_ACL_DISCONNECTED, device null");
+                        return;
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    try {
+                        if (V) Log.v(TAG, "ACTION_ACL_DISCONNECTED for device " + device
+                                + "- OPP device: " + mBatch.mDestination);
+                        if (V) Log.v(TAG, "mCurrentShare.mConfirm == " + mCurrentShare.mConfirm);
+                        if ((device.equals(mBatch.mDestination)) &&
+                                (mCurrentShare.mConfirm == BluetoothShare.USER_CONFIRMATION_PENDING)) {
+                            if (V) Log.v(TAG, "ACTION_ACL_DISCONNECTED to be processed for batch: "
+                                    + mBatch.mId);
+                            //Remove the timeout message triggered earlier during Obex Put
+                            mSessionHandler.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
+                            // Now reuse the same message to clean up the session.
+                            mSessionHandler.sendMessage(mSessionHandler.obtainMessage
+                                    (BluetoothOppObexSession.MSG_CONNECT_TIMEOUT));
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
-        }
-    };
+        };
+    }
 
     private void processCurrentShare() {
         /* This transfer need user confirm */
@@ -533,7 +539,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
        synchronized (this) {
            try {
                if (mBluetoothReceiver != null){
-                  mContext.unregisterReceiver(mBluetoothReceiver);
+                   mContext.unregisterReceiver(mBluetoothReceiver);
                    mBluetoothReceiver = null;
                    if (V) Log.v(TAG, "Un Registered mBluetoothReceiver");
                }
