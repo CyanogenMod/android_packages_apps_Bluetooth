@@ -389,7 +389,7 @@ final class A2dpSinkStateMachine extends StateMachine {
                         }
                     } else if (mTargetDevice != null && mTargetDevice.equals(device)) {
                         // outgoing connection failed
-                        broadcastConnectionState(mTargetDevice, BluetoothProfile.STATE_CONNECTED,
+                        broadcastConnectionState(mTargetDevice, BluetoothProfile.STATE_DISCONNECTED,
                                                  BluetoothProfile.STATE_CONNECTING);
                         synchronized (A2dpSinkStateMachine.this) {
                             mTargetDevice = null;

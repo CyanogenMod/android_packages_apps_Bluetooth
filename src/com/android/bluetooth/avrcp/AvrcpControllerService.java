@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.HashMap;
 import java.nio.charset.Charset;
 import java.nio.ByteBuffer;
+import android.os.Bundle;
+
 /**
  * Provides Bluetooth AVRCP Controller profile, as a service in the Bluetooth application.
  * @hide
@@ -512,6 +514,8 @@ public class AvrcpControllerService extends ProfileService {
     }
     private void broadcastMetaDataChanged(MediaMetadata mMetaData) {
         Intent intent = new Intent(BluetoothAvrcpController.ACTION_TRACK_EVENT);
+        if (mMetaData == null)
+            return;
         intent.putExtra(BluetoothAvrcpController.EXTRA_METADATA, mMetaData);
         if(DBG) Log.d(TAG," broadcastMetaDataChanged = " +
                                                    AvrcpUtils.displayMetaData(mMetaData));
@@ -682,9 +686,13 @@ public class AvrcpControllerService extends ProfileService {
                 }
                 break;
             case AvrcpControllerConstants.MESSAGE_PROCESS_PLAY_POS_CHANGED:
+                Bundle data = new Bundle();
+                data = msg.getData();
                 if(mRemoteMediaPlayers != null) {
-                    mRemoteMediaPlayers.getAddressedPlayer().mPlayTime = msg.arg2;
-
+                    mRemoteMediaPlayers.getAddressedPlayer().mPlayTime =
+                                                   data.getInt("curposition");
+                    mRemoteMediaPlayers.getAddressedPlayer().mPlayStatus =
+                                                    data.getByte("Playstatus");
                     if (!mBroadcastMetadata) {
                         Log.d(TAG, "Metadata is not broadcasted, ignoring.");
                         return;
@@ -695,7 +703,8 @@ public class AvrcpControllerService extends ProfileService {
                                     mRemoteMediaPlayers.getAddressedPlayer().mPlayTime));
                 }
                 if(mRemoteNowPlayingList != null) {
-                    mRemoteNowPlayingList.getCurrentTrack().mTrackLen = msg.arg1;
+                   mRemoteNowPlayingList.getCurrentTrack().mTrackLen =
+                                                     data.getInt("songlen");
                 }
                 break;
             case AvrcpControllerConstants.MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
@@ -887,14 +896,19 @@ public class AvrcpControllerService extends ProfileService {
         mHandler.sendMessage(msg);
     }
 
-    private void onPlayPositionChanged(byte[] address, int songLen, int currSongPosition) {
+    private void onPlayPositionChanged(byte[] address, int songLen, int currSongPosition, byte playStatus) {
         Log.d(TAG,"onPlayPositionChanged ");
         BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice
                 (Utils.getAddressStringFromByte(address));
         if (!mConnectedDevices.contains(device))
             return;
+        Bundle data = new Bundle();
+        data.putByte("Playstatus", playStatus);
+        data.putInt("songlen", songLen);
+        data.putInt("curposition", currSongPosition);
         Message msg = mHandler.obtainMessage(AvrcpControllerConstants.
-                MESSAGE_PROCESS_PLAY_POS_CHANGED, songLen, currSongPosition);
+                                             MESSAGE_PROCESS_PLAY_POS_CHANGED);
+        msg.setData(data);
         mHandler.sendMessage(msg);
     }
 

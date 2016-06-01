@@ -377,7 +377,7 @@ static void btavrcp_track_changed_callback(bt_bdaddr_t *bd_addr, uint8_t num_att
 }
 
 static void btavrcp_play_position_changed_callback(bt_bdaddr_t *bd_addr, uint32_t song_len,
-        uint32_t song_pos) {
+        uint32_t song_pos, btrc_play_status_t play_status) {
 
     jbyteArray addr;
     ALOGI("%s", __FUNCTION__);
@@ -390,7 +390,7 @@ static void btavrcp_play_position_changed_callback(bt_bdaddr_t *bd_addr, uint32_
     }
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_handleplaypositionchanged, addr,
-         (jint)(song_len), (jint)song_pos);
+         (jint)(song_len), (jint)song_pos, (jbyte)play_status);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
@@ -459,7 +459,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
         env->GetMethodID(clazz, "onTrackChanged", "([BB[I[Ljava/lang/String;)V");
 
     method_handleplaypositionchanged =
-        env->GetMethodID(clazz, "onPlayPositionChanged", "([BII)V");
+        env->GetMethodID(clazz, "onPlayPositionChanged", "([BIIB)V");
 
     method_handleplaystatuschanged =
             env->GetMethodID(clazz, "onPlayStatusChanged", "([BB)V");
