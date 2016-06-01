@@ -64,7 +64,7 @@ public class BluetoothOppManager {
     private static BluetoothOppManager INSTANCE;
 
     /** Used when obtaining a reference to the singleton instance. */
-    private static Object INSTANCE_LOCK = new Object();
+    private static final Object INSTANCE_LOCK = new Object();
 
     private boolean mInitialized;
 

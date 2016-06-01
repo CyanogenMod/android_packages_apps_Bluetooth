@@ -88,7 +88,7 @@ public class OolConnManager {
 
         Log.v(TAG,"saveOppSdpRecord"+ btDevice.getAddress());
         if ((mAddress != null) && mAddress.equalsIgnoreCase(btDevice.getAddress())) {
-           channel = sdpRec.getL2capPsm();
+           channel = sdpRec != null ? sdpRec.getL2capPsm() : -1;
            sdpDone = true;
            Log.d(TAG,"saveOppSdpRecord channel "+ channel);
         }
