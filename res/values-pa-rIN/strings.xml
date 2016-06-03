@@ -18,10 +18,10 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"ਡਾਊਨਲੋਡ ਪ੍ਰਬੰਧਕ ਤੱਕ ਪਹੁੰਚ।"</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"ਐਪ ਨੂੰ BluetoothShare ਪ੍ਰਬੰਧਕ ਤੱਕ ਪਹੁੰਚ ਅਤੇ ਫਾਈਲਾਂ ਟ੍ਰਾਂਸਫਰ ਕਰਨ ਲਈ ਇਸਦੀ ਵਰਤੋਂ ਕਰਨ ਦੀ ਆਗਿਆ ਦਿੰਦਾ ਹੈ।"</string>
-    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"ਵਾਈਟਲਿਸਟ bluetooth ਡਿਵਾਈਸ ਪਹੁੰਚ।"</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"ਐਪ ਨੂੰ ਇਹ ਆਗਿਆ ਦਿੰਦੇ ਹੋਏ ਕਿ ਡਿਵਾਈਸ ਉਪਭੋਗਤਾ ਦੀ ਪੁਸ਼ਟੀ ਤੋਂ ਬਿਨਾਂ ਇਸ ਡਿਵਾਈਸ ਨੂੰ ਫਾਈਲਾਂ ਭੇਜੇ, ਇੱਕ Bluetooth ਡਿਵਾਈਸ ਨੂੰ ਅਸਥਾਈ ਤੌਰ ਤੇ ਵਾਈਟਲਿਸਟ ਕਰਨ ਦੀ ਆਗਿਆ ਦਿੰਦਾ ਹੈ।"</string>
+    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"ਵਾਈਟਲਿਸਟ bluetooth ਡੀਵਾਈਸ ਪਹੁੰਚ।"</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"ਐਪ ਨੂੰ ਇਹ ਆਗਿਆ ਦਿੰਦੇ ਹੋਏ ਕਿ ਡੀਵਾਈਸ ਉਪਭੋਗਤਾ ਦੀ ਪੁਸ਼ਟੀ ਤੋਂ ਬਿਨਾਂ ਇਸ ਡੀਵਾਈਸ ਨੂੰ ਫਾਈਲਾਂ ਭੇਜੇ, ਇੱਕ Bluetooth ਡੀਵਾਈਸ ਨੂੰ ਅਸਥਾਈ ਤੌਰ ਤੇ ਵਾਈਟਲਿਸਟ ਕਰਨ ਦੀ ਆਗਿਆ ਦਿੰਦਾ ਹੈ।"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
-    <string name="unknown_device" msgid="9221903979877041009">"ਅਗਿਆਤ ਡਿਵਾਈਸ"</string>
+    <string name="unknown_device" msgid="9221903979877041009">"ਅਗਿਆਤ ਡੀਵਾਈਸ"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"ਅਗਿਆਤ"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"ਏਅਰਪਲੇਨ ਮੋਡ"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"ਤੁਸੀਂ ਏਅਰਪਲੇਨ ਮੋਡ ਵਿੱਚ Bluetooth ਨਹੀਂ ਵਰਤ ਸਕਦੇ।"</string>
@@ -92,7 +92,7 @@
     <string name="status_running" msgid="6562808920311008696">"ਫਾਈਲ ਟ੍ਰਾਂਸਫਰ ਜਾਰੀ ਹੈ।"</string>
     <string name="status_success" msgid="239573225847565868">"ਫਾਈਲ ਟ੍ਰਾਂਸਫਰ ਸਫਲਤਾਪੂਰਵਕ ਪੂਰੀ ਹੋਈ।"</string>
     <string name="status_not_accept" msgid="1695082417193780738">"ਸਮੱਗਰੀ ਸਮਰਥਿਤ ਨਹੀਂ ਹੈ।"</string>
-    <string name="status_forbidden" msgid="613956401054050725">"ਟੀਚਾ ਡਿਵਾਈਸ ਵੱਲੋਂ ਟ੍ਰਾਂਸਫਰ ਵਰਜਿਤ।"</string>
+    <string name="status_forbidden" msgid="613956401054050725">"ਟੀਚਾ ਡੀਵਾਈਸ ਵੱਲੋਂ ਟ੍ਰਾਂਸਫਰ ਵਰਜਿਤ।"</string>
     <string name="status_canceled" msgid="6664490318773098285">"ਉਪਭੋਗਤਾ ਵੱਲੋਂ ਟ੍ਰਾਂਸਫਰ ਰੱਦ ਕੀਤਾ ਗਿਆ।"</string>
     <string name="status_file_error" msgid="3671917770630165299">"ਸਟੋਰੇਜ ਸਮੱਸਿਆ।"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"ਕੋਈ USB ਸਟੋਰੇਜ ਨਹੀਂ।"</string>
@@ -121,7 +121,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"ਖੋਲ੍ਹੋ"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"ਸੂਚੀ ਵਿੱਚੋਂ ਹਟਾਓ"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"ਹਟਾਓ"</string>
-    <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"ਸੁਰੱਖਿਅਤ ਕਰੋ"</string>
+    <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"ਰੱਖਿਅਤ ਕਰੋ"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"ਰੱਦ ਕਰੋ"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"ਉਹਨਾਂ ਖਾਤਿਆਂ ਨੂੰ ਚੁਣੋ ਜਿਨ੍ਹਾਂ ਨੂੰ ਤੁਸੀਂ ਬਲੂਟੁੱਥ ਦੇ ਰਾਹੀਂ ਸਾਂਝਾ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ। ਤੁਹਾਨੂੰ ਹਾਲੇ ਵੀ ਕਨੈਕਟ ਕਰਨ ਦੌਰਾਨ ਖਾਤਿਆਂ \'ਤੇ ਕਿਸੇ ਵੀ ਪਹੁੰਚ ਨੂੰ ਸਵੀਕਾਰ ਕਰਨਾ ਹੋਵੇਗਾ।"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"ਸਲੌਟ ਬਾਕੀ:"</string>

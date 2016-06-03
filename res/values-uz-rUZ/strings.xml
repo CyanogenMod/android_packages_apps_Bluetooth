@@ -128,6 +128,6 @@
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Ilova ikonkasi"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Bluetooth orqali xabar ulashish sozlamalari"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"Hisobni tanlab bo‘lmadi: bo‘sh joy qolmadi"</string>
-    <string name="bluetooth_connected" msgid="6718623220072656906">"Bluetooth audio ulandi"</string>
-    <string name="bluetooth_disconnected" msgid="3318303728981478873">"Bluetooth audio uzildi"</string>
+    <string name="bluetooth_connected" msgid="6718623220072656906">"Bluetooth orqali ovoz yoqildi"</string>
+    <string name="bluetooth_disconnected" msgid="3318303728981478873">"Bluetooth orqali ovoz o‘chirildi"</string>
 </resources>

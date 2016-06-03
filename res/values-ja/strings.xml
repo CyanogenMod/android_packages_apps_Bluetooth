@@ -21,7 +21,7 @@
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Bluetooth端末によるアクセスを許可します。"</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Bluetooth端末によるアクセスを一時的に許可して、ユーザーの確認を受けずにその端末からこの端末にファイルを送信することをアプリに許可します。"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
-    <string name="unknown_device" msgid="9221903979877041009">"不明な携帯端末"</string>
+    <string name="unknown_device" msgid="9221903979877041009">"不明なモバイル端末"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"不明"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"機内モード"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"機内モードではBluetoothを使用できません。"</string>
