@@ -435,7 +435,12 @@ public class BluetoothPbapService extends Service implements IObexConnectionHand
 
         super.onDestroy();
         setState(BluetoothPbap.STATE_DISCONNECTED, BluetoothPbap.RESULT_CANCELED);
-        closeService();
+        // synchronize call to closeService by sending SHUTDOWN Message
+        if (mSessionStatusHandler != null){
+            Log.d(TAG, " onDestroy, sending SHUTDOWN Message");
+            mSessionStatusHandler.sendMessage(mSessionStatusHandler
+                .obtainMessage(SHUTDOWN));
+            }
     }
 
     @Override
