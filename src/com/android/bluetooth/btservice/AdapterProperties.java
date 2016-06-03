@@ -500,8 +500,8 @@ class AdapterProperties {
                         mService.sendBroadcast(intent, mService.BLUETOOTH_PERM);
                         debugLog("Scan Mode:" + mScanMode);
                         if (mBluetoothDisabling) {
-                            mBluetoothDisabling=false;
-                            mService.startBluetoothDisable();
+                            mBluetoothDisabling = false;
+                            mService.startBrEdrCleanup();
                         }
                         break;
                     case AbstractionLayer.BT_PROPERTY_UUIDS:

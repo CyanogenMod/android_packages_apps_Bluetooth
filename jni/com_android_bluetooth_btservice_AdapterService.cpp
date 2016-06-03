@@ -23,6 +23,8 @@
 #include "android_runtime/AndroidRuntime.h"
 #include "android_runtime/Log.h"
 
+#include "hardware/bt_vendor.h"
+
 #include <string.h>
 #include <pthread.h>
 
@@ -55,6 +57,7 @@ static struct {
 
 static const bt_interface_t *sBluetoothInterface = NULL;
 static const btsock_interface_t *sBluetoothSocketInterface = NULL;
+static const btvendor_interface_t *sBluetoothVendorInterface = NULL;
 static JNIEnv *callbackEnv = NULL;
 
 static jobject sJniAdapterServiceObj;
@@ -1458,6 +1461,11 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
 
     if ((status = android::register_com_android_bluetooth_sdp(e)) < 0) {
         ALOGE("jni sdp registration failure: %d", status);
+        return JNI_ERR;
+    }
+
+    if ((status = android::register_com_android_bluetooth_btservice_vendor(e)) < 0) {
+        ALOGE("jni vendor registration failure: %d", status);
         return JNI_ERR;
     }
 
