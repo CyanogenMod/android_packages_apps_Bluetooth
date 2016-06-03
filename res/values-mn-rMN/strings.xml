@@ -91,7 +91,7 @@
     <string name="status_pending" msgid="2503691772030877944">"Файл дамжуулалт хараахан эхлээгүй байна."</string>
     <string name="status_running" msgid="6562808920311008696">"Файл дамжуулалт үргэлжилж байна."</string>
     <string name="status_success" msgid="239573225847565868">"Файл дамжуулалт амжилттай дууслаа."</string>
-    <string name="status_not_accept" msgid="1695082417193780738">"Контент дэмжигдэхгүй байна."</string>
+    <string name="status_not_accept" msgid="1695082417193780738">"Агуулга дэмжигдэхгүй байна."</string>
     <string name="status_forbidden" msgid="613956401054050725">"Дамжуулалтыг хүлээн авагч төхөөрөмжөөс хориглосон."</string>
     <string name="status_canceled" msgid="6664490318773098285">"Дамжуулалтыг хэрэглэгч цуцалсан."</string>
     <string name="status_file_error" msgid="3671917770630165299">"Хадгалах сангийн асуудал."</string>
