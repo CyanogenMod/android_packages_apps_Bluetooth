@@ -186,8 +186,6 @@ public class BluetoothPbapService extends Service implements IObexConnectionHand
 
     private BluetoothSocket mConnSocket = null;
 
-    private int mConnType = -1;
-
     private BluetoothDevice mRemoteDevice = null;
 
     private static String sLocalPhoneNum = null;
@@ -501,10 +499,6 @@ public class BluetoothPbapService extends Service implements IObexConnectionHand
         return mDbIndetifier.get();
     }
 
-    public int getConnType() {
-        return mConnType;
-    }
-
     private void setUserTimeoutAlarm(){
         if (DEBUG) Log.d(TAG,"SetUserTimeOutAlarm()");
         if (mAlarmManager == null) {
@@ -536,9 +530,6 @@ public class BluetoothPbapService extends Service implements IObexConnectionHand
         if (TextUtils.isEmpty(sRemoteDeviceName)) {
             sRemoteDeviceName = getString(R.string.defaultname);
         }
-
-        mConnType = mConnSocket.getConnectionType();
-        Log.d(TAG, "Connection type: " + mConnType);
         int permission = mRemoteDevice.getPhonebookAccessPermission();
         if (VERBOSE) Log.v(TAG, "getPhonebookAccessPermission() = " + permission);
 
