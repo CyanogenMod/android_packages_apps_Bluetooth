@@ -2473,7 +2473,7 @@ public class AdapterService extends Service {
     private native boolean initNative();
     private native void cleanupNative();
     /*package*/ native void ssrcleanupNative(boolean cleanup);
-    /*package*/ native boolean enableNative();
+    /*package*/ native boolean enableNative(boolean startRestricted);
     /*package*/ native boolean disableNative();
     /*package*/ native boolean setAdapterPropertyNative(int type, byte[] val);
     /*package*/ native boolean getAdapterPropertiesNative();
