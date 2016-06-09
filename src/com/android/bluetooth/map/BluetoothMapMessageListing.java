@@ -106,7 +106,6 @@ public class BluetoothMapMessageListing {
                 xmlMsgElement.text("\n");
             } else {
                 xmlMsgElement.startDocument("UTF-8", true);
-                xmlMsgElement.text("\n");
                 xmlMsgElement.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output",
                         true);
             }
