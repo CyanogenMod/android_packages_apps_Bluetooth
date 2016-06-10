@@ -1233,8 +1233,8 @@ final class HeadsetClientStateMachine extends StateMachine {
         mIndicatorCallSetup = -1;
         mIndicatorCallHeld = -1;
 
-        mMaxAmVcVol = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL);
-        mMinAmVcVol = mAudioManager.getStreamMinVolume(AudioManager.STREAM_VOICE_CALL);
+        mMaxAmVcVol = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_BLUETOOTH_SCO);
+        mMinAmVcVol = mAudioManager.getStreamMinVolume(AudioManager.STREAM_BLUETOOTH_SCO);
 
         mOperatorName = null;
         mSubscriberInfo = null;
@@ -1528,7 +1528,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                     }
                     transitionTo(mConnected);
 
-                    int amVol = mAudioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
+                    int amVol = mAudioManager.getStreamVolume(AudioManager.STREAM_BLUETOOTH_SCO);
                     sendMessage(
                             obtainMessage(HeadsetClientStateMachine.SET_SPEAKER_VOLUME, amVol, 0));
                     // Mic is either in ON state (full volume) or OFF state. There is no way in
@@ -1885,7 +1885,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                                 Log.d(TAG, "AM volume set to " +
                                       hfToAmVol(event.valueInt2));
                                 mAudioManager.setStreamVolume(
-                                    AudioManager.STREAM_VOICE_CALL,
+                                    AudioManager.STREAM_BLUETOOTH_SCO,
                                     hfToAmVol(event.valueInt2),
                                     AudioManager.FLAG_SHOW_UI);
                                 mVgsFromStack = true;
@@ -2108,7 +2108,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                     // We need to set the volume after switching into HFP mode as some Audio HALs
                     // reset the volume to a known-default on mode switch.
                     final int amVol =
-                            mAudioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
+                              mAudioManager.getStreamVolume(AudioManager.STREAM_BLUETOOTH_SCO);
                     final int hfVol = amToHfVol(amVol);
 
                     Log.d(TAG,"hfp_enable=true");

@@ -123,7 +123,7 @@ public class HeadsetClientService extends ProfileService {
                 Log.d(TAG, "Volume changed for stream: " +
                     intent.getExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE));
                 int streamType = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1);
-                if (streamType == AudioManager.STREAM_VOICE_CALL) {
+                if (streamType == AudioManager.STREAM_BLUETOOTH_SCO) {
                     int streamValue = intent
                             .getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE, -1);
                     int streamPrevValue = intent.getIntExtra(
