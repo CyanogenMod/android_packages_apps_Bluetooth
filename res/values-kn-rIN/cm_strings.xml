@@ -17,6 +17,7 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <!-- label for the notification if the zero length file is rejected by the remote device -->
   <string name="empty_file_notification_sent">ಬ್ಲೂಟೂತ್ ಹಂಚಿಕೆ: ರಿಮೋಟ್ ಶೂನ್ಯ ಗಾತ್ರ <xliff:g id="file">%1$s</xliff:g> ಕಡತವನ್ನು ನಿರಾಕರಿಸಿದ್ದಾರೆ</string>
   <string name="upload_fail_waiting">ಕಡತ ಕಳುಹಿಸಲು ಸಾಧವಾಗುತ್ತಿಲ್ಲ, ಮರುಪ್ರಯತ್ನಿಸುತ್ತಿದೆ\u2026</string>
 </resources>

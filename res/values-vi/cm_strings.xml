@@ -17,6 +17,7 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="empty_file_notification_sent">Chia sẻ Bluetooth: Từ chối tập tin không có dung lượng <xliff:g id="file">%1$s</xliff:g></string>
+  <!-- label for the notification if the zero length file is rejected by the remote device -->
+  <string name="empty_file_notification_sent">Chia sẻ Bluetooth: Từ chối tập tin không có dung lượng từ xa <xliff:g id="file">%1$s</xliff:g></string>
   <string name="upload_fail_waiting">Không thể gửi tập tin, đang thử lại\u2026</string>
 </resources>

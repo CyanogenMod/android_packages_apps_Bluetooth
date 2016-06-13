@@ -17,6 +17,7 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+  <!-- label for the notification if the zero length file is rejected by the remote device -->
   <string name="empty_file_notification_sent">ब्लूटूथ साझाकरण: रिमोट ने शून्य लंबाई वाली फ़ाइल <xliff:g id="file">%1$s</xliff:g> को अस्वीकार कर दिया</string>
   <string name="upload_fail_waiting">फ़ाइल नहीं भेज सके, फिर से कोशिश कर रहे हैं\u2026</string>
 </resources>

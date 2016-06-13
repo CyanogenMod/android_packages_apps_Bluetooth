@@ -17,6 +17,7 @@
      limitations under the License.
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-  <string name="empty_file_notification_sent">Bluetooth: Ha sido rechazado el archivo vacío <xliff:g id="file">%1$s</xliff:g></string>
-  <string name="upload_fail_waiting">Imposible enviar el archivo, reintentando\u2026</string>
+  <!-- label for the notification if the zero length file is rejected by the remote device -->
+  <string name="empty_file_notification_sent">Compartir Bluetooth: el archivo vacío <xliff:g id="file">%1$s</xliff:g> fue rechazado por el destinatario</string>
+  <string name="upload_fail_waiting">No se puede enviar el archivo, reintentando\u2026</string>
 </resources>
