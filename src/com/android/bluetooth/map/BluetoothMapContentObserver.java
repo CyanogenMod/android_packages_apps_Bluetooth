@@ -1176,7 +1176,7 @@ public class BluetoothMapContentObserver {
                 Log.e(TAG, "Wrong mime type!!!", e);
             }
 
-            mContext.registerReceiver(this, intentFilter, Manifest.permission.WRITE_SMS, handler);
+            mContext.registerReceiver(this, intentFilter, null, handler);
         }
 
         public void unregister() {
