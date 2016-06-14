@@ -38,7 +38,6 @@ import android.bluetooth.BluetoothMap;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
-import android.Manifest;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
@@ -426,10 +425,6 @@ public class BluetoothMapService extends ProfileService {
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         try {
             registerReceiver(mMapReceiver, filter);
-            // We need WRITE_SMS permission to handle messages in
-            // actionMessageSentDisconnected()
-            registerReceiver(mMapReceiver, filterMessageSent,
-                             Manifest.permission.WRITE_SMS, null);
         } catch (Exception e) {
             Log.w(TAG,"Unable to register map receiver",e);
         }
