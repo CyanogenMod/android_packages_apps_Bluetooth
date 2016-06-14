@@ -239,7 +239,7 @@ public class BluetoothPbapService extends Service implements IObexConnectionHand
     @Override
     public void onCreate() {
         super.onCreate();
-        if(DEBUG) Log.d(TAG, "Pbap Service onCreate");
+        if (DEBUG) Log.d(TAG, "Enter - onCreate for service PBAP");
         mInterrupted = false;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -268,13 +268,14 @@ public class BluetoothPbapService extends Service implements IObexConnectionHand
         } catch (IllegalStateException e) {
             Log.e(TAG, "Illegal state exception, content observer is already registered");
         }
-
+        if (DEBUG) Log.d(TAG, "Exit - onCreate for service PBAP");
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         //int retCode = super.onStartCommand(intent, flags, startId);
         //if (retCode == START_STICKY) {
+            if (DEBUG) Log.d(TAG, "Enter - onStartCommand for service PBAP");
             mStartId = startId;
             if (mAdapter == null) {
                 Log.d(TAG, "Stopping BluetoothPbapService: "
@@ -293,6 +294,7 @@ public class BluetoothPbapService extends Service implements IObexConnectionHand
                 }
             }
         //}
+        if (DEBUG) Log.d(TAG, "Exit - onStartCommand for service PBAP");
         return START_NOT_STICKY;
     }
 

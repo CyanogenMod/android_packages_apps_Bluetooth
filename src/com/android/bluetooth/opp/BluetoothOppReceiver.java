@@ -61,11 +61,12 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
-        if (D) Log.d(TAG, "Action :" + action);
+        if (D) Log.d(TAG, "Enter - onReceive for intent:" + action);
 
         if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-            if (BluetoothAdapter.STATE_ON == intent.getIntExtra(
-                    BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)) {
+            int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+            if(D) Log.d(TAG," Bluetooth Adapter state = " + state);
+            if (BluetoothAdapter.STATE_ON == state) {
                 if (V) Log.v(TAG, "Received BLUETOOTH_STATE_CHANGED_ACTION, BLUETOOTH_STATE_ON");
                 context.startService(new Intent(context, BluetoothOppService.class));
 
@@ -143,6 +144,12 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             context.getContentResolver().update(uri, values, null, null);
             cancelNotification(context, uri);
 
+        } else if (action.equals(BluetoothShare.INCOMING_FILE_CONFIRMATION_REQUEST_ACTION)) {
+            if (D) Log.d(TAG, "Receiver INCOMING_FILE_NOTIFICATION");
+
+            Toast.makeText(context, context.getString(R.string.incoming_file_toast_msg),
+                    Toast.LENGTH_SHORT).show();
+
         } else if (action.equals(Constants.ACTION_OPEN) || action.equals(Constants.ACTION_LIST)) {
             if (V) {
                 if (action.equals(Constants.ACTION_OPEN)) {
@@ -208,8 +215,6 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             }
             if (cursor != null) {
                 if (cursor.moveToFirst()) {
-                    int statusColumn = cursor.getColumnIndexOrThrow(BluetoothShare.STATUS);
-                    int status = cursor.getInt(statusColumn);
                     int visibilityColumn = cursor.getColumnIndexOrThrow(BluetoothShare.VISIBILITY);
                     int visibility = cursor.getInt(visibilityColumn);
                     int userConfirmationColumn = cursor
@@ -298,6 +303,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                 Toast.makeText(context, toastMsg, Toast.LENGTH_SHORT).show();
             }
         }
+        if (D) Log.d(TAG, "Exit - onReceive for intent:" + action);
     }
 
     private void cancelNotification(Context context, Uri uri) {

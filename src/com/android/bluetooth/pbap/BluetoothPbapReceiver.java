@@ -46,14 +46,13 @@ public class BluetoothPbapReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-
+        if (V) Log.v(TAG, "PbapReceiver onReceive ");
         Intent in = new Intent();
         in.putExtras(intent);
         in.setClass(context, BluetoothPbapService.class);
         String action = intent.getAction();
         in.putExtra("action", action);
-        Log.i(TAG, "Action :" + action);
-
+        Log.i(TAG, "Enter - onReceive for intent:" + action);
         boolean startService = true;
         if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
             int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
@@ -76,5 +75,6 @@ public class BluetoothPbapReceiver extends BroadcastReceiver {
             if (V) Log.v(TAG, "Calling start service!!!! with action = " + in.getAction());
             context.startService(in);
         }
+        Log.i(TAG, "Exit - onReceive for intent:" + action);
     }
 }

@@ -64,6 +64,12 @@ public final class BluetoothShare implements BaseColumns {
 
     /**
      * This is sent by the Bluetooth Share component to indicate there is an
+     * incoming file need user to confirm.
+     */
+    public static final String INCOMING_FILE_CONFIRMATION_REQUEST_ACTION = "android.btopp.intent.action.INCOMING_FILE_NOTIFICATION";
+
+    /**
+     * This is sent by the Bluetooth Share component to indicate there is an
      * incoming file request timeout and need update UI.
      */
     public static final String USER_CONFIRMATION_TIMEOUT_ACTION = "android.btopp.intent.action.USER_CONFIRMATION_TIMEOUT";

@@ -156,7 +156,7 @@ public class BluetoothOppService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        if (D) Log.d(TAG, "onCreate");
+        if (D) Log.d(TAG, "Enter - onCreate for service OPP");
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mShares = Lists.newArrayList();
         mBatchs = Lists.newArrayList();
@@ -186,11 +186,12 @@ public class BluetoothOppService extends Service {
         }
         if (V) BluetoothOppPreference.getInstance(this).dump();
         updateFromProvider();
+        if (D) Log.d(TAG, "Exit - onCreate for service OPP");
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (V) Log.v(TAG, "onStartCommand");
+        if (D) Log.d(TAG, "Enter - onStartCommand for service OPP");
         //int retCode = super.onStartCommand(intent, flags, startId);
         //if (retCode == START_STICKY) {
             if (mAdapter == null) {
@@ -199,6 +200,7 @@ public class BluetoothOppService extends Service {
                 startListener();
             }
             updateFromProvider();
+            if (D) Log.d(TAG, "Exit - onStartCommand for service OPP");
         //}
         return START_NOT_STICKY;
     }

@@ -85,8 +85,6 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
     private static final int CONNECT_RETRY_TIME = 100;
 
-    private static final short OPUSH_UUID16 = 0x1105;
-
     private static final String SOCKET_LINK_KEY_ERROR = "Invalid exchange";
 
     private Context mContext;

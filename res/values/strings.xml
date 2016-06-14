@@ -81,7 +81,8 @@
     <!-- Bluetooth File Transfer Acceptance Notification item -->
     <string name="incoming_file_confirm_Notification_title">Incoming file</string>
     <string name="incoming_file_confirm_Notification_content"><xliff:g id="sender">%1$s</xliff:g> is ready to send <xliff:g id="file">%2$s</xliff:g></string>
-
+    <string name="incoming_file_toast_msg">Incoming file from another device.
+        Confirm you want to receive this file.</string>
     <!-- Inbound File Transfer Progress Notification item -->
     <!-- label for the notification item of receiving file -->
     <string name="notification_receiving">Bluetooth share: Receiving <xliff:g id="file">%1$s</xliff:g></string>

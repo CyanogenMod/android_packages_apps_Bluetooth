@@ -337,7 +337,7 @@ class BluetoothOppNotification {
             // Build the notification object
             // TODO: split description into two rows with filename in second row
             Notification.Builder b = new Notification.Builder(mContext);
-            b.setColor(mContext.getResources().getColor(
+            b.setColor(mContext.getColor(
                     com.android.internal.R.color.system_notification_accent_color));
             b.setContentTitle(item.description);
             b.setContentInfo(
@@ -366,7 +366,7 @@ class BluetoothOppNotification {
             intent.setDataAndNormalize(Uri.parse(BluetoothShare.CONTENT_URI + "/" + item.id));
 
             b.setContentIntent(PendingIntent.getBroadcast(mContext, 0, intent, 0));
-            mNotificationMgr.notify(item.id, b.getNotification());
+            mNotificationMgr.notify(item.id, b.build());
 
             mActiveNotificationId = item.id;
         }
@@ -447,7 +447,7 @@ class BluetoothOppNotification {
                     unsuccess_caption);
             intent = new Intent(Constants.ACTION_OPEN_OUTBOUND_TRANSFER);
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
-            outNoti.color = mContext.getResources().getColor(
+            outNoti.color = mContext.getColor(
                     com.android.internal.R.color.system_notification_accent_color);
             outNoti.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(
                     mContext, 0, intent, 0));
@@ -506,7 +506,7 @@ class BluetoothOppNotification {
                     unsuccess_caption);
             intent = new Intent(Constants.ACTION_OPEN_INBOUND_TRANSFER);
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
-            inNoti.color = mContext.getResources().getColor(
+            inNoti.color = mContext.getColor(
                     com.android.internal.R.color.system_notification_accent_color);
             inNoti.setLatestEventInfo(mContext, title, caption, PendingIntent.getBroadcast(
                     mContext, 0, intent, 0));
@@ -564,7 +564,7 @@ class BluetoothOppNotification {
                   new Intent(baseIntent).setAction(Constants.ACTION_INCOMING_FILE_CONFIRM), 0))
               .setDeleteIntent(PendingIntent.getBroadcast(mContext, 0,
                   new Intent(baseIntent).setAction(Constants.ACTION_HIDE), 0))
-              .setColor(mContext.getResources().getColor(
+              .setColor(mContext.getColor(
                   com.android.internal.R.color.system_notification_accent_color))
               .setContentTitle(mContext.getText(R.string.incoming_file_confirm_Notification_title))
               .setContentText(info.mFileName)
@@ -575,6 +575,7 @@ class BluetoothOppNotification {
               .setSmallIcon(R.drawable.bt_incomming_file_notification)
               .build();
           mNotificationMgr.notify(info.mID, n);
+          Log.i(TAG, " Incoming Notification ID :" + info.mID);
         }
         cursor.close();
         cursor = null;
