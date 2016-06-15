@@ -595,8 +595,14 @@ static void setPlayerApplicationSettingValuesNative(JNIEnv *env, jobject object,
 
     pAttrs = new uint8_t[num_attrib];
     pAttrsVal = new uint8_t[num_attrib];
+    /* Klockwork Fix for below
+     * Possible memory leak. Dynamic memory stored in 'pAttrsVal' allocated
+     * through function 'new[]' at line 597 can be lost at line 601*/
     if ((!pAttrs) ||(!pAttrsVal)) {
-        delete[] pAttrs;
+        if (pAttrs)
+            delete[] pAttrs;
+        if (pAttrsVal)
+            delete[] pAttrsVal;
         ALOGE("setPlayerApplicationSettingValuesNative: not have enough memeory");
         return;
     }

@@ -917,6 +917,9 @@ static jboolean getPlayerAppValueRspNative(JNIEnv *env ,jobject object , jbyte n
         return JNI_FALSE;
     }
     pAttrs = new uint8_t[numvalue];
+    /* Klockwork Fix for below
+     * Possible memory leak. Dynamic memory stored in 'pAttrs' allocated
+     * through function 'new[]' at line 887 can be lost at line 897*/
     if (!pAttrs) {
         ALOGE("getPlayerAppValueRspNative: not have enough memeory");
         return JNI_FALSE;
@@ -925,6 +928,7 @@ static jboolean getPlayerAppValueRspNative(JNIEnv *env ,jobject object , jbyte n
 
     addr = env->GetByteArrayElements(address, NULL);
     if (!addr) {
+        delete[] pAttrs;
         jniThrowIOException(env, EINVAL);
         return JNI_FALSE;
     }
