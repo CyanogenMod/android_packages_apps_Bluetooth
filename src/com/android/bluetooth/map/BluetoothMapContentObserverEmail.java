@@ -560,9 +560,15 @@ public class BluetoothMapContentObserverEmail extends BluetoothMapContentObserve
                                     .ExtEmailMessageColumns.TIMESTAMP)));
                                 String subject = c.getString(c.getColumnIndex(
                                         BluetoothMapContract.MessageColumns.SUBJECT));
+                                if (subject == null ) {
+                                    subject = "";
+                                }
                                 String address = c.getString(
                                         c.getColumnIndex(BluetoothMapEmailContract
                                         .ExtEmailMessageColumns.EMAIL_FROM_LIST));
+                                if (address == null ) {
+                                    address = "";
+                                }
                                 evt = new Event(EVENT_TYPE_NEW, id, newFolder,
                                             mAccount.getType(), date, subject, address, "no");
                             } else {
