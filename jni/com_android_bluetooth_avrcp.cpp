@@ -1476,7 +1476,7 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
     int8_t *numAttElements;
     jstring *attValuesElements;
     int32_t *attIdsElements;
-    jint count;
+    jint count = 0;
     jstring text;
     const char* textStr;
     jsize utfStringLength = 0;
@@ -1679,7 +1679,10 @@ static jboolean getFolderItemsRspNative(JNIEnv *env, jobject object, jbyte statu
         param.item_count = count;
     else if (param.status == BTRC_STS_NO_ERROR)
         param.item_count = 1;
+    else
+        param.item_count = 0;
 
+    ALOGE("get_folder_items_rsp: count: %u, effective count: %u", count, param.item_count);
     if ((status = sBluetoothMultiAvrcpInterface->get_folder_items_rsp(&param,
                                             (bt_bdaddr_t *)addr)) != BT_STATUS_SUCCESS) {
         ALOGE("Failed get_folder_items_rsp, status: %u", status);

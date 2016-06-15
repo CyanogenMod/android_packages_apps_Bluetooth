@@ -79,8 +79,6 @@ import android.net.Uri;
 import android.app.Notification;
 import android.app.NotificationManager;
 
-import android.media.AudioManager;
-
 /**
  * support Bluetooth AVRCP profile.
  * support metadata, play status and event notification
@@ -105,16 +103,13 @@ public final class Avrcp {
     private int mTrackChangedNT;
     private long mCurrentPosMs;
     private long mPlayStartTimeMs;
-    private long mTrackNumber;
     private long mSongLengthMs;
     private long mPlaybackIntervalMs;
     private int mPlayPosChangedNT;
     private long mSkipStartTime;
-    private int mFeatures;
     
     Resources mResources;
 
-    private int mLastDirection;
     private int mVolumeStep;
     private final int mAudioStreamMax;
     private static final String BLUETOOTH_ADMIN_PERM = android.Manifest.permission.BLUETOOTH_ADMIN;
@@ -178,6 +173,7 @@ public final class Avrcp {
     private static final int MSG_NOW_PLAYING_ENTRIES_RECEIVED = 207;
 
     private MediaPlayerInfo mediaPlayerInfo1;
+    private MediaPlayerInfo mediaPlayerInfo2;
 
     private static final int BUTTON_TIMEOUT_TIME = 2000;
     private static final int BASE_SKIP_AMOUNT = 2000;
@@ -332,10 +328,6 @@ public final class Avrcp {
             mRemoteVolume = -1;
             mInitialRemoteVolume = -1;
             mLastRemoteVolume = -1;
-            mLastDirection = 0;
-            mVolCmdAdjustInProgress = false;
-            mVolCmdSetInProgress = false;
-            mAbsVolRetryTimes = 0;
             mLocalVolume = -1;
             mLastLocalVolume = -1;
             mAbsVolThreshold = 0;
@@ -425,7 +417,6 @@ public final class Avrcp {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mMediaAttributes = new MediaAttributes(null);
         mCurrentPlayerState = new PlaybackState.Builder().setState(PlaybackState.STATE_NONE, -1L, 0.0f).build();
-        mTrackNumber = -1L;
         mCurrentPosMs = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
         mPlayStartTimeMs = -1L;
         mSongLengthMs = 0L;
@@ -455,7 +446,7 @@ public final class Avrcp {
         thread.start();
         Looper looper = thread.getLooper();
         mHandler = new AvrcpMessageHandler(looper);
-
+        registerMediaPlayers();
         mSessionChangeListener = new MediaSessionChangeListener();
         mMediaSessionManager.addOnActiveSessionsChangedListener(mSessionChangeListener, null, mHandler);
         List<MediaController> sessions = mMediaSessionManager.getActiveSessions(null);
@@ -488,7 +479,6 @@ public final class Avrcp {
         }catch (Exception e) {
             Log.e(TAG,"Unable to register Avrcp receiver", e);
         }
-        registerMediaPlayers();
         mAvrcpBipRsp.start();
     }
 
@@ -659,8 +649,10 @@ public final class Avrcp {
             Log.v(TAG, "registerMediaPlayers");
         int[] featureMasks = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
+        int[] featureMasks2 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
         byte[] playerName1 = {0x4d, 0x75, 0x73, 0x69, 0x63}/*Music*/;
+        byte[] playerName2 = {0x4d, 0x75, 0x73, 0x69, 0x63, 0x32}/*Music2*/;
 
         featureMasks[FEATURE_MASK_PLAY_OFFSET] =
             featureMasks[FEATURE_MASK_PLAY_OFFSET] | FEATURE_MASK_PLAY_MASK;
@@ -691,6 +683,22 @@ public final class Avrcp {
         featureMasks[FEATURE_MASK_COVER_ART_OFFSET] =
             featureMasks[FEATURE_MASK_COVER_ART_OFFSET] | FEATURE_MASK_COVER_ART_MASK;
 
+/*Player2 does not support browsing and now playing,
+            hence updated the masks properly*/
+        featureMasks2[FEATURE_MASK_PLAY_OFFSET] =
+            featureMasks2[FEATURE_MASK_PLAY_OFFSET] | FEATURE_MASK_PLAY_MASK;
+        featureMasks2[FEATURE_MASK_PAUSE_OFFSET] =
+            featureMasks2[FEATURE_MASK_PAUSE_OFFSET] | FEATURE_MASK_PAUSE_MASK;
+        featureMasks2[FEATURE_MASK_STOP_OFFSET] =
+            featureMasks2[FEATURE_MASK_STOP_OFFSET] | FEATURE_MASK_STOP_MASK;
+        featureMasks2[FEATURE_MASK_PAGE_UP_OFFSET] =
+            featureMasks2[FEATURE_MASK_PAGE_UP_OFFSET] | FEATURE_MASK_PAGE_UP_MASK;
+        featureMasks2[FEATURE_MASK_PAGE_DOWN_OFFSET] =
+            featureMasks2[FEATURE_MASK_PAGE_DOWN_OFFSET] | FEATURE_MASK_PAGE_DOWN_MASK;
+        featureMasks2[FEATURE_MASK_REWIND_OFFSET] =
+            featureMasks2[FEATURE_MASK_REWIND_OFFSET] | FEATURE_MASK_REWIND_MASK;
+        featureMasks2[FEATURE_MASK_FAST_FWD_OFFSET] =
+            featureMasks2[FEATURE_MASK_FAST_FWD_OFFSET] | FEATURE_MASK_FAST_FWD_MASK;
         mediaPlayerInfo1 = new MediaPlayerInfo ((short)0x0001,
                     MAJOR_TYPE_AUDIO,
                     SUB_TYPE_NONE,
@@ -701,7 +709,18 @@ public final class Avrcp {
                     "com.android.music",
                     true,
                     featureMasks);
+        mediaPlayerInfo2 = new MediaPlayerInfo ((short)0x0000,
+                    MAJOR_TYPE_AUDIO,
+                    SUB_TYPE_NONE,
+                    (byte)PlaybackState.STATE_PAUSED,
+                    CHAR_SET_UTF8,
+                    (short)0x06,
+                    playerName2,
+                    "com.google.android.music",
+                    true,
+                    featureMasks2);
         mMediaPlayers.add(mediaPlayerInfo1);
+        mMediaPlayers.add(mediaPlayerInfo2);
     }
 
     public static Avrcp make(Context context, A2dpService svc,
@@ -726,6 +745,7 @@ public final class Avrcp {
         for (int i = 0; i < maxAvrcpConnections; i++) {
             cleanupDeviceFeaturesIndex(i);
         }
+        mAvrcpBipRsp.stop();
         try {
             mContext.unregisterReceiver(mIntentReceiver);
         } catch (Exception e) {
@@ -799,6 +819,8 @@ public final class Avrcp {
                 }
                 mMediaUriStatic = uri;
                 if (mHandler != null) {
+                    // Don't send the complete path to CK as few gets confused by that
+                    // Send only the name of the root folder
                     mHandler.obtainMessage(MSG_UPDATE_BROWSED_PLAYER_FOLDER, NUM_ROOT_ELEMENTS,
                                                 OPERATION_SUCCESSFUL, SplitPath).sendToTarget();
                 }
@@ -1215,7 +1237,8 @@ public final class Avrcp {
                      * retry a volume one step up/down */
                     if (DEBUG) Log.d(TAG, "Remote device didn't tune volume, let's try one more step.");
                     int retry_volume = Math.min(AVRCP_MAX_VOL,
-                            Math.max(0, deviceFeatures[deviceIndex].mLastRemoteVolume + mLastDirection));
+                            Math.max(0, deviceFeatures[deviceIndex].mLastRemoteVolume +
+                                        deviceFeatures[deviceIndex].mLastDirection));
                     if (setVolumeNative(retry_volume,
                             getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice))) {
                         deviceFeatures[deviceIndex].mLastRemoteVolume = retry_volume;
@@ -1321,8 +1344,8 @@ public final class Avrcp {
             case MESSAGE_SET_ABSOLUTE_VOLUME:
             {
                 if (!isAbsoluteVolumeSupported()) {
-                if (DEBUG) Log.v(TAG, "ignore MESSAGE_SET_ABSOLUTE_VOLUME");
-                break;
+                    if (DEBUG) Log.v(TAG, "ignore MESSAGE_SET_ABSOLUTE_VOLUME");
+                    break;
                 }
                 if (DEBUG)
                     Log.v(TAG, "MESSAGE_SET_ABSOLUTE_VOLUME");
@@ -1384,19 +1407,18 @@ public final class Avrcp {
                 }
                 deviceFeatures[deviceIndex].mVolCmdSetInProgress = false;
                 deviceFeatures[deviceIndex].mVolCmdAdjustInProgress = false;
-                blackListCurrentDevice(deviceIndex);
                 Log.v(TAG, "event for device address " + (BluetoothDevice)msg.obj);
                 if (deviceFeatures[deviceIndex].mAbsVolRetryTimes >= MAX_ERROR_RETRY_TIMES) {
                     deviceFeatures[deviceIndex].mAbsVolRetryTimes = 0;
+                    blackListCurrentDevice(deviceIndex);
                 } else {
                     deviceFeatures[deviceIndex].mAbsVolRetryTimes += 1;
-                    boolean isSetVol = setVolumeNative(deviceFeatures[deviceIndex].mLastSetVolume ,
+                    boolean isSetVol = setVolumeNative(deviceFeatures[deviceIndex].mLastRemoteVolume ,
                             getByteAddress((BluetoothDevice) msg.obj));
                     if (isSetVol) {
                         sendMessageDelayed(obtainMessage(MESSAGE_ABS_VOL_TIMEOUT,
                                 0, 0, msg.obj), CMD_TIMEOUT_DELAY);
                         deviceFeatures[deviceIndex].mVolCmdSetInProgress = true;
-                        deviceFeatures[deviceIndex].mVolCmdAdjustInProgress = true;
                     }
                 }
                 break;
@@ -1717,7 +1739,7 @@ public final class Avrcp {
             }
         }
 
-        boolean newPosValid = (mCurrentPosMs != PlaybackState.STATE_PLAYING);
+        boolean newPosValid = (mCurrentPosMs != PlaybackState.PLAYBACK_POSITION_UNKNOWN);
         long playPosition = getPlayPosition(null);
         mHandler.removeMessages(MESSAGE_PLAY_INTERVAL_TIMEOUT);
         for (int deviceIndex = 0; deviceIndex < maxAvrcpConnections; deviceIndex++) {
@@ -1885,18 +1907,26 @@ public final class Avrcp {
                 case TRACK_CHANGE_NOTIFICATION:
                     if (deviceFeatures[i].mTrackChangedNT ==
                             NOTIFICATION_TYPE_INTERIM) {
-                             if (DEBUG)
-                                Log.v(TAG, "send Track Changed reject to stack");
-                             deviceFeatures[i].mTrackChangedNT =
-                                    NOTIFICATION_TYPE_REJECT;
-                             byte[] track = new byte[TRACK_ID_SIZE];
-                             /* track is stored in big endian format */
-                             for (int j = 0; j < TRACK_ID_SIZE; ++j) {
-                                 track[j] = (byte) (mTrackNumber >> (56 - 8 * j));
-                             }
-                             registerNotificationRspTrackChangeNative(
-                                     deviceFeatures[i].mTrackChangedNT ,
-                                     track ,getByteAddress(deviceFeatures[i].mCurrentDevice));
+                            long TrackNumberRsp = -1L;
+                            try {
+                                TrackNumberRsp = Long.parseLong(mMediaAttributes.getString
+                                    (MediaAttributes.ATTR_MEDIA_NUMBER));
+                            } catch (Exception e) {
+                                Log.e(TAG, "sendTrackChangedRsp Exception e" + e);
+                                TrackNumberRsp = -1L;
+                            }
+                            if (DEBUG)
+                            Log.v(TAG, "send Track Changed reject to stack");
+                            deviceFeatures[i].mTrackChangedNT =
+                                NOTIFICATION_TYPE_REJECT;
+                            byte[] track = new byte[TRACK_ID_SIZE];
+                            /* track is stored in big endian format */
+                            for (int j = 0; j < TRACK_ID_SIZE; ++j) {
+                             track[j] = (byte) (TrackNumberRsp >> (56 - 8 * j));
+                            }
+                            registerNotificationRspTrackChangeNative(
+                                 deviceFeatures[i].mTrackChangedNT ,
+                                 track ,getByteAddress(deviceFeatures[i].mCurrentDevice));
                     } else {
                         Log.v(TAG,"i " + i + " status is"+
                             deviceFeatures[i].mTrackChangedNT);
@@ -2024,7 +2054,6 @@ public final class Avrcp {
             Log.v(TAG, "getTotalNumberOfItemsRspNative for NowPlaying List");
             getTotalNumberOfItemsRspNative((byte)OPERATION_SUCCESSFUL, playList.length,
                     0x0000, getByteAddress(device));
-            mBrowserDevice = null;
             return;
         }
 
@@ -2107,7 +2136,6 @@ public final class Avrcp {
                 numItems, itemType, uid, type,
                 playable, displayName, numAtt, attValues, attIds, mCachedRequest.mSize,
                 getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
-        mBrowserDevice = null;
     }
 
     class CachedRequest {
@@ -2165,6 +2193,7 @@ public final class Avrcp {
         private String genre;
         private String playingTimeMs;
         private String coverArt;
+        private String tracknum;
 
         private static final int ATTR_TITLE = 1;
         private static final int ATTR_ARTIST_NAME = 2;
@@ -2187,6 +2216,7 @@ public final class Avrcp {
             mediaTotalNumber = longStringOrBlank(data.getLong(MediaMetadata.METADATA_KEY_NUM_TRACKS));
             genre = stringOrBlank(data.getString(MediaMetadata.METADATA_KEY_GENRE));
             playingTimeMs = longStringOrBlank(data.getLong(MediaMetadata.METADATA_KEY_DURATION));
+            tracknum = longStringOrBlank(data.getLong(MediaMetadata.METADATA_KEY_DISC_NUMBER));
 
             // Try harder for the title.
             title = data.getString(MediaMetadata.METADATA_KEY_TITLE);
@@ -2248,7 +2278,7 @@ public final class Avrcp {
                     return playingTimeMs;
                 case ATTR_COVER_ART:
                     //Fetch CoverArtHandle for this playing song from AvrcpBip.
-                    coverArt = mAvrcpBipRsp.getImgHandle(albumName);
+                    coverArt = stringOrBlank(mAvrcpBipRsp.getImgHandle(albumName));
                     Log.v(TAG, "CoverArtHandle: " + coverArt);
                     return coverArt;
                 default:
@@ -2283,7 +2313,6 @@ public final class Avrcp {
             mSongLengthMs = 0L;
         } else {
             mSongLengthMs = data.getLong(MediaMetadata.METADATA_KEY_DURATION);
-            mTrackNumber = data.getLong(MediaMetadata.METADATA_KEY_NUM_TRACKS);
         }
         if (!oldAttributes.equals(mMediaAttributes)) {
             Log.v(TAG, "MediaAttributes Changed to " + mMediaAttributes.toString());
@@ -2312,9 +2341,13 @@ public final class Avrcp {
                         isPlayingState(deviceFeatures[i].mCurrentPlayState)) {
                     Log.v(TAG,"sending play pos change for device " + i);
                     deviceFeatures[i].mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
+                    if (deviceFeatures[i].mCurrentDevice != null) {
                     registerNotificationRspPlayPosNative(deviceFeatures[i].mPlayPosChangedNT,
                             (int)getPlayPosition(deviceFeatures[i].mCurrentDevice) ,
                             getByteAddress(deviceFeatures[i].mCurrentDevice));
+                    } else {
+                        Log.e(TAG,"cannot send play pos changed noti, device is NULL ");
+                    }
                     mHandler.removeMessages(MESSAGE_PLAY_INTERVAL_TIMEOUT);
                 }
             }
@@ -3071,9 +3104,6 @@ public final class Avrcp {
             return;
         }
 
-        mBrowserDevice = device;
-        Log.v(TAG, "mBrowserDevice is set to -> " + device);
-
         if (mMediaPlayers.size() > 0) {
             final Iterator<MediaPlayerInfo> rccIterator = mMediaPlayers.iterator();
             while (rccIterator.hasNext()) {
@@ -3090,8 +3120,14 @@ public final class Avrcp {
                 }
             }
         }
-        mMediaController.getTransportControls().getRemoteControlClientNowPlayingEntries();
-        mCachedRequest = new CachedRequest((long)0, (long)0, (byte)0, null, (int)0, false);
+        if (mMediaController != null) {
+            mMediaController.getTransportControls().getRemoteControlClientNowPlayingEntries();
+            mCachedRequest = new CachedRequest((long)0, (long)0, (byte)0, null, (int)0, false);
+        } else {
+            Log.e(TAG, "processGetNowPlayingTotalItems fails: mMediaController is null");
+            getTotalNumberOfItemsRspNative((byte)INTERNAL_ERROR, virtualFileTotalItems,
+                    0x0000, getByteAddress(device));
+        }
     }
 
     private void playItem(byte scope, long uid, byte[] address) {
@@ -3567,7 +3603,6 @@ public final class Avrcp {
         String[] attValues = new String[MAX_BROWSE_ITEM_TO_SEND * 8];
         int[] attIds = new int[MAX_BROWSE_ITEM_TO_SEND * 8];
         BluetoothDevice device = mAdapter.getRemoteDevice(deviceAddress);
-        mBrowserDevice = device;
 
         int deviceIndex = getIndexForDevice(device);
         if (deviceIndex == INVALID_DEVICE_INDEX) {
@@ -4603,7 +4638,13 @@ public final class Avrcp {
         if(DEBUG) Log.v(TAG,"mCurrentPlayState" +
                 deviceFeatures[deviceIndex].mCurrentPlayState );
 
-        TrackNumberRsp = mTrackNumber;
+        try {
+            TrackNumberRsp = Long.parseLong(mMediaAttributes.getString
+                                    (MediaAttributes.ATTR_MEDIA_NUMBER));
+        } catch (Exception e) {
+            Log.e(TAG, "sendTrackChangedRsp Exception e" + e);
+            TrackNumberRsp = -1;
+        }
 
         /* track is stored in big endian format */
         for (int i = 0; i < TRACK_ID_SIZE; ++i) {
@@ -4813,7 +4854,7 @@ public final class Avrcp {
 
     private int convertToAudioStreamVolume(int volume) {
         // Rescale volume to match AudioSystem's volume
-        return (int) Math.floor((double) volume*mAudioStreamMax/AVRCP_MAX_VOL);
+        return (int) Math.round((double) volume*mAudioStreamMax/AVRCP_MAX_VOL);
     }
 
     private int convertToAvrcpVolume(int volume) {
@@ -4827,7 +4868,7 @@ public final class Avrcp {
             return;
         }
         mAddress  = deviceFeatures[i].mCurrentDevice.getAddress();
-        mFeatures &= ~BTRC_FEAT_ABSOLUTE_VOLUME;
+        deviceFeatures[i].mFeatures &= ~BTRC_FEAT_ABSOLUTE_VOLUME;
         mAudioManager.avrcpSupportsAbsoluteVolume(mAddress, isAbsoluteVolumeSupported());
 
         SharedPreferences pref = mContext.getSharedPreferences(ABSOLUTE_VOLUME_BLACKLIST,
@@ -5257,7 +5298,6 @@ public final class Avrcp {
             ProfileService.println(sb, "mCurrentPlayState: " + deviceFeatures[i].mCurrentPlayState);
             ProfileService.println(sb, "mPlayStatusChangedNT: " + deviceFeatures[i].mPlayStatusChangedNT);
             ProfileService.println(sb, "mTrackChangedNT: " + deviceFeatures[i].mTrackChangedNT);
-            ProfileService.println(sb, "mTrackNumber: " + mTrackNumber);
             ProfileService.println(sb, "mCurrentPosMs: " + mCurrentPosMs);
             ProfileService.println(sb, "mPlayStartTimeMs: " + mPlayStartTimeMs);
             ProfileService.println(sb, "mSongLengthMs: " + mSongLengthMs);
@@ -5272,8 +5312,8 @@ public final class Avrcp {
             ProfileService.println(sb, "mLastDirection: " + deviceFeatures[i].mLastDirection);
             ProfileService.println(sb, "mVolumeStep: " + mVolumeStep);
             ProfileService.println(sb, "mAudioStreamMax: " + mAudioStreamMax);
-            ProfileService.println(sb, "mVolCmdInProgress: " + deviceFeatures[i].mVolCmdSetInProgress);
-            ProfileService.println(sb, "mVolCmdInProgress: " + deviceFeatures[i].mVolCmdAdjustInProgress);
+            ProfileService.println(sb, "mVolCmdSetInProgress: " + deviceFeatures[i].mVolCmdSetInProgress);
+            ProfileService.println(sb, "mVolCmdAdjustInProgress: " + deviceFeatures[i].mVolCmdAdjustInProgress);
             ProfileService.println(sb, "mAbsVolRetryTimes: " + deviceFeatures[i].mAbsVolRetryTimes);
             ProfileService.println(sb, "mSkipAmount: " + mSkipAmount);
         }
@@ -5698,7 +5738,6 @@ public final class Avrcp {
         private boolean mIsAvailable;
         private boolean mIsFocussed;
         private byte mItemType;
-        private long mTrackNumber;
         private boolean mIsRemoteAddressable;
 
         // need to have the featuremask elements as int instead of byte, else MSB would be lost. Later need to take only
@@ -5722,7 +5761,6 @@ public final class Avrcp {
             mIsFocussed = false; // by default it is false, its toggled whenever applicable
             mItemType = ITEM_PLAYER;
             mFeatureMask = new int[FEATURE_BITMASK_FIELD_LENGTH];
-            mTrackNumber = -1L;
             mIsRemoteAddressable = isRemoteAddressable;
             for (int count = 0; count < FEATURE_BITMASK_FIELD_LENGTH; count ++) {
                 mFeatureMask[count] = featureMask[count];
