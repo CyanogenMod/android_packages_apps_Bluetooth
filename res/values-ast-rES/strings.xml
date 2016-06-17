@@ -184,6 +184,14 @@
   <string name="transfer_clear_dlg_msg">Van desaniciase tolos elementos de la llista.</string>
   <string name="outbound_noti_title">Bluetooth: ficheros unviaos</string>
   <string name="inbound_noti_title">Bluetooth: ficheros recibíos</string>
+  <plurals name="noti_caption_unsuccessful">
+    <item quantity="one"><xliff:g id="unsuccessful_number">%1$d</xliff:g> con fallu</item>
+    <item quantity="other"><xliff:g id="unsuccessful_number">%1$d</xliff:g> con fallu</item>
+  </plurals>
+  <plurals name="noti_caption_success">
+    <item quantity="one"><xliff:g id="successful_number">%1$d</xliff:g> correutu, %2$s</item>
+    <item quantity="other"><xliff:g id="successful_number">%1$d</xliff:g> correutos, %2$s</item>
+  </plurals>
   <string name="transfer_menu_clear_all">Desaniciar llista</string>
   <string name="transfer_menu_open">Abrir</string>
   <string name="transfer_menu_clear">Desaniciar de la llista</string>
@@ -192,5 +200,11 @@
   <!-- Used to run Bluetooth.apk in another process if needed -->
   <!-- Do not translate. android:sharedUserId string of this application. -->
   <!-- Do not translate. android:process of this application. -->
+  <string name="bluetooth_map_settings_save">Guardar</string>
   <string name="bluetooth_map_settings_cancel">Encaboxar</string>
+  <string name="bluetooth_map_settings_intro">Esbilla les cuentes que quies compartir al traviés de Bluetooth. Al coneutate, vas tener qu\'aceutar cualquier accesu a les cuentes.</string>
+  <string name="bluetooth_map_settings_count">Slots restantes:</string>
+  <string name="bluetooth_map_settings_app_icon">Iconu d\'aplicación</string>
+  <string name="bluetooth_map_settings_title">Axustes de mensaxes compartíos per Bluetooth</string>
+  <string name="bluetooth_map_settings_no_account_slots_left">Nun pues esbillar la cuenta. Nun queden slots.</string>
 </resources>
