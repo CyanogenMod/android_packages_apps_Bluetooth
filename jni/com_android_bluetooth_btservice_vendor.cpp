@@ -100,6 +100,8 @@ static void initNative(JNIEnv *env, jobject object) {
         sBluetoothVendorInterface = NULL;
         return;
     }
+
+    mCallbacksObj = env->NewGlobalRef(object);
 }
 
 static void cleanupNative(JNIEnv *env, jobject object) {
