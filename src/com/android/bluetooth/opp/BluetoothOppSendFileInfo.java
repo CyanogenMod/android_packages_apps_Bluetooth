@@ -121,8 +121,10 @@ public class BluetoothOppSendFileInfo {
             if (metadataCursor != null) {
                 try {
                     if (metadataCursor.moveToFirst()) {
-                        fileName = metadataCursor.getString(0);
-                        length = metadataCursor.getLong(1);
+                        fileName = metadataCursor.getString(
+                                metadataCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                        length = metadataCursor.getLong(
+                                metadataCursor.getColumnIndex(OpenableColumns.SIZE));
                         if (D) Log.d(TAG, "fileName = " + fileName + " length = " + length);
                     }
                 } finally {
@@ -156,11 +158,23 @@ public class BluetoothOppSendFileInfo {
                             "), using stat length (" + Long.toString(statLength) + ")");
                     length = statLength;
                 }
+
                 try {
                     // This creates an auto-closing input-stream, so
                     // the file descriptor will be closed whenever the InputStream
                     // is closed.
                     is = fd.createInputStream();
+
+                    // If the database doesn't contain the file size, get the size
+                    // by reading through the entire stream
+                    if (length == 0) {
+                        length = getStreamSize(is);
+                        Log.w(TAG, "File length not provided. Length from stream = "
+                                   + length);
+                        // Reset the stream
+                        fd = contentResolver.openAssetFileDescriptor(uri, "r");
+                        is = fd.createInputStream();
+                    }
                 } catch (IOException e) {
                     try {
                         fd.close();
@@ -172,25 +186,39 @@ public class BluetoothOppSendFileInfo {
                 // Ignore
             }
         }
+
         if (is == null) {
             try {
                 is = (FileInputStream) contentResolver.openInputStream(uri);
+
+                // If the database doesn't contain the file size, get the size
+                // by reading through the entire stream
+                if (length == 0) {
+                    length = getStreamSize(is);
+                    // Reset the stream
+                    is = (FileInputStream) contentResolver.openInputStream(uri);
+                }
             } catch (FileNotFoundException e) {
                 return SEND_FILE_INFO_ERROR;
-            }
-        }
-        // If we can not get file length from content provider, we can try to
-        // get the length via the opened stream.
-        if (length == 0) {
-            try {
-                length = is.available();
-                if (V) Log.v(TAG, "file length is " + length);
             } catch (IOException e) {
-                Log.e(TAG, "Read stream exception: ", e);
                 return SEND_FILE_INFO_ERROR;
             }
         }
 
+        if (length == 0) {
+            Log.e(TAG, "Could not determine size of file");
+            return SEND_FILE_INFO_ERROR;
+        }
+
         return new BluetoothOppSendFileInfo(fileName, contentType, length, is, 0);
+    }
+
+    private static long getStreamSize(FileInputStream is) throws IOException {
+        long length = 0;
+        byte unused[] = new byte[4096];
+        while (is.available() > 0) {
+            length += is.read(unused, 0, 4096);
+        }
+        return length;
     }
 }
