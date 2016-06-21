@@ -57,6 +57,7 @@ import android.util.Base64;
 import android.util.EventLog;
 import android.util.Log;
 
+import android.util.Slog;
 import android.util.SparseArray;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
@@ -97,10 +98,10 @@ public class AdapterService extends Service {
 
     private final Object mEnergyInfoLock = new Object();
     private int mStackReportedState;
-    private int mTxTimeTotalMs;
-    private int mRxTimeTotalMs;
-    private int mIdleTimeTotalMs;
-    private int mEnergyUsedTotalVoltAmpSecMicro;
+    private long mTxTimeTotalMs;
+    private long mRxTimeTotalMs;
+    private long mIdleTimeTotalMs;
+    private long mEnergyUsedTotalVoltAmpSecMicro;
     private SparseArray<UidTraffic> mUidTraffic = new SparseArray<>();
 
     private final ArrayList<ProfileService> mProfiles = new ArrayList<ProfileService>();
@@ -2329,17 +2330,43 @@ public class AdapterService extends Service {
             // Energy is product of mA, V and ms. If the chipset doesn't
             // report it, we have to compute it from time
             if (energy_used == 0) {
-                energy_used = (long)((tx_time * getTxCurrentMa()
-                        + rx_time * getRxCurrentMa()
-                        + idle_time * getIdleCurrentMa()) * getOperatingVolt());
+                try {
+                    final long txMah = Math.multiplyExact(tx_time, getTxCurrentMa());
+                    final long rxMah = Math.multiplyExact(rx_time, getRxCurrentMa());
+                    final long idleMah = Math.multiplyExact(idle_time, getIdleCurrentMa());
+                    energy_used = (long) (Math.addExact(Math.addExact(txMah, rxMah), idleMah)
+                            * getOperatingVolt());
+                } catch (ArithmeticException e) {
+                    Slog.wtf(TAG, "overflow in bluetooth energy callback", e);
+                    // Energy is already 0 if the exception was thrown.
+                }
             }
 
             synchronized (mEnergyInfoLock) {
                 mStackReportedState = ctrl_state;
-                mTxTimeTotalMs += tx_time;
-                mRxTimeTotalMs += rx_time;
-                mIdleTimeTotalMs += idle_time;
-                mEnergyUsedTotalVoltAmpSecMicro += energy_used;
+                long totalTxTimeMs;
+                long totalRxTimeMs;
+                long totalIdleTimeMs;
+                long totalEnergy;
+                try {
+                    totalTxTimeMs = Math.addExact(mTxTimeTotalMs, tx_time);
+                    totalRxTimeMs = Math.addExact(mRxTimeTotalMs, rx_time);
+                    totalIdleTimeMs = Math.addExact(mIdleTimeTotalMs, idle_time);
+                    totalEnergy = Math.addExact(mEnergyUsedTotalVoltAmpSecMicro, energy_used);
+                } catch (ArithmeticException e) {
+                    // This could be because we accumulated a lot of time, or we got a very strange
+                    // value from the controller (more likely). Discard this data.
+                    Slog.wtf(TAG, "overflow in bluetooth energy callback", e);
+                    totalTxTimeMs = mTxTimeTotalMs;
+                    totalRxTimeMs = mRxTimeTotalMs;
+                    totalIdleTimeMs = mIdleTimeTotalMs;
+                    totalEnergy = mEnergyUsedTotalVoltAmpSecMicro;
+                }
+
+                mTxTimeTotalMs = totalTxTimeMs;
+                mRxTimeTotalMs = totalRxTimeMs;
+                mIdleTimeTotalMs = totalIdleTimeMs;
+                mEnergyUsedTotalVoltAmpSecMicro = totalEnergy;
 
                 for (UidTraffic traffic : data) {
                     UidTraffic existingTraffic = mUidTraffic.get(traffic.getUid());
