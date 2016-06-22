@@ -416,19 +416,9 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
                         position += readLength;
 
-                        if (position != fileInfo.mLength) {
-                            mCallback.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
-                            synchronized (this) {
-                                mWaitingForRemote = false;
-                            }
-                        } else {
-                            // if file length is smaller than buffer size, only one packet
-                            // so block point is here
-                            outputStream.close();
-                            mCallback.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
-                            synchronized (this) {
-                                mWaitingForRemote = false;
-                            }
+                        mCallback.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
+                        synchronized (this) {
+                            mWaitingForRemote = false;
                         }
                         /* check remote accept or reject */
                         responseCode = putOperation.getResponseCode();
@@ -446,36 +436,34 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                         }
                     }
 
-                    while (!mInterrupted && okToProceed && (position != fileInfo.mLength)) {
-                        {
-                            if (V) timestamp = System.currentTimeMillis();
+                    while (!mInterrupted && okToProceed && (position < fileInfo.mLength)) {
+                        if (V) timestamp = System.currentTimeMillis();
 
-                            readLength = a.read(buffer, 0, outputBufferSize);
-                            outputStream.write(buffer, 0, readLength);
+                        readLength = a.read(buffer, 0, outputBufferSize);
+                        outputStream.write(buffer, 0, readLength);
 
-                            /* check remote abort */
-                            responseCode = putOperation.getResponseCode();
-                            if (V) Log.v(TAG, "Response code is " + responseCode);
-                            if (responseCode != ResponseCodes.OBEX_HTTP_CONTINUE
-                                    && responseCode != ResponseCodes.OBEX_HTTP_OK) {
-                                /* abort happens */
-                                okToProceed = false;
-                            } else {
-                                position += readLength;
-                                if (V) {
-                                    Log.v(TAG, "Sending file position = " + position
-                                            + " readLength " + readLength + " bytes took "
-                                            + (System.currentTimeMillis() - timestamp) + " ms");
-                                }
-                                // Update the Progress Bar only if there is change in percentage
-                                percent = position * 100 / fileInfo.mLength;
-                                if (percent > prevPercent) {
-                                    updateValues = new ContentValues();
-                                    updateValues.put(BluetoothShare.CURRENT_BYTES, position);
-                                    mContext1.getContentResolver().update(contentUri, updateValues,
-                                            null, null);
-                                    prevPercent = percent;
-                                }
+                        /* check remote abort */
+                        responseCode = putOperation.getResponseCode();
+                        if (V) Log.v(TAG, "Response code is " + responseCode);
+                        if (responseCode != ResponseCodes.OBEX_HTTP_CONTINUE
+                                && responseCode != ResponseCodes.OBEX_HTTP_OK) {
+                            /* abort happens */
+                            okToProceed = false;
+                        } else {
+                            position += readLength;
+                            if (V) {
+                                Log.v(TAG, "Sending file position = " + position
+                                        + " readLength " + readLength + " bytes took "
+                                        + (System.currentTimeMillis() - timestamp) + " ms");
+                            }
+                            // Update the Progress Bar only if there is change in percentage
+                            percent = position * 100 / fileInfo.mLength;
+                            if (percent > prevPercent) {
+                                updateValues = new ContentValues();
+                                updateValues.put(BluetoothShare.CURRENT_BYTES, position);
+                                mContext1.getContentResolver().update(contentUri, updateValues,
+                                        null, null);
+                                prevPercent = percent;
                             }
                         }
                     }
@@ -491,7 +479,6 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     } else if (!mInterrupted && position == fileInfo.mLength) {
                         Log.i(TAG, "SendFile finished send out file " + fileInfo.mFileName
                                 + " length " + fileInfo.mLength);
-                        outputStream.close();
                     } else {
                         error = true;
                         status = BluetoothShare.STATUS_CANCELED;
@@ -536,6 +523,9 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
                     if (inputStream != null) {
                         inputStream.close();
+                    }
+                    if (outputStream != null) {
+                        outputStream.close();
                     }
                     if (putOperation != null) {
                         putOperation.close();
