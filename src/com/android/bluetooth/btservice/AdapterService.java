@@ -330,7 +330,9 @@ public class AdapterService extends Service {
 
     public void addProfile(ProfileService profile) {
         synchronized (mProfiles) {
-            mProfiles.add(profile);
+            if (!mProfiles.contains(profile)) {
+                mProfiles.add(profile);
+            }
         }
     }
 
