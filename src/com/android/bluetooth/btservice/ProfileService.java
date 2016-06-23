@@ -55,8 +55,6 @@ public abstract class ProfileService extends Service {
     protected boolean mStartError=false;
     private boolean mCleaningUp = false;
 
-    private AdapterService mAdapterService;
-
     protected String getName() {
         return getClass().getSimpleName();
     }
@@ -109,16 +107,17 @@ public abstract class ProfileService extends Service {
         super.onCreate();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mBinder = initBinder();
-        mAdapterService = AdapterService.getAdapterService();
-        if (mAdapterService != null) {
-            mAdapterService.addProfile(this);
-        } else {
-            Log.w(TAG, "onCreate, null mAdapterService");
-        }
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (DBG) log("onStartCommand()");
+        AdapterService adapterService = AdapterService.getAdapterService();
+        if (adapterService != null) {
+            adapterService.addProfile(this);
+        } else {
+            Log.w(TAG, "Could not add this profile because AdapterService is null.");
+        }
+
         if (mStartError || mAdapter == null) {
             Log.w(mName, "Stopping profile service: device does not have BT");
             doStop(intent);
@@ -178,7 +177,8 @@ public abstract class ProfileService extends Service {
     @Override
     public void onDestroy() {
         if (DBG) log("Destroying service.");
-        if (mAdapterService != null) mAdapterService.removeProfile(this);
+        AdapterService adapterService = AdapterService.getAdapterService();
+        if (adapterService != null) adapterService.removeProfile(this);
 
         if (mCleaningUp) {
             if (DBG) log("Cleanup already started... Skipping cleanup()...");
@@ -222,15 +222,17 @@ public abstract class ProfileService extends Service {
 
     protected void notifyProfileServiceStateChanged(int state) {
         //Notify adapter service
-        if (mAdapterService != null) {
-            mAdapterService.onProfileServiceStateChanged(getClass().getName(), state);
+        AdapterService adapterService = AdapterService.getAdapterService();
+        if (adapterService != null) {
+            adapterService.onProfileServiceStateChanged(getClass().getName(), state);
         }
     }
 
     public void notifyProfileConnectionStateChanged(BluetoothDevice device,
             int profileId, int newState, int prevState) {
-        if (mAdapterService != null) {
-            mAdapterService.onProfileConnectionStateChanged(device, profileId, newState, prevState);
+        AdapterService adapterService = AdapterService.getAdapterService();
+        if (adapterService != null) {
+            adapterService.onProfileConnectionStateChanged(device, profileId, newState, prevState);
         }
     }
 
