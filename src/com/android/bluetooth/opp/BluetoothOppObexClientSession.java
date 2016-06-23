@@ -496,6 +496,10 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                 handleSendException(e.toString());
             } finally {
                 try {
+                    if (outputStream != null) {
+                      outputStream.close();
+                    }
+
                     // Close InputStream and remove SendFileInfo from map
                     BluetoothOppUtility.closeSendFileInfo(mInfo.mUri);
                     if (!error) {
@@ -523,9 +527,6 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
                     if (inputStream != null) {
                         inputStream.close();
-                    }
-                    if (outputStream != null) {
-                        outputStream.close();
                     }
                     if (putOperation != null) {
                         putOperation.close();
