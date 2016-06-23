@@ -158,8 +158,6 @@ public class BluetoothOppService extends Service {
         super.onCreate();
         if (D) Log.d(TAG, "onCreate");
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mSocketListener = new BluetoothOppRfcommListener(mAdapter);
-        mL2cSocketListener = new BluetoothOppL2capListener(mAdapter);
         mShares = Lists.newArrayList();
         mBatchs = Lists.newArrayList();
         mObserver = new BluetoothShareContentObserver();
@@ -243,9 +241,11 @@ public class BluetoothOppService extends Service {
                     }
                     if(mSocketListener != null){
                         mSocketListener.stop();
+                        mSocketListener = null;
                     }
                     if(mL2cSocketListener != null){
                         mL2cSocketListener.stop();
+                        mL2cSocketListener = null;
                     }
                     mListenStarted = false;
                     //Stop Active INBOUND Transfer
@@ -360,22 +360,35 @@ public class BluetoothOppService extends Service {
 
     private void startSocketListener() {
 
-        if (V) Log.v(TAG, "start Socket Listeners");
-        if (mSocketListener != null && mL2cSocketListener != null) {
-            if ((mSocketListener.openRfcommSocket() != null) &&
-                    (mL2cSocketListener.openL2capSocket() != null) &&
-                    SdpManager.getDefaultManager() != null) {
-                mOppSdpHandle = SdpManager.getDefaultManager()
-                        .createOppOpsRecord("OBEX Object Push", mSocketListener.getRfcommChannel(),
-                                mL2cSocketListener.getL2capPsm(), 0x0102, SdpManager.OPP_FORMAT_ALL);
-                mSocketListener.start(mHandler);
-                mL2cSocketListener.start(mHandler);
-            } else {
-                Log.e(TAG, "ERROR:serversocket object is NULL");
-            }
-        }
-    }
+       Log.d(TAG, "start Socket Listeners");
 
+       if(mSocketListener != null){
+           Log.d(TAG, "rfcomm listener active, stopping it");
+           mSocketListener.stop();
+           mSocketListener = null;
+       }
+       if(mL2cSocketListener != null){
+           Log.d(TAG, "l2cap listener active, stopping it");
+           mL2cSocketListener.stop();
+           mL2cSocketListener = null;
+       }
+       mSocketListener = new BluetoothOppRfcommListener(mAdapter);
+       mL2cSocketListener = new BluetoothOppL2capListener(mAdapter);
+       if (mSocketListener != null && mL2cSocketListener != null) {
+
+           if ( ( mSocketListener.openRfcommSocket() != null) &&
+                ( mL2cSocketListener.openL2capSocket() != null) &&
+                SdpManager.getDefaultManager() != null) {
+               mOppSdpHandle = SdpManager.getDefaultManager()
+                   .createOppOpsRecord("OBEX Object Push", mSocketListener.getRfcommChannel(),
+                        mL2cSocketListener.getL2capPsm(), 0x0102, SdpManager.OPP_FORMAT_ALL);
+              mSocketListener.start(mHandler);
+              mL2cSocketListener.start(mHandler);
+           } else {
+               Log.e(TAG, "ERROR:serversocket object is NULL");
+           }
+       }
+    }
 
     @Override
     public void onDestroy() {
@@ -383,8 +396,14 @@ public class BluetoothOppService extends Service {
         super.onDestroy();
         getContentResolver().unregisterContentObserver(mObserver);
         unregisterReceiver(mBluetoothReceiver);
-        mSocketListener.stop();
-        mL2cSocketListener.stop();
+        if(mSocketListener != null) {
+            mSocketListener.stop();
+            mSocketListener = null;
+        }
+        if(mL2cSocketListener != null) {
+            mL2cSocketListener.stop();
+            mL2cSocketListener = null;
+        }
 
         if(mBatchs != null) {
             mBatchs.clear();
@@ -411,7 +430,7 @@ public class BluetoothOppService extends Service {
             String action = intent.getAction();
 
             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-                switch (mAdapter.getState()) {
+                switch (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)) {
                     case BluetoothAdapter.STATE_ON:
                         if (V) Log.v(TAG,
                                     "Receiver BLUETOOTH_STATE_CHANGED_ACTION, BLUETOOTH_STATE_ON");
