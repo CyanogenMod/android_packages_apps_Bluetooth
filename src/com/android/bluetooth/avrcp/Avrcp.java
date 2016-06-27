@@ -79,6 +79,9 @@ import android.net.Uri;
 import android.app.Notification;
 import android.app.NotificationManager;
 
+import com.android.bluetooth.avrcp.AvrcpControllerService;
+import android.os.SystemProperties;
+
 /**
  * support Bluetooth AVRCP profile.
  * support metadata, play status and event notification
@@ -189,8 +192,11 @@ public final class Avrcp {
     private final static int MESSAGE_PLAYERSETTINGS_TIMEOUT = 602;
 
     private static final int AVRCP_CONNECTED = 1;
-    public  static final int KEY_STATE_PRESSED = 0;
-    public  static final int KEY_STATE_RELEASED = 1;
+    public static final int KEY_STATE_PRESSED = 0;
+    public static final int KEY_STATE_RELEASED = 1;
+    public static final int AVRC_ID_VOL_UP = 0x41;
+    public static final int AVRC_ID_VOL_DOWN = 0x42;
+    private boolean pts_test = false;
 
     private final static int TYPE_MEDIA_PLAYER_ITEM = 0x01;
     private final static int TYPE_FOLDER_ITEM = 0x02;
@@ -437,6 +443,7 @@ public final class Avrcp {
         mAudioStreamMax = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         mVolumeStep = Math.max(AVRCP_BASE_VOLUME_STEP, AVRCP_MAX_VOL/mAudioStreamMax);
         mAvrcpBipRsp = new AvrcpBipRsp(mContext);
+        pts_test = SystemProperties.getBoolean("bt.avrcpct-passthrough.pts", false);
     }
 
     private void start() {
@@ -1033,6 +1040,12 @@ public final class Avrcp {
                 deviceFeatures[deviceIndex].mFeatures = 
                     modifyRcFeatureFromBlacklist(deviceFeatures[deviceIndex].mFeatures,
                     address);
+                Log.d(TAG, "avrcpct-passthrough pts_test = " + pts_test);
+                if (pts_test) {
+                    Log.v(TAG,"fake BTRC_FEAT_ABSOLUTE_VOLUME remote feat support for pts test");
+                    deviceFeatures[deviceIndex].mFeatures =
+                                 deviceFeatures[deviceIndex].mFeatures | BTRC_FEAT_ABSOLUTE_VOLUME;
+                }
                 deviceFeatures[deviceIndex].isAbsoluteVolumeSupportingDevice =
                         ((deviceFeatures[deviceIndex].mFeatures &
                         BTRC_FEAT_ABSOLUTE_VOLUME) != 0);
@@ -4824,8 +4837,41 @@ public final class Avrcp {
      * requesting our handler to call setVolumeNative()
      */
     public void adjustVolume(int direction) {
-        Message msg = mHandler.obtainMessage(MESSAGE_ADJUST_VOLUME, direction, 0);
-        mHandler.sendMessage(msg);
+        Log.d(TAG, "pts_test = " + pts_test + " direction = " + direction);
+        if (pts_test) {
+            AvrcpControllerService avrcpCtrlService =
+                    AvrcpControllerService.getAvrcpControllerService();
+            if (avrcpCtrlService != null) {
+                Log.d(TAG, "avrcpCtrlService not null");
+                for (int i = 0; i < maxAvrcpConnections; i++) {
+                    if (deviceFeatures[i].mCurrentDevice != null) {
+                        Log.d(TAG, "SendPassThruPlay command sent for = "
+                                + deviceFeatures[i].mCurrentDevice);
+                        if (direction == 1) {
+                            avrcpCtrlService.sendPassThroughCmd(
+                                deviceFeatures[i].mCurrentDevice, AVRC_ID_VOL_UP,
+                                KEY_STATE_PRESSED);
+                            avrcpCtrlService.sendPassThroughCmd(
+                                deviceFeatures[i].mCurrentDevice, AVRC_ID_VOL_UP,
+                                KEY_STATE_RELEASED);
+                        } else if (direction == -1) {
+                           avrcpCtrlService.sendPassThroughCmd(
+                                deviceFeatures[i].mCurrentDevice, AVRC_ID_VOL_DOWN,
+                                KEY_STATE_PRESSED);
+                           avrcpCtrlService.sendPassThroughCmd(
+                                deviceFeatures[i].mCurrentDevice, AVRC_ID_VOL_DOWN,
+                                KEY_STATE_RELEASED);
+                        }
+                    }
+                }
+            } else {
+                Log.d(TAG, "passthru command not sent, connection unavailable");
+            }
+        } else {
+            Log.d(TAG, "MESSAGE_ADJUST_VOLUME");
+            Message msg = mHandler.obtainMessage(MESSAGE_ADJUST_VOLUME, direction, 0);
+            mHandler.sendMessage(msg);
+        }
     }
 
     public void setAbsoluteVolume(int volume) {
