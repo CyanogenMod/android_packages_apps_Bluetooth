@@ -152,6 +152,7 @@ public class BluetoothMapService extends ProfileService {
     private boolean mSdpSearchInitiated = false;
     SdpMnsRecord mMnsRecord = null;
     private MapServiceMessageHandler mSessionStatusHandler;
+    /**Indicate MAPService internal state: started or stopped*/
     private boolean mStartError = true;
 
     private boolean mSmsCapable = true;
@@ -174,7 +175,8 @@ public class BluetoothMapService extends ProfileService {
 
     private synchronized void closeService() {
         if (DEBUG) Log.d(TAG, "MAP Service closeService in");
-
+        // Mark MapService stop while shutdown ongoing.
+        mStartError = true;
         if (mBluetoothMnsObexClient != null) {
             mBluetoothMnsObexClient.shutdown();
             mBluetoothMnsObexClient = null;
@@ -188,8 +190,11 @@ public class BluetoothMapService extends ProfileService {
 
         mIsWaitingAuthorization = false;
         mPermission = BluetoothDevice.ACCESS_UNKNOWN;
-        setState(BluetoothMap.STATE_DISCONNECTED);
-
+        // TODO: setState Intent ignored while BT Turning off.
+        // This as no significance as of now as CloseService is invoked during BT TURN OFF.
+        if (getState() != BluetoothMap.STATE_DISCONNECTED) {
+            setState(BluetoothMap.STATE_DISCONNECTED);
+        }
         if (mWakeLock != null) {
             mWakeLock.release();
             if (VERBOSE) Log.v(TAG, "CloseService(): Release Wake Lock");
@@ -847,25 +852,46 @@ public class BluetoothMapService extends ProfileService {
         //Stop MapProfile if already started.
         //TODO: Check if the profile state can be retreived from ProfileService or AdapterService.
         if (!isMapStarted()) {
-            if (DEBUG) Log.d(TAG, "Service Not Available to STOP, ignoring");
+            if (DEBUG) Log.d(TAG, "Service Not Available to STOP or Shutdown already" +
+                " in progress - Ignoring");
             return true;
         } else {
             if (VERBOSE) Log.d(TAG, "Service Stoping()");
+        }
+        // setState Disconnect already handled from closeService.
+        // Handle it otherwise - Redundant for backup?
+        if (getState() != BluetoothMap.STATE_DISCONNECTED) {
+            setState(BluetoothMap.STATE_DISCONNECTED, BluetoothMap.RESULT_CANCELED);
         }
         if (mSessionStatusHandler != null) {
             sendShutdownMessage();
         }
         mStartError = true;
-        setState(BluetoothMap.STATE_DISCONNECTED, BluetoothMap.RESULT_CANCELED);
         return true;
     }
 
     public boolean cleanup()  {
         if (DEBUG) Log.d(TAG, "cleanup()");
-        setState(BluetoothMap.STATE_DISCONNECTED, BluetoothMap.RESULT_CANCELED);
+        //Stop MapProfile if already started.
+        //TODO: Check if the profile state can be retreived from ProfileService or AdapterService.
+        if (!isMapStarted()) {
+            if (DEBUG) Log.d(TAG, "Service Not Available to STOP or Shutdown already" +
+                " in progress - Ignoring");
+            return true;
+        } else {
+            if (VERBOSE) Log.d(TAG, "Service Stoping()");
+        }
+        // SetState Disconnect already handled from closeService.
+        // Handle it otherwise. Redundant for backup ?
+        if (getState() != BluetoothMap.STATE_DISCONNECTED) {
+            setState(BluetoothMap.STATE_DISCONNECTED, BluetoothMap.RESULT_CANCELED);
+        }
         //Cleanup already handled in Stop().
         //Move this  extra check to Handler.
-        sendShutdownMessage();
+        if (mSessionStatusHandler != null) {
+            sendShutdownMessage();
+        }
+        mStartError = true;
         return true;
     }
 
@@ -1057,7 +1083,17 @@ public class BluetoothMapService extends ProfileService {
                                                BluetoothAdapter.ERROR);
                 if (state == BluetoothAdapter.STATE_TURNING_OFF) {
                     if (DEBUG) Log.d(TAG, "STATE_TURNING_OFF");
-                    sendShutdownMessage();
+                    //Stop MapProfile if already started.
+                   if (!isMapStarted()) {
+                       if (DEBUG) Log.d(TAG, "Service Not Available to STOP or Shutdown already" +
+                           " in progress - Ignoring");
+                   } else if (mSessionStatusHandler != null) {
+                       if (VERBOSE) Log.d(TAG, "Service Stoping()");
+                       sendShutdownMessage();
+                   } else {
+                       if (DEBUG) Log.d(TAG, "Unable to perform STOP or Shutdown already" +
+                           " in progress - Ignoring");
+                   }
                 } else if (state == BluetoothAdapter.STATE_ON) {
                     if (DEBUG) Log.d(TAG, "STATE_ON");
                     // start ServerSocket listener threads

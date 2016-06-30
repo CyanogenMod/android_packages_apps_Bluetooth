@@ -419,8 +419,9 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
         removeSdpRecord();
 
         closeConnectionSocket();
-
-        closeServerSockets(true);
+        //Donot block for Accept thread cleanup.
+        //Fix Handler Thread block during BT Turn OFF.
+        closeServerSockets(false);
     }
 
     /**
