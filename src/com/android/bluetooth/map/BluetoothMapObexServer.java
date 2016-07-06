@@ -993,8 +993,8 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
             }
             Log.v(TAG,"sendMessageListingRsp: has sms " + folderToList.hasSmsMmsContent() +
-                    "has email " + folderToList.hasEmailContent() +
-                    "has IM " + folderToList.hasImContent() );
+                    ", has email " + folderToList.hasEmailContent() +
+                    ", has IM " + folderToList.hasImContent() );
         }
 
         try {

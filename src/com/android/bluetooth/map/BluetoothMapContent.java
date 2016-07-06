@@ -949,10 +949,14 @@ public class BluetoothMapContent {
                     address = c.getString(c.getColumnIndex(Sms.ADDRESS));
                 }
                 if ((address == null) && msgType == Sms.MESSAGE_TYPE_DRAFT) {
-                    //Fetch address for Drafts folder from "canonical_address" table
+                    // Fetch address for Drafts folder from "canonical_address" table
                     int threadIdInd = c.getColumnIndex(Sms.THREAD_ID);
                     String threadIdStr = c.getString(threadIdInd);
-                    address = getCanonicalAddressSms(mResolver, Integer.valueOf(threadIdStr));
+                    // If a draft message has no recipient, it has no thread ID
+                    // hence threadIdStr could possibly be null
+                    if (threadIdStr != null) {
+                        address = getCanonicalAddressSms(mResolver, Integer.valueOf(threadIdStr));
+                    }
                     if(V)  Log.v(TAG, "threadId = " + threadIdStr + " adress:" + address +"\n");
                 }
             } else if (fi.mMsgType == FilterInfo.TYPE_MMS) {
@@ -960,7 +964,7 @@ public class BluetoothMapContent {
                 address = getAddressMms(mResolver, id, MMS_TO);
             } else if (fi.mMsgType == FilterInfo.TYPE_EMAIL) {
                 /* Might be another way to handle addresses */
-                address = getRecipientAddressingEmail(e, c,fi);
+                address = getRecipientAddressingEmail(e, c, fi);
             }
             if (V) Log.v(TAG, "setRecipientAddressing: " + address);
             if(address == null)
@@ -1601,7 +1605,8 @@ public class BluetoothMapContent {
         } else if (BluetoothMapContract.FOLDER_NAME_SENT.equalsIgnoreCase(folder)) {
             where = Sms.TYPE + " = 2 AND " + Sms.THREAD_ID + " <> -1";
         } else if (BluetoothMapContract.FOLDER_NAME_DRAFT.equalsIgnoreCase(folder)) {
-            where = Sms.TYPE + " = 3 AND " + Sms.THREAD_ID + " <> -1";
+            where = Sms.TYPE + " = 3 AND " +
+                "(" + Sms.THREAD_ID + " IS NULL OR " + Sms.THREAD_ID + " <> -1 )";
         } else if (BluetoothMapContract.FOLDER_NAME_DELETED.equalsIgnoreCase(folder)) {
             where = Sms.THREAD_ID + " = -1";
         }
@@ -1618,7 +1623,8 @@ public class BluetoothMapContent {
         } else if (BluetoothMapContract.FOLDER_NAME_SENT.equalsIgnoreCase(folder)) {
             where = Mms.MESSAGE_BOX + " = 2 AND " + Mms.THREAD_ID + " <> -1";
         } else if (BluetoothMapContract.FOLDER_NAME_DRAFT.equalsIgnoreCase(folder)) {
-            where = Mms.MESSAGE_BOX + " = 3 AND " + Mms.THREAD_ID + " <> -1";
+            where = Mms.MESSAGE_BOX + " = 3 AND " +
+                "(" + Mms.THREAD_ID + " IS NULL OR " + Mms.THREAD_ID + " <> -1 )";
         } else if (BluetoothMapContract.FOLDER_NAME_DELETED.equalsIgnoreCase(folder)) {
             where = Mms.THREAD_ID + " = -1";
         }

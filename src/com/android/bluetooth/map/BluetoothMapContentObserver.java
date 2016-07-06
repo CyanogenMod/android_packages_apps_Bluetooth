@@ -2442,8 +2442,16 @@ public class BluetoothMapContentObserver {
         long folderId = -1;
 
         if (recipientList == null) {
-            if (D) Log.d(TAG, "empty recipient list");
-            return -1;
+            if (folderElement.getName().equalsIgnoreCase(BluetoothMapContract.FOLDER_NAME_DRAFT)) {
+                BluetoothMapbMessage.vCard empty =
+                    new BluetoothMapbMessage.vCard("", "", null, null, 0);
+                recipientList = new ArrayList<BluetoothMapbMessage.vCard>();
+                recipientList.add(empty);
+                Log.w(TAG, "Added empty recipient to draft message");
+            } else {
+                Log.e(TAG, "Trying to send a message with no recipients");
+                return -1;
+            }
         }
 
         if ( msg.getType().equals(TYPE.EMAIL) ) {
