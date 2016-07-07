@@ -146,11 +146,10 @@ public abstract class ProfileService extends Service {
                               mName.equals("BtGatt.GattService")) ) {
 
                               Log.d(mName, "Received start request. Starting profile...");
-                              mAdapterService = AdapterService.getAdapterService();
-                              if (mAdapterService != null) {
-                                  mAdapterService.addProfile(this);
+                              if (adapterService != null) {
+                                  adapterService.addProfile(this);
                               } else {
-                                  Log.w(TAG, "onStart, null mAdapterService, this should never happen ");
+                                  Log.w(TAG, "onStart, null adapterService, this should never happen ");
                               }
 
                               doStart(intent);
