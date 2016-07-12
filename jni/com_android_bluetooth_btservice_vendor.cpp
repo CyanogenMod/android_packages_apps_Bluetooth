@@ -19,7 +19,7 @@
 #define LOG_TAG "BluetoothVendorJni"
 
 #include "com_android_bluetooth.h"
-#include "hardware/bt_vendor.h"
+#include <hardware/vendor.h>
 #include "utils/Log.h"
 #include "android_runtime/AndroidRuntime.h"
 

@@ -19,6 +19,7 @@ LOCAL_SRC_FILES:= \
 
 LOCAL_C_INCLUDES += \
     $(JNI_H_INCLUDE) \
+    vendor/qcom/opensource/bluetooth/hal/include
 
 LOCAL_SHARED_LIBRARIES := \
     libandroid_runtime \

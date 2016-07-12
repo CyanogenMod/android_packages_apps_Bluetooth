@@ -23,7 +23,7 @@
 #include "android_runtime/AndroidRuntime.h"
 #include "android_runtime/Log.h"
 
-#include "hardware/bt_vendor.h"
+#include <hardware/vendor.h>
 
 #include <string.h>
 #include <pthread.h>
