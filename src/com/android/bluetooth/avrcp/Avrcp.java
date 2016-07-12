@@ -163,6 +163,8 @@ public final class Avrcp {
         mSongLengthMs = 0L;
         mPlaybackIntervalMs = 0L;
         mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
+        mNextPosMs = -1;
+        mPrevPosMs = -1;
         mFeatures = 0;
         mRemoteVolume = -1;
         mInitialRemoteVolume = -1;
@@ -267,12 +269,10 @@ public final class Avrcp {
         mMediaController = controller;
         if (mMediaController == null) {
             updateMetadata(null);
-            updatePlaybackState(null);
             return;
         }
         mMediaController.registerCallback(mMediaControllerCb, mHandler);
         updateMetadata(mMediaController.getMetadata());
-        updatePlaybackState(mMediaController.getPlaybackState());
     }
 
     /** Handles Avrcp messages. */
@@ -641,7 +641,6 @@ public final class Avrcp {
                          PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0.0f).build();
         }
 
-        int oldPlayStatus = convertPlayStateToPlayStatus(mCurrentPlayState);
         int newPlayStatus = convertPlayStateToPlayStatus(state);
 
         mCurrentPlayState = state;
@@ -649,7 +648,7 @@ public final class Avrcp {
 
         sendPlayPosNotificationRsp(false);
 
-        if ((mPlayStatusChangedNT == NOTIFICATION_TYPE_INTERIM) && (oldPlayStatus != newPlayStatus)) {
+        if (mPlayStatusChangedNT == NOTIFICATION_TYPE_INTERIM) {
             mPlayStatusChangedNT = NOTIFICATION_TYPE_CHANGED;
             registerNotificationRspPlayStatusNative(mPlayStatusChangedNT, newPlayStatus);
         }
@@ -779,8 +778,13 @@ public final class Avrcp {
             Log.v(TAG, "MediaAttributes Changed to " + mMediaAttributes.toString());
             mTrackNumber++;
 
-            // Update the play state, which sends a notification if needed.
-            updatePlaybackState(mMediaController.getPlaybackState());
+            // Update the play state, which sends play state and play position
+            // notifications if needed.
+            if (mMediaController != null) {
+              updatePlaybackState(mMediaController.getPlaybackState());
+            } else {
+              updatePlaybackState(null);
+            }
 
             if (mTrackChangedNT == NOTIFICATION_TYPE_INTERIM) {
                 mTrackChangedNT = NOTIFICATION_TYPE_CHANGED;
@@ -903,7 +907,7 @@ public final class Avrcp {
             return SystemClock.elapsedRealtime() - mLastStateUpdate + mCurrentPlayState.getPosition();
         }
 
-        return -1L;
+        return mCurrentPlayState.getPosition();
     }
 
     private int convertPlayStateToPlayStatus(PlaybackState state) {
