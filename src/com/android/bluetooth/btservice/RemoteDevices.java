@@ -45,13 +45,13 @@ final class RemoteDevices {
     private static final int UUID_INTENT_DELAY = 6000;
     private static final int MESSAGE_UUID_INTENT = 1;
 
-    private HashMap<BluetoothDevice, DeviceProperties> mDevices;
+    private HashMap<String, DeviceProperties> mDevices;
 
     RemoteDevices(AdapterService service) {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mAdapterService = service;
         mSdpTracker = new ArrayList<BluetoothDevice>();
-        mDevices = new HashMap<BluetoothDevice, DeviceProperties>();
+        mDevices = new HashMap<String, DeviceProperties>();
     }
 
 
@@ -70,26 +70,23 @@ final class RemoteDevices {
 
     DeviceProperties getDeviceProperties(BluetoothDevice device) {
         synchronized (mDevices) {
-            return mDevices.get(device);
+            return mDevices.get(device.getAddress());
         }
     }
 
     BluetoothDevice getDevice(byte[] address) {
-        for (BluetoothDevice dev : mDevices.keySet()) {
-            if (dev.getAddress().equals(Utils.getAddressStringFromByte(address))) {
-                return dev;
-            }
-        }
-        return null;
+        DeviceProperties prop = mDevices.get(Utils.getAddressStringFromByte(address));
+        if (prop == null)
+           return null;
+        return prop.getDevice();
     }
 
     DeviceProperties addDeviceProperties(byte[] address) {
         synchronized (mDevices) {
             DeviceProperties prop = new DeviceProperties();
-            BluetoothDevice device =
-                    mAdapter.getRemoteDevice(Utils.getAddressStringFromByte(address));
+            prop.mDevice = mAdapter.getRemoteDevice(Utils.getAddressStringFromByte(address));
             prop.mAddress = address;
-            mDevices.put(device, prop);
+            mDevices.put(Utils.getAddressStringFromByte(address), prop);
             return prop;
         }
     }
@@ -103,6 +100,7 @@ final class RemoteDevices {
         private int mDeviceType;
         private String mAlias;
         private int mBondState;
+        private BluetoothDevice mDevice;
 
         DeviceProperties() {
             mBondState = BluetoothDevice.BOND_NONE;
@@ -141,6 +139,15 @@ final class RemoteDevices {
         byte[] getAddress() {
             synchronized (mObject) {
                 return mAddress;
+            }
+        }
+
+        /**
+         * @return the mDevice
+         */
+        BluetoothDevice getDevice() {
+            synchronized (mObject) {
+                return mDevice;
             }
         }
 
