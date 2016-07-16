@@ -239,6 +239,8 @@ final class HeadsetStateMachine extends StateMachine {
         VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID = new HashMap<String, Integer>();
         VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID.put("+XEVENT", BluetoothAssignedNumbers.PLANTRONICS);
         VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID.put("+ANDROID", BluetoothAssignedNumbers.GOOGLE);
+        VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID.put("+XAPL", BluetoothAssignedNumbers.APPLE);
+        VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID.put("+IPHONEACCEV", BluetoothAssignedNumbers.APPLE);
     }
 
     private HeadsetStateMachine(HeadsetService context) {
