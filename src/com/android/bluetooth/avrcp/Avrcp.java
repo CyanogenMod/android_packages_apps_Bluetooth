@@ -102,13 +102,12 @@ public final class Avrcp {
     private MediaAttributes mMediaAttributes;
     private int mTransportControlFlags;
     private PlaybackState mCurrentPlayerState;
+    private long mLastStateUpdate;
     private int mPlayStatusChangedNT;
     private int mTrackChangedNT;
-    private long mCurrentPosMs;
-    private long mPlayStartTimeMs;
+    private int mPlayPosChangedNT;
     private long mSongLengthMs;
     private long mPlaybackIntervalMs;
-    private int mPlayPosChangedNT;
     private long mSkipStartTime;
     
     Resources mResources;
@@ -423,8 +422,7 @@ public final class Avrcp {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mMediaAttributes = new MediaAttributes(null);
         mCurrentPlayerState = new PlaybackState.Builder().setState(PlaybackState.STATE_NONE, -1L, 0.0f).build();
-        mCurrentPosMs = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
-        mPlayStartTimeMs = -1L;
+        mLastStateUpdate = -1L;
         mSongLengthMs = 0L;
         mA2dpService = svc;
         maxAvrcpConnections = maxConnections;
@@ -794,7 +792,7 @@ public final class Avrcp {
         @Override
         public void onPlaybackStateChanged(PlaybackState state) {
             Log.v(TAG, "MediaController playback changed: " + state.toString());
-            updatePlayPauseState(state, null);
+            updatePlaybackState(state, null);
         }
 
         @Override
@@ -885,12 +883,12 @@ public final class Avrcp {
         mMediaController = controller;
         if (mMediaController == null) {
             updateMetadata(null);
-            updatePlayPauseState(null, null);
+            updatePlaybackState(null, null);
             return;
         }
         mMediaController.registerCallback(mMediaControllerCb, mHandler);
         updateMetadata(mMediaController.getMetadata());
-        updatePlayPauseState(mMediaController.getPlaybackState(),null);
+        updatePlaybackState(mMediaController.getPlaybackState(), null);
         if (mHandler != null) {
             Log.v(TAG, "Focus gained for player: " + mMediaController.getPackageName());
             mHandler.obtainMessage(MSG_UPDATE_RCC_CHANGE, 1, 1,
@@ -1142,12 +1140,7 @@ public final class Avrcp {
                     Log.e(TAG,"invalid index for device");
                     break;
                 }
-                deviceFeatures[deviceIndex].mPlayPosChangedNT =
-                         NOTIFICATION_TYPE_CHANGED;
-                Log.v(TAG, "event for device address " + (BluetoothDevice) msg.obj);
-                registerNotificationRspPlayPosNative(deviceFeatures[deviceIndex].mPlayPosChangedNT,
-                        (int)getPlayPosition((BluetoothDevice) msg.obj) ,
-                        getByteAddress((BluetoothDevice) msg.obj));
+                sendPlayPosNotificationRsp(false, deviceIndex);
                 break;
 
             case MESSAGE_SET_ADDR_PLAYER_REQ_TIMEOUT:
@@ -1639,7 +1632,7 @@ public final class Avrcp {
                     builder.setState(PlaybackState.STATE_PAUSED,
                                      PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0.0f);
                 }
-                updatePlayPauseState(builder.build(), device);
+                updatePlaybackState(builder.build(), device);
                 break;
             }
         }
@@ -1663,7 +1656,7 @@ public final class Avrcp {
         }
     }
 
-    private void updatePlayPauseState(PlaybackState state, BluetoothDevice device) {
+    private void updatePlaybackState(PlaybackState state, BluetoothDevice device) {
         Log.v(TAG,"updatePlayPauseState, state: " + state + " device: " + device);
         for (int i = 0; i < maxAvrcpConnections; i++) {
             Log.v(TAG,"Device: " + ((deviceFeatures[i].mCurrentDevice == null) ?
@@ -1722,59 +1715,19 @@ public final class Avrcp {
             state = new PlaybackState.Builder().setState(PlaybackState.STATE_NONE,
                 PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0.0f).build();
         }
-        boolean oldPosValid = (mCurrentPosMs !=
-                               PlaybackState.PLAYBACK_POSITION_UNKNOWN);
 
         if (DEBUG) Log.v(TAG, "old state = " + mCurrentPlayerState + ", new state= " + state);
         int oldPlayStatus = convertPlayStateToPlayStatus(mCurrentPlayerState);
         int newPlayStatus = convertPlayStateToPlayStatus(state);
 
-        if ((mCurrentPlayerState.getState() == PlaybackState.STATE_PLAYING) &&
-            (mCurrentPlayerState != state) && oldPosValid) {
-            mCurrentPosMs = getPlayPosition(null);
-            Log.d(TAG, "Update mCurrentPosMs to " + mCurrentPosMs);
-        }
-
-        if ((state.getState() == PlaybackState.STATE_PLAYING) && (mCurrentPlayerState != state)) {
-            mPlayStartTimeMs = SystemClock.elapsedRealtime();
-            Log.d(TAG, "Update mPlayStartTimeMs to " + mPlayStartTimeMs);
-        }
-
         mCurrentPlayerState = state;
+        mLastStateUpdate = SystemClock.elapsedRealtime();
 
-        if (!(mCurrentPlayerState.getState() == PlaybackState.STATE_PLAYING
-                                             && mCurrentPosMs == state.getPosition())) {
-            if (state.getPosition() != PlaybackState.PLAYBACK_POSITION_UNKNOWN) {
-                mCurrentPosMs = state.getPosition();
-                mPlayStartTimeMs = SystemClock.elapsedRealtime();
-                Log.d(TAG, "Update mPlayStartTimeMs: " + mPlayStartTimeMs +
-                                            " mCurrentPosMs: " + mCurrentPosMs);
-            }
+        for (int deviceIndex = 0; deviceIndex < maxAvrcpConnections; deviceIndex++) {
+            sendPlayPosNotificationRsp(false, deviceIndex);
         }
 
-        boolean newPosValid = (mCurrentPosMs != PlaybackState.PLAYBACK_POSITION_UNKNOWN);
-        long playPosition = getPlayPosition(null);
-        mHandler.removeMessages(MESSAGE_PLAY_INTERVAL_TIMEOUT);
         for (int deviceIndex = 0; deviceIndex < maxAvrcpConnections; deviceIndex++) {
-            if (deviceFeatures[deviceIndex].mCurrentDevice != null &&
-                    ((deviceFeatures[deviceIndex].mPlayPosChangedNT == NOTIFICATION_TYPE_INTERIM) &&
-                    ((oldPlayStatus != newPlayStatus) || (oldPosValid != newPosValid) ||
-                    (newPosValid && ((playPosition >= deviceFeatures[deviceIndex].mNextPosMs) ||
-                    (playPosition <= deviceFeatures[deviceIndex].mPrevPosMs)))))) {
-                deviceFeatures[deviceIndex].mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
-                registerNotificationRspPlayPosNative(deviceFeatures[deviceIndex].mPlayPosChangedNT,
-                        (int)playPosition,
-                        getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
-            }
-            if (deviceFeatures[deviceIndex].mCurrentDevice != null &&
-                    ((deviceFeatures[deviceIndex].mPlayPosChangedNT ==
-                    NOTIFICATION_TYPE_INTERIM) && newPosValid &&
-                    (state.getState() == PlaybackState.STATE_PLAYING))) {
-                Message msg = mHandler.obtainMessage(MESSAGE_PLAY_INTERVAL_TIMEOUT,
-                    0, 0, deviceFeatures[deviceIndex].mCurrentDevice);
-                mHandler.sendMessageDelayed(msg, deviceFeatures[deviceIndex].mNextPosMs
-                                                                            - playPosition);
-            }
             /*Discretion is required only when updating play state changed as playing*/
             if ((state.getState() != PlaybackState.STATE_PLAYING) ||
                                 isPlayStateToBeUpdated(deviceIndex)) {
@@ -2329,39 +2282,14 @@ public final class Avrcp {
         }
         if (!oldAttributes.equals(mMediaAttributes)) {
             Log.v(TAG, "MediaAttributes Changed to " + mMediaAttributes.toString());
+            // Update the play state, which sends a notification if needed.
+            updatePlaybackState(mMediaController.getPlaybackState(), null);
             for (int i = 0; i < maxAvrcpConnections; i++) {
                 if ((deviceFeatures[i].mCurrentDevice != null) &&
                     (deviceFeatures[i].mTrackChangedNT == NOTIFICATION_TYPE_INTERIM)) {
                     deviceFeatures[i].mTrackChangedNT = NOTIFICATION_TYPE_CHANGED;
                     Log.v(TAG,"sending track change for device " + i);
                     sendTrackChangedRsp(deviceFeatures[i].mCurrentDevice);
-                }
-            }
-            if (mCurrentPosMs != PlaybackState.PLAYBACK_POSITION_UNKNOWN) {
-                for (int i = 0; i < maxAvrcpConnections; i++) {
-                    if ((deviceFeatures[i].mCurrentDevice != null) &&
-                        isPlayingState(deviceFeatures[i].mCurrentPlayState)) {
-                        Log.i(TAG,"updated mPlayStartTimeMs");
-                        mPlayStartTimeMs = SystemClock.elapsedRealtime();
-                        break;
-                    }
-                }
-            }
-            /* need send play position changed notification when track is changed */
-            for (int i = 0; i < maxAvrcpConnections; i++) {
-                Log.v(TAG,i + " mCurrentPlayState " + deviceFeatures[i].mCurrentPlayState);
-                if (deviceFeatures[i].mPlayPosChangedNT == NOTIFICATION_TYPE_INTERIM &&
-                        isPlayingState(deviceFeatures[i].mCurrentPlayState)) {
-                    Log.v(TAG,"sending play pos change for device " + i);
-                    deviceFeatures[i].mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
-                    if (deviceFeatures[i].mCurrentDevice != null) {
-                    registerNotificationRspPlayPosNative(deviceFeatures[i].mPlayPosChangedNT,
-                            (int)getPlayPosition(deviceFeatures[i].mCurrentDevice) ,
-                            getByteAddress(deviceFeatures[i].mCurrentDevice));
-                    } else {
-                        Log.e(TAG,"cannot send play pos changed noti, device is NULL ");
-                    }
-                    mHandler.removeMessages(MESSAGE_PLAY_INTERVAL_TIMEOUT);
                 }
             }
         } else {
@@ -4558,24 +4486,9 @@ public final class Avrcp {
                 break;
 
             case EVT_PLAY_POS_CHANGED:
-                long songPosition = getPlayPosition(deviceFeatures[deviceIndex].mCurrentDevice);
                 deviceFeatures[deviceIndex].mPlayPosChangedNT = NOTIFICATION_TYPE_INTERIM;
+                sendPlayPosNotificationRsp(true, deviceIndex);
                 deviceFeatures[deviceIndex].mPlaybackIntervalMs = (long)param * 1000L;
-                if (mCurrentPosMs != PlaybackState.PLAYBACK_POSITION_UNKNOWN) {
-                    deviceFeatures[deviceIndex].mNextPosMs = songPosition +
-                                deviceFeatures[deviceIndex].mPlaybackIntervalMs;
-                    deviceFeatures[deviceIndex].mPrevPosMs = songPosition -
-                                deviceFeatures[deviceIndex].mPlaybackIntervalMs;
-                    if (isPlayingState(deviceFeatures[deviceIndex].mCurrentPlayState)) {
-                        Message msg = mHandler.obtainMessage(MESSAGE_PLAY_INTERVAL_TIMEOUT,
-                                0, 0, deviceFeatures[deviceIndex].mCurrentDevice);
-                        mHandler.sendMessageDelayed(msg,
-                                deviceFeatures[deviceIndex].mPlaybackIntervalMs);
-                    }
-                }
-                registerNotificationRspPlayPosNative(deviceFeatures[deviceIndex].mPlayPosChangedNT,
-                        (int)getPlayPosition(deviceFeatures[deviceIndex].mCurrentDevice) ,
-                        getByteAddress(deviceFeatures[deviceIndex].mCurrentDevice));
                 if (DEBUG)
                     Log.v(TAG,"mPlayPosChangedNT updated for index " +
                         deviceFeatures[deviceIndex].mPlayPosChangedNT +
@@ -4682,35 +4595,31 @@ public final class Avrcp {
     }
 
     private long getPlayPosition(BluetoothDevice device) {
-        long songPosition = -1L;
         if (device != null) {
             int deviceIndex = getIndexForDevice(device);
             if (deviceIndex == INVALID_DEVICE_INDEX) {
                 Log.e(TAG,"Device index is not valid in getPlayPosition");
-                return songPosition;
+                return -1L;
             }
-            if (mCurrentPosMs != PlaybackState.PLAYBACK_POSITION_UNKNOWN) {
-                if (deviceFeatures[deviceIndex].mCurrentPlayState.getState()
-                    == PlaybackState.STATE_PLAYING) {
-                    songPosition = SystemClock.elapsedRealtime() - mPlayStartTimeMs +
-                                            mCurrentPosMs;
-                } else {
-                    songPosition = mCurrentPosMs;
-                }
+            if (deviceFeatures[deviceIndex].mCurrentPlayState == null)
+                return -1L;
+            if (deviceFeatures[deviceIndex].mCurrentPlayState.getPosition() ==
+                    PlaybackState.PLAYBACK_POSITION_UNKNOWN) {
+                return -1L;
             }
+            if (isPlayingState(deviceFeatures[deviceIndex].mCurrentPlayState))
+                return SystemClock.elapsedRealtime() - mLastStateUpdate +
+                       deviceFeatures[deviceIndex].mCurrentPlayState.getPosition();
         } else {
-            if (mCurrentPosMs != PlaybackState.PLAYBACK_POSITION_UNKNOWN) {
-                if (mCurrentPlayerState.getState() == PlaybackState.STATE_PLAYING) {
-                    songPosition = SystemClock.elapsedRealtime() -
-                                   mPlayStartTimeMs + mCurrentPosMs;
-                } else {
-                    songPosition = mCurrentPosMs;
-                }
-            }
+            if (mCurrentPlayerState == null)
+                return -1L;
+            if (mCurrentPlayerState.getPosition() == PlaybackState.PLAYBACK_POSITION_UNKNOWN)
+                return -1L;
+            if (isPlayingState(mCurrentPlayerState))
+                return SystemClock.elapsedRealtime() - mLastStateUpdate +
+                       mCurrentPlayerState.getPosition();
         }
-        if (DEBUG) Log.v(TAG, "getPlayPosition position: " + songPosition + " Device:"
-                                                                                + device);
-        return songPosition;
+        return -1L;
     }
 
     private String getAttributeStringFromCursor(Cursor cursor, int attrId, int deviceIndex) {
@@ -4806,6 +4715,46 @@ public final class Avrcp {
     private boolean isPlayingState(PlaybackState state) {
         return (state.getState() == PlaybackState.STATE_PLAYING) ||
                 (state.getState() == PlaybackState.STATE_BUFFERING);
+    }
+
+    /**
+     * Sends a play position notification, or schedules one to be
+     * sent later at an appropriate time. If |requested| is true,
+     * does both because this was called in reponse to a request from the
+     * TG.
+     */
+    private void sendPlayPosNotificationRsp(boolean requested, int i) {
+        long playPositionMs = getPlayPosition(deviceFeatures[i].mCurrentDevice);
+
+        // mNextPosMs is set to -1 when the previous position was invalid
+        // so this will be true if the new position is valid & old was invalid.
+        // mPlayPositionMs is set to -1 when the new position is invalid,
+        // and the old mPrevPosMs is >= 0 so this is true when the new is invalid
+        // and the old was valid.
+        if (requested || ((deviceFeatures[i].mPlayPosChangedNT == NOTIFICATION_TYPE_INTERIM) &&
+             ((playPositionMs >= deviceFeatures[i].mNextPosMs) ||
+             (playPositionMs <= deviceFeatures[i].mPrevPosMs)))) {
+            if (!requested) deviceFeatures[i].mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
+            registerNotificationRspPlayPosNative(deviceFeatures[i].mPlayStatusChangedNT,
+                   (int)playPositionMs, getByteAddress(deviceFeatures[i].mCurrentDevice));
+            if (playPositionMs != PlaybackState.PLAYBACK_POSITION_UNKNOWN) {
+                deviceFeatures[i].mNextPosMs = playPositionMs + mPlaybackIntervalMs;
+                deviceFeatures[i].mPrevPosMs = playPositionMs - mPlaybackIntervalMs;
+            } else {
+                deviceFeatures[i].mNextPosMs = -1;
+                deviceFeatures[i].mPrevPosMs = -1;
+            }
+        }
+
+        mHandler.removeMessages(MESSAGE_PLAY_INTERVAL_TIMEOUT);
+        if (deviceFeatures[i].mPlayStatusChangedNT == NOTIFICATION_TYPE_INTERIM) {
+            Message msg = mHandler.obtainMessage(MESSAGE_PLAY_INTERVAL_TIMEOUT);
+            long delay = mPlaybackIntervalMs;
+            if (deviceFeatures[i].mNextPosMs != -1) {
+                delay = deviceFeatures[i].mNextPosMs - (playPositionMs > 0 ? playPositionMs : 0);
+            }
+            mHandler.sendMessageDelayed(msg, delay);
+        }
     }
 
     /**
@@ -5344,8 +5293,7 @@ public final class Avrcp {
             ProfileService.println(sb, "mCurrentPlayState: " + deviceFeatures[i].mCurrentPlayState);
             ProfileService.println(sb, "mPlayStatusChangedNT: " + deviceFeatures[i].mPlayStatusChangedNT);
             ProfileService.println(sb, "mTrackChangedNT: " + deviceFeatures[i].mTrackChangedNT);
-            ProfileService.println(sb, "mCurrentPosMs: " + mCurrentPosMs);
-            ProfileService.println(sb, "mPlayStartTimeMs: " + mPlayStartTimeMs);
+            ProfileService.println(sb, "mLastStateUpdate: " + mLastStateUpdate);
             ProfileService.println(sb, "mSongLengthMs: " + mSongLengthMs);
             ProfileService.println(sb, "mPlaybackIntervalMs: " + deviceFeatures[i].mPlaybackIntervalMs);
             ProfileService.println(sb, "mPlayPosChangedNT: " + deviceFeatures[i].mPlayPosChangedNT);
@@ -5362,6 +5310,9 @@ public final class Avrcp {
             ProfileService.println(sb, "mVolCmdAdjustInProgress: " + deviceFeatures[i].mVolCmdAdjustInProgress);
             ProfileService.println(sb, "mAbsVolRetryTimes: " + deviceFeatures[i].mAbsVolRetryTimes);
             ProfileService.println(sb, "mSkipAmount: " + mSkipAmount);
+            if (mMediaController != null)
+                ProfileService.println(sb, "mMediaSession pkg: " +
+                        mMediaController.getPackageName());
         }
     }
 
