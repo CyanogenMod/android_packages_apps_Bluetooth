@@ -166,6 +166,12 @@ public class BluetoothPbapService extends Service implements IObexConnectionHand
 
     private static final int NOTIFICATION_ID_AUTH = -1000002;
 
+    private static final int SDP_PBAP_AOSP_SERVER_VERSION = 0x0101;
+
+    private static final int SDP_PBAP_AOSP_SUPPORTED_REPOSITORIES = 0x0001;
+
+    private static final int SDP_PBAP_AOSP_SUPPORTED_FEATURES = 0x0003;
+
     private PowerManager.WakeLock mWakeLock = null;
 
     private BluetoothAdapter mAdapter;
@@ -484,14 +490,25 @@ public class BluetoothPbapService extends Service implements IObexConnectionHand
                 mSdpHandle = -1;
             }
             if (SdpManager.getDefaultManager() != null) {
-                mSdpHandle = SdpManager.getDefaultManager().createPbapPseRecord(
-                    "OBEX Phonebook Access Server", mServerSockets.getRfcommChannel(),
-                        mServerSockets.getL2capPsm(), SDP_PBAP_SERVER_VERSION,
+                boolean isDisabledNonAosp = getResources().getBoolean
+                        (R.bool.disable_non_aosp_bt_features);
+                if (DEBUG) Log.d(TAG, "isDisabledNonAosp :" + isDisabledNonAosp);
+                if (isDisabledNonAosp) {
+                    mSdpHandle = SdpManager.getDefaultManager().createPbapPseRecord
+                            ("OBEX Phonebook Access Server",mServerSockets.getRfcommChannel(),
+                            -1, SDP_PBAP_AOSP_SERVER_VERSION, SDP_PBAP_AOSP_SUPPORTED_REPOSITORIES,
+                            SDP_PBAP_AOSP_SUPPORTED_FEATURES);
+                } else {
+                    mSdpHandle = SdpManager.getDefaultManager().createPbapPseRecord
+                            ("OBEX Phonebook Access Server",mServerSockets.getRfcommChannel(),
+                            mServerSockets.getL2capPsm(), SDP_PBAP_SERVER_VERSION,
                             SDP_PBAP_SUPPORTED_REPOSITORIES, SDP_PBAP_SUPPORTED_FEATURES);
+                    // Here we might have changed crucial data, hence reset DB
+                    // identifier
+                    updateDbIdentifier();
+                }
             }
 
-            // Here we might have changed crucial data, hence reset DB identifier
-            updateDbIdentifier();
             if(DEBUG) Log.d(TAG, "Creating new SDP record for PBAP server with handle: " + mSdpHandle);
         }
     }

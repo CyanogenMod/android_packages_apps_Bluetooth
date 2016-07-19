@@ -32,6 +32,7 @@
 
 package com.android.bluetooth.opp;
 
+import com.android.bluetooth.R;
 import com.google.android.collect.Lists;
 import javax.obex.ObexTransport;
 
@@ -381,9 +382,18 @@ public class BluetoothOppService extends Service {
            if ( ( mSocketListener.openRfcommSocket() != null) &&
                 ( mL2cSocketListener.openL2capSocket() != null) &&
                 SdpManager.getDefaultManager() != null) {
-               mOppSdpHandle = SdpManager.getDefaultManager()
-                   .createOppOpsRecord("OBEX Object Push", mSocketListener.getRfcommChannel(),
-                        mL2cSocketListener.getL2capPsm(), 0x0102, SdpManager.OPP_FORMAT_ALL);
+                boolean isDisabledNonAosp = getResources().getBoolean
+                        (R.bool.disable_non_aosp_bt_features);
+                if (D) Log.d(TAG, "isDisabledNonAosp :" + isDisabledNonAosp);
+                if (isDisabledNonAosp) {
+                    mOppSdpHandle = SdpManager.getDefaultManager().createOppOpsRecord
+                            ("OBEX Object Push",mSocketListener.getRfcommChannel(),
+                            -1, 0x0101, SdpManager.OPP_FORMAT_ALL);
+                } else {
+                    mOppSdpHandle = SdpManager.getDefaultManager().createOppOpsRecord(
+                            "OBEX Object Push",mSocketListener.getRfcommChannel(),
+                            mL2cSocketListener.getL2capPsm(), 0x0102,SdpManager.OPP_FORMAT_ALL);
+                }
               mSocketListener.start(mHandler);
               mL2cSocketListener.start(mHandler);
            } else {
