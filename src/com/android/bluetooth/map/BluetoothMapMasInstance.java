@@ -148,7 +148,8 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
 
     @Override
     public String toString() {
-        return "MasId: " + mMasInstanceId + " Uri:" + mBaseUri + " SMS/MMS:" + mEnableSmsMms;
+        return "MasId: " + mMasInstanceId + " Uri:" + mBaseUri + " Is Enable SMS/MMS? :"
+                + mEnableSmsMms;
     }
 
     private void init() {

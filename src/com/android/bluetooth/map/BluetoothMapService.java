@@ -114,7 +114,8 @@ public class BluetoothMapService extends ProfileService {
 
     private PowerManager.WakeLock mWakeLock = null;
 
-    private static final int UPDATE_MAS_INSTANCES = 5;
+    private static final int CREATE_MAS_INSTANCES = 5;
+    private static final int UPDATE_MAS_INSTANCES = 6;
 
     public static final int UPDATE_MAS_INSTANCES_ACCOUNT_ADDED = 0;
     public static final int UPDATE_MAS_INSTANCES_ACCOUNT_REMOVED = 1;
@@ -348,14 +349,27 @@ public class BluetoothMapService extends ProfileService {
     }
 
     private final class MapServiceMessageHandler extends Handler {
-        private MapServiceMessageHandler(Looper looper) {
+        Context mContxt;
+        private MapServiceMessageHandler(Context contxt, Looper looper) {
             super(looper);
+            mContxt = contxt;
         }
         @Override
         public void handleMessage(Message msg) {
             if (DEBUG) Log.d(TAG, "Handler(): got msg=" + msg.what);
 
             switch (msg.what) {
+                case CREATE_MAS_INSTANCES:
+                    Log.d(TAG, "CREATE_MAS_INSTANCES ");
+                    mAppObserver =
+                        new BluetoothMapAppObserver(mContxt, (BluetoothMapService)mContxt);
+                    if (mAppObserver != null ) {
+                        mEnabledAccounts = mAppObserver.getEnabledAccountItems();
+                    }
+                   /** Uses mEnabledAccounts, hence getEnabledAccountItems()
+                      * must be called before this. */
+                    createMasInstances();
+                    break;
                 case UPDATE_MAS_INSTANCES:
                     updateMasInstancesHandler();
                     break;
@@ -613,7 +627,7 @@ public class BluetoothMapService extends ProfileService {
         HandlerThread thread = new HandlerThread("BluetoothMapHandler");
         thread.start();
         Looper looper = thread.getLooper();
-        mSessionStatusHandler = new MapServiceMessageHandler(looper);
+        mSessionStatusHandler = new MapServiceMessageHandler(this, looper);
 
         if(!VERBOSE)
         VERBOSE = Log.isLoggable(LOG_TAG, Log.VERBOSE);
@@ -647,15 +661,10 @@ public class BluetoothMapService extends ProfileService {
             }
         }
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mAppObserver = new BluetoothMapAppObserver(this, this);
-
-        mEnabledAccounts = mAppObserver.getEnabledAccountItems();
-
         mSmsCapable = getResources().getBoolean(
                 com.android.internal.R.bool.config_sms_capable);
-        // Uses mEnabledAccounts, hence getEnabledAccountItems() must be called before this.
-        createMasInstances();
-
+        // Move SDP records create to Handler Thread instead of main thread.
+        sendCreateMasInstances();
         // start RFCOMM listener
         sendStartListenerMessage(-1);
         mStartError = false;
@@ -694,7 +703,10 @@ public class BluetoothMapService extends ProfileService {
     private boolean updateMasInstancesHandler(){
         if (DEBUG) Log.d(TAG,"updateMasInstancesHandler() state = " + getState());
         boolean changed = false;
-
+            if (mAppObserver == null) {
+                Log.w( TAG, "updateMasInstancesHandler: NoAppObeserver Found");
+                return changed;
+            }
             ArrayList<BluetoothMapAccountItem> newAccountList =
                     mAppObserver.getEnabledAccountItems();
             ArrayList<BluetoothMapAccountItem> newAccounts = null;
@@ -702,12 +714,13 @@ public class BluetoothMapService extends ProfileService {
             newAccounts = new ArrayList<BluetoothMapAccountItem>();
             removedAccounts = mEnabledAccounts; // reuse the current enabled list, to track removed
                                                 // accounts
-            for(BluetoothMapAccountItem account: newAccountList) {
-                if(!removedAccounts.remove(account)) {
-                    newAccounts.add(account);
+            if (newAccountList != null) {
+                for (BluetoothMapAccountItem account: newAccountList) {
+                    if (removedAccounts != null && !removedAccounts.remove(account)) {
+                        newAccounts.add(account);
+                    }
                 }
             }
-
             if(removedAccounts != null) {
                 /* Remove all disabled/removed accounts */
                 for(BluetoothMapAccountItem account : removedAccounts) {
@@ -801,17 +814,19 @@ public class BluetoothMapService extends ProfileService {
             mMasInstanceMap.put(null, smsMmsInst);
         }
 
-        // get list of accounts already set to be visible through MAP
-        for(BluetoothMapAccountItem account : mEnabledAccounts) {
-            masId++;  // SMS/MMS is masId=0, increment before adding next
-            BluetoothMapMasInstance newInst =
-                    new BluetoothMapMasInstance(this,
-                            this,
-                            account,
-                            masId,
-                            false);
-            mMasInstances.append(masId, newInst);
-            mMasInstanceMap.put(account, newInst);
+        if (mEnabledAccounts != null) {
+            // get list of accounts already set to be visible through MAP
+            for (BluetoothMapAccountItem account : mEnabledAccounts) {
+                masId++;  // SMS/MMS is masId=0, increment before adding next
+                BluetoothMapMasInstance newInst =
+                        new BluetoothMapMasInstance(this,
+                                this,
+                                account,
+                                masId,
+                                false);
+                mMasInstances.append(masId, newInst);
+                mMasInstanceMap.put(account, newInst);
+            }
         }
     }
 
@@ -822,7 +837,9 @@ public class BluetoothMapService extends ProfileService {
             try {
                 mRegisteredMapReceiver = false;
                 unregisterReceiver(mMapReceiver);
-                mAppObserver.shutdown();
+                if (mAppObserver != null) {
+                    mAppObserver.shutdown();
+                }
             } catch (Exception e) {
                 Log.e(TAG,"Unable to unregister map receiver",e);
             }
@@ -937,6 +954,24 @@ public class BluetoothMapService extends ProfileService {
         AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(pIntent);
         mRemoveTimeoutMsg = false;
+    }
+
+    /**
+      * Create both MAP SMS/MMS and EMAIL SDP in a handler thread.
+      */
+    public void sendCreateMasInstances() {
+        if (mSessionStatusHandler != null && !mSessionStatusHandler
+                .hasMessages(CREATE_MAS_INSTANCES)) {
+            Log.d(TAG, "mSessionStatusHandler CREATE_MAS_INSTANCES ");
+            Message msg = mSessionStatusHandler.obtainMessage(CREATE_MAS_INSTANCES);
+            /* We add a small delay here to ensure the call returns true before this message is
+             * handled. It seems wrong to add a delay, but the alternative is to build a lock
+             * system to handle synchronization, which isn't nice either... */
+            mSessionStatusHandler.sendMessage(msg);
+        } else if(mSessionStatusHandler != null ) {
+                if(DEBUG)
+                    Log.w(TAG, "mSessionStatusHandler START_MAPEMAIL message already in Queue");
+        }
     }
 
     /**
@@ -1282,7 +1317,9 @@ public class BluetoothMapService extends ProfileService {
         println(sb, "mRemoteDevice: " + mRemoteDevice);
         println(sb, "sRemoteDeviceName: " + sRemoteDeviceName);
         println(sb, "mState: " + mState);
-        println(sb, "mAppObserver: " + mAppObserver);
+        if (mAppObserver != null) {
+            println(sb, "mAppObserver: " + mAppObserver);
+        }
         println(sb, "mIsWaitingAuthorization: " + mIsWaitingAuthorization);
         println(sb, "mRemoveTimeoutMsg: " + mRemoveTimeoutMsg);
         println(sb, "mPermission: " + mPermission);
@@ -1293,8 +1330,10 @@ public class BluetoothMapService extends ProfileService {
             println(sb, "  " + key + " : " + mMasInstanceMap.get(key));
         }
         println(sb, "mEnabledAccounts:");
-        for (BluetoothMapAccountItem account : mEnabledAccounts) {
-            println(sb, "  " + account);
+        if (mEnabledAccounts != null) {
+            for (BluetoothMapAccountItem account : mEnabledAccounts) {
+                println(sb, "  " + account);
+            }
         }
     }
 }
