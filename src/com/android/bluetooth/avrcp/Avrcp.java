@@ -310,6 +310,8 @@ public final class Avrcp {
             mPlayStatusChangedNT = NOTIFICATION_TYPE_CHANGED;
             mPlayerStatusChangeNT = NOTIFICATION_TYPE_CHANGED;
             mTrackChangedNT = NOTIFICATION_TYPE_CHANGED;
+            mNextPosMs = -1;
+            mPrevPosMs = -1;
             mPlaybackIntervalMs = 0L;
             mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
             mFeatures = 0;
@@ -883,12 +885,10 @@ public final class Avrcp {
         mMediaController = controller;
         if (mMediaController == null) {
             updateMetadata(null);
-            updatePlaybackState(null, null);
             return;
         }
         mMediaController.registerCallback(mMediaControllerCb, mHandler);
         updateMetadata(mMediaController.getMetadata());
-        updatePlaybackState(mMediaController.getPlaybackState(), null);
         if (mHandler != null) {
             Log.v(TAG, "Focus gained for player: " + mMediaController.getPackageName());
             mHandler.obtainMessage(MSG_UPDATE_RCC_CHANGE, 1, 1,
@@ -1688,18 +1688,13 @@ public final class Avrcp {
         }
         Log.i(TAG,"updatePlayStatusForDevice: device: " +
                     deviceFeatures[deviceIndex].mCurrentDevice);
-        int oldPlayStatus = convertPlayStateToPlayStatus(
-                    deviceFeatures[deviceIndex].mCurrentPlayState);
         int newPlayStatus = convertPlayStateToPlayStatus(state);
-        if (DEBUG)
-            Log.v(TAG, "oldPlayStatus " + oldPlayStatus);
         if (DEBUG)
             Log.v(TAG, "newPlayStatus " + newPlayStatus);
 
         deviceFeatures[deviceIndex].mCurrentPlayState = state;
 
-        if ((deviceFeatures[deviceIndex].mPlayStatusChangedNT ==
-                NOTIFICATION_TYPE_INTERIM) && (oldPlayStatus != newPlayStatus)) {
+        if ((deviceFeatures[deviceIndex].mPlayStatusChangedNT == NOTIFICATION_TYPE_INTERIM)) {
             deviceFeatures[deviceIndex].mPlayStatusChangedNT = NOTIFICATION_TYPE_CHANGED;
             registerNotificationRspPlayStatusNative(
                     deviceFeatures[deviceIndex].mPlayStatusChangedNT,
@@ -2282,8 +2277,13 @@ public final class Avrcp {
         }
         if (!oldAttributes.equals(mMediaAttributes)) {
             Log.v(TAG, "MediaAttributes Changed to " + mMediaAttributes.toString());
-            // Update the play state, which sends a notification if needed.
-            updatePlaybackState(mMediaController.getPlaybackState(), null);
+            // Update the play state, which sends play state and play position
+            // notification if needed.
+            if (mMediaController != null) {
+                updatePlaybackState(mMediaController.getPlaybackState(), null);
+            } else {
+                updatePlaybackState(null, null);
+            }
             for (int i = 0; i < maxAvrcpConnections; i++) {
                 if ((deviceFeatures[i].mCurrentDevice != null) &&
                     (deviceFeatures[i].mTrackChangedNT == NOTIFICATION_TYPE_INTERIM)) {
@@ -4601,25 +4601,34 @@ public final class Avrcp {
                 Log.e(TAG,"Device index is not valid in getPlayPosition");
                 return -1L;
             }
+
             if (deviceFeatures[deviceIndex].mCurrentPlayState == null)
                 return -1L;
+
             if (deviceFeatures[deviceIndex].mCurrentPlayState.getPosition() ==
                     PlaybackState.PLAYBACK_POSITION_UNKNOWN) {
                 return -1L;
             }
+
             if (isPlayingState(deviceFeatures[deviceIndex].mCurrentPlayState))
                 return SystemClock.elapsedRealtime() - mLastStateUpdate +
                        deviceFeatures[deviceIndex].mCurrentPlayState.getPosition();
+
+            return deviceFeatures[deviceIndex].mCurrentPlayState.getPosition();
+
         } else {
             if (mCurrentPlayerState == null)
                 return -1L;
+
             if (mCurrentPlayerState.getPosition() == PlaybackState.PLAYBACK_POSITION_UNKNOWN)
                 return -1L;
+
             if (isPlayingState(mCurrentPlayerState))
                 return SystemClock.elapsedRealtime() - mLastStateUpdate +
                        mCurrentPlayerState.getPosition();
+
+            return mCurrentPlayerState.getPosition();
         }
-        return -1L;
     }
 
     private String getAttributeStringFromCursor(Cursor cursor, int attrId, int deviceIndex) {
