@@ -533,7 +533,7 @@ public class BluetoothPbapService extends Service implements IObexConnectionHand
             sRemoteDeviceName = getString(R.string.defaultname);
         }
         int permission = mRemoteDevice.getPhonebookAccessPermission();
-        if (VERBOSE) Log.v(TAG, "getPhonebookAccessPermission() = " + permission);
+        if (DEBUG) Log.d(TAG, "getPhonebookAccessPermission() = " + permission);
 
         if (permission == BluetoothDevice.ACCESS_ALLOWED) {
             try {
@@ -547,8 +547,8 @@ public class BluetoothPbapService extends Service implements IObexConnectionHand
                         + ex.toString());
             }
         } else if (permission == BluetoothDevice.ACCESS_REJECTED) {
-            if (VERBOSE) {
-                Log.v(TAG, "incoming connection rejected from: " + sRemoteDeviceName
+            if (DEBUG) {
+                Log.d(TAG, "incoming connection rejected from: " + sRemoteDeviceName
                         + " automatically as already rejected device");
             }
             return false;
