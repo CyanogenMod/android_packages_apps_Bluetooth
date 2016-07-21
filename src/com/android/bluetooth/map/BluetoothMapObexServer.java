@@ -24,6 +24,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
+import android.os.UserManager;
 import android.text.format.DateUtils;
 import android.util.Log;
 
@@ -397,6 +398,11 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         return ResponseCodes.OBEX_HTTP_OK;
     }
 
+    private boolean isUserUnlocked() {
+        UserManager manager = UserManager.get(mContext);
+        return (manager == null || manager.isUserUnlocked());
+    }
+
     @Override
     public int onPut(final Operation op) {
         if (D) Log.d(TAG, "onPut(): enter");
@@ -421,25 +427,33 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                     Log.d(TAG,"TYPE_MESSAGE_UPDATE:");
                 }
                 return updateInbox();
-            }else if(type.equals(TYPE_SET_NOTIFICATION_REGISTRATION)) {
+            } else if (type.equals(TYPE_SET_NOTIFICATION_REGISTRATION)) {
                 if(V) {
                     Log.d(TAG,"TYPE_SET_NOTIFICATION_REGISTRATION: NotificationStatus: "
                             + appParams.getNotificationStatus());
                 }
                 return mObserver.setNotificationRegistration(appParams.getNotificationStatus());
-            }else if(type.equals(TYPE_SET_NOTIFICATION_FILTER)) {
+            } else if (type.equals(TYPE_SET_NOTIFICATION_FILTER)) {
                 if(V) {
                     Log.d(TAG,"TYPE_SET_NOTIFICATION_FILTER: NotificationFilter: "
                             + appParams.getNotificationFilter());
                 }
+                if (!isUserUnlocked()) {
+                    Log.e(TAG, "Storage locked, " + type + " failed");
+                    return ResponseCodes.OBEX_HTTP_UNAVAILABLE;
+                }
                 mObserver.setNotificationFilter(appParams.getNotificationFilter());
                 return ResponseCodes.OBEX_HTTP_OK;
-            } else if(type.equals(TYPE_SET_MESSAGE_STATUS)) {
+            } else if (type.equals(TYPE_SET_MESSAGE_STATUS)) {
                 if(V) {
                     Log.d(TAG,"TYPE_SET_MESSAGE_STATUS: " +
                               "StatusIndicator: " + appParams.getStatusIndicator()
                             + ", StatusValue: " + appParams.getStatusValue()
                             + ", ExtentedData: " + "" ); // TODO:   appParams.getExtendedImData());
+                }
+                if (!isUserUnlocked()) {
+                    Log.e(TAG, "Storage locked, " + type + " failed");
+                    return ResponseCodes.OBEX_HTTP_UNAVAILABLE;
                 }
                 return setMessageStatus(name, appParams);
             } else if (type.equals(TYPE_MESSAGE)) {
@@ -447,6 +461,10 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                     Log.d(TAG,"TYPE_MESSAGE: Transparet: " + appParams.getTransparent()
                             + ", retry: " + appParams.getRetry()
                             + ", charset: " + appParams.getCharset());
+                }
+                if (!isUserUnlocked()) {
+                    Log.e(TAG, "Storage locked, " + type + " failed");
+                    return ResponseCodes.OBEX_HTTP_UNAVAILABLE;
                 }
                 return pushMessage(op, name, appParams, mMessageVersion);
             } else if (type.equals(TYPE_SET_OWNER_STATUS)) {
@@ -881,6 +899,10 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                     Log.d(TAG,"FilterConvoId = " + ((tmpLongLong == null) ? "" :
                         Long.toHexString(tmpLongLong.getLeastSignificantBits()) ) );
                 }
+                if (!isUserUnlocked()) {
+                    Log.e(TAG, "Storage locked, " +  type + " failed");
+                    return ResponseCodes.OBEX_HTTP_UNAVAILABLE;
+                }
                 // Block until all packets have been send.
                 return sendMessageListingRsp(op, appParams, name);
 
@@ -894,6 +916,10 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                     Log.d(TAG,"FilterLastActivityEnd = " + appParams.getFilterLastActivityEnd());
                     Log.d(TAG,"FilterReadStatus = " + appParams.getFilterReadStatus());
                     Log.d(TAG,"FilterRecipient = " + appParams.getFilterRecipient());
+                }
+                if (!isUserUnlocked()) {
+                    Log.e(TAG, "Storage locked, " + type + " failed");
+                    return ResponseCodes.OBEX_HTTP_UNAVAILABLE;
                 }
                 // Block until all packets have been send.
                 return sendConvoListingRsp(op, appParams,name);
@@ -911,6 +937,10 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                             ", Attachment = " + appParams.getAttachment() +
                             ", Charset = " + appParams.getCharset() +
                             ", FractionRequest = " + appParams.getFractionRequest());
+                }
+                if (!isUserUnlocked()) {
+                    Log.e(TAG, "Storage locked, " + type + " failed");
+                    return ResponseCodes.OBEX_HTTP_UNAVAILABLE;
                 }
                 // Block until all packets have been send.
                 return sendGetMessageRsp(op, name, appParams, mMessageVersion);
