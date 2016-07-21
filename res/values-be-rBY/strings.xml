@@ -28,7 +28,7 @@
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Каб выкарыстоўваць перадачу праз Bluetooth, спачатку неабходна ўключыць Bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Уключыць Bluetooth зараз?"</string>
-    <string name="bt_enable_cancel" msgid="1988832367505151727">"Адмяніць"</string>
+    <string name="bt_enable_cancel" msgid="1988832367505151727">"Скасаваць"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"Уключыць"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"Перадача файлаў"</string>
     <string name="incoming_file_confirm_content" msgid="2752605552743148036">"Прыняць уваходны файл?"</string>
