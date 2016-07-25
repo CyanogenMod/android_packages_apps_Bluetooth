@@ -2803,6 +2803,7 @@ public final class Avrcp {
 
     private void processGetTotalNumberOfItems(byte scope, String deviceAddress) {
         long itemCount = 0;
+        boolean IsPlayerInFocus = false;
         BluetoothDevice device = mAdapter.getRemoteDevice(deviceAddress);
         int deviceIndex = getIndexForDevice(device);
         if (deviceIndex == INVALID_DEVICE_INDEX) {
@@ -2810,6 +2811,22 @@ public final class Avrcp {
             return;
         }
 
+        if (mMediaPlayers.size() > 0) {
+            final Iterator<MediaPlayerInfo> rccIterator = mMediaPlayers.iterator();
+            while (rccIterator.hasNext()) {
+                 final MediaPlayerInfo di = rccIterator.next();
+                 IsPlayerInFocus = di.GetPlayerFocus();
+                 if (DEBUG) Log.v(TAG, "IsPlayerInFocus:" + IsPlayerInFocus);
+                 if (IsPlayerInFocus)
+                      break;
+            }
+        }
+        if (!IsPlayerInFocus) {
+            if (DEBUG) Log.v(TAG, "Player not in focus");
+            getTotalNumberOfItemsRspNative(INTERNAL_ERROR, itemCount, 0x0000,
+                    getByteAddress(device));
+            return;
+        }
         if (DEBUG) Log.v(TAG, "procesGetTotalNumberOfItems: scope: " + scope);
         if (scope == SCOPE_PLAYER_LIST) {
             processGetMediaPlayerTotalItems(scope, deviceAddress);
