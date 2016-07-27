@@ -37,6 +37,7 @@ import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.os.Process;
 import android.os.RemoteException;
+import android.os.UserManager;
 import android.provider.Telephony;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.MmsSms;
@@ -1180,9 +1181,10 @@ public class BluetoothMapContentObserver {
 
     private void initMsgList() throws RemoteException {
         if (V) Log.d(TAG, "initMsgList");
+        UserManager manager = UserManager.get(mContext);
+        if (manager == null || manager.isUserUnlocked()) return;
 
-        if(mEnableSmsMms) {
-
+        if (mEnableSmsMms) {
             HashMap<Long, Msg> msgListSms = new HashMap<Long, Msg>();
 
             Cursor c = mResolver.query(Sms.CONTENT_URI,
@@ -3342,6 +3344,8 @@ public class BluetoothMapContentObserver {
     private void resendPendingMessages() {
         /* Send pending messages in outbox */
         String where = "type = " + Sms.MESSAGE_TYPE_OUTBOX;
+        UserManager manager = UserManager.get(mContext);
+        if (manager == null || !manager.isUserUnlocked()) return;
         Cursor c = mResolver.query(Sms.CONTENT_URI, SMS_PROJECTION, where, null,
                 null);
         try {
