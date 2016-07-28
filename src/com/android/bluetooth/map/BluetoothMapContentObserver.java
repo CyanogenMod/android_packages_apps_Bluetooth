@@ -2350,21 +2350,19 @@ public class BluetoothMapContentObserver {
         /* Approved MAP spec errata 3445 states that read status initiated
          * by the MCE shall change the MSE read status. */
         if (type == TYPE.SMS_GSM || type == TYPE.SMS_CDMA) {
-            Uri uri = Sms.Inbox.CONTENT_URI;
+            Uri uri = ContentUris.withAppendedId(Sms.CONTENT_URI, handle);
             ContentValues contentValues = new ContentValues();
             contentValues.put(Sms.READ, statusValue);
             contentValues.put(Sms.SEEN, statusValue);
-            String where = Sms._ID+"="+handle;
             String values = contentValues.toString();
-            if (D) Log.d(TAG, " -> SMS Uri: " + uri.toString() +
-                    " Where " + where + " values " + values);
+            if (D) Log.d(TAG, " -> SMS Uri: " + uri.toString() + " values " + values);
             synchronized(getMsgListSms()) {
                 Msg msg = getMsgListSms().get(handle);
                 if(msg != null) { // This will always be the case
                     msg.flagRead = statusValue;
                 }
             }
-            count = mResolver.update(uri, contentValues, where, null);
+            count = mResolver.update(uri, contentValues, null, null);
             if (D) Log.d(TAG, " -> "+count +" rows updated!");
 
         } else if (type == TYPE.MMS) {
