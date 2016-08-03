@@ -117,7 +117,11 @@ public class BluetoothOppSendFileInfo {
             } catch (SQLiteException e) {
                 // some content providers don't support the DISPLAY_NAME or SIZE columns
                 metadataCursor = null;
+            } catch (SecurityException e) {
+                Log.e(TAG, "generateFileInfo: Permission error, could not access URI: " + uri);
+                return SEND_FILE_INFO_ERROR;
             }
+
             if (metadataCursor != null) {
                 try {
                     if (metadataCursor.moveToFirst()) {

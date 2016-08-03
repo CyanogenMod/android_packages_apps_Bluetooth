@@ -331,6 +331,9 @@ public class BluetoothOppUtility {
 
     static void putSendFileInfo(Uri uri, BluetoothOppSendFileInfo sendFileInfo) {
         if (D) Log.d(TAG, "putSendFileInfo: uri=" + uri + " sendFileInfo=" + sendFileInfo);
+        if (sendFileInfo == BluetoothOppSendFileInfo.SEND_FILE_INFO_ERROR) {
+            Log.e(TAG, "putSendFileInfo: bad sendFileInfo, URI: " + uri);
+        }
         sSendFileMap.put(uri, sendFileInfo);
     }
 
