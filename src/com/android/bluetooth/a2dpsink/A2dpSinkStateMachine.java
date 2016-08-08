@@ -253,6 +253,7 @@ final class A2dpSinkStateMachine extends StateMachine {
 
         // in Disconnected state
         private void processConnectionEvent(int state, BluetoothDevice device) {
+            log("Disconnected: processConnectionEvent" + state);
             switch (state) {
             case CONNECTION_STATE_DISCONNECTED:
                 logw("Ignore HF DISCONNECTED event, device: " + device);
@@ -590,6 +591,7 @@ final class A2dpSinkStateMachine extends StateMachine {
 
         // in Connected state
         private void processConnectionEvent(int state, BluetoothDevice device) {
+            log("Connected: processConnectionEvent in connected state " + state);
             switch (state) {
                 case CONNECTION_STATE_DISCONNECTED:
                     mAudioConfigs.remove(device);
@@ -616,6 +618,7 @@ final class A2dpSinkStateMachine extends StateMachine {
         }
 
         private void processAudioStateEvent(int state, BluetoothDevice device) {
+            log("processAudioStateEvent state " + state);
             if (!mCurrentDevice.equals(device)) {
                 loge("Audio State Device:" + device + "is different from ConnectedDevice:" +
                                                            mCurrentDevice);
@@ -644,6 +647,7 @@ final class A2dpSinkStateMachine extends StateMachine {
     }
 
     int getConnectionState(BluetoothDevice device) {
+        log("Enter getConnectionState");
         if (getCurrentState() == mDisconnected) {
             return BluetoothProfile.STATE_DISCONNECTED;
         }
@@ -702,6 +706,8 @@ final class A2dpSinkStateMachine extends StateMachine {
         AdapterService adapterService = AdapterService.getAdapterService();
         int priority = mService.getPriority(device);
         boolean ret = false;
+
+        log("Enter okToConnect");
         //check if this is an incoming connection in Quiet mode.
         if((adapterService == null) ||
            ((adapterService.isQuietModeEnabled() == true) &&
@@ -716,6 +722,7 @@ final class A2dpSinkStateMachine extends StateMachine {
                 (device.getBondState() != BluetoothDevice.BOND_NONE))){
                     ret= true;
         }
+        log("Exit okToConnect");
         return ret;
     }
 

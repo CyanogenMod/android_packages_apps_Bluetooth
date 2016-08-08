@@ -172,6 +172,7 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
      */
 
     private int abandonAudioFocus() {
+        Log.d(TAG, "abandonAudioFocus");
         mCurrentAudioFocus = AudioManager.AUDIOFOCUS_LOSS;
         if (mAudioManager != null)
             return mAudioManager.abandonAudioFocus(mAudioFocusListener);
@@ -180,6 +181,7 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
     }
 
     private int requestAudioFocus() {
+        Log.d(TAG, "requestAudioFocus");
         if (mCurrentAudioFocus == AudioManager.AUDIOFOCUS_GAIN)
             return AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
         int ret =  mAudioManager.requestAudioFocus(

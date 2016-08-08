@@ -196,6 +196,7 @@ final class A2dpStateMachine extends StateMachine {
     }
 
     public void doQuit() {
+        log("Enter doQuit()");
         if ((mTargetDevice != null) &&
             (getConnectionState(mTargetDevice) == BluetoothProfile.STATE_CONNECTING)) {
             log("doQuit()- Move A2DP State to DISCONNECTED");
@@ -211,10 +212,13 @@ final class A2dpStateMachine extends StateMachine {
         }
 
         quitNow();
+        log("Exit doQuit()");
     }
 
     public void cleanup() {
+        log("Enter cleanup()");
         cleanupNative();
+        log("Exit cleanup()");
     }
 
         private class Disconnected extends State {
@@ -282,6 +286,7 @@ final class A2dpStateMachine extends StateMachine {
                 default:
                     return NOT_HANDLED;
             }
+            log("Exit Disconnected processMessage() ");
             return retValue;
         }
 
@@ -353,6 +358,7 @@ final class A2dpStateMachine extends StateMachine {
                 loge("Incorrect state: " + state);
                 break;
             }
+            log("Exit Disconnected processConnectionEvent() ");
         }
     }
 
@@ -416,6 +422,7 @@ final class A2dpStateMachine extends StateMachine {
                 default:
                     return NOT_HANDLED;
             }
+            log("Exit Pending processMessage() ");
             return retValue;
         }
 
@@ -664,6 +671,7 @@ final class A2dpStateMachine extends StateMachine {
                 loge("Incorrect state: " + state);
                 break;
             }
+            log("Exit Pending processConnectionEvent() ");
         }
 
         private void processMultiA2dpDisconnected(BluetoothDevice device) {
@@ -681,6 +689,7 @@ final class A2dpStateMachine extends StateMachine {
                     "fake broadcasting for new mCurrentDevice");
             broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_CONNECTED,
                     BluetoothProfile.STATE_DISCONNECTED);
+            log("Exit Pending processMultiA2dpDisconnected() ");
         }
     }
 
@@ -837,6 +846,7 @@ final class A2dpStateMachine extends StateMachine {
                 default:
                     return NOT_HANDLED;
             }
+            log("Exit Connected processMessage() ");
             return retValue;
         }
 
@@ -1002,6 +1012,7 @@ final class A2dpStateMachine extends StateMachine {
                   loge("Connection State Device: " + device + " bad state: " + state);
                   break;
             }
+            log("Exit Connected processConnectionEvent() ");
         }
         private void processMultiA2dpDisconnected(BluetoothDevice device) {
             log("Connect state: processMultiA2dpDisconnected");
@@ -1017,9 +1028,11 @@ final class A2dpStateMachine extends StateMachine {
                     "fake broadcasting for mCurrentDevice");
             broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_CONNECTED,
                    BluetoothProfile.STATE_DISCONNECTED);
+            log("Exit Connected processMultiA2dpDisconnected() ");
         }
 
         private void processAudioStateEvent(int state, BluetoothDevice device) {
+            log("Enter Connected processAudioStateEvent() ");
             if (!mConnectedDevicesList.contains(device)) {
                 loge("Audio State Device:" + device + "is not in mConnectedDevicesList" +
                         mCurrentDevice);
@@ -1087,6 +1100,7 @@ final class A2dpStateMachine extends StateMachine {
                   loge("Audio State Device: " + device + " bad state: " + state);
                   break;
             }
+            log("Exit Connected processAudioStateEvent() ");
         }
         private void processReconfigA2dp(int state, BluetoothDevice device){
             log("processReconfigA2dp state" + state);
@@ -1168,6 +1182,7 @@ final class A2dpStateMachine extends StateMachine {
                 default:
                     return NOT_HANDLED;
             }
+            log("Exit MultiConnectionPending processAudioStateEvent() ");
             return retValue;
         }
 
@@ -1421,10 +1436,12 @@ final class A2dpStateMachine extends StateMachine {
                     break;
 
             }
+            log("Exit MultiConnectionPending processConnectionEvent() ");
 
         }
 
         private void processAudioStateEvent(int state, BluetoothDevice device) {
+            log("Enter MultiConnectionPending processAudioStateEvent() ");
             if (!mConnectedDevicesList.contains(device)) {
                 loge("Audio State Device:" + device + "is not in mConnectedDevicesList" +
                         mCurrentDevice);
@@ -1491,6 +1508,7 @@ final class A2dpStateMachine extends StateMachine {
                   loge("Audio State Device: " + device + " bad state: " + state);
                   break;
             }
+            log("Exit MultiConnectionPending processAudioStateEvent() ");
         }
 
         private void processReconfigA2dp(int state, BluetoothDevice device){
@@ -1506,6 +1524,7 @@ final class A2dpStateMachine extends StateMachine {
         }
 
         private void processMultiA2dpDisconnected(BluetoothDevice device) {
+            log("Enter MultiConnectionPending processMultiA2dpDisconnected() ");
             log("processMultiA2dpDisconnected state: processMultiA2dpDisconnected");
 
             if (mCurrentDevice != null && mCurrentDevice.equals(device)) {
@@ -1519,10 +1538,12 @@ final class A2dpStateMachine extends StateMachine {
                     "fake broadcasting for mCurrentDevice");
             broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_CONNECTED,
                     BluetoothProfile.STATE_DISCONNECTED);
+            log("Exit MultiConnectionPending processMultiA2dpDisconnected() ");
         }
     }
 
     int getConnectionState(BluetoothDevice device) {
+        log("Enter getConnectionState() ");
         if (getCurrentState() == mDisconnected) {
             log( "currentState is Disconnected");
             return BluetoothProfile.STATE_DISCONNECTED;
@@ -1575,6 +1596,7 @@ final class A2dpStateMachine extends StateMachine {
     }
 
     List<BluetoothDevice> getConnectedDevices() {
+        log("Enter getConnectedDevices() ");
         List<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
         Log.i(TAG,"mConnectedDevicesList size is " +
                 mConnectedDevicesList.size());
@@ -1584,6 +1606,7 @@ final class A2dpStateMachine extends StateMachine {
                 devices.add(mConnectedDevicesList.get(i));
             }
         }
+        log("Exit getConnectedDevices() ");
         return devices;
     }
 
@@ -1609,6 +1632,7 @@ final class A2dpStateMachine extends StateMachine {
     }
 
     boolean okToConnect(BluetoothDevice device) {
+        log("Enter okToConnect() ");
         AdapterService adapterService = AdapterService.getAdapterService();
         int priority = mService.getPriority(device);
         boolean ret = false;
@@ -1626,10 +1650,12 @@ final class A2dpStateMachine extends StateMachine {
                 (device.getBondState() != BluetoothDevice.BOND_NONE))){
             ret= true;
         }
+        log("Exit okToConnect() ");
         return ret;
     }
 
     synchronized List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
+        log("Enter getDevicesMatchingConnectionStates() ");
         List<BluetoothDevice> deviceList = new ArrayList<BluetoothDevice>();
         Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
         int connectionState;
@@ -1646,10 +1672,12 @@ final class A2dpStateMachine extends StateMachine {
                 }
             }
         }
+        log("Exit getDevicesMatchingConnectionStates() ");
         return deviceList;
     }
 
     private BluetoothDevice getDeviceForMessage(int what) {
+        log("Enter getDeviceForMessage() ");
         if (what == CONNECT_TIMEOUT) {
             log("getDeviceForMessage: returning mTargetDevice for what=" + what);
             return mTargetDevice;
@@ -1666,12 +1694,14 @@ final class A2dpStateMachine extends StateMachine {
             }
         }
         log("getDeviceForMessage: No matching device for " + what + ". Returning null");
+        log("Exit getDeviceForMessage() ");
         return null;
     }
 
 
     // This method does not check for error conditon (newState == prevState)
     private void broadcastConnectionState(BluetoothDevice device, int newState, int prevState) {
+        log("Enter broadcastConnectionState() ");
 
         int delay = mAudioManager.setBluetoothA2dpDeviceConnectionState(device, newState,
                 BluetoothProfile.A2DP);
@@ -1688,9 +1718,11 @@ final class A2dpStateMachine extends StateMachine {
                                                         newState,
                                                         device),
                                                         delay);
+        log("Exit broadcastConnectionState() ");
     }
 
     private void broadcastAudioState(BluetoothDevice device, int state, int prevState) {
+        log("Enter broadcastAudioState() ");
         Intent intent = new Intent(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
@@ -1699,6 +1731,7 @@ final class A2dpStateMachine extends StateMachine {
         mContext.sendBroadcast(intent, A2dpService.BLUETOOTH_PERM);
 
         log("A2DP Playing state : device: " + device + " State:" + prevState + "->" + state);
+        log("Exit broadcastAudioState() ");
     }
 
     private void broadcastReconfigureA2dp(BluetoothDevice device) {
@@ -1711,20 +1744,25 @@ final class A2dpStateMachine extends StateMachine {
     }
 
     private void onConnectionStateChanged(int state, byte[] address) {
+        log("Enter onConnectionStateChanged() ");
         StackEvent event = new StackEvent(EVENT_TYPE_CONNECTION_STATE_CHANGED);
         event.valueInt = state;
         event.device = getDevice(address);
         sendMessage(STACK_EVENT, event);
+        log("Exit onConnectionStateChanged() ");
     }
 
     private void onAudioStateChanged(int state, byte[] address) {
+        log("Enter onAudioStateChanged() ");
         StackEvent event = new StackEvent(EVENT_TYPE_AUDIO_STATE_CHANGED);
         event.valueInt = state;
         event.device = getDevice(address);
         sendMessage(STACK_EVENT, event);
+        log("Exit onAudioStateChanged() ");
     }
 
     private void onCheckConnectionPriority(byte[] address) {
+        log("Enter onCheckConnectionPriority() ");
         BluetoothDevice device = getDevice(address);
         logw(" device " + device + " okToConnect " + okToConnect(device));
         if (okToConnect(device)) {
@@ -1734,9 +1772,11 @@ final class A2dpStateMachine extends StateMachine {
             // if connection is not allowed DO NOT CONNECT
             allowConnectionNative(IS_INVALID_DEVICE, getByteAddress(device));
         }
+        log("Exit onCheckConnectionPriority() ");
     }
 
     private void onMulticastStateChanged(int state) {
+        log("Enter onMulticastStateChanged() ");
         if (state == ENABLE_MULTICAST) {
             Log.i(TAG,"A2dp Multicast is Enabled");
             isMultiCastEnabled = true;
@@ -1744,6 +1784,7 @@ final class A2dpStateMachine extends StateMachine {
             Log.i(TAG,"A2dp Multicast is Disabled");
             isMultiCastEnabled = false;
         }
+        log("Exit onMulticastStateChanged() ");
     }
 
     private void onReconfigA2dpTriggered(int reason, byte[] address) {
@@ -1772,6 +1813,7 @@ final class A2dpStateMachine extends StateMachine {
     private class IntentBroadcastHandler extends Handler {
 
         private void onConnectionStateChanged(BluetoothDevice device, int prevState, int state) {
+            log("Enter onConnectionStateChanged() ");
             Intent intent = new Intent(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
             intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
             intent.putExtra(BluetoothProfile.EXTRA_STATE, state);
@@ -1780,16 +1822,19 @@ final class A2dpStateMachine extends StateMachine {
             mContext.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
             log("Connection state " + device + ": " + prevState + "->" + state);
             mService.notifyProfileConnectionStateChanged(device, BluetoothProfile.A2DP, state, prevState);
+            log("Exit onConnectionStateChanged() ");
         }
 
         @Override
         public void handleMessage(Message msg) {
+            log("Enter handleMessage() ");
             switch (msg.what) {
                 case MSG_CONNECTION_STATE_CHANGED:
                     onConnectionStateChanged((BluetoothDevice) msg.obj, msg.arg1, msg.arg2);
                     mWakeLock.release();
                     break;
             }
+            log("Exit handleMessage() ");
         }
     }
 

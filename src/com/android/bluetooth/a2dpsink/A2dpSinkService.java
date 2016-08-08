@@ -59,6 +59,7 @@ public class A2dpSinkService extends ProfileService {
         startService(startIntent);
         mStateMachine = A2dpSinkStateMachine.make(this, this);
         setA2dpSinkService(this);
+        if (DBG) Log.d(TAG, "Exit start");
         return true;
     }
 
@@ -69,14 +70,17 @@ public class A2dpSinkService extends ProfileService {
         mStateMachine.doQuit();
         Intent stopIntent = new Intent(this, A2dpMediaBrowserService.class);
         stopService(stopIntent);
+        if (DBG) Log.d(TAG, "Exit stop");
         return true;
     }
 
     protected boolean cleanup() {
+        if (DBG) Log.d(TAG, "Enter cleanup");
         if (mStateMachine!= null) {
             mStateMachine.cleanup();
         }
         clearA2dpSinkService();
+        if (DBG) Log.d(TAG, "Exit cleanup");
         return true;
     }
 
@@ -117,6 +121,7 @@ public class A2dpSinkService extends ProfileService {
     }
 
     public boolean connect(BluetoothDevice device) {
+        if (DBG) Log.d(TAG, "Enter connect");
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH ADMIN permission");
 
@@ -127,10 +132,12 @@ public class A2dpSinkService extends ProfileService {
         }
 
         mStateMachine.sendMessage(A2dpSinkStateMachine.CONNECT, device);
+        if (DBG) Log.d(TAG, "Exit connect");
         return true;
     }
 
     boolean disconnect(BluetoothDevice device) {
+        if (DBG) Log.d(TAG, "Enter disconnect");
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH ADMIN permission");
         int connectionState = mStateMachine.getConnectionState(device);
@@ -140,6 +147,7 @@ public class A2dpSinkService extends ProfileService {
         }
 
         mStateMachine.sendMessage(A2dpSinkStateMachine.DISCONNECT, device);
+        if (DBG) Log.d(TAG, "Exit disconnect");
         return true;
     }
 
@@ -159,6 +167,7 @@ public class A2dpSinkService extends ProfileService {
     }
 
     public boolean setPriority(BluetoothDevice device, int priority) {
+        if (DBG) Log.d(TAG, "Enter setPriority");
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH_ADMIN permission");
         Settings.Global.putInt(getContentResolver(),
@@ -167,15 +176,18 @@ public class A2dpSinkService extends ProfileService {
         if (DBG) {
             Log.d(TAG,"Saved priority " + device + " = " + priority);
         }
+        if (DBG) Log.d(TAG, "Exit setPriority");
         return true;
     }
 
     public int getPriority(BluetoothDevice device) {
+        if (DBG) Log.d(TAG, "Enter getPriority");
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH_ADMIN permission");
         int priority = Settings.Global.getInt(getContentResolver(),
             Settings.Global.getBluetoothA2dpSrcPriorityKey(device.getAddress()),
             BluetoothProfile.PRIORITY_UNDEFINED);
+        if (DBG) Log.d(TAG, "Exit getPriority");
         return priority;
     }
 
@@ -188,6 +200,7 @@ public class A2dpSinkService extends ProfileService {
      * component will take the focus away but also notify the stack to throw away incoming data.
      */
     public void informAvrcpPassThroughCmd(BluetoothDevice device, int keyCode, int keyState) {
+        if (DBG) Log.d(TAG, "Enter informAvrcpPassThroughCmd");
         if (mStateMachine != null) {
             if (keyCode == BluetoothAvrcpController.PASS_THRU_CMD_ID_PLAY &&
                 keyState == BluetoothAvrcpController.KEY_STATE_RELEASED) {
@@ -198,6 +211,7 @@ public class A2dpSinkService extends ProfileService {
                 mStateMachine.sendMessage(A2dpSinkStateMachine.EVENT_AVRCP_CT_PAUSE);
             }
         }
+        if (DBG) Log.d(TAG, "Exit informAvrcpPassThroughCmd");
     }
 
     /**
@@ -208,6 +222,7 @@ public class A2dpSinkService extends ProfileService {
      * stopping playback.
      */
     public void informTGStatePlaying(BluetoothDevice device, boolean isPlaying) {
+        if (DBG) Log.d(TAG, "Enter informTGStatePlaying");
         if (mStateMachine != null) {
             if (!isPlaying) {
                 mStateMachine.sendMessage(A2dpSinkStateMachine.EVENT_AVRCP_TG_PAUSE);
@@ -215,6 +230,7 @@ public class A2dpSinkService extends ProfileService {
                 mStateMachine.sendMessage(A2dpSinkStateMachine.EVENT_AVRCP_TG_PLAY);
             }
         }
+        if (DBG) Log.d(TAG, "Exit informTGStatePlaying");
     }
 
     synchronized boolean isA2dpPlaying(BluetoothDevice device) {

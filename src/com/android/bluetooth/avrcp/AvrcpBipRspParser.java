@@ -212,6 +212,7 @@ public class AvrcpBipRspParser {
         if (res == null)
             return null;
 
+        Log.d(TAG, "Enter getScaledBitmap");
         Uri uri = ContentUris.withAppendedId(Uri.parse(mAlbumUri), album_id);
         if (uri != null) {
             ParcelFileDescriptor fd = null;
@@ -258,6 +259,7 @@ public class AvrcpBipRspParser {
                 }
             }
         }
+        Log.d(TAG, "Exit getScaledBitmap");
         return null;
     }
 
@@ -272,6 +274,7 @@ public class AvrcpBipRspParser {
 
         Cursor cursor = null;
 
+        Log.d(TAG, "Enter getArtHandleFromAlbum");
         try {
             cursor = mContext.getContentResolver().query(
             MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, null,
@@ -344,6 +347,7 @@ public class AvrcpBipRspParser {
         if (artAttributes == null)
             return;
 
+        Log.d(TAG, "Enter updateExifHeader");
         String artPath = artAttributes.getArtPath();
 
         if (artPath == null)
@@ -389,6 +393,7 @@ public class AvrcpBipRspParser {
         } catch (IOException e) {
             Log.e(TAG,"readImgProperties: exception" + e);
         }
+        Log.d(TAG, "Exit updateExifHeader");
      }
 
     private void readImgProperties(String imgHandle) {
@@ -432,6 +437,7 @@ public class AvrcpBipRspParser {
         if (V) Log.v(TAG,"storing artPath = " + artPath + " and albumID = " + albumId +
             " for imgHandle = " + imgHandle);
         mCoverArtAttributesMap.put(imgHandle, coverArtAttributes);
+        Log.d(TAG,"Exit readImgProperties");
     }
 
     private class AvrcpBipRspImgDescriptor {
@@ -516,6 +522,7 @@ public class AvrcpBipRspParser {
             Log.e(TAG, "UnsupportedEncodingException", e);
         }
         if (D) Log.d(TAG, "parseImgDescXml returning " + ev);
+        Log.d(TAG,"Exit parseImgDescXml");
         return ev;
     }
 
@@ -525,6 +532,7 @@ public class AvrcpBipRspParser {
         int maxWidth = 0, maxHeigth = 0;
         AvrcpBipRspImgDescriptor imgDes = imgDesc;
 
+        Log.d(TAG,"Enter validateImgDescriptor");
         /* check if the pixel field is range or discrete */
         if ((imgDesc.mPixel.indexOf("-") == -1)) {
             /* Check if the pixel fields contains only 1 "*". */
@@ -621,6 +629,7 @@ public class AvrcpBipRspParser {
         imgDes.mPixel = width + "*" + height;
         if (V) Log.v(TAG, "validateImgDescriptor: imgDesc.mPixel = " + imgDes.mPixel);
         if (V) Log.v(TAG, "validateImgDescriptor: returning true");
+        Log.d(TAG,"Exit validateImgDescriptor");
         return imgDes;
     }
 
@@ -728,6 +737,7 @@ public class AvrcpBipRspParser {
             return retVal;
         }
 
+        Log.d(TAG,"Enter getImg");
         AvrcpBipRspImgDescriptor imgDesc = new AvrcpBipRspImgDescriptor();
 
         /* Read the Properties of Image as per the image Handle */
@@ -926,6 +936,7 @@ public class AvrcpBipRspParser {
             return null;
         }
 
+        Log.d(TAG,"Enter encode");
         readImgProperties(imgHandle);
         StringWriter sw = new StringWriter();
         XmlSerializer xmlMsgElement = new FastXmlSerializer();

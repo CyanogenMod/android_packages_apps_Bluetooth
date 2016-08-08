@@ -498,6 +498,7 @@ public final class Avrcp {
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "Enter onReceive()" +intent);
             String action = intent.getAction();
             if (action.equals(AudioManager.RCC_CHANGED_ACTION)) {
                 Log.v(TAG, "received RCC_CHANGED_ACTION");
@@ -733,6 +734,7 @@ public final class Avrcp {
                     featureMasks2);
         mMediaPlayers.add(mediaPlayerInfo1);
         mMediaPlayers.add(mediaPlayerInfo2);
+        Log.d(TAG, "Exit registerMediaPlayers()");
     }
 
     public static Avrcp make(Context context, A2dpService svc,
@@ -772,6 +774,7 @@ public final class Avrcp {
     }
 
     public void clearDeviceDependentFeature() {
+        Log.d(TAG, "Enter clearDeviceDependentFeature()");
         for (int i = 0; i < maxAvrcpConnections; i++) {
             deviceFeatures[i].keyPressState = KEY_STATE_RELEASE; //Key release state
             deviceFeatures[i].mCurrentPath = PATH_INVALID;
@@ -781,12 +784,14 @@ public final class Avrcp {
             if (deviceFeatures[i].mVolumeMapping != null)
                 deviceFeatures[i].mVolumeMapping.clear();
         }
+        Log.d(TAG, "Exit clearDeviceDependentFeature()");
     }
 
     public void cleanup() {
         if (DEBUG)
             Log.v(TAG, "cleanup");
         cleanupNative();
+        Log.d(TAG, "Exit cleanup()");
     }
 
     private class MediaControllerListener extends MediaController.Callback {
@@ -794,12 +799,14 @@ public final class Avrcp {
         public void onMetadataChanged(MediaMetadata metadata) {
             Log.v(TAG, "MediaController metadata changed");
             updateMetadata(metadata);
+            Log.d(TAG, "Exit onMetadataChanged()");
         }
 
         @Override
         public void onPlaybackStateChanged(PlaybackState state) {
             Log.v(TAG, "MediaController playback changed: " + state.toString());
             updatePlaybackState(state, null);
+            Log.d(TAG, "Exit onPlaybackStateChanged()");
         }
 
         @Override
@@ -840,6 +847,7 @@ public final class Avrcp {
                 mHandler.obtainMessage(MSG_UPDATE_BROWSED_PLAYER_FOLDER, 0, INTERNAL_ERROR,
                                                                   null).sendToTarget();
             }
+            Log.d(TAG, "Exit onUpdateFolderInfoBrowsedPlayer()");
         }
 
         @Override
@@ -849,6 +857,7 @@ public final class Avrcp {
                 mHandler.obtainMessage(MSG_NOW_PLAYING_ENTRIES_RECEIVED, 0, 0,
                                                             playList).sendToTarget();
             }
+            Log.d(TAG, "Exit onUpdateNowPlayingEntries()");
         }
 
         @Override
@@ -857,6 +866,7 @@ public final class Avrcp {
             if (mHandler != null) {
                 mHandler.obtainMessage(MSG_UPDATE_NOW_PLAYING_CONTENT_CHANGED).sendToTarget();
             }
+            Log.d(TAG, "Exit onUpdateNowPlayingContentChange()");
         }
 
         @Override
@@ -866,6 +876,7 @@ public final class Avrcp {
                 mHandler.obtainMessage(MSG_PLAY_ITEM_RESPONSE, 0, 0, new Boolean(success))
                                                                             .sendToTarget();
             }
+            Log.d(TAG, "Exit onPlayItemResponse()");
         }
     }
 
@@ -879,6 +890,7 @@ public final class Avrcp {
             if (controllers.size() > 0) {
                 updateCurrentMediaController(controllers.get(0));
             }
+            Log.d(TAG, "Exit onActiveSessionsChanged()");
         }
     }
 
@@ -899,6 +911,7 @@ public final class Avrcp {
             mHandler.obtainMessage(MSG_UPDATE_RCC_CHANGE, 1, 1,
                                 mMediaController.getPackageName()).sendToTarget();
         }
+        Log.d(TAG, "Exit updateCurrentMediaController()");
     }
 
 
