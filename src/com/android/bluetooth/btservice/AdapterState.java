@@ -454,6 +454,7 @@ final class AdapterState extends StateMachine {
 
                 case BREDR_START_TIMEOUT:
                     errorLog("Error enabling Bluetooth (start timeout)");
+                    mVendor.ssrCleanup(false);
                     mPendingCommandState.setTurningOn(false);
                     notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
                     adapterService.disableProfileServices();
@@ -475,6 +476,7 @@ final class AdapterState extends StateMachine {
 
                 case BREDR_CLEANUP_TIMEOUT:
                     errorLog("Error cleaningup Bluetooth profiles (cleanup timeout)");
+                    mVendor.ssrCleanup(false);
                     mPendingCommandState.setTurningOff(false);
                     transitionTo(mBleOnState);
                     notifyAdapterStateChange(BluetoothAdapter.STATE_BLE_ON);
@@ -484,6 +486,7 @@ final class AdapterState extends StateMachine {
 
                 case BREDR_STOP_TIMEOUT:
                     errorLog("Error stopping Bluetooth profiles (stop timeout)");
+                    mVendor.ssrCleanup(false);
                     mPendingCommandState.setTurningOff(false);
                     notifyAdapterStateChange(BluetoothAdapter.STATE_BLE_ON);
                     adapterService.disableProfileServices();
