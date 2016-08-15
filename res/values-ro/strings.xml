@@ -82,7 +82,7 @@
     <string name="bt_toast_2" msgid="8602553334099066582">"Fișierul nu poate fi primit."</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"Primirea fișierului de la „<xliff:g id="SENDER">%1$s</xliff:g>” a fost anulată"</string>
     <string name="bt_toast_4" msgid="4678812947604395649">"Se trimite fișierul către „<xliff:g id="RECIPIENT">%1$s</xliff:g>”"</string>
-    <string name="bt_toast_5" msgid="2846870992823019494">"Se trimit <xliff:g id="NUMBER">%1$s</xliff:g> (de) fișiere către „<xliff:g id="RECIPIENT">%2$s</xliff:g>”"</string>
+    <string name="bt_toast_5" msgid="2846870992823019494">"Se trimit <xliff:g id="NUMBER">%1$s</xliff:g>   fișiere către „<xliff:g id="RECIPIENT">%2$s</xliff:g>”"</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Trimiterea fișierului către „<xliff:g id="RECIPIENT">%1$s</xliff:g>” a fost anulată"</string>
     <string name="bt_sm_2_1" product="nosdcard" msgid="352165168004521000">"Nu există spațiu suficient pe stocarea USB pentru a salva fișierul de la „<xliff:g id="SENDER">%1$s</xliff:g>”"</string>
     <string name="bt_sm_2_1" product="default" msgid="1989018443456803630">"Nu există suficient spațiu pe cardul SD pentru a salva fișierul de la „<xliff:g id="SENDER">%1$s</xliff:g>”"</string>
