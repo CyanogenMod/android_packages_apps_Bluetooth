@@ -19,7 +19,7 @@
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"ဒေါင်းလုပ်မန်နေဂျာကို အသုံးပြုနိုင်မည်"</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"အပလီကေးရှင်းအား ဘလူးတုသ်မျှဝေမှု မန်နေဂျာကို အသုံးပြုခွင့်ပေးပြီး ဖိုင်လွှဲရန် အသုံးပြုပါ"</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"ဘလူးတုသ်ယာယီခွင့်ပြုစာရင်းကို အသုံးပြုခွင့်"</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"အပလီကေးရှင်းအား ဘလူးတုသ်စက်ကို ယာယီခွင့်ပြုစာရင်းထဲ ထည့်ရန်ခွင့်ပြုကာ အသုံးပြုသူ၏ အတည်ပြုချက်မရယူပဲ ဖိုင်များကို စက်ထဲသို့ ပို့ခွင့်ပြုမည်"</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"အက်ပ်အား ဘလူးတုသ်စက်ကို ယာယီခွင့်ပြုစာရင်းထဲ ထည့်ရန်ခွင့်ပြုကာ အသုံးပြုသူ၏ အတည်ပြုချက်မရယူပဲ ဖိုင်များကို စက်ထဲသို့ ပို့ခွင့်ပြုမည်"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"ဘလူးတုသ်"</string>
     <string name="unknown_device" msgid="9221903979877041009">"မသိသော စက်"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"အကြောင်းအရာ မသိရှိ"</string>
@@ -28,7 +28,7 @@
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"ဘလူးတုသ်ဆားဗစ်ကိုအသုံးပြုရန် ပထမဦးစွာ ဘလူးတုသ်ကိုဖွင့်ပါ"</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"ယခုပင် ဘလူးတုသ်ကိုဖွင့်မည်လား?"</string>
-    <string name="bt_enable_cancel" msgid="1988832367505151727">"မလုပ်တော့ပါ"</string>
+    <string name="bt_enable_cancel" msgid="1988832367505151727">"မလုပ်တော့"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"ဖွင့်မည်"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"ဖိုင်လွှဲပြောင်းခြင်း"</string>
     <string name="incoming_file_confirm_content" msgid="2752605552743148036">"ဝင်လာသည့် ဖိုင်ကို လက်ခံမလား?"</string>
@@ -120,12 +120,12 @@
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"စာရင်းကို ဖယ်ရှားရန်"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"ဖွင့်ရန်"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"စာရင်းမှ ရှင်းပစ်မည်"</string>
-    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"ဖယ်ရှားရန်"</string>
-    <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"သိမ်းဆည်းရန်"</string>
-    <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"မလုပ်တော့ပါ"</string>
+    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"ရှင်းရန်"</string>
+    <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"သိမ်းရန်"</string>
+    <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"မလုပ်တော့"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"ဘလူးတုသ်မှ မျှဝေလိုသော အကောင့်များကို ရွေးပါ။ ချိတ်ဆက်သည့်အခါ အကောင့်များအား ဝင်ခွင့်ပြုဖို့ လက်ခံပေးရပါလိမ့်ဦးမည်။"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"ကျန်နေသည့် အပေါက်များ:"</string>
-    <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"အက်ပ် အိုင်ကွန်"</string>
+    <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"အပလီကေးရှင်း သင်္ကေတ"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"ဘလူးတုသ် စာ မျှဝေရေး ဆက်တင်များ"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"ရွေးထားသည့် အကောင့်ကို မရွေးနိုင်ပါ။ သုည အပေါက်များ ကျန်နေ"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"ဘလူးတုသ်အသံ ချိတ်ဆက်ပြီးပါပြီ"</string>

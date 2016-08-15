@@ -27,7 +27,7 @@
     <string name="airplane_error_msg" msgid="8698965595254137230">"No pots utilitzar Bluetooth en mode d\'avió."</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Per utilitzar serveis Bluetooth, primer cal que activeu el Bluetooth."</string>
-    <string name="bt_enable_line2" msgid="4341936569415937994">"Voleu activar el Bluetooth ara?"</string>
+    <string name="bt_enable_line2" msgid="4341936569415937994">"Vols activar el Bluetooth ara?"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"Cancel·la"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"Activa"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"Transferència del fitxer"</string>
