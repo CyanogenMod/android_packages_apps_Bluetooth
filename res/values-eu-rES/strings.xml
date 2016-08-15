@@ -36,16 +36,16 @@
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Onartu"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"Ados"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" igorlearen sarrerako fitxategia onartzeko denbora-muga gainditu da"</string>
-    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth bidezko partekatzea: sarrerako fitxategia"</string>
+    <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth bidez partekatzea: fitxategi bat jaso da"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Fitxategi hau jaso nahi duzu?"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Sarrerako fitxategi bat bidali dizute beste gailu batetik. Berretsi fitxategia jaso nahi duzun."</string>
-    <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth bidezko partekatzea: <xliff:g id="FILE">%1$s</xliff:g> fitxategia jasotzen"</string>
-    <string name="notification_received" msgid="3324588019186687985">"Bluetooth bidezko partekatzea: <xliff:g id="FILE">%1$s</xliff:g> fitxategia jaso da"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth bidezko partekatzea: ez da <xliff:g id="FILE">%1$s</xliff:g> fitxategia jaso"</string>
-    <string name="notification_sending" msgid="3035748958534983833">"Bluetooth bidezko partekatzea: <xliff:g id="FILE">%1$s</xliff:g> fitxategia bidaltzen"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"Bluetooth bidezko partekatzea: <xliff:g id="FILE">%1$s</xliff:g> fitxategia bidali da"</string>
+    <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth bidez partekatzea: <xliff:g id="FILE">%1$s</xliff:g> fitxategia jasotzen"</string>
+    <string name="notification_received" msgid="3324588019186687985">"Bluetooth bidez partekatzea: <xliff:g id="FILE">%1$s</xliff:g> fitxategia jaso da"</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth bidez partekatzea: ez da jaso <xliff:g id="FILE">%1$s</xliff:g> fitxategia"</string>
+    <string name="notification_sending" msgid="3035748958534983833">"Bluetooth bidez partekatzea: <xliff:g id="FILE">%1$s</xliff:g> fitxategia bidaltzen"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"Bluetooth bidez partekatzea: <xliff:g id="FILE">%1$s</xliff:g> fitxategia bidali da"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"% 100ean osatuta"</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth bidezko partekatzea: ez da <xliff:g id="FILE">%1$s</xliff:g> fitxategia bidali"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth bidez partekatzea: ez da bidali <xliff:g id="FILE">%1$s</xliff:g> fitxategia"</string>
     <string name="download_title" msgid="3353228219772092586">"Fitxategi-transferentzia"</string>
     <string name="download_line1" msgid="4926604799202134144">"Igorlea: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"Fitxategia: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -108,8 +108,8 @@
     <string name="outbound_history_title" msgid="4279418703178140526">"Irteerako transferentziak"</string>
     <string name="no_transfers" msgid="3482965619151865672">"Transferentzia-historia hutsik dago."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Elementu guztiak zerrendatik garbituko dira."</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth bidezko partekatzea: fitxategiak bidali dira"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth bidezko partekatzea: jasotako fitxategiak"</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth bidez partekatzea: fitxategiak bidali dira"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth bidez partekatzea: fitxategiak jaso dira"</string>
     <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
       <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> hutsegite.</item>
       <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> hutsegite.</item>

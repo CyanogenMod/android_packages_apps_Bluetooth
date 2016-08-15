@@ -34,7 +34,7 @@
     <string name="incoming_file_confirm_content" msgid="2752605552743148036">"આવનારી ફાઇલ સ્વીકારીએ?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"નકારો"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"સ્વીકારો"</string>
-    <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ઑકે"</string>
+    <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ઓકે"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" તરફની એક આવનારી ફાઇલ સ્વીકારતી વખતે સમયસમાપ્તિ થઈ હતી"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Bluetooth શેર: આવનરી ફાઇલો"</string>
     <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"શું તમે આ ફાઇલ પ્રાપ્ત કરવા માંગો છો?"</string>
@@ -60,21 +60,21 @@
     <string name="download_fail_line1" msgid="3846450148862894552">"ફાઇલ પ્રાપ્ત થઈ નથી"</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"ફાઇલ: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_fail_line3" msgid="3451040656154861722">"કારણ: <xliff:g id="REASON">%1$s</xliff:g>"</string>
-    <string name="download_fail_ok" msgid="1521733664438320300">"ઑકે"</string>
+    <string name="download_fail_ok" msgid="1521733664438320300">"ઓકે"</string>
     <string name="download_succ_line5" msgid="4509944688281573595">"ફાઇલ પ્રાપ્ત"</string>
     <string name="download_succ_ok" msgid="7053688246357050216">"ખોલો"</string>
     <string name="upload_line1" msgid="2055952074059709052">"પ્રતિ: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="upload_line3" msgid="4920689672457037437">"ફાઇલ પ્રકાર: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
     <string name="upload_line5" msgid="7759322537674229752">"ફાઇલ મોકલી રહ્યું છે…"</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"ફાઇલ મોકલી"</string>
-    <string name="upload_succ_ok" msgid="7705428476405478828">"ઑકે"</string>
+    <string name="upload_succ_ok" msgid="7705428476405478828">"ઓકે"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"ફાઇલ \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" ને મોકલાઈ નહોતી."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"ફાઇલ: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="upload_fail_ok" msgid="5807702461606714296">"ફરી પ્રયાસ કરો"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"બંધ કરો"</string>
-    <string name="bt_error_btn_ok" msgid="5965151173011534240">"ઑકે"</string>
+    <string name="bt_error_btn_ok" msgid="5965151173011534240">"ઓકે"</string>
     <string name="unknown_file" msgid="6092727753965095366">"અજાણી ફાઇલ"</string>
-    <string name="unknown_file_desc" msgid="480434281415453287">"આ પ્રકારની ફાઇલ હેન્ડલ કરવા માટે કોઈ એપ્લિકેશન નથી. \n"</string>
+    <string name="unknown_file_desc" msgid="480434281415453287">"આ પ્રકારની ફાઇલ હેન્ડલ કરવા માટે કોઈ ઍપ્લિકેશન નથી. \n"</string>
     <string name="not_exist_file" msgid="3489434189599716133">"કોઈ ફાઇલ નથી"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"આ ફાઇલ અસ્તિત્વમાં નથી. \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"કૃપા કરીને રાહ જુઓ..."</string>
@@ -126,7 +126,7 @@
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"રદ કરો"</string>
     <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"તમે Bluetooth મારફતે શેર કરવા માગતા હો તે એકાઉન્ટ્સ પસંદ કરો. તમારે હજી પણ કનેક્ટ કરતી વખતે એકાઉન્ટ્સ પરની કોઈપણ અ‍ૅક્સેસ સ્વીકારવી પડશે."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"સ્લોટ્સ બાકી:"</string>
-    <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"એપ્લિકેશન આયકન"</string>
+    <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"ઍપ્લિકેશન આયકન"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Bluetooth સંદેશ શેરિંગ સેટિંગ્સ"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"એકાઉન્ટ પસંદ કરી શકાતું નથી. 0 સ્લોટ્સ બાકી"</string>
 </resources>
