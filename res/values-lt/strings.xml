@@ -16,7 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Pasiekti atsisiuntimo tvarkyklę."</string>
+    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Pasiekti atsisiuntimo tvarkytuvę."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Leidžiama programai pasiekti „BluetoothShare“ tvarkyklę ir naudoti ją failams perkelti."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Į baltąjį sąrašą įtraukto „Bluetooth“ įrenginio prieiga."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Leidžiama programai laikinai į baltąjį sąrašą įtraukti „Bluetooth“ įrenginį, suteikiant jam galimybę siųsti failus į šį įrenginį be naudotojo patvirtinimo."</string>

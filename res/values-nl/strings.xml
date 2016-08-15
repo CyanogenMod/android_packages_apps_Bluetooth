@@ -37,7 +37,7 @@
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Er is een time-out opgetreden bij het accepteren van een inkomend bestand van \'<xliff:g id="SENDER">%1$s</xliff:g>\'"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="2958227698135117210">"Delen via Bluetooth: inkomend bestand"</string>
-    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Wilt je dit bestand ontvangen?"</string>
+    <string name="incoming_file_confirm_Notification_caption" msgid="6671081128475981157">"Wil je dit bestand ontvangen?"</string>
     <string name="incoming_file_toast_msg" msgid="1733710749992901811">"Er is een inkomend bestand van een ander apparaat beschikbaar. Bevestig dat je dit bestand wilt ontvangen."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Delen via Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> ontvangen"</string>
     <string name="notification_received" msgid="3324588019186687985">"Delen via Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> ontvangen"</string>
