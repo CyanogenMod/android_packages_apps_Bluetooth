@@ -222,6 +222,7 @@ public class GattService extends ProfileService {
 
     boolean permissionCheck(int connId, int handle) {
         List<BluetoothGattService> db = gattClientDatabases.get(connId);
+        if (db == null) return true;
 
         for (BluetoothGattService service : db) {
             for (BluetoothGattCharacteristic characteristic: service.getCharacteristics()) {
