@@ -40,11 +40,13 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.app.IBatteryStats;
 
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -95,8 +97,8 @@ public class ScanManager {
     private CountDownLatch mLatch;
 
     ScanManager(GattService service) {
-        mRegularScanClients = new HashSet<ScanClient>();
-        mBatchClients = new HashSet<ScanClient>();
+        mRegularScanClients = Collections.newSetFromMap(new ConcurrentHashMap<ScanClient, Boolean>());
+        mBatchClients = Collections.newSetFromMap(new ConcurrentHashMap<ScanClient, Boolean>());
         mService = service;
         mScanNative = new ScanNative();
         curUsedTrackableAdvertisements = 0;
