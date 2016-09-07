@@ -1205,6 +1205,7 @@ public final class Avrcp {
                 byte absVol = (byte)((byte)msg.arg1 & 0x7f); // discard MSB as it is RFD
                 // convert remote volume to local volume
                 int volIndex = convertToAudioStreamVolume(absVol);
+                if (DEBUG) Log.v(TAG,"Volume Index = " + volIndex);
                 if (deviceFeatures[deviceIndex].mInitialRemoteVolume == -1) {
                     deviceFeatures[deviceIndex].mInitialRemoteVolume = absVol;
                     if (deviceFeatures[deviceIndex].mAbsVolThreshold > 0 &&
@@ -1753,15 +1754,15 @@ public final class Avrcp {
         mLastStateUpdate = SystemClock.elapsedRealtime();
 
         for (int deviceIndex = 0; deviceIndex < maxAvrcpConnections; deviceIndex++) {
-            sendPlayPosNotificationRsp(false, deviceIndex);
-        }
-
-        for (int deviceIndex = 0; deviceIndex < maxAvrcpConnections; deviceIndex++) {
             /*Discretion is required only when updating play state changed as playing*/
             if ((state.getState() != PlaybackState.STATE_PLAYING) ||
                                 isPlayStateToBeUpdated(deviceIndex)) {
                 updatePlayStatusForDevice(deviceIndex, state);
             }
+        }
+
+        for (int deviceIndex = 0; deviceIndex < maxAvrcpConnections; deviceIndex++) {
+            sendPlayPosNotificationRsp(false, deviceIndex);
         }
     }
 
@@ -2254,17 +2255,14 @@ public final class Avrcp {
             if (exists == false)
                 return true;
 
-            if (coverArt == null)
-                return false;
-
-            return (title.equals(other.title)) &&
+            return ((title.equals(other.title)) &&
                 (artistName.equals(other.artistName)) &&
                 (albumName.equals(other.albumName)) &&
                 (mediaNumber.equals(other.mediaNumber)) &&
                 (mediaTotalNumber.equals(other.mediaTotalNumber)) &&
                 (genre.equals(other.genre)) &&
                 (playingTimeMs.equals(other.playingTimeMs)) &&
-                (coverArt.equals(other.coverArt));
+                (coverArt == null?true:(coverArt.equals(other.coverArt))));
         }
 
         public String getString(int attrId) {
@@ -4820,8 +4818,8 @@ public final class Avrcp {
                    (int)playPositionMs, getByteAddress(deviceFeatures[i].mCurrentDevice));
             deviceFeatures[i].mLastReportedPosition = playPositionMs;
             if (playPositionMs != PlaybackState.PLAYBACK_POSITION_UNKNOWN) {
-                deviceFeatures[i].mNextPosMs = playPositionMs + mPlaybackIntervalMs;
-                deviceFeatures[i].mPrevPosMs = playPositionMs - mPlaybackIntervalMs;
+                deviceFeatures[i].mNextPosMs = playPositionMs + deviceFeatures[i].mPlaybackIntervalMs;
+                deviceFeatures[i].mPrevPosMs = playPositionMs - deviceFeatures[i].mPlaybackIntervalMs;
             } else {
                 deviceFeatures[i].mNextPosMs = -1;
                 deviceFeatures[i].mPrevPosMs = -1;
@@ -4831,8 +4829,9 @@ public final class Avrcp {
         mHandler.removeMessages(MESSAGE_PLAY_INTERVAL_TIMEOUT);
         if (deviceFeatures[i].mPlayPosChangedNT == NOTIFICATION_TYPE_INTERIM &&
                  isPlayingState(deviceFeatures[i].mCurrentPlayState)) {
-            Message msg = mHandler.obtainMessage(MESSAGE_PLAY_INTERVAL_TIMEOUT);
-            long delay = mPlaybackIntervalMs;
+            Message msg = mHandler.obtainMessage(MESSAGE_PLAY_INTERVAL_TIMEOUT, 0, 0,
+                                                 deviceFeatures[i].mCurrentDevice);
+            long delay = deviceFeatures[i].mPlaybackIntervalMs;
             if (deviceFeatures[i].mNextPosMs != -1) {
                 delay = deviceFeatures[i].mNextPosMs - (playPositionMs > 0 ? playPositionMs : 0);
             }
