@@ -308,11 +308,24 @@ final class HeadsetStateMachine extends StateMachine {
 
     public void doQuit() {
         Log.d(TAG, "Enter doQuit()");
+        int size = 0;
         if (mAudioManager != null) {
              mAudioManager.setBluetoothScoOn(false);
         }
         if (mActiveScoDevice != null && !mPhoneState.getIsCsCall()) {
             sendVoipConnectivityNetworktype(false);
+        }
+        if (mActiveScoDevice != null) {
+             broadcastAudioState(mActiveScoDevice, BluetoothHeadset.STATE_AUDIO_DISCONNECTED,
+                                BluetoothHeadset.STATE_AUDIO_CONNECTED);
+        }
+        /* Broadcast disconnected state for connected devices.*/
+        size = mConnectedDevicesList.size();
+        Log.d(TAG, "cleanup: mConnectedDevicesList size is " + size);
+        for(int i = 0; i < size; i++) {
+            mCurrentDevice = mConnectedDevicesList.get(i);
+            broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_DISCONNECTED,
+                                     BluetoothProfile.STATE_CONNECTED);
         }
         quitNow();
         Log.d(TAG, "Exit doQuit()");

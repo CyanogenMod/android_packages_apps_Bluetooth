@@ -75,7 +75,11 @@ public class A2dpService extends ProfileService {
                 SystemProperties.getInt("persist.bt.enable.multicast", 0);
         if (DBG) Log.d(TAG, "START of A2dpService");
         String offload_cap =
-                SystemProperties.get("persist.bt.a2dp_offload_cap", null);
+                SystemProperties.get("persist.bt.a2dp_offload_cap");
+        if (offload_cap.isEmpty() || "false".equals(offload_cap)) {
+            Log.i(TAG,"offload cap not set");
+            offload_cap = null;
+        }
         if (offload_cap != null && a2dpMultiCastState == 1) {
             Log.i(TAG,"Split a2dp mode is enabled, disabling multicast");
             a2dpMultiCastState = 0;
