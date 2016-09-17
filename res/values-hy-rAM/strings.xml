@@ -50,7 +50,7 @@
     <string name="download_line2" msgid="5876973543019417712">"Ֆայլ՝ <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_line3" msgid="4384821622908676061">"Ֆայլի չափը՝ <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="download_line4" msgid="8535996869722666525"></string>
-    <string name="download_line5" msgid="3069560415845295386">"Ֆայլը ստացվում է..."</string>
+    <string name="download_line5" msgid="3069560415845295386">"Ֆայլի ստացում..."</string>
     <string name="download_cancel" msgid="9177305996747500768">"Դադարեցնել"</string>
     <string name="download_ok" msgid="5000360731674466039">"Թաքցնել"</string>
     <string name="incoming_line1" msgid="2127419875681087545">"Ումից"</string>
