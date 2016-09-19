@@ -31,14 +31,18 @@
     -->
   <!-- string showed on "Share picutre via" dialog -->
   <!-- string for "unknown device" -->
+  <string name="unknown_device">Nekonata aparato</string>
   <!-- string for "unknown" phone number" -->
+  <string name="unknownNumber">Nekonata</string>
   <!-- string for "the title of airplane mode error" -->
+  <string name="airplane_error_title">Aviadila reĝimo</string>
   <!-- string for "error message in airplane mode" -->
   <!-- Activate Bluetooth Confirmation Dialog -->
   <!--Title -->
   <!--Line 1 -->
   <!--Line 2 -->
   <!-- Label for a cancel button. -->
+  <string name="bt_enable_cancel">Nuligi</string>
   <!-- Label for a confirm button.-->
   <!-- Bluetooth File Transfer Acceptance Dialog -->
   <!--Title -->
@@ -61,6 +65,7 @@
   <!--Title -->
   <!--Line 1 -->
   <!--Line 2 -->
+  <string name="download_line2">Dosiero: <xliff:g id="file">%1$s</xliff:g></string>
   <!--Line 3 -->
   <!--Line 4 -->
   <!-- Label for a cancel button. -->
@@ -76,13 +81,17 @@
   <!-- Bluetooth Successful Download  Dialog -->
   <!--Line 4 in "Bluetooth Download Progress Dialog" -->
   <!-- Label for a OK button.-->
+  <string name="download_succ_ok">Malfermi</string>
   <!-- Bluetooth Upload Progress Dialog -->
   <!-- Bluetooth Successful Upload Progress Dialog -->
   <!--Line 4 -->
   <!-- Label for a confirm button.-->
   <!-- Bluetooth Failed Upload File Transfer Dialog -->
+  <string name="upload_fail_line1_2">Dosiero: <xliff:g id="file">%1$s</xliff:g></string>
   <!-- Label for a try again button.-->
+  <string name="upload_fail_ok">Reprovi</string>
   <!-- Label for a cancel button.-->
+  <string name="upload_fail_cancel">Fermi</string>
   <!-- Bluetooth error dialog -->
   <!-- Bluetooth  Enabling progress dialog -->
   <!-- Bluetooth Toast Message -->
@@ -90,10 +99,13 @@
   <!-- Bluetooth System Messages -->
   <!-- Bluetooth Transfer Failure Reason -->
   <!-- Shown when USB storage cannot be found.  [CHAR LIMIT=NONE] -->
+  <string name="status_unknown_error">Nekonata eraro.</string>
   <!-- Bluetooth OPP Live Folder -->
   <!-- Bluetooth OPP Transfer History -->
+  <string name="transfer_menu_open">Malfermi</string>
   <!-- Do not translate. file name used for sharing. -->
   <!-- Used to run Bluetooth.apk in another process if needed -->
   <!-- Do not translate. android:sharedUserId string of this application. -->
   <!-- Do not translate. android:process of this application. -->
+  <string name="bluetooth_map_settings_cancel">Nuligi</string>
 </resources>
