@@ -230,7 +230,7 @@ public class ScanManager {
                 if (!mScanNative.isOpportunisticScanClient(client)) {
                     mScanNative.configureRegularScanParams();
 
-                    if (!mScanNative.isFirstMatchScanClient(client)) {
+                    if (!mScanNative.isExemptFromScanDowngrade(client)) {
                         Message msg = mHandler.obtainMessage(MSG_SCAN_TIMEOUT);
                         msg.obj = client;
                         // Only one timeout message should exist at any time
@@ -526,6 +526,12 @@ public class ScanManager {
             }
         }
 
+        private boolean isExemptFromScanDowngrade(ScanClient client) {
+          return isOpportunisticScanClient(client)
+              || isFirstMatchScanClient(client)
+              || !shouldUseAllPassFilter(client);
+        }
+
         private boolean isOpportunisticScanClient(ScanClient client) {
             return client.settings.getScanMode() == ScanSettings.SCAN_MODE_OPPORTUNISTIC;
         }
@@ -675,8 +681,9 @@ public class ScanManager {
 
         void regularScanTimeout() {
             for (ScanClient client : mRegularScanClients) {
-                if (!isOpportunisticScanClient(client) && !isFirstMatchScanClient(client)) {
-                    logd("clientIf set to scan opportunisticly: " + client.clientIf);
+                if (!isExemptFromScanDowngrade(client)) {
+                    Log.w(TAG, "Moving scan client to opportunistic (clientIf "
+                          + client.clientIf + ")");
                     setOpportunisticScanClient(client);
                     client.stats.setScanTimeout();
                 }
