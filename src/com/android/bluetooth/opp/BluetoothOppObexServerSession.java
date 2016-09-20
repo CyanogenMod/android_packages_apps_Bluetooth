@@ -99,7 +99,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     boolean mTransferInProgress = false;
 
-    private int position;
+    private long position;
 
     public BluetoothOppObexServerSession(Context context, ObexTransport transport) {
         mContext = context;

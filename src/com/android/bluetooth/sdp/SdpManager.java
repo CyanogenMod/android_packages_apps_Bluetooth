@@ -70,6 +70,13 @@ public class SdpManager {
         OPP_FORMAT_VMESSAGE,
         OPP_FORMAT_ANY_TYPE_OF_OBJ};
 
+    public static final byte[] OPP_FORMAT= {
+            OPP_FORMAT_VCARD21,
+            OPP_FORMAT_VCARD30,
+            OPP_FORMAT_ICAL20,
+            OPP_FORMAT_ANY_TYPE_OF_OBJ};
+
+
     /* Variables to keep track of ongoing and queued search requests.
      * mTrackerLock must be held, when using/changing sSdpSearchTracker
      * and mSearchInProgress. */

@@ -14,6 +14,7 @@
 */
 package com.android.bluetooth.map;
 
+import com.android.bluetooth.R;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -53,7 +54,7 @@ public class BluetoothMapAppObserver{
     private Context mContext;
     private BroadcastReceiver mReceiver;
     private PackageManager mPackageManager = null;
-    BluetoothMapAccountEmailLoader mLoader;
+    BluetoothMapAccountLoader mLoader;
     BluetoothMapService mMapService = null;
     private boolean mRegisteredReceiver = false;
 
@@ -61,7 +62,14 @@ public class BluetoothMapAppObserver{
         mContext    = context;
         mMapService = mapService;
         mResolver   = context.getContentResolver();
-        mLoader     = new BluetoothMapAccountEmailLoader(mContext);
+        boolean isDisabledNonAosp = context.getResources().getBoolean
+                (R.bool.disable_non_aosp_bt_features);
+        if (D) Log.d(TAG, "isDisabledNonAosp :" + isDisabledNonAosp);
+        if (isDisabledNonAosp) {
+            mLoader = new BluetoothMapAccountLoader(mContext);
+        } else {
+            mLoader = new BluetoothMapAccountEmailLoader(mContext);
+        }
         mFullList   = mLoader.parsePackages(false); /* Get the current list of apps */
         createReceiver();
         initObservers();
