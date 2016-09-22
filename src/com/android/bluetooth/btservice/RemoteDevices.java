@@ -30,12 +30,15 @@ import com.android.bluetooth.Utils;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
-
+import java.util.LinkedList;
+import java.util.Queue;
 
 final class RemoteDevices {
     private static final boolean DBG = false;
     private static final String TAG = "BluetoothRemoteDevices";
 
+    // Maximum number of device properties to remember
+    private static final int MAX_DEVICE_QUEUE_SIZE = 200;
 
     private static BluetoothAdapter mAdapter;
     private static AdapterService mAdapterService;
@@ -46,12 +49,14 @@ final class RemoteDevices {
     private static final int MESSAGE_UUID_INTENT = 1;
 
     private HashMap<String, DeviceProperties> mDevices;
+    private Queue<String> mDeviceQueue;
 
     RemoteDevices(AdapterService service) {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mAdapterService = service;
         mSdpTracker = new ArrayList<BluetoothDevice>();
         mDevices = new HashMap<String, DeviceProperties>();
+        mDeviceQueue = new LinkedList<String>();
     }
 
 
@@ -61,6 +66,9 @@ final class RemoteDevices {
 
         if (mDevices != null)
             mDevices.clear();
+
+        if (mDeviceQueue != null)
+            mDeviceQueue.clear();
     }
 
     @Override
@@ -86,7 +94,15 @@ final class RemoteDevices {
             DeviceProperties prop = new DeviceProperties();
             prop.mDevice = mAdapter.getRemoteDevice(Utils.getAddressStringFromByte(address));
             prop.mAddress = address;
-            mDevices.put(Utils.getAddressStringFromByte(address), prop);
+            String key = Utils.getAddressStringFromByte(address);
+            DeviceProperties pv = mDevices.put(key, prop);
+            if (pv == null) {
+                mDeviceQueue.offer(key);
+                if (mDeviceQueue.size() > MAX_DEVICE_QUEUE_SIZE) {
+                    String deleteKey = mDeviceQueue.poll();
+                    mDevices.remove(deleteKey);
+                }
+            }
             return prop;
         }
     }
