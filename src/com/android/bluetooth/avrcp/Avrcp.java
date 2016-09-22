@@ -5259,8 +5259,23 @@ public final class Avrcp {
                         where play state update is missed because of that happening
                         even before Avrcp connects*/
                 deviceFeatures[i].mCurrentPlayState = mCurrentPlayerState;
+                if (!isPlayingState(mCurrentPlayerState) &&
+                     mA2dpService.getA2dpPlayingDevice().size() > 0) {
+                /*A2DP playstate updated for video playback scenario, where a2dp play status is
+                    updated when avrcp connection was not up yet.*/
+                    Log.i(TAG,"A2dp playing device found");
+                    List<BluetoothDevice> playingDevice = mA2dpService.getA2dpPlayingDevice();
+                    for (int j = 0; j < playingDevice.size(); j++) {
+                        if (playingDevice.get(j).equals(device)) {
+                            PlaybackState.Builder playState = new PlaybackState.Builder();
+                            playState.setState(PlaybackState.STATE_PLAYING,
+                                           PlaybackState.PLAYBACK_POSITION_UNKNOWN, 1.0f);
+                            deviceFeatures[i].mCurrentPlayState = playState.build();
+                        }
+                    }
+                }
                 Log.i(TAG,"play status updated on Avrcp connection as: " +
-                                                    mCurrentPlayerState);
+                                                    deviceFeatures[i].mCurrentPlayState);
                 Log.i(TAG,"device added at " + i);
                 Log.i(TAG,"Active device set to true at index =  " + i);
                 break;
