@@ -42,24 +42,24 @@ public class BluetoothPbapReceiver extends BroadcastReceiver {
 
     private static final String TAG = "BluetoothPbapReceiver";
 
-    private static final boolean V = BluetoothPbapService.VERBOSE;
+    private static final boolean D = BluetoothPbapService.DEBUG;
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (V) Log.v(TAG, "PbapReceiver onReceive ");
+        if (D) Log.d(TAG, "PbapReceiver onReceive");
 
         Intent in = new Intent();
         in.putExtras(intent);
         in.setClass(context, BluetoothPbapService.class);
         String action = intent.getAction();
         in.putExtra("action", action);
-        if (V) Log.v(TAG,"***********action = " + action);
+        if (D) Log.d(TAG, "***********action = " + action);
 
         boolean startService = true;
         if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
             int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
             in.putExtra(BluetoothAdapter.EXTRA_STATE, state);
-            if (V) Log.v(TAG,"***********state = " + state);
+            if (D) Log.d(TAG, "***********state = " + state);
             if ((state == BluetoothAdapter.STATE_TURNING_ON)
                     || (state == BluetoothAdapter.STATE_OFF)) {
                 //FIX: We turn on PBAP after BluetoothAdapter.STATE_ON,
@@ -70,11 +70,13 @@ public class BluetoothPbapReceiver extends BroadcastReceiver {
             // Don't forward intent unless device has bluetooth and bluetooth is enabled.
             BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
             if (adapter == null || !adapter.isEnabled()) {
+                if (D) Log.d(TAG, "BluetoothAdapter is not enabled (" +
+                             adapter + "). Would not start service.");
                 startService = false;
             }
         }
         if (startService) {
-            if (V) Log.v(TAG,"***********Calling start service!!!! with action = " + in.getAction());
+            if (D) Log.d(TAG,"***********Calling start service!!!! with action = " + in.getAction());
             context.startService(in);
         }
     }
