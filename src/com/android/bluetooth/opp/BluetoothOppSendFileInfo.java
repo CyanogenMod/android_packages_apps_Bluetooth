@@ -231,8 +231,9 @@ public class BluetoothOppSendFileInfo {
     private static long getStreamSize(FileInputStream is) throws IOException {
         long length = 0;
         byte unused[] = new byte[4096];
-        while (is.available() > 0) {
-            length += is.read(unused, 0, 4096);
+        int bytesRead = -1;
+        while ((bytesRead = is.read(unused, 0, 4096)) != -1) {
+            length += bytesRead;
         }
         return length;
     }
