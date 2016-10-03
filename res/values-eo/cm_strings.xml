@@ -28,5 +28,4 @@
         any application that was granted that permission. This specific
         permission controls access to the Bluetooth Avrcp Data Manager.
     -->
-  <string name="upload_fail_waiting">Ne eblas sendi dosieron, reprovanta\u2026</string>
 </resources>
