@@ -253,10 +253,6 @@ public class ScanManager {
             if (client == null) return;
 
             if (mRegularScanClients.contains(client)) {
-                // The ScanClient passed in just holds the clientIf. We retrieve the real client,
-                // which may have workSource set.
-                client = mScanNative.getRegularScanClient(client.clientIf);
-                if (client == null) return;
 
                 mScanNative.stopRegularScan(client);
 
@@ -270,7 +266,11 @@ public class ScanManager {
 
                 // Update BatteryStats with this workload.
                 try {
-                    mBatteryStats.noteBleScanStopped(client.workSource);
+                    // The ScanClient passed in just holds the clientIf. We retrieve the real client,
+                    // which may have workSource set.
+                    ScanClient workClient = mScanNative.getRegularScanClient(client.clientIf);
+                    if (workClient != null)
+                        mBatteryStats.noteBleScanStopped(workClient.workSource);
                 } catch (RemoteException e) {
                     /* ignore */
                 }
