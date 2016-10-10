@@ -417,8 +417,12 @@ public class SapService extends ProfileService {
                                 + sRemoteDeviceName);
 
                     } else {
-                        // Assuming reject is the stored state - continue to accept new connection.
-                        continue;
+                        // Close RFCOMM socket for current connection and start
+                        // listening again for new connections.
+                        Log.w(TAG, "Can't connect with " + sRemoteDeviceName +
+                            " as access is rejected");
+                        if (mSessionStatusHandler != null)
+                            mSessionStatusHandler.sendEmptyMessage(MSG_SERVERSESSION_CLOSE);
                     }
                     stopped = true; // job done ,close this thread;
                 } catch (IOException ex) {
@@ -793,7 +797,8 @@ public class SapService extends ProfileService {
                                 BluetoothDevice.ACCESS_ALLOWED);
                         if (VERBOSE) {
                             Log.v(TAG, "setSimAccessPermission(ACCESS_ALLOWED) result=" + result);
-                        }                    }
+                        }
+                    }
                     try {
                         if (mConnSocket != null) {
                             // start obex server and rfcomm connection

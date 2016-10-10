@@ -55,4 +55,8 @@
 
     <!-- For enabling the hfp client connection service -->
     <bool name="hfp_client_connection_service_enabled">false</bool>
+
+    <!-- For disabling non AOSP bluetooth features -->
+    <bool name="disable_non_aosp_bt_features">false</bool>
+
 </resources>

@@ -198,6 +198,61 @@ public class BluetoothMapbMessageExtEmail extends BluetoothMapbMessageMime {
        Log.v(TAG, "fetch body Email NULL:");
    }
 
+   public void encodeEmailHeaders(StringBuilder sb) throws UnsupportedEncodingException {
+       /* TODO: From RFC-4356 - about the RFC-(2)822 headers:
+        *    "Current Internet Message format requires that only 7-bit US-ASCII
+        *     characters be present in headers.  Non-7-bit characters in an address
+        *     domain must be encoded with [IDN].  If there are any non-7-bit
+        *     characters in the local part of an address, the message MUST be
+        *     rejected.  Non-7-bit characters elsewhere in a header MUST be encoded
+        *     according to [Hdr-Enc]."
+        *    We need to add the address encoding in encodeHeaderAddresses, but it is not
+        *    straight forward, as it is unclear how to do this.  */
+       if (getDate() != INVALID_VALUE)
+           sb.append("Date: ").append(getDateString()).append("\r\n");
+       /* According to RFC-2822 headers must use US-ASCII, where the MAP specification states
+        * UTF-8 should be used for the entire <bmessage-body-content>. We let the MAP specification
+        * take precedence above the RFC-2822.
+        */
+       if (getSubject() != null)
+           sb.append("Subject: ").append(getSubject()).append("\r\n");
+       if (getFrom() == null)
+           sb.append("From: \r\n");
+       if (getFrom() != null)
+           encodeHeaderAddresses(sb, "From: ", getFrom()); // This includes folding if needed.
+       if (getSender() != null)
+           encodeHeaderAddresses(sb, "Sender: ", getSender()); // This includes folding if needed.
+       /* For MMS one recipient(to, cc or bcc) must exists, if none: 'To:  undisclosed-
+        * recipients:;' could be used.
+        */
+       if (getTo() == null && getCc() == null && getBcc() == null)
+           sb.append("To:  undisclosed-recipients:;\r\n");
+       if (getTo() != null)
+           encodeHeaderAddresses(sb, "To: ", getTo()); // This includes folding if needed.
+       if (getCc() != null)
+           encodeHeaderAddresses(sb, "Cc: ", getCc()); // This includes folding if needed.
+       if (getBcc() != null)
+           encodeHeaderAddresses(sb, "Bcc: ", getBcc()); // This includes folding if needed.
+       if (getReplyTo() != null) // This includes folding if needed.
+           encodeHeaderAddresses(sb, "Reply-To: ", getReplyTo());
+       if (getIncludeAttachments() == true) {
+           if (getMessageId() != null)
+               sb.append("Message-Id: ").append(getMessageId()).append("\r\n");
+           if (getContentType() != null)
+               sb.append("Content-Type: ").append(getContentType())
+                   .append("; boundary=").append(getBoundary()).append("\r\n");
+        } else {
+            // Attachment fetaure not supported . Append below MIME Headers.
+            sb.append("Mime-Version: 1.0").append("\r\n");
+            sb.append(
+                  "Content-Type: multipart/mixed; boundary=\""+ getBoundary() + "\"")
+                   .append("\r\n");
+            sb.append("Content-Transfer-Encoding: 8bit").append("\r\n");
+        }
+        // If no headers exists, we still need two CRLF, hence keep it out of the if above.
+        sb.append("\r\n");
+    }
+
    public byte[] encodeEmail() throws UnsupportedEncodingException
    {
        if (V) Log.v(TAG, "Inside encodeEmail ");
@@ -205,18 +260,9 @@ public class BluetoothMapbMessageExtEmail extends BluetoothMapbMessageMime {
        StringBuilder sb = new StringBuilder ();
        int count = 0;
        String emailBody;
-       Random randomGenerator = new Random();
-       int randomInt = randomGenerator.nextInt(1000);
-       String boundary = "MessageBoundary."+randomInt;
-       encodeHeaders(sb);
-       sb.append("Mime-Version: 1.0").append("\r\n");
-       sb.append(
-              "Content-Type: multipart/mixed; boundary=\""+boundary+"\"")
-               .append("\r\n");
-       sb.append("Content-Transfer-Encoding: 8bit").append("\r\n")
-               .append("\r\n");
+       encodeEmailHeaders(sb);
        sb.append("MIME Message").append("\r\n");
-       sb.append("--"+boundary).append("\r\n");
+       sb.append("--" + getBoundary()).append("\r\n");
        Log.v(TAG, "after encode header sb is "+ sb.toString());
        if (parts != null) {
            if (getIncludeAttachments() == false) {
@@ -224,7 +270,7 @@ public class BluetoothMapbMessageExtEmail extends BluetoothMapbMessageMime {
                   /* We call encode on all parts, to include a tag,
                    * where an attachment is missing. */
                   part.encodePlainText(sb);
-                  sb.append("--"+boundary+"--").append("\r\n");
+                  sb.append("--" + getBoundary() + "--").append("\r\n");
               }
           } else {
               for (MimePart part : parts) {

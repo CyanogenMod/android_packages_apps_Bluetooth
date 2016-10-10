@@ -27,7 +27,7 @@ import android.content.res.Resources;
 import android.os.SystemProperties;
 import android.provider.Settings;
 import android.util.Log;
-import android.os.SystemProperties;
+
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.a2dp.A2dpService;

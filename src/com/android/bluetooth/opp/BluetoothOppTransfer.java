@@ -32,6 +32,7 @@
 
 package com.android.bluetooth.opp;
 
+import com.android.bluetooth.R;
 import javax.obex.ObexTransport;
 
 import com.android.bluetooth.BluetoothObexTransport;
@@ -565,7 +566,10 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             mConnectThread.start();
         } else {
             OolConnManager.setSdpInitiatedAddress(mBatch.mDestination);
-            if (!mBatch.mDestination.sdpSearch(BluetoothUuid.ObexObjectPush)) {
+            boolean isDisabledNonAosp = mContext.getResources().getBoolean
+                   (R.bool.disable_non_aosp_bt_features);
+            if (D) Log.d(TAG, "isDisabledNonAosp :" + isDisabledNonAosp);
+            if (isDisabledNonAosp || !mBatch.mDestination.sdpSearch(BluetoothUuid.ObexObjectPush)) {
                 /* SDP failed, start rfcomm connect directly */
                 mConnectThread = new SocketConnectThread(mBatch.mDestination, false, false);
                 /* update bd address as sdp could not be started */

@@ -32,6 +32,7 @@
 
 package com.android.bluetooth.pbap;
 
+import com.android.bluetooth.R;
 import android.content.Context;
 import android.content.ContentResolver;
 import android.database.Cursor;
@@ -181,6 +182,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     public static boolean sIsAborted = false;
 
+    private boolean isDisabledNonAosp = false;
+
     private long mDatabaseIdentifierLow = INVALID_VALUE_PARAMETER;
     private long mDatabaseIdentifierHigh = INVALID_VALUE_PARAMETER;
     AppParamValue connAppParamValue;
@@ -205,13 +208,17 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         mContext = context;
         mService = service;
         mVcardManager = new BluetoothPbapVcardManager(mContext);
+        isDisabledNonAosp = mContext.getResources().getBoolean(R.bool.disable_non_aosp_bt_features);
+        if (D) Log.d(TAG, "isDisabledNonAosp :" + isDisabledNonAosp);
+
     }
 
     @Override
     public int onConnect(final HeaderSet request, HeaderSet reply) {
         if (V) logHeader(request);
         notifyUpdateWakeLock();
-        resetFolderVersionCounters();
+        if (!isDisabledNonAosp)
+            resetFolderVersionCounters();
         try {
             byte[] uuid = (byte[])request.getHeader(HeaderSet.TARGET);
             if (uuid == null) {
@@ -396,6 +403,12 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             validName = false;
         }
 
+        if (isDisabledNonAosp && ((mCurrentPath.contains("SIM") ||
+                                  (validName && name.contains("SIM"))))) {
+            if (D) Log.d(TAG, "SIM support disabled ");
+            return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
+        }
+
         if (!validName || (validName && type.equals(TYPE_VCARD))) {
             if (D) Log.d(TAG, "Guess what carkit actually want from current path (" +
                     mCurrentPath + ")");
@@ -494,7 +507,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         }
         // down load phone book request
         else if (type.equals(TYPE_PB)) {
-            if (mVcardSelector)
+            if (!isDisabledNonAosp && mVcardSelector)
                 return pullSelectedPhonebook(appParam, appParamValue, reply, op, name);
             else
                 return pullPhonebook(appParam, appParamValue, reply, op, name);
@@ -509,11 +522,9 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         ByteBuffer pvc = ByteBuffer.allocate(16);
         pvc.putLong(primaryVcMsb);
 
-        Log.d(TAG,"BluetoothPbapService.primaryVersionCounter is "+
+        Log.d(TAG,"BluetoothPbapService.primaryVersionCounter is " +
             BluetoothPbapService.primaryVersionCounter);
-
-        updatePBSecondaryFolderVersion(
-            BluetoothPbapService.primaryVersionCounter);
+        updatePBSecondaryFolderVersion(BluetoothPbapService.primaryVersionCounter);
         pvc.putLong(BluetoothPbapService.primaryVersionCounter);
         return pvc.array();
     }
@@ -833,10 +844,10 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         ArrayList<String> nameList = null;
         ArrayList<String> selectedNameList = new ArrayList<String>();
         //check if current request is for SIM
-        if(SIM) {
+        if (SIM) {
              nameList = mVcardManager.getSIMPhonebookNameList(mOrderBy);
-        }else{
-             if (mVcardSelector)
+        } else {
+             if (!isDisabledNonAosp && mVcardSelector)
                 nameList = mVcardManager.getSelectedPhonebookNameList(mOrderBy, vcard21,
                     needSendBody, size, vCardSelector, vCardSelectorOperator);
              else
@@ -1021,7 +1032,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 reply.setHeader(HeaderSet.APPLICATION_PARAMETER, ap.getAPPparam());
             }
 
-            if (mNeedSendPhonebookVersionCounters){
+            if (!isDisabledNonAosp && mNeedSendPhonebookVersionCounters) {
                 mNeedSendPhonebookVersionCounters = false;
                 ap.addAPPHeader(ApplicationParameter.TRIPLET_TAGID.PRIMARYVERSIONCOUNTER_TAGID,
                 ApplicationParameter.TRIPLET_LENGTH.PRIMARYVERSIONCOUNTER_LENGTH,
@@ -1094,7 +1105,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             }
         }
 
-        if (checkPbapFeatureSupport(DatabaseIdentifierBit)) {
+        if (!isDisabledNonAosp && checkPbapFeatureSupport(DatabaseIdentifierBit)) {
             ap.addAPPHeader(ApplicationParameter.TRIPLET_TAGID.DATABASEIDENTIFIER_TAGID,
                 ApplicationParameter.TRIPLET_LENGTH.DATABASEIDENTIFIER_LENGTH, getDatabaseIdentifier());
 
@@ -1107,7 +1118,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             }
         }
 
-        if (mNeedSendPhonebookVersionCounters){
+        if (!isDisabledNonAosp && mNeedSendPhonebookVersionCounters) {
             mNeedSendPhonebookVersionCounters = false;
             ap.addAPPHeader(ApplicationParameter.TRIPLET_TAGID.PRIMARYVERSIONCOUNTER_TAGID,
                 ApplicationParameter.TRIPLET_LENGTH.PRIMARYVERSIONCOUNTER_LENGTH,
@@ -1271,8 +1282,9 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             // For others (ich/och/cch/mch), 0.vcf is meaningless, and must
             // begin from 1.vcf
             if (intIndex >= 1) {
-                return mVcardManager.composeAndSendCallLogVcards(appParamValue.needTag, op, intIndex,
-                    intIndex, vcard21, appParamValue.ignorefilter, appParamValue.propertySelector);
+                return mVcardManager.composeAndSendCallLogVcards(appParamValue.needTag, op,
+                    intIndex, intIndex, vcard21, appParamValue.ignorefilter,
+                    appParamValue.propertySelector);
             }
         }
         return ResponseCodes.OBEX_HTTP_OK;
