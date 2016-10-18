@@ -80,6 +80,8 @@ public class BluetoothPbapVcardManager {
 
     private ContentResolver mResolver;
 
+    private boolean isDisabledNonAosp = false;
+
     private Context mContext;
 
     static final String[] PHONES_PROJECTION = new String[] {
@@ -128,6 +130,7 @@ public class BluetoothPbapVcardManager {
 
     public BluetoothPbapVcardManager(final Context context) {
         mContext = context;
+        isDisabledNonAosp = mContext.getResources().getBoolean(R.bool.disable_non_aosp_bt_features);
         mResolver = mContext.getContentResolver();
         LAST_FETCHED_TIME_STAMP = System.currentTimeMillis();
     }
@@ -759,7 +762,7 @@ public class BluetoothPbapVcardManager {
             }
         }
 
-        if (vcardselect)
+        if (!isDisabledNonAosp && vcardselect)
             return composeContactsAndSendSelectedVCards(op, contactIdCursor, vcardType21,
                 ownerVCard, needSendBody, pbSize, ignorefilter, filter, vcardselector,
                     vcardselectorop);
@@ -767,6 +770,7 @@ public class BluetoothPbapVcardManager {
             return composeContactsAndSendVCards(op, contactIdCursor, vcardType21, ownerVCard,
                 ignorefilter, filter);
     }
+
     public final int composeAndSendSIMPhonebookVcards(Operation op, final int startPoint,
             final int endPoint, final boolean vcardType21, String ownerVCard) {
         if (startPoint < 1 || startPoint > endPoint) {

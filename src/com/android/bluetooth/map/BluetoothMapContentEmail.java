@@ -121,6 +121,7 @@ public class BluetoothMapContentEmail extends BluetoothMapContent {
     /* The MasInstance reference is used to update persistent (over a connection) version counters*/
     private final BluetoothMapMasInstance mMasInstance;
     private String mMessageVersion = BluetoothMapUtils.MAP_V10_STR;
+    private final boolean EMAIL_ATTACHMENT_IMPLEMENTED = false;
 
     private int mRemoteFeatureMask = BluetoothMapUtils.MAP_FEATURE_DEFAULT_BITMASK;
     private int mMsgListingVersion = BluetoothMapUtils.MAP_MESSAGE_LISTING_FORMAT_V10;
@@ -1719,7 +1720,7 @@ public class BluetoothMapContentEmail extends BluetoothMapContent {
                     message.setEmailBody(emailBody);
                     //Parts
                     Long partId = c.getLong(c.getColumnIndex(BaseColumns._ID));
-                    String contentType = "Content-Type: text/plain; charset=\"UTF-8\"";
+                    String contentType = " text/plain; charset=\"UTF-8\"";
                     String name = null;//c.getString(c.getColumnIndex("displayName"));
                     String text = null;
 
@@ -1820,7 +1821,7 @@ public class BluetoothMapContentEmail extends BluetoothMapContent {
                    // Set message type:
                    message.setType(TYPE.EMAIL);
                    message.setVersionString(mMessageVersion);
-                   message.setContentType("Content-Type: text/plain; charset=\"UTF-8\"");
+                   message.setContentType(" text/plain; charset=\"UTF-8\"");
                    message.setDate(c.getLong(c.getColumnIndex(BluetoothMapEmailContract
                        .ExtEmailMessageColumns.TIMESTAMP)));
                    message.setSubject(c.getString(c.getColumnIndex(BluetoothMapContract
@@ -1868,10 +1869,12 @@ public class BluetoothMapContentEmail extends BluetoothMapContent {
                    if(c != null) c.close();
                }
                // Find out if we get attachments
-               //TODO: Attachment Support needs fetch from Attachment content Uri
+               /* TODO: Attachment yet to be supported: Needs fetch from Attachment content Uri.
+                        Hence, mark attachment support false always for now.
                // String attStr = (appParams.getAttachment() == 0) ?
                //     "/" +  BluetoothMapContract.FILE_MSG_NO_ATTACHMENTS : "";
-               message.setIncludeAttachments(appParams.getAttachment() == 0 ? false : true);
+               */
+               message.setIncludeAttachments(EMAIL_ATTACHMENT_IMPLEMENTED);
 
                // The parts
                extractEmailParts(id, message);
