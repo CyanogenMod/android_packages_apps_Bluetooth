@@ -35,13 +35,24 @@
          of the location permissions. -->
     <bool name="strict_location_check">true</bool>
 
-    <!-- Specifies the min/max connection interval parameters for high priority
-         and low power GATT configurations. These values are in multiples of
-         1.25ms. -->
+    <!-- Specifies the min/max connection interval parameters for high priority,
+         balanced and low power GATT configurations. These values are in
+         multiples of 1.25ms. -->
     <integer name="gatt_high_priority_min_interval">9</integer>
     <integer name="gatt_high_priority_max_interval">12</integer>
+    <!-- Default specs recommended interval is 30 (24 * 1.25) -> 50 (40 * 1.25)
+         ms. -->
+    <integer name="gatt_balanced_priority_min_interval">24</integer>
+    <integer name="gatt_balanced_priority_max_interval">40</integer>
     <integer name="gatt_low_power_min_interval">80</integer>
     <integer name="gatt_low_power_max_interval">100</integer>
+
+    <!-- Specifies latency parameters for high priority, balanced and low power
+         GATT configurations. These values represents the number of packets a
+         slave device is allowed to skip. -->
+    <integer name="gatt_high_priority_latency">0</integer>
+    <integer name="gatt_balanced_priority_latency">0</integer>
+    <integer name="gatt_low_power_latency">2</integer>
 
     <bool name="headset_client_initial_audio_route_allowed">true</bool>
 

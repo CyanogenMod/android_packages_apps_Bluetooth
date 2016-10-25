@@ -339,6 +339,7 @@ final class HeadsetClientStateMachine extends StateMachine {
         Log.d(TAG, "Enter sendCallChangedIntent()");
         Log.d(TAG, "sendCallChangedIntent " + c);
         Intent intent = new Intent(BluetoothHeadsetClient.ACTION_CALL_CHANGED);
+        intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         intent.putExtra(BluetoothHeadsetClient.EXTRA_CALL, c);
         mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
         Log.d(TAG, "Exit sendCallChangedIntent()");

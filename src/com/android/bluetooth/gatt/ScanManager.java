@@ -242,7 +242,7 @@ public class ScanManager {
                         Message msg = mHandler.obtainMessage(MSG_SCAN_TIMEOUT);
                         msg.obj = client;
                         // Only one timeout message should exist at any time
-                        mHandler.removeMessages(SCAN_TIMEOUT_MS);
+                        mHandler.removeMessages(MSG_SCAN_TIMEOUT);
                         mHandler.sendMessageDelayed(msg, SCAN_TIMEOUT_MS);
                     }
                 }

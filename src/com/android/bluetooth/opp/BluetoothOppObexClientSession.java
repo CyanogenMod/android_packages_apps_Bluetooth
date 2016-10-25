@@ -476,13 +476,13 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                         outputStream.write(buffer, 0, readLength);
 
                         position += readLength;
+                        /* check remote accept or reject */
+                        responseCode = putOperation.getResponseCode();
 
                         mCallback.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
                         synchronized (this) {
                             mWaitingForRemote = false;
                         }
-                        /* check remote accept or reject */
-                        responseCode = putOperation.getResponseCode();
 
                         if (responseCode == ResponseCodes.OBEX_HTTP_CONTINUE
                                 || responseCode == ResponseCodes.OBEX_HTTP_OK) {
@@ -595,7 +595,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             } finally {
                 try {
                     if (outputStream != null) {
-                      outputStream.close();
+                        outputStream.close();
                     }
 
                     // Close InputStream and remove SendFileInfo from map

@@ -1627,12 +1627,11 @@ public class GattService extends ProfileService {
     void connectionParameterUpdate(int clientIf, String address, int connectionPriority) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
-        // Default spec recommended interval is 30->50 ms
-        int minInterval = 24; // 24 * 1.25ms = 30ms
-        int maxInterval = 40; // 40 * 1.25ms = 50ms
+        int minInterval;
+        int maxInterval;
 
         // Slave latency
-        int latency = 0;
+        int latency;
 
         // Link supervision timeout is measured in N * 10ms
         int timeout = 2000; // 20s
@@ -1642,12 +1641,22 @@ public class GattService extends ProfileService {
             case BluetoothGatt.CONNECTION_PRIORITY_HIGH:
                 minInterval = getResources().getInteger(R.integer.gatt_high_priority_min_interval);
                 maxInterval = getResources().getInteger(R.integer.gatt_high_priority_max_interval);
+                latency = getResources().getInteger(R.integer.gatt_high_priority_latency);
                 break;
 
             case BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER:
                 minInterval = getResources().getInteger(R.integer.gatt_low_power_min_interval);
                 maxInterval = getResources().getInteger(R.integer.gatt_low_power_max_interval);
-                latency = 2;
+                latency = getResources().getInteger(R.integer.gatt_low_power_latency);
+                break;
+
+            default:
+                // Using the values for CONNECTION_PRIORITY_BALANCED.
+                minInterval =
+                        getResources().getInteger(R.integer.gatt_balanced_priority_min_interval);
+                maxInterval =
+                        getResources().getInteger(R.integer.gatt_balanced_priority_max_interval);
+                latency = getResources().getInteger(R.integer.gatt_balanced_priority_latency);
                 break;
         }
 

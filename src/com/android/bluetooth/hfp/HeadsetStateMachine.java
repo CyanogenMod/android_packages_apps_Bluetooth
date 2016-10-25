@@ -70,6 +70,7 @@ import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -110,10 +111,12 @@ final class HeadsetStateMachine extends StateMachine {
     static final int ENABLE_WBS = 16;
     static final int DISABLE_WBS = 17;
 
-    static final int UPDATE_A2DP_PLAY_STATE = 18;
-    static final int UPDATE_A2DP_CONN_STATE = 19;
-    static final int QUERY_PHONE_STATE_AT_SLC = 20;
-    static final int UPDATE_CALL_TYPE = 21;
+    static final int BIND_RESPONSE = 18;
+
+    static final int UPDATE_A2DP_PLAY_STATE = 28;
+    static final int UPDATE_A2DP_CONN_STATE = 29;
+    static final int QUERY_PHONE_STATE_AT_SLC = 30;
+    static final int UPDATE_CALL_TYPE = 31;
 
     private static final int STACK_EVENT = 101;
     private static final int DIALING_OUT_TIMEOUT = 102;
@@ -627,6 +630,15 @@ final class HeadsetStateMachine extends StateMachine {
                             }
                             processConnectionEvent(event.valueInt, event.device);
                             break;
+
+                        case EVENT_TYPE_BIND:
+                            processAtBind(event.valueString, event.device);
+                            break;
+
+                        case EVENT_TYPE_BIEV:
+                            processAtBiev(event.valueInt, event.valueInt2, event.device);
+                            break;
+
                         default:
                             Log.e(TAG, "Unexpected event: " + event.type);
                             break;
@@ -1069,6 +1081,13 @@ final class HeadsetStateMachine extends StateMachine {
                 case UPDATE_CALL_TYPE:
                     processIntentUpdateCallType((Intent) message.obj);
                     break;
+                case BIND_RESPONSE:
+                {
+                    BluetoothDevice device = (BluetoothDevice) message.obj;
+                    bindResponseNative((int)message.arg1, ((message.arg2 == 1) ? true : false),
+                                        getByteAddress(device));
+                }
+                    break;
                 case START_VR_TIMEOUT:
                 {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
@@ -1148,6 +1167,12 @@ final class HeadsetStateMachine extends StateMachine {
                             break;
                         case EVENT_TYPE_KEY_PRESSED:
                             processKeyPressed(event.device);
+                            break;
+                        case EVENT_TYPE_BIND:
+                            processAtBind(event.valueString, event.device);
+                            break;
+                        case EVENT_TYPE_BIEV:
+                            processAtBiev(event.valueInt, event.valueInt2, event.device);
                             break;
                         default:
                             Log.e(TAG, "Unknown stack event: " + event.type);
@@ -1649,6 +1674,12 @@ final class HeadsetStateMachine extends StateMachine {
                         case EVENT_TYPE_KEY_PRESSED:
                             processKeyPressed(event.device);
                             break;
+                        case EVENT_TYPE_BIND:
+                            processAtBind(event.valueString, event.device);
+                            break;
+                        case EVENT_TYPE_BIEV:
+                            processAtBiev(event.valueInt, event.valueInt2, event.device);
+                            break;
                         default:
                             Log.e(TAG, "Unknown stack event: " + event.type);
                             break;
@@ -2066,6 +2097,12 @@ final class HeadsetStateMachine extends StateMachine {
                             break;
                         case EVENT_TYPE_KEY_PRESSED:
                             processKeyPressed(event.device);
+                            break;
+                        case EVENT_TYPE_BIND:
+                            processAtBind(event.valueString, event.device);
+                            break;
+                        case EVENT_TYPE_BIEV:
+                            processAtBiev(event.valueInt, event.valueInt2, event.device);
                             break;
                         default:
                             Log.e(TAG, "Unexpected event: " + event.type);
@@ -3740,6 +3777,65 @@ final class HeadsetStateMachine extends StateMachine {
         if (DBG) Log.d(TAG, "Exit processKeyPressed()");
     }
 
+    private void sendIndicatorIntent(BluetoothDevice device, int ind_id, String ind_value)
+    {
+        Intent intent = new Intent(BluetoothHeadset.ACTION_HF_INDICATORS_VALUE_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.putExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_ID, ind_id);
+        if (ind_value != null)
+            intent.putExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_VALUE, ind_value);
+
+        mService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
+    }
+
+    private void processAtBind( String at_string, BluetoothDevice device) {
+        log("processAtBind processAtBind: " + at_string);
+
+        // Parse the AT String to find the Indicator Ids that are supported
+        int ind_id = 0;
+        int iter = 0;
+        int iter1 = 0;
+
+        while (iter < at_string.length()) {
+            iter1 = findChar(',', at_string, iter);
+            String id = at_string.substring(iter, iter1);
+
+            try {
+                ind_id = new Integer(id);
+            } catch (NumberFormatException e) {
+                Log.e(TAG, Log.getStackTraceString(new Throwable()));
+            }
+
+            switch (ind_id) {
+                case HeadsetHalConstants.HF_INDICATOR_ENHANCED_DRIVER_SAFETY :
+                    log("Send Broadcast intent for the" +
+                        "Enhanced Driver Safety indicator.");
+                    sendIndicatorIntent(device, ind_id, null);
+                    break;
+                case HeadsetHalConstants.HF_INDICATOR_BATTERY_LEVEL_STATUS :
+                    log("Send Broadcast intent for the" +
+                        "Battery Level indicator.");
+                    sendIndicatorIntent(device, ind_id, null);
+                    break;
+                default:
+                    log("Invalid HF Indicator Received");
+                    break;
+            }
+
+            iter = iter1 + 1; // move past comma
+        }
+    }
+
+    private void processAtBiev( int ind_id, int ind_value, BluetoothDevice device) {
+        log(" Process AT + BIEV Command : " + ind_id + ", " + ind_value);
+
+        String ind_value_str = Integer.toString(ind_value);
+
+        Intent intent = new Intent(BluetoothHeadset.ACTION_HF_INDICATORS_VALUE_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        sendIndicatorIntent(device, ind_id, ind_value_str);
+    }
+
     private void onConnectionStateChanged(int state, byte[] address) {
         if (DBG) Log.d(TAG, "Enter onConnectionStateChanged()");
         StackEvent event = new StackEvent(EVENT_TYPE_CONNECTION_STATE_CHANGED);
@@ -3885,6 +3981,21 @@ final class HeadsetStateMachine extends StateMachine {
         event.device = getDevice(address);
         sendMessage(STACK_EVENT, event);
         if (DBG) Log.d(TAG, "Exit onKeyPressed()");
+    }
+
+    private void onATBind(String atString, byte[] address) {
+        StackEvent event = new StackEvent(EVENT_TYPE_BIND);
+        event.valueString = atString;
+        event.device = getDevice(address);
+        sendMessage(STACK_EVENT, event);
+    }
+
+    private void onATBiev(int ind_id, int ind_value, byte[] address) {
+        StackEvent event = new StackEvent(EVENT_TYPE_BIEV);
+        event.valueInt = ind_id;
+        event.valueInt2 = ind_value;
+        event.device = getDevice(address);
+        sendMessage(STACK_EVENT, event);
     }
 
     private void processIntentBatteryChanged(Intent intent) {
@@ -4095,6 +4206,8 @@ final class HeadsetStateMachine extends StateMachine {
     final private static int EVENT_TYPE_UNKNOWN_AT = 15;
     final private static int EVENT_TYPE_KEY_PRESSED = 16;
     final private static int EVENT_TYPE_WBS = 17;
+    final private static int EVENT_TYPE_BIND = 18;
+    final private static int EVENT_TYPE_BIEV = 19;
 
     private class StackEvent {
         int type = EVENT_TYPE_NONE;
@@ -4125,6 +4238,7 @@ final class HeadsetStateMachine extends StateMachine {
     private native boolean cindResponseNative(int service, int numActive, int numHeld,
                                               int callState, int signal, int roam,
                                               int batteryCharge, byte[] address);
+    private native boolean bindResponseNative(int ind_id, boolean ind_status, byte[] address);
     private native boolean notifyDeviceStatusNative(int networkState, int serviceType, int signal,
                                                     int batteryCharge);
 

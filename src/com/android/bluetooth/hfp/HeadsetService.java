@@ -331,6 +331,12 @@ public class HeadsetService extends ProfileService {
             if (service == null) return false;
             return service.disableWBS();
         }
+
+        public void bindResponse(int ind_id, boolean ind_status) {
+            HeadsetService service = getService();
+            if (service == null) return;
+            service.bindResponse(ind_id, ind_status);
+        }
     };
 
     //API methods
@@ -637,6 +643,24 @@ public class HeadsetService extends ProfileService {
         }
         if (DBG) Log.d(TAG, "Exit disableWBS");
         return true;
+    }
+
+    private boolean bindResponse(int ind_id, boolean ind_status) {
+        for (BluetoothDevice device: getConnectedDevices()) {
+            int connectionState = mStateMachine.getConnectionState(device);
+            if (connectionState != BluetoothProfile.STATE_CONNECTED &&
+                connectionState != BluetoothProfile.STATE_CONNECTING) {
+                continue;
+            }
+            if (DBG) Log.d("Bind Response sent for", device.getAddress());
+            Message msg = mStateMachine.obtainMessage(HeadsetStateMachine.BIND_RESPONSE);
+            msg.obj = device;
+            msg.arg1 = ind_id;
+            msg.arg2 = (ind_status == true) ? 1 : 0;
+            mStateMachine.sendMessage(msg);
+            return true;
+        }
+        return false;
     }
 
     @Override

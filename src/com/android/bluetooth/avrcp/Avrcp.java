@@ -5435,6 +5435,7 @@ public final class Avrcp {
             ProfileService.println(sb, "mVolCmdAdjustInProgress: " + deviceFeatures[i].mVolCmdAdjustInProgress);
             ProfileService.println(sb, "mAbsVolRetryTimes: " + deviceFeatures[i].mAbsVolRetryTimes);
             ProfileService.println(sb, "mSkipAmount: " + mSkipAmount);
+            ProfileService.println(sb, "mVolumeMapping: " + deviceFeatures[i].mVolumeMapping.toString());
             if (mMediaController != null)
                 ProfileService.println(sb, "mMediaSession pkg: " +
                         mMediaController.getPackageName());

@@ -37,6 +37,7 @@ import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.os.Process;
 import android.os.RemoteException;
+import android.os.UserManager;
 import android.provider.Telephony;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.MmsSms;
@@ -1184,9 +1185,10 @@ public class BluetoothMapContentObserver {
 
     private void initMsgList() throws RemoteException {
         if (V) Log.d(TAG, "initMsgList");
+        UserManager manager = UserManager.get(mContext);
+        if (manager == null || manager.isUserUnlocked()) return;
 
-        if(mEnableSmsMms) {
-
+        if (mEnableSmsMms) {
             HashMap<Long, Msg> msgListSms = new HashMap<Long, Msg>();
 
             Cursor c = mResolver.query(Sms.CONTENT_URI,
@@ -2361,21 +2363,19 @@ public class BluetoothMapContentObserver {
         /* Approved MAP spec errata 3445 states that read status initiated
          * by the MCE shall change the MSE read status. */
         if (type == TYPE.SMS_GSM || type == TYPE.SMS_CDMA) {
-            Uri uri = Sms.Inbox.CONTENT_URI;
+            Uri uri = ContentUris.withAppendedId(Sms.CONTENT_URI, handle);
             ContentValues contentValues = new ContentValues();
             contentValues.put(Sms.READ, statusValue);
             contentValues.put(Sms.SEEN, statusValue);
-            String where = Sms._ID+"="+handle;
             String values = contentValues.toString();
-            if (D) Log.d(TAG, " -> SMS Uri: " + uri.toString() +
-                    " Where " + where + " values " + values);
+            if (D) Log.d(TAG, " -> SMS Uri: " + uri.toString() + " values " + values);
             synchronized(getMsgListSms()) {
                 Msg msg = getMsgListSms().get(handle);
                 if(msg != null) { // This will always be the case
                     msg.flagRead = statusValue;
                 }
             }
-            count = mResolver.update(uri, contentValues, where, null);
+            count = mResolver.update(uri, contentValues, null, null);
             if (D) Log.d(TAG, " -> "+count +" rows updated!");
 
         } else if (type == TYPE.MMS) {
@@ -2455,8 +2455,16 @@ public class BluetoothMapContentObserver {
         long folderId = -1;
 
         if (recipientList == null) {
-            if (D) Log.d(TAG, "empty recipient list");
-            return -1;
+            if (folderElement.getName().equalsIgnoreCase(BluetoothMapContract.FOLDER_NAME_DRAFT)) {
+                BluetoothMapbMessage.vCard empty =
+                    new BluetoothMapbMessage.vCard("", "", null, null, 0);
+                recipientList = new ArrayList<BluetoothMapbMessage.vCard>();
+                recipientList.add(empty);
+                Log.w(TAG, "Added empty recipient to draft message");
+            } else {
+                Log.e(TAG, "Trying to send a message with no recipients");
+                return -1;
+            }
         }
 
         if ( msg.getType().equals(TYPE.EMAIL) ) {
@@ -3331,6 +3339,8 @@ public class BluetoothMapContentObserver {
     private void resendPendingMessages() {
         /* Send pending messages in outbox */
         String where = "type = " + Sms.MESSAGE_TYPE_OUTBOX;
+        UserManager manager = UserManager.get(mContext);
+        if (manager == null || !manager.isUserUnlocked()) return;
         Cursor c = mResolver.query(Sms.CONTENT_URI, SMS_PROJECTION, where, null,
                 null);
         try {

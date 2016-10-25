@@ -123,6 +123,7 @@ public class BluetoothOppSendFileInfo {
                 Log.e(TAG, "generateFileInfo: " + e);
                 return new BluetoothOppSendFileInfo(fileName, contentType, length, null, 0);
             }
+
             if (metadataCursor != null) {
                 try {
                     if (metadataCursor.moveToFirst()) {

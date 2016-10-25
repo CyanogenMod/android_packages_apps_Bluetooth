@@ -27,6 +27,7 @@ import android.util.Log;
 import android.util.Xml;
 
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
+import com.android.bluetooth.util.Interop;
 
 public class BluetoothMapMessageListingElement
     implements Comparable<BluetoothMapMessageListingElement> {
@@ -276,9 +277,17 @@ public class BluetoothMapMessageListingElement
                     BluetoothMapUtils.getMapHandle(mCpHandle, mType));
             if(mSubject != null){
                 String stripped = BluetoothMapUtils.stripInvalidChars(mSubject);
+
+                if (Interop.matchByAddress(Interop.INTEROP_MAP_ASCIIONLY,
+                        BluetoothMapService.getRemoteDevice().getAddress())) {
+                    stripped = stripped.replaceAll("[\\P{ASCII}&\"><]", "");
+                    if (stripped.isEmpty()) stripped = "---";
+                }
+
                 xmlMsgElement.attribute(null, "subject",
                         stripped.substring(0,  stripped.length() < 256 ? stripped.length() : 256));
             }
+
             if(mDateTime != 0)
                 xmlMsgElement.attribute(null, "datetime", this.getDateTimeString());
             if(mSenderName != null)
