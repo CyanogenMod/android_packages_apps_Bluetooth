@@ -162,6 +162,11 @@ final class A2dpStateMachine extends StateMachine {
             isMultiCastFeatureEnabled = false;
         }
 
+        // initNative can crash due to the offload_cap string being null
+        if (offload_cap == null) {
+            offload_cap = "";
+        }
+
         initNative(maxA2dpConnections, multiCastState, offload_cap);
 
         mDisconnected = new Disconnected();
