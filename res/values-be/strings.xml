@@ -33,7 +33,9 @@
   <!-- string for "unknown device" -->
   <!-- string for "unknown" phone number" -->
   <!-- string for "the title of airplane mode error" -->
+  <string name="airplane_error_title">Рэжым лёту</string>
   <!-- string for "error message in airplane mode" -->
+  <string name="airplane_error_msg">Нельга выкарыстоўваць Bluetooth падчас рэжыма лёту.</string>
   <!-- Activate Bluetooth Confirmation Dialog -->
   <!--Title -->
   <!--Line 1 -->
@@ -48,8 +50,6 @@
   <!-- Label for timeout OK button.-->
   <!-- content for timeout-->
   <!-- Bluetooth File Transfer Acceptance Notification item -->
-  <string name="incoming_file_confirm_Notification_title">Dolazni fajl</string>
-  <string name="incoming_file_confirm_Notification_content"><xliff:g id="SENDER">%1$s</xliff:g> sada može poslati <xliff:g id="FILE">%2$s</xliff:g></string>
   <!-- Inbound File Transfer Progress Notification item -->
   <!-- label for the notification item of receiving file -->
   <!-- label for the notification item of received file -->
@@ -98,7 +98,4 @@
   <!-- Used to run Bluetooth.apk in another process if needed -->
   <!-- Do not translate. android:sharedUserId string of this application. -->
   <!-- Do not translate. android:process of this application. -->
-  <string name="bluetooth_map_settings_intro">Odaberite račune koje želite dijeliti preko Bluetootha. I dalje morate prihvatiti bilo koji pristup računima prilikom povezivanja.</string>
-  <string name="bluetooth_connected">Bluetooth audio je povezan</string>
-  <string name="bluetooth_disconnected">Bluetooth audio je isključen</string>
 </resources>
