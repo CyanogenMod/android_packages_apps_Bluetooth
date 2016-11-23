@@ -16,5 +16,6 @@
      limitations under the License.
 -->
 <resources>
+  <string name="incoming_file_toast_msg">他の端末からファイルが送信されています。このファイルを受け取るかどうか確認してください。</string>
   <string name="upload_fail_waiting">ファイルを送信できませんでした、再試行しています\u2026</string>
 </resources>
