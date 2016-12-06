@@ -25,6 +25,9 @@ message BluetoothLog {
 
   // Scan event information.
   repeated ScanEvent scan_event = 4;
+
+  // Number of bonded devices.
+  optional int32 num_bonded_devices = 5;
 }
 
 // The information about the device.

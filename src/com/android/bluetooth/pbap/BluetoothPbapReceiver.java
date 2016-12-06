@@ -42,22 +42,22 @@ public class BluetoothPbapReceiver extends BroadcastReceiver {
 
     private static final String TAG = "BluetoothPbapReceiver";
 
-    private static final boolean V = Log.isLoggable(BluetoothPbapService.LOG_TAG, Log.VERBOSE);
+    private static final boolean D = BluetoothPbapService.DEBUG;
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (V) Log.v(TAG, "PbapReceiver onReceive ");
         Intent in = new Intent();
         in.putExtras(intent);
         in.setClass(context, BluetoothPbapService.class);
         String action = intent.getAction();
         in.putExtra("action", action);
-        Log.i(TAG, "Enter - onReceive for intent:" + action);
+        if (D) Log.d(TAG, "PbapReceiver onReceive action = " + action);
+
         boolean startService = true;
         if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
             int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
             in.putExtra(BluetoothAdapter.EXTRA_STATE, state);
-            Log.i(TAG, "State :" + state);
+            if (D) Log.d(TAG, "state = " + state);
             if ((state == BluetoothAdapter.STATE_TURNING_ON)
                     || (state == BluetoothAdapter.STATE_OFF)) {
                 //FIX: We turn on PBAP after BluetoothAdapter.STATE_ON,
@@ -68,11 +68,13 @@ public class BluetoothPbapReceiver extends BroadcastReceiver {
             // Don't forward intent unless device has bluetooth and bluetooth is enabled.
             BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
             if (adapter == null || !adapter.isEnabled()) {
+                if (D) Log.d(TAG, "BluetoothAdapter is not enabled (" +
+                             adapter + "). Would not start service.");
                 startService = false;
             }
         }
         if (startService) {
-            if (V) Log.v(TAG, "Calling start service!!!! with action = " + in.getAction());
+            if (D) Log.d(TAG, "Calling start service with action = " + in.getAction());
             context.startService(in);
         }
         Log.i(TAG, "Exit - onReceive for intent:" + action);

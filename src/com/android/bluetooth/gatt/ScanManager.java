@@ -40,11 +40,13 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.app.IBatteryStats;
 
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -95,8 +97,8 @@ public class ScanManager {
     private CountDownLatch mLatch;
 
     ScanManager(GattService service) {
-        mRegularScanClients = new HashSet<ScanClient>();
-        mBatchClients = new HashSet<ScanClient>();
+        mRegularScanClients = Collections.newSetFromMap(new ConcurrentHashMap<ScanClient, Boolean>());
+        mBatchClients = Collections.newSetFromMap(new ConcurrentHashMap<ScanClient, Boolean>());
         mService = service;
         mScanNative = new ScanNative();
         curUsedTrackableAdvertisements = 0;
@@ -238,7 +240,7 @@ public class ScanManager {
                 if (!mScanNative.isOpportunisticScanClient(client)) {
                     mScanNative.configureRegularScanParams();
 
-                    if (!mScanNative.isFirstMatchScanClient(client)) {
+                    if (!mScanNative.isExemptFromScanDowngrade(client)) {
                         Message msg = mHandler.obtainMessage(MSG_SCAN_TIMEOUT);
                         msg.obj = client;
                         // Only one timeout message should exist at any time
@@ -261,10 +263,6 @@ public class ScanManager {
             if (client == null) return;
 
             if (mRegularScanClients.contains(client)) {
-                // The ScanClient passed in just holds the clientIf. We retrieve the real client,
-                // which may have workSource set.
-                client = mScanNative.getRegularScanClient(client.clientIf);
-                if (client == null) return;
 
                 mScanNative.stopRegularScan(client);
 
@@ -278,7 +276,11 @@ public class ScanManager {
 
                 // Update BatteryStats with this workload.
                 try {
-                    mBatteryStats.noteBleScanStopped(client.workSource);
+                    // The ScanClient passed in just holds the clientIf. We retrieve the real client,
+                    // which may have workSource set.
+                    ScanClient workClient = mScanNative.getRegularScanClient(client.clientIf);
+                    if (workClient != null)
+                        mBatteryStats.noteBleScanStopped(workClient.workSource);
                 } catch (RemoteException e) {
                     /* ignore */
                 }
@@ -534,6 +536,12 @@ public class ScanManager {
             }
         }
 
+        private boolean isExemptFromScanDowngrade(ScanClient client) {
+          return isOpportunisticScanClient(client)
+              || isFirstMatchScanClient(client)
+              || !shouldUseAllPassFilter(client);
+        }
+
         private boolean isOpportunisticScanClient(ScanClient client) {
             return client.settings.getScanMode() == ScanSettings.SCAN_MODE_OPPORTUNISTIC;
         }
@@ -683,8 +691,9 @@ public class ScanManager {
 
         void regularScanTimeout() {
             for (ScanClient client : mRegularScanClients) {
-                if (!isOpportunisticScanClient(client) && !isFirstMatchScanClient(client)) {
-                    logd("clientIf set to scan opportunisticly: " + client.clientIf);
+                if (!isExemptFromScanDowngrade(client)) {
+                    Log.w(TAG, "Moving scan client to opportunistic (clientIf "
+                          + client.clientIf + ")");
                     setOpportunisticScanClient(client);
                     client.stats.setScanTimeout();
                 }

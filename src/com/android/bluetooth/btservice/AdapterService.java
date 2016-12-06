@@ -89,7 +89,8 @@ import android.os.SystemProperties;
 
 public class AdapterService extends Service {
     private static final String TAG = "BluetoothAdapterService";
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
+    private static final boolean VERBOSE = false;
     private static final boolean TRACE_REF = false;
     private static final int MIN_ADVT_INSTANCES_FOR_MA = 5;
     private static final int MIN_OFFLOADED_FILTERS = 10;
@@ -2665,11 +2666,12 @@ public class AdapterService extends Service {
             }
         }
 
-        debugLog("energyInfoCallback() status = " + status +
-                "tx_time = " + tx_time + "rx_time = " + rx_time +
-                "idle_time = " + idle_time + "energy_used = " + energy_used +
-                "ctrl_state = " + ctrl_state +
-                "traffic = " + Arrays.toString(data));
+        verboseLog("energyInfoCallback() status = " + status +
+                   "tx_time = " + tx_time + "rx_time = " + rx_time +
+                   "idle_time = " + idle_time +
+                   "energy_used = " + energy_used +
+                   "ctrl_state = " + ctrl_state +
+                   "traffic = " + Arrays.toString(data));
     }
 
     private int getIdleCurrentMa() {
@@ -2715,8 +2717,8 @@ public class AdapterService extends Service {
         enforceCallingOrSelfPermission(android.Manifest.permission.DUMP, TAG);
 
         if (args.length > 0) {
-            debugLog("dumpsys arguments, check for protobuf output: " +
-                    TextUtils.join(" ", args));
+            verboseLog("dumpsys arguments, check for protobuf output: "
+                       + TextUtils.join(" ", args));
             if (args[0].startsWith("--proto")) {
                 if (args[0].equals("--proto-java-bin")) {
                     dumpJava(fd);
@@ -2764,6 +2766,7 @@ public class AdapterService extends Service {
 
     private void dumpJava(FileDescriptor fd) {
         BluetoothProto.BluetoothLog log = new BluetoothProto.BluetoothLog();
+        log.setNumBondedDevices(getBondedDevices().length);
 
         for (ProfileService profile : mProfiles) {
             profile.dumpProto(log);
@@ -2789,6 +2792,10 @@ public class AdapterService extends Service {
 
     private void debugLog(String msg) {
         if (DBG) Log.d(TAG, msg);
+    }
+
+    private void verboseLog(String msg) {
+        if (VERBOSE) Log.v(TAG, msg);
     }
 
     private void errorLog(String msg) {

@@ -1194,7 +1194,7 @@ public class BluetoothMapContentObserver {
     private void initMsgList() throws RemoteException {
         if (V) Log.d(TAG, "initMsgList");
         UserManager manager = UserManager.get(mContext);
-        if (manager == null || manager.isUserUnlocked()) return;
+        if (manager == null || !manager.isUserUnlocked()) return;
 
         if (mEnableSmsMms) {
             HashMap<Long, Msg> msgListSms = new HashMap<Long, Msg>();

@@ -237,6 +237,7 @@ public class GattService extends ProfileService {
 
     boolean permissionCheck(int connId, int handle) {
         List<BluetoothGattService> db = gattClientDatabases.get(connId);
+        if (db == null) return true;
 
         for (BluetoothGattService service : db) {
             for (BluetoothGattCharacteristic characteristic: service.getCharacteristics()) {
@@ -759,7 +760,15 @@ public class GattService extends ProfileService {
     void onSearchCompleted(int connId, int status) throws RemoteException {
         if (DBG) Log.d(TAG, "onSearchCompleted() - connId=" + connId+ ", status=" + status);
         // Gatt DB is ready!
-        gattClientGetGattDbNative(connId);
+
+        // This callback was called from the jni_workqueue thread. If we make request to the stack
+        // on the same thread, it might cause deadlock. Schedule request on a new thread instead.
+        Thread t = new Thread(new Runnable() {
+            public void run() {
+                gattClientGetGattDbNative(connId);
+            }
+        });
+        t.start();
     }
 
     GattDbElement GetSampleGattDbElement() {
