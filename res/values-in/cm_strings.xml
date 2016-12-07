@@ -16,5 +16,6 @@
      limitations under the License.
 -->
 <resources>
+  <string name="incoming_file_toast_msg">Berkas masuk dari perangkat lain. Konfirmasi anda ingin menerima berkas ini.</string>
   <string name="upload_fail_waiting">Tidak dapat mengirim berkas, mencoba kembali\u2026</string>
 </resources>
