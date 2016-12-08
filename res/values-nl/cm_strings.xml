@@ -16,5 +16,6 @@
      limitations under the License.
 -->
 <resources>
+  <string name="incoming_file_toast_msg">Inkomend bestand vanaf een ander apparaat. Bevestig dat u dit bestand wilt ontvangen.</string>
   <string name="upload_fail_waiting">Kan bestand niet verzenden, opnieuw proberen\u2026</string>
 </resources>
