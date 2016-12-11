@@ -16,5 +16,6 @@
      limitations under the License.
 -->
 <resources>
+  <string name="incoming_file_toast_msg">Fichier en provenance d\'un autre appareil. Confirmez que vous voulez recevoir ce fichier.</string>
   <string name="upload_fail_waiting">Impossible d\'envoyer le fichier, nouvelle tentative\u2026</string>
 </resources>
