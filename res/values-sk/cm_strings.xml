@@ -16,5 +16,6 @@
      limitations under the License.
 -->
 <resources>
+  <string name="incoming_file_toast_msg">Prichádzajúci súbor z iného zariadenia. Potvrďte, či chcete prijať tento súbor.</string>
   <string name="upload_fail_waiting">Nepodarilo sa poslať súbor, opakovanie\u2026</string>
 </resources>
