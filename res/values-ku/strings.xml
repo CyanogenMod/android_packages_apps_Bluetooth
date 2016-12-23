@@ -50,6 +50,7 @@
   <string name="airplane_error_msg">ناتوانی بلوتوس بەکاربهێنی لە باری فڕۆکە.</string>
   <!-- Activate Bluetooth Confirmation Dialog -->
   <!--Title -->
+  <string name="bt_enable_title"></string>
   <!--Line 1 -->
   <string name="bt_enable_line1">بۆ بەکارهێنانی خزمەتگوزاری بلوتوس ئەبێت بلوتوسەکە بکەیتەوە.</string>
   <!--Line 2 -->
@@ -101,6 +102,7 @@
   <!--Line 3 -->
   <string name="download_line3">قەبارەی فایلەکە: <xliff:g id="size">%1$s</xliff:g></string>
   <!--Line 4 -->
+  <string name="download_line4"></string>
   <string name="download_line5">وەرگرتنی پەڕگە\u2026</string>
   <!-- Label for a cancel button. -->
   <string name="download_cancel">وه‌ستاندن</string>
@@ -193,6 +195,12 @@
   <!-- Do not translate. file name used for sharing. -->
   <!-- Used to run Bluetooth.apk in another process if needed -->
   <!-- Do not translate. android:sharedUserId string of this application. -->
+  <string name="sharedUserId" translate="false">
+    <xliff:g id="x"></xliff:g>
+  </string>
   <!-- Do not translate. android:process of this application. -->
+  <string name="process" translate="false">
+    <xliff:g id="x"></xliff:g>
+  </string>
   <string name="bluetooth_map_settings_cancel">هەڵوەشاندنەوە</string>
 </resources>
