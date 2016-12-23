@@ -45,6 +45,7 @@
   <string name="airplane_error_msg">ئايروپىلان ھالىتىدە كۆكچىش ئىشلىتەلمەيسىز.</string>
   <!-- Activate Bluetooth Confirmation Dialog -->
   <!--Title -->
+  <string name="bt_enable_title"></string>
   <!--Line 1 -->
   <string name="bt_enable_line1">كۆكچىش مۇلازىمىتى ئىشلىتىشتە ئالدى بىلەن كۆكچىشنى ئېچىشىڭىز لازىم.</string>
   <!--Line 2 -->
@@ -95,6 +96,7 @@
   <!--Line 3 -->
   <string name="download_line3">ھۆججەت چوڭلۇقى: <xliff:g id="SIZE">%1$s</xliff:g></string>
   <!--Line 4 -->
+  <string name="download_line4"></string>
   <string name="download_line5">ھۆججەت قوبۇللاۋاتىدۇ…</string>
   <!-- Label for a cancel button. -->
   <string name="download_cancel">توختا</string>
@@ -188,5 +190,11 @@
   <!-- Do not translate. file name used for sharing. -->
   <!-- Used to run Bluetooth.apk in another process if needed -->
   <!-- Do not translate. android:sharedUserId string of this application. -->
+  <string name="sharedUserId" translate="false">
+    <xliff:g id="x"></xliff:g>
+  </string>
   <!-- Do not translate. android:process of this application. -->
+  <string name="process" translate="false">
+    <xliff:g id="x"></xliff:g>
+  </string>
 </resources>

@@ -36,6 +36,7 @@
   <!-- string for "error message in airplane mode" -->
   <!-- Activate Bluetooth Confirmation Dialog -->
   <!--Title -->
+  <string name="bt_enable_title"></string>
   <!--Line 1 -->
   <!--Line 2 -->
   <!-- Label for a cancel button. -->
@@ -63,6 +64,7 @@
   <!--Line 2 -->
   <!--Line 3 -->
   <!--Line 4 -->
+  <string name="download_line4"></string>
   <!-- Label for a cancel button. -->
   <!-- Label for a hide button.-->
   <!--Line 1 -->
@@ -95,5 +97,11 @@
   <!-- Do not translate. file name used for sharing. -->
   <!-- Used to run Bluetooth.apk in another process if needed -->
   <!-- Do not translate. android:sharedUserId string of this application. -->
+  <string name="sharedUserId" translate="false">
+    <xliff:g id="x"></xliff:g>
+  </string>
   <!-- Do not translate. android:process of this application. -->
+  <string name="process" translate="false">
+    <xliff:g id="x"></xliff:g>
+  </string>
 </resources>
