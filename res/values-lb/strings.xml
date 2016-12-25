@@ -45,6 +45,7 @@
   <string name="airplane_error_msg">Du kanns Bluetooth net am Fligermodus benotzen.</string>
   <!-- Activate Bluetooth Confirmation Dialog -->
   <!--Title -->
+  <string name="bt_enable_title"></string>
   <!--Line 1 -->
   <string name="bt_enable_line1">Fir Bluetooth-Servicer ze benotze muss du fir d\'éischt Bluetooth uschalten.</string>
   <!--Line 2 -->
@@ -93,6 +94,7 @@
   <!--Line 3 -->
   <string name="download_line3">Fichiersgréisst: <xliff:g id="size">%1$s</xliff:g></string>
   <!--Line 4 -->
+  <string name="download_line4"></string>
   <string name="download_line5">Fichier gëtt empfaangen\u2026</string>
   <!-- Label for a cancel button. -->
   <string name="download_cancel">Stoppen</string>
@@ -196,7 +198,13 @@
   <!-- Do not translate. file name used for sharing. -->
   <!-- Used to run Bluetooth.apk in another process if needed -->
   <!-- Do not translate. android:sharedUserId string of this application. -->
+  <string name="sharedUserId" translate="false">
+    <xliff:g id="x"></xliff:g>
+  </string>
   <!-- Do not translate. android:process of this application. -->
+  <string name="process" translate="false">
+    <xliff:g id="x"></xliff:g>
+  </string>
   <string name="bluetooth_map_settings_save">Späicheren</string>
   <string name="bluetooth_map_settings_cancel">Ofbriechen</string>
   <string name="bluetooth_map_settings_app_icon">App-Symbol</string>
